@@ -1,0 +1,183 @@
+{
+  "state": "WY",
+  "stateName": "Wyoming",
+  "comparedAt": "2026-04-09T17:40:57.379Z",
+  "total": 3,
+  "newPrograms": 0,
+  "withDiffs": 3,
+  "withNovelFields": 3,
+  "benefitTypes": {
+    "financial": 3
+  },
+  "variationPatterns": {
+    "not_applicable": 1,
+    "household_size|priority_tier|fuel_type": 1,
+    "income_level": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 3,
+      "programs": [
+        "Wyoming State Parks Senior Discounts",
+        "Low Income Energy Assistance Program (LIHEAP)",
+        "Wyoming Tax Refund for Elderly & Disabled"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "documents_required": {
+      "count": 3,
+      "programs": [
+        "Wyoming State Parks Senior Discounts",
+        "Low Income Energy Assistance Program (LIHEAP)",
+        "Wyoming Tax Refund for Elderly & Disabled"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Low Income Energy Assistance Program (LIHEAP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Low Income Energy Assistance Program (LIHEAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Wyoming State Parks Senior Discounts",
+      "isNew": false,
+      "existingId": "wyoming",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Photo ID proving age 62+",
+            "Proof of Wyoming residency (e.g., driver's license)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No formal pass or application; simple proof-of-age/residency discount at entry. No income/asset tests. Distinct from annual resident passes which require purchase.",
+      "gotchas": [
+        "Discounts not automatic—must request and show proof of age/residency each time.",
+        "Separate from federal Senior Pass (for national parks like Yellowstone).",
+        "Annual camping passes (resident-only) provide discounts but are not senior-specific; seniors get on-the-spot reductions instead.",
+        "No dedicated senior pass sticker; differs from states with formal senior passes like Nevada or Texas.",
+        "Historic sites may have fixed senior pricing (e.g., $9 adult/$4.50 youth at some, but seniors qualify for reduced)."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "wyoming",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in current program details.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered statewide by Dept. of Family Services; eligibility determined by contractors like NOWCAP (covers state, possible regional processing differences). No specific wait time or provider variations detailed.[1][3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Funding limited; applications may stop if funds exhausted (no formal waitlist mentioned).[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of household income (earned/unearned).",
+            "Most recent utility bill.",
+            "Photocopy of ID for every household member.",
+            "Application form.[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income at 60% state median (recent ~$60k for 1); automatic eligibility via SNAP/SSI/TANF; crisis tiered; statewide but contractor-processed; seasonal/funding-limited.",
+      "gotchas": [
+        "Applications Oct 1 - Apr 30 (2025-2026 season; heating through Mar 31, crisis to Apr 15); funds limited, may close early.",
+        "Crisis requires regular app first.",
+        "Everyone at address counts as household (even non-sharing expenses).",
+        "Elderly: no special age priority beyond automatic via SSI; compare to property tax relief (different income/asset rules, residency req).[1][2][3][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|fuel_type",
+      "officialSource": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
+    },
+    {
+      "name": "Wyoming Tax Refund for Elderly & Disabled",
+      "isNew": false,
+      "existingId": "wyoming",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Total household assets must not exceed $29,950 per adult household member. Specific exemptions not detailed in sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age/disability, income documentation, residency proof, asset statements (inferred from eligibility)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Annual reapplication required; refund prorated by income tiers (full below threshold, phased out above); statewide but data outdated (2013+); separate from property tax programs with different admins/eligibility",
+      "gotchas": [
+        "Must reapply every year with new application",
+        "Totally (100%) disabled for full year prior; not partial disability",
+        "Income limits and refund amounts may have changed since 2013 data (e.g., older 2006/2007 figures differ)",
+        "Asset limit per adult household member; excludes unclear items",
+        "Distinguish from separate Property Tax Refund Program (administered by Dept. of Revenue, different eligibility like 5-year residency, median income-based)"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income_level",
+      "officialSource": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)"
+    }
+  ]
+}

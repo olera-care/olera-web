@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
+import { sendEmail } from "@/lib/email";
+import { providerSubscriptionConfirmationEmail } from "@/lib/medjobs-email-templates";
 
 // Use the service role key for webhook processing (bypasses RLS)
 function getAdminClient() {
@@ -53,18 +55,57 @@ export async function POST(request: NextRequest) {
         if (session.metadata?.product === "medjobs" && session.metadata?.profile_id) {
           const profileId = session.metadata.profile_id;
           const subscriptionId = session.subscription as string;
-          const { data: profile } = await supabase
-            .from("business_profiles")
-            .select("metadata")
-            .eq("id", profileId)
-            .single();
-          if (profile) {
-            const meta = (profile.metadata || {}) as Record<string, unknown>;
-            meta.medjobs_subscription_active = true;
-            meta.medjobs_subscription_id = subscriptionId;
-            meta.medjobs_stripe_customer_id = session.customer as string;
-            await supabase.from("business_profiles").update({ metadata: meta }).eq("id", profileId);
+          const { error: rpcError } = await supabase.rpc("merge_profile_metadata", {
+            p_profile_id: profileId,
+            p_updates: {
+              medjobs_subscription_active: true,
+              medjobs_subscription_id: subscriptionId,
+              medjobs_stripe_customer_id: session.customer as string,
+            },
+          });
+          if (rpcError) {
+            console.error("[stripe/webhook] merge_profile_metadata RPC failed:", rpcError);
+            // Fallback: direct update if RPC fails
+            const { data: profile } = await supabase
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", profileId)
+              .single();
+            if (profile) {
+              const meta = (profile.metadata || {}) as Record<string, unknown>;
+              meta.medjobs_subscription_active = true;
+              meta.medjobs_subscription_id = subscriptionId;
+              meta.medjobs_stripe_customer_id = session.customer as string;
+              await supabase.from("business_profiles").update({ metadata: meta }).eq("id", profileId);
+              console.log("[stripe/webhook] Fallback direct update succeeded for", profileId);
+            }
           }
+
+          // Send subscription confirmation email
+          try {
+            const { data: providerProfile } = await supabase
+              .from("business_profiles")
+              .select("display_name, email")
+              .eq("id", profileId)
+              .single();
+
+            const providerEmail = providerProfile?.email || session.customer_email;
+            if (providerEmail) {
+              await sendEmail({
+                to: providerEmail,
+                subject: "Welcome to MedJobs Pro!",
+                html: providerSubscriptionConfirmationEmail({
+                  providerName: providerProfile?.display_name || "there",
+                }),
+                emailType: "medjobs_subscription_confirmation",
+              });
+              console.log("[stripe/webhook] Subscription confirmation email sent to", providerEmail);
+            }
+          } catch (emailErr) {
+            // Non-blocking — don't fail the webhook if email fails
+            console.error("[stripe/webhook] Failed to send confirmation email:", emailErr);
+          }
+
           break;
         }
 
@@ -165,10 +206,20 @@ export async function POST(request: NextRequest) {
           .filter("metadata->>medjobs_stripe_customer_id", "eq", customerId);
         if (medjobsProfiles?.length) {
           for (const p of medjobsProfiles) {
-            const meta = (p.metadata || {}) as Record<string, unknown>;
-            meta.medjobs_subscription_active = false;
-            meta.medjobs_subscription_id = null;
-            await supabase.from("business_profiles").update({ metadata: meta }).eq("id", p.id);
+            const { error: rpcError } = await supabase.rpc("merge_profile_metadata", {
+              p_profile_id: p.id,
+              p_updates: {
+                medjobs_subscription_active: false,
+                medjobs_subscription_id: null,
+              },
+            });
+            if (rpcError) {
+              console.error("[stripe/webhook] cancellation RPC failed:", rpcError);
+              const meta = ((p as { metadata?: unknown }).metadata || {}) as Record<string, unknown>;
+              meta.medjobs_subscription_active = false;
+              meta.medjobs_subscription_id = null;
+              await supabase.from("business_profiles").update({ metadata: meta }).eq("id", p.id);
+            }
           }
         }
 

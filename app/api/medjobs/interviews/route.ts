@@ -4,6 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
+import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -105,6 +106,18 @@ export async function POST(request: NextRequest) {
       const callerProvider = callerProfiles.find((p) => p.type === "organization" || p.type === "caregiver");
       if (!callerProvider) return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
 
+      // Paywall gate: check provider's access tier before allowing outbound request
+      const { data: providerFull } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", callerProvider.id)
+        .single();
+      const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
+      const access = getAccessTier(true, providerMeta);
+      if (!canScheduleInterview(access)) {
+        return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+      }
+
       const { data: target } = await admin
         .from("business_profiles")
         .select("id, display_name, email, slug")
@@ -160,6 +173,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
+    // Increment credits used for the provider (only for provider-initiated outbound requests)
+    if (studentProfileId) {
+      const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+        p_profile_id: resolvedProviderId,
+        p_key: "medjobs_credits_used",
+      });
+      if (creditError) {
+        console.error("[medjobs/interviews] credit increment error:", creditError);
+      }
+    }
+
     // Send notification email to the other party
     try {
       const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";
@@ -186,6 +210,8 @@ export async function POST(request: NextRequest) {
         viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
       }
 
+      // Determine recipient profile ID for preference checking
+      const recipientIsStudent = !isProviderRecipient;
       await sendEmail({
         to: recipientEmail!,
         subject: `Interview request from ${proposerName}`,
@@ -197,6 +223,8 @@ export async function POST(request: NextRequest) {
           <p><a href="${viewUrl}">View & respond on Olera</a></p>
         `,
         emailType: "interview_proposed",
+        recipientType: recipientIsStudent ? "student" : "provider",
+        recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
       });
     } catch (err) {
       console.error("[medjobs/interviews] email error:", err);
@@ -249,10 +277,31 @@ export async function PATCH(request: NextRequest) {
     const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "No account" }, { status: 403 });
 
-    const { data: userProfiles } = await admin.from("business_profiles").select("id").eq("account_id", account.id);
-    const userProfileIds = (userProfiles || []).map((p) => p.id);
+    const { data: userProfiles } = await admin.from("business_profiles").select("id, type, metadata").eq("account_id", account.id);
+    const userProfileIds = (userProfiles || []).map((p: { id: string }) => p.id);
     const isParticipant = userProfileIds.includes(interview.provider_profile_id) || userProfileIds.includes(interview.student_profile_id);
     if (!isParticipant) return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    // Paywall gate: if a provider is confirming an inbound interview, check their tier
+    if (status === "confirmed") {
+      const isProviderConfirming =
+        userProfileIds.includes(interview.provider_profile_id) &&
+        interview.proposed_by !== interview.provider_profile_id;
+
+      if (isProviderConfirming) {
+        const providerProfile2 = (userProfiles || []).find(
+          (p: { id: string; type: string }) =>
+            p.id === interview.provider_profile_id && (p.type === "organization" || p.type === "caregiver")
+        );
+        if (providerProfile2) {
+          const providerMeta = ((providerProfile2 as { metadata?: unknown }).metadata ?? {}) as Record<string, unknown>;
+          const access = getAccessTier(true, providerMeta);
+          if (!canScheduleInterview(access)) {
+            return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+          }
+        }
+      }
+    }
 
     // Build update
     const update: Record<string, unknown> = { status };
@@ -265,6 +314,24 @@ export async function PATCH(request: NextRequest) {
     }
 
     await admin.from("interviews").update(update).eq("id", interviewId);
+
+    // Increment credits used when PROVIDER confirms an inbound request
+    // (Outbound credits are consumed at POST time, not at confirmation)
+    if (status === "confirmed") {
+      const providerConfirmedInbound =
+        userProfileIds.includes(interview.provider_profile_id) &&
+        interview.proposed_by !== interview.provider_profile_id;
+
+      if (providerConfirmedInbound) {
+        const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+          p_profile_id: interview.provider_profile_id,
+          p_key: "medjobs_credits_used",
+        });
+        if (creditError) {
+          console.error("[medjobs/interviews] credit increment error:", creditError);
+        }
+      }
+    }
 
     // Send emails based on status change
     const provider = interview.provider as { display_name: string; email: string };

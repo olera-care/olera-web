@@ -1,0 +1,408 @@
+{
+  "state": "MN",
+  "stateName": "Minnesota",
+  "checkedAt": "2026-04-14T10:03:55.505Z",
+  "total": 13,
+  "skipped": 1,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 0,
+  "totalFlags": 0,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "mn-medical-assistance-medicaid",
+      "programName": "Medical Assistance (Medicaid)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": 6000,
+        "phones": [
+          "8553667873",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": 6000,
+        "phone": null,
+        "sources": {
+          "age": "https://mn.gov/dhs/federalchanges/",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-minnesota/",
+          "phone": null
+        },
+        "notes": "Age 65+ is explicitly protected from recent Medicaid changes per Minnesota DHS. Asset limits are from 2026 long-term care/waiver pathway for seniors. Income limits vary by household composition and category (seniors, disabled, etc.) and are not provided as single values in retrieved sources. Official phone number for MA applications not found in search results; contact through MNsure or local DHS office. Program remains active as of April 2026 but subject to federal changes effective fall 2026 and beyond."
+      },
+      "flags": [],
+      "notes": "Age 65+ is explicitly protected from recent Medicaid changes per Minnesota DHS. Asset limits are from 2026 long-term care/waiver pathway for seniors. Income limits vary by household composition and category (seniors, disabled, etc.) and are not provided as single values in retrieved sources. Official phone number for MA applications not found in search results; contact through MNsure or local DHS office. Program remains active as of April 2026 but subject to federal changes effective fall 2026 and beyond."
+    },
+    {
+      "programId": "mn-elderly-waiver",
+      "programName": "Elderly Waiver (EW)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": null,
+        "phones": [
+          "8003332433",
+          "6514312670"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003332433",
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/minnesota-elderly-waiver/",
+          "income": null,
+          "assets": null,
+          "phone": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+        },
+        "notes": "No countable asset limit or income limit found in sources; requires Medical Assistance eligibility which has financial tests per state rules. Program active in 2026 per official DHS sources."
+      },
+      "flags": [],
+      "notes": "No countable asset limit or income limit found in sources; requires Medical Assistance eligibility which has financial tests per state rules. Program active in 2026 per official DHS sources."
+    },
+    {
+      "programId": "mn-msho-senior-health-options",
+      "programName": "Minnesota Senior Health Options (MSHO)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6514312670",
+          "9528837979"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://hcopub.dhs.state.mn.us/hcpmstd/28_10_10_10.htm",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program active in 2026 per DHS contract; no income/assets limits or phone found in sources"
+      },
+      "flags": [],
+      "notes": "Program active in 2026 per DHS contract; no income/assets limits or phone found in sources"
+    },
+    {
+      "programId": "mn-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1325,
+        "income_2": 1783,
+        "assets_individual": 10000,
+        "assets_couple": 18000,
+        "phones": [
+          "6514312670",
+          "8006573739"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        1
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "mn-snap-food-benefits",
+      "programName": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 1305,
+        "income_2": 1763,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "8006573739",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1305,
+        "income_2": 1763,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://mn.db101.org/mn/programs/income_support/food_support/program2.htm",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits from nonprofit source citing current SNAP net income thresholds; SNAP has no asset test and no senior-specific age minimum (age 60+ exemption from work rules exists but not eligibility age test); no official .gov source with exact 2026 monthly limits or phone in results"
+      },
+      "flags": [],
+      "notes": "Income limits from nonprofit source citing current SNAP net income thresholds; SNAP has no asset test and no senior-specific age minimum (age 60+ exemption from work rules exists but not eligibility age test); no official .gov source with exact 2026 monthly limits or phone in results"
+    },
+    {
+      "programId": "mn-ship-medicare-counseling",
+      "programName": "Senior Health Insurance Assistance Program (SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8003332433"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18003332433",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/minnesota/"
+        },
+        "notes": "No age, income, or asset limits found; SHIP counseling is free for Medicare beneficiaries and families. Phone from shiphelp.org citing state program."
+      },
+      "flags": [],
+      "notes": "No age, income, or asset limits found; SHIP counseling is free for Medicare beneficiaries and families. Phone from shiphelp.org citing state program."
+    },
+    {
+      "programId": "mn-senior-nutrition-meals-on-wheels",
+      "programName": "Senior Nutrition Program (Meals on Wheels)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5073160610",
+          "8002778418",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide application phone number found; program delivered locally via area agencies on aging. No income or asset tests."
+      },
+      "flags": [],
+      "notes": "No statewide application phone number found; program delivered locally via area agencies on aging. No income or asset tests."
+    },
+    {
+      "programId": "mn-family-adult-assistance-alternative-care-grants",
+      "programName": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "mn-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": 1550,
+        "income_2": 2100,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8325990872",
+          "5073456822",
+          "6512597114"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limit is 125% FPL per federal guidelines but no specific 2026 monthly USD figure for MN found in sources"
+      },
+      "flags": [],
+      "notes": "Income limit is 125% FPL per federal guidelines but no specific 2026 monthly USD figure for MN found in sources"
+    },
+    {
+      "programId": "mn-legal-assistance-seniors",
+      "programName": "Legal Assistance for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8776966529",
+          "8002924150",
+          "6123324668"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8776966529",
+        "sources": {
+          "age": "https://mylegalaid.org/how-we-help/seniors/",
+          "income": null,
+          "assets": null,
+          "phone": "https://mn.gov/aging-pathways/older-adults/planning/finances/index.jsp"
+        },
+        "notes": "No income or asset limits for seniors; statewide intake prioritizes those with greatest need. Multiple regional providers (e.g., Mid-Minnesota Legal Aid, SMRLS) serve seniors 60+."
+      },
+      "flags": [],
+      "notes": "No income or asset limits for seniors; statewide intake prioritizes those with greatest need. Multiple regional providers (e.g., Mid-Minnesota Legal Aid, SMRLS) serve seniors 60+."
+    },
+    {
+      "programId": "mn-long-term-care-ombudsman",
+      "programName": "Office of Ombudsman for Long-Term Care",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18006573591",
+          "6514312555",
+          "18003332433"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18006573591",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://mn.gov/ooltc/contactus/"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; all services are free for Minnesota adults needing or receiving long-term care."
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; all services are free for Minnesota adults needing or receiving long-term care."
+    },
+    {
+      "programId": "mn-ucare-senior-care-plus",
+      "programName": "UCare Minnesota Senior Care Plus (MSC+)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002037225",
+          "8006573672",
+          "8006273529"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18006573672",
+        "sources": {
+          "age": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.mnscha.org/programs/medical-assistance-medicaid-programs/minnesota-senior-care-plus-msc/"
+        },
+        "notes": "Program continues under UCare for 2026 per DHS; eligibility tied to Medical Assistance (Medicaid) which has income/assets tests not specified here"
+      },
+      "flags": [],
+      "notes": "Program continues under UCare for 2026 per DHS; eligibility tied to Medical Assistance (Medicaid) which has income/assets tests not specified here"
+    },
+    {
+      "programId": "mn-aging-pathways",
+      "programName": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8003332433"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003332433",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://mn.gov/board-on-aging/direct-services/aging-pathways/"
+        },
+        "notes": "Program renamed from Senior LinkAge Line to Minnesota Aging Pathways; free service with no age, income, or asset eligibility tests found in official sources"
+      },
+      "flags": [],
+      "notes": "Program renamed from Senior LinkAge Line to Minnesota Aging Pathways; free service with no age, income, or asset eligibility tests found in official sources"
+    }
+  ]
+}

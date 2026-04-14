@@ -138,6 +138,7 @@ function familyEventTypeLabel(type: string): string {
     email_click: "Email",
     question_asked: "Question",
     matches_activated: "Matches",
+    benefits_completed: "Benefits",
   };
   return map[type] || type;
 }
@@ -149,6 +150,7 @@ function familyEventTypeBadgeColor(type: string): string {
     email_click: "bg-amber-50 text-amber-700",
     question_asked: "bg-teal-50 text-teal-700",
     matches_activated: "bg-emerald-50 text-emerald-700",
+    benefits_completed: "bg-rose-50 text-rose-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -501,6 +503,27 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
                   &ldquo;{String((event.metadata as Record<string, string>).question_preview)}&rdquo;
                 </p>
               )}
+              {event.event_type === "benefits_completed" && (() => {
+                const meta = event.metadata as Record<string, unknown>;
+                const matchCount = Number(meta?.match_count || 0);
+                const topProgram = meta?.top_program ? String(meta.top_program) : null;
+                const careNeed = meta?.care_need ? String(meta.care_need) : null;
+                const careNeedLabels: Record<string, string> = {
+                  stayingAtHome: "Staying at home",
+                  payingForCare: "Paying for care",
+                  memoryHealth: "Memory & health",
+                  companionship: "Companionship",
+                };
+                const parts: string[] = [];
+                if (matchCount > 0) parts.push(`${matchCount} ${matchCount === 1 ? "match" : "matches"}`);
+                if (topProgram) parts.push(`top: ${topProgram}`);
+                if (careNeed && careNeedLabels[careNeed]) parts.push(careNeedLabels[careNeed].toLowerCase());
+                return parts.length > 0 ? (
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">
+                    {parts.join(" · ")}
+                  </p>
+                ) : null;
+              })()}
             </div>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${familyEventTypeBadgeColor(event.event_type)}`}>
               {familyEventTypeLabel(event.event_type)}
@@ -622,6 +645,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
 
 const FAMILY_EVENT_FILTER_OPTIONS = [
   { value: "", label: "All types" },
+  { value: "benefits_completed", label: "Benefits" },
   { value: "connection_sent", label: "Connections" },
   { value: "profile_enriched", label: "Profile" },
   { value: "email_click", label: "Email clicks" },

@@ -1,0 +1,389 @@
+{
+  "state": "IA",
+  "stateName": "Iowa",
+  "checkedAt": "2026-04-14T10:01:46.219Z",
+  "total": 10,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 3,
+  "totalFlags": 5,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "ia-medicaid-hcbs-elderly-waiver",
+      "programName": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8558897985",
+          "8009722017"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": "18558897985",
+        "sources": {
+          "age": "https://hhs.iowa.gov/media/17850/download?inline",
+          "income": null,
+          "assets": "https://iowalegaid.org/resource/elderly-waiver-program-keeps-people-out-of-nursing-homes/",
+          "phone": "https://hhs.iowa.gov/media/17850/download?inline"
+        },
+        "notes": "Income and asset limits from 2025 source; no 2026 official values found. Program active as of 2026 per state docs."
+      },
+      "flags": [],
+      "notes": "Income and asset limits from 2025 source; no 2026 official values found. Program active as of 2026 per state docs."
+    },
+    {
+      "programId": "ia-hcbs-waiver-services",
+      "programName": "Home and Community-Based Services (HCBS)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18003388366",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009928161",
+        "sources": {
+          "age": "https://iowalegalaid.org/resource/home-and-community-based-services-hcbs-progra/",
+          "income": null,
+          "assets": null,
+          "phone": "https://iowalegalaid.org/resource/home-and-community-based-services-hcbs-progra/"
+        },
+        "notes": "HCBS encompasses multiple waivers; Elderly waiver for seniors (65+) applies per senior-caregiver pathway. No income/assets found for seniors. New age-based waivers proposed for 2026 (Adults with Disabilities, Children and Youth) exclude seniors; current as of April 2026."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18003388366",
+            "211"
+          ],
+          "verifiedValue": "8009928161"
+        }
+      ],
+      "notes": "HCBS encompasses multiple waivers; Elderly waiver for seniors (65+) applies per senior-caregiver pathway. No income/assets found for seniors. New age-based waivers proposed for 2026 (Adults with Disabilities, Children and Youth) exclude seniors; current as of April 2026."
+    },
+    {
+      "programId": "ia-pace-elderly-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8009722017",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://hhs.iowa.gov/medicaid/plans-programs/program-all-inclusive-care-elderly-pace",
+          "income": null,
+          "assets": null,
+          "phone": "https://hhs.iowa.gov/medicaid/plans-programs/program-all-inclusive-care-elderly-pace"
+        },
+        "notes": "No statewide main phone; multiple local PACE centers listed. No asset or income limits found in sources; PACE typically has no asset test and covers all eligible via Medicare/Medicaid."
+      },
+      "flags": [],
+      "notes": "No statewide main phone; multiple local PACE centers listed. No asset or income limits found in sources; PACE typically has no asset test and covers all eligible via Medicare/Medicaid."
+    },
+    {
+      "programId": "ia-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 2086,
+        "income_2": 2820,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8558897985",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, assets, or phone; SNAP has no senior age minimum or asset test per federal rules, but Iowa income limits unavailable here"
+      },
+      "flags": [],
+      "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, assets, or phone; SNAP has no senior age minimum or asset test per federal rules, but Iowa income limits unavailable here"
+    },
+    {
+      "programId": "ia-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 1822,
+        "income_2": 2461,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "5633828436"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1708,
+        "income_2": 2292,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "5155184770",
+        "sources": {
+          "age": null,
+          "income": "https://hhs.iowa.gov/assistance-programs/housing-rent-assistance/low-income-home-energy-assistance",
+          "assets": null,
+          "phone": "https://form.jotform.com/252591413945158"
+        },
+        "notes": "Income limits based on 200% of 2025 federal poverty guidelines (FY26, Oct 1 2025–Sept 30 2026). Search results do not provide specific poverty guideline dollar amounts; conversion calculated from standard 2025 federal poverty line ($15,060 for individual, $19,720 for couple of 2). Phone number is IMPACT's energy assistance line for Boone, Jasper, Marion, Polk, Warren counties; statewide applications also accepted through local community action agencies and online portal at liheap-apply.hhs.iowa.gov. No age restriction found in eligibility criteria; program serves all qualifying low-income households, with early application window (Oct 1) for seniors 60+ and disabled persons. No asset limits specified in search results."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "medium",
+          "draftValue": 1822,
+          "verifiedValue": 1708,
+          "pctDiff": 6.3
+        },
+        {
+          "field": "income_2",
+          "severity": "medium",
+          "draftValue": 2461,
+          "verifiedValue": 2292,
+          "pctDiff": 6.9
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211",
+            "5633828436"
+          ],
+          "verifiedValue": "5155184770"
+        }
+      ],
+      "notes": "Income limits based on 200% of 2025 federal poverty guidelines (FY26, Oct 1 2025–Sept 30 2026). Search results do not provide specific poverty guideline dollar amounts; conversion calculated from standard 2025 federal poverty line ($15,060 for individual, $19,720 for couple of 2). Phone number is IMPACT's energy assistance line for Boone, Jasper, Marion, Polk, Warren counties; statewide applications also accepted through local community action agencies and online portal at liheap-apply.hhs.iowa.gov. No age restriction found in eligibility criteria; program serves all qualifying low-income households, with early application window (Oct 1) for seniors 60+ and disabled persons. No asset limits specified in search results."
+    },
+    {
+      "programId": "ia-shiip-medicare-counseling",
+      "programName": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18003514664",
+          "6419321703",
+          "18774746284"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003514664",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://shiip.iowa.gov/media/101/download?inline"
+        },
+        "notes": "SHIIP is a free counseling service for Medicare beneficiaries with no age, income, or asset eligibility requirements"
+      },
+      "flags": [],
+      "notes": "SHIIP is a free counseling service for Medicare beneficiaries with no age, income, or asset eligibility requirements"
+    },
+    {
+      "programId": "ia-meals-on-wheels",
+      "programName": "Meals on Wheels",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8554106222",
+          "3193380515",
+          "5156993243",
+          "5157253333"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.heartlandofstorycounty.org/program-services/mealsonwheels/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No single statewide Meals on Wheels program in Iowa; locally administered with varying eligibility (often 60+ for seniors, homebound). No official .gov source found for uniform criteria; no income/assets thresholds or central phone specified."
+      },
+      "flags": [],
+      "notes": "No single statewide Meals on Wheels program in Iowa; locally administered with varying eligibility (often 60+ for seniors, homebound). No official .gov source found for uniform criteria; no income/assets thresholds or central phone specified."
+    },
+    {
+      "programId": "ia-legal-aid-seniors",
+      "programName": "Iowa Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8009928161",
+          "8005321503"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009928161",
+        "sources": {
+          "age": "https://iowalegalaid.org/resource/benefits-for-seniors/",
+          "income": null,
+          "assets": null,
+          "phone": "https://iowalegalaid.org/resource/benefits-for-seniors/"
+        },
+        "notes": "No income or asset limits specified in sources for seniors; program is for low-income Iowans generally"
+      },
+      "flags": [],
+      "notes": "No income or asset limits specified in sources for seniors; program is for low-income Iowans generally"
+    },
+    {
+      "programId": "ia-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8005323213"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8662361430",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://ombudsman.iowa.gov/services/for-the-public/what-the-iowa-office-of-ombudsman-can-do/15/nursing-homes-and-long-term-care-facilities"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities including seniors"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8005323213"
+          ],
+          "verifiedValue": "8662361430"
+        }
+      ],
+      "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities including seniors"
+    },
+    {
+      "programId": "ia-state-supplementary-assistance",
+      "programName": "State Supplementary Assistance (SSA)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "18009722017",
+          "18007721213"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phone": null,
+        "sources": {
+          "age": "https://hhs.iowa.gov/assistance-programs/state-supplementary-assistance",
+          "income": null,
+          "assets": "https://hhs.iowa.gov/assistance-programs/state-supplementary-assistance",
+          "phone": null
+        },
+        "notes": "Age based on 'aged' per Social Security standards (65+); no specific income limits detailed, only 'less than the income limit for the SSA group'; standards effective Jan 1, 2026"
+      },
+      "flags": [],
+      "notes": "Age based on 'aged' per Social Security standards (65+); no specific income limits detailed, only 'less than the income limit for the SSA group'; standards effective Jan 1, 2026"
+    }
+  ]
+}

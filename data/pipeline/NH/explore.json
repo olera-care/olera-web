@@ -1,0 +1,142 @@
+{
+  "entity": "New Hampshire",
+  "entitySlug": "new-hampshire",
+  "state": "NH",
+  "stateName": "New Hampshire",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T15:11:11.155Z",
+  "programCount": 18,
+  "programs": [
+    {
+      "name": "Medicaid for Aged, Blind, Disabled (ABD)",
+      "what_it_does": "Provides health insurance coverage including long-term care services for low-income seniors and disabled individuals. Covers medical costs, nursing home care, and supports to help frail seniors live at home when combined with waivers.[1][2][3][4]",
+      "who_its_for": "Seniors aged 65+, blind, or disabled NH residents with low income (e.g., $2,982/month individual for LTC) and assets ($2,500 individual).[1][2][4]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid",
+      "benefit_value": "Covers nursing home (~$9,600/month avg cost), personal care, home health; income limit $2,982/month, assets $2,500 (2026).[1][2][5]"
+    },
+    {
+      "name": "Choices for Independence (CFI) Waiver",
+      "what_it_does": "Offers home and community-based services (HCBS) to allow seniors to receive care at home instead of nursing facilities. Includes personal care, home health aides, adult day care, respite, meals, and home modifications.[1][2][4]",
+      "who_its_for": "Seniors 65+ or disabled requiring nursing home level of care, NH residents, income ≤$2,982/month, assets ≤$2,500.[1][2]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid/choices-independence",
+      "benefit_value": "HCBS services valued at nursing home level; covers personal care, respite, modifications for those meeting LTC criteria.[1][2]"
+    },
+    {
+      "name": "NH PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible frail elders in community settings, including adult day health and home care. Coordinates all Medicare/Medicaid-approved care through interdisciplinary teams.",
+      "who_its_for": "Frail seniors 55+ certified for nursing home level care but able to live safely in community with services.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/long-term-supports/pace",
+      "benefit_value": "Full capitation coverage of all needed LTC services; risk-based prepaid model."
+    },
+    {
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+      "what_it_does": "QMB pays Medicare Parts A/B premiums, deductibles, coinsurance; SLMB/QI pay Part B premiums only. Helps low-income Medicare beneficiaries afford coverage.[3]",
+      "who_its_for": "Medicare enrollees with low income/assets: QMB up to ~$1,300/month single; SLMB $1,478; QI $1,660 (2023 levels, annual adjust); assets $9,090 single.[3]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid/medicare-savings-programs",
+      "benefit_value": "Part B premium ~$174.70/month savings (2024); full cost-sharing for QMB; $13 unearned income disregard in NH.[3]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing nutritious food at approved retailers. Helps low-income households afford healthy meals.[4]",
+      "who_its_for": "Low-income seniors 60+ (higher deductions); NH households meeting federal income guidelines (~130% FPL).",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/food-stamps",
+      "benefit_value": "Avg $200+/month per person; max benefits scale by household size/income."
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "Offers grants to help pay heating costs and address energy crises. Provides one-time payments to utilities or vendors.",
+      "who_its_for": "Low-income NH households, prioritizing seniors 60+, disabled, families with young children.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/liheap",
+      "benefit_value": "Avg $400-1,000 heating grant; crisis aid up to $1,200."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Improves home energy efficiency through insulation, sealing, furnace repair/replacement. Reduces energy costs and health risks from inefficiency.",
+      "who_its_for": "Low-income NH households, priority to seniors, disabled, families with children.",
+      "official_url": "https://www.nh.gov/oep/programs/weatherization.htm",
+      "benefit_value": "Free services; avg $5,000+ per home in upgrades."
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Offers free counseling on Medicare options, supplements, costs; helps with applications and appeals. Prevents billing errors via education.",
+      "who_its_for": "All NH Medicare beneficiaries, caregivers, family members.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/ship",
+      "benefit_value": "Free one-on-one assistance; statewide network."
+    },
+    {
+      "name": "Meals on Wheels (Elderly Nutrition Program)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors, promoting health and independence. May include safety checks during delivery.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, low-income prioritized.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/meals-wheels",
+      "benefit_value": "5-14 meals/week; ~$7/meal subsidized."
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "what_it_does": "Provides respite grants, training, counseling for caregivers of seniors. Offers supplemental services and support groups.",
+      "who_its_for": "Unpaid family caregivers of NH seniors 60+.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/family-caregiver-support",
+      "benefit_value": "Respite grants up to $1,600/year."
+    },
+    {
+      "name": "SCSEP (Senior Community Service Employment Program)",
+      "what_it_does": "Offers part-time paid community service jobs with training for skill development. Helps transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Minimum wage jobs ~20 hrs/week."
+    },
+    {
+      "name": "Legal Assistance for Older Adults",
+      "what_it_does": "Provides free legal services for senior civil issues like housing, benefits, abuse. Includes advice, representation, education.",
+      "who_its_for": "Low-income NH seniors 60+.",
+      "official_url": "https://www.nhlegalaid.org/older-adults",
+      "benefit_value": "Free legal aid; statewide coverage."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigates complaints. Ensures quality care and resident rights.",
+      "who_its_for": "Residents of NH nursing homes, assisted living, other LTC facilities.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/long-term-care-ombudsman",
+      "benefit_value": "Free advocacy services; resolves ~85% complaints."
+    },
+    {
+      "name": "Adult Day Services",
+      "what_it_does": "Provides homelike settings for social engagement, gentle physical activity, individualized programming, and access to health services during the day. Specialized memory care is available at the Manchester site, with coordinated transportation.[1]",
+      "who_its_for": "Older adults averaging age 76, with a wide range of abilities and interests, including those needing memory care.",
+      "whats_unique": "Offered by Easterseals NH at two specific NH locations for over 30 years, promoting aging in place through person-centered programs addressing social determinants of health like emotional wellness and access to care.[1]",
+      "official_url": "https://eastersealsnh.org/programs/senior-services/",
+      "benefit_value": "Daytime support alternative to nursing home care; affordable in-home combination available."
+    },
+    {
+      "name": "Easterseals NH In-Home Care & Health Services",
+      "what_it_does": "Assists with daily activities in the home such as nursing, personal hygiene, meal preparation, and light housekeeping. Serves as an affordable alternative to nursing home care for older adults and adults with disabilities.[1]",
+      "who_its_for": "Older adults and adults with disabilities seeking to age in place.",
+      "whats_unique": "State-specific provider in NH focused on independence, health, and dignity, usable alone or with other Easterseals NH services like adult day programs.[1]",
+      "official_url": "https://eastersealsnh.org/programs/senior-services/",
+      "benefit_value": "Affordable home-based personal care and health services."
+    },
+    {
+      "name": "Caregiver Respite and Senior Volunteer Programs",
+      "what_it_does": "Offers caregiver respite services to provide relief for those caring for older adults. Includes senior volunteer programs to support the health and well-being of older adults in New Hampshire.[2]",
+      "who_its_for": "Caregivers of older adults and older adults themselves in NH.",
+      "whats_unique": "NH-focused programs by New Futures emphasizing essential support for older adults' health amid the state's fast-aging population.[2]",
+      "official_url": "https://new-futures.org/2025-Caregivers-and-Volunteers",
+      "benefit_value": "Respite relief and volunteer support for well-being."
+    },
+    {
+      "name": "Senior Companionship",
+      "what_it_does": "Matches seniors who want to help with seniors needing assistance, providing in-home companion care. Supports independent living through non-medical services like personal care, respite, and elder care.[3]",
+      "who_its_for": "Elderly adults in southern New Hampshire wanting to live independently at home.",
+      "whats_unique": "Unique peer-to-peer model by Seniors Helping Seniors, a licensed NH provider with over 70 senior caregivers specializing in southern NH.[3]",
+      "official_url": "https://seniorshelpingseniorsnh.com/in-home-care/senior-companionship",
+      "benefit_value": "In-home companionship and care services tailored for independence."
+    },
+    {
+      "name": "Monadnock at Home Community Services",
+      "what_it_does": "Connects seniors to social programs, vetted service providers, and volunteers for daily home tasks at a nominal membership fee. Provides urgent support like avoiding utility shutoffs, transportation funding, housing access, and bereavement support groups.[5]",
+      "who_its_for": "Seniors residing in the Monadnock Region of NH facing isolation, food insecurity, or financial constraints.",
+      "whats_unique": "Region-specific (Monadnock) program by Catholic Charities NH addressing NH's fast-aging population challenges with local networks and urgent aid.[5]",
+      "official_url": "https://www.cc-nh.org/our-causes/seniors/",
+      "benefit_value": "Nominal fee membership for social connections, volunteer aid, and crisis support."
+    }
+  ]
+}

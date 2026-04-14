@@ -1,0 +1,199 @@
+{
+  "state": "WI",
+  "stateName": "Wisconsin",
+  "classifiedAt": "2026-04-09T17:37:33.527Z",
+  "total": 5,
+  "typeSummary": {
+    "benefit": 3,
+    "resource": 1,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "state": 4,
+    "local": 1
+  },
+  "complexitySummary": {
+    "deep": 4,
+    "simple": 1
+  },
+  "programs": [
+    {
+      "name": "SeniorCare",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered statewide by Wisconsin DHS; use any participating pharmacy (most WI pharmacies accept SeniorCare card)[1][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs), county aging offices, tribal partners; find via FindMyADRC.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Fox Valley Workforce Development Board (920-229-5557)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "GWAAR (608-242-4928 or 608-243-5670, Dane County)[5][7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Employ Milwaukee[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Job Center of Wisconsin (detwise@dwd.wisconsin.gov)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works subgrantee network including Wisconsin[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Family Care",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ADRCs statewide[2][4][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed Care Organizations (CMOs) like Community Care Inc., Anthem, My Choice Wisconsin[1][5][8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ADRCs (find via dhs.wisconsin.gov/adrc/consumer/index.htm)",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal ADRS (dhs.wisconsin.gov/adrc/consumer/tribes.htm)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    }
+  ]
+}

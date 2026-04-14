@@ -1,0 +1,423 @@
+{
+  "state": "CT",
+  "stateName": "Connecticut",
+  "comparedAt": "2026-04-09T12:33:15.199Z",
+  "total": 10,
+  "newPrograms": 7,
+  "withDiffs": 3,
+  "withNovelFields": 3,
+  "benefitTypes": {
+    "service": 5,
+    "in_kind": 1,
+    "financial": 1,
+    "financial subsidy for services": 1,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "Insurance status (Medicaid vs. non-Medicaid vs. dual-eligible). Services are provided 24 hours a day, every day of the year.[4]": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "not_applicable": 2,
+    "Available funding and applicant's level of need as determined by Care Manager[2][5]": 1,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 3,
+      "programs": [
+        "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Connecticut Energy Assistance Program (CEAP)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 3,
+      "programs": [
+        "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Connecticut Energy Assistance Program (CEAP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 2,
+      "programs": [
+        "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+        "Connecticut Energy Assistance Program (CEAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 3,
+      "programs": [
+        "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Connecticut Energy Assistance Program (CEAP)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "HUSKY Health (Medicaid for seniors/disabled)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by subcategory (standard ABD, LTSS, MED-Connect) with varying income/asset limits; asset test required; LTSS needs care level assessment; statewide but subcategory-specific referrals",
+      "gotchas": [
+        "Multiple subprograms (standard HUSKY C, LTSS, MED-Connect) with different income/asset limits—must identify correct category",
+        "Asset test applies (unlike HUSKY A/D)",
+        "LTSS requires level of care determination and potential 5-year lookback",
+        "Working disabled may owe premium under MED-Connect",
+        "Income limits updated annually (e.g., March); 2026 changes pending",
+        "CSPA protections for community spouse in married LTSS cases"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://portal.ct.gov/HUSKY/How-to-Qualify"
+    },
+    {
+      "name": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+      "isNew": false,
+      "existingId": "medicare-savings-program-qmb-slmb-qi",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1400",
+          "found": "$1,956",
+          "source": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Home care services to avoid nursing home placement: assistance with ADLs (bathing, dressing, eating, medications, toileting, transferring). May cover up to 70 hours/week in Medicaid waiver category. State-funded clients pay 3% of service costs. MSP component: QMB pays Part B premium + deductibles/co-insurance; SLMB/ALMB pay Part B premium only (ALMB funding-limited, excludes Medicaid recipients).",
+          "source": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Medicaid-funded CHCPE: applicable asset limits exist (specific amounts not detailed; excess assets can be spent down on any goods/services for self/spouse, no medical spend-down required). State-funded: limits such as $35,766 single / $47,688 married in some regions. MSP: NO asset limit or estate recoupment. What counts/exempts not fully detailed; primary home often considered in Medicaid contexts.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via regional Area Agencies on Aging (e.g., WCAAA); asset limits may vary slightly by provider (e.g., $35,766 single in some areas); wait times/providers differ.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible for Medicaid waiver (2+ years mentioned in some contexts); varies.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income/assets",
+            "Medicare enrollment proof (for MSP)",
+            "ID/residency proof",
+            "Medical/functional assessment info"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Multi-tiered (Medicaid-funded vs state-funded); benefits scale by functional need/priority tier and funding source; no uniform income limit; regional provider variations; MSP integrated for premium savings with no asset test.",
+      "gotchas": [
+        "CHCPE is distinct from MSP but often bundled; MSP has no assets test, CHCPE does for Medicaid-funded.",
+        "State-funded has no income limit but 3% client cost-share; Medicaid requires spend-down.",
+        "Functional need: must prove risk of nursing home (1-3+ ADLs).",
+        "Gifts/transfer penalties possible (shorter lookback for state-funded).",
+        "ALMB funding-limited and excludes Medicaid recipients.",
+        "Not all earned income counts for MSP."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has NO income or asset limits, making it unusual among means-tested programs. Eligibility is primarily medical/functional (nursing facility level of care) and geographic (service area availability). The program structure differs significantly based on insurance status: dual-eligible participants (Medicare + Medicaid) receive fully capitated care with no out-of-pocket costs, while non-Medicaid participants pay monthly premiums but also have no deductibles/copays. Connecticut-specific details (organization names, contact information, processing times, regional variations) are not available in provided sources and require direct contact with local PACE organizations or the Connecticut Department of Social Services.",
+      "gotchas": [
+        "No income or asset limits exist, BUT if you enroll in Community Medicaid to pay for PACE services, Connecticut may place a lien or claim against your estate (including your home) for costs paid.[6]",
+        "Medicare Advantage (Part C) plan enrollment disqualifies you—you cannot be in both PACE and a Medicare Advantage plan simultaneously.[1]",
+        "PACE becomes the SOLE source of services for dual-eligible (Medicare + Medicaid) participants—you cannot use other providers for covered services.[3]",
+        "You can leave PACE at any time for any reason, but re-enrollment may not be guaranteed.[3]",
+        "The program is NOT available everywhere in Connecticut—service area availability is critical and varies by PACE organization location.[1][3]",
+        "Non-Medicaid participants pay a monthly premium (exact amount varies and not specified in sources), but once enrolled, there are no deductibles or copays for PACE-provided services.[2]",
+        "Medicaid enrollment is optional but strongly encouraged by states because it simplifies administration and may provide better coverage for participants.[6]",
+        "If a spouse needs PACE services but the other spouse does not, only the qualifying spouse enrolls—the program does not cover both spouses automatically.[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Insurance status (Medicaid vs. non-Medicaid vs. dual-eligible). Services are provided 24 hours a day, every day of the year.[4]",
+      "officialSource": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly and https://www.npaonline.org/eligibility-requirements"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://portal.ct.gov/dss/snap"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$2608",
+          "source": "https://portal.ct.gov/dss/snap"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Max monthly allotments (examples): 1: $298, 2: $546, 3: $785, 4: $994, 5: $1183, 6: $1421, 7: $1571, 8: $1789, each add'l +$218. Actual amount = max allotment minus 30% of net income (e.g., 2-person elderly: $546 max - 30% net).[1][4][5]",
+          "source": "https://portal.ct.gov/dss/snap"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://portal.ct.gov/dss/snap"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit in Connecticut for standard eligibility (home, vehicles exempt). If gross income >200% FPL and has 60+/disabled member, federal rules apply: $4500 asset limit (countable: bank accounts; exempt: home, vehicles, retirement savings).[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled (relevant for elderly): Gross income limit at 200% FPL (Oct 1, 2025 - Sept 30, 2026): 1: $2608/mo, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, each add'l +$916. If over gross, qualify via net income (100% FPL): 1: $1255/mo, 2: $1704, 3: $2152, 4: $2600, 5: $3049, each add'l +$449. All households must meet net income; deductions (e.g., shelter, medical) reduce countable income. Max shelter deduction applies for some.[1][3][4]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Uniform statewide rules via CT DSS; local offices handle apps but no benefit/wait differences noted. Benefits issuance: SNAP over first 8 days of month by Client ID digits (from Mar 2026).[6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID/residency.",
+            "Income (pay stubs, Social Security award letters).",
+            "Expenses (rent, utilities, medical costs for 60+/disabled).",
+            "Assets if applicable (bank statements)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled special rules (skip gross test, ESAP); benefits scale by household size/net income; no standard asset limit; statewide uniform.",
+      "gotchas": [
+        "Elderly/disabled: Can skip gross income test if meet net/asset; many miss ESAP simplified app.",
+        "CT expanded to 200% FPL gross (broader than federal).",
+        "Household definition: Includes food-sharing roommates, not just family.",
+        "Deductions key: High medical/shelter costs lower net income.",
+        "No asset limit usually, but federal $4500 if over gross.",
+        "Under-enrollment common: ~half eligible seniors don't apply.[2][7]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://portal.ct.gov/dss/snap"
+    },
+    {
+      "name": "Connecticut Energy Assistance Program (CEAP)",
+      "isNew": false,
+      "existingId": "connecticut-energy-assistance-program-ceap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2800",
+          "found": "$47,764",
+          "source": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "Basic benefit: $295-$595 standard or $345-$645 if vulnerable household member (e.g., elderly, disabled, child under 6); Crisis benefit: $425 per occurrence (up to 3x) for deliverable fuel households in crisis; Rental assistance (heat in rent): $75-$125. Payments to utility/fuel vendor; extra fuel deliveries, payment plans, shut-off protection, equipment repair/replacement possible. Varies by household size, income, heating source, vulnerable status.[1][3]",
+          "source": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No liquid assets test for the 2025-2026 program year.[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by regional community action agencies (e.g., New Opportunities Inc. in certain towns); different phone numbers and offices by area; potential variations in processing.[4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Benefits available until annual funds run out; no explicit waitlist mentioned.[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income for all members (pay stubs, award letters, Social Security letter).",
+            "Electric bill (all households).",
+            "Natural gas bill if applicable.",
+            "Rent receipt/lease if heat included or renter.",
+            "Proof of heating source/fuel vendor.[1][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits scale by household size, income, vulnerable status, and heating source; no asset test; regional administration with prioritized crisis processing; categorical eligibility for certain DSS benefits.",
+      "gotchas": [
+        "Must apply during season (gas/electric: Sep 1, 2025-May 29, 2026); funds limited, apply early.[3][4]",
+        "Everyone needs electric bill; gas households need heating bill.[4]",
+        "Social Security proof required (DSS can't verify directly).[2]",
+        "Vulnerable households (elderly, disabled, young children) get higher benefits—don't miss declaring.[3]",
+        "Crisis benefits only for deliverable fuels (oil, propane) after basic benefit exhausted.[3]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Joint application with Energy Assistance Program via 2-1-1; priority-based with elderly focus; local CAA administration; strict home history rules (no recent weatherization, no sale/foreclosure); max spend caps by dwelling type.",
+      "gotchas": [
+        "Uses same eligibility as Energy Assistance Program; apply there first for joint process.[1]",
+        "Home must not have been weatherized in past 15 years or be in sale/foreclosure process.[1][5]",
+        "Priority groups get preference; non-priority may face longer waits.[1]",
+        "Not to be confused with utility-funded HES-IE (same income but separate, no-cost audit).[3]",
+        "Landlord contribution possible for rentals.[5]",
+        "Annual renewal required.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://portal.ct.gov/DEEP/Energy/Weatherization/Weatherization-in-Connecticut"
+    },
+    {
+      "name": "CHOICES (CT SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset tests; volunteer/staff-delivered counseling via 5 regional AAAs; partners with Center for Medicare Advocacy; open to all Medicare-eligible CT residents and caregivers",
+      "gotchas": [
+        "Not a direct service/financial benefit program—provides counseling and assistance only, not healthcare or payments[2][5]",
+        "Counselors are trained volunteers/staff, not insurance agents; no financial gain from recommendations[2][6]",
+        "Confused with Medicare itself or other CT programs; it's SHIP for navigation help[1][4]",
+        "Open Enrollment (Oct 15-Dec 7) critical period—contact for timely help[8]",
+        "Employer group health plans or HSAs may affect Medicare enrollment timing[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://portal.ct.gov/ads/programs-and-services/choices[5]"
+    },
+    {
+      "name": "Connecticut Statewide Respite Care Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's data structure is characterized by: (1) fixed annual subsidy cap ($7,500) rather than hourly/service-based limits; (2) administration through regional Area Agencies on Aging creating potential for regional variation not documented in state regulations; (3) conflicting income limits in available sources suggesting possible updates or regional differences; (4) contingency on available funding making benefits non-guaranteed; (5) flexibility in service types and delivery method (agency vs. self-directed) but fixed financial ceiling; (6) integration with broader caregiver support ecosystem (Alzheimer's Association, multiple state agencies) rather than standalone program.",
+      "gotchas": [
+        "Income limit discrepancy: Two different income thresholds appear in regulations ($58,772[2] vs. $48,266[4]) — verify current limit when applying[2][4]",
+        "Cannot receive simultaneously with Connecticut Homecare Program for Elders — applicants must choose one program[2]",
+        "Funding is contingent on available funding — not guaranteed even if eligible[2][5]",
+        "20% co-payment required unless specifically waived — families should budget for this cost[2]",
+        "Physician must complete specific 'Physician Statement' form — generic medical records may not suffice[2]",
+        "Care recipient cannot be spouse or conservator of provider — limits family hiring options[3]",
+        "Processing timeline not specified — families should call ahead to understand wait expectations[3]",
+        "Self-directed option available (hire private caregiver through fiduciary) but requires additional setup[2]",
+        "Program provides subsidy, not full coverage — families responsible for remaining costs after subsidy and co-payment[2]"
+      ],
+      "benefitType": "financial subsidy for services",
+      "benefitVariesBy": "Available funding and applicant's level of need as determined by Care Manager[2][5]",
+      "officialSource": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care[6]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCSEP is a federally funded program with state/local co-funding (90% federal, 10% nonfederal match). In Connecticut, it is administered by a single primary provider (A4TD) rather than multiple regional offices. Benefits are fixed (20 hours/week at minimum wage) rather than scaled by household size. Eligibility is based on a strict income threshold tied to federal poverty guidelines, which vary by household size but are not itemized in the available search results. The program prioritizes certain populations (veterans, 65+, disabled, rural, homeless/at-risk) but does not appear to have separate tiers of benefits based on priority status — all participants receive the same 20 hours/week training structure.",
+      "gotchas": [
+        "Income limit is strict: 125% of federal poverty level is relatively low. A family should verify their exact threshold before applying, as it varies by household size and is updated annually.",
+        "This is a temporary, part-time training program (average 20 hours/week), not permanent employment. It is designed as a 'bridge to unsubsidized employment,' meaning participants are expected to transition to regular jobs after training.",
+        "Priority enrollment is given to veterans and those over 65 first — if the applicant is under 65 and not a veteran, they may face longer wait times or lower priority.",
+        "The program serves a community service objective, meaning placements are at nonprofits and public agencies, not private employers. This limits the types of work experience available.",
+        "Participants must be actively unemployed to qualify — those with part-time or any current employment may not be eligible.",
+        "The search results do not provide information on processing times, waitlists, or specific application forms, which are critical details for planning. Families should contact A4TD directly for these specifics."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor); Connecticut Department of Aging and Disabilities co-funds the program"
+    },
+    {
+      "name": "Long Term Care Ombudsman Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; advocacy-only with no financial eligibility, asset review, waitlists, or tiered benefits; open to residents/families pre- and post-placement in specific facility types; volunteer-driven with regional staff support.",
+      "gotchas": [
+        "Services are free advocacy, not financial aid, healthcare, or housing placement—focuses on rights protection and complaint resolution in long-term care facilities.",
+        "Confidentiality maintained unless permission given to act on complaints.",
+        "Not for general elderly care outside licensed long-term care facilities.",
+        "Volunteering has restrictions (e.g., cannot if employed by or owning a facility, or if immediate family resides there).",
+        "Families considering placement can get info, but must be for covered facility types."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://portal.ct.gov/LTCOP"
+    }
+  ]
+}

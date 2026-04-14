@@ -4,6 +4,7 @@ import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
+import { SavedProgramsProvider } from "@/hooks/use-saved-programs";
 import LayoutShell from "./LayoutShell";
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -144,7 +145,9 @@ export default function RootLayout({
         <Script src="https://cdn.lordicon.com/lordicon.js" strategy="afterInteractive" />
         <AuthProvider>
           <SavedProvidersProvider>
-            <LayoutShell>{children}</LayoutShell>
+            <SavedProgramsProvider>
+              <LayoutShell>{children}</LayoutShell>
+            </SavedProgramsProvider>
           </SavedProvidersProvider>
         </AuthProvider>
       </body>

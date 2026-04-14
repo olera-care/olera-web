@@ -1,0 +1,480 @@
+{
+  "state": "DE",
+  "stateName": "Delaware",
+  "comparedAt": "2026-04-09T12:39:40.623Z",
+  "total": 12,
+  "newPrograms": 8,
+  "withDiffs": 4,
+  "withNovelFields": 4,
+  "benefitTypes": {
+    "service": 5,
+    "financial": 3,
+    "in_kind": 1,
+    "service|advocacy": 1,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "age": 1,
+    "not_applicable": 3,
+    "not_applicable — benefits are comprehensive and all-inclusive for all enrolled participants": 1,
+    "program_type": 1,
+    "household_size": 1,
+    "household_size|priority_tier|fuel_type": 1,
+    "household_need": 1,
+    "region": 1,
+    "priority_tier": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 4,
+      "programs": [
+        "Diamond State Health Plan (DSHP and DSHP-Plus)",
+        "Food Stamp Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "documents_required": {
+      "count": 4,
+      "programs": [
+        "Diamond State Health Plan (DSHP and DSHP-Plus)",
+        "Food Stamp Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Food Stamp Program (SNAP)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    },
+    "regional_variations": {
+      "count": 3,
+      "programs": [
+        "Food Stamp Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Low-Income Home Energy Assistance Program (LIHEAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Diamond State Health Plan (DSHP and DSHP-Plus)",
+      "isNew": false,
+      "existingId": "diamond-state-health-plan-plus-long-term-care-community-serv",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2485",
+          "found": "$2,485",
+          "source": "https://dhss.delaware.gov/dmma/medicaid.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Comprehensive Medicaid managed care: doctor visits, hospital care (inpatient/outpatient), labs, prescription drugs, transportation, mental health/substance use treatment (outpatient/inpatient), home health, hospice, ambulance, allergy/HIV/hearing exams, hearing aids (1 per ear every 2 years for 21+), GED testing voucher (18+), healthy weight program, rewards gift cards. For DSHP-Plus/LTCCS: long-term Home and Community Based Services (HCBS) for those meeting NFLOC[3][7][9].",
+          "source": "https://dhss.delaware.gov/dmma/medicaid.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhss.delaware.gov/dmma/medicaid.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For DSHP-Plus/ABD Medicaid long-term care: $2,000 countable assets for single applicant. Home is exempt if applicant lives there or intends to return with equity ≤ $752,000 (2026), or if spouse/minor child/disabled child lives there. Other countable assets include bank accounts; car may be exempt per general Medicaid rules. No asset test for standard DSHP non-LTC[1][2][3].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, tax returns).",
+            "Proof of assets (bank statements).",
+            "Proof of residency (utility bill).",
+            "ID (birth certificate, Social Security card).",
+            "Medical records for functional assessment (ADLs) if applying for DSHP-Plus[1][2]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Two tiers: standard DSHP (low-income adults <100% FPL, no asset test) vs. DSHP-Plus (elderly LTC with NFLOC, $2,485/month income cap, $2,000 assets, home equity rules); mandatory MCO enrollment; benefits age-tiered",
+      "gotchas": [
+        "DSHP is managed care; must enroll in MCO to receive benefits - no services until enrolled[4].",
+        "DSHP-Plus requires NFLOC screening; dementia diagnosis alone insufficient[1].",
+        "Excludes Medicare-eligible, those in nursing homes/LTC, or with other comprehensive insurance[1][4].",
+        "For LTC, most income goes to state (keep $75/month personal needs allowance)[2].",
+        "Home equity limit $752,000 (2026); exceeds may disqualify[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "age",
+      "officialSource": "https://dhss.delaware.gov/dmma/medicaid.html"
+    },
+    {
+      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple DSAAPD-administered waivers (Elderly & Disabled, Assisted Living); eligibility tied to Medicaid with functional impairment; statewide but location-specific providers; no exact current income tables in sources",
+      "gotchas": [
+        "Must be Medicaid-eligible first; waiver is an alternative to nursing home care but requires nursing home level of care[4][7]",
+        "Eligibility varies by specific waiver (e.g., Elderly & Disabled, Assisted Living, Acquired Brain Injury)[5]",
+        "Ages 18-59 have stricter financial/medical criteria than 60+[4]",
+        "Assisted living coverage requires licensed facility that offers covered services[5]",
+        "Resources over limits may require irrevocable trust[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "www.dhss.delaware.gov/dsaapd"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Delaware PACE is geographically restricted to specific service areas served by individual PACE organizations (PACE Your LIFE, Saint Francis LIFE, and potentially others). There are no income or asset limits for PACE eligibility itself, but Medicaid coverage (which funds most participants) has income and asset limits. Benefits are comprehensive and all-inclusive with no variation by tier or household size. The program requires exclusive enrollment and cannot be combined with Medicare Advantage or other managed care plans. Processing timelines and waitlist status are not publicly specified and vary by provider.",
+      "gotchas": [
+        "No income or asset test for PACE eligibility itself, but most participants are dually eligible for Medicare and Medicaid (approximately 90%)[3]. If you don't qualify for Medicaid, you'll pay a flat monthly premium as a private-pay participant[6][7].",
+        "You must be living in the community at enrollment — if already in a nursing home, you may not qualify[1].",
+        "PACE is all-or-nothing: you must receive services exclusively through the PACE organization and cannot use other providers[1]. You cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or prescription drug plans simultaneously[3].",
+        "Enrollment is voluntary, but once enrolled, you're committed to the program's care model and cannot easily switch to other coverage types[1].",
+        "Service area availability is limited — not all of Delaware is covered. Verify your zip code is in a PACE service area before applying[3][6].",
+        "The state must certify you as needing nursing home level of care — this is not self-determined and requires formal assessment[3][5].",
+        "If you move out of the PACE service area or are out of the area for more than 30 consecutive days (without prior arrangement), you may be disenrolled[1].",
+        "Disruptive, threatening, or non-compliant behavior that jeopardizes safety can result in disenrollment[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable — benefits are comprehensive and all-inclusive for all enrolled participants",
+      "officialSource": "https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775 (Delaware Administrative Code); https://www.medicaid.gov/medicaid/spa/downloads/DE-21-0007.pdf (Delaware State Plan Amendment)"
+    },
+    {
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No asset test (full resource exclusion unique to Delaware implementation); income strictly federal poverty-based with spouse deeming; benefits strictly Medicare premium/cost-sharing (no services); two tiers (QMB ≤100% FPL, SLMB 100-120% FPL).",
+      "gotchas": [
+        "No asset test in Delaware (people miss this—unlike many states).",
+        "QMB/SLMB recipients get **no Medicaid services** beyond Medicare cost-sharing; cannot dual-eligible for full Medicaid.",
+        "Eligibility not retroactive—must apply before coverage starts.",
+        "Providers cannot bill QMBs for Medicare-covered services (federal protection).",
+        "Income disregards (e.g., $20 unearned, $65+$half earned) may apply federally, but Delaware follows federal poverty line directly.",
+        "SLMB only covers Part B premium—not deductibles/copays like QMB."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_type",
+      "officialSource": "https://regulations.delaware.gov/board/division-of-medicaid-and-medical-assistance"
+    },
+    {
+      "name": "Food Stamp Program (SNAP)",
+      "isNew": false,
+      "existingId": "food-stamp-program-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://dhss.delaware.gov/dss/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2081",
+          "found": "$2608,",
+          "source": "https://dhss.delaware.gov/dss/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly benefits loaded on EBT card for groceries at authorized stores. Maximum ~$291 for 1-person household, ~$535 for 2-person. Actual amount based on net income, household size, deductions (e.g., higher medical >$35/month, shelter for elderly). Minimums and maximums apply; ~$100 more net income = $30 less benefits.[1][2]",
+          "source": "https://dhss.delaware.gov/dss/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhss.delaware.gov/dss/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits for households where all members are 60+ or disabled. Standard asset test may apply otherwise, but Delaware has expanded eligibility exempting many elderly/disabled households.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Delaware SNAP has expanded eligibility. Maximum gross monthly income is 200% FPL for most households: 1 person $2608, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, each additional +$916. For elderly/disabled households (all members 60+ or disabled), no gross income test; qualify on net income ≤100% FPL or gross ≤165% FPL in some cases. Seniors 60+ may qualify if gross ≤130% FPL (~$1580 for one) or net ≤100% FPL. SSI recipients are categorically eligible.[1][2][3]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly by Division of Social Services (DSS), but apply at local DSS offices; no noted differences in eligibility, benefits, or wait times by county/region.[5][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of identity.",
+            "Proof of income (e.g., Social Security award letters, pension statements).",
+            "Proof of expenses (rent, utilities, medical costs over $35/month, child support).",
+            "Bank statements.",
+            "Proof of residency."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Expanded Delaware eligibility (200% FPL gross vs federal 130%); no asset test for all-elderly/disabled households; special higher deductions for seniors; benefits scale by household size and net income with elderly-specific rules.",
+      "gotchas": [
+        "Elderly households skip gross income test but must meet net income/asset; higher deductions for medical/shelter often key to qualification.",
+        "All who live/buy/prepare food together count as household—don't miss including others.",
+        "SSI recipients categorically eligible—no separate application needed in most cases.",
+        "Work requirements may apply to ages 55-64 without dependents under new 2025 rules.",
+        "Benefits reduce ~$0.30 per $1 net income increase.",
+        "Telephone interviews often available for elderly, no in-person required."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dhss.delaware.gov/dss/"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "delaware-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2820",
+          "found": "$3,278",
+          "source": "https://www.dhss.delaware.gov/dhss/dss/liheap.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "Heating: $100 minimum to $2,561 maximum; Cooling: $1 minimum to $1,000 maximum; Crisis: up to $10,000. Average grant ~$553/year. Paid as supplemental grant to household or vendor for energy bills, crisis (e.g., shut-off), weatherization/repairs[1][4][5].",
+          "source": "https://www.dhss.delaware.gov/dhss/dss/liheap.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhss.delaware.gov/dhss/dss/liheap.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in Delaware state program sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered contractually by local agencies (e.g., Catholic Charities statewide); no specific county differences noted beyond potential fund exhaustion timing[4][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible pending status if documents incomplete; first-come-first-served until funds gone[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (last 30 days for adults)[3]",
+            "Proof of residency/utility bill[3]",
+            "Social Security cards (if applicable via tribal, but state not specified)[3]",
+            "Shut-off notice or crisis proof for crisis aid[4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits vary by income, size, fuel, crisis status; priority tiers for elderly/disabled/young kids; seasonal components with early fund exhaustion; statewide but local agency delivery",
+      "gotchas": [
+        "Funding limited; applications stop when funds run out, even before season end (heating Oct-Mar, cooling May-Aug, crisis year-round)[1][4]",
+        "Household counts all sharing utility bill, unlike SNAP[1]",
+        "Supplemental only, not full heating costs[4]",
+        "Must apply during open periods; crisis needs proof like shut-off notice[1][4]",
+        "Older data (e.g., 2021) may differ; verify current via official site[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|fuel_type",
+      "officialSource": "https://www.dhss.delaware.gov/dhss/dss/liheap.html"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size through income eligibility thresholds rather than varying service levels. Waiting list prioritization is need-based rather than first-come-first-served. Program is statewide but administered through multiple local agencies, which may affect processing times and accessibility. Key distinction: this is a federal DOE program with strict income limits (200% poverty level), not a needs-based program. Elderly family members do not receive priority based on age alone, but age is one factor in waiting list prioritization. Services are determined by home energy audit results, not by household tier or priority level.",
+      "gotchas": [
+        "Waiting list is not guaranteed service — funding is limited and not all applicants are served each year[1][7]",
+        "If you don't receive services within 12 months of application, you must reapply every year to maintain eligibility; your application does not carry over[1][7]",
+        "Renters need landlord permission in writing and a copy of the rental agreement — this can be a barrier if landlord is uncooperative[2]",
+        "Multi-family homes (apartments, condos) are NOT eligible, even if you own one unit[2]",
+        "Homeowner participation requires significant time commitment on multiple days, and someone age 18+ must be present each time contractors are in the home[1][7]",
+        "Income limits are based on 200% of Federal Poverty Level (60% of median family income), which is stricter than some other assistance programs[2][3]",
+        "Pre-WAP program exists for homes that don't initially qualify — these homes can receive roof repair, window/door replacement, and masonry work to become eligible for full WAP services[2]",
+        "No permits required for weatherization work[5]",
+        "Program does not consider applicants categorically eligible based on participation in other assistance programs — income must be verified independently[6]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_need",
+      "officialSource": "https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/"
+    },
+    {
+      "name": "Delaware Senior Medicare Patrol (SMP/SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; open to all Medicare beneficiaries/families; service-based (counseling/education) not financial; volunteer-driven with statewide coverage via single state grantee",
+      "gotchas": [
+        "Not a financial assistance or healthcare provider program—focuses on education, fraud prevention, counseling (not direct medical care or cash benefits); often co-located with SHIP but distinct SMP anti-fraud mission; volunteers handle much outreach, so availability may depend on local staffing; must actively report suspected fraud[1][2][4][9]",
+        "Automatic connection via national lines but confirm Delaware-specific counselor[5]"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dhss.delaware.gov/dsaapd (Delaware SMP/SHIP); https://smpresource.org/smp-locator/ (national locator for Delaware contact)[5][9]"
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via Title III-C but delivered by regional providers with local contacts; no income/asset tests, focuses on homebound status; varies by local delivery zone and provider.",
+      "gotchas": [
+        "Not all of Delaware is explicitly listed; confirm local provider for Sussex County or other areas via Area Agency on Aging.[7]",
+        "Homebound status strictly required; those who can easily leave home or have cooking help may not qualify.[2]",
+        "Car ownership or ability to shop may affect eligibility in some local programs.[2]",
+        "Separate Medicaid LTSS program exists for up to 2 meals/day with prior authorization, but not the core Title III-C program.[3]",
+        "Meals not delivered to assisted living, nursing facilities, adult day care, or senior centers.[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/home_delivered_meals2.pdf"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered with distinct providers per Delaware county (3 total); income at 125% poverty (no asset test or table); priority tiers affect access; funding-constrained slots",
+      "gotchas": [
+        "County-specific providers and contacts required—no single statewide office",
+        "Funding-limited slots create waitlists; availability varies by county",
+        "Income test is strict (≤125% poverty after exclusions); must be fully unemployed",
+        "Priority for veterans, 65+, disabled, rural/homeless/low-literacy—others may wait longer",
+        "Wage fixed at min. $9.25/hr (older data); part-time only as bridge to unsubsidized work",
+        "Requires commitment to community service, training, and active job search"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://laborfiles.delaware.gov/main/det/faqs-scsep/SCSEP_FAQs.pdf"
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State mandates statewide coverage for 60+ with priority tiers but delegates eligibility/assets to providers; county-specific offices/phone lines; no fixed income/asset tables or processing times published",
+      "gotchas": [
+        "Not automatic eligibility at 60—providers apply their own income/asset guidelines (e.g., ~125% FPL) despite state 'all 60+' language; exceptions possible but call to confirm[1][2]",
+        "Limited to specific elder-related civil matters (e.g., no criminal cases); priority to high-need cases may limit access[1][3]",
+        "Assets reviewed case-by-case, can disqualify even if income qualifies[4]",
+        "Funded by Older Americans Act Title III-B; subject to LSC restrictions[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/SS_legal_svs_for_elderly.pdf"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "delaware-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy services including investigating and resolving complaints made by or on behalf of residents (except abuse/neglect/mistreatment/financial exploitation which are referred elsewhere); informing residents of rights under federal and state law; assisting in protecting rights; providing information about the program; periodic site visits and annual facility assessments to ensure care standards[2][4][5][6]",
+          "source": "https://dhss.delaware.gov/dsaapd (Division of Services for Aging and Adults with Physical Disabilities)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhss.delaware.gov/dsaapd (Division of Services for Aging and Adults with Physical Disabilities)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[2][4][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program operates statewide with regional volunteer coordinators (e.g., Kent/Sussex office exists), but core services uniform; no specified differences in wait times or provision[2][4][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to request services; provide details of complaint or concern verbally or in writing[6]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy-only for long-term care residents statewide; complaint-driven access with no formal application or waitlist",
+      "gotchas": [
+        "Not a direct service provider like healthcare or financial aid—focuses solely on advocacy and rights protection, not personal care or funding[5][6]",
+        "Abuse, neglect, mistreatment, or financial exploitation complaints are referred to Division of Long Term Care Residents Protection, not handled directly[6]",
+        "Families cannot qualify independently; services are for facility residents only[2][5]",
+        "Volunteers have strict conflict of interest rules (e.g., no family in facility)[2]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dhss.delaware.gov/dsaapd (Division of Services for Aging and Adults with Physical Disabilities)"
+    }
+  ]
+}

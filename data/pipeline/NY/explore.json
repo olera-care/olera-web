@@ -1,0 +1,150 @@
+{
+  "entity": "New York",
+  "entitySlug": "new-york",
+  "state": "NY",
+  "stateName": "New York",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T15:30:26.279Z",
+  "programCount": 19,
+  "programs": [
+    {
+      "name": "Community Medicaid",
+      "what_it_does": "Provides health coverage for low-income seniors and disabled individuals, covering long-term care services not covered by Medicare such as nursing home care and community-based services. In New York, it includes programs like Community Medicaid for non-institutional long-term care support.[1][4]",
+      "who_its_for": "Low-income seniors (60+) and disabled individuals with income at or below 138% FPL (~$1,640/month individual in 2024) and resources under $16,000.[4]",
+      "official_url": "https://otda.ny.gov/programs/medicaid/",
+      "benefit_value": "Covers premiums, deductibles, long-term care, and community services; value varies by need but can include full nursing facility coverage up to 100 days post-hospitalization.[1][4]"
+    },
+    {
+      "name": "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+      "what_it_does": "Offers home and community-based services as an alternative to nursing home placement, including personal care, homemaker services, and adult day care. Administered by NYSOFA and local offices to support aging in place.[7]",
+      "who_its_for": "Seniors (60+) needing nursing home level care but preferring community living, income-eligible per program rules.[7]",
+      "official_url": "https://aging.ny.gov/get-assistance",
+      "benefit_value": "Varies; provides coordinated in-home supportive services to avoid institutionalization, cost-effective compared to nursing homes.[7]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible frail seniors in community settings, including adult day health and home care. Fully capitated model integrates Medicare and Medicaid benefits.[1]",
+      "who_its_for": "Frail seniors 55+ certified for nursing home level care but able to live safely in community.[1]",
+      "official_url": "https://www.health.ny.gov/health_care/medicaid/redesign/pace/",
+      "benefit_value": "All-inclusive care covering Medicare/Medicaid services; prevents or delays nursing home placement.[1]"
+    },
+    {
+      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
+      "what_it_does": "Pays Medicare Part A/B premiums, deductibles, coinsurance for eligible low-income seniors; QMB covers full costs up to 100% FPL, SLMB/QI cover Part B premiums up to 120-135% FPL. Administered via NY local districts.[4]",
+      "who_its_for": "Medicare enrollees with income <100% FPL (QMB ~$1,753/month), <120% (SLMB), 120-135% (QI); resources <$9,000 individual.[4]",
+      "official_url": "https://www.health.ny.gov/health_care/medicaid/msp/",
+      "benefit_value": "QMB: full Part A/B coverage; SLMB: Part B premium (~$174.70/month); QI: Part B premium first-come basis.[4]"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP) / ESAP / NYSCAP",
+      "what_it_does": "Provides monthly EBT benefits for food purchases; ESAP simplifies application for seniors/disabled no earned income, NYSCAP auto-enrolls SSI solo seniors. Improves access via categorical eligibility and deductions.[2]",
+      "who_its_for": "Seniors 60+ or disabled; ESAP: all household seniors/disabled no earnings; NYSCAP: SSI alone; income-eligible.[2]",
+      "official_url": "https://otda.ny.gov/programs/snap/",
+      "benefit_value": "Individualized monthly benefits; max via deductions, e.g., higher for seniors with medical/shelter costs.[2]"
+    },
+    {
+      "name": "Home Energy Assistance Program (HEAP)",
+      "what_it_does": "Assists with heating costs via one-time payments to utility providers; includes emergency aid for shut-off prevention. Available to income-eligible including program participants like SNAP/Medicaid.[1][9]",
+      "who_its_for": "Low-income households including seniors 60+, SSI/Medicaid/SNAP recipients; income guidelines apply.[1]",
+      "official_url": "https://otda.ny.gov/programs/heap/",
+      "benefit_value": "Grants $200-$1,000+ per season depending on fuel type, income, household size.[1][9]"
+    },
+    {
+      "name": "Weatherization Referral and Packaging Program (WRAP)",
+      "what_it_does": "Refers seniors for home weatherization to reduce energy costs; packages services like insulation and furnace repairs. Links to federal weatherization assistance.[1]",
+      "who_its_for": "Income-eligible older New Yorkers, especially low-income seniors.[1]",
+      "official_url": "https://otda.ny.gov/programs/weatherization/",
+      "benefit_value": "Free or low-cost energy efficiency improvements saving on utility bills long-term.[1]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) / Health Insurance Information, Counseling and Assistance Program (HIICAP)",
+      "what_it_does": "Offers free counseling on Medicare, MSPs, Part D, and appeals; helps compare plans and apply for savings. Provided statewide via regional programs.[1]",
+      "who_its_for": "All Medicare beneficiaries, especially seniors 60+ needing guidance.[1]",
+      "official_url": "https://aging.ny.gov/insurance-counseling",
+      "benefit_value": "Free one-on-one assistance preventing costly errors in Medicare choices.[1]"
+    },
+    {
+      "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly Program - EISEP)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors; part of NYSOFA coordinated in-home services. Supplements informal care to support community living.[7]",
+      "who_its_for": "Homebound seniors 60+ assessed as needing meals via local Office for Aging.[7]",
+      "official_url": "https://aging.ny.gov/programs/eisep",
+      "benefit_value": "5-10 meals/week; promotes nutrition and reduces isolation.[7]"
+    },
+    {
+      "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
+      "what_it_does": "Provides temporary relief for caregivers via in-home aides or facility stays; supports family caregivers. Funded via federal/state grants.[6]",
+      "who_its_for": "Caregivers of seniors 60+ at risk of institutionalization.[6]",
+      "official_url": "https://www.nyfsc.org/respite-care",
+      "benefit_value": "Temporary care hours/days; prevents caregiver burnout.[6]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid training jobs in community nonprofits for low-income seniors. Promotes employment and skill-building.[1]",
+      "who_its_for": "Unemployed low-income seniors 55+ unable to find work.[1]",
+      "official_url": "https://aging.ny.gov/programs/scsep",
+      "benefit_value": "Minimum wage training positions, 20 hrs/week up to 1 year.[1]"
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "what_it_does": "Provides free legal aid for income-eligible seniors on issues like benefits, housing, consumer problems. Via NYFSC and legal aid societies.[6]",
+      "who_its_for": "Low-income seniors 60+ in NYC/all boroughs.[6]",
+      "official_url": "https://www.nyfsc.org/legal-services",
+      "benefit_value": "Pro bono representation/counsel; resolves disputes preserving independence.[6]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living, investigates complaints, ensures quality care. Statewide volunteer network.[1]",
+      "who_its_for": "Nursing home/assisted living residents, families; seniors 60+.[1]",
+      "official_url": "https://aging.ny.gov/ombudsman",
+      "benefit_value": "Free advocacy resolving grievances, improving facility conditions.[1]"
+    },
+    {
+      "name": "Elderly Pharmaceutical Insurance Coverage Program (EPIC)",
+      "what_it_does": "EPIC is a state program that helps income-eligible seniors aged 65 and older supplement their out-of-pocket costs for Medicare Part D prescription drugs. It pays more than half the cost of most prescription drugs after the beneficiary pays their share.[2][4][10]",
+      "who_its_for": "Seniors aged 65 and older who meet income eligibility limits.",
+      "whats_unique": "State-funded program unique to New York that specifically supplements Medicare Part D costs for prescription drugs, not available in other states.[2][4]",
+      "official_url": "https://aging.ny.gov/apply-for-benefits",
+      "benefit_value": "Pays more than 50% of prescription drug costs after beneficiary pays initial share; serves over 330,000 seniors.[2][4][10]"
+    },
+    {
+      "name": "Senior Citizen Homeowners' Exemption (SCHE)",
+      "what_it_does": "SCHE provides a property tax exemption for eligible senior homeowners in New York City. It reduces real property taxes by 5% to 50%, making homeownership more affordable for seniors on fixed incomes.[1][4]",
+      "who_its_for": "Homeowners aged 65 and older meeting income and residency requirements in NYC.",
+      "whats_unique": "NYC-specific property tax exemption tailored for seniors, beyond standard federal programs or statewide relief.[1][4]",
+      "official_url": "https://aging.ny.gov/apply-for-benefits",
+      "benefit_value": "5% to 50% reduction on NYC real property taxes.[4]"
+    },
+    {
+      "name": "Senior Citizen Rent Increase Exemption (SCRIE)",
+      "what_it_does": "SCRIE freezes rent increases for eligible seniors in rent-stabilized apartments. It protects seniors on fixed incomes by covering increases due to rent guidelines, fuel costs, or landlord hardships.[1][2]",
+      "who_its_for": "Seniors whose rent is at least one-third of monthly income, primary tenants on valid leases in rent-stabilized units, meeting local income limits.",
+      "whats_unique": "NYC program that freezes rent increases specifically for seniors in rent-stabilized housing, unique to New York's rent regulation system.[1][2]",
+      "official_url": "https://www.ultimatecareny.com/resources/benefits-for-seniors-in-ny",
+      "benefit_value": "Freezes rent increases on renewal leases and major adjustments.[2]"
+    },
+    {
+      "name": "Enhanced STAR Program",
+      "what_it_does": "The Enhanced STAR program offers property tax relief specifically for senior citizens aged 65 and older. It provides exemptions on school taxes to reduce financial burdens for eligible homeowners.[1][2]",
+      "who_its_for": "Seniors aged 65+ who are homeowners meeting income eligibility.",
+      "whats_unique": "New York State-specific enhancement to the STAR program targeted at seniors for school property tax relief.[1][2]",
+      "official_url": "https://www.ultimatecareny.com/resources/benefits-for-seniors-in-ny",
+      "benefit_value": "Property tax exemption on school taxes for qualifying seniors.[1]"
+    },
+    {
+      "name": "Expanded In-home Services for the Elderly Program (EISEP)",
+      "what_it_does": "EISEP provides non-medical in-home services to help seniors age in place. Services include assistance with bathing, eating, toileting, and dressing for those requiring support.[3]",
+      "who_its_for": "Adults aging in place who need help with activities of daily living, typically through local Offices for the Aging.",
+      "whats_unique": "State-funded program via county Offices for the Aging, focused on non-medical home care to prevent institutionalization.[3]",
+      "official_url": "https://www.thefellergroup.com/blog/programs-and-benefits-available-for-elderly-new-yorkers/",
+      "benefit_value": "Non-medical personal care services like bathing and meal prep.[3]"
+    },
+    {
+      "name": "Golden Park Program",
+      "what_it_does": "The Golden Park Program offers free vehicle parking for seniors at most New York State parks, boat launch sites, and arboretums. It also provides fee reductions at state historic sites and state-operated golf courses.[3]",
+      "who_its_for": "New York State residents aged 62 and older.",
+      "whats_unique": "NY-specific perk for seniors accessing state parks and recreation without parking fees or reduced entry costs.[3]",
+      "official_url": "https://www.thefellergroup.com/blog/programs-and-benefits-available-for-elderly-new-yorkers/",
+      "benefit_value": "Free parking and fee reductions at state parks, historic sites, and golf courses; no application needed.[3]"
+    }
+  ]
+}

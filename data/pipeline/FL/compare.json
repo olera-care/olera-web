@@ -1,0 +1,589 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "comparedAt": "2026-04-13T17:44:00.536Z",
+  "total": 14,
+  "newPrograms": 9,
+  "withDiffs": 5,
+  "withNovelFields": 5,
+  "benefitTypes": {
+    "service": 9,
+    "financial": 3,
+    "advocacy": 1,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "Individual need and managed care plan offerings; all managed care plans must offer at least minimum required services per AHCA coverage policy[2]": 1,
+    "region": 2,
+    "program_tier (QMB > SLMB > QI in terms of coverage breadth)": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "priority_tier|region": 3,
+    "not_applicable": 1,
+    "priority_tier": 4
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+      "isNew": false,
+      "existingId": "statewide-medicaid-managed-care-long-term-care-smmc-ltc",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 years or older, OR 18 years or older if eligible for Medicaid by reason of disability, OR 18 years or older with cystic fibrosis diagnosis requiring hospital level of care[3]",
+          "source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program[9]"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2816",
+          "found": "$2,543",
+          "source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program[9]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Services include: adult day health care, case management, respite care, attendant care, and other home and community-based services[4]. Specific service array and hours/dollar amounts not detailed in search results",
+          "source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program[9]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program[9]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For a single applicant in 2026, the asset limit is $2,000 in countable assets[7]. Home equity interest is treated separately: applicants living in the home or with intent to return home must have home equity interest no greater than $752,000 as of 2026[1]. Home equity is calculated as current home value minus outstanding mortgage; equity interest is the portion owned by the applicant[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Not specified in search results",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes — there is a wait-list for this program[2]. Eligible individuals who meet clinical and financial requirements can be placed on a waiting list, unlike nursing home placement which cannot have a wait list[5]. Those with greatest need may receive priority[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results; general Medicaid documentation likely required but specific list not provided",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program is a consolidated managed care model combining former separate HCBS waivers. It is statewide but has a waitlist (unlike institutional nursing home care). Eligibility has both strict financial limits ($2,000 assets, $2,543/month income) and functional requirements (NFLOC). Home equity is treated separately from liquid assets. The program uses a managed care delivery model, meaning services are provided through managed care plans rather than fee-for-service. Specific service arrays, dollar amounts, hours, and application procedures are not detailed in available search results and would require direct contact with AHCA or DOEA for complete information.",
+      "gotchas": [
+        "This program has a waitlist — unlike nursing home Medicaid, eligible applicants can be placed on a waiting list[5]. Families should apply early even if immediate services aren't needed",
+        "The 60-month Look-Back Period is strictly enforced — any asset transfers at less than fair market value within 5 years prior to application will result in denial and penalty period[7]",
+        "Home equity limit of $752,000 (2026) applies only if applicant lives in home or has intent to return home; this is separate from the $2,000 asset limit[1]",
+        "NFLOC requirement is strict — applicants must need full-time nursing home-level care, not just assisted living or basic home care[7]",
+        "Multiple former HCBS waivers (Alzheimer's Disease Waiver, Nursing Home Diversion Waiver, Assisted Living for the Elderly Waiver, Consumer Directed Care Plus Waiver) have been discontinued and consolidated into SMMC-LTC[8] — families seeking these specific programs should know they no longer exist as separate programs",
+        "Income limits can be exceeded if applicant establishes an income trust[5] — this is an important workaround not widely known",
+        "Medical eligibility determination is handled by Department of Elder Affairs (DOEA), not AHCA[9] — applicants may need to work with DOEA specifically for clinical assessment"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual need and managed care plan offerings; all managed care plans must offer at least minimum required services per AHCA coverage policy[2]",
+      "officialSource": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program[9]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Limited to specific counties/service areas (not statewide); no direct income/asset test for PACE but tied to Medicare/Medicaid financial rules; provided by designated centers like Florida PACE; enrollment via provider-specific in-home process",
+      "gotchas": [
+        "Not statewide—must live in a specific PACE service area (currently limited, e.g., Miami-Dade)",
+        "Requires nursing home level of care certification but ability to live safely in community at enrollment",
+        "No Medicare Advantage or hospice allowed—must disenroll first",
+        "Medicaid not automatic; PACE assists but separate financial eligibility/process applies (planning needed if over limits)",
+        "Voluntary enrollment; average participant is 76 with complex needs—may not suit all",
+        "Not offered through standard Medicaid health plans"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly"
+    },
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-program-qmb-slmb-qi",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.myflfamilies.com (Florida Department of Children and Families); https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "QMB": {
+              "individual": "$9,950",
+              "couple": "$14,910"
+            },
+            "SLMB": {
+              "individual": "Same as QMB ($9,950)",
+              "couple": "Same as QMB ($14,910)"
+            },
+            "QI": {
+              "individual": "$9,660",
+              "couple": "$14,470"
+            },
+            "note": "Asset limits are resources (savings, investments, etc.). Some states have no asset limit for certain programs; Connecticut has no asset limit for QI, but Florida enforces the limits listed above.[2] States may have more generous standards than federal minimums.[2]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing times and specific office locations vary by county. Each county has its own DCF office handling MSP applications.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI program operates on first-come, first-served basis until annual funding is exhausted; no waitlist mentioned for QMB or SLMB[2][5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicare enrollment (Medicare card)",
+            "Proof of Florida residency",
+            "Proof of U.S. citizenship or qualified non-citizen status",
+            "Income documentation (pay stubs, tax returns, Social Security statements, etc.)",
+            "Asset/resource documentation (bank statements, investment statements, etc.)",
+            "Household composition documentation if claiming dependents"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program's structure is tiered by income level (QMB < SLMB < QI), with benefits inversely proportional to income eligibility. QMB is most restrictive on income but most generous on benefits; QI is least restrictive on income but most limited on benefits and funding. Household size significantly affects income limits and is defined broadly in Florida to include all dependent relatives. QI's first-come, first-served funding model creates a unique annual enrollment dynamic where eligibility does not guarantee enrollment. Income limits reset annually on April 1.",
+      "gotchas": [
+        "QI program has finite annual funding. Even if you meet all eligibility criteria, you may be denied if funds are exhausted. You must reapply each year on a first-come, first-served basis.[2][5]",
+        "Household size definition changed in Florida. It now includes all related individuals (by blood or marriage) who rely on the applicant for at least half their financial support, not just the applicant and spouse. This can significantly raise income limits but also make more people count toward the household.[6]",
+        "You must have BOTH Part A and Part B to qualify for SLMB or QI; QMB requires only Part A enrollment.[3]",
+        "A $20 general exclusion applies to unearned income, meaning you can have up to $20 more in unearned income and still pass the income test.[6]",
+        "Providers cannot bill QMB beneficiaries for deductibles or coinsurance, but you may still receive a bill for a small Medicaid copayment if one applies.[4][5]",
+        "Income limits change every April 1 based on Federal Poverty Level adjustments.[2]",
+        "QMB automatically qualifies you for Extra Help with Medicare Part D prescription drugs, but SLMB and QI do not automatically include this benefit.",
+        "Asset limits are strict and include savings, investments, and other resources. Some states (like Connecticut) have eliminated asset limits for certain programs, but Florida has not.[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier (QMB > SLMB > QI in terms of coverage breadth)",
+      "officialSource": "https://www.myflfamilies.com (Florida Department of Children and Families); https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "supplemental-nutrition-assistance-program-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$15,060",
+          "source": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for eligible foods (fruits, vegetables, meat, dairy, grains; no hot foods/alcohol). Maximum allotments (48 states, Oct 2025-Sep 2026): 1-person $298; 2 $546; 3 $785; 4 $994; 5 $1,183; 6 $1,421; 7 $1,571; 8 $1,789 (+$218 each additional). Actual = max allotment minus 30% of net income (e.g., 2-person elderly: $546 - 30% net = benefit).[3][4]",
+          "source": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Households with elderly (60+) or disabled: $4,500 limit (or $3,000 if disqualified member). Countable: bank accounts, cash value of life insurance, income-producing property. Exempt: primary home, household goods, retirement savings (most), one vehicle (often), personal property.[2][5][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Seniors (60+) only need to meet the net income limit (≤100% Federal Poverty Level, after deductions). Gross income limit is ≤200% FPL for most households. For 2025: $15,060/year ($1,255/month) for 1 person; $20,440/year ($1,703/month) for 2 people. Net income calculated by subtracting standard deduction, medical expenses >$35/month, shelter costs, etc. Full table varies by household size and year; check current FPL via DCF.[2][5][6]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly statewide by DCF; local offices may have slight processing differences, no major benefit variations.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID (driver's license, birth certificate).",
+            "Social Security number.",
+            "Income proof (pay stubs, Social Security award letters, pension statements).",
+            "Expense proofs (rent/mortgage, utilities, medical bills >$35/month).",
+            "Bank statements, asset proofs if applicable.",
+            "Proof of residency, immigration status if non-citizen."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly households exempt from gross income test (net only); higher asset limit ($4,500); deductions heavily favor seniors (medical/shelter); benefits scale by household size and net income (max - 30% net); statewide uniform via DCF.",
+      "gotchas": [
+        "Seniors often miss high medical deductions (out-of-pocket >$35/month) that lower net income.",
+        "Social Security/pensions count as income; report all household members who share food.",
+        "Assets exempt for most seniors but check if disqualified member.",
+        "Must report income >130% FPL or work hours <80 (if applicable) within 10 days.",
+        "Only ~half of eligible seniors apply; benefits usable at farmers markets/online.",
+        "No asset test waived unless income >200% FPL in some cases."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/"
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "isNew": false,
+      "existingId": "low-income-home-energy-assistance-program-liheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2800",
+          "found": "$2,679",
+          "source": "https://floridaliheap.com"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment to utility company for heating/cooling bills. Regular: $400 min to $1,350 max (heating/cooling). Crisis: up to $2,000. Amount based on income, size, fuel type.[4]",
+          "source": "https://floridaliheap.com"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://floridaliheap.com"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit.[4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Varies by county: different providers, offices, forms, priorities, wait times, funding availability (e.g., Hillsborough prioritizes seniors ≥60; Palm Beach has specific releases).[1][3][5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible during peak times; applications may pause when funds low.[7]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Names, DOB, SSNs for all household members.",
+            "Income proof last 30 days (pay stubs, award letters for SS/SSI/SSDI/VA/TANF, W-2, employer letter, self-declaration).",
+            "Photo ID (FL DL/ID, passport, birth certificate, naturalization/citizenship cert).",
+            "Citizenship/immigration docs for at least one member.",
+            "Recent utility bill (or lease if not in name; disconnection notice if applicable).",
+            "Benefits letters (SNAP/SSI/TANF).[2][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "County-administered with local providers; income dual-tested (60% SMI/150% FPG); benefits tiered by regular/crisis, household factors; no assets test; funding-limited with pauses.",
+      "gotchas": [
+        "Not statewide—must use county-specific provider; applications often pause when funds deplete.",
+        "Report ALL household incomes, even non-citizens/roommates on same bill.",
+        "No automatic elderly age requirement, but seniors ≥60 prioritized in some areas.",
+        "Crisis aid higher but requires emergency proof (e.g., shutoff).",
+        "May need to pay current bill before benefit awards in some counties.",
+        "Benefits to utility, not cash; one-time per season typically.[2][4][5][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://floridaliheap.com"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered via regional subgrantees with county-specific providers and slight variations in income tables/priority; priority tiers use point system; docs heavily emphasized; no fixed statewide application portal",
+      "gotchas": [
+        "Not available statewide uniformly—must find exact local provider for your county; not all FL counties listed in sources[1][4][6].",
+        "Not a window replacement program despite common misconception[1].",
+        "Income verification strict (12 months, specific docs only; no bank statements/self-taxes)[1].",
+        "Priority-based (elderly/disabled get preference, but not guaranteed; waitlists common)[1][4].",
+        "Renters need landlord approval; homeowners need ownership proof[1][4].",
+        "Income limits change annually—verify current 200% FPG with agency[1][2][5].",
+        "Scam alert: Staff never ask for personal info for 'payroll updates'[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program (Florida Dept. of Commerce; also energy.gov for state map)[1][8]"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "isNew": false,
+      "existingId": "shine-serving-health-insurance-needs-of-elders",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "Free counseling service",
+          "found": "Free, unbiased, confidential one-on-one counseling and information on Medicare eligibility/enrollment/coverage, health plan choices, appeal rights, Medigap policies, long-term care insurance, prescription assistance resources, benefits for qualified Medicare beneficiaries (e.g., Extra Help/LIS, Medicare Savings Program/MSP), Medicare fraud; educational presentations and community events[2][3][4][5]",
+          "source": "https://www.floridashine.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.floridashine.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or exclusions specified; program has no financial eligibility requirements[2][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Operated locally through 11 Area Agencies on Aging with volunteer networks; counseling sites, events, webinars vary by region (e.g., Palm Beach/Treasure Coast, SWFL, Tampa area); contact local AAA for site-specific availability[3][4][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents required for initial counseling; bring Medicare card, insurance details, income info if seeking help with Extra Help/MSP or prescription assistance[3][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; volunteer-based counseling statewide via local Area Agencies on Aging; focuses on Medicare navigation rather than direct financial aid",
+      "gotchas": [
+        "Not an insurance provider or seller; volunteers do not recommend or sell plans, only provide unbiased info[3][4]",
+        "Does not directly pay premiums or provide healthcare; helps navigate/apply for Medicare Savings Programs, Extra Help, etc.[5][6]",
+        "Services via volunteer network; availability depends on local AAA schedules/events[3][4]",
+        "Families must contact SHINE or local AAA to connect with counselor; no central enrollment[2]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.floridashine.org"
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized/local administration by 67 counties with varying providers, zones, and income rules; tied to Medicaid waivers/SMMC LTC; no uniform statewide income table or fixed benefits",
+      "gotchas": [
+        "Not automatic; requires local assessment and homebound verification—car ownership or family cooks may disqualify[2]",
+        "Many programs have waitlists; not all 60+ qualify without demonstrated need",
+        "Medicaid-specific (SMMC LTC) vs. community Meals on Wheels differ; check health plan first if enrolled[1][7]",
+        "Service zones strictly enforced—outside areas ineligible[2]",
+        "Spouses/dependents sometimes covered, but verify locally"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://elderaffairs.org/programs-and-services/food-assistance/"
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI) Respite Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized via 11 regional AAAs with local providers and funding-driven availability; no statewide income/asset tables; diagnosis-specific with sliding co-pays[1][3][6]",
+      "gotchas": [
+        "Must contact local AAA via Elder Helpline for exact eligibility—no centralized application",
+        "Sliding scale co-pays based on income (not free for all)",
+        "Services depend on funding availability and local AAA capacity",
+        "Targeted at caregivers of those with memory disorders; age may vary locally (e.g., 18+ in some areas like Broward)[3][5]",
+        "Not a generic elder program—requires Alzheimer's/dementia diagnosis[1][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://elderaffairs.org/programs-services/bureau-of-elder-rights/alzheimers-disease-initiative/"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple grantees/providers across Florida create regional variations in offices and host sites; priority tiers affect access; income tied to annual federal poverty guidelines table (household size-based, not fixed in sources).",
+      "gotchas": [
+        "Income test is strict at 125% federal poverty level—verify current guidelines as they update yearly.",
+        "Priority enrollment tiers may delay non-priority applicants.",
+        "Temporary bridge program (avg. 6 months) aimed at unsubsidized jobs, not long-term employment.",
+        "Funded 90% federally with 10% state/local match; subject to funding changes/delays[1][3].",
+        "Must have poor employment prospects; not for currently employed."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/[1]"
+    },
+    {
+      "name": "Legal Aid for Seniors (Area Agency Legal Services)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by county/Area Agency with varying providers, income screens (125-200% FPL or need-based), no uniform asset test; Helpline central intake refers locally",
+      "gotchas": [
+        "Not a single statewide program; must contact local Area Agency provider or Helpline for county-specific rules",
+        "Targets greatest need even without strict income limits—may deny if not prioritized",
+        "Brief advice common, not always full representation; referrals if needed",
+        "Civil only, no criminal; own legal problem required unless POA",
+        "Varying income thresholds by provider/county; domestic violence/elder cases sometimes exempt",
+        "Caregivers must self-identify and verify[1][2][3][4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://elderaffairs.org/programs-and-services/legal-services/"
+    },
+    {
+      "name": "Home Care for the Elderly (HCE) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Requires live-in caregiver and 701B nursing home risk assessment; financial eligibility via ICP limits or SSI/QMB/SLMB; priority-tiered allocation via local DOEA contractors",
+      "gotchas": [
+        "Requires approved live-in caregiver (family or chosen adult) meeting specific qualifications; not for those living alone",
+        "Financial eligibility ties to strict ICP limits (not SSI alone unless specified)",
+        "Must be at risk of nursing home placement per 701B; not general home care",
+        "Caregiver must pass assessment and meet Rule 58H-1.006 F.A.C.; background implied",
+        "Separate from Medicaid home health (which needs physician order and skilled needs)[1][4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-services/home-care-for-the-elderly/ (inferred from DOEA handbook; primary doc at https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf)[2]"
+    },
+    {
+      "name": "Community Care for the Elderly (CCE) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "CCE eligibility is based on age (60+), functional impairment, and risk of institutionalization rather than strict income/asset limits. The program prioritizes individuals at highest risk. Critical limitation: Available sources do not provide specific dollar amounts for benefits, detailed service descriptions, application contact information, processing timelines, or regional provider details. Families should contact the Florida Department of Elder Affairs directly for current, complete information.",
+      "gotchas": [
+        "Dual enrollment restriction: Applicants cannot receive both CCE and Medicaid capitated long-term care services simultaneously[4][5]",
+        "Annual reassessment required: Eligibility must be verified annually through comprehensive assessment[4][5]",
+        "Functional impairment definition unclear: Available sources do not specify what constitutes qualifying functional impairment",
+        "Income and asset limits not disclosed: Unlike Medicaid Nursing Home programs (which have specific limits[2]), CCE income and asset thresholds are not detailed in available sources",
+        "Referral pathway: If applicant does not meet CCE criteria at intake, they must be referred to other appropriate agencies[4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "Florida Department of Elder Affairs (specific URL not provided in available sources)"
+    },
+    {
+      "name": "Elder Options",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Delivered via regional ADRCs (Elder Options is one of 11); eligibility ties to Medicaid + CARES NFLOC; benefits personalized post-screening, not fixed amounts; waitlists and providers vary by PSA/region",
+      "gotchas": [
+        "Not direct Medicaid—screens/referrals to SMMC-LTC or other programs; must meet both financial (DCF) and medical (DOEA/CARES) eligibility",
+        "Services not guaranteed—depends on NFLOC, funding availability, waitlists",
+        "Some programs need co-pays or means test; private pay options if ineligible",
+        "CARES assessment required for level of care; failing it disqualifies LTC",
+        "Regional ADRC handles intake—must contact correct local office"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://agingresources.org/ (Elder Options site); https://elderaffairs.org/resources/aging-and-disability-resource-centers-adrcs/ (DOEA ADRCs); https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program/"
+    }
+  ]
+}

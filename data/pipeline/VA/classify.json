@@ -1,0 +1,202 @@
+{
+  "state": "VA",
+  "stateName": "Virginia",
+  "classifiedAt": "2026-04-09T17:02:28.470Z",
+  "total": 5,
+  "typeSummary": {
+    "benefit": 3,
+    "resource": 1,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "state": 4,
+    "federal": 1
+  },
+  "complexitySummary": {
+    "deep": 3,
+    "simple": 1,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Departments of Social Services (statewide).[2][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Cover Virginia Call Center: 1-833-522-5582.[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Virginia Adult Services Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSS offices (e.g., Lee County DSS, King George County DSS)[4][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Department for Aging and Rehabilitative Services (DARS) - Main office: 1610 Forest Ave., Henrico, VA 23229",
+            "type": "service-area"
+          },
+          {
+            "name": "Alexandria DCHS-Aging and Adult Services Division: 4850 Mark Center Dr. 9th Floor, Alexandria, VA 22311",
+            "type": "service-area"
+          },
+          {
+            "name": "Fairfax County Family Services (Older Adults)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging throughout Virginia (specific locations vary by county)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SeniorNavigator",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Searchable local providers including government agencies, nonprofits, geriatricians; Henrico Area Mental Health & Developmental Services partnership[1][3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "DARS: dars.virginia.gov/aging/senior-employment-program/[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern Virginia SCSEP: vcwnorthern.com/scsep/, 571-363-7688[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Span Center (Richmond): (804) 343-3000[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "WWRC: sharepoint.wwrc.net (Ability is Ageless)[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    }
+  ]
+}

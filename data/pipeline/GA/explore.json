@@ -1,0 +1,102 @@
+{
+  "entity": "Georgia",
+  "entitySlug": "georgia",
+  "state": "GA",
+  "stateName": "Georgia",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T12:46:39.261Z",
+  "programCount": 13,
+  "programs": [
+    {
+      "name": "Community Care Services Program (CCSP)",
+      "what_it_does": "Provides home and community-based Medicaid services to nursing home-eligible seniors and disabled individuals to help them remain in their homes. Includes personal care, homemaker services, and adult day care.[1]",
+      "who_its_for": "Nursing home-eligible seniors and disabled individuals enrolled in Medicaid.[1]",
+      "official_url": "https://aging.georgia.gov/programs-and-services",
+      "benefit_value": "Varies by assessed needs; covers 47 individual and group services including personal support and medical equipment."
+    },
+    {
+      "name": "Home & Community-Based Services Program",
+      "what_it_does": "Provides 47 individual and group services to help older Georgians remain in their homes. Available to non-Medicaid-eligible seniors through state-funded support.[1]",
+      "who_its_for": "Older adults who are not Medicaid-eligible but need assistance to stay at home.[1]",
+      "official_url": "https://aging.georgia.gov/programs-and-services",
+      "benefit_value": "Up to 47 services including homemaker aid, respite care, and home modifications; value based on individual plan."
+    },
+    {
+      "name": "Georgia PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings like adult day health centers. Includes primary care, hospitalization if needed, and all Medicare/Medicaid-covered services.",
+      "who_its_for": "Nursing facility-eligible seniors aged 55+ who can live safely in the community with support.",
+      "official_url": "https://aging.georgia.gov/pace",
+      "benefit_value": "Full capitation coverage of all needed health and long-term care services without copays."
+    },
+    {
+      "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Pays Medicare Part A and B premiums, deductibles, and copayments for eligible low-income seniors. Helps reduce out-of-pocket costs for Medicare-covered services.[1]",
+      "who_its_for": "Low-income seniors on Medicare meeting income and asset limits (administered via Medicaid).",
+      "official_url": "https://aging.georgia.gov/medicare-savings-programs",
+      "benefit_value": "QMB covers all costs up to $130/month; SLMB pays Part B premium ($174.70/month in 2026); QI covers part."
+    },
+    {
+      "name": "Senior Supplemental Nutrition Assistance Program (Senior SNAP)",
+      "what_it_does": "Provides simplified SNAP benefits with streamlined eligibility for seniors with no earned income. Delivers monthly EBT funds for groceries to improve nutrition.[2]",
+      "who_its_for": "Seniors 60+ (or 62+ after Feb 2026) with no earned income and fixed income sources like SSI or retirement; income verified via matches.[2]",
+      "official_url": "https://pamms.dhs.ga.gov/dfcs/snap/3725/",
+      "benefit_value": "Monthly SNAP allotment based on household size and income; average $200-300/person, no recertification burden."
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants to help pay heating and cooling bills and address energy crises. Includes one-time payments to utility providers and weather-related repairs.[5]",
+      "who_its_for": "Low-income households including seniors meeting federal poverty guidelines.",
+      "official_url": "https://dfcs.georgia.gov/services/low-income-home-energy-assistance-program-liheap",
+      "benefit_value": "Average grant $300-500 per household annually; priority for seniors and disabled."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and furnace repairs. Reduces energy costs and health risks from poor conditions.",
+      "who_its_for": "Low-income homeowners/renters including seniors; priority for 60+ and disabled.",
+      "official_url": "https://weatherization.georgia.gov/",
+      "benefit_value": "Free services valued at $5,000-8,000 per home; lifetime energy savings exceed costs."
+    },
+    {
+      "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
+      "what_it_does": "Provides free, unbiased counseling on Medicare options, appeals, and extra help. Helps seniors select plans and understand coverage.[1]",
+      "who_its_for": "All Medicare beneficiaries, caregivers, and families in Georgia.[1]",
+      "official_url": "https://shiphelp.org/georgia/",
+      "benefit_value": "Free one-on-one counseling; average savings $500+ annually through optimal plan selection."
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often includes 5-7 meals/week with nutrition screening.[1]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or with mobility issues.[1]",
+      "official_url": "https://aging.georgia.gov/home-delivered-meals",
+      "benefit_value": "Suggested $3/donation per meal; provides ~1,000 calories/day plus safety checks."
+    },
+    {
+      "name": "Caregiver Programs (Respite/Out-of-Home Respite Care)",
+      "what_it_does": "Offers respite care, adult day programs, and training to support family caregivers. Includes education and short-term relief to prevent burnout.[1]",
+      "who_its_for": "Family caregivers of seniors, including kinship caregivers raising grandchildren.[1]",
+      "official_url": "https://aging.georgia.gov/caregiver-programs",
+      "benefit_value": "Varies; respite up to 240 hours/year, adult day ~$50/day subsidized."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time community service jobs and training for unemployed low-income seniors. Helps transition to unsubsidized employment.[1]",
+      "who_its_for": "Unemployed low-income seniors 55+ in Georgia.[1]",
+      "official_url": "https://aging.georgia.gov/senior-community-service-employment-program",
+      "benefit_value": "Minimum wage part-time work (20 hrs/wk) plus training; ~$10,000/year income support."
+    },
+    {
+      "name": "Elder Rights & Advocacy Programs (Legal Assistance)",
+      "what_it_does": "Provides legal services, advice, and representation for elder rights issues. Covers benefits, housing, abuse, and consumer problems.[1]",
+      "who_its_for": "Low-income seniors 60+ facing legal barriers.[1]",
+      "official_url": "https://aging.georgia.gov/elder-rights-advocacy",
+      "benefit_value": "Free legal aid; resolves issues worth thousands in benefits/housing."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Acts as independent advocates for nursing home and personal care home residents. Resolves complaints and improves care quality.[1]",
+      "who_its_for": "Residents of long-term care facilities and their families.[1]",
+      "official_url": "https://aging.georgia.gov/long-term-care-ombudsman",
+      "benefit_value": "Free advocacy; resolves 80%+ complaints, enhancing resident rights and safety."
+    }
+  ]
+}

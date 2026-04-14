@@ -1,0 +1,523 @@
+{
+  "state": "MN",
+  "stateName": "Minnesota",
+  "comparedAt": "2026-04-09T14:17:39.315Z",
+  "total": 13,
+  "newPrograms": 8,
+  "withDiffs": 5,
+  "withNovelFields": 5,
+  "benefitTypes": {
+    "service": 9,
+    "financial": 2,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 4,
+    "region": 4,
+    "program_tier": 1,
+    "household_size": 1,
+    "not_applicable": 3
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "Medical Assistance (Medicaid)",
+        "Elderly Waiver (EW)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Senior Health Insurance Assistance Program (SHIP)",
+        "Senior Nutrition Program (Meals on Wheels)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "Medical Assistance (Medicaid)",
+        "Elderly Waiver (EW)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Senior Health Insurance Assistance Program (SHIP)",
+        "Senior Nutrition Program (Meals on Wheels)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 4,
+      "programs": [
+        "Medical Assistance (Medicaid)",
+        "Elderly Waiver (EW)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Senior Nutrition Program (Meals on Wheels)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 5,
+      "programs": [
+        "Medical Assistance (Medicaid)",
+        "Elderly Waiver (EW)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Senior Health Insurance Assistance Program (SHIP)",
+        "Senior Nutrition Program (Meals on Wheels)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medical Assistance (Medicaid)",
+      "isNew": false,
+      "existingId": "medical-assistance-ma-for-elderly-blind-and-disabled",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$1,305",
+          "source": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp[7]; https://www.mnsure.org/[2][4]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Comprehensive health coverage including doctor visits, hospital care, prescription drugs, long-term services (nursing home, home health, Elderly Waiver services like assisted living support, personal care assistance), dental/vision/mental health. For long-term care, covers full nursing home costs if eligible; no fixed dollar/hour limits specified but need-based.[1][5][7][9]",
+          "source": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp[7]; https://www.mnsure.org/[2][4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp[7]; https://www.mnsure.org/[2][4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For long-term care: Single $3,000; couple $6,000 (or $3,000 per person in some cases). Exemptions typically include primary home (subject to equity limits and estate recovery), one car, personal belongings, burial plots. Some assets like retirement accounts may count; spousal impoverishment rules protect community spouse assets up to certain amounts. Not all elderly require asset test (e.g., SSI automatic eligibility).[1][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "County Human Services offices handle applications; potential differences in wait times or waiver service availability/providers by region. Elderly Waiver services may vary by county providers.[5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible for waiver services like Elderly Waiver due to funding caps; no statewide waitlist info provided.[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, SSI awards, pension statements).",
+            "Proof of assets (bank statements, property deeds, vehicle titles).",
+            "ID (birth certificate, Social Security card).",
+            "Proof of residency, Medicare card if applicable, disability documentation.[7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Eligibility splits by general MA (income-focused, no/low asset test) vs. long-term care (strict asset/income + level of care); scales by marital status/household; county-administered with statewide standards; multiple pathways (SSI, waivers, EPD).",
+      "gotchas": [
+        "Not all 65+ need asset test, but long-term care does; SSI recipients often auto-eligible.[3]",
+        "Estate recovery on home after death.[6]",
+        "Spousal impoverishment rules complex for married couples.[1]",
+        "Waiver programs like Elderly Waiver have waitlists and separate need assessment.[5]",
+        "Income over limit? Spenddown or MA-EPD options exist.[4][5]",
+        "Must authorize Account Validation Service (AVS) for asset check.[7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp[7]; https://www.mnsure.org/[2][4]"
+    },
+    {
+      "name": "Elderly Waiver (EW)",
+      "isNew": false,
+      "existingId": "elderly-waiver-ew",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$3,000",
+          "source": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and community-based services including: adult day programs/companionship, personal care assistance, housekeeping/chore help, non-medical transportation, home-delivered meals, home modifications (e.g., ramps, grab bars), emergency response systems, respite for family caregivers, customized living in assisted living, skilled nursing, specialized equipment/supplies, supports for housing transitions, training for family caregivers. No fixed dollar amounts or hours; individualized per care plan and budget (must be less than nursing home cost). 2026 rate adjustment up to $141 daily minimum for 24-hour customized living in qualified assisted living.",
+          "source": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Asset limit of $3,000 for most people. Specific details on what counts as assets or exemptions (e.g., home equity) follow standard MA LTC rules; sources do not list full exempt items.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local county/tribal offices; potential differences in providers, wait times, or processing by region (not detailed); different offices handle assessments",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, assets, residency, citizenship/immigration status, Social Security number",
+            "Medical records or info for LTCC assessment",
+            "Insurance details (standard MA verifications)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tied to MA LTC eligibility with spenddown/obligation; services individualized by LTCC care plan and cost cap vs. nursing home; county-administered with provider enrollment required; no fixed benefits—varies by assessed need and budget",
+      "gotchas": [
+        "Must already qualify for MA LTC (not automatic for low-income seniors—financial assessment required)",
+        "Services only if community cost < nursing home cost; otherwise ineligible",
+        "Over-income applicants need monthly spenddown or waiver obligation (billed by provider)",
+        "No eligibility start until full LTCC + MA determination",
+        "Complex process—encourage face-to-face interview; refer to county early",
+        "Not for those ≤120% FPG/<$3,000 assets (redirect to Alternative Care)"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+    },
+    {
+      "name": "Minnesota Senior Health Options (MSHO)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted with plan-specific networks/providers; no fixed income/asset dollar tables in sources (tied to varying MA limits); dual-eligible managed care model differentiates from standard Medicare/Medicaid",
+      "gotchas": [
+        "Must first qualify for MA/Medicaid—no direct MSHO app without it; denials common if over MA income/assets",
+        "Requires Medicare Parts A and B (not just eligible—must be enrolled)",
+        "County-specific availability—not statewide; check plan service area/map",
+        "Nursing facility coverage limited to 180 days if entering post-enrollment; not covered if already in facility",
+        "Enrollment voluntary; non-choosers go to MSC or MSC+ (similar but MSC+ lacks full Medicare integration)",
+        "Some services need functional assessment (e.g., ADLs for personal care); no base functional need for program entry",
+        "Copays on drugs based on income/Extra Help; $0 for most in-network medical/dental"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/msho.jsp"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$1,325",
+          "source": "https://hcopub.dhs.state.mn.us/epm/4_2_1_7.htm (MN DHS Eligibility Policy Manual); https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp[2][9]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "- **QMB**: Part A premiums (if applicable), Part B premiums, Part A/B deductibles, coinsurance, copayments[1][2][7]\n- **SLMB**: Part B premiums only[1][2]\n- **QI**: Part B premiums only; retroactive coverage possible; auto-qualifies for Extra Help (Part D low-income subsidy)[1][2]\nPremium amounts ~$144-$170/month (varies yearly)[5]. QMB providers cannot bill beneficiary for Medicare-covered services.",
+          "source": "https://hcopub.dhs.state.mn.us/epm/4_2_1_7.htm (MN DHS Eligibility Policy Manual); https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp[2][9]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://hcopub.dhs.state.mn.us/epm/4_2_1_7.htm (MN DHS Eligibility Policy Manual); https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp[2][9]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "MN-specific: $10,000 single / $18,000 married (higher than federal $9,430-$9,950 single / $14,130-$14,910 couple)[1][5]. Counts: Bank accounts, stocks, bonds. Exempt: Home, one car, personal belongings, burial plots, life insurance (up to certain value), retirement accounts in payout. Exact countable rules in MN DHS MSP Financial Eligibility subchapter[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by 87 counties/tribes; processing times may vary by office workload; no benefit differences noted[6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI has limited funding, first-come first-served; possible waitlist or denial if funds exhausted[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, SSI/SSDI awards, pension statements)",
+            "Proof of assets (bank statements, investment accounts)",
+            "Medicare card or proof of enrollment",
+            "ID (birth certificate, Social Security card)",
+            "Proof of residency (utility bill)",
+            "Household size details if applicable"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income brackets (100%/120%/135% FPG) with MN exceeding federal asset limits; QI capped funding creates waitlist risk; county-administered with uniform benefits statewide",
+      "gotchas": [
+        "QI funding limited—apply early in fiscal year (first-come, first-served); may run out[1][5]",
+        "Income disregards ($20 general + half earned income) can make you eligible if gross slightly over[1]",
+        "QMB protects from provider billing, but non-Medicare providers can bill you[1][2]",
+        "Cannot have both QI and MinnesotaCare[2][4]",
+        "Assets higher in MN than federal, but still count most liquid resources[1]",
+        "Must report changes in income/assets promptly to avoid overpayments",
+        "Outdated limits in some sources—verify current via county/DHS as they adjust yearly[1][5][7]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://hcopub.dhs.state.mn.us/epm/4_2_1_7.htm (MN DHS Eligibility Policy Manual); https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp[2][9]"
+    },
+    {
+      "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No gross income test for households with elderly/disabled; benefits scale by household size and net income (heavy deductions for medical/shelter); county-administered statewide.",
+      "gotchas": [
+        "Seniors 60+ often miss benefits (only ~47-50% eligible participate); can form separate household even living with family.",
+        "No gross income test for elderly/disabled, but net income key—deduct medical/shelter costs.",
+        "Assets higher limit ($4,500) for elderly/disabled, but IPV/felon disqualifies unit.",
+        "New 2025 rules may add work reqs for 55-64.",
+        "Include all who buy/prepare food, unless helper for disabled."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dcyf.mn.gov/snap or https://mn.gov/dhs (Minnesota DHS)"
+    },
+    {
+      "name": "Senior Health Insurance Assistance Program (SHIP)",
+      "isNew": false,
+      "existingId": "senior-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one personalized counseling and assistance on Medicare options (Parts A, B, C, D), Medigap, Medicare Savings Programs, Extra Help/Low Income Subsidy, Medicaid issues, long-term care insurance, appeals, coverage decisions, and fraud prevention via Senior Medicare Patrol; also includes public education presentations, outreach at events, and information on rights/protections[1][3][4][5]",
+          "source": "https://mn.gov/adresources/search/f7c7358c-7c36-5ce3-bfac-c412310ca4c5[6]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://mn.gov/adresources/search/f7c7358c-7c36-5ce3-bfac-c412310ca4c5[6]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through Minnesota Board on Aging, Area Agencies on Aging, and over 2,200 local sites with locally focused counseling reflecting regional Medicare options, providers, and resources; no differences in eligibility or benefits[1][2][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance details, prescription list, and income info if applying for savings programs during counseling[3][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; counseling only, no direct benefits; delivered via statewide Senior LinkAge Line network of local Area Agencies on Aging with volunteer counselors[1][3][5]",
+      "gotchas": [
+        "Not a financial aid or direct payment program—only free counseling and education, no coverage or premiums paid; funding risks from federal budgets can impact availability; end of Medicare Cost plans in some years required plan changes[1][3][4]",
+        "Must contact via Senior LinkAge Line for Minnesota-specific service, not generic national SHIP[1][2][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://mn.gov/adresources/search/f7c7358c-7c36-5ce3-bfac-c412310ca4c5[6]"
+    },
+    {
+      "name": "Senior Nutrition Program (Meals on Wheels)",
+      "isNew": false,
+      "existingId": "senior-nutrition-home-delivered-meals",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Home-delivered hot, nutritious noon meals up to 5 days/week (Monday-Friday); low-sodium options standard, diabetic meals available; safety checks and social connection via volunteers; one-on-one support from specialists on nutrition and services; congregate dining sites offer social activities, health programs, volunteer opportunities, and info on other services like grocery delivery[1][7].",
+          "source": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp[7]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp[7]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned across sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by different providers (e.g., Three Rivers CAP in southeast MN, Meals on Wheels of Ramsey County, Otter Tail County); variations in delivery areas, exact eligibility nuances, meal options, and congregate sites; some areas emphasize no turn-away policy[1][4][5][9]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; regional variation likely due to local capacity.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No specific documents listed; prepare ID, address, medical info if relevant for dietary needs, and details on inability to prepare meals"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Decentralized by region with local providers handling eligibility, delivery, and variations; no statewide income/asset tests; service area and rural access are key restrictions",
+      "gotchas": [
+        "Not all areas offer gluten-free meals or menu customization[1]",
+        "Delivery may be cancelled in severe weather[1]",
+        "Rural or out-of-city-limit residents may need family/aides for delivery or face unavailability[1]",
+        "Funded via Older Americans Act; donations requested monthly but optional[1][8]",
+        "Separate from SNAP (though SNAP can pay for meals); no universal online statewide application—must contact local provider[2]",
+        "Eligibility varies slightly by provider despite statewide program[1][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp[7]"
+    },
+    {
+      "name": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Program data sparse in results; county-administered with no statewide income/asset tables provided; targets elderly avoiding institutional care, unlike child-focused MFIP/FSG",
+      "gotchas": [
+        "Search results do not contain direct, specific info on FAA/Alternative Care Grants; most hits are for MFIP (family cash/food aid) or FSG (disability grants for children)[1][7]. FAA is for elderly/disabled adults needing long-term care services—families must contact county offices directly as no centralized details here. Confused with MFIP which requires work participation[1][3]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://mn.gov/dhs (DHS site; specific FAA page not in results)"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-specific subgrantees with varying providers (e.g., MET Inc., MNVAC); priority enrollment tiers; no fixed asset test; benefits fixed at ~20 hrs/wk minimum wage regardless of household size",
+      "gotchas": [
+        "Not statewide uniform—must identify county-specific provider; some counties may lack coverage or have changed sponsors (e.g., Hennepin no longer ESNS)[3][7]",
+        "Temporary training only, goal is transition to unsubsidized job—not permanent employment[1][2][4]",
+        "Priority tiers mean non-priority applicants may face long waits or denial despite eligibility[4]",
+        "Income is family-based at 125% FPL (stricter than some programs); verify current poverty levels as they update yearly[4][6]",
+        "Program funded by USDOL grants with potential funding pauses/furloughs[3]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp"
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Seniors 60+ no income test (unique exemption), county-restricted providers, prioritization by economic/social need",
+      "gotchas": [
+        "Not statewide—must check county/service area; seniors 60+ exempt from income test but income affects priority; civil only, no criminal/personal injury; complete intake to confirm as best method; referrals if case outside area"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://mylegalaid.org/how-we-help/seniors/"
+    },
+    {
+      "name": "Office of Ombudsman for Long-Term Care",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income or asset test; advocacy-only with statewide regional delivery; free to all LTC consumers without application barriers",
+      "gotchas": [
+        "Not a financial assistance or direct service program (e.g., no Medicaid application help or funding); purely advocacy and complaint resolution.",
+        "Must be free of conflicts of interest for ombudsman involvement.",
+        "Volunteers are screened and trained but work under regional oversight.",
+        "Focuses on rights protection in long-term care settings, not general elder care or non-LTC issues.",
+        "Anyone can contact, but services target those in or seeking LTC."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "region",
+      "officialSource": "https://mn.gov/ooltc/"
+    },
+    {
+      "name": "UCare Minnesota Senior Care Plus (MSC+)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted to CBP managed care areas; ties to Medical Assistance eligibility without fixed income/asset numbers here (state MA rules apply); benefits include EW waiver services with functional needs for some; varies by MCO provider and EW eligibility tier",
+      "gotchas": [
+        "Not statewide—only in specific managed care counties (CBP, not PMAP); check county",
+        "Requires underlying Medical Assistance (Medicaid) eligibility first—apply/confirm that separately via county",
+        "Does not include Medicare coverage (works separately if eligible); no Medicare Parts A/B required but may have Part D option",
+        "Some services (e.g., personal care) need separate functional assessment, no blanket functional eligibility for program enrollment",
+        "Mandatory enrollment in MSC+ if eligible and not choosing MSHO in applicable counties",
+        "Different MCOs (UCare, Blue Plus, etc.) have networks—ensure providers are in-network"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus or https://hcopub.dhs.state.mn.us/"
+    },
+    {
+      "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test for core I&A/counseling; eligibility only for referred paid services; statewide free access via single phone line with local handoffs; mandatory gateway for facility transitions",
+      "gotchas": [
+        "Not a direct service provider—offers info/referrals only; actual eligibility/funding for home care etc. determined by counties/managed care, not Aging Pathways[4]",
+        "Required for nursing facility admissions (PAS) and assisted living moves (options counseling)—providers must refer[2][5]",
+        "Free but no guaranteed service hours or funding; for low-income, refers to separate eligibility processes[4][7]",
+        "Name change from Senior LinkAge Line may confuse searches[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://mn.gov/aging-pathways/"
+    }
+  ]
+}

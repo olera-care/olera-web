@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import type { Interview } from "@/lib/types";
+import type { AccessTier } from "@/lib/medjobs-access";
 
 /* ── Types ── */
 
@@ -37,6 +38,8 @@ interface InterviewCalendarProps {
   loading: boolean;
   onUpdateStatus: (interviewId: string, status: string) => Promise<void>;
   actionLoading: string | null;
+  /** Provider's access tier — used to show upgrade banner when exhausted */
+  accessTier?: AccessTier;
 }
 
 /* ── Helpers ── */
@@ -109,11 +112,20 @@ export default function InterviewCalendar({
   loading,
   onUpdateStatus,
   actionLoading,
+  accessTier,
 }: InterviewCalendarProps) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selected, setSelected] = useState<InterviewWithProfiles | null>(null);
+
+  // Count pending inbound requests (for upgrade banner)
+  const pendingInboundCount = useMemo(() => {
+    if (perspective !== "provider" || accessTier !== "free_exhausted") return 0;
+    return interviews.filter(
+      (iv) => iv.status === "proposed" && iv.proposed_by !== iv.provider_profile_id
+    ).length;
+  }, [interviews, perspective, accessTier]);
 
   // Group interviews by date string "YYYY-MM-DD"
   const byDate = useMemo(() => {
@@ -158,6 +170,25 @@ export default function InterviewCalendar({
 
   return (
     <div className="space-y-6">
+      {/* Upgrade banner for exhausted providers with pending requests */}
+      {pendingInboundCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-900">
+              You have {pendingInboundCount} interview {pendingInboundCount === 1 ? "request" : "requests"} waiting
+            </p>
+            <p className="text-sm text-amber-700 mt-0.5">
+              Upgrade to respond to candidates and start hiring.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Calendar card */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Header with month nav */}

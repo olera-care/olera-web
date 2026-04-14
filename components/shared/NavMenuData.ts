@@ -99,5 +99,5 @@ export const CARE_CATEGORIES: CareCategory[] = [
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Caregiver Support", href: "/caregiver-support" },
-  { label: "Find Benefits", href: "/waiver-library" },
+  { label: "Find Benefits", href: "/senior-benefits" },
 ];

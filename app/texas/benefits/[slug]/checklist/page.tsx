@@ -48,7 +48,7 @@ export default async function TexasChecklistPage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Benefits Hub", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/senior-benefits" },
               { label: "Texas", href: "/texas/benefits" },
               { label: program.shortName, href: `/texas/benefits/${slug}` },
               { label: "Document Checklist", current: true },

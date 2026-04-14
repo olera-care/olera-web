@@ -11,7 +11,7 @@ import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilter
 const PAGE_SIZE = 20;
 
 export default function CandidateBrowsePage() {
-  const { openAuth, activeProfile } = useAuth();
+  const { openAuth, activeProfile, refreshAccountData } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,7 @@ export default function CandidateBrowsePage() {
   });
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasVerified = useRef(false);
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {
@@ -74,6 +75,32 @@ export default function CandidateBrowsePage() {
     setPage(0);
     fetchCandidates(0, false);
   }, [fetchCandidates]);
+
+  // After returning from Stripe checkout, verify subscription and refresh auth
+  useEffect(() => {
+    if (hasVerified.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") !== "true" || !isProvider) return;
+    hasVerified.current = true;
+
+    // Clear the query param from URL
+    params.delete("upgraded");
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
+
+    // Verify subscription with Stripe and refresh auth context
+    (async () => {
+      try {
+        await fetch("/api/medjobs/verify-subscription", { method: "POST" });
+        await refreshAccountData();
+        // Re-fetch candidates with new access tier (now paid = full profiles)
+        setPage(0);
+        fetchCandidates(0, false);
+      } catch {
+        // Silent — webhook may still activate later
+      }
+    })();
+  }, [isProvider, refreshAccountData, fetchCandidates]);
 
   // Infinite scroll — intersection observer
   useEffect(() => {

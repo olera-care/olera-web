@@ -92,8 +92,8 @@ export async function GET(request: Request) {
         { path: "/team", priority: 0.7, freq: "monthly" },
         { path: "/privacy", priority: 0.3, freq: "yearly" },
         { path: "/terms", priority: 0.3, freq: "yearly" },
-        { path: "/waiver-library", priority: 0.6, freq: "monthly" },
-        { path: "/waiver-library/forms", priority: 0.5, freq: "monthly" },
+        { path: "/senior-benefits", priority: 0.6, freq: "monthly" },
+        { path: "/senior-benefits/forms", priority: 0.5, freq: "monthly" },
         { path: "/medjobs", priority: 0.8, freq: "weekly" },
         { path: "/medjobs/candidates", priority: 0.7, freq: "daily" },
         { path: "/medjobs/apply", priority: 0.7, freq: "monthly" },
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
         const stateUrl = buildStateUrl(state.id);
         entries.push(xmlEntry(`${SITE_URL}${stateUrl}`, 0.5, "monthly"));
         if (state.id !== "texas") {
-          entries.push(xmlEntry(`${SITE_URL}/waiver-library/forms/${state.id}`, 0.4, "monthly"));
+          entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
         }
         for (const program of state.programs ?? []) {
           const programUrl = buildProgramUrl(state.id, program.id);

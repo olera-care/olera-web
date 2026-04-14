@@ -54,6 +54,7 @@ function parseArgs() {
     resume: false,
     dryRun: false,
     concurrency: 5,
+    watch: false,
     help: false,
   };
 
@@ -66,6 +67,7 @@ function parseArgs() {
       case '--resume':      opts.resume = true; break;
       case '--dry-run':     opts.dryRun = true; break;
       case '--concurrency': opts.concurrency = parseInt(args[++i]) || 5; break;
+      case '--watch':       opts.watch = true; break;
       case '--help': case '-h': opts.help = true; break;
     }
   }
@@ -91,6 +93,7 @@ Options:
   --resume              Skip cities already marked Complete in Notion
   --dry-run             Print what would happen without executing
   --concurrency <n>     Max parallel API calls per service (default: 5)
+  --watch               Stream clean phase: wait up to 90m for each city's discovery CSV to appear (overlaps discovery+clean)
   -h, --help            Show this help
 
 Examples:
@@ -468,7 +471,8 @@ function readyCityList(expansionDir) {
 function parseBatchMd(mdPath) {
   const content = fs.readFileSync(mdPath, 'utf-8');
   const match = content.match(/```(?:batch-cities)?\s*\n([\s\S]*?)```/);
-  const block = match ? match[1] : content.slice(content.indexOf('Machine-Readable'));
+  const mrIdx = content.indexOf('Machine-Readable');
+  const block = match ? match[1] : mrIdx >= 0 ? content.slice(mrIdx) : content;
   return block.trim().split('\n')
     .filter(l => l.trim() && !l.startsWith('City') && !l.startsWith('#') && !l.startsWith('|'))
     .map(l => {
@@ -513,51 +517,88 @@ async function phaseClean(cities, opts) {
   }
   console.log(`  Dedup sets loaded: ${dedupNameSet.size} names, ${dedupPlaceSet.size} place_ids (live from Supabase)`);
 
-  // Step 2: Process each city
-  for (let i = 0; i < cities.length; i++) {
-    const c = cities[i];
-    const csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
-    if (!csvPath) {
-      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (no discovery CSV)`);
-      continue;
+  // Step 2: Process cities
+  // Pooled classify (non-watch mode) vs per-city streaming (watch mode)
+  if (opts.watch) {
+    // --- WATCH MODE: per-city streaming, old behavior, waits for CSVs to appear ---
+    for (let i = 0; i < cities.length; i++) {
+      const c = cities[i];
+      let csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
+
+      if (!csvPath) {
+        // Wait up to 90 minutes for CSV to appear (poll every 5s)
+        console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — waiting for discovery CSV (watch mode)...`);
+        const maxWaitMs = 90 * 60 * 1000;
+        const pollMs = 5000;
+        const start = Date.now();
+        while (Date.now() - start < maxWaitMs) {
+          await new Promise(r => setTimeout(r, pollMs));
+          csvPath = discoveryCsvForCity(opts.expansionDir, c.city, c.state);
+          if (csvPath) break;
+        }
+        if (!csvPath) {
+          console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (no CSV after 90m watch)`);
+          c._skippedInClean = true;
+          continue;
+        }
+        c.csvPath = csvPath;
+        console.log(`    CSV arrived: ${path.basename(csvPath)}`);
+      }
+
+      await cleanCityPerCity(c, i, cities.length, csvPath, opts, dedupNameSet, dedupPlaceSet);
+    }
+  } else {
+    // --- POOLED MODE: global keyword filter → global AI classify → per-city finalize ---
+    const cityData = []; // { c, i, csvPath, discovered, afterKeyword, afterAI, providers }
+
+    // Pass 1: per-city keyword filter; collect into global pool
+    console.log(`\n  Pass 1/3: keyword filter (per city)...`);
+    for (let i = 0; i < cities.length; i++) {
+      const c = cities[i];
+      const csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
+      if (!csvPath) {
+        console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (no discovery CSV)`);
+        continue;
+      }
+      const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
+      if (fs.existsSync(readyPath) && !opts.force) {
+        const existing = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
+        console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (already cleaned: ${existing.length} providers)`);
+        continue;
+      }
+      const raw = fs.readFileSync(csvPath);
+      let providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
+      const discovered = providers.length;
+      providers = providers.filter(row => {
+        const name = (row.provider_name || '').toLowerCase();
+        const cat = (row.provider_category || '').toLowerCase();
+        const types = (row.types || '').toLowerCase();
+        const combined = name + ' ' + cat + ' ' + types;
+        if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
+        if ((row.business_status || '').includes('CLOSED')) return false;
+        return true;
+      });
+      const afterKeyword = providers.length;
+      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — discovered:${discovered} → kw:${afterKeyword}`);
+      cityData.push({ c, i, csvPath, discovered, afterKeyword, afterAI: afterKeyword, providers });
     }
 
-    const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
-    if (fs.existsSync(readyPath) && !opts.force) {
-      const existing = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
-      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (already cleaned: ${existing.length} providers)`);
-      continue;
+    // Pass 2: global AI classify in batches of 80
+    const globalPool = [];
+    for (const cd of cityData) {
+      for (const p of cd.providers) globalPool.push({ p, cd });
     }
+    console.log(`\n  Pass 2/3: global AI classify (${globalPool.length} providers, batches of 80)...`);
 
-    console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state}...`);
+    if (PERPLEXITY_API_KEY && globalPool.length > 0) {
+      const BATCH = 80;
+      const keepSet = new WeakSet(); // providers to keep
 
-    // Load discovery CSV
-    const raw = fs.readFileSync(csvPath);
-    let providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
-    const discovered = providers.length;
-
-    // 2a: Keyword filter + business status
-    providers = providers.filter(row => {
-      const name = (row.provider_name || '').toLowerCase();
-      const cat = (row.provider_category || '').toLowerCase();
-      const types = (row.types || '').toLowerCase();
-      const combined = name + ' ' + cat + ' ' + types;
-      if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
-      if ((row.business_status || '').includes('CLOSED')) return false;
-      return true;
-    });
-    const afterKeyword = providers.length;
-
-    // 2b: AI classification (batch size 50)
-    let afterAI = providers.length;
-    if (PERPLEXITY_API_KEY && providers.length > 0) {
-      const kept = [];
-      const removed = [];
-      const BATCH = 50;
-
-      for (let b = 0; b < providers.length; b += BATCH) {
-        const batch = providers.slice(b, b + BATCH);
-        const list = batch.map((p, j) => `${j + 1}. "${p.provider_name}" — category: ${p.provider_category}, address: ${p.address || 'unknown'}`).join('\n');
+      for (let b = 0; b < globalPool.length; b += BATCH) {
+        const batch = globalPool.slice(b, b + BATCH);
+        const list = batch.map((entry, j) =>
+          `${j + 1}. "${entry.p.provider_name}" — category: ${entry.p.provider_category}, address: ${entry.p.address || 'unknown'} (${entry.cd.c.city}, ${entry.cd.c.state})`
+        ).join('\n');
 
         const prompt = `For each business below, determine if its PRIMARY BUSINESS is providing senior care.
 
@@ -588,91 +629,189 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "reason": "brief re
           if (match) {
             const parsed = JSON.parse(match[0]);
             const results = parsed.results || [];
+            const resultNums = new Set();
             for (const r of results) {
               const idx = (r.num || 0) - 1;
               if (idx >= 0 && idx < batch.length) {
-                if (r.is_senior_care) kept.push(batch[idx]);
-                else removed.push({ name: batch[idx].provider_name, reason: r.reason });
+                resultNums.add(r.num);
+                if (r.is_senior_care) keepSet.add(batch[idx].p);
               }
             }
-            // Handle providers not in results (keep them to be safe)
-            const resultNums = new Set(results.map(r => r.num));
+            // Unreturned entries: keep to be safe
             for (let j = 0; j < batch.length; j++) {
-              if (!resultNums.has(j + 1)) kept.push(batch[j]);
+              if (!resultNums.has(j + 1)) keepSet.add(batch[j].p);
             }
           } else {
-            // Parse failed — keep all to be safe
-            kept.push(...batch);
+            for (const entry of batch) keepSet.add(entry.p);
           }
         } catch (e) {
           console.log(`    AI batch error: ${e.message} — keeping batch`);
-          kept.push(...batch);
+          for (const entry of batch) keepSet.add(entry.p);
         }
+        process.stdout.write(`    Classified ${Math.min(b + BATCH, globalPool.length)}/${globalPool.length}\r`);
       }
+      console.log('');
 
-      providers = kept;
-      afterAI = providers.length;
+      // Split classification back per-city
+      for (const cd of cityData) {
+        cd.providers = cd.providers.filter(p => keepSet.has(p));
+        cd.afterAI = cd.providers.length;
+      }
     }
 
-    // 2c: Category mapping
-    for (const p of providers) {
-      const mapped = CATEGORY_MAP[p.provider_category];
-      if (mapped) p.provider_category = mapped;
-    }
-
-    // 2d: Name cleaning
-    let namesCleaned = 0;
-    for (const p of providers) {
-      const orig = p.provider_name;
-      p.provider_name = p.provider_name
-        .replace(/,?\s*(LLC|Inc\.?|Corp\.?|Ltd\.?|L\.?L\.?C\.?|Incorporated|Corporation|Limited|Co\.?)\.?\s*$/i, '')
-        .trim();
-      if (p.provider_name !== orig) namesCleaned++;
-    }
-
-    // 2e: Dedup — place_id (exact) + name|state (fuzzy) against DB + within-batch
-    const beforeDedup = providers.length;
-    providers = providers.filter(p => {
-      // Place ID dedup: same place_id = same business, 100% precision
-      if (p.place_id && dedupPlaceSet.has(p.place_id)) return false;
-      // Name|state dedup: catches remaining overlaps
-      const key = p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase();
-      return !dedupNameSet.has(key);
-    });
-    const dupes = beforeDedup - providers.length;
-
-    // 2f: Generate provider IDs and slugs
-    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
-    const stateSlug = c.state.toLowerCase();
-    for (let j = 0; j < providers.length; j++) {
-      providers[j].provider_id = `${citySlug}-${stateSlug}-${String(j + 1).padStart(4, '0')}`;
-      providers[j].slug = slug(providers[j].provider_name, c.city, c.state);
-      // Ensure city/state are set
-      if (!providers[j].city) providers[j].city = c.city;
-      if (!providers[j].state) providers[j].state = c.state;
-    }
-
-    // Save ready JSON
-    const cityDir = path.join(opts.expansionDir, `${c.city}-${c.state}`);
-    fs.mkdirSync(cityDir, { recursive: true });
-    fs.writeFileSync(readyPath, JSON.stringify(providers, null, 2));
-
-    // Category breakdown
-    const cats = {};
-    for (const p of providers) cats[p.provider_category] = (cats[p.provider_category] || 0) + 1;
-    const catStr = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}: ${v}`).join(', ');
-
-    console.log(`    ${discovered} → kw:${afterKeyword} → ai:${afterAI} → dedup:-${dupes} → ready:${providers.length}`);
-    console.log(`    ${catStr}${namesCleaned > 0 ? ` | ${namesCleaned} names cleaned` : ''}`);
-
-    // Add dedup entries for this city (so next city dedupes against it too)
-    for (const p of providers) {
-      dedupNameSet.add(p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase());
-      if (p.place_id) dedupPlaceSet.add(p.place_id);
+    // Pass 3: per-city finalize (category map + name clean + dedup + IDs + write JSON)
+    console.log(`\n  Pass 3/3: per-city finalize...`);
+    for (const cd of cityData) {
+      await finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet);
     }
   }
 
   console.log(`\n  Clean phase complete. Cost so far: ${cost.summary()}`);
+}
+
+// Helper: run the full per-city clean pipeline for a single city (watch mode path).
+async function cleanCityPerCity(c, i, total, csvPath, opts, dedupNameSet, dedupPlaceSet) {
+  const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
+  if (fs.existsSync(readyPath) && !opts.force) {
+    const existing = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
+    console.log(`  [${i + 1}/${total}] ${c.city}, ${c.state} — SKIP (already cleaned: ${existing.length} providers)`);
+    return;
+  }
+
+  console.log(`  [${i + 1}/${total}] ${c.city}, ${c.state}...`);
+
+  const raw = fs.readFileSync(csvPath);
+  let providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
+  const discovered = providers.length;
+
+  providers = providers.filter(row => {
+    const name = (row.provider_name || '').toLowerCase();
+    const cat = (row.provider_category || '').toLowerCase();
+    const types = (row.types || '').toLowerCase();
+    const combined = name + ' ' + cat + ' ' + types;
+    if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
+    if ((row.business_status || '').includes('CLOSED')) return false;
+    return true;
+  });
+  const afterKeyword = providers.length;
+
+  let afterAI = providers.length;
+  if (PERPLEXITY_API_KEY && providers.length > 0) {
+    const kept = [];
+    const BATCH = 50;
+    for (let b = 0; b < providers.length; b += BATCH) {
+      const batch = providers.slice(b, b + BATCH);
+      const list = batch.map((p, j) => `${j + 1}. "${p.provider_name}" — category: ${p.provider_category}, address: ${p.address || 'unknown'}`).join('\n');
+      const prompt = `For each business below, determine if its PRIMARY BUSINESS is providing senior care.
+
+Answer YES only if the entity is one of these:
+- Residential senior living facility (assisted living, memory care, nursing home, independent living)
+- In-home care agency (home health, non-medical home care, hospice)
+- Dedicated senior care program (adult day care, geriatric care management)
+
+Answer NO if the entity is:
+- A place seniors might USE but that is not a care provider (community centers, recreation facilities, YMCAs)
+- General medical (family medicine, urgent care, VA clinics, hospitals, rehab clinics)
+- Mental health / therapy only (counselors, psychologists, behavioral health)
+- A DME supplier, medical supply store, or equipment rental company
+- Retail, food service, construction, IT, storage, or any non-care business
+- Nonprofit / community service that serves the general public
+- Funeral homes, universities, churches, government agencies
+- Wedding venues, event spaces, banquet halls
+- General apartment complexes (not senior-specific independent living)
+
+Businesses:
+${list}
+
+Return JSON: {"results": [{"num": 1, "is_senior_care": true, "reason": "brief reason"}]}`;
+      try {
+        const content = await perplexityChat(prompt);
+        const match = content.match(/\{[\s\S]*"results"[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          const results = parsed.results || [];
+          for (const r of results) {
+            const idx = (r.num || 0) - 1;
+            if (idx >= 0 && idx < batch.length && r.is_senior_care) kept.push(batch[idx]);
+          }
+          const resultNums = new Set(results.map(r => r.num));
+          for (let j = 0; j < batch.length; j++) {
+            if (!resultNums.has(j + 1)) kept.push(batch[j]);
+          }
+        } else {
+          kept.push(...batch);
+        }
+      } catch (e) {
+        console.log(`    AI batch error: ${e.message} — keeping batch`);
+        kept.push(...batch);
+      }
+    }
+    providers = kept;
+    afterAI = providers.length;
+  }
+
+  await finalizeCityClean(
+    { c, providers, discovered, afterKeyword, afterAI },
+    opts, dedupNameSet, dedupPlaceSet
+  );
+}
+
+// Helper: category map + name clean + dedup + IDs + write JSON + log (shared by both modes).
+async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet) {
+  const { c, discovered, afterKeyword, afterAI } = cd;
+  let providers = cd.providers;
+
+  // Category mapping
+  for (const p of providers) {
+    const mapped = CATEGORY_MAP[p.provider_category];
+    if (mapped) p.provider_category = mapped;
+  }
+
+  // Name cleaning
+  let namesCleaned = 0;
+  for (const p of providers) {
+    const orig = p.provider_name;
+    p.provider_name = p.provider_name
+      .replace(/,?\s*(LLC|Inc\.?|Corp\.?|Ltd\.?|L\.?L\.?C\.?|Incorporated|Corporation|Limited|Co\.?)\.?\s*$/i, '')
+      .trim();
+    if (p.provider_name !== orig) namesCleaned++;
+  }
+
+  // Dedup
+  const beforeDedup = providers.length;
+  providers = providers.filter(p => {
+    if (p.place_id && dedupPlaceSet.has(p.place_id)) return false;
+    const key = p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase();
+    return !dedupNameSet.has(key);
+  });
+  const dupes = beforeDedup - providers.length;
+
+  // IDs + slugs
+  const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+  const stateSlug = c.state.toLowerCase();
+  for (let j = 0; j < providers.length; j++) {
+    providers[j].provider_id = `${citySlug}-${stateSlug}-${String(j + 1).padStart(4, '0')}`;
+    providers[j].slug = slug(providers[j].provider_name, c.city, c.state);
+    if (!providers[j].city) providers[j].city = c.city;
+    if (!providers[j].state) providers[j].state = c.state;
+  }
+
+  const cityDir = path.join(opts.expansionDir, `${c.city}-${c.state}`);
+  fs.mkdirSync(cityDir, { recursive: true });
+  const readyPath = path.join(cityDir, 'providers_ready.json');
+  fs.writeFileSync(readyPath, JSON.stringify(providers, null, 2));
+
+  const cats = {};
+  for (const p of providers) cats[p.provider_category] = (cats[p.provider_category] || 0) + 1;
+  const catStr = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}: ${v}`).join(', ');
+
+  console.log(`    ${c.city}, ${c.state}: ${discovered} → kw:${afterKeyword} → ai:${afterAI} → dedup:-${dupes} → ready:${providers.length}`);
+  console.log(`    ${catStr}${namesCleaned > 0 ? ` | ${namesCleaned} names cleaned` : ''}`);
+
+  for (const p of providers) {
+    dedupNameSet.add(p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase());
+    if (p.place_id) dedupPlaceSet.add(p.place_id);
+  }
 }
 
 async function phaseLoad(cities, opts) {
@@ -842,9 +981,50 @@ async function phaseLoad(cities, opts) {
 
     const geocoded = (toGeocode || []).length - skippedGeocode;
     console.log(`    Geocode: ${skippedGeocode} skipped (coords OK), ${geocoded} checked, ${corrections} corrected, ${outOfArea} out-of-area → ${activeCount} active`);
+
+    // Notion status updates are handled outside this script by Claude subagents
+    // using the mcp__notion__* integration. The in-script NOTION_TOKEN path has
+    // a history of silent failures, so we don't rely on it. See
+    // .claude/commands/city-pipeline.md → "Parallel subagent work during long phases".
+
+    // Track loaded provider count for live site verification
+    c._loadedActive = activeCount || 0;
   }
 
   console.log(`\n  Load phase complete. Cost so far: ${cost.summary()}`);
+
+  // Fire-and-forget live site verification (skip on dry-run)
+  if (!opts.dryRun) {
+    opts._liveSiteCheckPromise = runLiveSiteCheck(cities);
+  }
+}
+
+// Live site verification hook — picks 5 random cities with >= 3 loaded providers
+async function runLiveSiteCheck(cities) {
+  try {
+    const eligible = cities.filter(c => (c._loadedActive || 0) >= 3);
+    if (eligible.length === 0) return [];
+    // Random sample up to 5
+    const shuffled = eligible.slice().sort(() => Math.random() - 0.5);
+    const picks = shuffled.slice(0, 5);
+    const results = [];
+    for (const c of picks) {
+      const stateSlug = (STATE_NAMES[c.state] || c.state).toLowerCase().replace(/\s+/g, '-');
+      const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+      const url = `https://olera.com/assisted-living/${stateSlug}/${citySlug}`;
+      try {
+        const resp = await fetchWithRetry(url, { redirect: 'follow' });
+        const body = await resp.text();
+        const hasCards = body.includes('provider-card');
+        results.push({ city: c.city, state: c.state, url, status: resp.status, hasCards, ok: resp.ok && hasCards });
+      } catch (err) {
+        results.push({ city: c.city, state: c.state, url, status: 0, hasCards: false, ok: false, error: err.message });
+      }
+    }
+    return results;
+  } catch (err) {
+    return [{ error: err.message }];
+  }
 }
 
 async function phaseEnrich(cities, opts) {
@@ -1128,14 +1308,7 @@ async function phaseFinalize(cities, opts) {
       cats, hasDesc, hasReviews, hasTrust, hasImages,
     });
 
-    // Update Notion — one call checks all boxes + sets Complete
-    if (c.notionPageId) {
-      try {
-        await notionCompletePage(c.notionPageId);
-      } catch (e) {
-        console.log(`    WARN: Notion update failed for ${c.city}, ${c.state}: ${e.message}`);
-      }
-    }
+    // Notion is handled outside this script via Claude subagents — see phaseLoad comment.
   }
 
   // Print final batch summary table
@@ -1162,6 +1335,30 @@ async function phaseFinalize(cities, opts) {
   console.log('  ' + '-'.repeat(85));
   console.log(`  Total: ${totalProviders} providers across ${results.filter(r => r.status === 'complete').length} cities`);
   console.log(`  Cost: ${cost.summary()}`);
+
+  // Await + print live site verification results
+  if (opts._liveSiteCheckPromise) {
+    console.log('\n  LIVE SITE CHECK');
+    console.log('  ' + '-'.repeat(85));
+    try {
+      const liveResults = await opts._liveSiteCheckPromise;
+      if (!liveResults || liveResults.length === 0) {
+        console.log('  (no eligible cities to check)');
+      } else {
+        for (const r of liveResults) {
+          if (r.error && !r.city) {
+            console.log(`  ERROR: ${r.error}`);
+            continue;
+          }
+          const mark = r.ok ? 'PASS' : 'FAIL';
+          const cards = r.hasCards ? 'has provider-card' : 'no provider-card';
+          console.log(`  [${mark}] ${r.city}, ${r.state} — HTTP ${r.status} — ${cards}${r.error ? ` (${r.error})` : ''}`);
+        }
+      }
+    } catch (e) {
+      console.log(`  Live site check error: ${e.message}`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1263,6 +1460,7 @@ async function main() {
   console.log(`  Resume:       ${opts.resume}`);
   console.log(`  Est. cost:    ~$${estCost} (post-discovery)`);
   console.log(`  Est. time:    ~${formatDuration(estTimeMin * 60)}`);
+  console.log(`  Watch mode:   ${opts.watch}`);
   if (estTimeMin > 60) {
     console.log(`  NOTE: This will take ${formatDuration(estTimeMin * 60)}. Consider running in background.`);
   }

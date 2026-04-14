@@ -1,0 +1,621 @@
+{
+  "state": "NE",
+  "stateName": "Nebraska",
+  "checkedAt": "2026-04-14T10:05:12.544Z",
+  "total": 17,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 6,
+  "totalFlags": 6,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "ne-aged-disabled-hcbs-waiver",
+      "programName": "Aged and Disabled (AD) HCBS Waiver",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8776676266",
+          "4024718501",
+          "4022231376",
+          "8889899417"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8776676266",
+        "sources": {
+          "age": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.medicaidplanningassistance.org/nebraska-aged-disabled-waiver/"
+        },
+        "notes": "No income or asset limits found in sources for seniors; program requires Nebraska Medicaid eligibility which has separate financial criteria. Waiver active as of 2026 with expiration 07/31/2026."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources for seniors; program requires Nebraska Medicaid eligibility which has separate financial criteria. Waiver active as of 2026 with expiration 07/31/2026."
+    },
+    {
+      "programId": "ne-pace-elder-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8556327633",
+          "8009427830"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4029910330",
+        "sources": {
+          "age": "https://immanuel.com/pathways-pace/immanuel-pathways-eastern-nebraska",
+          "income": null,
+          "assets": null,
+          "phone": "https://immanuel.com/pathways-pace/immanuel-pathways-eastern-nebraska"
+        },
+        "notes": "No asset or income limits found in sources; PACE eligibility based on nursing home level of care need and Medicaid standards per federal rules. Program active as PACE Nebraska (Immanuel Pathways), state-approved provider."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8556327633",
+            "8009427830"
+          ],
+          "verifiedValue": "4029910330"
+        }
+      ],
+      "notes": "No asset or income limits found in sources; PACE eligibility based on nursing home level of care need and Medicaid standards per federal rules. Program active as PACE Nebraska (Immanuel Pathways), state-approved provider."
+    },
+    {
+      "programId": "ne-medicare-savings-program",
+      "programName": "Medicare Savings Program (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "8003834278"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "assets": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "phone": null
+        },
+        "notes": "QMB values used as primary from federal Medicare.gov 2026 limits; Nebraska follows federal standards per sources. Higher limits apply to SLMB/QI. No Nebraska-specific state agency page with 2026 limits found. No phone sourced."
+      },
+      "flags": [],
+      "notes": "QMB values used as primary from federal Medicare.gov 2026 limits; Nebraska follows federal standards per sources. Higher limits apply to SLMB/QI. No Nebraska-specific state agency page with 2026 limits found. No phone sourced."
+    },
+    {
+      "programId": "ne-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 2152,
+        "income_2": 2908,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "8003834278"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2152,
+        "income_2": 2908,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8554445556",
+        "sources": {
+          "age": null,
+          "income": "https://neappleseed.org/snap",
+          "assets": null,
+          "phone": "https://neappleseed.org/snap"
+        },
+        "notes": "SNAP has no age requirement or asset test for seniors; income limits are gross at 165% FPL for 2025 from nonprofit citing official data. No 2026 limits found in sources."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8003834278"
+          ],
+          "verifiedValue": "8554445556"
+        }
+      ],
+      "notes": "SNAP has no age requirement or asset test for seniors; income limits are gross at 165% FPL for 2025 from nonprofit citing official data. No 2026 limits found in sources."
+    },
+    {
+      "programId": "ne-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 1956,
+        "income_2": 2644,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8003834278",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1956,
+        "income_2": 2644,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003834278",
+        "sources": {
+          "age": null,
+          "income": "https://dhhs.ne.gov/pages/energy-assistance.aspx",
+          "assets": null,
+          "phone": "https://dhhs.ne.gov/pages/energy-assistance.aspx"
+        },
+        "notes": "Income limits calculated as annual figures divided by 12 and rounded to nearest integer (23,475/12=1,956.25→1956; 31,725/12=2,643.75→2644) for Oct 2025-Sep 2026 period covering 2026; no age or asset limits specified; official DHHS source"
+      },
+      "flags": [],
+      "notes": "Income limits calculated as annual figures divided by 12 and rounded to nearest integer (23,475/12=1,956.25→1956; 31,725/12=2,643.75→2644) for Oct 2025-Sep 2026 period covering 2026; no age or asset limits specified; official DHHS source"
+    },
+    {
+      "programId": "ne-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 2672,
+        "income_2": 3625,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4024446666",
+          "4023428232",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://dwee.nebraska.gov/aid/nebraska-weatherization-assistance-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits from 2025 guidelines (annual $31,300/12=2608; $42,300/12=3525); no 2026 data found. No central phone; contact local providers. SSI/ADC auto-eligible. Seniors prioritized."
+      },
+      "flags": [],
+      "notes": "Income limits from 2025 guidelines (annual $31,300/12=2608; $42,300/12=3525); no 2026 data found. No central phone; contact local providers. SSI/ADC auto-eligible. Seniors prioritized."
+    },
+    {
+      "programId": "ne-ship-medicare-counseling",
+      "programName": "Nebraska SHIP (State Health Insurance Assistance Program)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002347119"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        1
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "ne-home-delivered-meals-aaa",
+      "programName": "Home-Delivered Meals (via Area Agencies on Aging)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4024714619",
+          "18006771116"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4024446536",
+        "sources": {
+          "age": "https://enoa.org/programs/nutrition-programs/meals-on-wheels.html",
+          "income": null,
+          "assets": null,
+          "phone": "https://enoa.org/programs/nutrition-programs/meals-on-wheels.html"
+        },
+        "notes": "Age 60 is the consistent senior-specific threshold across all Nebraska Area Agencies on Aging home-delivered meals programs in search results. Phone number is for Eastern Nebraska Office on Aging (ENOA) Meals on Wheels program serving Cass, Dodge, Douglas, Sarpy, and Washington counties. Search results do not contain specific income or asset limits for the home-delivered meals program; eligibility criteria emphasize functional need (homebound, difficulty preparing meals, lack of nutritional support) rather than financial thresholds. Low-income individuals may receive assistance through Nebraska Department of Health and Human Services, but specific income/asset caps are not documented in provided sources."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "4024714619",
+            "18006771116"
+          ],
+          "verifiedValue": "4024446536"
+        }
+      ],
+      "notes": "Age 60 is the consistent senior-specific threshold across all Nebraska Area Agencies on Aging home-delivered meals programs in search results. Phone number is for Eastern Nebraska Office on Aging (ENOA) Meals on Wheels program serving Cass, Dodge, Douglas, Sarpy, and Washington counties. Search results do not contain specific income or asset limits for the home-delivered meals program; eligibility criteria emphasize functional need (homebound, difficulty preparing meals, lack of nutritional support) rather than financial thresholds. Low-income individuals may receive assistance through Nebraska Department of Health and Human Services, but specific income/asset caps are not documented in provided sources."
+    },
+    {
+      "programId": "ne-lifespan-respite-services",
+      "programName": "Lifespan Respite Services",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18667377483",
+          "4024719188"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8667377483",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dhhs.ne.gov/Pages/Respite.aspx"
+        },
+        "notes": "No age, income, or asset limits found in sources; program serves any age with special needs via subsidy for caregivers"
+      },
+      "flags": [],
+      "notes": "No age, income, or asset limits found in sources; program serves any age with special needs via subsidy for caregivers"
+    },
+    {
+      "programId": "ne-scsep-employment",
+      "programName": "Nebraska Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram",
+          "income": "https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age requirement (55+) confirmed from Nebraska Department of Labor official source. Income limit exists (125% of federal poverty level per multiple sources) but specific dollar amounts are not provided in search results and vary by household size/composition. No asset limits found in search results. Official phone number for Nebraska SCSEP application/enrollment not located in provided search results; contact information should be obtained directly from https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram or local American Job Centers."
+      },
+      "flags": [],
+      "notes": "Age requirement (55+) confirmed from Nebraska Department of Labor official source. Income limit exists (125% of federal poverty level per multiple sources) but specific dollar amounts are not provided in search results and vary by household size/composition. No asset limits found in search results. Official phone number for Nebraska SCSEP application/enrollment not located in provided search results; contact information should be obtained directly from https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram or local American Job Centers."
+    },
+    {
+      "programId": "ne-legal-services-seniors-aaa",
+      "programName": "Legal Services for Seniors (via AAAs)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 12000,
+        "assets_couple": 24000,
+        "phones": [
+          "8005277249",
+          "4028275656",
+          "4024417070",
+          "8007427555"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 12000,
+        "assets_couple": 24000,
+        "phone": "8005277249",
+        "sources": {
+          "age": "https://www.braaa.org/legalassistance",
+          "income": null,
+          "assets": "https://www.lincoln.ne.gov/files/sharedassets/public/v/5/aging-partners/services-and-resources/lelserv60plus.pdf",
+          "phone": "https://www.braaa.org/legalassistance"
+        },
+        "notes": "Age 60+ is the statewide senior threshold for Legal Assistance via Nebraska Area Agencies on Aging and Legal Aid of Nebraska. Asset limits ($12,000 individual / $24,000 couple) are documented for Lancaster County (Aging Partners) but appear to be applied statewide; no conflicting asset limits found in search results. Income limits not specified in retrieved sources. ElderAccessLine (800-527-7249) is the primary statewide intake number. Program is active as of February 2026 per Aging Partners documentation."
+      },
+      "flags": [],
+      "notes": "Age 60+ is the statewide senior threshold for Legal Assistance via Nebraska Area Agencies on Aging and Legal Aid of Nebraska. Asset limits ($12,000 individual / $24,000 couple) are documented for Lancaster County (Aging Partners) but appear to be applied statewide; no conflicting asset limits found in search results. Income limits not specified in retrieved sources. ElderAccessLine (800-527-7249) is the primary statewide intake number. Program is active as of February 2026 per Aging Partners documentation."
+    },
+    {
+      "programId": "ne-ltc-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8009427830",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009427830",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx"
+        },
+        "notes": "Program serves all ages in long-term care facilities with no income, asset, or age eligibility requirements"
+      },
+      "flags": [],
+      "notes": "Program serves all ages in long-term care facilities with no income, asset, or age eligibility requirements"
+    },
+    {
+      "programId": "ne-aged-disabled-waiver",
+      "programName": "Aged and Disabled Waiver",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8776676266",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": 8000,
+        "phone": "8776676266",
+        "sources": {
+          "age": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/nebraska-aged-disabled-waiver/",
+          "phone": "https://enoa.org/programs/choices/aged-disabled-medicaid-waiver.html"
+        },
+        "notes": "No income limits found in sources; assets from non-.gov citing 2026 values"
+      },
+      "flags": [],
+      "notes": "No income limits found in sources; assets from non-.gov citing 2026 values"
+    },
+    {
+      "programId": "ne-community-aging-services",
+      "programName": "Nebraska Community Aging Services Act",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4024714270",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No current authoritative data found on specific eligibility details (age, income, assets, phone) for Nebraska Community Aging Services Act as of 2026; program referenced in statutes but no .gov or cited official source provides queried values"
+      },
+      "flags": [],
+      "notes": "No current authoritative data found on specific eligibility details (age, income, assets, phone) for Nebraska Community Aging Services Act as of 2026; program referenced in statutes but no .gov or cited official source provides queried values"
+    },
+    {
+      "programId": "ne-aging-disability-resource-center",
+      "programName": "Aging & Disability Resource Center Act",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002522412"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8448436364",
+        "sources": {
+          "age": "https://nenaaa.com/programs/aging-and-disability-resource-center/",
+          "income": null,
+          "assets": null,
+          "phone": "https://nenaaa.com/programs/aging-and-disability-resource-center/"
+        },
+        "notes": "No 'Aging & Disability Resource Center Act' found; program is Nebraska Aging and Disability Resource Centers (ADRCs). No income or asset limits identified in sources; serves seniors 60+ per senior pathway. No single statewide phone; regional example provided."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8002522412"
+          ],
+          "verifiedValue": "8448436364"
+        }
+      ],
+      "notes": "No 'Aging & Disability Resource Center Act' found; program is Nebraska Aging and Disability Resource Centers (ADRCs). No income or asset limits identified in sources; serves seniors 60+ per senior pathway. No single statewide phone; regional example provided."
+    },
+    {
+      "programId": "ne-aabd-cash-medical",
+      "programName": "Aid to the Aged, Blind, and Disabled (AABD)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "4024713121",
+          "8003588802",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003834278",
+        "sources": {
+          "age": "https://iserve.nebraska.gov/apply/program-select",
+          "income": null,
+          "assets": null,
+          "phone": "https://search.ne211.org/search/0b8526b5-4b07-5ef4-b2a3-04eebac655f2"
+        },
+        "notes": "No authoritative 2026 income or asset limits found for AABD cash program; Medicaid ABD limits from non-.gov sources not used as they apply to separate Medicaid pathway. Program active per official DHHS site."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "4024713121",
+            "8003588802",
+            "211"
+          ],
+          "verifiedValue": "8003834278"
+        }
+      ],
+      "notes": "No authoritative 2026 income or asset limits found for AABD cash program; Medicaid ABD limits from non-.gov sources not used as they apply to separate Medicaid pathway. Program active per official DHHS site."
+    },
+    {
+      "programId": "ne-ssad-aged-disabled-services",
+      "programName": "Social Service for Aged and Disabled Adults (SSAD)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1520,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8448436364",
+        "sources": {
+          "age": null,
+          "income": "https://dhhs.ne.gov/Documents/2026%20SSBG%20State%20Plan%20Draft.pdf",
+          "assets": null,
+          "phone": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx"
+        },
+        "notes": "Income value from 2026 SSBG plan draft for low-income aged (60+); no asset limits found; phone is ADRC toll-free for assistance"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "8448436364"
+        }
+      ],
+      "notes": "Income value from 2026 SSBG plan draft for low-income aged (60+); no asset limits found; phone is ADRC toll-free for assistance"
+    }
+  ]
+}

@@ -1,0 +1,689 @@
+{
+  "state": "TX",
+  "stateName": "Texas",
+  "diveAt": "2026-04-09T16:37:51.844Z",
+  "total": 13,
+  "parsed": 12,
+  "programs": [
+    {
+      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "eligibility": {
+        "age": "0-18 years for MBIC; 65+ for QMB/SLMB/QI (elderly Medicare beneficiaries)",
+        "income_limits": "MBIC: Family adjusted gross income up to 300% of federal poverty level (e.g., ~$3,913/month for family with one child; ~$66,700/year for family of four; scales by household size—check current FPL table on official site). QMB/SLMB/QI: Monthly income limits (2026 figures vary; e.g., QMB ≤100% FPL ~$1,275 individual/$1,724 couple; SLMB ≤120% FPL ~$1,526 individual/$2,055 couple; QI ≤135% FPL ~$1,718 individual/$2,309 couple—confirm current via SSA/HHSC as they adjust annually).",
+        "asset_limits": "MBIC: Not specified in sources (focus on income; some exclusions apply). Adult Buy-In (related): Countable assets < $5,000 (cash, bank accounts counted; exemptions not detailed). QMB/SLMB/QI: ≤$9,660 individual/$14,470 couple (2026; excludes home, car, burial plots, etc.—standard Medicaid asset rules).",
+        "other_requirements": [
+          "MBIC: Disability meeting SSI criteria (significantly restricts daily activities); Texas resident; U.S. citizen/legal resident; unmarried; family income exceeds traditional Medicaid limits.",
+          "QMB/SLMB/QI: Enrolled in Medicare Part A; Texas resident; U.S. citizen/legal resident; for elderly loved ones (65+); QI has priority/waitlist risk.",
+          "Not living in institution for adult programs (related)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "MBIC: Full Medicaid child benefits—doctor/hospital visits (incl. emergency), prescriptions, dental, mental health, glasses, home care, speech/OT/PT therapies, case management, checkups. Premium based on income/family size/employer insurance (sliding scale, e.g., $20-$40/month possible). QMB: Medicare premiums/cost-sharing paid (Part A/B full coverage). SLMB: Part B premium paid. QI: Part B premium paid (limited enrollment).",
+        "varies_by": "household_size|priority_tier"
+      },
+      "application": {
+        "methods": [
+          "MBIC Online: www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html (download form);",
+          "Phone: 2-1-1 (request forms/mail/application help);",
+          "Mail: Submit completed form to HHSC;",
+          "QMB/SLMB/QI: YourTexasBenefits.com (online), 2-1-1, local HHSC office, or Form H1200 (general Medicaid app)"
+        ],
+        "processing_time": "Not specified; confirm receipt via 2-1-1 (Option 2, head of household SSN)",
+        "waitlist": "QI: Possible waitlist/priority (funds limited); others null",
+        "forms": [
+          "MBIC: H1200-MBIC (English/Spanish); Adult Buy-In: H1200-MBI; QMB/SLMB/QI: H1200 or online app"
+        ],
+        "documents": [
+          "Proof of income (pay stubs/tax returns), disability/SSI determination, SSN, residency proof, citizenship/immigration docs, Medicare card (for QMB+), bank statements/assets if applicable"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; Texas residents only",
+        "regional_variations": "Processing/wait times may vary by HHSC office load; no provider differences noted",
+        "offices_or_providers": [
+          "Local HHSC offices statewide; call 2-1-1 for nearest"
+        ]
+      },
+      "official_source": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/medicaid-buy-children-mbic or www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html; QMB/SLMB/QI: https://www.hhs.texas.gov/services/medicare-medicaid",
+      "gotchas": [
+        "MBIC premium required (sliding scale—not free; based on AGI, family size, employer insurance).",
+        "Income up to 300% FPL only—many assume 'too high' disqualifies entirely.",
+        "QI: Waitlist/annual funding limits (not guaranteed).",
+        "QMB/SLMB/QI assets exclude home/car but count cash—providers can't bill QMB patients.",
+        "Must meet SSI-level disability (not just diagnosis).",
+        "Children up to 18 only (transition to adult Buy-In at 19 if working).",
+        "Forms computer-only; confirm receipt post-submit."
+      ],
+      "data_shape_notes": "MBIC income scales by household size (300% FPL); premiums vary by income/insurance; QI capped enrollment; dual MBIC (kids) vs Medicare help (elderly); disability=SSI criteria key",
+      "_raw": "{\n  \"name\": \"Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)\",\n  \"eligibility\": {\n    \"age\": \"0-18 years for MBIC; 65+ for QMB/SLMB/QI (elderly Medicare beneficiaries)\",\n    \"income_limits\": \"MBIC: Family adjusted gross income up to 300% of federal poverty level (e.g., ~$3,913/month for family with one child; ~$66,700/year for family of four; scales by household size—check current FPL table on official site). QMB/SLMB/QI: Monthly income limits (2026 figures vary; e.g., QMB ≤100% FPL ~$1,275 individual/$1,724 couple; SLMB ≤120% FPL ~$1,526 individual/$2,055 couple; QI ≤135% FPL ~$1,718 individual/$2,309 couple—confirm current via SSA/HHSC as they adjust annually).\",\n    \"asset_limits\": \"MBIC: Not specified in sources (focus on income; some exclusions apply). Adult Buy-In (related): Countable assets < $5,000 (cash, bank accounts counted; exemptions not detailed). QMB/SLMB/QI: ≤$9,660 individual/$14,470 couple (2026; excludes home, car, burial plots, etc.—standard Medicaid asset rules).\",\n    \"other_requirements\": [\n      \"MBIC: Disability meeting SSI criteria (significantly restricts daily activities); Texas resident; U.S. citizen/legal resident; unmarried; family income exceeds traditional Medicaid limits.\",\n      \"QMB/SLMB/QI: Enrolled in Medicare Part A; Texas resident; U.S. citizen/legal resident; for elderly loved ones (65+); QI has priority/waitlist risk.\",\n      \"Not living in institution for adult programs (related)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"MBIC: Full Medicaid child benefits—doctor/hospital visits (incl. emergency), prescriptions, dental, mental health, glasses, home care, speech/OT/PT therapies, case management, checkups. Premium based on income/family size/employer insurance (sliding scale, e.g., $20-$40/month possible). QMB: Medicare premiums/cost-sharing paid (Part A/B full coverage). SLMB: Part B premium paid. QI: Part B premium paid (limited enrollment).\",\n    \"varies_by\": \"household_size|priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"MBIC Online: www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html (download form);\",\n      \"Phone: 2-1-1 (request forms/mail/application help);\",\n      \"Mail: Submit completed form to HHSC;\",\n      \"QMB/SLMB/QI: YourTexasBenefits.com (online), 2-1-1, local HHSC office, or Form H1200 (general Medicaid app)\"\n    ],\n    \"processing_time\": \"Not specified; confirm receipt via 2-1-1 (Option 2, head of household SSN)\",\n    \"waitlist\": \"QI: Possible waitlist/priority (funds limited); others null\",\n    \"forms\": [\"MBIC: H1200-MBIC (English/Spanish); Adult Buy-In: H1200-MBI; QMB/SLMB/QI: H1200 or online app\"],\n    \"documents\": [\"Proof of income (pay stubs/tax returns), disability/SSI determination, SSN, residency proof, citizenship/immigration docs, Medicare card (for QMB+), bank statements/assets if applicable\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; Texas residents only\",\n    \"regional_variations\": \"Processing/wait times may vary by HHSC office load; no provider differences noted\",\n    \"offices_or_providers\": [\"Local HHSC offices statewide; call 2-1-1 for nearest\"]\n  },\n  \"official_source\": \"https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/medicaid-buy-children-mbic or www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html; QMB/SLMB/QI: https://www.hhs.texas.gov/services/medicare-medicaid\",\n  \"gotchas\": [\n    \"MBIC premium required (sliding scale—not free; based on AGI, family size, employer insurance).\",\n    \"Income up to 300% FPL only—many assume 'too high' disqualifies entirely.\",\n    \"QI: Waitlist/annual funding limits (not guaranteed).\",\n    \"QMB/SLMB/QI assets exclude home/car but count cash—providers can't bill QMB patients.\",\n    \"Must meet SSI-level disability (not just diagnosis).\",\n    \"Children up to 18 only (transition to adult Buy-In at 19 if working).\",\n    \"Forms computer-only; confirm receipt post-submit.\"\n  ],\n  \"data_shape_notes\": \"MBIC income scales by household size (300% FPL); premiums vary by income/insurance; QI capped enrollment; dual MBIC (kids) vs Medicare help (elderly); disability=SSI criteria key\"\n}"
+    },
+    {
+      "name": "STAR+PLUS",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Monthly income limit is $2,901 per applicant (300% of Federal Benefit Rate for 2025), regardless of marital status or household size. Each spouse applying is evaluated individually up to this amount.[1]",
+        "asset_limits": "Assets limited to $2,000 (countable resources). Exempt: primary home if equity ≤ $730,000 and applicant lives there or intends to return, or if spouse/child under 21/disabled child lives there; one vehicle; personal belongings; burial plots; life insurance up to $1,500 face value.[1][4]",
+        "other_requirements": [
+          "Texas resident",
+          "65+ years old or 21+ and disabled",
+          "At risk of nursing home placement (requires Nursing Facility Level of Care, determined by MN/LOC assessment signed by physician and approved by TMHP)",
+          "Medicaid eligible (e.g., SSI recipient, MAO protected, or meets nursing home Medicaid income/resources)",
+          "Not enrolled in another Medicaid waiver (can remain on other interest lists)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Managed care Medicaid including acute care (physician visits, hospital, pharmacy, dental, vision, NEMT), long-term services (service coordination, nursing, therapies), and HCBS waiver for those qualifying: Day Activity & Health Services (DAHS, up to 5 days/week Mon-Fri for physical/mental/medical/social needs), Personal Attendant Services (PAS), minor home modifications, specialized medical equipment, respite, transition services. Nursing facility residents get room/board, supplies, rehab. Extra plan-specific perks (e.g., Weight Watchers subscription, camp allowances, asthma supplies) vary by MCO.[3][5][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Join interest list first (required due to waitlist): Call 211 or 877-541-7905",
+          "After invitation: Apply for Medicaid via Your Texas Benefits (yourtexasbenefits.com), phone 211/877-541-7905, local HHS office in-person, or mail",
+          "Select MCO (e.g., Community First, Molina, Superior, Wellpoint) after approval"
+        ],
+        "processing_time": "Medicaid approval varies; HCBS assessment by MCO post-Medicaid approval",
+        "waitlist": "Long interest lists (many years wait for HCBS invitation); some exceptions exist",
+        "forms": [
+          "Texas Medicaid application via Your Texas Benefits portal; MN/LOC Assessment by MCO"
+        ],
+        "documents": [
+          "Proof of identity (ID, SSN)",
+          "Income proof (pay stubs, SSI award letters)",
+          "Asset statements (bank, property)",
+          "Proof of residency",
+          "Medical records/disability proof for NFLOC",
+          "Physician certification for level of care"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in specific service areas by MCO (e.g., Superior in Dallas, Hidalgo, Travis; varies by plan)",
+        "regional_variations": "Different MCOs/providers by region (e.g., Community First central TX, Molina, Superior, Wellpoint); some extras limited to counties (e.g., Weight Watchers in Dallas/Hidalgo); wait times vary regionally",
+        "offices_or_providers": [
+          "MCOs: Community First Health Plans, Molina Healthcare, Superior HealthPlan, Wellpoint/Anthem; local HHS offices via 211"
+        ]
+      },
+      "official_source": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver",
+      "gotchas": [
+        "Must join interest list first; years-long wait for HCBS (not immediate)",
+        "Income/asset limits apply individually even for couples; home equity cap $730,000",
+        "Requires NFLOC (nursing home level need); not just low income/age",
+        "Managed by MCOs—select carefully as benefits/extras vary by plan/region",
+        "Cannot be in another waiver; nursing home residents may transition out",
+        "Applicant pays applied income toward nursing facility if applicable"
+      ],
+      "data_shape_notes": "Long interest list wait for HCBS waiver; MCO-specific in regions; fixed individual income/asset limits (no household scaling); NFLOC medical tier required",
+      "_raw": "{\n  \"name\": \"STAR+PLUS\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Monthly income limit is $2,901 per applicant (300% of Federal Benefit Rate for 2025), regardless of marital status or household size. Each spouse applying is evaluated individually up to this amount.[1]\",\n    \"asset_limits\": \"Assets limited to $2,000 (countable resources). Exempt: primary home if equity ≤ $730,000 and applicant lives there or intends to return, or if spouse/child under 21/disabled child lives there; one vehicle; personal belongings; burial plots; life insurance up to $1,500 face value.[1][4]\",\n    \"other_requirements\": [\n      \"Texas resident\",\n      \"65+ years old or 21+ and disabled\",\n      \"At risk of nursing home placement (requires Nursing Facility Level of Care, determined by MN/LOC assessment signed by physician and approved by TMHP)\",\n      \"Medicaid eligible (e.g., SSI recipient, MAO protected, or meets nursing home Medicaid income/resources)\",\n      \"Not enrolled in another Medicaid waiver (can remain on other interest lists)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Managed care Medicaid including acute care (physician visits, hospital, pharmacy, dental, vision, NEMT), long-term services (service coordination, nursing, therapies), and HCBS waiver for those qualifying: Day Activity & Health Services (DAHS, up to 5 days/week Mon-Fri for physical/mental/medical/social needs), Personal Attendant Services (PAS), minor home modifications, specialized medical equipment, respite, transition services. Nursing facility residents get room/board, supplies, rehab. Extra plan-specific perks (e.g., Weight Watchers subscription, camp allowances, asthma supplies) vary by MCO.[3][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Join interest list first (required due to waitlist): Call 211 or 877-541-7905\",\n      \"After invitation: Apply for Medicaid via Your Texas Benefits (yourtexasbenefits.com), phone 211/877-541-7905, local HHS office in-person, or mail\",\n      \"Select MCO (e.g., Community First, Molina, Superior, Wellpoint) after approval\"\n    ],\n    \"processing_time\": \"Medicaid approval varies; HCBS assessment by MCO post-Medicaid approval\",\n    \"waitlist\": \"Long interest lists (many years wait for HCBS invitation); some exceptions exist\",\n    \"forms\": [\"Texas Medicaid application via Your Texas Benefits portal; MN/LOC Assessment by MCO\"],\n    \"documents\": [\n      \"Proof of identity (ID, SSN)\",\n      \"Income proof (pay stubs, SSI award letters)\",\n      \"Asset statements (bank, property)\",\n      \"Proof of residency\",\n      \"Medical records/disability proof for NFLOC\",\n      \"Physician certification for level of care\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in specific service areas by MCO (e.g., Superior in Dallas, Hidalgo, Travis; varies by plan)\",\n    \"regional_variations\": \"Different MCOs/providers by region (e.g., Community First central TX, Molina, Superior, Wellpoint); some extras limited to counties (e.g., Weight Watchers in Dallas/Hidalgo); wait times vary regionally\",\n    \"offices_or_providers\": [\"MCOs: Community First Health Plans, Molina Healthcare, Superior HealthPlan, Wellpoint/Anthem; local HHS offices via 211\"]\n  },\n  \"official_source\": \"https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver\",\n  \"gotchas\": [\n    \"Must join interest list first; years-long wait for HCBS (not immediate)\",\n    \"Income/asset limits apply individually even for couples; home equity cap $730,000\",\n    \"Requires NFLOC (nursing home level need); not just low income/age\",\n    \"Managed by MCOs—select carefully as benefits/extras vary by plan/region\",\n    \"Cannot be in another waiver; nursing home residents may transition out\",\n    \"Applicant pays applied income toward nursing facility if applicable\"\n  ],\n  \"data_shape_notes\": \"Long interest list wait for HCBS waiver; MCO-specific in regions; fixed individual income/asset limits (no household scaling); NFLOC medical tier required\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No specific income limits for PACE enrollment itself; however, for Medicaid eligibility (common for participants), Texas long-term care Medicaid generally requires income under 300% of the Federal Benefit Rate ($2,901/month in 2025); asset limit of $2,000 (excluding primary home); Medicaid offers pathways like spend-down if limits not met[3].",
+        "asset_limits": "No asset limits for PACE enrollment; Medicaid-related assets $2,000 or less (excludes primary home, one vehicle, personal belongings, burial plots); countable assets include bank accounts, secondary properties, investments[3].",
+        "other_requirements": [
+          "State-certified (Texas) as needing nursing home level of care",
+          "Live in the service area of a Texas PACE provider",
+          "Able to live safely in the community with PACE support",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive medical and social services including primary care, hospital care, prescription drugs, social services, restorative therapies, home care, day center care (transportation to adult day health center), personal care, homemaker services, respite care, all coordinated to nursing home level in community setting; no specific dollar amounts or hours stated, covers all needed services without copays for dually eligible[2][4][5].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact provider intake, e.g., Bienvivir (El Paso) at (915) 562-3444 ext. 1442[1]",
+          "Online form: Provider-specific, e.g., Bienvivir eligibility form at https://es.bienvivir.org/eligibility[1]",
+          "In-person: At PACE provider centers",
+          "Assisted by provider; state (Texas) approves enrollment[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Possible, as some HCBS waivers have waitlists but PACE may serve as alternative[3]",
+        "forms": [
+          "Provider intake forms; state Medicaid application if needed"
+        ],
+        "documents": [
+          "Proof of age (ID/birth certificate)",
+          "Proof of residency in service area",
+          "Medical records for nursing home level of care assessment",
+          "Medicare/Medicaid cards if applicable",
+          "Financial documents for Medicaid if pursuing"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of PACE organizations in Texas (e.g., El Paso area for Bienvivir); not available everywhere[1][2]",
+        "regional_variations": "Operated by specific providers with defined service areas; varies by provider availability, potential wait times[1]",
+        "offices_or_providers": [
+          "Bienvivir (El Paso, TX service area)[1]"
+        ]
+      },
+      "official_source": "https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]",
+      "gotchas": [
+        "Limited geographic availability in Texas—not statewide, must live in specific provider service area[1][2]",
+        "No Medicare Advantage or hospice enrollment allowed[2]",
+        "State certification for nursing home level care required, involves assessment[1][4]",
+        "Most participants dually eligible, but private pay possible if not Medicaid-qualified[2][3]",
+        "Voluntary enrollment; approval by Texas state after provider assistance[1]"
+      ],
+      "data_shape_notes": "Only available in limited Texas regions via specific providers like Bienvivir; no direct income/asset test for PACE but tied to Medicaid financials for full benefits; requires nursing home certification while allowing community living",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for PACE enrollment itself; however, for Medicaid eligibility (common for participants), Texas long-term care Medicaid generally requires income under 300% of the Federal Benefit Rate ($2,901/month in 2025); asset limit of $2,000 (excluding primary home); Medicaid offers pathways like spend-down if limits not met[3].\",\n    \"asset_limits\": \"No asset limits for PACE enrollment; Medicaid-related assets $2,000 or less (excludes primary home, one vehicle, personal belongings, burial plots); countable assets include bank accounts, secondary properties, investments[3].\",\n    \"other_requirements\": [\n      \"State-certified (Texas) as needing nursing home level of care\",\n      \"Live in the service area of a Texas PACE provider\",\n      \"Able to live safely in the community with PACE support\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical and social services including primary care, hospital care, prescription drugs, social services, restorative therapies, home care, day center care (transportation to adult day health center), personal care, homemaker services, respite care, all coordinated to nursing home level in community setting; no specific dollar amounts or hours stated, covers all needed services without copays for dually eligible[2][4][5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact provider intake, e.g., Bienvivir (El Paso) at (915) 562-3444 ext. 1442[1]\",\n      \"Online form: Provider-specific, e.g., Bienvivir eligibility form at https://es.bienvivir.org/eligibility[1]\",\n      \"In-person: At PACE provider centers\",\n      \"Assisted by provider; state (Texas) approves enrollment[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Possible, as some HCBS waivers have waitlists but PACE may serve as alternative[3]\",\n    \"forms\": [\"Provider intake forms; state Medicaid application if needed\"],\n    \"documents\": [\n      \"Proof of age (ID/birth certificate)\",\n      \"Proof of residency in service area\",\n      \"Medical records for nursing home level of care assessment\",\n      \"Medicare/Medicaid cards if applicable\",\n      \"Financial documents for Medicaid if pursuing\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of PACE organizations in Texas (e.g., El Paso area for Bienvivir); not available everywhere[1][2]\",\n    \"regional_variations\": \"Operated by specific providers with defined service areas; varies by provider availability, potential wait times[1]\",\n    \"offices_or_providers\": [\"Bienvivir (El Paso, TX service area)[1]\"]\n  },\n  \"official_source\": \"https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]\",\n  \"gotchas\": [\n    \"Limited geographic availability in Texas—not statewide, must live in specific provider service area[1][2]\",\n    \"No Medicare Advantage or hospice enrollment allowed[2]\",\n    \"State certification for nursing home level care required, involves assessment[1][4]\",\n    \"Most participants dually eligible, but private pay possible if not Medicaid-qualified[2][3]\",\n    \"Voluntary enrollment; approval by Texas state after provider assistance[1]\"\n  ],\n  \"data_shape_notes\": \"Only available in limited Texas regions via specific providers like Bienvivir; no direct income/asset test for PACE but tied to Medicaid financials for full benefits; requires nursing home certification while allowing community living\"\n}"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For seniors (60+), only the **net income test** applies. Federal limits effective Oct 1, 2025–Sept 30, 2026: **$15,060/year ($1,255/month) for 1 person**; **$20,440/year ($1,703/month) for 2 people**. Texas gross income limits (approximate, vary by source): 1 person ≤$2,152/month; add ~$757/person. Net income calculated by deducting standard deduction, medical expenses >$35/month (for elderly), shelter costs. Income includes Social Security, pensions, VA/disability benefits[1][2][3][5].",
+        "asset_limits": "Texas has **$2,000 asset limit** for household of 1 (increases by household size). Counts: bank accounts, cash, stocks, IRA/ retirement savings (if accessible). Exempt: primary home, most vehicles, household goods, life insurance cash value (varies), income-producing property (sometimes). Some states waive asset test; Texas applies it[1][4][6].",
+        "other_requirements": [
+          "Household includes everyone who lives together and buys/prepares food.",
+          "U.S. citizen or qualified non-citizen.",
+          "Seniors 60+ exempt from work requirements.",
+          "Must live in Texas.",
+          "Medical expenses deductible for elderly/disabled."
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "EBT card for groceries (food only, no hot/prepared foods, alcohol, tobacco). Max monthly: **$298 for 1 person**; add **$218/additional person** (e.g., $516 for 2). Actual amount = max allotment minus 30% of net income. Seniors average ~$188/month[2][3][4][6].",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: https://www.yourtexasbenefits.com[4][7]",
+          "Phone: Dial 211 (statewide) to request mailed app or assistance[4]",
+          "Mail: Request via 211; send to local HHSC office",
+          "In-person: Local Texas Health and Human Services (HHSC) office (find via 211 or YourTexasBenefits.com)"
+        ],
+        "processing_time": "Typically 30 days; expedited (7 days) if income <$150/month and assets <$100, or utility shutoff risk.",
+        "waitlist": null,
+        "forms": [
+          "YourTexasBenefits.com online application",
+          "SNAP Application (mailed via 211)"
+        ],
+        "documents": [
+          "Proof of ID (driver's license, SS card)",
+          "Income proof (pay stubs, SS award letters, pension statements)",
+          "Asset proof (bank statements)",
+          "Rent/mortgage, utility bills (for deductions)",
+          "Medical expenses >$35/month (for seniors)",
+          "Household size proof (birth certificates if needed)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered uniformly by Texas HHSC statewide, but local offices handle apps/processing; minor wait time differences possible by region (e.g., urban Dallas vs. rural)[2][4].",
+        "offices_or_providers": [
+          "Local HHSC offices (locate via 211 or YourTexasBenefits.com)"
+        ]
+      },
+      "official_source": "https://www.yourtexasbenefits.com",
+      "gotchas": [
+        "Seniors only need **net income test** (not gross)—deduct medical/shelter costs to qualify[1][3].",
+        "Own home/savings? Often still eligible (exempt assets)[1].",
+        "Include **all household members** who share food, even non-eligible[1].",
+        "Social Security/pensions **count as income**[1][3].",
+        "Texas has **asset test** ($2k); not waived like some states[4].",
+        "Work rules exempt seniors 60+, but verify if under 60[2][5].",
+        "2025 changes: Updated work/non-citizen rules via One Big Beautiful Bill Act[3][5]."
+      ],
+      "data_shape_notes": "Seniors 60+ simplified: net income only, no gross test; benefits scale by household size; medical/shelter deductions key for elderly; Texas-specific asset limit and HHSC administration.",
+      "_raw": "{\n  \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For seniors (60+), only the **net income test** applies. Federal limits effective Oct 1, 2025–Sept 30, 2026: **$15,060/year ($1,255/month) for 1 person**; **$20,440/year ($1,703/month) for 2 people**. Texas gross income limits (approximate, vary by source): 1 person ≤$2,152/month; add ~$757/person. Net income calculated by deducting standard deduction, medical expenses >$35/month (for elderly), shelter costs. Income includes Social Security, pensions, VA/disability benefits[1][2][3][5].\",\n    \"asset_limits\": \"Texas has **$2,000 asset limit** for household of 1 (increases by household size). Counts: bank accounts, cash, stocks, IRA/ retirement savings (if accessible). Exempt: primary home, most vehicles, household goods, life insurance cash value (varies), income-producing property (sometimes). Some states waive asset test; Texas applies it[1][4][6].\",\n    \"other_requirements\": [\n      \"Household includes everyone who lives together and buys/prepares food.\",\n      \"U.S. citizen or qualified non-citizen.\",\n      \"Seniors 60+ exempt from work requirements.\",\n      \"Must live in Texas.\",\n      \"Medical expenses deductible for elderly/disabled.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"EBT card for groceries (food only, no hot/prepared foods, alcohol, tobacco). Max monthly: **$298 for 1 person**; add **$218/additional person** (e.g., $516 for 2). Actual amount = max allotment minus 30% of net income. Seniors average ~$188/month[2][3][4][6].\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://www.yourtexasbenefits.com[4][7]\",\n      \"Phone: Dial 211 (statewide) to request mailed app or assistance[4]\",\n      \"Mail: Request via 211; send to local HHSC office\",\n      \"In-person: Local Texas Health and Human Services (HHSC) office (find via 211 or YourTexasBenefits.com)\"\n    ],\n    \"processing_time\": \"Typically 30 days; expedited (7 days) if income <$150/month and assets <$100, or utility shutoff risk.\",\n    \"waitlist\": null,\n    \"forms\": [\"YourTexasBenefits.com online application\", \"SNAP Application (mailed via 211)\"],\n    \"documents\": [\n      \"Proof of ID (driver's license, SS card)\",\n      \"Income proof (pay stubs, SS award letters, pension statements)\",\n      \"Asset proof (bank statements)\",\n      \"Rent/mortgage, utility bills (for deductions)\",\n      \"Medical expenses >$35/month (for seniors)\",\n      \"Household size proof (birth certificates if needed)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly by Texas HHSC statewide, but local offices handle apps/processing; minor wait time differences possible by region (e.g., urban Dallas vs. rural)[2][4].\",\n    \"offices_or_providers\": [\"Local HHSC offices (locate via 211 or YourTexasBenefits.com)\"]\n  },\n  \"official_source\": \"https://www.yourtexasbenefits.com\",\n  \"gotchas\": [\n    \"Seniors only need **net income test** (not gross)—deduct medical/shelter costs to qualify[1][3].\",\n    \"Own home/savings? Often still eligible (exempt assets)[1].\",\n    \"Include **all household members** who share food, even non-eligible[1].\",\n    \"Social Security/pensions **count as income**[1][3].\",\n    \"Texas has **asset test** ($2k); not waived like some states[4].\",\n    \"Work rules exempt seniors 60+, but verify if under 60[2][5].\",\n    \"2025 changes: Updated work/non-citizen rules via One Big Beautiful Bill Act[3][5].\"\n  ],\n  \"data_shape_notes\": \"Seniors 60+ simplified: net income only, no gross test; benefits scale by household size; medical/shelter deductions key for elderly; Texas-specific asset limit and HHSC administration.\"\n}"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross monthly household income at or below 150% of federal poverty level (varies by household size). For 2025: 1 person $2,815/month; 2 people $3,681/month; 3 people $4,547/month; 4 people $5,414/month; 5 people $6,280/month; 6 people $7,146/month. Annual example for 2-person household: $38,541 or less. Automatic eligibility if receiving SNAP, SSI, TANF, or certain veterans' benefits.[2][3]",
+        "asset_limits": "No asset limit.[2]",
+        "other_requirements": [
+          "Texas resident with proof (e.g., utility bill, lease).",
+          "U.S. citizen or qualified non-citizen (e.g., lawful permanent resident, refugee).",
+          "Prioritizes elderly, disabled, families with young children, or energy crisis (e.g., shutoff notice).[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payment to utility company for heating/cooling bills. Regular: $1 minimum to $12,300 maximum (heating/cooling). Crisis: up to $2,400 maximum. Also includes related weatherization (insulation, repairs).[2]",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Phone: (877) 399-8939 or 211.",
+          "Website: 211Texas.org to find local agency.",
+          "In-person/mail: Local Community Action Agency (CAA) or CEAP subrecipient (covers all 254 counties; e.g., Travis County CEAP at (512) 584-4120).",
+          "Online account with utility (e.g., Texas Gas Service) speeds documentation.[4]"
+        ],
+        "processing_time": "Varies by region; placed on waitlist after submission, caseworker calls when turn arrives.[4]",
+        "waitlist": "Yes, common; applications placed in line by site, funding-dependent.[4]",
+        "forms": [
+          "Contact local CAA for specific CEAP/LIHEAP application; no statewide form number specified.[1][4]"
+        ],
+        "documents": [
+          "Proof of income.",
+          "Identification (Texas DL, passport).",
+          "Recent utility bill in applicant's name.",
+          "Proof of residency (utility bill, lease).",
+          "Online utility statements if available.[1][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all 254 Texas counties via local subrecipients.",
+        "regional_variations": "Administered by local Community Action Agencies (CAAs) or CEAP subrecipients; guidelines, processes, wait times, and providers vary by area (e.g., Travis County CEAP has 7 locations).[1][4][6]",
+        "offices_or_providers": [
+          "Local CAAs via 211Texas.org or (877) 399-8939; full subrecipient list on TDHCA site.[4][6]"
+        ]
+      },
+      "official_source": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
+      "gotchas": [
+        "Primarily delivered as CEAP in Texas (integrates LIHEAP funds); contact local CAA, not statewide office.",
+        "Household includes all at address sharing utility bill (unlike SNAP).",
+        "Funding limited by federal availability; waitlists common.",
+        "Benefits paid directly to utility, not applicant.",
+        "Priorities for elderly/disabled/crisis, but open to all qualifying.[1][2][4]"
+      ],
+      "data_shape_notes": "Administered regionally via 254 county subrecipients (CAAs/CEAP); income by household size; no asset test; benefits vary by fuel type, crisis status, and local funding; waitlists and slight guideline variations by area.",
+      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross monthly household income at or below 150% of federal poverty level (varies by household size). For 2025: 1 person $2,815/month; 2 people $3,681/month; 3 people $4,547/month; 4 people $5,414/month; 5 people $6,280/month; 6 people $7,146/month. Annual example for 2-person household: $38,541 or less. Automatic eligibility if receiving SNAP, SSI, TANF, or certain veterans' benefits.[2][3]\",\n    \"asset_limits\": \"No asset limit.[2]\",\n    \"other_requirements\": [\"Texas resident with proof (e.g., utility bill, lease).\", \"U.S. citizen or qualified non-citizen (e.g., lawful permanent resident, refugee).\", \"Prioritizes elderly, disabled, families with young children, or energy crisis (e.g., shutoff notice).[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility company for heating/cooling bills. Regular: $1 minimum to $12,300 maximum (heating/cooling). Crisis: up to $2,400 maximum. Also includes related weatherization (insulation, repairs).[2]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (877) 399-8939 or 211.\", \"Website: 211Texas.org to find local agency.\", \"In-person/mail: Local Community Action Agency (CAA) or CEAP subrecipient (covers all 254 counties; e.g., Travis County CEAP at (512) 584-4120).\", \"Online account with utility (e.g., Texas Gas Service) speeds documentation.[4]\"],\n    \"processing_time\": \"Varies by region; placed on waitlist after submission, caseworker calls when turn arrives.[4]\",\n    \"waitlist\": \"Yes, common; applications placed in line by site, funding-dependent.[4]\",\n    \"forms\": [\"Contact local CAA for specific CEAP/LIHEAP application; no statewide form number specified.[1][4]\"],\n    \"documents\": [\"Proof of income.\", \"Identification (Texas DL, passport).\", \"Recent utility bill in applicant's name.\", \"Proof of residency (utility bill, lease).\", \"Online utility statements if available.[1][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 254 Texas counties via local subrecipients.\",\n    \"regional_variations\": \"Administered by local Community Action Agencies (CAAs) or CEAP subrecipients; guidelines, processes, wait times, and providers vary by area (e.g., Travis County CEAP has 7 locations).[1][4][6]\",\n    \"offices_or_providers\": [\"Local CAAs via 211Texas.org or (877) 399-8939; full subrecipient list on TDHCA site.[4][6]\"]\n  },\n  \"official_source\": \"https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap\",\n  \"gotchas\": [\"Primarily delivered as CEAP in Texas (integrates LIHEAP funds); contact local CAA, not statewide office.\", \"Household includes all at address sharing utility bill (unlike SNAP).\", \"Funding limited by federal availability; waitlists common.\", \"Benefits paid directly to utility, not applicant.\", \"Priorities for elderly/disabled/crisis, but open to all qualifying.[1][2][4]\"],\n  \"data_shape_notes\": \"Administered regionally via 254 county subrecipients (CAAs/CEAP); income by household size; no asset test; benefits vary by fuel type, crisis status, and local funding; waitlists and slight guideline variations by area.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household gross income at or below 200% of the federal poverty level. Income is calculated by collecting documentation from all household members age 18 and older for the entire 30-day period prior to application, then annualized. Varies by household size; exact dollar amounts follow current federal poverty guidelines (e.g., consult subrecipient for PY2025 table as no specific numbers in sources). No age requirement for households, but priority often given to elderly, disabled, or families with children under 6.",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "U.S. Citizen, U.S. National, or Qualified Alien status for all household members[4][1].",
+          "Occupy the home as primary residence (must live in the house to be weatherized)[5][3].",
+          "Home must be single-family, duplex, triplex, fourplex, or in some regions eligible mobile homes (not eligible in all areas, e.g., excluded by ATCog)[3][5].",
+          "Home must pass energy audit to confirm need[3][6].",
+          "Household defined as all persons living under one roof[4].",
+          "Some regions require enrollment in specific programs like Customer Assistance Program or Medically Vulnerable Registry (e.g., Austin Energy)[5].",
+          "Property value limits in some areas (e.g., $478,195 or less excluding land in Austin)[5].",
+          "Home more than 10 years old and not previously weatherized in last 10 years (some regions)[5]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Energy audit of home efficiency (identifies air leaks, inefficient appliances). Installation of weatherization measures including caulking, weather-stripping, ceiling/wall/floor insulation, patching building envelope holes, duct work, tune-up/repair/replacement of heating/cooling systems. Must meet specific energy-savings goals per DOE standards. No fixed dollar amount or hours; services based on audit results. Education on energy savings. Does not typically replace full HVAC systems[6][4][3].",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Contact local subrecipient agency (statewide list at TDHCA site; examples: TCOG phone 800-677-8264 ext. 3530, mail to TCOG 1117 Gallagher Dr. STE 450 Sherman TX 75090[1]; Austin Energy online form or mail to 4815 Mueller Blvd Austin TX 78723, phone 512-482-5346[5]; CCSCT application for specific counties[7]; SPCAA for South Plains[2]; Dallas County via local HHS[4]; ATCog[3].",
+          "In-person or mail applications common; complete agency-specific forms.",
+          "Online in some areas (e.g., Austin Energy form).",
+          "Phone intake varies by subrecipient."
+        ],
+        "processing_time": "Varies widely by region, number of clients, and funding; no fixed statewide timeline. Eligibility memo sent via mail after processing[1][4].",
+        "waitlist": "Common due to funding limits; prioritization matrix used (e.g., points for elderly, disabled, children under 6); strive for timely service but patience requested[4].",
+        "forms": [
+          "2025 Weatherization Assistance Program Application (TCOG)[1].",
+          "Weatherization Assistance Program Form (Austin Energy)[5].",
+          "CCSCT WAP Application Uvalde 2023 (for specific counties)[7].",
+          "Declaration of Income Statement (notarized if no income in last 30 days)[1][4][7].",
+          "Landlord Permission Form / Formulario de permiso del arrendador (if renting)[5]."
+        ],
+        "documents": [
+          "Proof of income for all household members 18+ (last 30 days): check stubs, SSI/SSDI/SSA award letters, unemployment docs, pension/retirement letters, workers comp, TANF; notarized Declaration if no income. Bank statements/W2s/tax docs not accepted[1][2][4][7].",
+          "Proof of citizenship/immigration for all household members: birth certificate, naturalization/citizenship certificate, US passport[1].",
+          "Proof of ID for all 18+: driver's license, state ID, passport, military ID, permanent residency card[1].",
+          "Household info: names, DOB for all members[7].",
+          "Utility bills: current electric/gas/propane with 12-month history[7].",
+          "Landlord agreement if renting[7][5]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through local subrecipient agencies by region/county; not direct state application. Mobile homes ineligible in some regions[3]. Specific counties served by agencies like TCOG, ATCog, CCSCT, SPCAA[1][3][7][2].",
+        "regional_variations": "Yes: different subrecipients/providers per region with unique applications, phones, addresses, forms, home type rules (e.g., mobile homes excluded by some[3], allowed by others[5]), additional requirements (e.g., Austin Energy customer, property value limits[5]), wait times/funding vary[4][6]. Full subrecipient list via TDHCA.",
+        "offices_or_providers": [
+          "TDHCA subrecipients statewide (PDF list)[6].",
+          "Examples: TCOG (Sherman), SPCAA (South Plains), ATCog, Dallas County HHS, Austin Energy, CCSCT (Uvalde region counties), Oncor low-income weatherization[9]."
+        ]
+      },
+      "official_source": "https://www.tdhca.texas.gov/weatherization-assistance-program",
+      "gotchas": [
+        "Must contact correct regional subrecipient, not state directly; statewide but hyper-local[6].",
+        "Income proof strictly last 30 days annualized, no bank statements/W2s; notarized zero-income declaration required[1][7].",
+        "Citizenship/qualified alien verification for EVERY household member, including children[4][1].",
+        "Home must pass energy audit; no service if not needed. Mobile homes often excluded[3][6].",
+        "Prioritization tiers (elderly/disabled/young kids first); long waitlists common[4].",
+        "Renter needs landlord permission; owners may need financial commitment info[1][5].",
+        "No recent prior weatherization (e.g., last 10 years in some areas)[5].",
+        "Varies by utility/provider in some regions (e.g., Austin Energy customers only)[5]."
+      ],
+      "data_shape_notes": "Administered via ~30 regional subrecipients with unique apps/forms/contacts; 200% FPL income test; priority tiers by vulnerability; services audit-driven, not fixed amount; county-restricted providers; mobile home eligibility varies; strict 30-day income docs only.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household gross income at or below 200% of the federal poverty level. Income is calculated by collecting documentation from all household members age 18 and older for the entire 30-day period prior to application, then annualized. Varies by household size; exact dollar amounts follow current federal poverty guidelines (e.g., consult subrecipient for PY2025 table as no specific numbers in sources). No age requirement for households, but priority often given to elderly, disabled, or families with children under 6.\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\n      \"U.S. Citizen, U.S. National, or Qualified Alien status for all household members[4][1].\",\n      \"Occupy the home as primary residence (must live in the house to be weatherized)[5][3].\",\n      \"Home must be single-family, duplex, triplex, fourplex, or in some regions eligible mobile homes (not eligible in all areas, e.g., excluded by ATCog)[3][5].\",\n      \"Home must pass energy audit to confirm need[3][6].\",\n      \"Household defined as all persons living under one roof[4].\",\n      \"Some regions require enrollment in specific programs like Customer Assistance Program or Medically Vulnerable Registry (e.g., Austin Energy)[5].\",\n      \"Property value limits in some areas (e.g., $478,195 or less excluding land in Austin)[5].\",\n      \"Home more than 10 years old and not previously weatherized in last 10 years (some regions)[5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Energy audit of home efficiency (identifies air leaks, inefficient appliances). Installation of weatherization measures including caulking, weather-stripping, ceiling/wall/floor insulation, patching building envelope holes, duct work, tune-up/repair/replacement of heating/cooling systems. Must meet specific energy-savings goals per DOE standards. No fixed dollar amount or hours; services based on audit results. Education on energy savings. Does not typically replace full HVAC systems[6][4][3].\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local subrecipient agency (statewide list at TDHCA site; examples: TCOG phone 800-677-8264 ext. 3530, mail to TCOG 1117 Gallagher Dr. STE 450 Sherman TX 75090[1]; Austin Energy online form or mail to 4815 Mueller Blvd Austin TX 78723, phone 512-482-5346[5]; CCSCT application for specific counties[7]; SPCAA for South Plains[2]; Dallas County via local HHS[4]; ATCog[3].\",\n      \"In-person or mail applications common; complete agency-specific forms.\",\n      \"Online in some areas (e.g., Austin Energy form).\",\n      \"Phone intake varies by subrecipient.\"\n    ],\n    \"processing_time\": \"Varies widely by region, number of clients, and funding; no fixed statewide timeline. Eligibility memo sent via mail after processing[1][4].\",\n    \"waitlist\": \"Common due to funding limits; prioritization matrix used (e.g., points for elderly, disabled, children under 6); strive for timely service but patience requested[4].\",\n    \"forms\": [\n      \"2025 Weatherization Assistance Program Application (TCOG)[1].\",\n      \"Weatherization Assistance Program Form (Austin Energy)[5].\",\n      \"CCSCT WAP Application Uvalde 2023 (for specific counties)[7].\",\n      \"Declaration of Income Statement (notarized if no income in last 30 days)[1][4][7].\",\n      \"Landlord Permission Form / Formulario de permiso del arrendador (if renting)[5].\"\n    ],\n    \"documents\": [\n      \"Proof of income for all household members 18+ (last 30 days): check stubs, SSI/SSDI/SSA award letters, unemployment docs, pension/retirement letters, workers comp, TANF; notarized Declaration if no income. Bank statements/W2s/tax docs not accepted[1][2][4][7].\",\n      \"Proof of citizenship/immigration for all household members: birth certificate, naturalization/citizenship certificate, US passport[1].\",\n      \"Proof of ID for all 18+: driver's license, state ID, passport, military ID, permanent residency card[1].\",\n      \"Household info: names, DOB for all members[7].\",\n      \"Utility bills: current electric/gas/propane with 12-month history[7].\",\n      \"Landlord agreement if renting[7][5].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through local subrecipient agencies by region/county; not direct state application. Mobile homes ineligible in some regions[3]. Specific counties served by agencies like TCOG, ATCog, CCSCT, SPCAA[1][3][7][2].\",\n    \"regional_variations\": \"Yes: different subrecipients/providers per region with unique applications, phones, addresses, forms, home type rules (e.g., mobile homes excluded by some[3], allowed by others[5]), additional requirements (e.g., Austin Energy customer, property value limits[5]), wait times/funding vary[4][6]. Full subrecipient list via TDHCA.\",\n    \"offices_or_providers\": [\n      \"TDHCA subrecipients statewide (PDF list)[6].\",\n      \"Examples: TCOG (Sherman), SPCAA (South Plains), ATCog, Dallas County HHS, Austin Energy, CCSCT (Uvalde region counties), Oncor low-income weatherization[9].\"\n    ]\n  },\n  \"official_source\": \"https://www.tdhca.texas.gov/weatherization-assistance-program\",\n  \"gotchas\": [\n    \"Must contact correct regional subrecipient, not state directly; statewide but hyper-local[6].\",\n    \"Income proof strictly last 30 days annualized, no bank statements/W2s; notarized zero-income declaration required[1][7].\",\n    \"Citizenship/qualified alien verification for EVERY household member, including children[4][1].\",\n    \"Home must pass energy audit; no service if not needed. Mobile homes often excluded[3][6].\",\n    \"Prioritization tiers (elderly/disabled/young kids first); long waitlists common[4].\",\n    \"Renter needs landlord permission; owners may need financial commitment info[1][5].\",\n    \"No recent prior weatherization (e.g., last 10 years in some areas)[5].\",\n    \"Varies by utility/provider in some regions (e.g., Austin Energy customers only)[5].\"\n  ],\n  \"data_shape_notes\": \"Administered via ~30 regional subrecipients with unique apps/forms/contacts; 200% FPL income test; priority tiers by vulnerability; services audit-driven, not fixed amount; county-restricted providers; mobile home eligibility varies; strict 30-day income docs only.\"\n}"
+    },
+    {
+      "name": "Texas State Health Insurance Assistance Program (SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits; open to all Medicare-eligible individuals, their families, and caregivers, including those with limited incomes, under age 65 with disabilities, or dually eligible for Medicare and Medicaid[1][2][3]",
+        "asset_limits": "No asset limits or tests apply[2][3]",
+        "other_requirements": [
+          "Must be Medicare-eligible (typically age 65+ or under 65 with certain disabilities); families and caregivers also eligible[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one counseling and assistance on Medicare options (Parts A, B, C, D, Medigap), plan reviews, applications for Medicare Savings Programs (MSP), Low-Income Subsidy (Extra Help/LIS), Medicaid; group presentations, outreach, education on fraud prevention via Senior Medicare Patrol (SMP); provided in-person, by phone, media[1][2][3][4][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-252-9240[7]",
+          "Website: Texas Health Information, Counseling, and Advocacy Program (HICAP) site via shiphelp.org/ships/texas/[7]",
+          "In-person or local counseling through community-based networks (contact via phone for local sites)[1][2][7]",
+          "No specific online form or mail application mentioned; services accessed by contacting for appointment[2][3]"
+        ],
+        "processing_time": "No formal application processing; counseling provided upon contact, typically immediate or by appointment[2][3]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required for SHIP counseling; may assist with MSP/LIS application forms during session[2][3]"
+        ],
+        "documents": [
+          "Medicare card, current health/prescription drug plan details, income info if applying for MSP/Extra Help (prepared but not required upfront for counseling)[2][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide to Medicare beneficiaries[1][7]",
+        "regional_variations": "Delivered through local community-based networks, agencies, and providers; may have regional counselors or sites but uniform services[1][2][5][7]",
+        "offices_or_providers": [
+          "Local SHIP sites via statewide network; contact 1-800-252-9240 for nearest[1][2][7]"
+        ]
+      },
+      "official_source": "https://www.shiphelp.org/ships/texas/[7]",
+      "gotchas": [
+        "Not a direct healthcare or financial aid program—provides counseling only, not payments or services; in Texas called Health Information, Counseling, and Advocacy Program (HICAP); free but relies on trained volunteers/staff, so availability may depend on local capacity; often confused with Medicare Savings Programs it helps apply for[1][3][6][7]",
+        "No enrollment wait or caps, but peak times (e.g., Open Enrollment) may have higher demand[2]"
+      ],
+      "data_shape_notes": "no income/asset test; counseling service only, not benefits; statewide via local networks; Texas-specific name HICAP; volunteer-driven with national oversight by ACL[1][2][4][7]",
+      "_raw": "{\n  \"name\": \"Texas State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits; open to all Medicare-eligible individuals, their families, and caregivers, including those with limited incomes, under age 65 with disabilities, or dually eligible for Medicare and Medicaid[1][2][3]\",\n    \"asset_limits\": \"No asset limits or tests apply[2][3]\",\n    \"other_requirements\": [\"Must be Medicare-eligible (typically age 65+ or under 65 with certain disabilities); families and caregivers also eligible[1][2][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one counseling and assistance on Medicare options (Parts A, B, C, D, Medigap), plan reviews, applications for Medicare Savings Programs (MSP), Low-Income Subsidy (Extra Help/LIS), Medicaid; group presentations, outreach, education on fraud prevention via Senior Medicare Patrol (SMP); provided in-person, by phone, media[1][2][3][4][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-252-9240[7]\", \"Website: Texas Health Information, Counseling, and Advocacy Program (HICAP) site via shiphelp.org/ships/texas/[7]\", \"In-person or local counseling through community-based networks (contact via phone for local sites)[1][2][7]\", \"No specific online form or mail application mentioned; services accessed by contacting for appointment[2][3]\"],\n    \"processing_time\": \"No formal application processing; counseling provided upon contact, typically immediate or by appointment[2][3]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required for SHIP counseling; may assist with MSP/LIS application forms during session[2][3]\"],\n    \"documents\": [\"Medicare card, current health/prescription drug plan details, income info if applying for MSP/Extra Help (prepared but not required upfront for counseling)[2][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to Medicare beneficiaries[1][7]\",\n    \"regional_variations\": \"Delivered through local community-based networks, agencies, and providers; may have regional counselors or sites but uniform services[1][2][5][7]\",\n    \"offices_or_providers\": [\"Local SHIP sites via statewide network; contact 1-800-252-9240 for nearest[1][2][7]\"]\n  },\n  \"official_source\": \"https://www.shiphelp.org/ships/texas/[7]\",\n  \"gotchas\": [\"Not a direct healthcare or financial aid program—provides counseling only, not payments or services; in Texas called Health Information, Counseling, and Advocacy Program (HICAP); free but relies on trained volunteers/staff, so availability may depend on local capacity; often confused with Medicare Savings Programs it helps apply for[1][3][6][7]\", \"No enrollment wait or caps, but peak times (e.g., Open Enrollment) may have higher demand[2]\"],\n  \"data_shape_notes\": \"no income/asset test; counseling service only, not benefits; statewide via local networks; Texas-specific name HICAP; volunteer-driven with national oversight by ACL[1][2][4][7]\"\n}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits or tests; eligibility based on need, not income. Voluntary contributions requested but no one denied for inability to pay.[1][3][4][6]",
+        "asset_limits": "No asset limits mentioned across programs.",
+        "other_requirements": [
+          "Primarily homebound and unable to prepare nutritious meals without consistent daytime assistance.[1][2][3][4][5][6]",
+          "Reside in the specific program's delivery zone or service area (varies by local provider).[1][2][3][5][6]",
+          "60+ years old or disabled (some programs specify totally disabled).[1][2][3][5][6]",
+          "Able to accept meals during delivery window (e.g., 10:30 a.m.-1:00 p.m.).[3]",
+          "Nutritionally at risk or have physical/mental impairments making meal prep difficult.[3][6]",
+          "Priority often given to greatest economic/social need, severe disabilities, dementia, etc.[5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home-delivered nutritious, often medically-tailored meals (typically 1 hot meal per weekday; some offer weekend frozen meals). Includes safety check and brief social contact by volunteer deliverers; case management for holistic needs assessment.[1][2][4]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local provider: e.g., Tarrant County phone 817-336-0912 or online referral form; Meals on Wheels Central Texas 'Apply for our services' online; North Central Texas online referral; call local Area Agency on Aging or program directly (e.g., Rockwall 972-771-9514).[1][2][3][4][6]",
+          "Anyone can refer (family, friends, hospitals, self).[4][7]",
+          "In-person assessment/home visit by case manager or social worker follows initial contact.[1][2][3][4]"
+        ],
+        "processing_time": "Varies; some within a week, caseworker appointment within 2 working days (Tarrant); others longer if waitlist.[1][4]",
+        "waitlist": "Possible in some programs, leading to longer processing.[1]",
+        "forms": [
+          "Online referral forms (e.g., Tarrant County referral form, North Central Texas referral); no universal form name/number.[3][4]"
+        ],
+        "documents": [
+          "Proof of age, residence, medical info/dietary restrictions (sometimes); health problems, DOB, SSN, doctor's info, emergency contacts (requested at referral).[1][4]",
+          "Financial docs rare, as income not a factor.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to each local provider's service area (e.g., Greater Austin[2], Johnson/Ellis/Navarro counties[3], Tarrant County[4], East Texas near meal sites[5], Rockwall County[6]).",
+        "regional_variations": "Operated by independent local providers with slight differences in age/disability rules, priority groups, delivery details, and short-term options; must contact local program.[1][2][3][4][5][6]",
+        "offices_or_providers": [
+          "Meals on Wheels Central Texas (Austin),[2]",
+          "Meals on Wheels North Central Texas (Johnson/Ellis/Navarro),[3]",
+          "Meals on Wheels of Tarrant County,[4]",
+          "Meals on Wheels East Texas,[5]",
+          "Meals on Wheels Senior Services of Rockwall County,[6]"
+        ]
+      },
+      "official_source": "https://www.mealsonwheelsamerica.org/find-meals-and-services/",
+      "gotchas": [
+        "Not a single statewide program—must find and contact the specific local provider for your area; eligibility/geography strictly local.[1][2][3][6]",
+        "Homebound status key: those who can easily leave home or have cooking help may not qualify.[1][4]",
+        "Car ownership or non-homebound status may disqualify.[1]",
+        "Voluntary contributions expected but not required; some trial meals require payment if skipping full assessment.[6]",
+        "Short-term service available for recovery but limited (e.g., 6 weeks).[3]"
+      ],
+      "data_shape_notes": "Decentralized local providers with no statewide uniformity; no income/asset tests; service area and minor eligibility nuances vary by county/region; find via local Area Agency on Aging or Meals on Wheels America search.",
+      "_raw": "{\n  \"name\": \"Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits or tests; eligibility based on need, not income. Voluntary contributions requested but no one denied for inability to pay.[1][3][4][6]\",\n    \"asset_limits\": \"No asset limits mentioned across programs.\",\n    \"other_requirements\": [\n      \"Primarily homebound and unable to prepare nutritious meals without consistent daytime assistance.[1][2][3][4][5][6]\",\n      \"Reside in the specific program's delivery zone or service area (varies by local provider).[1][2][3][5][6]\",\n      \"60+ years old or disabled (some programs specify totally disabled).[1][2][3][5][6]\",\n      \"Able to accept meals during delivery window (e.g., 10:30 a.m.-1:00 p.m.).[3]\",\n      \"Nutritionally at risk or have physical/mental impairments making meal prep difficult.[3][6]\",\n      \"Priority often given to greatest economic/social need, severe disabilities, dementia, etc.[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-delivered nutritious, often medically-tailored meals (typically 1 hot meal per weekday; some offer weekend frozen meals). Includes safety check and brief social contact by volunteer deliverers; case management for holistic needs assessment.[1][2][4]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local provider: e.g., Tarrant County phone 817-336-0912 or online referral form; Meals on Wheels Central Texas 'Apply for our services' online; North Central Texas online referral; call local Area Agency on Aging or program directly (e.g., Rockwall 972-771-9514).[1][2][3][4][6]\",\n      \"Anyone can refer (family, friends, hospitals, self).[4][7]\",\n      \"In-person assessment/home visit by case manager or social worker follows initial contact.[1][2][3][4]\"\n    ],\n    \"processing_time\": \"Varies; some within a week, caseworker appointment within 2 working days (Tarrant); others longer if waitlist.[1][4]\",\n    \"waitlist\": \"Possible in some programs, leading to longer processing.[1]\",\n    \"forms\": [\"Online referral forms (e.g., Tarrant County referral form, North Central Texas referral); no universal form name/number.[3][4]\"],\n    \"documents\": [\n      \"Proof of age, residence, medical info/dietary restrictions (sometimes); health problems, DOB, SSN, doctor's info, emergency contacts (requested at referral).[1][4]\",\n      \"Financial docs rare, as income not a factor.[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to each local provider's service area (e.g., Greater Austin[2], Johnson/Ellis/Navarro counties[3], Tarrant County[4], East Texas near meal sites[5], Rockwall County[6]).\",\n    \"regional_variations\": \"Operated by independent local providers with slight differences in age/disability rules, priority groups, delivery details, and short-term options; must contact local program.[1][2][3][4][5][6]\",\n    \"offices_or_providers\": [\n      \"Meals on Wheels Central Texas (Austin),[2]\",\n      \"Meals on Wheels North Central Texas (Johnson/Ellis/Navarro),[3]\",\n      \"Meals on Wheels of Tarrant County,[4]\",\n      \"Meals on Wheels East Texas,[5]\",\n      \"Meals on Wheels Senior Services of Rockwall County,[6]\"\n    ]\n  },\n  \"official_source\": \"https://www.mealsonwheelsamerica.org/find-meals-and-services/\",\n  \"gotchas\": [\n    \"Not a single statewide program—must find and contact the specific local provider for your area; eligibility/geography strictly local.[1][2][3][6]\",\n    \"Homebound status key: those who can easily leave home or have cooking help may not qualify.[1][4]\",\n    \"Car ownership or non-homebound status may disqualify.[1]\",\n    \"Voluntary contributions expected but not required; some trial meals require payment if skipping full assessment.[6]\",\n    \"Short-term service available for recovery but limited (e.g., 6 weeks).[3]\"\n  ],\n  \"data_shape_notes\": \"Decentralized local providers with no statewide uniformity; no income/asset tests; service area and minor eligibility nuances vary by county/region; find via local Area Agency on Aging or Meals on Wheels America search.\"\n}"
+    },
+    {
+      "name": "Community Based Alternatives (CBA) Waiver",
+      "eligibility": {
+        "age": 21,
+        "income_limits": "Financial eligibility determined by Texas Health and Human Services Commission (HHSC) under Medicaid rules; must qualify for Medicaid. For HCBS waivers like CBA, income typically limited to 300% of SSI (approximately $2,829/month for an individual in 2025; exact amount varies annually and confirmed via HHSC). No specific household size table provided in sources, but parental income not considered for adults. STAR+PLUS HCBS (related program) follows standard Medicaid income rules with no unique CBA table.",
+        "asset_limits": "Standard Medicaid asset limits apply (typically $2,000 for individual; $3,000 for couple). Home exempt if applicant lives there or intends to return with equity ≤$730,000, or if spouse/child under 21/disabled child lives there. Other exemptions include one vehicle, personal belongings, burial plots. Countable assets: bank accounts, investments, second vehicles/properties.",
+        "other_requirements": [
+          "Must meet medical necessity for nursing facility level of care (NFLOC) and be at risk for nursing facility placement.",
+          "Cost of service plan cannot exceed nursing facility payment rate.",
+          "Must choose waiver services over nursing facility care via informed choice.",
+          "Texas resident; not already in a nursing facility.",
+          "Functional needs: assistance with activities of daily living (e.g., bathing, eating, mobility) or behavioral issues indicating NFLOC."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services (HCBS) as alternative to nursing facility care, including personal attendant services, respite, minor home modifications, adaptive aids, nursing, therapies (OT/PT/ST), day habilitation, behavioral supports. Specific services tailored to service plan; no fixed dollar amounts or hours stated, but total plan cost capped at nursing facility rate.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local providers like Good Samaritan (specific contact via their site; general HHSC phone: 2-1-1 or 877-541-7905).",
+          "Apply for Medicaid/HCBS via Your Texas Benefits portal (yourtexasbenefits.com).",
+          "Phone: Call HHSC at 2-1-1 or local Area Agency on Aging.",
+          "In-person: Local HHSC offices or aging/disability resource centers.",
+          "Mail: Form H1200 or related Medicaid applications to HHSC."
+        ],
+        "processing_time": "Varies; Medicaid eligibility determination typically 45 days, but waiver interest list immediate.",
+        "waitlist": "Yes, interest/waiting lists common for HCBS waivers as not an entitlement; length varies by region and priority (e.g., highest need first).",
+        "forms": [
+          "Form H1200 (Medicaid Application)",
+          "Interest List Application for Waiver (via HHSC or providers)"
+        ],
+        "documents": [
+          "Proof of identity (ID, SSN), residency, income (pay stubs, SSI award letters), assets (bank statements), medical records/physician statement for NFLOC, proof of age/disability."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via managed care in STAR+PLUS regions (most of Texas); some rural areas may have provider limitations.",
+        "regional_variations": "Administered through local providers and STAR+PLUS managed care organizations (MCOs); wait times, available providers, and service coordination vary by region (e.g., longer waits in high-demand urban areas like Houston/Dallas).",
+        "offices_or_providers": [
+          "Local HHSC offices",
+          "STAR+PLUS MCOs (e.g., Superior HealthPlan, Molina)",
+          "Providers like Good Samaritan"
+        ]
+      },
+      "official_source": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba",
+      "gotchas": [
+        "Must choose waiver over nursing facility (informed choice required; cannot dual-enroll).",
+        "Not automatic Medicaid; separate financial/functional eligibility checks.",
+        "Waitlists can be years long; apply to interest list early even if not ready.",
+        "Income over SSI may still qualify via waiver rules (up to 300% SSI) but requires spend-down.",
+        "Home equity limit $730,000; estate recovery may apply post-death.",
+        "Overlaps with STAR+PLUS HCBS; some STAR+PLUS enrollees excluded if under 1115 waiver.",
+        "Services capped by nursing facility cost; not unlimited."
+      ],
+      "data_shape_notes": "Capped by nursing facility payment rate; priority-based waitlist; integrated with STAR+PLUS managed care; financial eligibility via standard Medicaid + waiver-specific NFLOC; no fixed service hours/dollars, plan individualized.",
+      "_raw": "{\n  \"name\": \"Community Based Alternatives (CBA) Waiver\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Financial eligibility determined by Texas Health and Human Services Commission (HHSC) under Medicaid rules; must qualify for Medicaid. For HCBS waivers like CBA, income typically limited to 300% of SSI (approximately $2,829/month for an individual in 2025; exact amount varies annually and confirmed via HHSC). No specific household size table provided in sources, but parental income not considered for adults. STAR+PLUS HCBS (related program) follows standard Medicaid income rules with no unique CBA table.\",\n    \"asset_limits\": \"Standard Medicaid asset limits apply (typically $2,000 for individual; $3,000 for couple). Home exempt if applicant lives there or intends to return with equity ≤$730,000, or if spouse/child under 21/disabled child lives there. Other exemptions include one vehicle, personal belongings, burial plots. Countable assets: bank accounts, investments, second vehicles/properties.\",\n    \"other_requirements\": [\n      \"Must meet medical necessity for nursing facility level of care (NFLOC) and be at risk for nursing facility placement.\",\n      \"Cost of service plan cannot exceed nursing facility payment rate.\",\n      \"Must choose waiver services over nursing facility care via informed choice.\",\n      \"Texas resident; not already in a nursing facility.\",\n      \"Functional needs: assistance with activities of daily living (e.g., bathing, eating, mobility) or behavioral issues indicating NFLOC.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services (HCBS) as alternative to nursing facility care, including personal attendant services, respite, minor home modifications, adaptive aids, nursing, therapies (OT/PT/ST), day habilitation, behavioral supports. Specific services tailored to service plan; no fixed dollar amounts or hours stated, but total plan cost capped at nursing facility rate.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local providers like Good Samaritan (specific contact via their site; general HHSC phone: 2-1-1 or 877-541-7905).\",\n      \"Apply for Medicaid/HCBS via Your Texas Benefits portal (yourtexasbenefits.com).\",\n      \"Phone: Call HHSC at 2-1-1 or local Area Agency on Aging.\",\n      \"In-person: Local HHSC offices or aging/disability resource centers.\",\n      \"Mail: Form H1200 or related Medicaid applications to HHSC.\"\n    ],\n    \"processing_time\": \"Varies; Medicaid eligibility determination typically 45 days, but waiver interest list immediate.\",\n    \"waitlist\": \"Yes, interest/waiting lists common for HCBS waivers as not an entitlement; length varies by region and priority (e.g., highest need first).\",\n    \"forms\": [\"Form H1200 (Medicaid Application)\", \"Interest List Application for Waiver (via HHSC or providers)\"],\n    \"documents\": [\n      \"Proof of identity (ID, SSN), residency, income (pay stubs, SSI award letters), assets (bank statements), medical records/physician statement for NFLOC, proof of age/disability.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via managed care in STAR+PLUS regions (most of Texas); some rural areas may have provider limitations.\",\n    \"regional_variations\": \"Administered through local providers and STAR+PLUS managed care organizations (MCOs); wait times, available providers, and service coordination vary by region (e.g., longer waits in high-demand urban areas like Houston/Dallas).\",\n    \"offices_or_providers\": [\"Local HHSC offices\", \"STAR+PLUS MCOs (e.g., Superior HealthPlan, Molina)\", \"Providers like Good Samaritan\"]\n  },\n  \"official_source\": \"https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba\",\n  \"gotchas\": [\n    \"Must choose waiver over nursing facility (informed choice required; cannot dual-enroll).\",\n    \"Not automatic Medicaid; separate financial/functional eligibility checks.\",\n    \"Waitlists can be years long; apply to interest list early even if not ready.\",\n    \"Income over SSI may still qualify via waiver rules (up to 300% SSI) but requires spend-down.\",\n    \"Home equity limit $730,000; estate recovery may apply post-death.\",\n    \"Overlaps with STAR+PLUS HCBS; some STAR+PLUS enrollees excluded if under 1115 waiver.\",\n    \"Services capped by nursing facility cost; not unlimited.\"\n  ],\n  \"data_shape_notes\": \"Capped by nursing facility payment rate; priority-based waitlist; integrated with STAR+PLUS managed care; financial eligibility via standard Medicaid + waiver-specific NFLOC; no fixed service hours/dollars, plan individualized.\"\n}"
+    },
+    {
+      "name": "Community Caregiver Support Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income limits identified for a program named 'Community Caregiver Support Program' in Texas; related programs like Community Care for Aged/Disabled (CCAD) have limits such as $2,829/month for a single person and $5,658 for a couple (2024 figures, adjusted annually)[2].",
+        "asset_limits": "No specific asset limits for this program; CCAD references $5,000 for single and $6,000 for couples, with lower limits for some services like Community Attendant Services[2].",
+        "other_requirements": [
+          "No exact match found in Texas state sources for 'Community Caregiver Support Program'; closest is CCAD (Community Care for Aged/Disabled), requiring Texas residency, age 18+, disability or need for daily activities help, not receiving Medicaid for same services[2]",
+          "Texas regulations reference caregiver support services eligibility under 40 Tex. Admin. Code § 700.1003 and § 700.1017, requiring Texas residency, but details not in results[5]",
+          "VA Caregiver Support Program (national, not Texas-specific) requires veteran/service member with serious injury, need for 6+ months personal care, caregiver 18+ and family relation or live-in[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "No specific benefits detailed for 'Community Caregiver Support Program'; CCAD provides non-medical support for independent living, help with everyday tasks for older adults/disabled[2]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "For CCAD (related): Call Aging and Disability Resource Center (ADRC) at 1-855-937-2372 or find local ADRC[2]",
+          "Contact Texas Health and Human Services or local Area Agency on Aging for caregiver programs like STAR+PLUS or CAS[6]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "For related programs: Proof of income, residency, care needs[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Texas residency required for related programs[2][5]",
+        "regional_variations": "Administered via local ADRCs or Area Agencies on Aging, potential differences in providers or wait times by region[2][6]",
+        "offices_or_providers": [
+          "Local Aging and Disability Resource Centers (ADRCs)[2]"
+        ]
+      },
+      "official_source": "No primary .gov URL for exact 'Community Caregiver Support Program'; see Texas HHS for CCAD/CCSE: implied via ADRC contacts[2]",
+      "gotchas": [
+        "Program name may refer to VA national program, not Texas-specific; families should verify with Texas HHS as results point to CCAD or STAR+PLUS instead[1][2][6]",
+        "Eligibility often tied to not receiving duplicate Medicaid services; income/assets adjusted annually[2]",
+        "Caregiver support under Texas Admin Code requires meeting broader criteria in §700.1003, details unavailable here[5]"
+      ],
+      "data_shape_notes": "No dedicated Texas 'Community Caregiver Support Program' found; data fragmented across CCAD (non-Medicaid in-home aid), STAR+PLUS (Medicaid waiver), and possible confusion with VA program; county-level ADRC delivery with income/functional tests",
+      "_raw": "{\n  \"name\": \"Community Caregiver Support Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits identified for a program named 'Community Caregiver Support Program' in Texas; related programs like Community Care for Aged/Disabled (CCAD) have limits such as $2,829/month for a single person and $5,658 for a couple (2024 figures, adjusted annually)[2].\",\n    \"asset_limits\": \"No specific asset limits for this program; CCAD references $5,000 for single and $6,000 for couples, with lower limits for some services like Community Attendant Services[2].\",\n    \"other_requirements\": [\"No exact match found in Texas state sources for 'Community Caregiver Support Program'; closest is CCAD (Community Care for Aged/Disabled), requiring Texas residency, age 18+, disability or need for daily activities help, not receiving Medicaid for same services[2]\", \"Texas regulations reference caregiver support services eligibility under 40 Tex. Admin. Code § 700.1003 and § 700.1017, requiring Texas residency, but details not in results[5]\", \"VA Caregiver Support Program (national, not Texas-specific) requires veteran/service member with serious injury, need for 6+ months personal care, caregiver 18+ and family relation or live-in[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No specific benefits detailed for 'Community Caregiver Support Program'; CCAD provides non-medical support for independent living, help with everyday tasks for older adults/disabled[2]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"For CCAD (related): Call Aging and Disability Resource Center (ADRC) at 1-855-937-2372 or find local ADRC[2]\", \"Contact Texas Health and Human Services or local Area Agency on Aging for caregiver programs like STAR+PLUS or CAS[6]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"For related programs: Proof of income, residency, care needs[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Texas residency required for related programs[2][5]\",\n    \"regional_variations\": \"Administered via local ADRCs or Area Agencies on Aging, potential differences in providers or wait times by region[2][6]\",\n    \"offices_or_providers\": [\"Local Aging and Disability Resource Centers (ADRCs)[2]\"]\n  },\n  \"official_source\": \"No primary .gov URL for exact 'Community Caregiver Support Program'; see Texas HHS for CCAD/CCSE: implied via ADRC contacts[2]\",\n  \"gotchas\": [\"Program name may refer to VA national program, not Texas-specific; families should verify with Texas HHS as results point to CCAD or STAR+PLUS instead[1][2][6]\", \"Eligibility often tied to not receiving duplicate Medicaid services; income/assets adjusted annually[2]\", \"Caregiver support under Texas Admin Code requires meeting broader criteria in §700.1003, details unavailable here[5]\"],\n  \"data_shape_notes\": \"No dedicated Texas 'Community Caregiver Support Program' found; data fragmented across CCAD (non-Medicaid in-home aid), STAR+PLUS (Medicaid waiver), and possible confusion with VA program; county-level ADRC delivery with income/functional tests\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are determined by federal poverty guidelines; providers assess current levels (e.g., for 2025, a single person limit around $19,000, but confirm with provider as not specified in static sources).[2]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.\",\n    \"other_requirements\": [\"Unemployed or underemployed\", \"Local SCSEP providers make final eligibility determination\", \"Priority for: age 65+, veterans/qualified spouses, individuals with disabilities, limited English proficiency, rural residents, homeless/at risk, low employment prospects, prior WIOA participants who remain unemployed, formerly incarcerated within last 5 years\"][1][2]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time work (average 20 hours/week) at nonprofits/public agencies (e.g., schools, hospitals, senior centers); paid highest of federal/state/local minimum wage; on-the-job training (e.g., computer, vocational skills); job placement assistance; support classes (reading, math, resume writing, interviewing); bridge to unsubsidized jobs.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Online locator: https://my.aarpfoundation.org/locator/scsep/ [5]\", \"Phone: Contact local provider (e.g., AARP Foundation 1-855-850-2525, MET Inc. 281-223-0099 for specific counties, Texas Workforce Commission via local Workforce Solutions offices) [1][5][6]\", \"In-person: Local Workforce Solutions offices, Area Agencies on Aging (AAAs), or SCSEP providers [1]\", \"Mail: Not specified; use provider contacts\"],\n    \"processing_time\": \"Not specified; varies by local provider.\",\n    \"waitlist\": \"Possible due to funding limits and county-specific availability; priority groups served first.\",\n    \"forms\": [\"No specific form name/number listed; intake handled by local providers.\"],\n    \"documents\": [\"Proof of age (ID)\", \"Proof of income (tax returns, pay stubs)\", \"Proof of unemployment status\", \"Veteran/disability/rural residency documentation if claiming priority (exact list confirmed by provider)\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Operated in 82 Texas counties via sub-grantees; not all counties covered (use locator or county table for specifics).\",\n    \"regional_variations\": \"Different providers per region (e.g., AARP Foundation in counties like Cameron, Dallas, El Paso; MET, Inc./CWI Works in counties like Anderson, Angelina, Lubbock; others via TWC partners); availability, wait times, and contacts vary by county/cluster.\",\n    \"offices_or_providers\": [\"Texas Workforce Commission (state admin) [1]\", \"AARP Foundation (multiple counties e.g., Cameron, Dallas, El Paso) [5]\", \"MET, Inc. (e.g., Anderson to Young counties) 281-223-0099 [6]\", \"Local Workforce Solutions offices (28 boards statewide) [1]\", \"Area Agencies on Aging\"]\n  },\n  \"official_source\": \"https://www.twc.texas.gov/programs/senior-community-service-employment (Texas) / https://www.dol.gov/agencies/eta/seniors (federal)\",\n  \"gotchas\": [\"Not available in all 254 Texas counties (only 82; check locator/county list first)\", \"Final eligibility by local provider, not automatic\", \"Part-time training wage only (not full income replacement; minimum wage level)\", \"Priority groups fill slots first, creating waitlists for others\", \"Must be actively seeking unsubsidized employment; not permanent aid\", \"Funding annual via DOL grants, potential changes\"],\n  \"data_shape_notes\": \"County-restricted to 82 areas with multiple sub-grantees/providers (AARP Foundation, MET Inc., etc.); priority tiers heavily influence access; income at 125% FPL (federal table, varies household size); no fixed statewide application/form\"\n}"
+    },
+    {
+      "name": "Legal Aid for Seniors through AAAs",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict financial criteria; income and resources may be reviewed to prioritize highest need, but services are available regardless of income level[4].",
+        "asset_limits": "No asset limits specified; prioritization based on need indicators like functional impairment, isolation, or low income, but not a barrier to eligibility[3][4].",
+        "other_requirements": [
+          "Texas resident aged 60 or older (or family/caregiver of such person)",
+          "Live in a county served by one of Texas's 28 AAAs (covers all 254 counties)",
+          "Civil legal matters only (e.g., benefits, housing, consumer issues); no criminal or personal injury cases[1][2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free legal aid services including one-on-one counseling on Medicare/Medicaid benefits, ombudsman advocacy for nursing homes/assisted living, referrals to legal aid organizations, and assistance with civil issues like benefits enrollment, housing, and consumer rights to support independent living[4][5]. No specific dollar amounts or hours defined; services provided as needed without charge[4].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local AAA by phone (examples: Concho Valley AAA (325) 223-5704[5], West Central Texas AAA (325) 672-8544[5], Capital Area AAA (512) 916-6062[5]; find local via Texas AAAs directory)",
+          "In-person at local AAA offices (e.g., 2801 W. Loop 306, San Angelo, TX 76904 for Concho Valley[5]; 3702 Loop 322, Abilene, TX for West Central[5])",
+          "Referrals through general legal aid lines like Legal Aid of NorthWest Texas (325) 677-8591[1][5] or Texas RioGrande Legal Aid (512) 374-2700[5]"
+        ],
+        "processing_time": "Not specified in sources; typically immediate counseling or referral upon contact[4].",
+        "waitlist": "No waitlist mentioned; services prioritized by need but available to all eligible[3][4].",
+        "forms": [
+          "No specific form names/numbers identified; intake via phone or in-person screening[1][4]"
+        ],
+        "documents": [
+          "Proof of age (e.g., ID showing 60+)",
+          "Proof of residency/county",
+          "Income details if prioritizing need (not required)",
+          "Details of legal issue (e.g., Medicare statements, nursing home complaints)",
+          "Participation proof in programs like SNAP/Medicaid/SSI for legal aid referral eligibility[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in service area of one of 28 AAAs, covering all 254 Texas counties[3][4].",
+        "regional_variations": "Administered by 28 regional AAAs with local offices/providers; services coordinated locally, potential differences in specific offerings, wait times for prioritization, or partnered legal aid groups (e.g., Legal Aid of NorthWest Texas in north/west, Texas RioGrande in southwest[3][5][6]).",
+        "offices_or_providers": [
+          "28 AAAs including Concho Valley AAA (San Angelo), West Central Texas AAA (Abilene), Capital Area AAA (Austin area), Area Agency on Aging of Central Texas (Belton)[3][5]"
+        ]
+      },
+      "official_source": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help[4]",
+      "gotchas": [
+        "Not direct legal representation; primarily counseling, ombudsman advocacy, and referrals to low-income legal aid orgs like Legal Aid of NorthWest Texas which have stricter 125-200% FPL income limits[1][2][4]",
+        "Legal aid referrals require separate low-income eligibility (e.g., below 125-200% Federal Poverty Guidelines, U.S. citizen/LPR)[1][2]",
+        "Prioritization for highest need (e.g., low-income minorities, rural, isolated, high nutritional risk); others may get referrals only[3][4]",
+        "Civil matters only; no criminal/personal injury[1]",
+        "Contact local AAA first, not statewide number[4][5]"
+      ],
+      "data_shape_notes": "Decentralized across 28 regional AAAs covering all counties; no fixed income/asset tests but need-based prioritization; focuses on referrals to civil legal aid with separate eligibility; services free with ombudsman/benefit counseling core[3][4]",
+      "_raw": "{\n  \"name\": \"Legal Aid for Seniors through AAAs\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict financial criteria; income and resources may be reviewed to prioritize highest need, but services are available regardless of income level[4].\",\n    \"asset_limits\": \"No asset limits specified; prioritization based on need indicators like functional impairment, isolation, or low income, but not a barrier to eligibility[3][4].\",\n    \"other_requirements\": [\"Texas resident aged 60 or older (or family/caregiver of such person)\", \"Live in a county served by one of Texas's 28 AAAs (covers all 254 counties)\", \"Civil legal matters only (e.g., benefits, housing, consumer issues); no criminal or personal injury cases[1][2][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal aid services including one-on-one counseling on Medicare/Medicaid benefits, ombudsman advocacy for nursing homes/assisted living, referrals to legal aid organizations, and assistance with civil issues like benefits enrollment, housing, and consumer rights to support independent living[4][5]. No specific dollar amounts or hours defined; services provided as needed without charge[4].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local AAA by phone (examples: Concho Valley AAA (325) 223-5704[5], West Central Texas AAA (325) 672-8544[5], Capital Area AAA (512) 916-6062[5]; find local via Texas AAAs directory)\", \"In-person at local AAA offices (e.g., 2801 W. Loop 306, San Angelo, TX 76904 for Concho Valley[5]; 3702 Loop 322, Abilene, TX for West Central[5])\", \"Referrals through general legal aid lines like Legal Aid of NorthWest Texas (325) 677-8591[1][5] or Texas RioGrande Legal Aid (512) 374-2700[5]\"],\n    \"processing_time\": \"Not specified in sources; typically immediate counseling or referral upon contact[4].\",\n    \"waitlist\": \"No waitlist mentioned; services prioritized by need but available to all eligible[3][4].\",\n    \"forms\": [\"No specific form names/numbers identified; intake via phone or in-person screening[1][4]\"],\n    \"documents\": [\"Proof of age (e.g., ID showing 60+)\", \"Proof of residency/county\", \"Income details if prioritizing need (not required)\", \"Details of legal issue (e.g., Medicare statements, nursing home complaints)\", \"Participation proof in programs like SNAP/Medicaid/SSI for legal aid referral eligibility[1][2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in service area of one of 28 AAAs, covering all 254 Texas counties[3][4].\",\n    \"regional_variations\": \"Administered by 28 regional AAAs with local offices/providers; services coordinated locally, potential differences in specific offerings, wait times for prioritization, or partnered legal aid groups (e.g., Legal Aid of NorthWest Texas in north/west, Texas RioGrande in southwest[3][5][6]).\",\n    \"offices_or_providers\": [\"28 AAAs including Concho Valley AAA (San Angelo), West Central Texas AAA (Abilene), Capital Area AAA (Austin area), Area Agency on Aging of Central Texas (Belton)[3][5]\"]\n  },\n  \"official_source\": \"https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help[4]\",\n  \"gotchas\": [\"Not direct legal representation; primarily counseling, ombudsman advocacy, and referrals to low-income legal aid orgs like Legal Aid of NorthWest Texas which have stricter 125-200% FPL income limits[1][2][4]\", \"Legal aid referrals require separate low-income eligibility (e.g., below 125-200% Federal Poverty Guidelines, U.S. citizen/LPR)[1][2]\", \"Prioritization for highest need (e.g., low-income minorities, rural, isolated, high nutritional risk); others may get referrals only[3][4]\", \"Civil matters only; no criminal/personal injury[1]\", \"Contact local AAA first, not statewide number[4][5]\"],\n  \"data_shape_notes\": \"Decentralized across 28 regional AAAs covering all counties; no fixed income/asset tests but need-based prioritization; focuses on referrals to civil legal aid with separate eligibility; services free with ombudsman/benefit counseling core[3][4]\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to all residents regardless of financial status.",
+        "asset_limits": "No asset limits; no financial eligibility requirements apply.",
+        "other_requirements": [
+          "Must be a resident of a nursing facility or assisted living facility in Texas. Certain caregivers and family members of persons 60 years or older may also receive assistance.[2]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Advocacy for residents' rights including investigating and resolving complaints, ensuring quality of life and care, providing resident rights information, monitoring laws and policies, representing residents in hearings, pursuing remedies, and protecting against abuse, neglect, or rights violations. Specific rights protected: respect/dignity, privacy, freedom from restraints/abuse, participation in care planning, choice of physician/pharmacy, grievance filing without reprisal, and access to records/inspection reports.[4][6][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 800-252-2412 to speak with a local LTC ombudsman[7]",
+          "Email: Contact form via ltco.texas.gov[7]",
+          "In-person: Visit local ombudsman council/agency (find via ltco.texas.gov)[7]",
+          "Online: Use 'Find an LTC Ombudsman' tool at ltco.texas.gov[7]"
+        ],
+        "processing_time": "Immediate response for complaints and advocacy; no formal processing as it's not an entitlement program.",
+        "waitlist": null,
+        "forms": [
+          "No specific application forms required; contact directly to report concerns or request assistance.[2]"
+        ],
+        "documents": [
+          "No documents needed to initiate contact; provide details of the resident's situation, facility name, and specific concerns."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents of nursing facilities and assisted living facilities statewide; excludes state supported living centers (separate ombudsman).[7]",
+        "regional_variations": "Administered locally by Area Agencies on Aging or independent councils (e.g., H-GAC in Harris County[1][3], Texoma Council of Governments[4], CAPCOG[9], AAACP[6]); availability depends on local volunteer/staff presence but services are free and confidential statewide.",
+        "offices_or_providers": [
+          "Local programs via ltco.texas.gov 'Find an LTC Ombudsman' tool; examples: Cizik School of Nursing (Harris County)[3], Texoma COG[4]"
+        ]
+      },
+      "official_source": "https://ltco.texas.gov",
+      "gotchas": [
+        "Not a service provider or eligibility-determining program—purely advocacy for existing LTC residents, not for admission or financial aid.[5][9]",
+        "Volunteers/staff must be independent with no conflicts (e.g., no facility employment or Medicaid eligibility roles).[2]",
+        "Confidentiality applies to all complaints.[5]",
+        "Does not cover non-LTC settings or developmental disability state centers.[7]",
+        "People mistake it for direct care/funding; it's complaint resolution and rights protection only."
+      ],
+      "data_shape_notes": "no income test; open to all LTC residents statewide via local independent councils; advocacy-focused, not benefits/entitlements; volunteer-driven with regional administration",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to all residents regardless of financial status.\",\n    \"asset_limits\": \"No asset limits; no financial eligibility requirements apply.\",\n    \"other_requirements\": [\"Must be a resident of a nursing facility or assisted living facility in Texas. Certain caregivers and family members of persons 60 years or older may also receive assistance.[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Advocacy for residents' rights including investigating and resolving complaints, ensuring quality of life and care, providing resident rights information, monitoring laws and policies, representing residents in hearings, pursuing remedies, and protecting against abuse, neglect, or rights violations. Specific rights protected: respect/dignity, privacy, freedom from restraints/abuse, participation in care planning, choice of physician/pharmacy, grievance filing without reprisal, and access to records/inspection reports.[4][6][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 800-252-2412 to speak with a local LTC ombudsman[7]\", \"Email: Contact form via ltco.texas.gov[7]\", \"In-person: Visit local ombudsman council/agency (find via ltco.texas.gov)[7]\", \"Online: Use 'Find an LTC Ombudsman' tool at ltco.texas.gov[7]\"],\n    \"processing_time\": \"Immediate response for complaints and advocacy; no formal processing as it's not an entitlement program.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required; contact directly to report concerns or request assistance.[2]\"],\n    \"documents\": [\"No documents needed to initiate contact; provide details of the resident's situation, facility name, and specific concerns.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents of nursing facilities and assisted living facilities statewide; excludes state supported living centers (separate ombudsman).[7]\",\n    \"regional_variations\": \"Administered locally by Area Agencies on Aging or independent councils (e.g., H-GAC in Harris County[1][3], Texoma Council of Governments[4], CAPCOG[9], AAACP[6]); availability depends on local volunteer/staff presence but services are free and confidential statewide.\",\n    \"offices_or_providers\": [\"Local programs via ltco.texas.gov 'Find an LTC Ombudsman' tool; examples: Cizik School of Nursing (Harris County)[3], Texoma COG[4]\"]\n  },\n  \"official_source\": \"https://ltco.texas.gov\",\n  \"gotchas\": [\"Not a service provider or eligibility-determining program—purely advocacy for existing LTC residents, not for admission or financial aid.[5][9]\", \"Volunteers/staff must be independent with no conflicts (e.g., no facility employment or Medicaid eligibility roles).[2]\", \"Confidentiality applies to all complaints.[5]\", \"Does not cover non-LTC settings or developmental disability state centers.[7]\", \"People mistake it for direct care/funding; it's complaint resolution and rights protection only.\"],\n  \"data_shape_notes\": \"no income test; open to all LTC residents statewide via local independent councils; advocacy-focused, not benefits/entitlements; volunteer-driven with regional administration\"\n}"
+    }
+  ]
+}

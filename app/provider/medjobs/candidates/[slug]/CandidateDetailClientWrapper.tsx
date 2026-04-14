@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import ProviderContactSection from "./ProviderContactSection";
 import VerificationFormModal from "@/components/provider/VerificationFormModal";
 import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
+import type { AccessTier } from "@/lib/medjobs-access";
 
 interface CandidateDetailClientWrapperProps {
   studentId: string;
@@ -13,6 +14,8 @@ interface CandidateDetailClientWrapperProps {
   studentPhone: string | null;
   studentSlug: string;
   variant: "sidebar" | "sticky" | "inline";
+  accessTier?: AccessTier;
+  creditsUsed?: number;
 }
 
 export default function CandidateDetailClientWrapper({
@@ -22,6 +25,8 @@ export default function CandidateDetailClientWrapper({
   studentPhone,
   studentSlug,
   variant,
+  accessTier,
+  creditsUsed,
 }: CandidateDetailClientWrapperProps) {
   const { activeProfile, user } = useAuth();
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -85,6 +90,8 @@ export default function CandidateDetailClientWrapper({
         studentSlug={studentSlug}
         variant={variant}
         initialScheduled={hasExistingInterview}
+        accessTier={accessTier}
+        creditsUsed={creditsUsed}
       />
       <VerificationFormModal
         isOpen={showVerificationModal}

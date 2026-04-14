@@ -1,0 +1,401 @@
+{
+  "state": "LA",
+  "stateName": "Louisiana",
+  "comparedAt": "2026-04-09T13:44:33.409Z",
+  "total": 9,
+  "newPrograms": 6,
+  "withDiffs": 3,
+  "withNovelFields": 3,
+  "benefitTypes": {
+    "service": 6,
+    "financial": 2,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "program_type_and_individual_assessment": 1,
+    "priority_tier": 4,
+    "funding_source_and_individual_need": 1,
+    "household_size and income": 1,
+    "fixed": 1,
+    "not_applicable": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Adult Day Health Care Waiver"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Adult Day Health Care Waiver"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Adult Day Health Care Waiver"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Adult Day Health Care Waiver"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Louisiana Medicaid Long-Term Care Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Louisiana's long-term care system includes multiple distinct programs (Nursing Home Medicaid, LT-PCS, HCBS Waivers) with overlapping but distinct eligibility criteria. The program structure varies significantly by whether the applicant seeks institutional or community-based care. Income and asset limits are fixed statewide for 2026 but may change annually. The LT-PCS program has unique requirements around caregiver direction and home equity that differ from standard Nursing Home Medicaid. Critical application details (phone numbers, specific forms, processing timelines, regional variations) are not available in public sources and require direct contact with Louisiana Department of Health.",
+      "gotchas": [
+        "Louisiana is an income cap state—applicants cannot simply spend down excess income to qualify; they must fall below the income limit at application, though a Medically Needy program exists for certain cases[1]",
+        "The 5-year look-back period means gifts or below-market-value asset sales within 5 years trigger penalties[1]",
+        "For LT-PCS specifically, applicants must be able to direct their own care or have a representative do so—this is a significant functional requirement beyond just needing care[3]",
+        "Home equity limit for LT-PCS ($752,000 in 2026) is separate from the general homestead exemption ($688,000)—clarify which applies to your situation[2][7]",
+        "Minimum 30-day commitment required for nursing facility care[1]",
+        "LT-PCS has a 120-day window for anticipated nursing home admission—timing matters for this eligibility pathway[3]",
+        "Asset limits are strict ($2,000 for individuals)—even modest savings can disqualify applicants[6]",
+        "Specific application procedures, phone numbers, forms, processing times, and regional office locations are not detailed in official sources—contact Louisiana Department of Health directly for current application information"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "program_type_and_individual_assessment",
+      "officialSource": "https://ldh.la.gov/office-of-aging-and-adult-services/LTPCS and https://ldh.la.gov/medicaid/long-term-care"
+    },
+    {
+      "name": "Community Choices Waiver (CCW)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Priority-tiered waitlist drives access; no 24/7 services; asset exemptions detailed with home equity cap; Medicaid LTC financials required (spend-down option); statewide uniform",
+      "gotchas": [
+        "No 24/7 care; must arrange separately[1][4]",
+        "Priority waitlist means non-priority may wait long; apply immediately[1][4][5]",
+        "60-month look-back on assets; penalties for improper transfers[2]",
+        "NFLOC required; dementia diagnosis alone insufficient[2]",
+        "Income/asset limits strict but spend-down and exemptions available[2][4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://ldh.la.gov/page/community-choices-waiver"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "PACE in Louisiana is geographically restricted to four service areas with separate regional offices. Eligibility has no income test for program entry but Medicaid funding (covering most participants) has strict income/asset limits. Benefits are individualized based on assessment, not tiered. The program requires high functional need (nursing facility level of care) and ability to live safely in community—these are gatekeeping criteria. Processing timelines and waitlist information are not publicly documented in available sources.",
+      "gotchas": [
+        "PACE is NOT statewide—it's only available in four specific regions. Families outside these areas cannot access the program regardless of eligibility.[3]",
+        "You must meet NURSING FACILITY LEVEL OF CARE, not just be elderly or have health issues. This is a high bar requiring extensive assistance with daily living activities.[4][5]",
+        "No income test for program eligibility, but Medicaid coverage (which pays for most participants' services) has strict income and asset limits. Private pay is $4,000–$5,000/month.[4]",
+        "You cannot be enrolled in Medicare Advantage (Part C) or prescription drug plans to join PACE—you must have Original Medicare.[5]",
+        "NFLOC eligibility is not confirmed until the iHC assessment is completed; initial assessments (LOCET) do not guarantee eligibility.[1]",
+        "The program requires you to be able to live safely in the community—if your condition requires 24/7 skilled care or you cannot call for emergency assistance, you may be deemed ineligible.[1]",
+        "Approximately 90% of PACE participants are dually eligible for Medicare and Medicaid; single-payer participants are less common.[5]",
+        "Average PACE participant is 76 years old with multiple complex medical conditions—the program is designed for high-need seniors, not general elderly care.[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "funding_source_and_individual_need",
+      "officialSource": "https://ldh.la.gov/office-of-aging-and-adult-services/pace"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1400",
+          "found": "$1,350",
+          "source": "https://ldh.la.gov/medicaid/medicare-savings-program"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for covered services. SLMB/QI: Pays Medicare Part B premiums only. QI automatically qualifies for Extra Help (low/no cost for prescriptions, e.g., no more than $12.65 per drug in 2026). No direct services; payments made to Medicare on behalf of beneficiary.[1][3][5][6][7]",
+          "source": "https://ldh.la.gov/medicaid/medicare-savings-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://ldh.la.gov/medicaid/medicare-savings-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No resource/asset limits for QMB, SLMB, or QI in Louisiana (resources disregarded). Only QDWI (not core focus) has limits: no more than twice SSI countable resources (e.g., cash/property convertible to cash; specifics like home/car often exempt per SSI rules).[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional differences specified; administered statewide by Louisiana Department of Health. Local offices may handle in-person apps with potential variation in processing.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI: First-come, first-served basis with funding caps; priority to previous year recipients. No waitlist mentioned for QMB/SLMB.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (e.g., pay stubs, SSI awards).",
+            "Proof of Medicare enrollment (Parts A/B).",
+            "ID/residency (e.g., SSN card, birth certificate, utility bill).",
+            "Immigration status if applicable.",
+            "Bank/resource statements if QDWI (not required for QMB/SLMB/QI)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No asset test for core programs (QMB/SLMB/QI); tiered by income brackets with QMB most generous benefits, QI highest income but Part B only and annual/funded-limited; Louisiana disregards resources per state policy.",
+      "gotchas": [
+        "No asset test for QMB/SLMB/QI in Louisiana (common miss; many assume federal limits apply).",
+        "QI requires annual reapplication and is first-come/first-served (may lose if not renewed or funding exhausted).",
+        "Must have Part A; SLMB/QI need Part B. Not for Medicaid recipients.",
+        "Income limits are 2026 federal figures; Louisiana may allow slightly higher—verify with LDH.",
+        "QMB protects from provider balance billing (providers can't charge beneficiary for Medicare-covered services).",
+        "Older sources list outdated limits (e.g., 2025 or prior); use 2026 numbers."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://ldh.la.gov/medicaid/medicare-savings-program"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "No minimum age requirement for the household, but special rules apply if household includes member 60 or older",
+          "source": "dcfs.louisiana.gov/page/524 and ldh.la.gov"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly SNAP benefits calculated by household size and net income. Example: 2-person elderly/disabled household with $1,200 gross income receives $415/month in SNAP benefits[8]",
+          "source": "dcfs.louisiana.gov/page/524 and ldh.la.gov"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "dcfs.louisiana.gov/page/524 and ldh.la.gov"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "louisiana_standard": "No asset limit in Louisiana for most households[1]",
+            "federal_alternative": "If household has member 60+ or disabled and doesn't meet gross income test, can qualify under federal rules with $4,500 asset limit[1]",
+            "what_counts": "Countable resources like funds in bank accounts[1]",
+            "what_exempt": "Home and vehicles are not counted as resources[1]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Application assistance available through parish Councils on Aging, suggesting parish-level administration[4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of residency in Louisiana",
+            "Social Security number or proof of application",
+            "Proof of citizenship or lawful presence",
+            "Income documentation (Social Security statements, pension statements, etc.)",
+            "Proof of medical costs if applicable (for elderly/disabled households)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "SNAP in Louisiana has a bifurcated eligibility structure: standard households face 130% FPL gross income limit, but households with elderly (60+) or disabled members face only 100% FPL net income limit with no gross income cap and no asset limit. This creates a significant advantage for elderly applicants. Louisiana also offers ESAP, a simplified application pathway for elderly/disabled with no earned income, featuring 36-month certification and waived recertification interviews. Benefits scale by household size and net income. Administration is parish-based through DCFS and Councils on Aging.",
+      "gotchas": [
+        "Louisiana has expanded eligibility beyond federal SNAP requirements—other websites may show stricter limits than actually apply[1]",
+        "Households with elderly (60+) or disabled members have significantly easier qualification: they only need to meet net income test (100% FPL), not gross income test[6]",
+        "For elderly/disabled households, there is NO asset limit in Louisiana, unlike federal rules which have $4,500 limit[1]",
+        "Seniors must reapply every year—they do not automatically receive benefits from prior year[4]",
+        "ESAP (Elderly Simplified Application Project) offers extended certification (36 months instead of annual) and waived recertification interviews, but only for households with elderly/disabled members with NO earned income[5]",
+        "About half of eligible seniors don't receive SNAP despite qualifying, often due to application complexity[3]",
+        "Social Security, veterans' benefits, and disability payments all count toward income limits[3]",
+        "Able-bodied adults 18-49 without dependents face strict work requirements or lose benefits after 3 months[7]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size and income",
+      "officialSource": "dcfs.louisiana.gov/page/524 and ldh.la.gov"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP) - Senior Box Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits are fixed (same box contents for all participants, not scaled by household size or priority tier). Income limits scale by household size with a formula for additional family members. Program is statewide but administered through five regional food banks with varying distribution sites. No processing time, waitlist information, or specific form numbers provided in available documentation. Eligibility is straightforward: age 60+, Louisiana residency, income at or below 150% of Federal Poverty Guidelines, and documentation of identity and residence.",
+      "gotchas": [
+        "Program is completely free — there is no cost to participate[1]",
+        "Eligible seniors can authorize someone else to pick up their box on their behalf by contacting the program[1]",
+        "Each eligible senior in a household receives their own individual food box[2]",
+        "Distribution frequency: Participants receive one box per month, though some sites may use a bi-monthly model[1]",
+        "Home delivery is available as an option at some locations (Los Angeles model suggests this may be available in Louisiana, but not explicitly confirmed)[2]",
+        "Program is federally funded by USDA and administered by Louisiana Department of Health[1]",
+        "More than 30,000 seniors receive boxes monthly across Louisiana[3]",
+        "Income limits are based on household gross income, not net income[3]",
+        "Residency requirements exist but no minimum period of residency is required[4]",
+        "Women, infants, and children cannot apply for CSFP after February 7, 2014; they must use WIC or SNAP instead[4]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.fns.usda.gov/csfp/commodity-supplemental-food-program (USDA Food and Nutrition Service); Louisiana-specific: https://www.feedinglouisiana.org/csfp"
+    },
+    {
+      "name": "State Personal Assistance Services (SPAS) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Self-directed model where participant manages providers; no public income/asset caps detailed (unlike Medicaid LT-PCS); services via subsidy, not fixed hours/dollars; statewide with central management by Arc of Louisiana",
+      "gotchas": [
+        "Must be capable of self-direction or have a representative; participant responsible for hiring/firing/supervising providers even if choosing an agency[1][3]",
+        "Not the same as LT-PCS Medicaid program, which has strict income/asset limits ($994/month single, $2,000 assets in 2026) and targets elderly/disabled 21+ or 65+ with different criteria[2]",
+        "Requires physician verification and evaluation team assessment; income verification needed but not quantified publicly[1]",
+        "Aimed at employability and avoiding institutionalization, not general elderly care[1][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://ldh.la.gov/office-of-aging-and-adult-services/SPAS[1]"
+    },
+    {
+      "name": "Adult Day Health Care Waiver",
+      "isNew": false,
+      "existingId": "adult-day-health-care-waiver",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "22",
+          "source": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver[2]"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,163",
+          "source": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver[2]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Adult Day Health Care (ADHC) at centers (Monday-Friday, daytime hours): medical/health-related services, structured activities (cognitive exercises, arts/crafts, games, group discussions), socialization, nutritious meals/snacks. Additional: support coordination, transition intensive support coordination. Not 24-hour care; part-day attendance.[2]",
+          "source": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Must meet LTC Medicaid resource limits (exact current amounts not specified; e.g., older policy: married couples up to $117,240 if one spouse not receiving long-term care). Confirm current via official test.[1][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services at local ADHC centers (varies by provider availability); wait times may vary by demand/region due to registry, not explicitly detailed.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes, Request for Services Registry (RFSR). Priority: (1) Abuse/neglect referrals by APS/EPS needing nursing home to prevent further harm; (2) Hospital discharge within 30 days (1+ night stay); (3) Nursing home residents (Medicaid-only payer, >90 days approved); others first-come, first-served by request date.[2][3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicaid LTC eligibility (income/assets)",
+            "Medical/functional assessment for NFLOC (interRAI iHC)",
+            "ID/residency proof",
+            "Medical expenses for spend-down (if applicable)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Priority-tiered waitlist dominates access; tied to LTC Medicaid (income/asset tests with spend-down); NFLOC via specific interRAI tool; services center-based only, not home care.",
+      "gotchas": [
+        "Not 24-hour care—only part-day at centers; assumes family provides rest-of-day support.[2]",
+        "Strict priority waitlist; non-priority face long delays.[2][3]",
+        "Must pre-verify income/assets or risk denial; use eligibility test first.[1]",
+        "Disabled under 65 (22-64) qualify if at nursing home risk, but focus often elderly 65+.[1]",
+        "Waiver approved through 06/30/2027; renewals possible.[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver[2]"
+    },
+    {
+      "name": "Caregiver Voucher Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to CCW Medicaid waiver with priority tiers for slots; consumer-directed payment to family via SFC providers, no fixed voucher dollar/hour amount (plan-based); requires NFLOC assessment.",
+      "gotchas": [
+        "Not a standalone 'voucher' but consumer-directed personal care within CCW waiver; care recipient must qualify for LTC Medicaid and NFLOC first.[1][2]",
+        "Family caregivers must reside with recipient and enroll via SFC provider; not all family eligible (e.g., spouse may have restrictions).[3]",
+        "Priority slots fill first; general applicants wait first-come, first-served.[1]",
+        "Dementia diagnosis alone doesn't qualify; must meet full NFLOC.[2]",
+        "Home equity limit $752,000 (2026); asset transfers may trigger penalty period.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw"
+    }
+  ]
+}

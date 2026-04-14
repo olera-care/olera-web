@@ -247,7 +247,7 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
 
                 <div className="mt-5">
                   <Link
-                    href={basePath && slugMap?.[program.id] ? `${basePath}/${slugMap[program.id]}` : `/waiver-library/${stateId}/${program.id}`}
+                    href={basePath && slugMap?.[program.id] ? `${basePath}/${slugMap[program.id]}` : `/senior-benefits/${stateId}/${program.id}`}
                     className="inline-flex items-center justify-center w-full px-4 py-2.5 text-base font-semibold text-primary-600 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 transition-colors"
                   >
                     Learn more

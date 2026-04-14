@@ -1,0 +1,783 @@
+{
+  "state": "SC",
+  "stateName": "South Carolina",
+  "diveAt": "2026-04-09T16:23:29.427Z",
+  "total": 17,
+  "parsed": 14,
+  "programs": [
+    {
+      "name": "Healthy Connections Medicaid",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Healthy Connections Medicaid\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For elderly (65+), eligibility for long-term care programs requires income under $2,982 per month for a single applicant in 2026; general Medicaid for aged, blind, or disabled has no specific dollar table by household size in sources, but parents/caretakers up to 100% FPL, children up to 213% FPL (with 5% disregard). Income from jobs, SSI, etc., is considered.[2][5]\",\n    \"asset_limits\": \"For long-term care (e.g., nursing home), countable assets under $2,000 for a single applicant; includes checking/savings accounts and other resources owned. Exemptions not detailed in sources, but standard Medicaid planning applies (e.g., primary home may be exempt in some cases).[3][5]\",\n    \"other_requirements\": [\"Blind, totally/permanently disabled, or nursing facility level of care (NFLOC) for long-term care; functional need for ADLs; pregnant, under 19, parent/caretaker of child under 18, or foster/adopted child also qualify under broader categories; must apply to confirm.\"[1][3][5]]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Pays for medical bills, nursing facility care, other medical expenses for those 65+ or disabled; long-term care services if NFLOC met; managed care plans with mandatory enrollment after eligibility; specific services not itemized by dollar/hour but include doctor visits, hospital care via enrolled plans.[1][3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: https://www.scdhhs.gov/how-to-apply or apply.scdhhs.gov\", \"Phone: 1-888-549-0820 (TTY: 888-842-3620)\", \"Mail: Request paper application by calling 888-549-0820\", \"In-person: Local county office or authorized hospitals/Family Health Centers (e.g., call 803-531-6900)\"],\n    \"processing_time\": \"Up to 45 days generally; 90 days if disability determination needed.[1][6]\",\n    \"waitlist\": \"Not mentioned in sources; may vary by long-term care demand.[5]\",\n    \"forms\": [\"Online application tool at apply.scdhhs.gov; no specific form name/number listed.\"],\n    \"documents\": [\"Date of birth, Social Security Number, income from jobs/training, benefits (SSI, VA, child support), checking/savings/resources amounts, rent/mortgage/utilities, health coverage/medical payments for all household members.[3][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide.\",\n    \"regional_variations\": \"Processing times may vary by region or applicant category; apply at local county offices, but no specific provider/wait differences detailed.[6]\",\n    \"offices_or_providers\": [\"Local county offices; Family Health Centers (e.g., 803-531-6900); managed care plans like Absolute Total Care.[3][7]\"]\n  },\n  \"official_source\": \"https://www.scdhhs.gov/how-to-apply\",\n  \"gotchas\": [\"Must enroll in managed care plan (90-day switch window, then restricted); apply directly to SC Healthy Connections, not Marketplace for final determination; long-term care needs NFLOC, not just age/income; eligibility reviewed annually; hospitals can't always deem eligibility unless authorized; no ACA expansion, so limited parent coverage.[2][4][5][6]\"],\n  \"data_shape_notes\": \"Elderly focus on long-term care with strict $2,982 income/$2,000 asset for singles; mandatory managed care enrollment post-eligibility; varies by care need (NFLOC/ADL) rather than household size for seniors.\"\n}"
+    },
+    {
+      "name": "Community Choices Waiver",
+      "eligibility": {
+        "age": "65+ or 18-64 with physical disability",
+        "income_limits": "Must be financially eligible for South Carolina Medicaid (Healthy Connections); specific dollar amounts not detailed in sources but follows standard Medicaid long-term care rules. Use American Council on Aging Medicaid Eligibility Test for precise assessment.[1]",
+        "asset_limits": "Standard Medicaid countable asset limits apply (e.g., use Spend Down Calculator for estimates). Home is exempt if: applicant lives there or intends to return with equity ≤$730,000 (2025), spouse lives there, child under 21 lives there, or disabled/blind child of any age lives there.[1]",
+        "other_requirements": [
+          "South Carolina resident",
+          "U.S. citizen or qualified alien",
+          "Nursing Facility Level of Care (NFLOC): requires assistance with ADLs like mobility, eating, toileting, bathing, dressing, transitioning; or 8+ hours skilled nursing/day; dementia may qualify if NFLOC met.[1][2][4]",
+          "At risk of nursing home placement",
+          "Live in home/community (not institution)",
+          "Cost of waiver services ≤ nursing facility cost[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Adult day health care, case management, personal care, respite (institutional, CRCF, in-home), adult day health care transportation/nursing, attendant care, companion care (agency/individual), home accessibility adaptations/environmental modifications, home delivered meals, personal emergency response system (installation/monitoring), pest control, residential personal care II, specialized medical equipment/supplies, telemonitoring.[6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Through SCDHHS or local Health and Human Services Community Long Term Care (CLTC) Office[5]",
+          "Phone or in-person at local CLTC office (specific numbers via SCDHHS directory)",
+          "Online via SCDHHS website: https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver[4]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Waiver slots required; may involve waitlist as slots are limited[2]",
+        "forms": [
+          "Community Choices (CC) Waiver (SC.0405); use Medicaid application via SCDHHS[4][5]"
+        ],
+        "documents": [
+          "Proof of residency, income, assets",
+          "Medical/educational records for disability/NFLOC assessment",
+          "Medicaid eligibility documentation[1][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; available statewide for eligible SC residents",
+        "regional_variations": "Administered via local CLTC offices; potential differences in providers, wait times, or intake by region[5]",
+        "offices_or_providers": [
+          "Local Health and Human Services Community Long Term Care (CLTC) Offices[5]"
+        ]
+      },
+      "official_source": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver[4]",
+      "gotchas": [
+        "Must already have or qualify for Medicaid; waiver does not provide it[2]",
+        "NFLOC certification required—not automatic with age or dementia diagnosis[1]",
+        "Waiver slots are limited; must use services regularly to retain slot[2]",
+        "Home equity limit $730,000 (2025); exceeds may disqualify unless exceptions[1]",
+        "Cost of services capped below nursing facility cost[2]",
+        "Disabled enrollees (18-64) can continue benefits after 65[1][4]"
+      ],
+      "data_shape_notes": "Eligibility ties to Medicaid financial rules + NFLOC; services prevent nursing home placement; slot-based with potential waitlist; local CLTC offices handle intake regionally",
+      "_raw": "{\n  \"name\": \"Community Choices Waiver\",\n  \"eligibility\": {\n    \"age\": \"65+ or 18-64 with physical disability\",\n    \"income_limits\": \"Must be financially eligible for South Carolina Medicaid (Healthy Connections); specific dollar amounts not detailed in sources but follows standard Medicaid long-term care rules. Use American Council on Aging Medicaid Eligibility Test for precise assessment.[1]\",\n    \"asset_limits\": \"Standard Medicaid countable asset limits apply (e.g., use Spend Down Calculator for estimates). Home is exempt if: applicant lives there or intends to return with equity ≤$730,000 (2025), spouse lives there, child under 21 lives there, or disabled/blind child of any age lives there.[1]\",\n    \"other_requirements\": [\n      \"South Carolina resident\",\n      \"U.S. citizen or qualified alien\",\n      \"Nursing Facility Level of Care (NFLOC): requires assistance with ADLs like mobility, eating, toileting, bathing, dressing, transitioning; or 8+ hours skilled nursing/day; dementia may qualify if NFLOC met.[1][2][4]\",\n      \"At risk of nursing home placement\",\n      \"Live in home/community (not institution)\",\n      \"Cost of waiver services ≤ nursing facility cost[2][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Adult day health care, case management, personal care, respite (institutional, CRCF, in-home), adult day health care transportation/nursing, attendant care, companion care (agency/individual), home accessibility adaptations/environmental modifications, home delivered meals, personal emergency response system (installation/monitoring), pest control, residential personal care II, specialized medical equipment/supplies, telemonitoring.[6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Through SCDHHS or local Health and Human Services Community Long Term Care (CLTC) Office[5]\",\n      \"Phone or in-person at local CLTC office (specific numbers via SCDHHS directory)\",\n      \"Online via SCDHHS website: https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver[4]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Waiver slots required; may involve waitlist as slots are limited[2]\",\n    \"forms\": [\"Community Choices (CC) Waiver (SC.0405); use Medicaid application via SCDHHS[4][5]\"],\n    \"documents\": [\n      \"Proof of residency, income, assets\",\n      \"Medical/educational records for disability/NFLOC assessment\",\n      \"Medicaid eligibility documentation[1][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide for eligible SC residents\",\n    \"regional_variations\": \"Administered via local CLTC offices; potential differences in providers, wait times, or intake by region[5]\",\n    \"offices_or_providers\": [\"Local Health and Human Services Community Long Term Care (CLTC) Offices[5]\"]\n  },\n  \"official_source\": \"https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver[4]\",\n  \"gotchas\": [\n    \"Must already have or qualify for Medicaid; waiver does not provide it[2]\",\n    \"NFLOC certification required—not automatic with age or dementia diagnosis[1]\",\n    \"Waiver slots are limited; must use services regularly to retain slot[2]\",\n    \"Home equity limit $730,000 (2025); exceeds may disqualify unless exceptions[1]\",\n    \"Cost of services capped below nursing facility cost[2]\",\n    \"Disabled enrollees (18-64) can continue benefits after 65[1][4]\"\n  ],\n  \"data_shape_notes\": \"Eligibility ties to Medicaid financial rules + NFLOC; services prevent nursing home placement; slot-based with potential waitlist; local CLTC offices handle intake regionally\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Income limits are based on Federal Poverty Level (FPL) with a $20 general income disregard applied monthly. For 2026 (effective April 1): QMB ≤100% FPL ($1,350 individual, $1,824 couple); SLMB 100-120% FPL (individual ~$1,350-$1,620, couple ~$1,824-$2,189); QI 120-135% FPL (individual ~$1,620-$1,823, couple ~$2,189-$2,461). South Carolina uses federal standards but confirms QMB income at $1,305 single/$1,763 married (prior year); limits updated annually April 1 and apply statewide regardless of household size beyond couple. Exact amounts require checking SCDHHS for current FPL tables.[5][8][9]",
+        "asset_limits": "Federal limits apply in South Carolina: $9,660 individual / $14,470 married couple for QMB, SLMB, QI (some sources cite $9,950/$14,910 for 2026). Countable assets include bank accounts, stocks, bonds; exempt: primary home/land, one car, burial plots, life insurance (up to $1,500 face value), household goods, Native American settlements. States cannot be less generous.[1][3][5]",
+        "other_requirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled)",
+          "South Carolina resident",
+          "U.S. citizen or qualified immigrant",
+          "Not eligible for full Medicaid (QMB provides Medicaid-like benefits in SC)"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "**QMB:** Pays Medicare Part A premium (if applicable), Part B premium ($202.90/month in 2026), annual deductible, coinsurance/copayments for Medicare-covered Part A/B services. **SLMB:** Pays Part B premium only. **QI:** Pays Part B premium only (limited funding). QMB enrollees protected from provider billing; automatic in some cases.[2][3][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: South Carolina Department of Health and Human Services (SCDHHS) at 1-888-549-0820",
+          "Online: SCDHHS ACCESS portal at https://access.scdhhs.gov/",
+          "Mail/In-person: Local SCDHHS county offices (find via scdhhs.gov/locations)",
+          "Apply through state Medicaid agency"
+        ],
+        "processing_time": "Effective first day of month of application for QMB; SLMB/QI retroactive to prior months if approved. Typically 45 days, but varies.[1]",
+        "waitlist": "QI has limited federal funding; first-come, first-served with possible waitlist or denial if funds exhausted.[2][3]",
+        "forms": [
+          "SCDHHS Medicaid Application (Form 3400P or online equivalent)"
+        ],
+        "documents": [
+          "Proof of income (pay stubs, SSI/SS award letters; last 2-3 months)",
+          "Proof of assets (bank statements, investment accounts)",
+          "Medicare card or proof of eligibility",
+          "ID (birth certificate, driver's license, Social Security card)",
+          "Proof of residency (utility bill)",
+          "Household size details"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to South Carolina Medicare beneficiaries statewide",
+        "regional_variations": "Processing may vary by county office workload; no benefit differences[5]",
+        "offices_or_providers": [
+          "SCDHHS county offices statewide; contact 1-888-549-0820 for local"
+        ]
+      },
+      "official_source": "https://www.scdhhs.gov/members/program-eligibility-and-income-limits",
+      "gotchas": [
+        "QI funding limited—apply early in calendar year (first-come, first-served; may run out)",
+        "Income disregard ($20 general + earned income deductions) often missed; net income after disregards determines eligibility",
+        "QMB in SC provides full Medicaid, unlike some states; no copays for covered services but providers can't bill you",
+        "Assets include spouse's even if not applying; annual FPL updates April 1—recheck eligibility",
+        "Automatic enrollment possible if on SSI/Medicaid, but must confirm",
+        "Not full Medicaid—QMB/SLMB/QI are Medicare premium/cost-sharing help only (except QMB in SC)"
+      ],
+      "data_shape_notes": "Tiered by income brackets (QMB/SLMB/QI) with fixed federal asset caps; income scales only by individual/couple (no larger households); QI capped by annual federal funding allocation per state; SC aligns exactly with federal MSP rules including asset tests",
+      "_raw": "{\n  \"name\": \"Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income limits are based on Federal Poverty Level (FPL) with a $20 general income disregard applied monthly. For 2026 (effective April 1): QMB ≤100% FPL ($1,350 individual, $1,824 couple); SLMB 100-120% FPL (individual ~$1,350-$1,620, couple ~$1,824-$2,189); QI 120-135% FPL (individual ~$1,620-$1,823, couple ~$2,189-$2,461). South Carolina uses federal standards but confirms QMB income at $1,305 single/$1,763 married (prior year); limits updated annually April 1 and apply statewide regardless of household size beyond couple. Exact amounts require checking SCDHHS for current FPL tables.[5][8][9]\",\n    \"asset_limits\": \"Federal limits apply in South Carolina: $9,660 individual / $14,470 married couple for QMB, SLMB, QI (some sources cite $9,950/$14,910 for 2026). Countable assets include bank accounts, stocks, bonds; exempt: primary home/land, one car, burial plots, life insurance (up to $1,500 face value), household goods, Native American settlements. States cannot be less generous.[1][3][5]\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (even if not enrolled)\",\n      \"South Carolina resident\",\n      \"U.S. citizen or qualified immigrant\",\n      \"Not eligible for full Medicaid (QMB provides Medicaid-like benefits in SC)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"**QMB:** Pays Medicare Part A premium (if applicable), Part B premium ($202.90/month in 2026), annual deductible, coinsurance/copayments for Medicare-covered Part A/B services. **SLMB:** Pays Part B premium only. **QI:** Pays Part B premium only (limited funding). QMB enrollees protected from provider billing; automatic in some cases.[2][3][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: South Carolina Department of Health and Human Services (SCDHHS) at 1-888-549-0820\",\n      \"Online: SCDHHS ACCESS portal at https://access.scdhhs.gov/\",\n      \"Mail/In-person: Local SCDHHS county offices (find via scdhhs.gov/locations)\",\n      \"Apply through state Medicaid agency\"\n    ],\n    \"processing_time\": \"Effective first day of month of application for QMB; SLMB/QI retroactive to prior months if approved. Typically 45 days, but varies.[1]\",\n    \"waitlist\": \"QI has limited federal funding; first-come, first-served with possible waitlist or denial if funds exhausted.[2][3]\",\n    \"forms\": [\"SCDHHS Medicaid Application (Form 3400P or online equivalent)\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, SSI/SS award letters; last 2-3 months)\",\n      \"Proof of assets (bank statements, investment accounts)\",\n      \"Medicare card or proof of eligibility\",\n      \"ID (birth certificate, driver's license, Social Security card)\",\n      \"Proof of residency (utility bill)\",\n      \"Household size details\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to South Carolina Medicare beneficiaries statewide\",\n    \"regional_variations\": \"Processing may vary by county office workload; no benefit differences[5]\",\n    \"offices_or_providers\": [\"SCDHHS county offices statewide; contact 1-888-549-0820 for local\"]\n  },\n  \"official_source\": \"https://www.scdhhs.gov/members/program-eligibility-and-income-limits\",\n  \"gotchas\": [\n    \"QI funding limited—apply early in calendar year (first-come, first-served; may run out)\",\n    \"Income disregard ($20 general + earned income deductions) often missed; net income after disregards determines eligibility\",\n    \"QMB in SC provides full Medicaid, unlike some states; no copays for covered services but providers can't bill you\",\n    \"Assets include spouse's even if not applying; annual FPL updates April 1—recheck eligibility\",\n    \"Automatic enrollment possible if on SSI/Medicaid, but must confirm\",\n    \"Not full Medicaid—QMB/SLMB/QI are Medicare premium/cost-sharing help only (except QMB in SC)\"\n  ],\n  \"data_shape_notes\": \"Tiered by income brackets (QMB/SLMB/QI) with fixed federal asset caps; income scales only by individual/couple (no larger households); QI capped by annual federal funding allocation per state; SC aligns exactly with federal MSP rules including asset tests\"\n}"
+    },
+    {
+      "name": "SNAP (Food Assistance)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with elderly (60+) or disabled members (Oct 1, 2025 - Sept 30, 2026): Standard gross income limit at 130% FPL - 1: $1695/mo, 2: $2291, 3: $2887, 4: $3482, 5: $4079, 6: $4674, 7: $5270, +$595 each additional. Expanded for households where ALL adults are 60+ or disabled: 1: $2608/mo, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional (165% FPL). Net income limit at 100% FPL for elderly/disabled households. Households with elderly/disabled only need gross income test if assets >$4500; otherwise, may qualify under federal rules with $4500 asset limit and no gross income limit.[2][3]",
+        "asset_limits": "Generally no asset limit in SC (expanded eligibility), but if assets >$4500 and household has elderly/disabled, must meet gross income test. Federal fallback: $4500 limit applies if not meeting expanded rules. Counts: bank accounts, etc. Exempt: primary home, most vehicles, retirement accounts (standard SNAP exemptions apply).[2][4]",
+        "other_requirements": [
+          "For ESAP (Elderly Simplified Application Project, specific to elderly): All household members 60+, no earned income, not already receiving SNAP via SCCAP.[1][5]",
+          "U.S. citizen or qualified non-citizen.",
+          "Live in SC.",
+          "Deductions allowed: medical (> $35 for elderly/disabled), shelter, utilities, etc.[3]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card for food purchases. Amount based on net income, household size, and deductions (e.g., example 2-person elderly household: $415/mo after calculation). Exact amount calculated post-application; max allotment varies (e.g., $546 for 2-person in example).[1][6]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Mail DSS ESAP Application to: ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202 (form access via dss.sc.gov).[1]",
+          "Phone: 1-888-898-0055 for ESAP/SCCAP info.[3]",
+          "General SNAP: Online via SC EST (dss.sc.gov), local DSS offices in-person, or mail.[1][3]"
+        ],
+        "processing_time": "Benefits from date application filed if eligible; notified in writing of decision (no specific timeline stated).[1]",
+        "waitlist": null,
+        "forms": [
+          "DSS ESAP Application"
+        ],
+        "documents": [
+          "Proof of income (Social Security, pension, etc.), age, identity, residency, medical expenses if claiming deductions, assets if applicable.[2][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Local DSS county offices for general SNAP; central mail for ESAP"
+        ]
+      },
+      "official_source": "https://dss.sc.gov/assistance-programs/snap/",
+      "gotchas": [
+        "ESAP requires NO earned income for household and not on SCCAP; otherwise standard SNAP rules apply.[1][5]",
+        "Even with no asset limit, application may ask for assets.[2]",
+        "Social Security, pensions count as income.[3][4]",
+        "ESAP simplifies: no interview, 36-month certification, data matches reduce verification.[5]",
+        "New 2025 federal work requirement changes may affect (though elderly exempt).[6][9]"
+      ],
+      "data_shape_notes": "Elderly-specific ESAP streamlines process (no earned income, simplified app/recert); expanded SC income limits beyond federal; benefits calculated via net income formula with elderly deductions; scales by household size.",
+      "_raw": "{\n  \"name\": \"SNAP (Food Assistance)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with elderly (60+) or disabled members (Oct 1, 2025 - Sept 30, 2026): Standard gross income limit at 130% FPL - 1: $1695/mo, 2: $2291, 3: $2887, 4: $3482, 5: $4079, 6: $4674, 7: $5270, +$595 each additional. Expanded for households where ALL adults are 60+ or disabled: 1: $2608/mo, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional (165% FPL). Net income limit at 100% FPL for elderly/disabled households. Households with elderly/disabled only need gross income test if assets >$4500; otherwise, may qualify under federal rules with $4500 asset limit and no gross income limit.[2][3]\",\n    \"asset_limits\": \"Generally no asset limit in SC (expanded eligibility), but if assets >$4500 and household has elderly/disabled, must meet gross income test. Federal fallback: $4500 limit applies if not meeting expanded rules. Counts: bank accounts, etc. Exempt: primary home, most vehicles, retirement accounts (standard SNAP exemptions apply).[2][4]\",\n    \"other_requirements\": [\n      \"For ESAP (Elderly Simplified Application Project, specific to elderly): All household members 60+, no earned income, not already receiving SNAP via SCCAP.[1][5]\",\n      \"U.S. citizen or qualified non-citizen.\",\n      \"Live in SC.\",\n      \"Deductions allowed: medical (> $35 for elderly/disabled), shelter, utilities, etc.[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases. Amount based on net income, household size, and deductions (e.g., example 2-person elderly household: $415/mo after calculation). Exact amount calculated post-application; max allotment varies (e.g., $546 for 2-person in example).[1][6]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail DSS ESAP Application to: ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202 (form access via dss.sc.gov).[1]\",\n      \"Phone: 1-888-898-0055 for ESAP/SCCAP info.[3]\",\n      \"General SNAP: Online via SC EST (dss.sc.gov), local DSS offices in-person, or mail.[1][3]\"\n    ],\n    \"processing_time\": \"Benefits from date application filed if eligible; notified in writing of decision (no specific timeline stated).[1]\",\n    \"waitlist\": null,\n    \"forms\": [\"DSS ESAP Application\"],\n    \"documents\": [\n      \"Proof of income (Social Security, pension, etc.), age, identity, residency, medical expenses if claiming deductions, assets if applicable.[2][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Local DSS county offices for general SNAP; central mail for ESAP\"]\n  },\n  \"official_source\": \"https://dss.sc.gov/assistance-programs/snap/\",\n  \"gotchas\": [\n    \"ESAP requires NO earned income for household and not on SCCAP; otherwise standard SNAP rules apply.[1][5]\",\n    \"Even with no asset limit, application may ask for assets.[2]\",\n    \"Social Security, pensions count as income.[3][4]\",\n    \"ESAP simplifies: no interview, 36-month certification, data matches reduce verification.[5]\",\n    \"New 2025 federal work requirement changes may affect (though elderly exempt).[6][9]\"\n  ],\n  \"data_shape_notes\": \"Elderly-specific ESAP streamlines process (no earned income, simplified app/recert); expanded SC income limits beyond federal; benefits calculated via net income formula with elderly deductions; scales by household size.\"\n}"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross monthly household income must be at or below approximately 60% of South Carolina Median Income (SMI), varying by household size. From one source: 1 person $2,666/month; 2 $3,486; 3 $4,306; 4 $5,127; 5 $5,947; 6 $6,767. Another source table: 1 $2,332.83 monthly/$27,994 annual; 2 $3,050.58/$36,607; 3 $3,768.42/$45,221; 4 $4,486.25/$53,835; 5 $5,204/$62,448; 6 $5,921.83/$71,062; 7 $6,056.42/$72,677; 8 $6,191/$74,292; 9 $6,325.58/$75,907; 10 $6,460.17/$77,522[1][2][3].",
+        "asset_limits": "No asset limits mentioned in available sources[1][2][3].",
+        "other_requirements": [
+          "Household must include at least one member responsible for the energy bill (homeowners or renters; renters need itemized bill if included in rent)[6].",
+          "U.S. citizenship or eligible status required[6].",
+          "Priority for vulnerable households: elderly (60+), disabled (proof required), young children (5 and under), high energy users with lowest incomes, veterans, persons not previously served[1][3]."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payments to utility companies for heating/cooling: max heating $850, cooling $775, crisis $1,500; mins $200 each. Up to 2 services per calendar year, up to $1,500 per service. Additional benefits for elderly/disabled. Also crisis assistance, weatherization/energy repairs[1][2][6].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Community Action Agency by county (map via oeo.sc.gov or call 803-734-0662)[6][7].",
+          "Toll-free: 866-674-6327[8].",
+          "Cayce office: 803-794-6778[8].",
+          "Online pre-screen: liheap.acf.hhs.gov/eligibility-tool[8]."
+        ],
+        "processing_time": "Not specified in sources; varies by agency and funds availability[7].",
+        "waitlist": "Funds limited, services until exhausted; priority processing for vulnerable[1][3].",
+        "forms": [
+          "Agency-specific application forms reviewed for eligibility[7]."
+        ],
+        "documents": [
+          "ID, SSN, proof of citizenship, rental agreement if applicable, proof of income(s), tax records, energy bills in household member's name[6]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all SC counties via local Community Action Agencies[4][6][7].",
+        "regional_variations": "Administered by county-specific Community Action Agencies (e.g., GLEAMNS for Greenwood, Laurens, etc.); potential differences in processing, providers, wait times[4][6].",
+        "offices_or_providers": [
+          "Local Community Action Agencies; find via oeo.sc.gov map or 803-734-0662[6][7]."
+        ]
+      },
+      "official_source": "https://oeo.sc.gov/managedsites/prd/oeo/liheap.html[7]",
+      "gotchas": [
+        "Must apply through county-specific Community Action Agency, not statewide directly[6][7].",
+        "Energy bill must be in a household member's name; renters need itemized if in rent[6].",
+        "Funds exhaust quickly; priority to vulnerable (elderly 60+, disabled, young kids); not year-round (heating fall/winter, cooling summer, crisis anytime)[1][2].",
+        "Up to 2 services/year max; income based on gross monthly, includes all at address[2][6].",
+        "Disabled requires proof[1]."
+      ],
+      "data_shape_notes": "County-administered via Community Action Agencies with priority tiers for vulnerable (elderly/disabled get extras); income ~60% SMI table by household size; benefits capped by type/season with crisis higher; funds limited per region.",
+      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross monthly household income must be at or below approximately 60% of South Carolina Median Income (SMI), varying by household size. From one source: 1 person $2,666/month; 2 $3,486; 3 $4,306; 4 $5,127; 5 $5,947; 6 $6,767. Another source table: 1 $2,332.83 monthly/$27,994 annual; 2 $3,050.58/$36,607; 3 $3,768.42/$45,221; 4 $4,486.25/$53,835; 5 $5,204/$62,448; 6 $5,921.83/$71,062; 7 $6,056.42/$72,677; 8 $6,191/$74,292; 9 $6,325.58/$75,907; 10 $6,460.17/$77,522[1][2][3].\",\n    \"asset_limits\": \"No asset limits mentioned in available sources[1][2][3].\",\n    \"other_requirements\": [\n      \"Household must include at least one member responsible for the energy bill (homeowners or renters; renters need itemized bill if included in rent)[6].\",\n      \"U.S. citizenship or eligible status required[6].\",\n      \"Priority for vulnerable households: elderly (60+), disabled (proof required), young children (5 and under), high energy users with lowest incomes, veterans, persons not previously served[1][3].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payments to utility companies for heating/cooling: max heating $850, cooling $775, crisis $1,500; mins $200 each. Up to 2 services per calendar year, up to $1,500 per service. Additional benefits for elderly/disabled. Also crisis assistance, weatherization/energy repairs[1][2][6].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Action Agency by county (map via oeo.sc.gov or call 803-734-0662)[6][7].\",\n      \"Toll-free: 866-674-6327[8].\",\n      \"Cayce office: 803-794-6778[8].\",\n      \"Online pre-screen: liheap.acf.hhs.gov/eligibility-tool[8].\"\n    ],\n    \"processing_time\": \"Not specified in sources; varies by agency and funds availability[7].\",\n    \"waitlist\": \"Funds limited, services until exhausted; priority processing for vulnerable[1][3].\",\n    \"forms\": [\"Agency-specific application forms reviewed for eligibility[7].\"],\n    \"documents\": [\n      \"ID, SSN, proof of citizenship, rental agreement if applicable, proof of income(s), tax records, energy bills in household member's name[6].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all SC counties via local Community Action Agencies[4][6][7].\",\n    \"regional_variations\": \"Administered by county-specific Community Action Agencies (e.g., GLEAMNS for Greenwood, Laurens, etc.); potential differences in processing, providers, wait times[4][6].\",\n    \"offices_or_providers\": [\"Local Community Action Agencies; find via oeo.sc.gov map or 803-734-0662[6][7].\"]\n  },\n  \"official_source\": \"https://oeo.sc.gov/managedsites/prd/oeo/liheap.html[7]\",\n  \"gotchas\": [\n    \"Must apply through county-specific Community Action Agency, not statewide directly[6][7].\",\n    \"Energy bill must be in a household member's name; renters need itemized if in rent[6].\",\n    \"Funds exhaust quickly; priority to vulnerable (elderly 60+, disabled, young kids); not year-round (heating fall/winter, cooling summer, crisis anytime)[1][2].\",\n    \"Up to 2 services/year max; income based on gross monthly, includes all at address[2][6].\",\n    \"Disabled requires proof[1].\"\n  ],\n  \"data_shape_notes\": \"County-administered via Community Action Agencies with priority tiers for vulnerable (elderly/disabled get extras); income ~60% SMI table by household size; benefits capped by type/season with crisis higher; funds limited per region.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Households at or below 200% of the federal poverty level. Exact dollar amounts vary by household size and are checked against a chart provided by local agencies (e.g., Carolina Community Actions provides a family size-based monthly/annual table; add specific amount per additional member). Automatic eligibility for SSI or Aid to Families with Dependent Children recipients.[1][2][3]",
+        "asset_limits": "No asset limits mentioned.[1][2][3]",
+        "other_requirements": [
+          "South Carolina resident needing help with home energy costs.",
+          "Preference for elderly (60+), disabled households, or those with children under 18 (or 17 per some sources).",
+          "Home not weatherized in last 15 years.",
+          "Proof of income for all household members.",
+          "Renters eligible with landlord permission; homeowners need proof of ownership.[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free home weatherization to improve energy efficiency, health, and safety. Includes insulation, air infiltration measures, addressing health/safety issues (e.g., carbon monoxide, combustion safety). No specific dollar amount or hours; measures based on professional assessment.[3][7]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local community action agency (8 agencies cover all 46 counties; find via oeo.sc.gov or energyfundsforall.org).[1][4]",
+          "In-person or mail documents to agency (e.g., Carolina Community Actions, Palmetto CAP).[2][7]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not specified; may vary by region or funding.",
+        "forms": [
+          "No specific form name/number listed; intake via local agency."
+        ],
+        "documents": [
+          "Valid SC driver's license or picture ID (street address matching home) for all 18+.",
+          "Original Social Security card for all household members.",
+          "Income verification for 30 days (e.g., current year Social Security award letter, pension statement, consecutive payroll receipts, DSS food stamp report; no bank statements).",
+          "Current electric bill (and gas bill if applicable; applicant/household name on bill).",
+          "Homeowners: county tax receipt.",
+          "Renters: written landlord permission.",
+          "Proof of disability if claiming preference.[2][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "All 46 counties covered.",
+        "regional_variations": "Administered by 8 community action agencies with designated service areas (e.g., ABCCAA, Carolina Community Actions, Palmetto CAP for Charleston/Berkeley/Dorchester/Beaufort/Jasper). Variations in providers, documentation processes, wait times possible.[1][3][4][7]",
+        "offices_or_providers": [
+          "8 community action agencies (listed in SC State Plan; e.g., ABCCAA, Carolina Community Actions, Palmetto Community Action Partnership)."
+        ]
+      },
+      "official_source": "https://oeo.sc.gov/ (SC Office of Economic Opportunity administers; see State Plan for agencies)",
+      "gotchas": [
+        "Must use local community action agency—program not centralized; find your agency's service area.",
+        "Income proof strictly for 30 days/current year specific documents only (no bank statements).",
+        "ID must match home address; all household members' docs required.",
+        "Homes weatherized in last 15 years ineligible.",
+        "Priority to elderly/disabled/children households—others may wait longer.",
+        "Renters need landlord permission.[1][2][3]"
+      ],
+      "data_shape_notes": "Administered via 8 regional community action agencies covering all counties; eligibility at 200% FPL with priority tiers; documentation highly specific to agency guidelines.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Households at or below 200% of the federal poverty level. Exact dollar amounts vary by household size and are checked against a chart provided by local agencies (e.g., Carolina Community Actions provides a family size-based monthly/annual table; add specific amount per additional member). Automatic eligibility for SSI or Aid to Families with Dependent Children recipients.[1][2][3]\",\n    \"asset_limits\": \"No asset limits mentioned.[1][2][3]\",\n    \"other_requirements\": [\n      \"South Carolina resident needing help with home energy costs.\",\n      \"Preference for elderly (60+), disabled households, or those with children under 18 (or 17 per some sources).\",\n      \"Home not weatherized in last 15 years.\",\n      \"Proof of income for all household members.\",\n      \"Renters eligible with landlord permission; homeowners need proof of ownership.[1][2][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free home weatherization to improve energy efficiency, health, and safety. Includes insulation, air infiltration measures, addressing health/safety issues (e.g., carbon monoxide, combustion safety). No specific dollar amount or hours; measures based on professional assessment.[3][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local community action agency (8 agencies cover all 46 counties; find via oeo.sc.gov or energyfundsforall.org).[1][4]\",\n      \"In-person or mail documents to agency (e.g., Carolina Community Actions, Palmetto CAP).[2][7]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not specified; may vary by region or funding.\",\n    \"forms\": [\"No specific form name/number listed; intake via local agency.\"],\n    \"documents\": [\n      \"Valid SC driver's license or picture ID (street address matching home) for all 18+.\",\n      \"Original Social Security card for all household members.\",\n      \"Income verification for 30 days (e.g., current year Social Security award letter, pension statement, consecutive payroll receipts, DSS food stamp report; no bank statements).\",\n      \"Current electric bill (and gas bill if applicable; applicant/household name on bill).\",\n      \"Homeowners: county tax receipt.\",\n      \"Renters: written landlord permission.\",\n      \"Proof of disability if claiming preference.[2][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"All 46 counties covered.\",\n    \"regional_variations\": \"Administered by 8 community action agencies with designated service areas (e.g., ABCCAA, Carolina Community Actions, Palmetto CAP for Charleston/Berkeley/Dorchester/Beaufort/Jasper). Variations in providers, documentation processes, wait times possible.[1][3][4][7]\",\n    \"offices_or_providers\": [\n      \"8 community action agencies (listed in SC State Plan; e.g., ABCCAA, Carolina Community Actions, Palmetto Community Action Partnership).\"\n    ]\n  },\n  \"official_source\": \"https://oeo.sc.gov/ (SC Office of Economic Opportunity administers; see State Plan for agencies)\",\n  \"gotchas\": [\n    \"Must use local community action agency—program not centralized; find your agency's service area.\",\n    \"Income proof strictly for 30 days/current year specific documents only (no bank statements).\",\n    \"ID must match home address; all household members' docs required.\",\n    \"Homes weatherized in last 15 years ineligible.\",\n    \"Priority to elderly/disabled/children households—others may wait longer.\",\n    \"Renters need landlord permission.[1][2][3]\"\n  ],\n  \"data_shape_notes\": \"Administered via 8 regional community action agencies covering all counties; eligibility at 200% FPL with priority tiers; documentation highly specific to agency guidelines.\"\n}"
+    },
+    {
+      "name": "SHIP / I-Care",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "No income limits; open to all Medicare-eligible individuals. Medicare eligibility requires age 65 or older, or under 65 with certain disabilities.[4][2]",
+        "asset_limits": "No asset limits or tests apply.[4]",
+        "other_requirements": [
+          "Must be eligible for Medicare (age 65+, or under 65 with disabilities)",
+          "South Carolina resident",
+          "Available to beneficiaries, families, or caregivers[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free personalized health insurance counseling on Medicare and Medicaid options, including plan comparisons, enrollment assistance, prescription assistance review, bill problem resolution, and referrals. Services include help with Medicare health/drug plans, supplements, Medigap, and understanding coverage changes.[2][4]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-868-9095[7]",
+          "In-person or contact local providers like Lt. Governor’s Office on Aging at 1301 Gervais Street, Suite 350, Columbia SC 29201[6]",
+          "Local SHIP counselors via area agencies (e.g., Appalachian Area Agency on Aging, CareSouth Carolina locations)[2][5]"
+        ],
+        "processing_time": "Immediate counseling upon contact; no formal processing as it's not an entitlement program[2][4]",
+        "waitlist": null,
+        "forms": [
+          "SHIP Medicare Worksheet (downloadable from local providers like scacog.org)[2]"
+        ],
+        "documents": [
+          "Medicare card",
+          "Medicare Summary Notice (MSN) or bills if resolving issues",
+          "List of current medications and insurance details for plan comparisons[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Delivered through local area agencies on aging and providers (e.g., CareSouth Carolina in Hartsville, Chesterfield; Appalachian Area Agency), with varying office hours and locations, but uniform statewide service model[2][5]",
+        "offices_or_providers": [
+          "Lt. Governor’s Office on Aging, 1301 Gervais Street, Suite 350, Columbia SC 29201[6]",
+          "Local contacts via 1-800-868-9095[7]"
+        ]
+      },
+      "official_source": "https://www.shiphelp.org/ships/south-carolina/[7]",
+      "gotchas": [
+        "Not a direct service or financial benefit program—provides counseling and referrals only, not healthcare or payments[4]",
+        "Does not cover non-medical personal care like bathing/dressing[4]",
+        "Plans change annually; counseling recommended during Open Enrollment (Oct 15-Dec 7)[4]",
+        "Funded federally, independent of insurance companies[2]"
+      ],
+      "data_shape_notes": "Counseling-only program with no financial eligibility tests; delivered via statewide network of local counselors and agencies",
+      "_raw": "{\n  \"name\": \"SHIP / I-Care\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"No income limits; open to all Medicare-eligible individuals. Medicare eligibility requires age 65 or older, or under 65 with certain disabilities.[4][2]\",\n    \"asset_limits\": \"No asset limits or tests apply.[4]\",\n    \"other_requirements\": [\"Must be eligible for Medicare (age 65+, or under 65 with disabilities)\", \"South Carolina resident\", \"Available to beneficiaries, families, or caregivers[2][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free personalized health insurance counseling on Medicare and Medicaid options, including plan comparisons, enrollment assistance, prescription assistance review, bill problem resolution, and referrals. Services include help with Medicare health/drug plans, supplements, Medigap, and understanding coverage changes.[2][4]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-868-9095[7]\", \"In-person or contact local providers like Lt. Governor’s Office on Aging at 1301 Gervais Street, Suite 350, Columbia SC 29201[6]\", \"Local SHIP counselors via area agencies (e.g., Appalachian Area Agency on Aging, CareSouth Carolina locations)[2][5]\"],\n    \"processing_time\": \"Immediate counseling upon contact; no formal processing as it's not an entitlement program[2][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"SHIP Medicare Worksheet (downloadable from local providers like scacog.org)[2]\"],\n    \"documents\": [\"Medicare card\", \"Medicare Summary Notice (MSN) or bills if resolving issues\", \"List of current medications and insurance details for plan comparisons[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Delivered through local area agencies on aging and providers (e.g., CareSouth Carolina in Hartsville, Chesterfield; Appalachian Area Agency), with varying office hours and locations, but uniform statewide service model[2][5]\",\n    \"offices_or_providers\": [\"Lt. Governor’s Office on Aging, 1301 Gervais Street, Suite 350, Columbia SC 29201[6]\", \"Local contacts via 1-800-868-9095[7]\"]\n  },\n  \"official_source\": \"https://www.shiphelp.org/ships/south-carolina/[7]\",\n  \"gotchas\": [\"Not a direct service or financial benefit program—provides counseling and referrals only, not healthcare or payments[4]\", \"Does not cover non-medical personal care like bathing/dressing[4]\", \"Plans change annually; counseling recommended during Open Enrollment (Oct 15-Dec 7)[4]\", \"Funded federally, independent of insurance companies[2]\"],\n  \"data_shape_notes\": \"Counseling-only program with no financial eligibility tests; delivered via statewide network of local counselors and agencies\"\n}"
+    },
+    {
+      "name": "Congregate Meals / Home Delivered Meals",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits for core Older Americans Act (OAA) funded programs; income not considered. Medicaid programs (e.g., Community Choices, HCBS waivers) require Medicaid eligibility, which has income limits varying by program and household size (specific dollar amounts not detailed in sources; verify via SCDHHS). Suggested contribution based on ability to pay for some funding sources.",
+        "asset_limits": "No asset limits specified.",
+        "other_requirements": [
+          "For home-delivered meals: 60+, homebound/ill/incapacitated, unable to leave home unassisted except for medical appointments, unable to purchase/prepare food due to disability, no one in home able to prepare meals daily.",
+          "Spouses of any age qualify if living with eligible 60+ person.",
+          "For Medicaid HDM: Enrolled in Medicaid HCBS waiver or Community Long Term Care (CLTC); verified by provider monthly.",
+          "Congregate meals: 60+, ability to attend group settings (optional socialization)."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Congregate: Hot/frozen nutritious meals (1/3 RDA, diets like regular, diabetic, mechanical soft, pureed, no salt) served in group settings with socialization, activities (fitness, education, outings). Home-delivered: 1- meals/day, fresh/frozen tailored to conditions (diabetic, cardiac, renal); year-round for homebound.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) or provider: e.g., Appalachian COG (864.242.9733, 1.800.434.4036); Cherokee County Senior Centers (864-489-3868); Oconee SENIOR Solutions (864-885-1000).",
+          "For Medicaid/Community Choices: Contact local Community Long-Term Care office or care manager.",
+          "Must be approved; referrals for Medicaid via SCDHHS."
+        ],
+        "processing_time": "Providers must accept/decline referrals within 2 working days (Medicaid); approval process varies by local AAA.",
+        "waitlist": "Not specified; regional variations likely due to demand.",
+        "forms": [
+          "No specific form names/numbers listed; use SCDHHS Phoenix Provider Portal for eligibility verification (providers)."
+        ],
+        "documents": [
+          "Medicaid card/eligibility proof (for Medicaid track); proof of age, residency, disability/homebound status."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via 6 AAAs and local providers; home-delivered limited to certain counties by provider (e.g., Cherokee/Oconee via specific centers).",
+        "regional_variations": "Administered by local AAAs (e.g., Appalachian COG, Piedmont Agency on Aging); different providers, contacts, diets available; wait times/demand vary; some rely on donations for full cost coverage.",
+        "offices_or_providers": [
+          "SC Department on Aging (SCDOA) coordinates.",
+          "Local AAAs: Appalachian COG, Piedmont Agency on Aging, Upstate Circle of Friends (Greenville), Senior Centers of Cherokee County, SENIOR Solutions (Oconee)."
+        ]
+      },
+      "official_source": "https://aging.sc.gov/ (SCDOA); https://www.scdhhs.gov/ (Medicaid HDM)",
+      "gotchas": [
+        "Two tracks: OAA (no income test, age 60+, local AAA) vs. Medicaid (stricter eligibility, homebound required).",
+        "Suggested donations cover partial costs; not fully free.",
+        "Home-delivered strictly for incapacitated/homebound; congregate requires ability to attend.",
+        "Must reconfirm eligibility monthly (Medicaid); service ends if institutionalized or moves.",
+        "Regional: Contact local AAA/provider, not centralized application.",
+        "Non-Medicaid: Purchase options exist if ineligible (e.g., Mom's Meals $9.49/meal)."
+      ],
+      "data_shape_notes": "Blended OAA Title III/VI (no income test, age 60+) and Medicaid HCBS/CLTC (Medicaid eligible only); decentralized via 6 regional AAAs with unique providers/contacts; home-delivered county-limited by provider capacity.",
+      "_raw": "{\n  \"name\": \"Congregate Meals / Home Delivered Meals\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits for core Older Americans Act (OAA) funded programs; income not considered. Medicaid programs (e.g., Community Choices, HCBS waivers) require Medicaid eligibility, which has income limits varying by program and household size (specific dollar amounts not detailed in sources; verify via SCDHHS). Suggested contribution based on ability to pay for some funding sources.\",\n    \"asset_limits\": \"No asset limits specified.\",\n    \"other_requirements\": [\n      \"For home-delivered meals: 60+, homebound/ill/incapacitated, unable to leave home unassisted except for medical appointments, unable to purchase/prepare food due to disability, no one in home able to prepare meals daily.\",\n      \"Spouses of any age qualify if living with eligible 60+ person.\",\n      \"For Medicaid HDM: Enrolled in Medicaid HCBS waiver or Community Long Term Care (CLTC); verified by provider monthly.\",\n      \"Congregate meals: 60+, ability to attend group settings (optional socialization).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Congregate: Hot/frozen nutritious meals (1/3 RDA, diets like regular, diabetic, mechanical soft, pureed, no salt) served in group settings with socialization, activities (fitness, education, outings). Home-delivered: 1- meals/day, fresh/frozen tailored to conditions (diabetic, cardiac, renal); year-round for homebound.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA) or provider: e.g., Appalachian COG (864.242.9733, 1.800.434.4036); Cherokee County Senior Centers (864-489-3868); Oconee SENIOR Solutions (864-885-1000).\",\n      \"For Medicaid/Community Choices: Contact local Community Long-Term Care office or care manager.\",\n      \"Must be approved; referrals for Medicaid via SCDHHS.\"\n    ],\n    \"processing_time\": \"Providers must accept/decline referrals within 2 working days (Medicaid); approval process varies by local AAA.\",\n    \"waitlist\": \"Not specified; regional variations likely due to demand.\",\n    \"forms\": [\"No specific form names/numbers listed; use SCDHHS Phoenix Provider Portal for eligibility verification (providers).\"],\n    \"documents\": [\"Medicaid card/eligibility proof (for Medicaid track); proof of age, residency, disability/homebound status.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via 6 AAAs and local providers; home-delivered limited to certain counties by provider (e.g., Cherokee/Oconee via specific centers).\",\n    \"regional_variations\": \"Administered by local AAAs (e.g., Appalachian COG, Piedmont Agency on Aging); different providers, contacts, diets available; wait times/demand vary; some rely on donations for full cost coverage.\",\n    \"offices_or_providers\": [\n      \"SC Department on Aging (SCDOA) coordinates.\",\n      \"Local AAAs: Appalachian COG, Piedmont Agency on Aging, Upstate Circle of Friends (Greenville), Senior Centers of Cherokee County, SENIOR Solutions (Oconee).\"\n    ]\n  },\n  \"official_source\": \"https://aging.sc.gov/ (SCDOA); https://www.scdhhs.gov/ (Medicaid HDM)\",\n  \"gotchas\": [\n    \"Two tracks: OAA (no income test, age 60+, local AAA) vs. Medicaid (stricter eligibility, homebound required).\",\n    \"Suggested donations cover partial costs; not fully free.\",\n    \"Home-delivered strictly for incapacitated/homebound; congregate requires ability to attend.\",\n    \"Must reconfirm eligibility monthly (Medicaid); service ends if institutionalized or moves.\",\n    \"Regional: Contact local AAA/provider, not centralized application.\",\n    \"Non-Medicaid: Purchase options exist if ineligible (e.g., Mom's Meals $9.49/meal).\"\n  ],\n  \"data_shape_notes\": \"Blended OAA Title III/VI (no income test, age 60+) and Medicaid HCBS/CLTC (Medicaid eligible only); decentralized via 6 regional AAAs with unique providers/contacts; home-delivered county-limited by provider capacity.\"\n}"
+    },
+    {
+      "name": "Respite Care Services",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results, while containing detailed program information, do not include several critical data points you've specified as essential.\n\nHere's what the search results **do** clearly establish:\n\n**What IS Available:**\n- **Eligibility**: Age requirements vary by waiver type (Community Choices: 65+ or 18-64 if physically disabled; ID/RD Waiver: all ages with intellectual/related disabilities; HASCI Waiver: individuals 18-64 with head/spinal cord injuries)[2][4][5]\n- **Functional requirement**: Applicants must require Nursing Facility Level of Care (NFLOC), demonstrated by inability to independently complete Activities of Daily Living (ADLs: mobility, eating, toileting, bathing, dressing, transitioning)[2]\n- **Asset limits exist**: Home equity interest capped at $730,000 (2025); primary home, household items, and one vehicle are exempt[2]\n- **Services provided**: Temporary care in licensed Community Residential Care Facilities (CRCFs) or family-arranged respite, measured in patient-days[3][1]\n- **Caregiver restrictions**: Cannot be a spouse, parent of minor, stepparent, foster parent, legal guardian, or legally responsible adult; relatives may be paid caregivers[8][4]\n\n**What IS NOT in the search results:**\n- Specific income limits or dollar amounts\n- Specific dollar values or hours of service provided\n- Exact processing timelines or waitlist information\n- Specific phone numbers or application URLs\n- Specific form numbers beyond references to general directives\n- Regional variations in wait times or provider availability\n- County-by-county restrictions\n\n**Recommendation**: Contact the **SC Department of Health and Human Services (SCDHHS) Community Long-Term Care Office** directly[4] or the **SC Department of Disabilities and Special Needs (DDSN)** for the specific quantitative data, application procedures, and regional details your guide requires. The search results reference these as the authoritative sources but don't include their contact information or detailed operational procedures."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_parseError": true,
+      "_raw": "I can provide substantial information about SCSEP based on the search results, but I must be transparent about significant gaps that prevent me from delivering the comprehensive, hyper-specific guide you've requested.\n\n## What I Can Confirm\n\n**Eligibility (Partial):**\n- **Age:** 55 and older[1][2]\n- **Income limit:** Family income no more than 125% of the federal poverty level[1][2]\n- **Employment status:** Must be unemployed[1][2]\n- **Priority enrollment:** Veterans and qualified spouses (first priority), then individuals over 65, with disabilities, low literacy/limited English, rural residents, homeless/at-risk, low employment prospects, or unsuccessful with American Job Center services[1][2]\n\n**What You Get (Specific):**\n- Average of 20 hours per week of paid work[1][2][3]\n- Paid at the highest of federal, state, or local minimum wage[1][2][3]\n- On-the-job training in community service roles (schools, hospitals, day-care centers, senior centers)[1][2]\n- Employment assistance through American Job Centers[1][2]\n- Average training period of 36 months[1]\n- Success metric: ~48% secure unsubsidized employment; 80% retain employment for 12+ months[1]\n\n**South Carolina Specifics:**\n- Palmetto Goodwill administers SCSEP in South Carolina[5]\n- Goodwill received a $22,129,747 grant for program year 2025 (90% federal, 10% non-federal)[5][7]\n\n## Critical Gaps in Available Information\n\nThe search results **do not contain**:\n\n1. **Exact dollar income limits** — The 125% federal poverty level threshold varies by household size, but the actual dollar amounts are not provided in these results\n2. **Asset limits** — No information available\n3. **Specific application methods for South Carolina** — No phone numbers, websites, mail addresses, or in-person office locations for SC enrollment\n4. **Processing times or waitlist information** — Not documented\n5. **Required documents** — Not specified\n6. **Regional variations within South Carolina** — Whether different counties have different providers, wait times, or eligibility nuances\n7. **Application forms** — No specific form names or numbers provided\n\n## What I Recommend\n\nTo build the comprehensive guide you need, you should:\n\n- **Contact Palmetto Goodwill directly** for South Carolina-specific application procedures, office locations, and processing timelines\n- **Visit the U.S. Department of Labor's SCSEP page** (dol.gov/agencies/eta/seniors) for current federal poverty level tables to calculate exact income limits by household size\n- **Check the South Carolina Department of Aging** (aging.sc.gov) for state-level program administration details\n- **Request the specific application forms** from your local provider\n\nI cannot ethically return the JSON structure you requested because populating it with incomplete data would create a false sense of comprehensiveness and potentially mislead families during a critical decision-making process."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific dollar amounts or household size table provided; prioritizes individuals of greatest economic need, with particular attention to low-income minority older individuals, those with limited English proficiency, and rural residents.[1]",
+        "asset_limits": "No asset limits specified in available information.",
+        "other_requirements": [
+          "Greatest economic or social need",
+          "Non-criminal legal matters only",
+          "Provided by an attorney for legal advice and representation[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Legal advice and representation by attorneys in 11 priority areas: Income Protection, Health Care, Long Term Care, Nutrition, Housing, Utilities, Protective Services, Guardianship/Defense Against Guardianship, Abuse, Neglect, Age Discrimination. Funded at approximately $330,000 annually statewide, handling around 1,160 cases per year.[1]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging via GetCareSC.com using ZIP code to find services[2]",
+          "SC Bar Pro Bono Program at (803) 799-6653 for volunteer attorney participation and referrals[1]",
+          "South Carolina Legal Services intake: call 1-888-346-5592 or apply online at sclegal.org[7]",
+          "Regional providers such as Santee-Lynches Regional Council of Governments for referrals[4]"
+        ],
+        "processing_time": "For SC Legal Services, hear from local office within 5-7 business days after application[7]; no statewide processing time specified.",
+        "waitlist": "Not mentioned; may vary by local provider.",
+        "forms": [
+          "Online application via sclegal.org for SC Legal Services; no specific statewide form name/number identified[7]"
+        ],
+        "documents": [
+          "Not explicitly listed; typically income verification and details of legal problem for eligibility screening, as eligibility depends on income and problem type[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide through Area Agencies on Aging, with priority to low-income, minority, limited English, and rural areas[1]",
+        "regional_variations": "Programs vary by county; services delivered through various local Area Agencies on Aging with different providers and partnerships; use ZIP code on GetCareSC.com for local access[2]",
+        "offices_or_providers": [
+          "Area Agencies on Aging throughout the state[1]",
+          "SC Bar Pro Bono Program[1]",
+          "SC Legal Services statewide offices[5]",
+          "Santee-Lynches Regional Council of Governments (regional example)[4]"
+        ]
+      },
+      "official_source": "https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults",
+      "gotchas": [
+        "Not direct application to state agency; must go through local Area Agencies on Aging or partners like SC Legal Services[1][2]",
+        "Prioritizes 'greatest economic or social need'—not automatic for all 60+; competition for limited funds[1]",
+        "Services are free but capacity-limited (e.g., 1,160 cases/year statewide)[1]",
+        "Varies significantly by county/provider; check GetCareSC.com for local availability[2]",
+        "SC Legal Services has separate income-based eligibility[5][7]"
+      ],
+      "data_shape_notes": "Delivered statewide via decentralized local Area Agencies on Aging with varying providers per county/region; no fixed income/asset tables published; priority-based rather than strict cutoffs; funding and case volume tracked annually but not individualized",
+      "_raw": "{\n  \"name\": \"Legal Assistance for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific dollar amounts or household size table provided; prioritizes individuals of greatest economic need, with particular attention to low-income minority older individuals, those with limited English proficiency, and rural residents.[1]\",\n    \"asset_limits\": \"No asset limits specified in available information.\",\n    \"other_requirements\": [\"Greatest economic or social need\", \"Non-criminal legal matters only\", \"Provided by an attorney for legal advice and representation[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Legal advice and representation by attorneys in 11 priority areas: Income Protection, Health Care, Long Term Care, Nutrition, Housing, Utilities, Protective Services, Guardianship/Defense Against Guardianship, Abuse, Neglect, Age Discrimination. Funded at approximately $330,000 annually statewide, handling around 1,160 cases per year.[1]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Area Agency on Aging via GetCareSC.com using ZIP code to find services[2]\", \"SC Bar Pro Bono Program at (803) 799-6653 for volunteer attorney participation and referrals[1]\", \"South Carolina Legal Services intake: call 1-888-346-5592 or apply online at sclegal.org[7]\", \"Regional providers such as Santee-Lynches Regional Council of Governments for referrals[4]\"],\n    \"processing_time\": \"For SC Legal Services, hear from local office within 5-7 business days after application[7]; no statewide processing time specified.\",\n    \"waitlist\": \"Not mentioned; may vary by local provider.\",\n    \"forms\": [\"Online application via sclegal.org for SC Legal Services; no specific statewide form name/number identified[7]\"],\n    \"documents\": [\"Not explicitly listed; typically income verification and details of legal problem for eligibility screening, as eligibility depends on income and problem type[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide through Area Agencies on Aging, with priority to low-income, minority, limited English, and rural areas[1]\",\n    \"regional_variations\": \"Programs vary by county; services delivered through various local Area Agencies on Aging with different providers and partnerships; use ZIP code on GetCareSC.com for local access[2]\",\n    \"offices_or_providers\": [\"Area Agencies on Aging throughout the state[1]\", \"SC Bar Pro Bono Program[1]\", \"SC Legal Services statewide offices[5]\", \"Santee-Lynches Regional Council of Governments (regional example)[4]\"]\n  },\n  \"official_source\": \"https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults\",\n  \"gotchas\": [\"Not direct application to state agency; must go through local Area Agencies on Aging or partners like SC Legal Services[1][2]\", \"Prioritizes 'greatest economic or social need'—not automatic for all 60+; competition for limited funds[1]\", \"Services are free but capacity-limited (e.g., 1,160 cases/year statewide)[1]\", \"Varies significantly by county/provider; check GetCareSC.com for local availability[2]\", \"SC Legal Services has separate income-based eligibility[5][7]\"],\n  \"data_shape_notes\": \"Delivered statewide via decentralized local Area Agencies on Aging with varying providers per county/region; no fixed income/asset tables published; priority-based rather than strict cutoffs; funding and case volume tracked annually but not individualized\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to anyone regardless of financial status.",
+        "asset_limits": "No asset limits; no financial eligibility requirements.",
+        "other_requirements": [
+          "Resident must be in a long-term care facility (nursing homes, assisted living, community residential care facilities, DDSN or DMH facilities) in South Carolina.",
+          "Complaint must relate to quality of care, quality of life, residents' rights, abuse/neglect/exploitation, improper transfers/discharges, or benefits assistance.",
+          "Available to residents, family, friends, facility staff, or any concerned community member filing on behalf of a resident."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Investigation and resolution of complaints; advocacy for residents' rights; assistance with appeals/grievances; education on resident rights and benefits; mediation with facilities; information/referrals on long-term care; promotion of dignity, respect, and quality of care/life. No financial aid, hours, or dollar amounts provided.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Statewide toll-free 1-800-868-9095 (for abuse/neglect or general complaints)[1]",
+          "Phone/Email: Regional offices (e.g., Santee-Lynches: 803-774-1983 or sbrooks@slcog.org[2][4]; Appalachian: 864-242-9733 or ombudintake@scacog.org[3])",
+          "In-person/Walk-in: Regional offices",
+          "Email or outreach events via regional providers"
+        ],
+        "processing_time": "Not specified; ombudsmen investigate promptly and follow up to ensure resolution.",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; complaints filed via phone, email, or in-person."
+        ],
+        "documents": [
+          "No documents needed; provide details of the complaint verbally or in writing. Confidentiality protected unless permission given."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents of long-term care facilities; administered statewide through 10 regional offices covering specific counties (e.g., Santee-Lynches: Clarendon, Lee, Kershaw, Sumter[2][4]; Appalachian: Anderson, Cherokee, Greenville, Oconee, Pickens, Spartanburg[3]).",
+        "regional_variations": "Services delivered via 10 regional offices with local contacts, phone numbers, and managers; contact methods and coverage areas differ by region but core services consistent statewide.",
+        "offices_or_providers": [
+          "State office: South Carolina Department on Aging, 1301 Gervais Street, Suite 350, Columbia, SC 29201 (803-734-9900)[1][6]",
+          "10 regional offices (examples: Santee-Lynches Regional Council of Governments[2][4], Appalachian Council of Governments[3])"
+        ]
+      },
+      "official_source": "https://aging.sc.gov/programs-initiatives/long-term-care-ombudsman-program",
+      "gotchas": [
+        "Not a healthcare or financial benefits program—purely advocacy for complaints in facilities; does not provide direct services like care or payments.",
+        "Only for long-term care facility residents, not community-dwelling adults (separate reporting for community abuse).",
+        "Complaints handled confidentially, but identity may need disclosure for resolution (resident chooses).",
+        "Anyone can file, but focus is protecting facility residents."
+      ],
+      "data_shape_notes": "no income/asset/age test; advocacy-only for LTC facility residents; delivered via 10 regional offices with local contacts; free statewide service under Older Americans Act.",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to anyone regardless of financial status.\",\n    \"asset_limits\": \"No asset limits; no financial eligibility requirements.\",\n    \"other_requirements\": [\"Resident must be in a long-term care facility (nursing homes, assisted living, community residential care facilities, DDSN or DMH facilities) in South Carolina.\", \"Complaint must relate to quality of care, quality of life, residents' rights, abuse/neglect/exploitation, improper transfers/discharges, or benefits assistance.\", \"Available to residents, family, friends, facility staff, or any concerned community member filing on behalf of a resident.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Investigation and resolution of complaints; advocacy for residents' rights; assistance with appeals/grievances; education on resident rights and benefits; mediation with facilities; information/referrals on long-term care; promotion of dignity, respect, and quality of care/life. No financial aid, hours, or dollar amounts provided.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Statewide toll-free 1-800-868-9095 (for abuse/neglect or general complaints)[1]\", \"Phone/Email: Regional offices (e.g., Santee-Lynches: 803-774-1983 or sbrooks@slcog.org[2][4]; Appalachian: 864-242-9733 or ombudintake@scacog.org[3])\", \"In-person/Walk-in: Regional offices\", \"Email or outreach events via regional providers\"],\n    \"processing_time\": \"Not specified; ombudsmen investigate promptly and follow up to ensure resolution.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; complaints filed via phone, email, or in-person.\"],\n    \"documents\": [\"No documents needed; provide details of the complaint verbally or in writing. Confidentiality protected unless permission given.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents of long-term care facilities; administered statewide through 10 regional offices covering specific counties (e.g., Santee-Lynches: Clarendon, Lee, Kershaw, Sumter[2][4]; Appalachian: Anderson, Cherokee, Greenville, Oconee, Pickens, Spartanburg[3]).\",\n    \"regional_variations\": \"Services delivered via 10 regional offices with local contacts, phone numbers, and managers; contact methods and coverage areas differ by region but core services consistent statewide.\",\n    \"offices_or_providers\": [\"State office: South Carolina Department on Aging, 1301 Gervais Street, Suite 350, Columbia, SC 29201 (803-734-9900)[1][6]\", \"10 regional offices (examples: Santee-Lynches Regional Council of Governments[2][4], Appalachian Council of Governments[3])\"]\n  },\n  \"official_source\": \"https://aging.sc.gov/programs-initiatives/long-term-care-ombudsman-program\",\n  \"gotchas\": [\"Not a healthcare or financial benefits program—purely advocacy for complaints in facilities; does not provide direct services like care or payments.\", \"Only for long-term care facility residents, not community-dwelling adults (separate reporting for community abuse).\", \"Complaints handled confidentially, but identity may need disclosure for resolution (resident chooses).\", \"Anyone can file, but focus is protecting facility residents.\"],\n  \"data_shape_notes\": \"no income/asset/age test; advocacy-only for LTC facility residents; delivered via 10 regional offices with local contacts; free statewide service under Older Americans Act.\"\n}"
+    },
+    {
+      "name": "Homestead Exemption (State Property Tax Assistance)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "No income limits specified in program requirements[1][2][4]",
+        "asset_limits": "No asset limits specified; however, the exemption applies only to primary legal residence with fair market value consideration[1][4]",
+        "other_requirements": [
+          "Must hold complete fee simple title, life estate, or be beneficiary of trust holding title to primary legal residence[2][4]",
+          "Must be legal resident of South Carolina for one calendar year as of December 31 preceding tax year of exemption[2][4]",
+          "Property must be primary legal residence where applicant resides for majority of year[1]",
+          "Alternatively: Declared totally and permanently disabled by state or federal agency with authority to make declaration[2][4]",
+          "Alternatively: Legally blind as certified by licensed ophthalmologist[2][4]",
+          "Eligible properties: single-family homes, condominiums, mobile/manufactured homes on owned land[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "$50,000 exemption from fair market value of primary residence when calculating county property taxes[1][2][4]; if primary residence valued at $50,000 or less, exempt from all property taxes[7]",
+        "varies_by": "fixed",
+        "note": "Separate creditor homestead exemption (equity protection) exists with limits of $63,250 for individual or $126,500 for married couples/co-owners, but this protects home equity in bankruptcy/civil judgments, not property taxes[1]"
+      },
+      "application": {
+        "methods": [
+          "In-person at county auditor's office or county real property services office[2]",
+          "Mail to county auditor's office (specific address varies by county)",
+          "Phone contact to county auditor's office (varies by county; example: Oconee County requires documentation by mail or in-person after initial contact)"
+        ],
+        "processing_time": "Not specified in search results; one-time application continues automatically once approved[1]",
+        "waitlist": "No waitlist mentioned in search results[1][2][4]",
+        "forms": [
+          "Homestead Exemption Application (specific form number not provided in search results; administered by county auditor's office)[2]"
+        ],
+        "documents": [
+          "For age-based qualification: South Carolina Driver's License, South Carolina ID, or birth certificate[2][3][4]",
+          "For disability-based qualification: Documentation from state or federal agency certifying disability award date (Social Security Administration Reward Letter or Proof of Benefit Form required by some counties)[2][3]",
+          "For legal blindness: Certification from licensed ophthalmologist[2][4]",
+          "Social Security number (required by all counties)[3][4]",
+          "Deed or proof of ownership[4]",
+          "If deed is in multiple names: documentation showing ownership percentages[7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program is statewide under South Carolina Code § 12-37-250[1][2]; application administered by individual county auditor's offices[2]",
+        "regional_variations": "Documentation requirements and application procedures vary slightly by county; for example, Oconee County requires Social Security Administration Proof of Benefit Form for disability claims, while other counties may accept alternative documentation[3]",
+        "offices_or_providers": [
+          "County Auditor's Office (primary jurisdiction)[2]",
+          "County Real Property Services Office (administers applications in some counties like Greenville)[2]",
+          "County Tax Assessor's Office (handles related 4% legal residence assessment, not homestead exemption)[7]"
+        ]
+      },
+      "official_source": "https://dor.sc.gov/property/exempt-property[6]; South Carolina Code § 12-37-250[1]",
+      "gotchas": [
+        "Program is often confused with 'Application for Special Assessment as Legal Residence 4%' administered by Tax Assessor's Office—these are separate programs[7]",
+        "One-year South Carolina residency requirement must be met as of December 31 preceding tax year; moving to South Carolina mid-year does not qualify until following year[2][4]",
+        "If deed is in applicant's name and non-spouse's name, exemption is prorated based on ownership percentage shown on deed; full $50,000 exemption only applies if deed is in applicant's name alone or jointly with spouse[7]",
+        "Exemption applies only to primary legal residence; secondary properties, rentals, and investment homes do not qualify[1]",
+        "Proposed expansion (as of 2025) would offer $75,000 exemption with 5-year residency or $150,000 with 10-year residency, but current law remains $50,000 with 1-year residency[5]",
+        "Disability qualification requires certification from state or federal agency with authority to make declaration; self-certification does not qualify; applicants without existing disability classification may apply to state Vocational Rehabilitation agency[2]",
+        "Application is one-time but counties may have varying documentation requirements for renewal or verification[1]"
+      ],
+      "data_shape_notes": "This program has no income or asset limits, making it accessible to all qualifying elderly, disabled, or legally blind homeowners regardless of financial status. Benefits are fixed at $50,000 exemption (not tiered). Administration is decentralized by county, creating minor regional variations in application procedures and required documentation. The program is often confused with a separate 4% legal residence assessment program. Eligibility hinges on three specific criteria (age/disability/blindness status, ownership type, and residency duration), all of which must be met simultaneously.",
+      "_raw": "```json\n{\n  \"name\": \"Homestead Exemption (State Property Tax Assistance)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"No income limits specified in program requirements[1][2][4]\",\n    \"asset_limits\": \"No asset limits specified; however, the exemption applies only to primary legal residence with fair market value consideration[1][4]\",\n    \"other_requirements\": [\n      \"Must hold complete fee simple title, life estate, or be beneficiary of trust holding title to primary legal residence[2][4]\",\n      \"Must be legal resident of South Carolina for one calendar year as of December 31 preceding tax year of exemption[2][4]\",\n      \"Property must be primary legal residence where applicant resides for majority of year[1]\",\n      \"Alternatively: Declared totally and permanently disabled by state or federal agency with authority to make declaration[2][4]\",\n      \"Alternatively: Legally blind as certified by licensed ophthalmologist[2][4]\",\n      \"Eligible properties: single-family homes, condominiums, mobile/manufactured homes on owned land[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$50,000 exemption from fair market value of primary residence when calculating county property taxes[1][2][4]; if primary residence valued at $50,000 or less, exempt from all property taxes[7]\",\n    \"varies_by\": \"fixed\",\n    \"note\": \"Separate creditor homestead exemption (equity protection) exists with limits of $63,250 for individual or $126,500 for married couples/co-owners, but this protects home equity in bankruptcy/civil judgments, not property taxes[1]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at county auditor's office or county real property services office[2]\",\n      \"Mail to county auditor's office (specific address varies by county)\",\n      \"Phone contact to county auditor's office (varies by county; example: Oconee County requires documentation by mail or in-person after initial contact)\"\n    ],\n    \"processing_time\": \"Not specified in search results; one-time application continues automatically once approved[1]\",\n    \"waitlist\": \"No waitlist mentioned in search results[1][2][4]\",\n    \"forms\": [\n      \"Homestead Exemption Application (specific form number not provided in search results; administered by county auditor's office)[2]\"\n    ],\n    \"documents\": [\n      \"For age-based qualification: South Carolina Driver's License, South Carolina ID, or birth certificate[2][3][4]\",\n      \"For disability-based qualification: Documentation from state or federal agency certifying disability award date (Social Security Administration Reward Letter or Proof of Benefit Form required by some counties)[2][3]\",\n      \"For legal blindness: Certification from licensed ophthalmologist[2][4]\",\n      \"Social Security number (required by all counties)[3][4]\",\n      \"Deed or proof of ownership[4]\",\n      \"If deed is in multiple names: documentation showing ownership percentages[7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is statewide under South Carolina Code § 12-37-250[1][2]; application administered by individual county auditor's offices[2]\",\n    \"regional_variations\": \"Documentation requirements and application procedures vary slightly by county; for example, Oconee County requires Social Security Administration Proof of Benefit Form for disability claims, while other counties may accept alternative documentation[3]\",\n    \"offices_or_providers\": [\n      \"County Auditor's Office (primary jurisdiction)[2]\",\n      \"County Real Property Services Office (administers applications in some counties like Greenville)[2]\",\n      \"County Tax Assessor's Office (handles related 4% legal residence assessment, not homestead exemption)[7]\"\n    ]\n  },\n  \"official_source\": \"https://dor.sc.gov/property/exempt-property[6]; South Carolina Code § 12-37-250[1]\",\n  \"gotchas\": [\n    \"Program is often confused with 'Application for Special Assessment as Legal Residence 4%' administered by Tax Assessor's Office—these are separate programs[7]\",\n    \"One-year South Carolina residency requirement must be met as of December 31 preceding tax year; moving to South Carolina mid-year does not qualify until following year[2][4]\",\n    \"If deed is in applicant's name and non-spouse's name, exemption is prorated based on ownership percentage shown on deed; full $50,000 exemption only applies if deed is in applicant's name alone or jointly with spouse[7]\",\n    \"Exemption applies only to primary legal residence; secondary properties, rentals, and investment homes do not qualify[1]\",\n    \"Proposed expansion (as of 2025) would offer $75,000 exemption with 5-year residency or $150,000 with 10-year residency, but current law remains $50,000 with 1-year residency[5]\",\n    \"Disability qualification requires certification from state or federal agency with authority to make declaration; self-certification does not qualify; applicants without existing disability classification may apply to state Vocational Rehabilitation agency[2]\",\n    \"Application is one-time but counties may have varying documentation requirements for renewal or verification[1]\"\n  ],\n  \"data_shape_notes\": \"This program has no income or asset limits, making it accessible to all qualifying elderly, disabled, or legally blind homeowners regardless of financial status. Benefits are fixed at $50,000 exemption (not tiered). Administration is decentralized by county, creating minor regional variations in application procedures and required documentation. The program is often confused with a separate 4% legal residence assessment program. Eligibility hinges on three specific criteria (age/disability/blindness status, ownership type, and residency duration), all of which must be met simultaneously.\"\n}\n```\n\n**Key Context for Families:**\n\nThe South Carolina Homestead Exemption is a **property tax relief program, not a service program**—it reduces the taxable value of a primary home by $50,000, which directly lowers annual property tax bills[1][2]. This is distinct from programs providing healthcare, in-home services, or financial assistance.\n\n**Critical Application Detail:** The one-year residency requirement is measured as of December 31 of the year *before* the tax year in which exemption is claimed[2][4]. An elderly parent who moves to South Carolina in June 2026 cannot apply until 2027 (for 2028 tax year).\n\n**For Disability Claims:** If your elderly loved one receives Social Security Disability Insurance (SSDI) or Supplemental Security Income (SSI), you'll need the Social Security Administration's \"Proof of Benefit Form\" or \"Reward Letter\" showing the disability award date[3]. Contact Social Security at 1-877-505-4549 to obtain this[3].\n\n**County-Specific Application:** Contact your county auditor's office directly—there is no statewide online application portal. Each county administers its own applications with minor procedural variations[2]."
+    },
+    {
+      "name": "Elderly Simplified Application Project (ESAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Not specified in available sources. Income limits exist but specific dollar amounts by household size are not provided in the search results.[4]",
+        "asset_limits": "Not specified in available sources.",
+        "other_requirements": [
+          "All household members must be age 60 or older[1][4]",
+          "Household members must have no earned income (no salaries from work)[1][4]",
+          "Household must not already receive SNAP benefits under South Carolina Combined Application Project (SCCAP)[1][4]",
+          "Household members must purchase and prepare food together[4]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "SNAP (Supplemental Nutrition Assistance Program) food assistance benefits. Specific benefit amounts are not detailed in available sources but are determined by SNAP eligibility and household circumstances.[1][3]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Mail: Complete DSS ESAP Application (Form 16176) and mail to ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202[1]",
+          "In-person: Initial interview required at DSS office (specific office locations not provided in available sources)"
+        ],
+        "processing_time": "Not specified in available sources. Applicants are notified in writing of the decision on their case.[1]",
+        "waitlist": "Not mentioned in available sources.",
+        "forms": [
+          "DSS Form 16176 (initial application)[4]",
+          "One-page mail-in recertification form (yearly)[4]"
+        ],
+        "documents": [
+          "Limited verification of circumstances required[4]",
+          "Specific documents not detailed in available sources"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified in available sources.",
+        "regional_variations": "Not mentioned in available sources. South Carolina operates a dedicated caseworker unit that specializes in serving seniors statewide.[2]",
+        "offices_or_providers": [
+          "South Carolina Department of Social Services (central mailing address provided; local DSS offices handle applications)"
+        ]
+      },
+      "official_source": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/",
+      "gotchas": [
+        "All household members must be 60+; if any household member is under 60, the household does not qualify for ESAP[1][4]",
+        "Cannot have any earned income; even part-time work disqualifies the household[1][4]",
+        "Cannot already be receiving SNAP under SCCAP; households must choose one program[1][4]",
+        "Recertification interview is waived, but an initial interview is required[4]",
+        "Certification period extends to 36 months with no periodic reporting required after initial approval, reducing administrative burden[3][4]",
+        "South Carolina has achieved a 93% application approval rate since 2015, suggesting very few eligible seniors are denied for procedural reasons[2]",
+        "The program is specifically designed to address barriers elderly people face (transportation, mobility, disability) that prevent SNAP participation[2]"
+      ],
+      "data_shape_notes": "ESAP is a simplified SNAP pathway specifically for elderly households with no earned income. The program's key differentiator is its streamlined process: no recertification interviews, flexible verification, and extended 36-month certification periods. Income limits exist but are not specified in available sources—families should contact their local DSS office for current thresholds. The program requires all household members to be 60+ with zero earned income, making it more restrictive than standard SNAP but easier to navigate administratively. South Carolina's dedicated caseworker unit and 93% approval rate indicate strong implementation, but specific regional office locations and processing timelines are not detailed in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Elderly Simplified Application Project (ESAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Not specified in available sources. Income limits exist but specific dollar amounts by household size are not provided in the search results.[4]\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"All household members must be age 60 or older[1][4]\",\n      \"Household members must have no earned income (no salaries from work)[1][4]\",\n      \"Household must not already receive SNAP benefits under South Carolina Combined Application Project (SCCAP)[1][4]\",\n      \"Household members must purchase and prepare food together[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"SNAP (Supplemental Nutrition Assistance Program) food assistance benefits. Specific benefit amounts are not detailed in available sources but are determined by SNAP eligibility and household circumstances.[1][3]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail: Complete DSS ESAP Application (Form 16176) and mail to ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202[1]\",\n      \"In-person: Initial interview required at DSS office (specific office locations not provided in available sources)\"\n    ],\n    \"processing_time\": \"Not specified in available sources. Applicants are notified in writing of the decision on their case.[1]\",\n    \"waitlist\": \"Not mentioned in available sources.\",\n    \"forms\": [\n      \"DSS Form 16176 (initial application)[4]\",\n      \"One-page mail-in recertification form (yearly)[4]\"\n    ],\n    \"documents\": [\n      \"Limited verification of circumstances required[4]\",\n      \"Specific documents not detailed in available sources\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified in available sources.\",\n    \"regional_variations\": \"Not mentioned in available sources. South Carolina operates a dedicated caseworker unit that specializes in serving seniors statewide.[2]\",\n    \"offices_or_providers\": [\n      \"South Carolina Department of Social Services (central mailing address provided; local DSS offices handle applications)\"\n    ]\n  },\n  \"official_source\": \"https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/\",\n  \"gotchas\": [\n    \"All household members must be 60+; if any household member is under 60, the household does not qualify for ESAP[1][4]\",\n    \"Cannot have any earned income; even part-time work disqualifies the household[1][4]\",\n    \"Cannot already be receiving SNAP under SCCAP; households must choose one program[1][4]\",\n    \"Recertification interview is waived, but an initial interview is required[4]\",\n    \"Certification period extends to 36 months with no periodic reporting required after initial approval, reducing administrative burden[3][4]\",\n    \"South Carolina has achieved a 93% application approval rate since 2015, suggesting very few eligible seniors are denied for procedural reasons[2]\",\n    \"The program is specifically designed to address barriers elderly people face (transportation, mobility, disability) that prevent SNAP participation[2]\"\n  ],\n  \"data_shape_notes\": \"ESAP is a simplified SNAP pathway specifically for elderly households with no earned income. The program's key differentiator is its streamlined process: no recertification interviews, flexible verification, and extended 36-month certification periods. Income limits exist but are not specified in available sources—families should contact their local DSS office for current thresholds. The program requires all household members to be 60+ with zero earned income, making it more restrictive than standard SNAP but easier to navigate administratively. South Carolina's dedicated caseworker unit and 93% approval rate indicate strong implementation, but specific regional office locations and processing timelines are not detailed in available sources.\"\n}\n```\n\n## Key Information for Families\n\n**What ESAP Actually Does:** ESAP streamlines SNAP (food assistance) for elderly households by eliminating the recertification interview requirement and extending benefits certification to 36 months instead of the typical shorter period.[3][4] This means seniors apply once and receive benefits for three years without having to reapply or attend interviews annually.\n\n**Critical Eligibility Barrier:** The most restrictive requirement is that **all household members must be 60+ with absolutely no earned income**.[1][4] This means if an elderly parent lives with an adult child who works, or if the senior has any wages from employment, they don't qualify. Unearned income (Social Security, pensions, etc.) is permitted.\n\n**Application Reality:** You must mail a completed form to the state office; there is no online application option mentioned in available sources.[1] An initial in-person interview is required, though recertification interviews are waived.[4] The search results do not specify processing timelines or local office locations.\n\n**What's Missing from Available Sources:** The search results do not include specific income limits by household size, asset limits, required documents beyond \"limited verification,\" processing times, or local office addresses. Families will need to contact their local South Carolina Department of Social Services office directly for these details.\n\n**Why This Program Exists:** Only 34% of eligible seniors nationally participate in SNAP, largely due to application complexity and barriers like transportation and mobility issues.[6] ESAP was designed specifically to address this gap."
+    },
+    {
+      "name": "Senior Farmers Market Nutrition Program (SFMNP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Household gross income cannot exceed 185% of federal poverty income guidelines. Specific dollar amounts vary by household size and year. One source cites $27,861 for individuals and $37,814 for couples, but this appears to be from a specific distribution year and may not reflect current federal poverty thresholds.[1][3]",
+        "asset_limits": "Not specified in available sources.",
+        "other_requirements": [
+          "Must be a resident of South Carolina[2]",
+          "Must reside in one of the 46 counties served by the program[1]",
+          "Must have valid proof of identity (South Carolina Driver's License or State-Issued Identification Card)[2]",
+          "Must apply in-person at an approved distribution location in their county of residence[2]",
+          "Must reapply annually[2]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Five vouchers worth $10 each, totaling $50 per participant per year, redeemable for fresh fruits, vegetables, honey, and herbs at authorized farmers' markets, roadside stands, and community-supported agriculture programs[2][3]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "In-person only at approved distribution locations in your county of residence[2]",
+          "Contact: Willie Nixon, Program Coordinator, Department of Social Services, 803-898-1760, willie.j.nixon@dss.sc.gov[5]"
+        ],
+        "processing_time": "Not specified in available sources. Benefits are issued on a first-come, first-served basis.[2]",
+        "waitlist": "Eligibility determination can result in application approval, referral to waiting list, or denial. Specific waitlist timelines not provided.[2]",
+        "forms": "Application form name/number not specified in available sources. Application must be completed in-person.[2]",
+        "documents": [
+          "Valid South Carolina Driver's License or State-Issued Identification Card[2]",
+          "Self-declaration of annual gross income and household size[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program operates in 46 South Carolina counties. Applicants must reside in their county of residence to apply.[1][2]",
+        "regional_variations": "One source (Moncks Corner) references a $25 total benefit (five $5 vouchers) rather than the standard $50, suggesting possible regional variation, though this may reflect outdated information.[6]",
+        "offices_or_providers": "Distribution occurs through county-level approved locations and senior-serving organizations. Tom's Creek Mobile Market is one authorized vendor. Specific office locations vary by county.[1][2]"
+      },
+      "official_source": "https://dss.sc.gov/assistance-programs/food-and-nutrition-programs/senior-farmers-market/",
+      "gotchas": [
+        "The program is seasonal and runs May 1 through October 15 each year.[6] The 2025 season has concluded; the next season begins Summer 2026.[2]",
+        "Benefits are issued on a first-come, first-served basis, meaning availability is not guaranteed even if eligible.[2]",
+        "Seniors must apply every year; benefits do not carry over.[2]",
+        "Applications must be completed in-person at approved locations in the applicant's county of residence—no online, phone, or mail applications are accepted (though one source mentions online applications as an option, this appears to be location-specific and not universally available).[2][4]",
+        "Income limits are based on 185% of federal poverty guidelines, which change annually. Families should verify current thresholds with their county office rather than relying on historical dollar amounts.[3]",
+        "Vouchers can only be used at authorized farmers' markets and vendors—not all farmers' markets participate.[2]",
+        "The program is administered by the Department of Social Services (for seniors) in partnership with the Department of Agriculture (for farmers), creating a two-agency structure that may affect application processing.[5]"
+      ],
+      "data_shape_notes": "This program's structure is defined by its seasonal nature (May–October annually), first-come-first-served benefit issuance, mandatory annual reapplication, and county-based distribution. Income eligibility is tied to federal poverty guidelines (185% threshold) rather than fixed dollar amounts, requiring annual verification. The program serves 46 counties statewide but operates through decentralized county-level distribution points, creating potential variation in local implementation and wait times. Benefit amounts appear standardized at $50 per participant, though one source suggests regional variation ($25 in some areas). The in-person-only application requirement is a significant structural constraint.",
+      "_raw": "```json\n{\n  \"name\": \"Senior Farmers Market Nutrition Program (SFMNP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Household gross income cannot exceed 185% of federal poverty income guidelines. Specific dollar amounts vary by household size and year. One source cites $27,861 for individuals and $37,814 for couples, but this appears to be from a specific distribution year and may not reflect current federal poverty thresholds.[1][3]\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"Must be a resident of South Carolina[2]\",\n      \"Must reside in one of the 46 counties served by the program[1]\",\n      \"Must have valid proof of identity (South Carolina Driver's License or State-Issued Identification Card)[2]\",\n      \"Must apply in-person at an approved distribution location in their county of residence[2]\",\n      \"Must reapply annually[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Five vouchers worth $10 each, totaling $50 per participant per year, redeemable for fresh fruits, vegetables, honey, and herbs at authorized farmers' markets, roadside stands, and community-supported agriculture programs[2][3]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person only at approved distribution locations in your county of residence[2]\",\n      \"Contact: Willie Nixon, Program Coordinator, Department of Social Services, 803-898-1760, willie.j.nixon@dss.sc.gov[5]\"\n    ],\n    \"processing_time\": \"Not specified in available sources. Benefits are issued on a first-come, first-served basis.[2]\",\n    \"waitlist\": \"Eligibility determination can result in application approval, referral to waiting list, or denial. Specific waitlist timelines not provided.[2]\",\n    \"forms\": \"Application form name/number not specified in available sources. Application must be completed in-person.[2]\",\n    \"documents\": [\n      \"Valid South Carolina Driver's License or State-Issued Identification Card[2]\",\n      \"Self-declaration of annual gross income and household size[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program operates in 46 South Carolina counties. Applicants must reside in their county of residence to apply.[1][2]\",\n    \"regional_variations\": \"One source (Moncks Corner) references a $25 total benefit (five $5 vouchers) rather than the standard $50, suggesting possible regional variation, though this may reflect outdated information.[6]\",\n    \"offices_or_providers\": \"Distribution occurs through county-level approved locations and senior-serving organizations. Tom's Creek Mobile Market is one authorized vendor. Specific office locations vary by county.[1][2]\"\n  },\n  \"official_source\": \"https://dss.sc.gov/assistance-programs/food-and-nutrition-programs/senior-farmers-market/\",\n  \"gotchas\": [\n    \"The program is seasonal and runs May 1 through October 15 each year.[6] The 2025 season has concluded; the next season begins Summer 2026.[2]\",\n    \"Benefits are issued on a first-come, first-served basis, meaning availability is not guaranteed even if eligible.[2]\",\n    \"Seniors must apply every year; benefits do not carry over.[2]\",\n    \"Applications must be completed in-person at approved locations in the applicant's county of residence—no online, phone, or mail applications are accepted (though one source mentions online applications as an option, this appears to be location-specific and not universally available).[2][4]\",\n    \"Income limits are based on 185% of federal poverty guidelines, which change annually. Families should verify current thresholds with their county office rather than relying on historical dollar amounts.[3]\",\n    \"Vouchers can only be used at authorized farmers' markets and vendors—not all farmers' markets participate.[2]\",\n    \"The program is administered by the Department of Social Services (for seniors) in partnership with the Department of Agriculture (for farmers), creating a two-agency structure that may affect application processing.[5]\"\n  ],\n  \"data_shape_notes\": \"This program's structure is defined by its seasonal nature (May–October annually), first-come-first-served benefit issuance, mandatory annual reapplication, and county-based distribution. Income eligibility is tied to federal poverty guidelines (185% threshold) rather than fixed dollar amounts, requiring annual verification. The program serves 46 counties statewide but operates through decentralized county-level distribution points, creating potential variation in local implementation and wait times. Benefit amounts appear standardized at $50 per participant, though one source suggests regional variation ($25 in some areas). The in-person-only application requirement is a significant structural constraint.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Contact the Department of Social Services Program Coordinator, Willie Nixon, at 803-898-1760 or willie.j.nixon@dss.sc.gov to locate the approved distribution site in your county and confirm current income limits for 2026.[5]\n\n**Critical timing issue:** The program runs May 1–October 15 annually and is currently closed (as of April 2026). Applications for the 2026 season will open in May.[2]\n\n**Income verification:** Income limits are based on 185% of federal poverty guidelines, which change yearly. The specific dollar amounts cited in some sources ($27,861 for individuals, $37,814 for couples) are examples from a prior year and should not be used for current eligibility determination.[1][3]\n\n**Application reality:** There is no online, phone, or mail application option. Your elderly loved one (or a representative) must appear in person at an approved location in their county of residence with a valid South Carolina ID.[2] This is a hard requirement.\n\n**Benefit structure:** If approved, participants receive five $10 vouchers (totaling $50) to purchase fresh produce at authorized vendors. These vouchers are not cash and cannot be used at regular grocery stores.[2]"
+    },
+    {
+      "name": "Vantage Point",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific income limits stated in available sources; services prioritize highest need via assessment scoring, often targeting low-income seniors. Financial eligibility assessed case-by-case for programs like vouchers ($25 value for Senior Farmers Market Nutrition Program, first-come first-served).",
+        "asset_limits": "No asset limits specified.",
+        "other_requirements": [
+          "Resident of Pee Dee region (Chesterfield, Darlington, Dillon, Florence, Marion, Marlboro counties)",
+          "Assessed need via Question Pro tool for priority tier",
+          "Reassessed annually"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Information and referral; advocacy for entitlements; insurance counseling (Medicare, Medicaid, long-term care via I-CARE); caregiver support; respite care; meals (home-delivered/non-perishable via partners); Senior Farmers Market Nutrition vouchers ($25 coupons June-Oct); mobility/housing assistance; supplemental services on limited basis; helps maintain independence at home.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: (843) 857-0111 (Hartsville office), 843-383-8632 or toll-free 866-505-3331 (I-CARE)",
+          "In-person: 640 South Fourth Street, PO Box 999, Hartsville, SC 29551",
+          "Contact local Council on Aging for meals/services"
+        ],
+        "processing_time": "Not specified; referrals made as service openings available.",
+        "waitlist": "Yes, maintained by Assessment Coordinator when demand exceeds funding; priority by electronic tier score.",
+        "forms": [
+          "Question Pro Assessment (used for priority scoring)"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare income/asset proof for financial aid screening, ID for residency verification"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Pee Dee region: Chesterfield, Darlington, Dillon, Florence, Marion, Marlboro counties",
+        "regional_variations": "Operates as Area Agency on Aging (AAA) specific to Pee Dee; partners with local Councils on Aging for services like meals; staff shortages noted as barrier in Pee Dee.",
+        "offices_or_providers": [
+          "Hartsville main office (640 South Fourth Street, PO Box 999, Hartsville, SC 29551)",
+          "Division of CareSouth Carolina (FQHC and ADRC)",
+          "Local Councils on Aging for meals/referrals"
+        ]
+      },
+      "official_source": "https://www.caresouth-carolina.com/seniors",
+      "gotchas": [
+        "Not statewide—limited to 6 Pee Dee counties; heavy waitlists due to funding limits and staff shortages; priority-based (highest score first), not first-come; separate veteran program exists but unrelated to elderly family services; voucher programs exhaust supply quickly."
+      ],
+      "data_shape_notes": "Region-restricted AAA with priority tiers via assessment tool; services limited by funding/openings; partners with Councils on Aging; no fixed income/asset tables, need-based scoring.",
+      "_raw": "{\n  \"name\": \"Vantage Point\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits stated in available sources; services prioritize highest need via assessment scoring, often targeting low-income seniors. Financial eligibility assessed case-by-case for programs like vouchers ($25 value for Senior Farmers Market Nutrition Program, first-come first-served).\",\n    \"asset_limits\": \"No asset limits specified.\",\n    \"other_requirements\": [\"Resident of Pee Dee region (Chesterfield, Darlington, Dillon, Florence, Marion, Marlboro counties)\", \"Assessed need via Question Pro tool for priority tier\", \"Reassessed annually\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Information and referral; advocacy for entitlements; insurance counseling (Medicare, Medicaid, long-term care via I-CARE); caregiver support; respite care; meals (home-delivered/non-perishable via partners); Senior Farmers Market Nutrition vouchers ($25 coupons June-Oct); mobility/housing assistance; supplemental services on limited basis; helps maintain independence at home.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (843) 857-0111 (Hartsville office), 843-383-8632 or toll-free 866-505-3331 (I-CARE)\", \"In-person: 640 South Fourth Street, PO Box 999, Hartsville, SC 29551\", \"Contact local Council on Aging for meals/services\"],\n    \"processing_time\": \"Not specified; referrals made as service openings available.\",\n    \"waitlist\": \"Yes, maintained by Assessment Coordinator when demand exceeds funding; priority by electronic tier score.\",\n    \"forms\": [\"Question Pro Assessment (used for priority scoring)\"],\n    \"documents\": [\"Not explicitly listed; prepare income/asset proof for financial aid screening, ID for residency verification\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Pee Dee region: Chesterfield, Darlington, Dillon, Florence, Marion, Marlboro counties\",\n    \"regional_variations\": \"Operates as Area Agency on Aging (AAA) specific to Pee Dee; partners with local Councils on Aging for services like meals; staff shortages noted as barrier in Pee Dee.\",\n    \"offices_or_providers\": [\"Hartsville main office (640 South Fourth Street, PO Box 999, Hartsville, SC 29551)\", \"Division of CareSouth Carolina (FQHC and ADRC)\", \"Local Councils on Aging for meals/referrals\"]\n  },\n  \"official_source\": \"https://www.caresouth-carolina.com/seniors\",\n  \"gotchas\": [\"Not statewide—limited to 6 Pee Dee counties; heavy waitlists due to funding limits and staff shortages; priority-based (highest score first), not first-come; separate veteran program exists but unrelated to elderly family services; voucher programs exhaust supply quickly.\"],\n  \"data_shape_notes\": \"Region-restricted AAA with priority tiers via assessment tool; services limited by funding/openings; partners with Councils on Aging; no fixed income/asset tables, need-based scoring.\"\n}"
+    },
+    {
+      "name": "Senior Medicare Patrol",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Medicare beneficiaries, families, and caregivers[1][2]",
+        "asset_limits": "No asset limits; not applicable[1][2]",
+        "other_requirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver suspecting or needing help with Medicare fraud, errors, or abuse[1][2][5]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Outreach and education via presentations, community events, and one-on-one support; counseling to review Medicare Summary Notices (MSNs) for errors; investigation of complaints and referrals to state/federal agencies (e.g., HHS OIG, CMS); volunteer assistance to prevent, detect, and report fraud, errors, abuse[1][2][6][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: South Carolina Department on Aging at 1-800-868-9095[1]",
+          "Contact local Area Agency on Aging[1]",
+          "Phone: Medicare/Medicaid Fraud Hotline at 1-800-447-8477[4]",
+          "Local SMP via agencies like AOASCC or 1-800-994-9422[6]"
+        ],
+        "processing_time": "No formal application or processing time; immediate counseling and referral assistance available upon contact[1][2]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; may involve reviewing Medicare Summary Notice (MSN)[6][7]"
+        ],
+        "documents": [
+          "Medicare Summary Notice (MSN), billing statements, or details of suspected fraud for review[6][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available through state Department on Aging and local Area Agencies on Aging[1]",
+        "regional_variations": "Delivered via local Area Agencies on Aging, which may have different contact points or volunteers, but core services consistent statewide[1][6]",
+        "offices_or_providers": [
+          "South Carolina Department on Aging; local Area Agencies on Aging (e.g., AOASCC for certain regions)[1][6]"
+        ]
+      },
+      "official_source": "https://aging.sc.gov/programs-initiatives/medicare-and-medicare-fraud[1]",
+      "gotchas": [
+        "Not a benefits or financial aid program—provides fraud prevention/education only, no direct payments or healthcare services; no 'qualification' or enrollment process like aid programs; often confused with SHIP counseling, which some grantees also offer[1][2][4]",
+        "Requires active reporting or suspicion of fraud; volunteers handle education/outreach, not law enforcement investigations[1][3]"
+      ],
+      "data_shape_notes": "no income/asset/age test; volunteer-led advocacy and education network via local aging agencies; not a qualifying aid program but open-access fraud prevention service[1][2][5]",
+      "_raw": "{\n  \"name\": \"Senior Medicare Patrol\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare beneficiaries, families, and caregivers[1][2]\",\n    \"asset_limits\": \"No asset limits; not applicable[1][2]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary, family member, or caregiver suspecting or needing help with Medicare fraud, errors, or abuse[1][2][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Outreach and education via presentations, community events, and one-on-one support; counseling to review Medicare Summary Notices (MSNs) for errors; investigation of complaints and referrals to state/federal agencies (e.g., HHS OIG, CMS); volunteer assistance to prevent, detect, and report fraud, errors, abuse[1][2][6][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: South Carolina Department on Aging at 1-800-868-9095[1]\", \"Contact local Area Agency on Aging[1]\", \"Phone: Medicare/Medicaid Fraud Hotline at 1-800-447-8477[4]\", \"Local SMP via agencies like AOASCC or 1-800-994-9422[6]\"],\n    \"processing_time\": \"No formal application or processing time; immediate counseling and referral assistance available upon contact[1][2]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; may involve reviewing Medicare Summary Notice (MSN)[6][7]\"],\n    \"documents\": [\"Medicare Summary Notice (MSN), billing statements, or details of suspected fraud for review[6][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available through state Department on Aging and local Area Agencies on Aging[1]\",\n    \"regional_variations\": \"Delivered via local Area Agencies on Aging, which may have different contact points or volunteers, but core services consistent statewide[1][6]\",\n    \"offices_or_providers\": [\"South Carolina Department on Aging; local Area Agencies on Aging (e.g., AOASCC for certain regions)[1][6]\"]\n  },\n  \"official_source\": \"https://aging.sc.gov/programs-initiatives/medicare-and-medicare-fraud[1]\",\n  \"gotchas\": [\"Not a benefits or financial aid program—provides fraud prevention/education only, no direct payments or healthcare services; no 'qualification' or enrollment process like aid programs; often confused with SHIP counseling, which some grantees also offer[1][2][4]\", \"Requires active reporting or suspicion of fraud; volunteers handle education/outreach, not law enforcement investigations[1][3]\"],\n  \"data_shape_notes\": \"no income/asset/age test; volunteer-led advocacy and education network via local aging agencies; not a qualifying aid program but open-access fraud prevention service[1][2][5]\"\n}"
+    }
+  ]
+}

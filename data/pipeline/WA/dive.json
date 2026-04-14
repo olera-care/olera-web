@@ -1,0 +1,1154 @@
+{
+  "state": "WA",
+  "stateName": "Washington",
+  "diveAt": "2026-04-09T17:17:21.510Z",
+  "total": 21,
+  "parsed": 21,
+  "programs": [
+    {
+      "name": "Apple Health",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "For Apple Health for the Aged, Blind, or Disabled (relevant for elderly): Monthly income limits are $967 for a single person and $1,450 for a 2-person household. For general adult expansion (19+), countable household income must be at or below 138% of the Federal Poverty Level (FPL). Example 138% FPL limits (King County table, subject to annual change): 1-person household: $1,835/month ($22,025/year); 2-person: $2,490/month ($29,863/year); 3-person: $3,142/month ($37,702/year); 4-person: $3,795/month ($45,540/year); 5-person: $4,449/month ($53,378/year); 6-person: $5,102/month ($61,217/year).[1][3]",
+        "asset_limits": "Resources (assets) are considered for Apple Health for the Aged, Blind, or Disabled and adults 65+ (except Apple Health for Workers with Disabilities). Specific asset limits and what counts/exempts not detailed in sources; eligibility determined by household income and resources. Contact DSHS for details.[1]",
+        "other_requirements": [
+          "Washington resident.",
+          "U.S. citizen or meets Medicaid immigration requirements (some coverage available regardless of status for certain groups).",
+          "For aged 65+: Some Medicare recipients eligible for help with premiums or long-term services.",
+          "Not entitled to Medicare (for some adult categories).",
+          "For Aged, Blind, or Disabled: Must meet disability criteria."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive health coverage including Essential Health Benefits: hospitalization, prescriptions, preventative and wellness services, chronic disease management, pediatric services (if applicable), maternity and newborn care. Medicare recipients may get free/low-cost coverage, Medicare premium help, or long-term services and supports. Managed Care Organizations (MCOs) provide coverage plus Value Added Benefits.[1][3]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: Washington Healthplanfinder (wahealthplanfinder.org).",
+          "Phone: 1-800-318-2596 (24 hours); For 65+ or Aged/Blind/Disabled: 1-877-501-2233 (DSHS).",
+          "Through HealthCare.gov or state exchange."
+        ],
+        "processing_time": "Not specified in sources; open year-round with renewal notices 60 days prior.[3]",
+        "waitlist": "For undocumented adults: Enrollment cap of 13,000 as of July 2024 due to state funding limits (federal funding unavailable).[2]",
+        "forms": [
+          "Apply through Washington Healthplanfinder; no specific form name/number listed."
+        ],
+        "documents": [
+          "Proof of income, residency, citizenship/immigration status, Medicare status if applicable. Specifics determined during application screening.[1][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Washington state residents only.",
+        "regional_variations": "Administered statewide by HCA/DSHS; select Managed Care Organization (MCO) if eligible. No specific regional differences in eligibility or benefits noted, but local offices like King County provide guidance.[3]",
+        "offices_or_providers": [
+          "Department of Social and Health Services (DSHS); local health departments (e.g., King County)."
+        ]
+      },
+      "official_source": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-care/apple-health-medicaid-apple-health-elderly-blind-disabled",
+      "gotchas": [
+        "Income standards change annually every April; verify current limits.[1]",
+        "Asset tests apply for elderly/disabled (not all categories); Medicare status affects eligibility.[1]",
+        "Public charge rule does not apply; won't affect immigration status.[1]",
+        "Undocumented adults face enrollment cap.[2]",
+        "Some programs require DSHS screening after Healthplanfinder application.[4]",
+        "Continuous eligibility for young children, but not specified for elderly."
+      ],
+      "data_shape_notes": "Income at 138% FPL with household size table; asset limits for elderly/disabled categories; varies by age/disability/Medicare status; statewide but MCO selection required.",
+      "_raw": "{\n  \"name\": \"Apple Health\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For Apple Health for the Aged, Blind, or Disabled (relevant for elderly): Monthly income limits are $967 for a single person and $1,450 for a 2-person household. For general adult expansion (19+), countable household income must be at or below 138% of the Federal Poverty Level (FPL). Example 138% FPL limits (King County table, subject to annual change): 1-person household: $1,835/month ($22,025/year); 2-person: $2,490/month ($29,863/year); 3-person: $3,142/month ($37,702/year); 4-person: $3,795/month ($45,540/year); 5-person: $4,449/month ($53,378/year); 6-person: $5,102/month ($61,217/year).[1][3]\",\n    \"asset_limits\": \"Resources (assets) are considered for Apple Health for the Aged, Blind, or Disabled and adults 65+ (except Apple Health for Workers with Disabilities). Specific asset limits and what counts/exempts not detailed in sources; eligibility determined by household income and resources. Contact DSHS for details.[1]\",\n    \"other_requirements\": [\n      \"Washington resident.\",\n      \"U.S. citizen or meets Medicaid immigration requirements (some coverage available regardless of status for certain groups).\",\n      \"For aged 65+: Some Medicare recipients eligible for help with premiums or long-term services.\",\n      \"Not entitled to Medicare (for some adult categories).\",\n      \"For Aged, Blind, or Disabled: Must meet disability criteria.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive health coverage including Essential Health Benefits: hospitalization, prescriptions, preventative and wellness services, chronic disease management, pediatric services (if applicable), maternity and newborn care. Medicare recipients may get free/low-cost coverage, Medicare premium help, or long-term services and supports. Managed Care Organizations (MCOs) provide coverage plus Value Added Benefits.[1][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Washington Healthplanfinder (wahealthplanfinder.org).\",\n      \"Phone: 1-800-318-2596 (24 hours); For 65+ or Aged/Blind/Disabled: 1-877-501-2233 (DSHS).\",\n      \"Through HealthCare.gov or state exchange.\"\n    ],\n    \"processing_time\": \"Not specified in sources; open year-round with renewal notices 60 days prior.[3]\",\n    \"waitlist\": \"For undocumented adults: Enrollment cap of 13,000 as of July 2024 due to state funding limits (federal funding unavailable).[2]\",\n    \"forms\": [\"Apply through Washington Healthplanfinder; no specific form name/number listed.\"],\n    \"documents\": [\"Proof of income, residency, citizenship/immigration status, Medicare status if applicable. Specifics determined during application screening.[1][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Washington state residents only.\",\n    \"regional_variations\": \"Administered statewide by HCA/DSHS; select Managed Care Organization (MCO) if eligible. No specific regional differences in eligibility or benefits noted, but local offices like King County provide guidance.[3]\",\n    \"offices_or_providers\": [\"Department of Social and Health Services (DSHS); local health departments (e.g., King County).\"]\n  },\n  \"official_source\": \"https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-care/apple-health-medicaid-apple-health-elderly-blind-disabled\",\n  \"gotchas\": [\n    \"Income standards change annually every April; verify current limits.[1]\",\n    \"Asset tests apply for elderly/disabled (not all categories); Medicare status affects eligibility.[1]\",\n    \"Public charge rule does not apply; won't affect immigration status.[1]\",\n    \"Undocumented adults face enrollment cap.[2]\",\n    \"Some programs require DSHS screening after Healthplanfinder application.[4]\",\n    \"Continuous eligibility for young children, but not specified for elderly.\"\n  ],\n  \"data_shape_notes\": \"Income at 138% FPL with household size table; asset limits for elderly/disabled categories; varies by age/disability/Medicare status; statewide but MCO selection required.\"\n}"
+    },
+    {
+      "name": "Medicaid Personal Care (MPC) Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be financially eligible for noninstitutional categorically needy (CN) or alternative benefits plan (ABP) Washington Apple Health (Medicaid). Specific dollar amounts vary by program and household; for example, single applicants often face limits around $943-$2,982/month depending on care level, but exact MPC thresholds align with non-institutional Medicaid (e.g., ~$771/month for some home care waivers, $1,157 for couples). No full household table specified for MPC; use WA Medicaid eligibility test for precise FPL-based limits (typically <138% FPL).[1][3][4][5][6]",
+        "asset_limits": "Typically $2,000 for single applicants (countable assets only). Home is exempt if applicant lives there, intends to return, spouse resides there, or dependent/disabled child lives there. Other exemptions may apply per WA Medicaid rules; consult state for full list.[1][2][3]",
+        "other_requirements": [
+          "Washington state resident",
+          "US citizen or qualified immigrant",
+          "Functionally eligible via CARE assessment: extensive assistance with 1 ADL (e.g., hygiene, dressing, toileting, transferring, mobility) OR minimal assistance/supervision with 3+ ADLs. Cognitive impairments (e.g., dementia-related) may qualify but diagnosis alone insufficient.",
+          "Does NOT require Nursing Facility Level of Care (NFLOC); program unavailable to those needing NFLOC.",
+          "Elderly (65+) or disabled"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Personal care assistance with Activities of Daily Living (ADLs) such as personal hygiene, dressing, toileting, transferring, mobility. Provided in home, contracted adult family home (AFH), or licensed assisted living (room/board paid by client up to standard). No fixed dollar amount or hours specified; authorized based on CARE assessment.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Apply for Washington Apple Health (Medicaid) first: online at https://www.wahealthplanfinder.org, phone 1-855-923-4633, mail/paper form, or in-person at local DSHS Community Service Office (find via https://www.dshs.wa.gov/find-an-office)",
+          "Functional assessment via CARE tool follows eligibility; contact local Area Agency on Aging or DSHS for scheduling"
+        ],
+        "processing_time": "Not specified in sources; standard Medicaid applications processed in 45 days (90 for disability).",
+        "waitlist": "Not mentioned for MPC; may vary by provider availability.",
+        "forms": [
+          "Washington Apple Health application (no specific MPC form; MPC benefit authorized post-eligibility via CARE assessment)"
+        ],
+        "documents": [
+          "Proof of identity/citizenship (birth certificate, passport)",
+          "Income verification (pay stubs, SSI/SSDI awards)",
+          "Asset statements (bank, retirement accounts)",
+          "Medical records/physician statement for functional needs",
+          "Proof of residency"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide for eligible residents.",
+        "regional_variations": "Administered locally via DSHS offices and contracted providers; wait times, provider availability may differ by region (e.g., urban vs. rural). No specific differences detailed.",
+        "offices_or_providers": [
+          "Local DSHS Community Service Offices",
+          "Contracted adult family homes/assisted living",
+          "Area Agencies on Aging"
+        ]
+      },
+      "official_source": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/apple-health-medicaid-washington (HCA main site); WAC 182-513-1225 for rules",
+      "gotchas": [
+        "MPC is ONLY for those NOT needing NFLOC; higher-need individuals go to waivers like CFCO instead—common mix-up.[1][3]",
+        "Home equity/ownership exemptions apply, but intent to return must be documented.",
+        "Must first qualify for non-institutional Medicaid; income mostly pays room/board in facilities.",
+        "Dementia diagnosis doesn't auto-qualify; needs CARE-assessed ADL deficits.",
+        "Personal Needs Allowance retained (~$108/month in some cases), but most income offsets costs."
+      ],
+      "data_shape_notes": "No NFLOC required (unlike nursing/waiver programs); functional eligibility via CARE tool only; benefits in community settings only; scales by assessed need, not household size; administered statewide but local DSHS/provider variations.",
+      "_raw": "{\n  \"name\": \"Medicaid Personal Care (MPC) Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be financially eligible for noninstitutional categorically needy (CN) or alternative benefits plan (ABP) Washington Apple Health (Medicaid). Specific dollar amounts vary by program and household; for example, single applicants often face limits around $943-$2,982/month depending on care level, but exact MPC thresholds align with non-institutional Medicaid (e.g., ~$771/month for some home care waivers, $1,157 for couples). No full household table specified for MPC; use WA Medicaid eligibility test for precise FPL-based limits (typically <138% FPL).[1][3][4][5][6]\",\n    \"asset_limits\": \"Typically $2,000 for single applicants (countable assets only). Home is exempt if applicant lives there, intends to return, spouse resides there, or dependent/disabled child lives there. Other exemptions may apply per WA Medicaid rules; consult state for full list.[1][2][3]\",\n    \"other_requirements\": [\n      \"Washington state resident\",\n      \"US citizen or qualified immigrant\",\n      \"Functionally eligible via CARE assessment: extensive assistance with 1 ADL (e.g., hygiene, dressing, toileting, transferring, mobility) OR minimal assistance/supervision with 3+ ADLs. Cognitive impairments (e.g., dementia-related) may qualify but diagnosis alone insufficient.\",\n      \"Does NOT require Nursing Facility Level of Care (NFLOC); program unavailable to those needing NFLOC.\",\n      \"Elderly (65+) or disabled\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Personal care assistance with Activities of Daily Living (ADLs) such as personal hygiene, dressing, toileting, transferring, mobility. Provided in home, contracted adult family home (AFH), or licensed assisted living (room/board paid by client up to standard). No fixed dollar amount or hours specified; authorized based on CARE assessment.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Apply for Washington Apple Health (Medicaid) first: online at https://www.wahealthplanfinder.org, phone 1-855-923-4633, mail/paper form, or in-person at local DSHS Community Service Office (find via https://www.dshs.wa.gov/find-an-office)\",\n      \"Functional assessment via CARE tool follows eligibility; contact local Area Agency on Aging or DSHS for scheduling\"\n    ],\n    \"processing_time\": \"Not specified in sources; standard Medicaid applications processed in 45 days (90 for disability).\",\n    \"waitlist\": \"Not mentioned for MPC; may vary by provider availability.\",\n    \"forms\": [\"Washington Apple Health application (no specific MPC form; MPC benefit authorized post-eligibility via CARE assessment)\"],\n    \"documents\": [\n      \"Proof of identity/citizenship (birth certificate, passport)\",\n      \"Income verification (pay stubs, SSI/SSDI awards)\",\n      \"Asset statements (bank, retirement accounts)\",\n      \"Medical records/physician statement for functional needs\",\n      \"Proof of residency\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for eligible residents.\",\n    \"regional_variations\": \"Administered locally via DSHS offices and contracted providers; wait times, provider availability may differ by region (e.g., urban vs. rural). No specific differences detailed.\",\n    \"offices_or_providers\": [\"Local DSHS Community Service Offices\", \"Contracted adult family homes/assisted living\", \"Area Agencies on Aging\"]\n  },\n  \"official_source\": \"https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/apple-health-medicaid-washington (HCA main site); WAC 182-513-1225 for rules\",\n  \"gotchas\": [\n    \"MPC is ONLY for those NOT needing NFLOC; higher-need individuals go to waivers like CFCO instead—common mix-up.[1][3]\",\n    \"Home equity/ownership exemptions apply, but intent to return must be documented.\",\n    \"Must first qualify for non-institutional Medicaid; income mostly pays room/board in facilities.\",\n    \"Dementia diagnosis doesn't auto-qualify; needs CARE-assessed ADL deficits.\",\n    \"Personal Needs Allowance retained (~$108/month in some cases), but most income offsets costs.\"\n  ],\n  \"data_shape_notes\": \"No NFLOC required (unlike nursing/waiver programs); functional eligibility via CARE tool only; benefits in community settings only; scales by assessed need, not household size; administered statewide but local DSHS/provider variations.\"\n}"
+    },
+    {
+      "name": "Medicaid Alternative Care (MAC) Waiver",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Single applicant: $2,982/month[4]. For married couples, the applicant's income is counted toward this limit; the non-applicant spouse's income is not counted. Married recipients must contribute most of their income to the state, retaining only $108.74/month as a personal needs allowance plus enough for Medicare premiums and any spousal income allowance payments to financially needy non-enrolled spouses[4].",
+        "asset_limits": "Single applicant: $2,000 in countable assets[4]. Exempt (non-countable) assets include: primary home (if applicant lives in it, intends to return to it, spouse lives in it, or dependent relative lives in it)[3], household furnishings and appliances, personal effects, and one vehicle[2]. Critical: Assets cannot be given away or sold below fair market value within 60 months of application; violating this Look-Back Rule triggers a Penalty Period of Medicaid ineligibility[2].",
+        "other_requirements": [
+          "Must be assessed as meeting Nursing Facility Level of Care (NFLOC) under Washington's assessment criteria[1]",
+          "Must choose MAC services instead of other long-term services and supports[1]",
+          "Must meet Washington State residency requirements[1]",
+          "Must live at home and not in a residential or institutional setting[1]",
+          "Must have an eligible unpaid caregiver (age 18+; caregiver does not need to be a Washington resident)[1][3]",
+          "Must meet citizenship and immigration status requirements[1]",
+          "Must be eligible for a non-institutional Medicaid program (cannot have eligibility limited only to medically needy, Medicare savings programs, family planning, MCS, or alien emergency medical programs)[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "The search results do not specify the exact services, dollar amounts, or hours provided under MAC. The program is described as an alternative to nursing home placement that allows eligible individuals to receive long-term services and supports while remaining at home with an unpaid caregiver[3]. Related Washington waivers (COPES, Residential Support) provide services such as adult day health, skilled nursing, home delivered meals, environmental modifications, and transportation[5], but MAC-specific service details are not provided in available sources.",
+        "varies_by": "not_applicable (specific variation data not available in sources)"
+      },
+      "application": {
+        "methods": "The search results do not provide specific application methods, phone numbers, URLs, or office addresses for MAC. Sources recommend contacting Washington State Department of Social and Health Services (DSHS) or consulting the American Council on Aging's Medicaid Eligibility Test prior to applying[3], but exact contact information and application routes are not included.",
+        "processing_time": "Not specified in available sources.",
+        "waitlist": "Not specified in available sources.",
+        "forms": "Not specified in available sources.",
+        "documents": "The search results do not detail required documentation. General guidance suggests applicants should verify Medicaid eligibility before applying and be prepared to document income, assets, residency, citizenship/immigration status, and caregiver information based on eligibility criteria[3]."
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "MAC is available statewide in Washington[3]. However, the New Freedom Waiver (a related program) is limited to Ferry, King, Pend Oreille, Pierce, Spokane, Stevens, and Whitman Counties[2]. It is unclear whether MAC has similar county restrictions; the search results do not explicitly state MAC's geographic availability by county.",
+        "regional_variations": "Not specified in available sources.",
+        "offices_or_providers": "Not specified in available sources."
+      },
+      "official_source": "Washington Administrative Code § 182-513-1605 (https://www.law.cornell.edu/regulations/washington/WAC-182-513-1605); Washington State Department of Social and Health Services (DSHS) — specific URL not provided in sources.",
+      "gotchas": [
+        "MAC requires an unpaid caregiver — this is not optional. Without an eligible caregiver, the applicant cannot qualify, even if all other criteria are met[1][3].",
+        "The 60-month Look-Back Rule is critical: any assets given away or sold below fair market value within 60 months of application trigger a Penalty Period of Medicaid ineligibility[2]. Families often miss this and inadvertently disqualify themselves.",
+        "Home ownership is exempt only under specific conditions: applicant lives in it, intends to return to it, spouse lives in it, or dependent relative lives in it[3]. If none of these apply, the home counts as an asset and may exceed the $2,000 limit.",
+        "MAC is an alternative to other long-term services and supports (COPES Waiver, CFC Program)[3]. Applicants must choose MAC instead of these programs; they cannot receive MAC and another waiver simultaneously.",
+        "Applicants must meet Nursing Facility Level of Care (NFLOC) — this is assessed using the Comprehensive Assessment Reporting Evaluation (CARE) tool and requires either daily nursing care OR substantial assistance with at least 2 ADLs (or some assistance with 3+ ADLs)[3]. A diagnosis alone (e.g., dementia) does not automatically qualify[2].",
+        "Medicaid eligibility is a prerequisite; applicants cannot qualify for MAC if their eligibility is limited only to medically needy, Medicare savings programs, family planning, MCS, or alien emergency medical programs[1].",
+        "The search results do not provide specific application procedures, processing times, or waitlist information — families will need to contact DSHS directly for these critical details."
+      ],
+      "data_shape_notes": "MAC is a home and community-based services (HCBS) waiver with strict eligibility criteria centered on age (55+), functional need (NFLOC), asset/income limits, and caregiver availability. The program is statewide but may have regional variations not detailed in available sources. Critically, the search results lack specific information on services provided, application procedures, processing times, required forms, and regional office locations — families will need to contact Washington DSHS directly for operational details. The program's defining feature is that it allows individuals who meet nursing home-level care needs to remain at home with an unpaid caregiver while receiving Medicaid-funded support, as an alternative to institutional placement.",
+      "_raw": "```json\n{\n  \"name\": \"Medicaid Alternative Care (MAC) Waiver\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Single applicant: $2,982/month[4]. For married couples, the applicant's income is counted toward this limit; the non-applicant spouse's income is not counted. Married recipients must contribute most of their income to the state, retaining only $108.74/month as a personal needs allowance plus enough for Medicare premiums and any spousal income allowance payments to financially needy non-enrolled spouses[4].\",\n    \"asset_limits\": \"Single applicant: $2,000 in countable assets[4]. Exempt (non-countable) assets include: primary home (if applicant lives in it, intends to return to it, spouse lives in it, or dependent relative lives in it)[3], household furnishings and appliances, personal effects, and one vehicle[2]. Critical: Assets cannot be given away or sold below fair market value within 60 months of application; violating this Look-Back Rule triggers a Penalty Period of Medicaid ineligibility[2].\",\n    \"other_requirements\": [\n      \"Must be assessed as meeting Nursing Facility Level of Care (NFLOC) under Washington's assessment criteria[1]\",\n      \"Must choose MAC services instead of other long-term services and supports[1]\",\n      \"Must meet Washington State residency requirements[1]\",\n      \"Must live at home and not in a residential or institutional setting[1]\",\n      \"Must have an eligible unpaid caregiver (age 18+; caregiver does not need to be a Washington resident)[1][3]\",\n      \"Must meet citizenship and immigration status requirements[1]\",\n      \"Must be eligible for a non-institutional Medicaid program (cannot have eligibility limited only to medically needy, Medicare savings programs, family planning, MCS, or alien emergency medical programs)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"The search results do not specify the exact services, dollar amounts, or hours provided under MAC. The program is described as an alternative to nursing home placement that allows eligible individuals to receive long-term services and supports while remaining at home with an unpaid caregiver[3]. Related Washington waivers (COPES, Residential Support) provide services such as adult day health, skilled nursing, home delivered meals, environmental modifications, and transportation[5], but MAC-specific service details are not provided in available sources.\",\n    \"varies_by\": \"not_applicable (specific variation data not available in sources)\"\n  },\n  \"application\": {\n    \"methods\": \"The search results do not provide specific application methods, phone numbers, URLs, or office addresses for MAC. Sources recommend contacting Washington State Department of Social and Health Services (DSHS) or consulting the American Council on Aging's Medicaid Eligibility Test prior to applying[3], but exact contact information and application routes are not included.\",\n    \"processing_time\": \"Not specified in available sources.\",\n    \"waitlist\": \"Not specified in available sources.\",\n    \"forms\": \"Not specified in available sources.\",\n    \"documents\": \"The search results do not detail required documentation. General guidance suggests applicants should verify Medicaid eligibility before applying and be prepared to document income, assets, residency, citizenship/immigration status, and caregiver information based on eligibility criteria[3].\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"MAC is available statewide in Washington[3]. However, the New Freedom Waiver (a related program) is limited to Ferry, King, Pend Oreille, Pierce, Spokane, Stevens, and Whitman Counties[2]. It is unclear whether MAC has similar county restrictions; the search results do not explicitly state MAC's geographic availability by county.\",\n    \"regional_variations\": \"Not specified in available sources.\",\n    \"offices_or_providers\": \"Not specified in available sources.\"\n  },\n  \"official_source\": \"Washington Administrative Code § 182-513-1605 (https://www.law.cornell.edu/regulations/washington/WAC-182-513-1605); Washington State Department of Social and Health Services (DSHS) — specific URL not provided in sources.\",\n  \"gotchas\": [\n    \"MAC requires an unpaid caregiver — this is not optional. Without an eligible caregiver, the applicant cannot qualify, even if all other criteria are met[1][3].\",\n    \"The 60-month Look-Back Rule is critical: any assets given away or sold below fair market value within 60 months of application trigger a Penalty Period of Medicaid ineligibility[2]. Families often miss this and inadvertently disqualify themselves.\",\n    \"Home ownership is exempt only under specific conditions: applicant lives in it, intends to return to it, spouse lives in it, or dependent relative lives in it[3]. If none of these apply, the home counts as an asset and may exceed the $2,000 limit.\",\n    \"MAC is an alternative to other long-term services and supports (COPES Waiver, CFC Program)[3]. Applicants must choose MAC instead of these programs; they cannot receive MAC and another waiver simultaneously.\",\n    \"Applicants must meet Nursing Facility Level of Care (NFLOC) — this is assessed using the Comprehensive Assessment Reporting Evaluation (CARE) tool and requires either daily nursing care OR substantial assistance with at least 2 ADLs (or some assistance with 3+ ADLs)[3]. A diagnosis alone (e.g., dementia) does not automatically qualify[2].\",\n    \"Medicaid eligibility is a prerequisite; applicants cannot qualify for MAC if their eligibility is limited only to medically needy, Medicare savings programs, family planning, MCS, or alien emergency medical programs[1].\",\n    \"The search results do not provide specific application procedures, processing times, or waitlist information — families will need to contact DSHS directly for these critical details.\"\n  ],\n  \"data_shape_notes\": \"MAC is a home and community-based services (HCBS) waiver with strict eligibility criteria centered on age (55+), functional need (NFLOC), asset/income limits, and caregiver availability. The program is statewide but may have regional variations not detailed in available sources. Critically, the search results lack specific information on services provided, application procedures, processing times, required forms, and regional office locations — families will need to contact Washington DSHS directly for operational details. The program's defining feature is that it allows individuals who meet nursing home-level care needs to remain at home with an unpaid caregiver while receiving Medicaid-funded support, as an alternative to institutional placement.\"\n}\n```\n\n## Important Limitations\n\nThe search results provide regulatory eligibility criteria but **lack critical operational details** your guide will need:\n\n- **Services and benefits**: The exact services MAC covers, frequency, duration, and any dollar caps are not specified[3].\n- **Application process**: No phone numbers, websites, forms, or step-by-step procedures are provided.\n- **Processing timeline**: No information on how long applications take or whether waitlists exist.\n- **Regional variations**: While MAC appears statewide, the search results do not clarify whether all counties participate or if wait times/services vary by region.\n- **Required documents**: No checklist of what applicants must submit.\n\n**To complete your guide**, contact Washington State Department of Social and Health Services (DSHS) directly. The search results reference DSHS as the administering agency[3][6] but do not provide contact information. You may also find additional details through Washington's 211 service, which is mentioned as a resource for MAC information[6]."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No specific income limits for PACE enrollment itself; financial eligibility aligns with Medicaid or private pay options. For Medicaid-funded PACE in Washington, follows CFC/COPES guidelines (income under 300% FBR, approximately $2,901/month for 2025, but private pay available at Medicaid rate if not Medicaid-eligible). No dollar amounts vary by household size specified for PACE directly[3][5].",
+        "asset_limits": "No asset limits for PACE enrollment itself. For Medicaid pathway, assets $2,000 or less (excluding primary home); Medicaid planning available to qualify[3].",
+        "other_requirements": [
+          "Live in the service area of a PACE organization (e.g., most of King County for Providence PACE)",
+          "Certified by Washington state (DSHS) as needing nursing home level of care (e.g., assistance with 2+ ADLs like bathing, dressing, grooming, ambulation, transfers, medication management)",
+          "Able to live safely in the community with PACE services at time of enrollment",
+          "Medicaid eligible, Medicare eligible, or able to pay privately (equal to Medicaid rate)",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive medical and social services including all Medicare/Medicaid-covered care plus additional medically necessary services: doctor visits, lab tests, diagnostics, prescriptions/OTC meds, medical supplies/equipment, adult day health care, transportation, home care, personal care, therapies (PT/OT/ST), social services, meals, dentistry, optometry, podiatry, assistive devices. No co-pays/deductibles. Provided by interdisciplinary team to enable community living instead of nursing home[1][2][5][6].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Home and Community Services (HCS) office for assessment (per WA Admin Code)[7]",
+          "Call Providence PACE: 206-320-5325 or 1-844-901-0094 (TTY: 1-800-735-2900)[5]",
+          "In-person or phone assessment by DSHS social worker for nursing home level of care certification"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Possible due to capped financing; varies by program and state[4]",
+        "forms": [
+          "No specific form names/numbers listed; assessment via DSHS HCS office[7]"
+        ],
+        "documents": [
+          "Proof of age (ID/birth certificate)",
+          "Proof of residency in service area",
+          "Medicare/Medicaid cards (if applicable)",
+          "Medical records or documentation of functional needs/ADLs for nursing home level assessment",
+          "Financial documents if pursuing Medicaid/private pay"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of PACE organizations in Washington (e.g., most of King County for Providence Elderplace)",
+        "regional_variations": "Services/providers limited to specific PACE centers; different organizations may operate in regions (e.g., Providence in King County); wait times and availability vary; must relocate to service area if needed[5]",
+        "offices_or_providers": [
+          "Providence PACE (Elderplace) - most of King County; call 206-320-5325 for details[5]"
+        ]
+      },
+      "official_source": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/all-inclusive-care-elderly-washington-pace (state Medicaid site inferred; also https://www.dshs.wa.gov/altsa/home-and-community-services)",
+      "gotchas": [
+        "Not statewide—must live in (or relocate to) a PACE service area like King County[5]",
+        "Nursing home level of care certification required by DSHS social worker, not automatic[5][7]",
+        "Becomes sole source of Medicare/Medicaid services; cannot be in Medicare Advantage, hospice, or certain other plans[1][2]",
+        "Private pay option exists but equals full Medicaid rate if not Medicaid-eligible[5]",
+        "Voluntary but waitlists possible due to funding caps[4]",
+        "If on CFC/COPES, participation levels stay similar[5]"
+      ],
+      "data_shape_notes": "Limited to specific PACE provider service areas (e.g., King County); no direct income/asset test for enrollment but tied to Medicaid/private pay; requires state DSHS certification for nursing facility level of care; not statewide",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for PACE enrollment itself; financial eligibility aligns with Medicaid or private pay options. For Medicaid-funded PACE in Washington, follows CFC/COPES guidelines (income under 300% FBR, approximately $2,901/month for 2025, but private pay available at Medicaid rate if not Medicaid-eligible). No dollar amounts vary by household size specified for PACE directly[3][5].\",\n    \"asset_limits\": \"No asset limits for PACE enrollment itself. For Medicaid pathway, assets $2,000 or less (excluding primary home); Medicaid planning available to qualify[3].\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (e.g., most of King County for Providence PACE)\",\n      \"Certified by Washington state (DSHS) as needing nursing home level of care (e.g., assistance with 2+ ADLs like bathing, dressing, grooming, ambulation, transfers, medication management)\",\n      \"Able to live safely in the community with PACE services at time of enrollment\",\n      \"Medicaid eligible, Medicare eligible, or able to pay privately (equal to Medicaid rate)\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical and social services including all Medicare/Medicaid-covered care plus additional medically necessary services: doctor visits, lab tests, diagnostics, prescriptions/OTC meds, medical supplies/equipment, adult day health care, transportation, home care, personal care, therapies (PT/OT/ST), social services, meals, dentistry, optometry, podiatry, assistive devices. No co-pays/deductibles. Provided by interdisciplinary team to enable community living instead of nursing home[1][2][5][6].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Home and Community Services (HCS) office for assessment (per WA Admin Code)[7]\",\n      \"Call Providence PACE: 206-320-5325 or 1-844-901-0094 (TTY: 1-800-735-2900)[5]\",\n      \"In-person or phone assessment by DSHS social worker for nursing home level of care certification\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Possible due to capped financing; varies by program and state[4]\",\n    \"forms\": [\"No specific form names/numbers listed; assessment via DSHS HCS office[7]\"],\n    \"documents\": [\n      \"Proof of age (ID/birth certificate)\",\n      \"Proof of residency in service area\",\n      \"Medicare/Medicaid cards (if applicable)\",\n      \"Medical records or documentation of functional needs/ADLs for nursing home level assessment\",\n      \"Financial documents if pursuing Medicaid/private pay\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of PACE organizations in Washington (e.g., most of King County for Providence Elderplace)\",\n    \"regional_variations\": \"Services/providers limited to specific PACE centers; different organizations may operate in regions (e.g., Providence in King County); wait times and availability vary; must relocate to service area if needed[5]\",\n    \"offices_or_providers\": [\"Providence PACE (Elderplace) - most of King County; call 206-320-5325 for details[5]\"]\n  },\n  \"official_source\": \"https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/all-inclusive-care-elderly-washington-pace (state Medicaid site inferred; also https://www.dshs.wa.gov/altsa/home-and-community-services)\",\n  \"gotchas\": [\n    \"Not statewide—must live in (or relocate to) a PACE service area like King County[5]\",\n    \"Nursing home level of care certification required by DSHS social worker, not automatic[5][7]\",\n    \"Becomes sole source of Medicare/Medicaid services; cannot be in Medicare Advantage, hospice, or certain other plans[1][2]\",\n    \"Private pay option exists but equals full Medicaid rate if not Medicaid-eligible[5]\",\n    \"Voluntary but waitlists possible due to funding caps[4]\",\n    \"If on CFC/COPES, participation levels stay similar[5]\"\n  ],\n  \"data_shape_notes\": \"Limited to specific PACE provider service areas (e.g., King County); no direct income/asset test for enrollment but tied to Medicaid/private pay; requires state DSHS certification for nursing facility level of care; not statewide\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be eligible for Medicare Part A (typically age 65+ or disabled). Washington-specific 2026 monthly countable income limits after deductions: QMB ≤ $1,463 single / $1,984 couple (110% FPL); SLMB ≤ $1,596 single / $2,167 couple (120% FPL); QI-1 ≤ $1,835 single / $2,489 couple (138% FPL). Limits update annually, often April 1, based on Federal Poverty Level (FPL). Household size beyond couples not detailed in sources; primarily individual or couple.[3][4]",
+        "asset_limits": "No asset/resource limits in Washington state as of January 1, 2023, for individuals or couples.[3]",
+        "other_requirements": [
+          "Eligible for Medicare Part A (even if not enrolled for QMB).",
+          "Must have Part A and Part B for SLMB/QI.",
+          "Cannot receive QI-1 or QDWI if eligible for another Medicaid program.",
+          "U.S. citizen or qualified immigrant.",
+          "Washington resident."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Pays Medicare Part A premium (if applicable), Part B premium/deductible, coinsurance/copayments/deductibles for Medicare-covered A/B services. SLMB: Pays Part B premium. QI-1: Pays Part B premium. All auto-qualify for Extra Help (LIS) for Part D drugs (≤$12.65 copay per drug in 2026). QMB effective 1st of month after eligibility determination; SLMB/QI retroactive up to 3 months.[1][2][3][4][6]",
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: Washington Connection portal at https://www.washingtonconnection.org/home/ (state Medicaid agency).",
+          "Phone: Washington Health Care Authority at 1-800-562-3022.",
+          "Mail or in-person: Local Community Services Office (CSO) or Area Agency on Aging; find via https://www.dshs.wa.gov/esa/community-services-offices.",
+          "Through King County-specific outreach: https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/medicare-savings-program.[3]"
+        ],
+        "processing_time": "QMB: Up to 45 days, effective 1st of following month. SLMB/QI: Similar, with up to 3 months retroactive.[1][2]",
+        "waitlist": "QI-1: First-come, first-served with priority to prior-year recipients; limited federal funding may create waitlist.[1][6]",
+        "forms": [
+          "Washington Connection online application or HSA form via state Medicaid agency (no specific form number listed; request QMB/SLMB/QI application)."
+        ],
+        "documents": [
+          "Proof of income (SSI award, pay stubs, pension statements).",
+          "Proof of Medicare enrollment (card).",
+          "Proof of residency (utility bill, lease).",
+          "Bank/resource statements (though limits eliminated).",
+          "Identity documents (SSN card, birth certificate)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide to Medicare-eligible Washington residents.",
+        "regional_variations": "Administered uniformly by state Medicaid agency via local Community Services Offices (CSOs); no noted differences in eligibility/benefits, but local offices handle applications (e.g., King County has outreach programs). Processing/wait times may vary slightly by office workload.[3]",
+        "offices_or_providers": [
+          "Local DSHS Community Services Offices; Area Agencies on Aging."
+        ]
+      },
+      "official_source": "https://www.washingtonlawhelp.org/medicare-savings-programs-help-paying-medicare-costs or https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/medicare-savings-programs",
+      "gotchas": [
+        "Income is countable after deductions (e.g., $20 general disregard, $65 earned income, impairment-related); overestimating gross income leads to denials.[2][4]",
+        "QI-1 has waitlist risk due to federal funding caps and annual reapplication.[1][6]",
+        "QMB providers cannot bill beneficiary for Medicare-covered services (no cost-sharing), but people miss reporting QMB status to doctors.[1]",
+        "Can overlap with other Medicaid but not vice versa for QI.[4]",
+        "Limits higher than federal standards in WA (no assets, higher % FPL).[3][4]",
+        "Apply to state Medicaid agency, not Medicare directly.[1][6]"
+      ],
+      "data_shape_notes": "Tiered by program (QMB/SLMB/QI-1) with escalating income thresholds; WA eliminates asset test and uses higher FPL % than federal; benefits fixed by tier not household size beyond couple; QI waitlist/priority; retroactive for SLMB/QI.",
+      "_raw": "{\n  \"name\": \"Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be eligible for Medicare Part A (typically age 65+ or disabled). Washington-specific 2026 monthly countable income limits after deductions: QMB ≤ $1,463 single / $1,984 couple (110% FPL); SLMB ≤ $1,596 single / $2,167 couple (120% FPL); QI-1 ≤ $1,835 single / $2,489 couple (138% FPL). Limits update annually, often April 1, based on Federal Poverty Level (FPL). Household size beyond couples not detailed in sources; primarily individual or couple.[3][4]\",\n    \"asset_limits\": \"No asset/resource limits in Washington state as of January 1, 2023, for individuals or couples.[3]\",\n    \"other_requirements\": [\n      \"Eligible for Medicare Part A (even if not enrolled for QMB).\",\n      \"Must have Part A and Part B for SLMB/QI.\",\n      \"Cannot receive QI-1 or QDWI if eligible for another Medicaid program.\",\n      \"U.S. citizen or qualified immigrant.\",\n      \"Washington resident.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A premium (if applicable), Part B premium/deductible, coinsurance/copayments/deductibles for Medicare-covered A/B services. SLMB: Pays Part B premium. QI-1: Pays Part B premium. All auto-qualify for Extra Help (LIS) for Part D drugs (≤$12.65 copay per drug in 2026). QMB effective 1st of month after eligibility determination; SLMB/QI retroactive up to 3 months.[1][2][3][4][6]\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Washington Connection portal at https://www.washingtonconnection.org/home/ (state Medicaid agency).\",\n      \"Phone: Washington Health Care Authority at 1-800-562-3022.\",\n      \"Mail or in-person: Local Community Services Office (CSO) or Area Agency on Aging; find via https://www.dshs.wa.gov/esa/community-services-offices.\",\n      \"Through King County-specific outreach: https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/medicare-savings-program.[3]\"\n    ],\n    \"processing_time\": \"QMB: Up to 45 days, effective 1st of following month. SLMB/QI: Similar, with up to 3 months retroactive.[1][2]\",\n    \"waitlist\": \"QI-1: First-come, first-served with priority to prior-year recipients; limited federal funding may create waitlist.[1][6]\",\n    \"forms\": [\"Washington Connection online application or HSA form via state Medicaid agency (no specific form number listed; request QMB/SLMB/QI application).\"],\n    \"documents\": [\n      \"Proof of income (SSI award, pay stubs, pension statements).\",\n      \"Proof of Medicare enrollment (card).\",\n      \"Proof of residency (utility bill, lease).\",\n      \"Bank/resource statements (though limits eliminated).\",\n      \"Identity documents (SSN card, birth certificate).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to Medicare-eligible Washington residents.\",\n    \"regional_variations\": \"Administered uniformly by state Medicaid agency via local Community Services Offices (CSOs); no noted differences in eligibility/benefits, but local offices handle applications (e.g., King County has outreach programs). Processing/wait times may vary slightly by office workload.[3]\",\n    \"offices_or_providers\": [\"Local DSHS Community Services Offices; Area Agencies on Aging.\"]\n  },\n  \"official_source\": \"https://www.washingtonlawhelp.org/medicare-savings-programs-help-paying-medicare-costs or https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/medicare-savings-programs\",\n  \"gotchas\": [\n    \"Income is countable after deductions (e.g., $20 general disregard, $65 earned income, impairment-related); overestimating gross income leads to denials.[2][4]\",\n    \"QI-1 has waitlist risk due to federal funding caps and annual reapplication.[1][6]\",\n    \"QMB providers cannot bill beneficiary for Medicare-covered services (no cost-sharing), but people miss reporting QMB status to doctors.[1]\",\n    \"Can overlap with other Medicaid but not vice versa for QI.[4]\",\n    \"Limits higher than federal standards in WA (no assets, higher % FPL).[3][4]\",\n    \"Apply to state Medicaid agency, not Medicare directly.[1][6]\"\n  ],\n  \"data_shape_notes\": \"Tiered by program (QMB/SLMB/QI-1) with escalating income thresholds; WA eliminates asset test and uses higher FPL % than federal; benefits fixed by tier not household size beyond couple; QI waitlist/priority; retroactive for SLMB/QI.\"\n}"
+    },
+    {
+      "name": "Basic Food Program (Washington State SNAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income must be at or below 200% of the Federal Poverty Level (FPL). As of April 1, 2025, the monthly income limits are:[1][3][4]\n\n| Household Size | Monthly Income Limit |\n|---|---|\n| 1 person | $2,608 |\n| 2 people | $3,525 |\n| 3 people | $4,442 |\n| 4 people | $5,358 |\n| 5 people | $6,275 |\n| 6 people | $7,192 |\n| 7 people | $8,108 |\n| 8 people | $9,025 |\n| Each additional person | add $917 |\n\nFor reference, 200% of FPL for a family of four in 2025 equals $64,300 annually.[2]",
+        "asset_limits": "Resources such as a house, car, or money in the bank DO NOT count against eligibility.[3]",
+        "other_requirements": [
+          "U.S. citizenship or lawful residency (must meet 5-year residency requirement for some non-citizens)[1]",
+          "If non-citizen with U.S. citizen children, children may be eligible[1]",
+          "Work requirement: Starting July 2025, individuals aged 18–64 must work at least 80 hours per month (approximately 20 hours per week) to qualify, with exceptions for those with children under age 14[3][5]",
+          "Exceptions to work requirements include: parents with children under 14, participants in SNAP Employment & Training (BFET) programs, or those combining qualifying activities (paid employment, self-employment, volunteering, bartering, or training)[5]",
+          "Must agree to participate in Food Assistance work and training program if applicable[1]",
+          "Residency in Washington State required[1]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Electronic Benefits Transfer (EBT) card with monthly food benefits. Maximum monthly benefit allotments as of the search results:[1]\n\n| Household Size | Maximum Monthly Benefit |\n|---|---|\n| 1 person | $292 |\n| 2 people | $536 |\n| 3 people | $768 |\n| 4 people | $975 |\n| 5 people | $1,158 |\n\nActual benefits vary based on household income, living expenses (rent/mortgage, utilities, child care, child support), and other deductible expenses.[1]",
+        "varies_by": "household_size, income, and living expenses"
+      },
+      "application": {
+        "methods": [
+          "Online: www.washingtonconnection.org[2]",
+          "Phone: Help Me Grow Washington Hotline at 1-800-322-2588[2]",
+          "In-person: Local Community Services Office (interview required after application submission)[2]",
+          "Mail: Complete application and mail with required documents (specific mailing instructions provided with application form)[1]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not mentioned in search results",
+        "forms": [
+          "Basic Food Program application form (available in English and Spanish)[1]"
+        ],
+        "documents": [
+          "Proof of income from the last 30 days (earned income, unemployment, social security, child support, disability)[1][3]",
+          "Proof of household monthly expenses (rent/mortgage, utilities, child support, medical bills)[3]",
+          "Social security number[2][4]",
+          "Proof of identity[2][4]",
+          "Names and demographic information for all household members[3]",
+          "For mixed-immigration-status households: you may omit information for family members not eligible for SNAP[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program operates statewide in Washington; eligibility and benefits are uniform across the state[1][2][3]",
+        "regional_variations": "Applications and interviews are handled through local Community Services Offices, but eligibility criteria and benefit amounts do not vary by region[2]",
+        "offices_or_providers": "Local Community Services Offices throughout Washington State (specific locations not detailed in search results; contact Help Me Grow Washington Hotline for local office information)"
+      },
+      "official_source": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program",
+      "gotchas": [
+        "Work requirement expansion (July 2025): Adults aged 18–64 must now work at least 80 hours per month to qualify, with limited exceptions. This is a significant change that affects many working-age adults.[3][5]",
+        "Immigrant eligibility restrictions (December 2025): New federal work requirements under H.R. 1 remove eligibility for refugees, asylum seekers, and immigrants with humanitarian protections as of December 1, 2025.[5]",
+        "Vulnerable groups now subject to work requirements: Veterans, young adults aging out of foster care, people experiencing homelessness, and parents with children over age 14 are no longer exempt from work requirements.[5]",
+        "Income is gross income (before taxes/deductions), not net income.[2]",
+        "Resources (house, car, savings) do NOT disqualify you, but income does.[3]",
+        "Unemployment alone does not disqualify you; the program is available to unemployed individuals, though work requirements now apply to most adults.[3]",
+        "Interview is required after application submission; this is a mandatory step.[2]",
+        "For elderly loved ones: Age is not a barrier to eligibility, but work requirements may apply if they are aged 18–64 and not already exempt (e.g., if they have a child under 14).[3][5]",
+        "Estimated impact: As many as 170,300 Washingtonians could lose food assistance due to expanded work rules and immigrant eligibility changes under H.R. 1.[5]"
+      ],
+      "data_shape_notes": "Benefits scale by household size and income. Income limits are uniform statewide and tied to 200% of Federal Poverty Level, which is adjusted annually. Work requirements create a two-tier system: those exempt (primarily parents with children under 14) and those subject to 80-hour monthly work verification. The program is administered through local Community Services Offices but with statewide uniform eligibility and benefit standards. Critical policy changes in July 2025 (work requirements) and December 2025 (immigrant eligibility) significantly alter who qualifies.",
+      "_raw": "```json\n{\n  \"name\": \"Basic Food Program (Washington State SNAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income must be at or below 200% of the Federal Poverty Level (FPL). As of April 1, 2025, the monthly income limits are:[1][3][4]\\n\\n| Household Size | Monthly Income Limit |\\n|---|---|\\n| 1 person | $2,608 |\\n| 2 people | $3,525 |\\n| 3 people | $4,442 |\\n| 4 people | $5,358 |\\n| 5 people | $6,275 |\\n| 6 people | $7,192 |\\n| 7 people | $8,108 |\\n| 8 people | $9,025 |\\n| Each additional person | add $917 |\\n\\nFor reference, 200% of FPL for a family of four in 2025 equals $64,300 annually.[2]\",\n    \"asset_limits\": \"Resources such as a house, car, or money in the bank DO NOT count against eligibility.[3]\",\n    \"other_requirements\": [\n      \"U.S. citizenship or lawful residency (must meet 5-year residency requirement for some non-citizens)[1]\",\n      \"If non-citizen with U.S. citizen children, children may be eligible[1]\",\n      \"Work requirement: Starting July 2025, individuals aged 18–64 must work at least 80 hours per month (approximately 20 hours per week) to qualify, with exceptions for those with children under age 14[3][5]\",\n      \"Exceptions to work requirements include: parents with children under 14, participants in SNAP Employment & Training (BFET) programs, or those combining qualifying activities (paid employment, self-employment, volunteering, bartering, or training)[5]\",\n      \"Must agree to participate in Food Assistance work and training program if applicable[1]\",\n      \"Residency in Washington State required[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Electronic Benefits Transfer (EBT) card with monthly food benefits. Maximum monthly benefit allotments as of the search results:[1]\\n\\n| Household Size | Maximum Monthly Benefit |\\n|---|---|\\n| 1 person | $292 |\\n| 2 people | $536 |\\n| 3 people | $768 |\\n| 4 people | $975 |\\n| 5 people | $1,158 |\\n\\nActual benefits vary based on household income, living expenses (rent/mortgage, utilities, child care, child support), and other deductible expenses.[1]\",\n    \"varies_by\": \"household_size, income, and living expenses\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: www.washingtonconnection.org[2]\",\n      \"Phone: Help Me Grow Washington Hotline at 1-800-322-2588[2]\",\n      \"In-person: Local Community Services Office (interview required after application submission)[2]\",\n      \"Mail: Complete application and mail with required documents (specific mailing instructions provided with application form)[1]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not mentioned in search results\",\n    \"forms\": [\n      \"Basic Food Program application form (available in English and Spanish)[1]\"\n    ],\n    \"documents\": [\n      \"Proof of income from the last 30 days (earned income, unemployment, social security, child support, disability)[1][3]\",\n      \"Proof of household monthly expenses (rent/mortgage, utilities, child support, medical bills)[3]\",\n      \"Social security number[2][4]\",\n      \"Proof of identity[2][4]\",\n      \"Names and demographic information for all household members[3]\",\n      \"For mixed-immigration-status households: you may omit information for family members not eligible for SNAP[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program operates statewide in Washington; eligibility and benefits are uniform across the state[1][2][3]\",\n    \"regional_variations\": \"Applications and interviews are handled through local Community Services Offices, but eligibility criteria and benefit amounts do not vary by region[2]\",\n    \"offices_or_providers\": \"Local Community Services Offices throughout Washington State (specific locations not detailed in search results; contact Help Me Grow Washington Hotline for local office information)\"\n  },\n  \"official_source\": \"https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program\",\n  \"gotchas\": [\n    \"Work requirement expansion (July 2025): Adults aged 18–64 must now work at least 80 hours per month to qualify, with limited exceptions. This is a significant change that affects many working-age adults.[3][5]\",\n    \"Immigrant eligibility restrictions (December 2025): New federal work requirements under H.R. 1 remove eligibility for refugees, asylum seekers, and immigrants with humanitarian protections as of December 1, 2025.[5]\",\n    \"Vulnerable groups now subject to work requirements: Veterans, young adults aging out of foster care, people experiencing homelessness, and parents with children over age 14 are no longer exempt from work requirements.[5]\",\n    \"Income is gross income (before taxes/deductions), not net income.[2]\",\n    \"Resources (house, car, savings) do NOT disqualify you, but income does.[3]\",\n    \"Unemployment alone does not disqualify you; the program is available to unemployed individuals, though work requirements now apply to most adults.[3]\",\n    \"Interview is required after application submission; this is a mandatory step.[2]\",\n    \"For elderly loved ones: Age is not a barrier to eligibility, but work requirements may apply if they are aged 18–64 and not already exempt (e.g., if they have a child under 14).[3][5]\",\n    \"Estimated impact: As many as 170,300 Washingtonians could lose food assistance due to expanded work rules and immigrant eligibility changes under H.R. 1.[5]\"\n  ],\n  \"data_shape_notes\": \"Benefits scale by household size and income. Income limits are uniform statewide and tied to 200% of Federal Poverty Level, which is adjusted annually. Work requirements create a two-tier system: those exempt (primarily parents with children under 14) and those subject to 80-hour monthly work verification. The program is administered through local Community Services Offices but with statewide uniform eligibility and benefit standards. Critical policy changes in July 2025 (work requirements) and December 2025 (immigrant eligibility) significantly alter who qualifies.\"\n}\n```\n\n## Key Takeaways for Families with Elderly Loved Ones\n\n**Age is not a barrier:** There is no age requirement for Basic Food eligibility. Elderly individuals can qualify based on income alone, provided they meet other requirements.[1][2]\n\n**Work requirements may not apply:** If your elderly loved one is 65 or older, they are not subject to the 80-hour monthly work requirement that applies to adults aged 18–64.[3][5] However, if they are aged 18–64, they must work at least 80 hours per month unless they have a qualifying exemption (such as having a child under 14).[3]\n\n**Income is the primary factor:** For most elderly applicants, eligibility hinges on whether their household income falls at or below 200% of the Federal Poverty Level. Social Security, pensions, and other retirement income all count toward this threshold.[3]\n\n**Assets don't disqualify:** Savings, home ownership, or vehicle ownership will not affect eligibility—only income matters.[3]\n\n**Application requires an interview:** After submitting the application online, by phone, or by mail, your family will need to complete an interview, either in-person at a local Community Services Office or by phone.[2]\n\n**Processing timeline unclear:** The search results do not specify how long approval takes after the interview, so contact your local office or the Help Me Grow Washington Hotline at 1-800-322-2588 for current processing times.[2]"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "150% of the federal poverty level (FPL), varying by household size. Exact dollar amounts and full table available in the Eligibility Guidelines PDF from the Washington Department of Commerce. Eligibility determined by local providers.[1]",
+        "asset_limits": "No asset limits mentioned in state guidelines.[1]",
+        "other_requirements": [
+          "Reside in Washington state.",
+          "Household has not received a LIHEAP grant during the current program year (October-September).",
+          "Heating costs (considered as a factor).",
+          "Household size.",
+          "Final eligibility determined by local LIHEAP provider, not guaranteed by online guidelines.[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Grants to help pay heating, cooling, or electric bills; emergency services during energy crisis; may prevent shutoffs. Exact grant amounts not specified statewide—varies by provider, household income, fuel usage (e.g., past 12 months in some regions), and other factors.[1][2][6]",
+        "varies_by": "priority_tier|region|household_size"
+      },
+      "application": {
+        "methods": [
+          "Contact local LIHEAP provider via county map for agency-specific scheduling (phone, in-person, or other methods vary by agency): https://wapartnership.org/services/energy-assistance-and-weatherization/.[2]",
+          "No central state phone or online application; Department of Commerce does not schedule appointments.[1]",
+          "Example regional: OlyCAP online application forms with docs (for specific counties).[4]"
+        ],
+        "processing_time": "Varies by provider; applicants notified as soon as possible, but high demand and limited staff cause delays (e.g., 'be patient' noted by OlyCAP).[4]",
+        "waitlist": "High demand may imply waitlists or delays, varying by region; no statewide waitlist specified.[1][4]",
+        "forms": [
+          "Eligibility Guidelines PDF (informational).[1]",
+          "Regional examples: DSHS Consent Form, Application Signature Form, Propane Small Tank Agreement, No Income Statement, Proof of RV Residence, Miscellaneous Income Statement (OlyCAP).[4]"
+        ],
+        "documents": [
+          "Typically: proof of identity, residence, heat costs, and income (varies by provider—confirm with local agency before appointment).",
+          "Regional examples: birth certificates (for children under 1 without SSN), verification of children in household, photo ID, Social Security cards, address/income verification (Pierce County, OlyCAP).[1][4][6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide in Washington, but must use local community-based agencies, tribes, or local governments (e.g., outside Tacoma city limits for Pierce County EAP supplement).[1][6]",
+        "regional_variations": "Administered by local providers with agency-specific processes, scheduling, documentation, and potentially different grant calculations or wait times. Use county map to find contacts. Examples: OlyCAP (Grays Harbor, Pacific, Wahkiakum counties, season starts Oct 7, 2025); Pierce County EAP for extra support outside Tacoma.[2][4][6]",
+        "offices_or_providers": [
+          "Find via county map: https://wapartnership.org/services/energy-assistance-and-weatherization/. Local community action agencies, tribes (e.g., Hoh Tribe), Pierce County program.[1][2][4]"
+        ]
+      },
+      "official_source": "https://www.commerce.wa.gov/community-opportunities/liheap/[1]",
+      "gotchas": [
+        "No central application—must contact and follow local provider's exact process; state does not schedule.[1]",
+        "One grant per household per program year (Oct-Sep); cannot reapply until next year.[1]",
+        "Documentation varies by provider—call ahead to avoid rejection.[1]",
+        "High demand leads to processing delays; prioritize if facing disconnect (arrange payment plan first).[4]",
+        "Eligibility not guaranteed by guidelines; final determination local.[1]",
+        "Seasonal (e.g., 2025-2026 starts Oct 7, 2025 in some areas).[4]"
+      ],
+      "data_shape_notes": "Decentralized: local providers handle applications with varying processes/docs; income at 150% FPL (table in PDF); benefits vary by region, fuel usage, tier; no statewide asset test or central hotline.",
+      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"150% of the federal poverty level (FPL), varying by household size. Exact dollar amounts and full table available in the Eligibility Guidelines PDF from the Washington Department of Commerce. Eligibility determined by local providers.[1]\",\n    \"asset_limits\": \"No asset limits mentioned in state guidelines.[1]\",\n    \"other_requirements\": [\n      \"Reside in Washington state.\",\n      \"Household has not received a LIHEAP grant during the current program year (October-September).\",\n      \"Heating costs (considered as a factor).\",\n      \"Household size.\",\n      \"Final eligibility determined by local LIHEAP provider, not guaranteed by online guidelines.[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Grants to help pay heating, cooling, or electric bills; emergency services during energy crisis; may prevent shutoffs. Exact grant amounts not specified statewide—varies by provider, household income, fuel usage (e.g., past 12 months in some regions), and other factors.[1][2][6]\",\n    \"varies_by\": \"priority_tier|region|household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local LIHEAP provider via county map for agency-specific scheduling (phone, in-person, or other methods vary by agency): https://wapartnership.org/services/energy-assistance-and-weatherization/.[2]\",\n      \"No central state phone or online application; Department of Commerce does not schedule appointments.[1]\",\n      \"Example regional: OlyCAP online application forms with docs (for specific counties).[4]\"\n    ],\n    \"processing_time\": \"Varies by provider; applicants notified as soon as possible, but high demand and limited staff cause delays (e.g., 'be patient' noted by OlyCAP).[4]\",\n    \"waitlist\": \"High demand may imply waitlists or delays, varying by region; no statewide waitlist specified.[1][4]\",\n    \"forms\": [\n      \"Eligibility Guidelines PDF (informational).[1]\",\n      \"Regional examples: DSHS Consent Form, Application Signature Form, Propane Small Tank Agreement, No Income Statement, Proof of RV Residence, Miscellaneous Income Statement (OlyCAP).[4]\"\n    ],\n    \"documents\": [\n      \"Typically: proof of identity, residence, heat costs, and income (varies by provider—confirm with local agency before appointment).\",\n      \"Regional examples: birth certificates (for children under 1 without SSN), verification of children in household, photo ID, Social Security cards, address/income verification (Pierce County, OlyCAP).[1][4][6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in Washington, but must use local community-based agencies, tribes, or local governments (e.g., outside Tacoma city limits for Pierce County EAP supplement).[1][6]\",\n    \"regional_variations\": \"Administered by local providers with agency-specific processes, scheduling, documentation, and potentially different grant calculations or wait times. Use county map to find contacts. Examples: OlyCAP (Grays Harbor, Pacific, Wahkiakum counties, season starts Oct 7, 2025); Pierce County EAP for extra support outside Tacoma.[2][4][6]\",\n    \"offices_or_providers\": [\"Find via county map: https://wapartnership.org/services/energy-assistance-and-weatherization/. Local community action agencies, tribes (e.g., Hoh Tribe), Pierce County program.[1][2][4]\"]\n  },\n  \"official_source\": \"https://www.commerce.wa.gov/community-opportunities/liheap/[1]\",\n  \"gotchas\": [\n    \"No central application—must contact and follow local provider's exact process; state does not schedule.[1]\",\n    \"One grant per household per program year (Oct-Sep); cannot reapply until next year.[1]\",\n    \"Documentation varies by provider—call ahead to avoid rejection.[1]\",\n    \"High demand leads to processing delays; prioritize if facing disconnect (arrange payment plan first).[4]\",\n    \"Eligibility not guaranteed by guidelines; final determination local.[1]\",\n    \"Seasonal (e.g., 2025-2026 starts Oct 7, 2025 in some areas).[4]\"\n  ],\n  \"data_shape_notes\": \"Decentralized: local providers handle applications with varying processes/docs; income at 150% FPL (table in PDF); benefits vary by region, fuel usage, tier; no statewide asset test or central hotline.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Up to the greater of 200% of the federal poverty level (FPL), 60% of the state median income (SMI), or 80% of the area median income (AMI). Exact dollar amounts vary by household size, year, and metric; contact local agency for current table as specific figures not listed in state guidance[2].",
+        "asset_limits": "No asset limits mentioned in Washington-specific guidance[2].",
+        "other_requirements": [
+          "Households must be homeowners or renters (with landlord approval for renters)[2][3]",
+          "Eligibility determined by local weatherization agency based on income thresholds[2]",
+          "Priority often given to households with elderly members, young children, or disabilities, though not a strict requirement[3][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive energy audit by certified professional, followed by cost-effective weatherization upgrades to improve home energy efficiency, health, and safety (e.g., insulation, air sealing, heating system repairs). No fixed dollar amount or hours; services based on audit results and available funding[2].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local weatherization agency by county (phone/email listed at https://www.commerce.wa.gov/weatherization/ )[2]",
+          "No statewide online form; apply through county-specific providers (e.g., OIC of Washington for Adams County: 509-452-7145, be.r@oicofwa.org)[2]"
+        ],
+        "processing_time": "Not specified; varies by local agency[2].",
+        "waitlist": "Likely due to funding limits, but not detailed; contact local agency[2].",
+        "forms": [
+          "No specific statewide form name/number; local agencies use DOE-approved processes[2]"
+        ],
+        "documents": [
+          "Proof of income for all household members",
+          "Proof of residency/utility bills",
+          "ID for household head",
+          "Landlord permission if renter (exact list confirmed by local agency)[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local subgrantees; serves all counties[2].",
+        "regional_variations": "Administered by different local agencies per county with varying contact info, potential differences in wait times, capacity, and processing[2].",
+        "offices_or_providers": [
+          "County-specific list at https://www.commerce.wa.gov/weatherization/ (e.g., OIC of Washington for Adams, Community Action Partnership for Asotin)[2]"
+        ]
+      },
+      "official_source": "https://www.commerce.wa.gov/weatherization/",
+      "gotchas": [
+        "Must contact county-specific local agency—no central statewide application[2]",
+        "Renters need landlord approval, which can delay or block services[2][3]",
+        "Exact income eligibility requires local verification across 200% FPL, 60% SMI, or 80% AMI—may qualify under one even if not others[2]",
+        "Priority for elderly/seniors but not guaranteed; funding-limited with possible waitlists[2][3]",
+        "Not available if home in foreclosure or planned sale (general WAP rule)[1]"
+      ],
+      "data_shape_notes": "Administered county-by-county through local agencies with no centralized application; eligibility uses max of three income metrics (200% FPL, 60% SMI, 80% AMI); priority tiers favor elderly and vulnerable households",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Up to the greater of 200% of the federal poverty level (FPL), 60% of the state median income (SMI), or 80% of the area median income (AMI). Exact dollar amounts vary by household size, year, and metric; contact local agency for current table as specific figures not listed in state guidance[2].\",\n    \"asset_limits\": \"No asset limits mentioned in Washington-specific guidance[2].\",\n    \"other_requirements\": [\"Households must be homeowners or renters (with landlord approval for renters)[2][3]\", \"Eligibility determined by local weatherization agency based on income thresholds[2]\", \"Priority often given to households with elderly members, young children, or disabilities, though not a strict requirement[3][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive energy audit by certified professional, followed by cost-effective weatherization upgrades to improve home energy efficiency, health, and safety (e.g., insulation, air sealing, heating system repairs). No fixed dollar amount or hours; services based on audit results and available funding[2].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local weatherization agency by county (phone/email listed at https://www.commerce.wa.gov/weatherization/ )[2]\", \"No statewide online form; apply through county-specific providers (e.g., OIC of Washington for Adams County: 509-452-7145, be.r@oicofwa.org)[2]\"],\n    \"processing_time\": \"Not specified; varies by local agency[2].\",\n    \"waitlist\": \"Likely due to funding limits, but not detailed; contact local agency[2].\",\n    \"forms\": [\"No specific statewide form name/number; local agencies use DOE-approved processes[2]\"],\n    \"documents\": [\"Proof of income for all household members\", \"Proof of residency/utility bills\", \"ID for household head\", \"Landlord permission if renter (exact list confirmed by local agency)[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local subgrantees; serves all counties[2].\",\n    \"regional_variations\": \"Administered by different local agencies per county with varying contact info, potential differences in wait times, capacity, and processing[2].\",\n    \"offices_or_providers\": [\"County-specific list at https://www.commerce.wa.gov/weatherization/ (e.g., OIC of Washington for Adams, Community Action Partnership for Asotin)[2]\"]\n  },\n  \"official_source\": \"https://www.commerce.wa.gov/weatherization/\",\n  \"gotchas\": [\"Must contact county-specific local agency—no central statewide application[2]\", \"Renters need landlord approval, which can delay or block services[2][3]\", \"Exact income eligibility requires local verification across 200% FPL, 60% SMI, or 80% AMI—may qualify under one even if not others[2]\", \"Priority for elderly/seniors but not guaranteed; funding-limited with possible waitlists[2][3]\", \"Not available if home in foreclosure or planned sale (general WAP rule)[1]\"],\n  \"data_shape_notes\": \"Administered county-by-county through local agencies with no centralized application; eligibility uses max of three income metrics (200% FPL, 60% SMI, 80% AMI); priority tiers favor elderly and vulnerable households\"\n}"
+    },
+    {
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; prioritizes people with limited incomes but open to all[2]",
+        "asset_limits": "No asset limits or tests apply[1][2]",
+        "other_requirements": [
+          "Eligible for Medicare (age 65+ or under 65 with disabilities), soon-to-be eligible for Medicare, family members, or caregivers of Medicare beneficiaries[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free, personalized, unbiased, confidential one-on-one counseling (in-person or phone); education on Medicare Parts A/B/C/D, Medigap, enrollment, appeals, reducing costs; help applying for low-income programs (Medicaid, Medicare Savings Program, Extra Help); group presentations and outreach events; fraud prevention via Senior Medicare Patrol in many areas[1][2][3]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-562-6900 (statewide SHIBA), TTY: 1-360-586-0241[5]",
+          "Website: Washington SHIBA website (via shiphelp.org/ships/washington/)[5]",
+          "In-person or phone through local SHIBA counselors (statewide network)[1][2][5]"
+        ],
+        "processing_time": "Immediate counseling available upon contact; no formal application processing[1][3]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required for counseling; counselors assist with Medicare-related forms during sessions[2]"
+        ],
+        "documents": [
+          "Medicare card, current insurance details, prescription drug list, income info if seeking low-income program help (optional for initial counseling)[1][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide in Washington via SHIBA (Statewide Health Insurance Benefits Advisors)[5]",
+        "regional_variations": "Delivered through statewide network of local sites and counselors; no specified differences in services, wait times, or providers by region[2][5]",
+        "offices_or_providers": [
+          "Statewide SHIBA program with over 2,200 national local sites (Washington-specific locals via phone/website)[2][5]"
+        ]
+      },
+      "official_source": "https://www.shiphelp.org/ships/washington/[5]",
+      "gotchas": [
+        "Not a healthcare or financial benefit provider—only free counseling/advocacy, no direct payments or services; counselors are unbiased and cannot sell insurance; contact 3 months before Medicare eligibility for best help; HICAP is California-specific name, Washington uses SHIBA (both under national SHIP)[1][3][4][5]"
+      ],
+      "data_shape_notes": "no income/asset test; open to all Medicare-related; counseling-only service (not benefits/funds); statewide fixed access via central phone/website; volunteer/staff network varies locally but services uniform",
+      "_raw": "{\n  \"name\": \"Health Insurance Counseling and Advocacy Program (HICAP/SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; prioritizes people with limited incomes but open to all[2]\",\n    \"asset_limits\": \"No asset limits or tests apply[1][2]\",\n    \"other_requirements\": [\"Eligible for Medicare (age 65+ or under 65 with disabilities), soon-to-be eligible for Medicare, family members, or caregivers of Medicare beneficiaries[1][2][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free, personalized, unbiased, confidential one-on-one counseling (in-person or phone); education on Medicare Parts A/B/C/D, Medigap, enrollment, appeals, reducing costs; help applying for low-income programs (Medicaid, Medicare Savings Program, Extra Help); group presentations and outreach events; fraud prevention via Senior Medicare Patrol in many areas[1][2][3]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-562-6900 (statewide SHIBA), TTY: 1-360-586-0241[5]\", \"Website: Washington SHIBA website (via shiphelp.org/ships/washington/)[5]\", \"In-person or phone through local SHIBA counselors (statewide network)[1][2][5]\"],\n    \"processing_time\": \"Immediate counseling available upon contact; no formal application processing[1][3]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required for counseling; counselors assist with Medicare-related forms during sessions[2]\"],\n    \"documents\": [\"Medicare card, current insurance details, prescription drug list, income info if seeking low-income program help (optional for initial counseling)[1][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide in Washington via SHIBA (Statewide Health Insurance Benefits Advisors)[5]\",\n    \"regional_variations\": \"Delivered through statewide network of local sites and counselors; no specified differences in services, wait times, or providers by region[2][5]\",\n    \"offices_or_providers\": [\"Statewide SHIBA program with over 2,200 national local sites (Washington-specific locals via phone/website)[2][5]\"]\n  },\n  \"official_source\": \"https://www.shiphelp.org/ships/washington/[5]\",\n  \"gotchas\": [\"Not a healthcare or financial benefit provider—only free counseling/advocacy, no direct payments or services; counselors are unbiased and cannot sell insurance; contact 3 months before Medicare eligibility for best help; HICAP is California-specific name, Washington uses SHIBA (both under national SHIP)[1][3][4][5]\"],\n  \"data_shape_notes\": \"no income/asset test; open to all Medicare-related; counseling-only service (not benefits/funds); statewide fixed access via central phone/website; volunteer/staff network varies locally but services uniform\"\n}"
+    },
+    {
+      "name": "Home Delivered Meals",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Varies by program and region. For Older Americans Act-funded programs (e.g., Olympic Area Agency on Aging in Clallam, Grays Harbor, Jefferson, Pacific Counties): below 185% of Federal Poverty Level (specific dollar amounts not listed in sources; check current FPL guidelines). Sound Generations (King County) uses suggested donation model with no strict income limit stated. Medicaid additional requirement (WAC 388-473-0020) ties to existing Medicaid eligibility, which has income limits (not specified here). Mom's Meals eligibility often requires Medicaid or Medicare Advantage.",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Homebound or physically/mentally impaired in ability to prepare meals (WAC 388-473-0020)",
+          "Unable to shop or cook (Sound Generations, Mom's Meals)",
+          "At risk of malnutrition (various providers)",
+          "Resident of service area (e.g., specific counties)",
+          "Meals not available from other sources like COPES, MPC, or informal support (WAC 388-473-0020)",
+          "For some: 55+ if American Indian/Alaska Native (O3A)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Nutritionally balanced home-delivered meals (e.g., one meal per day or per delivery; weekly or semi-weekly delivery). Specifics: Sound Generations - one meal per day, suggested donation $6.50/meal; Mom's Meals - meals at $9.49 or less if purchased, free/reduced via programs; O3A - meals to homebound seniors.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging or provider: e.g., Coastal Community Action Programs at 360-533-5100 for O3A counties",
+          "Online application for Sound Generations (King County): soundgenerations.org/meals-on-wheels application form",
+          "Mail application to Sound Generations",
+          "Contact case manager or health plan for Medicaid/Mom's Meals (requires referral with ID, address, meal details)",
+          "For Medicaid additional requirement: Apply through DSHS caseworker (no specific phone/website in results)"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not mentioned; likely varies by provider and region",
+        "forms": [
+          "Sound Generations Meals on Wheels application (online or print)",
+          "DSHS referral for Medicaid (WAC 388-473-0020)",
+          "Mom's Meals requires referral form from case manager"
+        ],
+        "documents": [
+          "Proof of age/residency",
+          "Medicaid/Medicare info if applicable",
+          "Referral details (ID, address, meal needs, case manager info for Mom's Meals)",
+          "Income verification for income-based programs"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "County-specific; e.g., O3A: Clallam, Grays Harbor, Jefferson, Pacific; Sound Generations: King County",
+        "regional_variations": "Providers differ: O3A via Coastal Community Action; Sound Generations (Meals on Wheels) in King; Mom's Meals via Medicaid statewide but referral-based. Delivery frequency: weekly/twice monthly (Sound Generations). Funding: Older Americans Act in some areas, Medicaid in others. Age: 60+ generally, spouses may qualify.",
+        "offices_or_providers": [
+          "Coastal Community Action Programs (O3A counties): 360-533-5100",
+          "Sound Generations (King County)",
+          "Mom's Meals (via Medicaid/health plans)",
+          "Local DSHS for Medicaid authorization"
+        ]
+      },
+      "official_source": "https://app.leg.wa.gov/wac/default.aspx?cite=388-473-0020 (WAC 388-473-0020 for Medicaid); agingkingcounty.org or similar AAAs for OAA programs",
+      "gotchas": [
+        "Not a single statewide program—must identify local provider or Medicaid route; availability depends on region",
+        "Medicaid version requires impairment proof and no other meal sources (e.g., excludes if COPES available)",
+        "Often donation/suggested fee based even if 'free'; strict homebound criteria",
+        "Mom's Meals needs referral—contact case manager first, not direct apply",
+        "Waitlists or unavailability if home delivery more expensive than restaurant meals (WAC)"
+      ],
+      "data_shape_notes": "Decentralized by region/provider; mixes OAA-funded (income-tested, 60+) with Medicaid additional requirement (functional impairment test, no fixed age); referral-based for private providers like Mom's Meals; no uniform income table or statewide processing",
+      "_raw": "{\n  \"name\": \"Home Delivered Meals\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Varies by program and region. For Older Americans Act-funded programs (e.g., Olympic Area Agency on Aging in Clallam, Grays Harbor, Jefferson, Pacific Counties): below 185% of Federal Poverty Level (specific dollar amounts not listed in sources; check current FPL guidelines). Sound Generations (King County) uses suggested donation model with no strict income limit stated. Medicaid additional requirement (WAC 388-473-0020) ties to existing Medicaid eligibility, which has income limits (not specified here). Mom's Meals eligibility often requires Medicaid or Medicare Advantage.\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Homebound or physically/mentally impaired in ability to prepare meals (WAC 388-473-0020)\",\n      \"Unable to shop or cook (Sound Generations, Mom's Meals)\",\n      \"At risk of malnutrition (various providers)\",\n      \"Resident of service area (e.g., specific counties)\",\n      \"Meals not available from other sources like COPES, MPC, or informal support (WAC 388-473-0020)\",\n      \"For some: 55+ if American Indian/Alaska Native (O3A)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nutritionally balanced home-delivered meals (e.g., one meal per day or per delivery; weekly or semi-weekly delivery). Specifics: Sound Generations - one meal per day, suggested donation $6.50/meal; Mom's Meals - meals at $9.49 or less if purchased, free/reduced via programs; O3A - meals to homebound seniors.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging or provider: e.g., Coastal Community Action Programs at 360-533-5100 for O3A counties\",\n      \"Online application for Sound Generations (King County): soundgenerations.org/meals-on-wheels application form\",\n      \"Mail application to Sound Generations\",\n      \"Contact case manager or health plan for Medicaid/Mom's Meals (requires referral with ID, address, meal details)\",\n      \"For Medicaid additional requirement: Apply through DSHS caseworker (no specific phone/website in results)\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not mentioned; likely varies by provider and region\",\n    \"forms\": [\"Sound Generations Meals on Wheels application (online or print)\", \"DSHS referral for Medicaid (WAC 388-473-0020)\", \"Mom's Meals requires referral form from case manager\"],\n    \"documents\": [\n      \"Proof of age/residency\",\n      \"Medicaid/Medicare info if applicable\",\n      \"Referral details (ID, address, meal needs, case manager info for Mom's Meals)\",\n      \"Income verification for income-based programs\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"County-specific; e.g., O3A: Clallam, Grays Harbor, Jefferson, Pacific; Sound Generations: King County\",\n    \"regional_variations\": \"Providers differ: O3A via Coastal Community Action; Sound Generations (Meals on Wheels) in King; Mom's Meals via Medicaid statewide but referral-based. Delivery frequency: weekly/twice monthly (Sound Generations). Funding: Older Americans Act in some areas, Medicaid in others. Age: 60+ generally, spouses may qualify.\",\n    \"offices_or_providers\": [\n      \"Coastal Community Action Programs (O3A counties): 360-533-5100\",\n      \"Sound Generations (King County)\",\n      \"Mom's Meals (via Medicaid/health plans)\",\n      \"Local DSHS for Medicaid authorization\"\n    ]\n  },\n  \"official_source\": \"https://app.leg.wa.gov/wac/default.aspx?cite=388-473-0020 (WAC 388-473-0020 for Medicaid); agingkingcounty.org or similar AAAs for OAA programs\",\n  \"gotchas\": [\n    \"Not a single statewide program—must identify local provider or Medicaid route; availability depends on region\",\n    \"Medicaid version requires impairment proof and no other meal sources (e.g., excludes if COPES available)\",\n    \"Often donation/suggested fee based even if 'free'; strict homebound criteria\",\n    \"Mom's Meals needs referral—contact case manager first, not direct apply\",\n    \"Waitlists or unavailability if home delivery more expensive than restaurant meals (WAC)\"\n  ],\n  \"data_shape_notes\": \"Decentralized by region/provider; mixes OAA-funded (income-tested, 60+) with Medicaid additional requirement (functional impairment test, no fixed age); referral-based for private providers like Mom's Meals; no uniform income table or statewide processing\"\n}"
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "eligibility": {
+        "age": "Care recipient 18+; caregiver typically 18+[6]",
+        "income_limits": "Not specified in sources; certain eligibility requirements may apply, varying by community[6]",
+        "asset_limits": "Not applicable or not specified",
+        "other_requirements": [
+          "Supports unpaid caregivers of adults 18+ with challenges like stress[6]",
+          "Services tailored via screening and assessment process[6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Find local resources/services; caregiver support groups and counseling; training on caregiving topics or supplies/equipment; respite care; practical information and suggestions[6]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Call 1-800-422-3263[6]",
+          "Visit www.adsa.dshs.wa.gov and click on 'Local Services'[6]",
+          "Look in yellow pages for Area Agency on Aging under 'Senior Services'[6]",
+          "Online resources at www.adsa.dshs.wa.gov/caregiving[6]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Not specified; screening and assessment process used[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Services vary from community to community; contact local Area Agency on Aging[6]",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging via DSHS[6]"
+        ]
+      },
+      "official_source": "https://www.adsa.dshs.wa.gov/caregiving",
+      "gotchas": [
+        "Certain eligibility requirements may apply (not detailed in sources)[6]",
+        "Services vary by community, so check locally[6]",
+        "Not a paid caregiving program; supports unpaid caregivers[6]",
+        "Often confused with Medicaid Personal Care or VA programs which have income/asset limits and pay family caregivers[2][3]"
+      ],
+      "data_shape_notes": "Services vary by community; no fixed income/asset limits specified; focused on support for unpaid caregivers via local Area Agencies on Aging; introduced screening/assessment in 2009[6]",
+      "_raw": "{\n  \"name\": \"Family Caregiver Support Program\",\n  \"eligibility\": {\n    \"age\": \"Care recipient 18+; caregiver typically 18+[6]\",\n    \"income_limits\": \"Not specified in sources; certain eligibility requirements may apply, varying by community[6]\",\n    \"asset_limits\": \"Not applicable or not specified\",\n    \"other_requirements\": [\"Supports unpaid caregivers of adults 18+ with challenges like stress[6]\", \"Services tailored via screening and assessment process[6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Find local resources/services; caregiver support groups and counseling; training on caregiving topics or supplies/equipment; respite care; practical information and suggestions[6]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Call 1-800-422-3263[6]\", \"Visit www.adsa.dshs.wa.gov and click on 'Local Services'[6]\", \"Look in yellow pages for Area Agency on Aging under 'Senior Services'[6]\", \"Online resources at www.adsa.dshs.wa.gov/caregiving[6]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Not specified; screening and assessment process used[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Services vary from community to community; contact local Area Agency on Aging[6]\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging via DSHS[6]\"]\n  },\n  \"official_source\": \"https://www.adsa.dshs.wa.gov/caregiving\",\n  \"gotchas\": [\"Certain eligibility requirements may apply (not detailed in sources)[6]\", \"Services vary by community, so check locally[6]\", \"Not a paid caregiving program; supports unpaid caregivers[6]\", \"Often confused with Medicaid Personal Care or VA programs which have income/asset limits and pay family caregivers[2][3]\"],\n  \"data_shape_notes\": \"Services vary by community; no fixed income/asset limits specified; focused on support for unpaid caregivers via local Area Agencies on Aging; introduced screening/assessment in 2009[6]\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in current sources for Washington; families must verify current federal poverty guidelines via DOL or local provider[1]. No full table provided in sources.",
+        "asset_limits": "No asset limits mentioned in sources[1].",
+        "other_requirements": [
+          "Unemployed",
+          "Priority given to: veterans and qualified spouses, individuals over 65, those with a disability, low literacy skills or limited English proficiency, rural residents, homeless or at risk of homelessness, low employment prospects, or those who failed to find employment after American Job Center services[1]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service work (average 20 hours per week) at non-profit/public facilities (e.g., schools, hospitals, day-care, senior centers); paid at highest of federal, state, or local minimum wage; on-the-job training in skills like computer/vocational; employment assistance and placement support to unsubsidized jobs[1][4].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "In-person or phone: AARP Foundation SCSEP, 3216 Wetmore #203, Everett WA 98201, (425) 366-4457 (Snohomish County)[7]",
+          "In-person: WorkSource Whatcom, 101 Prospect Street, Bellingham, WA 98225; email findhelp@worksourcewa.com or visit https://www.worksourcewa.com (Whatcom County)[3]",
+          "National: Contact local grantees via DOL SCSEP page (https://www.dol.gov/agencies/eta/seniors) or American Job Centers[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not specified; may vary by local provider and funding availability[1]",
+        "forms": [
+          "No specific form names/numbers listed; intake via local provider[1]"
+        ],
+        "documents": [
+          "Not detailed in sources; prepare proof of age, income, unemployment status, and priority factors (e.g., veteran status, disability documentation) based on standard program needs[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local grantees (e.g., AARP Foundation, WorkSource); no county restrictions noted[1][3][7]",
+        "regional_variations": "Administered by different grantees/providers by region (e.g., AARP Foundation in Snohomish/Everett, WorkSource in Whatcom/Bellingham); contact local offices for specifics; wait times/funding may vary by location and grant allocation[3][7]",
+        "offices_or_providers": [
+          "AARP Foundation SCSEP: 3216 Wetmore #203, Everett WA 98201, (425) 366-4457[7]",
+          "WorkSource Whatcom: 101 Prospect Street, Bellingham, WA 98225[3]"
+        ]
+      },
+      "official_source": "https://www.dol.gov/agencies/eta/seniors[1]",
+      "gotchas": [
+        "Income limit is strictly 125% of federal poverty level; verify current amounts as they update yearly[1]",
+        "Priority tiers mean non-priority applicants may face longer waits or limited slots[1]",
+        "Program is temporary training bridge to unsubsidized work, not permanent employment or welfare[1][4]",
+        "Funded via DOL grants to local non-profits/state agencies (e.g., AARP, WorkSource); availability depends on local funding[1][3][7]",
+        "Must be unemployed; not for current workers[1]"
+      ],
+      "data_shape_notes": "Administered by multiple regional grantees (e.g., AARP Foundation, WorkSource); priority-based enrollment; income at 125% FPL with no asset test specified; 20 hours/week training pay at min wage; no statewide uniform processing times or forms",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in current sources for Washington; families must verify current federal poverty guidelines via DOL or local provider[1]. No full table provided in sources.\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1].\",\n    \"other_requirements\": [\n      \"Unemployed\",\n      \"Priority given to: veterans and qualified spouses, individuals over 65, those with a disability, low literacy skills or limited English proficiency, rural residents, homeless or at risk of homelessness, low employment prospects, or those who failed to find employment after American Job Center services[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work (average 20 hours per week) at non-profit/public facilities (e.g., schools, hospitals, day-care, senior centers); paid at highest of federal, state, or local minimum wage; on-the-job training in skills like computer/vocational; employment assistance and placement support to unsubsidized jobs[1][4].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person or phone: AARP Foundation SCSEP, 3216 Wetmore #203, Everett WA 98201, (425) 366-4457 (Snohomish County)[7]\",\n      \"In-person: WorkSource Whatcom, 101 Prospect Street, Bellingham, WA 98225; email findhelp@worksourcewa.com or visit https://www.worksourcewa.com (Whatcom County)[3]\",\n      \"National: Contact local grantees via DOL SCSEP page (https://www.dol.gov/agencies/eta/seniors) or American Job Centers[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not specified; may vary by local provider and funding availability[1]\",\n    \"forms\": [\"No specific form names/numbers listed; intake via local provider[1]\"],\n    \"documents\": [\"Not detailed in sources; prepare proof of age, income, unemployment status, and priority factors (e.g., veteran status, disability documentation) based on standard program needs[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local grantees (e.g., AARP Foundation, WorkSource); no county restrictions noted[1][3][7]\",\n    \"regional_variations\": \"Administered by different grantees/providers by region (e.g., AARP Foundation in Snohomish/Everett, WorkSource in Whatcom/Bellingham); contact local offices for specifics; wait times/funding may vary by location and grant allocation[3][7]\",\n    \"offices_or_providers\": [\n      \"AARP Foundation SCSEP: 3216 Wetmore #203, Everett WA 98201, (425) 366-4457[7]\",\n      \"WorkSource Whatcom: 101 Prospect Street, Bellingham, WA 98225[3]\"\n    ]\n  },\n  \"official_source\": \"https://www.dol.gov/agencies/eta/seniors[1]\",\n  \"gotchas\": [\n    \"Income limit is strictly 125% of federal poverty level; verify current amounts as they update yearly[1]\",\n    \"Priority tiers mean non-priority applicants may face longer waits or limited slots[1]\",\n    \"Program is temporary training bridge to unsubsidized work, not permanent employment or welfare[1][4]\",\n    \"Funded via DOL grants to local non-profits/state agencies (e.g., AARP, WorkSource); availability depends on local funding[1][3][7]\",\n    \"Must be unemployed; not for current workers[1]\"\n  ],\n  \"data_shape_notes\": \"Administered by multiple regional grantees (e.g., AARP Foundation, WorkSource); priority-based enrollment; income at 125% FPL with no asset test specified; 20 hours/week training pay at min wage; no statewide uniform processing times or forms\"\n}"
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "In most counties, seniors 60+ are eligible regardless of income. Low-income individuals 60+ qualify in areas like those served by Rural Resources. General NJP services require low-income screening, but seniors often exempt[1][3][7].",
+        "asset_limits": "Assets limits may apply for CLEAR*Sr, though specifics not detailed[3].",
+        "other_requirements": [
+          "Low-income status (waived for seniors 60+ in most counties)",
+          "Civil legal problems affecting basic needs (e.g., income maintenance, health care, housing, protection against guardianship, consumer issues)",
+          "Washington state resident"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free legal advice, consultation, counseling, advocacy, representation, referrals; one-time consultation with attorney in some programs; assistance via phone, electronically; covers income maintenance, health care, housing, protective services, powers of attorney, health care directives, dementia directives[1][3][4][5].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: CLEAR*Sr at 1-888-387-7111 (seniors 60+ regardless of income)",
+          "Phone: General CLEAR at 1-888-201-1014 (Mon-Fri 9:15am-12:15pm)",
+          "Online: Apply via Northwest Justice Project at nwjustice.org",
+          "In-person or referrals: Local NJP offices, partners like Rural Resources, ALTC, Columbia Legal Services",
+          "Mail: Not specified, use online/phone intake"
+        ],
+        "processing_time": "Immediate advice if possible during call; in-depth interview to assess; high call volume may delay connection[3].",
+        "waitlist": "No waitlist mentioned; high call volume may require patience[3].",
+        "forms": [
+          "No specific form names/numbers listed; intake via hotline or online application[3][6]."
+        ],
+        "documents": [
+          "Not explicitly listed; prepare income/asset info if screened, details on legal problem (e.g., documents related to housing, benefits, health care)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via NJP/CLEAR, but delivered through regional offices/partners",
+        "regional_variations": "Varies by county: e.g., Rural Resources (rural areas), Snohomish County services, Kitsap ALTC/NJP contract, Benton Franklin Legal Aid, Clallam-Jefferson Pro Bono; different local providers and offices[1][4][5][6].",
+        "offices_or_providers": [
+          "Northwest Justice Project (statewide)",
+          "Rural Resources",
+          "ALTC Southeast Washington",
+          "Columbia Legal Services",
+          "County-specific: Snohomish, Kitsap, Benton, Clallam-Jefferson, etc."
+        ]
+      },
+      "official_source": "https://nwjustice.org/clear-hotline",
+      "gotchas": [
+        "Income often not a barrier for 60+ but assets may apply; limited to civil/basic needs issues (no criminal/personal injury); high call volume requires patience; one-time consultation in some programs; select counties have unique partners/providers[1][3][7]."
+      ],
+      "data_shape_notes": "Seniors 60+ often no income test statewide via NJP/CLEAR*Sr, but regional delivery via county partners; services priority on basic needs civil legal issues",
+      "_raw": "{\n  \"name\": \"Legal Aid for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"In most counties, seniors 60+ are eligible regardless of income. Low-income individuals 60+ qualify in areas like those served by Rural Resources. General NJP services require low-income screening, but seniors often exempt[1][3][7].\",\n    \"asset_limits\": \"Assets limits may apply for CLEAR*Sr, though specifics not detailed[3].\",\n    \"other_requirements\": [\"Low-income status (waived for seniors 60+ in most counties)\", \"Civil legal problems affecting basic needs (e.g., income maintenance, health care, housing, protection against guardianship, consumer issues)\", \"Washington state resident\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal advice, consultation, counseling, advocacy, representation, referrals; one-time consultation with attorney in some programs; assistance via phone, electronically; covers income maintenance, health care, housing, protective services, powers of attorney, health care directives, dementia directives[1][3][4][5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: CLEAR*Sr at 1-888-387-7111 (seniors 60+ regardless of income)\", \"Phone: General CLEAR at 1-888-201-1014 (Mon-Fri 9:15am-12:15pm)\", \"Online: Apply via Northwest Justice Project at nwjustice.org\", \"In-person or referrals: Local NJP offices, partners like Rural Resources, ALTC, Columbia Legal Services\", \"Mail: Not specified, use online/phone intake\"],\n    \"processing_time\": \"Immediate advice if possible during call; in-depth interview to assess; high call volume may delay connection[3].\",\n    \"waitlist\": \"No waitlist mentioned; high call volume may require patience[3].\",\n    \"forms\": [\"No specific form names/numbers listed; intake via hotline or online application[3][6].\"],\n    \"documents\": [\"Not explicitly listed; prepare income/asset info if screened, details on legal problem (e.g., documents related to housing, benefits, health care)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via NJP/CLEAR, but delivered through regional offices/partners\",\n    \"regional_variations\": \"Varies by county: e.g., Rural Resources (rural areas), Snohomish County services, Kitsap ALTC/NJP contract, Benton Franklin Legal Aid, Clallam-Jefferson Pro Bono; different local providers and offices[1][4][5][6].\",\n    \"offices_or_providers\": [\"Northwest Justice Project (statewide)\", \"Rural Resources\", \"ALTC Southeast Washington\", \"Columbia Legal Services\", \"County-specific: Snohomish, Kitsap, Benton, Clallam-Jefferson, etc.\"]\n  },\n  \"official_source\": \"https://nwjustice.org/clear-hotline\",\n  \"gotchas\": [\"Income often not a barrier for 60+ but assets may apply; limited to civil/basic needs issues (no criminal/personal injury); high call volume requires patience; one-time consultation in some programs; select counties have unique partners/providers[1][3][7].\"],\n  \"data_shape_notes\": \"Seniors 60+ often no income test statewide via NJP/CLEAR*Sr, but regional delivery via county partners; services priority on basic needs civil legal issues\"\n}"
+    },
+    {
+      "name": "Washington State Long-Term Care Ombudsman Program (LTCOP)",
+      "program_type": "Advocacy and complaint resolution service (NOT a benefits program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": null,
+        "asset_limits": null,
+        "other_requirements": [
+          "Resident of a licensed long-term care facility in Washington State (nursing home, assisted living facility, adult family home, or enhanced services facility)",
+          "No application required — service is automatically available to all qualifying residents"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free complaint investigation, resolution, and advocacy; information about resident rights; assistance with quality of care issues, restraint use, transfers/discharges, abuse, discrimination, and financial exploitation",
+        "varies_by": "not_applicable — all residents receive the same level of service"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact Pierce County office at 253-798-3789 (or state office via waombudsman.org for regional contacts)",
+          "Website: waombudsman.org (includes statewide map of regional program contacts)",
+          "In-person: Visit local long-term care facility — ombudsmen regularly visit facilities",
+          "Mail/Third-party: Family members, friends, facility staff, or concerned community members can contact on behalf of a resident"
+        ],
+        "processing_time": "Not specified in available sources — complaints are investigated and resolved on a case-by-case basis",
+        "waitlist": null,
+        "forms": null,
+        "documents": [
+          "No formal application documents required",
+          "Facility staff are required to post ombudsman contact information in all skilled nursing facilities, assisted living facilities, and adult family homes"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available to residents of all licensed long-term care facilities throughout Washington State",
+        "regional_variations": "Program operates through regional offices and partnerships with nonprofits and Area Agencies on Aging; Pierce County has a dedicated office, but other regions may have different local structures",
+        "offices_or_providers": [
+          "Pierce County Long-Term Care Ombudsman: 253-798-3789 or [email protected]",
+          "Statewide map of regional contacts available at waombudsman.org"
+        ]
+      },
+      "official_source": "waombudsman.org",
+      "gotchas": [
+        "This is NOT a financial assistance program — it provides advocacy and complaint resolution only",
+        "Ombudsmen are resident-directed advocates and act only with resident consent (confidentiality is protected unless the resident authorizes disclosure)",
+        "The program depends on volunteers and paid staff visiting facilities; response time may vary by region and staffing availability",
+        "New regulations (effective January 1, 2026) require assisted living facilities, adult family homes, and enhanced services facilities to notify the State LTC Ombuds of transfers and discharges of Medicaid recipients",
+        "Facilities are legally required to post ombudsman contact information, but families should verify this information is visible and current"
+      ],
+      "data_shape_notes": "This is a universal advocacy service, not a means-tested benefit program. There are no income, asset, or age eligibility requirements. All residents of licensed long-term care facilities automatically qualify. The program is free and confidential. Families contact the program reactively when issues arise, rather than applying proactively for benefits.",
+      "_raw": "I need to clarify an important distinction: the **Long-Term Care Ombudsman Program is not an eligibility-based benefit program** — it's an **advocacy and complaint resolution service** available to all residents of long-term care facilities. Families don't \"apply\" to receive ombudsman services; instead, they contact the program when they need help.\n\nHere's what the search results actually show:\n\n```json\n{\n  \"name\": \"Washington State Long-Term Care Ombudsman Program (LTCOP)\",\n  \"program_type\": \"Advocacy and complaint resolution service (NOT a benefits program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": null,\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Resident of a licensed long-term care facility in Washington State (nursing home, assisted living facility, adult family home, or enhanced services facility)\",\n      \"No application required — service is automatically available to all qualifying residents\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free complaint investigation, resolution, and advocacy; information about resident rights; assistance with quality of care issues, restraint use, transfers/discharges, abuse, discrimination, and financial exploitation\",\n    \"varies_by\": \"not_applicable — all residents receive the same level of service\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact Pierce County office at 253-798-3789 (or state office via waombudsman.org for regional contacts)\",\n      \"Website: waombudsman.org (includes statewide map of regional program contacts)\",\n      \"In-person: Visit local long-term care facility — ombudsmen regularly visit facilities\",\n      \"Mail/Third-party: Family members, friends, facility staff, or concerned community members can contact on behalf of a resident\"\n    ],\n    \"processing_time\": \"Not specified in available sources — complaints are investigated and resolved on a case-by-case basis\",\n    \"waitlist\": null,\n    \"forms\": null,\n    \"documents\": [\n      \"No formal application documents required\",\n      \"Facility staff are required to post ombudsman contact information in all skilled nursing facilities, assisted living facilities, and adult family homes\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available to residents of all licensed long-term care facilities throughout Washington State\",\n    \"regional_variations\": \"Program operates through regional offices and partnerships with nonprofits and Area Agencies on Aging; Pierce County has a dedicated office, but other regions may have different local structures\",\n    \"offices_or_providers\": [\n      \"Pierce County Long-Term Care Ombudsman: 253-798-3789 or [email protected]\",\n      \"Statewide map of regional contacts available at waombudsman.org\"\n    ]\n  },\n  \"official_source\": \"waombudsman.org\",\n  \"gotchas\": [\n    \"This is NOT a financial assistance program — it provides advocacy and complaint resolution only\",\n    \"Ombudsmen are resident-directed advocates and act only with resident consent (confidentiality is protected unless the resident authorizes disclosure)\",\n    \"The program depends on volunteers and paid staff visiting facilities; response time may vary by region and staffing availability\",\n    \"New regulations (effective January 1, 2026) require assisted living facilities, adult family homes, and enhanced services facilities to notify the State LTC Ombuds of transfers and discharges of Medicaid recipients\",\n    \"Facilities are legally required to post ombudsman contact information, but families should verify this information is visible and current\"\n  ],\n  \"data_shape_notes\": \"This is a universal advocacy service, not a means-tested benefit program. There are no income, asset, or age eligibility requirements. All residents of licensed long-term care facilities automatically qualify. The program is free and confidential. Families contact the program reactively when issues arise, rather than applying proactively for benefits.\"\n}\n```\n\n## Key Clarifications for Your Guide\n\n**What This Program Actually Is:**\nThe Long-Term Care Ombudsman Program is a **resident advocacy service** funded by the state and federal government (under the Older Americans Act)[5]. It's designed to protect residents' rights and resolve complaints — not to provide financial assistance or direct services[1][2].\n\n**Who Can Contact the Program:**\nNot just the resident — family members, friends, facility staff, or any concerned community member can initiate contact on behalf of a resident[3]. The ombudsman will then work with the resident's consent[3].\n\n**What They Actually Do:**\nOmbudsmen investigate and resolve complaints involving quality of care, use of restraints, transfers/discharges, abuse, discrimination, and financial exploitation[2]. They also educate residents and families about rights and advocate for systemic improvements[3].\n\n**Regional Structure:**\nWashington operates through a statewide program with regional offices. Pierce County has a dedicated office, but the program uses partnerships with nonprofits and Area Agencies on Aging to serve other regions[2][3]. Contact information for your specific region is available on the statewide map at waombudsman.org[3].\n\n**The Critical \"Gotcha\":**\nFamilies often confuse this with a benefits program or direct service provider. The ombudsman doesn't provide healthcare, personal care, or financial assistance — they advocate *on behalf of* residents when problems occur[2]."
+    },
+    {
+      "name": "Washington State Parks Senior Citizen Limited Income Pass",
+      "eligibility": {
+        "age": 62,
+        "income_limits": "Household gross income of $40,000 or less per calendar year[1][3]. If applicants own property, they must meet the requirements for property tax exemption under Washington Revised Code 84.36.381[3].",
+        "asset_limits": "Not specified in available sources",
+        "other_requirements": [
+          "Must be a Washington state resident (defined as resident for at least the past three consecutive months; dual-state residency will not be considered)[3]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "50% discount on nightly camping or moorage fees (one site per night)[1][2][3]; free watercraft launching[1][2][3]; free trailer dump services[1][2][3]; waives day access fees for Washington State Parks[3]; 50% discount on the Off-Season Senior Citizen Pass[2][3]; free day-use parking[1]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Online application (specific URL not provided in search results)",
+          "In-person at Washington State Parks offices (specific locations not provided in search results)"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not mentioned in available sources",
+        "forms": [
+          "Specific form names/numbers not provided in search results"
+        ],
+        "documents": [
+          "Proof of income (household gross income documentation for the calendar year)[3]",
+          "Proof of residency (documentation showing three consecutive months of Washington state residence)[3]",
+          "If property owner: documentation meeting property tax exemption requirements under RCW 84.36.381[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available only to Washington state residents[1][3]",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Washington State Parks and Recreation Commission (specific office locations not provided in search results)"
+        ]
+      },
+      "official_source": "https://benefitscheckup.org/program/discount_wa_state_park_disc_pass (information aggregator); Washington State Parks and Recreation Commission official website (specific URL not provided in search results)",
+      "gotchas": [
+        "This pass does NOT replace a Discover Pass and will not be accepted on lands managed by Washington State Department of Fish and Wildlife or Department of Natural Resources[2]",
+        "Passes are not valid with other discounts[3]",
+        "If applicants own property, they must meet specific property tax exemption requirements under RCW 84.36.381—this is an additional eligibility gate beyond age and income[3]",
+        "The pass is valid year-round, but the separate Off-Season Senior Citizen Pass ($75, or $37.50 with Limited Income Pass discount) provides free camping October 1–March 31 and weekdays in April—these are two different passes with different benefits[2][3]",
+        "Income limit is household gross income, not net income[3]",
+        "Dual-state residency disqualifies applicants[3]"
+      ],
+      "data_shape_notes": "This program has a simple, fixed benefit structure with no tiering or household-size variation. The primary eligibility gates are age (62+), household income ($40,000 or less), Washington residency (3+ consecutive months), and property tax exemption status if applicable. A critical distinction exists between the free Senior Citizen Limited Income Pass (year-round, 50% discounts) and the paid Off-Season Senior Citizen Pass ($75, free camping in off-season months). The pass does not extend to state lands managed by other agencies, which is a common point of confusion.",
+      "_raw": "```json\n{\n  \"name\": \"Washington State Parks Senior Citizen Limited Income Pass\",\n  \"eligibility\": {\n    \"age\": 62,\n    \"income_limits\": \"Household gross income of $40,000 or less per calendar year[1][3]. If applicants own property, they must meet the requirements for property tax exemption under Washington Revised Code 84.36.381[3].\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be a Washington state resident (defined as resident for at least the past three consecutive months; dual-state residency will not be considered)[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"50% discount on nightly camping or moorage fees (one site per night)[1][2][3]; free watercraft launching[1][2][3]; free trailer dump services[1][2][3]; waives day access fees for Washington State Parks[3]; 50% discount on the Off-Season Senior Citizen Pass[2][3]; free day-use parking[1]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online application (specific URL not provided in search results)\",\n      \"In-person at Washington State Parks offices (specific locations not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": [\n      \"Specific form names/numbers not provided in search results\"\n    ],\n    \"documents\": [\n      \"Proof of income (household gross income documentation for the calendar year)[3]\",\n      \"Proof of residency (documentation showing three consecutive months of Washington state residence)[3]\",\n      \"If property owner: documentation meeting property tax exemption requirements under RCW 84.36.381[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available only to Washington state residents[1][3]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Washington State Parks and Recreation Commission (specific office locations not provided in search results)\"\n    ]\n  },\n  \"official_source\": \"https://benefitscheckup.org/program/discount_wa_state_park_disc_pass (information aggregator); Washington State Parks and Recreation Commission official website (specific URL not provided in search results)\",\n  \"gotchas\": [\n    \"This pass does NOT replace a Discover Pass and will not be accepted on lands managed by Washington State Department of Fish and Wildlife or Department of Natural Resources[2]\",\n    \"Passes are not valid with other discounts[3]\",\n    \"If applicants own property, they must meet specific property tax exemption requirements under RCW 84.36.381—this is an additional eligibility gate beyond age and income[3]\",\n    \"The pass is valid year-round, but the separate Off-Season Senior Citizen Pass ($75, or $37.50 with Limited Income Pass discount) provides free camping October 1–March 31 and weekdays in April—these are two different passes with different benefits[2][3]\",\n    \"Income limit is household gross income, not net income[3]\",\n    \"Dual-state residency disqualifies applicants[3]\"\n  ],\n  \"data_shape_notes\": \"This program has a simple, fixed benefit structure with no tiering or household-size variation. The primary eligibility gates are age (62+), household income ($40,000 or less), Washington residency (3+ consecutive months), and property tax exemption status if applicable. A critical distinction exists between the free Senior Citizen Limited Income Pass (year-round, 50% discounts) and the paid Off-Season Senior Citizen Pass ($75, free camping in off-season months). The pass does not extend to state lands managed by other agencies, which is a common point of confusion.\"\n}\n```\n\n**Critical gaps in available information:** The search results do not provide specific application URLs, phone numbers, mailing addresses, in-person office locations, processing timelines, or specific form names. To complete this guide for families, you will need to contact Washington State Parks and Recreation Commission directly or visit their official website to obtain:\n\n- Step-by-step application instructions with direct links\n- Phone number for eligibility questions\n- Mailing address for paper applications\n- List of regional offices or application centers\n- Expected processing time\n- Specific form names and numbers\n- Whether online application is available\n\nThe search results confirm the program exists and outline eligibility and benefits, but lack the operational details necessary for a comprehensive family guide[1][2][3]."
+    },
+    {
+      "name": "Lifetime Disabled Veteran Pass",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits or asset limits apply. Eligibility is based solely on disability rating and residency, not financial means.",
+        "asset_limits": "No asset limits apply. No counts or exemptions specified as they are not part of eligibility.",
+        "other_requirements": [
+          "Washington State resident (proof required, such as valid WA driver's license, ID card, voter registration, or senior citizen property tax exemption; at least 3 consecutive months residency in some contexts)",
+          "Service-connected disability rating of at least 30% from the VA (verified by VA award letter dated within the last 2 years or VA Benefit Summary Letter)",
+          "Veteran of US Armed Forces (honorably discharged or equivalent)"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Lifetime pass providing free day-use access (vehicle parking and individual entry) to Washington State Parks year-round. Accepted at many county parks and recreation sites (e.g., Jefferson County Parks) for free or reduced fees. Does not cover camping, moorage, or expanded amenities unless specified by site.",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: (360) 902-8844 or Washington Telecommunication Relay Service at (800) 833-6388 to request application",
+          "Online: Submit completed Washington State Parks and Recreation Commission Lifetime Disabled Veteran Pass Application by email to passes@parks.wa.gov or fax to 360-586-6440",
+          "Mail: Washington State Parks and Recreation Commission (address listed on application form)"
+        ],
+        "processing_time": "Passes ordered online or by mail delivered in 3-4 weeks after receipt of documentation (similar to federal process; state-specific not detailed)",
+        "waitlist": null,
+        "forms": [
+          "Washington State Parks and Recreation Commission Lifetime Disabled Veteran Pass Application"
+        ],
+        "documents": [
+          "Proof of Washington state residency (e.g., valid WA driver's license or ID card, voter registration card, senior citizen property tax exemption)",
+          "VA award letter dated within the last 2 years showing combined service-connected disability rating of 30% or greater, VA Benefit Summary Letter, or letter from military service certifying disability"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to Washington State residents",
+        "regional_variations": "Accepted statewide at WA State Parks; some county parks (e.g., Jefferson County) honor it for their passes with no noted differences in eligibility or processing. No regional wait time variations specified.",
+        "offices_or_providers": []
+      },
+      "official_source": "https://wdfw.wa.gov/accessibility/eligibility-requirements-veterans-reduced-fees (referenced in results); primary application via parks.wa.gov",
+      "gotchas": [
+        "Pass covers day-use fees only (e.g., parking, entry); does not include camping, boat launches, or special events",
+        "Must show VA documentation dated within 2 years; older letters may be rejected",
+        "Not the same as federal NPS Access Pass or Disabled Veteran Property Tax Exemption—specific to WA State Parks access",
+        "Residency proof must be current; at least 3 months in some verifications",
+        "No income/asset test, but strictly service-connected disability (not general disability)"
+      ],
+      "data_shape_notes": "No income or asset tests; fixed eligibility based on 30%+ VA service-connected rating and WA residency; statewide uniform access with acceptance at select county sites; documentation-heavy with recent VA letter requirement",
+      "_raw": "{\n  \"name\": \"Lifetime Disabled Veteran Pass\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits or asset limits apply. Eligibility is based solely on disability rating and residency, not financial means.\",\n    \"asset_limits\": \"No asset limits apply. No counts or exemptions specified as they are not part of eligibility.\",\n    \"other_requirements\": [\n      \"Washington State resident (proof required, such as valid WA driver's license, ID card, voter registration, or senior citizen property tax exemption; at least 3 consecutive months residency in some contexts)\",\n      \"Service-connected disability rating of at least 30% from the VA (verified by VA award letter dated within the last 2 years or VA Benefit Summary Letter)\",\n      \"Veteran of US Armed Forces (honorably discharged or equivalent)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Lifetime pass providing free day-use access (vehicle parking and individual entry) to Washington State Parks year-round. Accepted at many county parks and recreation sites (e.g., Jefferson County Parks) for free or reduced fees. Does not cover camping, moorage, or expanded amenities unless specified by site.\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (360) 902-8844 or Washington Telecommunication Relay Service at (800) 833-6388 to request application\",\n      \"Online: Submit completed Washington State Parks and Recreation Commission Lifetime Disabled Veteran Pass Application by email to passes@parks.wa.gov or fax to 360-586-6440\",\n      \"Mail: Washington State Parks and Recreation Commission (address listed on application form)\"\n    ],\n    \"processing_time\": \"Passes ordered online or by mail delivered in 3-4 weeks after receipt of documentation (similar to federal process; state-specific not detailed)\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Washington State Parks and Recreation Commission Lifetime Disabled Veteran Pass Application\"\n    ],\n    \"documents\": [\n      \"Proof of Washington state residency (e.g., valid WA driver's license or ID card, voter registration card, senior citizen property tax exemption)\",\n      \"VA award letter dated within the last 2 years showing combined service-connected disability rating of 30% or greater, VA Benefit Summary Letter, or letter from military service certifying disability\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to Washington State residents\",\n    \"regional_variations\": \"Accepted statewide at WA State Parks; some county parks (e.g., Jefferson County) honor it for their passes with no noted differences in eligibility or processing. No regional wait time variations specified.\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://wdfw.wa.gov/accessibility/eligibility-requirements-veterans-reduced-fees (referenced in results); primary application via parks.wa.gov\",\n  \"gotchas\": [\n    \"Pass covers day-use fees only (e.g., parking, entry); does not include camping, boat launches, or special events\",\n    \"Must show VA documentation dated within 2 years; older letters may be rejected\",\n    \"Not the same as federal NPS Access Pass or Disabled Veteran Property Tax Exemption—specific to WA State Parks access\",\n    \"Residency proof must be current; at least 3 months in some verifications\",\n    \"No income/asset test, but strictly service-connected disability (not general disability)\"\n  ],\n  \"data_shape_notes\": \"No income or asset tests; fixed eligibility based on 30%+ VA service-connected rating and WA residency; statewide uniform access with acceptance at select county sites; documentation-heavy with recent VA letter requirement\"\n}"
+    },
+    {
+      "name": "Washington Charity Care Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income limits are based on federal poverty level and vary by hospital and patient group classification. Group 1 hospitals (the primary category) provide: (1) Free care to patients with income ≤300% of federal poverty level, adjusted for family size; (2) 75% discount for patients with income between 301-350% of federal poverty level, adjusted for family size. Some hospitals may offer assistance up to 400% of federal poverty level. Specific dollar amounts vary annually with federal poverty guidelines and by household size—consult your hospital's specific policy or the current Federal Poverty Guidelines from U.S. Health and Human Services for exact thresholds.[1][4][5]",
+        "asset_limits": "Asset limits are referenced in the law but specific thresholds are not detailed in available materials. The law mentions that discounts 'may be reduced by amounts reasonably related to' certain assets, but the exact asset limits and what counts as exempt are determined by individual hospital policies.[1] Contact your specific hospital's financial assistance department for asset limit details.",
+        "other_requirements": [
+          "Patient or guarantor must have exhausted any third-party coverage (insurance, Medicaid, etc.) before qualifying[1]",
+          "Care must be 'medically necessary' or emergent[4]",
+          "No citizenship requirement—all patients regardless of citizenship status can qualify if otherwise eligible[4]",
+          "No deadline to apply; patients can apply while hospitalized or after discharge[4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Free or discounted hospital care. Group 1 hospitals provide: (1) 100% free care for patients at ≤300% of federal poverty level; (2) 75% discount on patient responsibility for those at 301-350% of federal poverty level. Coverage includes inpatient hospital stays and emergency room visits. Does NOT cover independent medical providers (e.g., radiologists, anesthesiologists not employed by hospital) or outpatient clinic visits.[4]",
+        "varies_by": "household_size and hospital classification"
+      },
+      "application": {
+        "methods": [
+          "In-person: Ask hospital staff during admission or at billing/financial assistance department",
+          "Phone: Contact your hospital's financial assistance or billing department (number on hospital website or billing statement)[5]",
+          "Mail: Submit completed application to hospital's financial assistance department",
+          "Online: Many hospitals post applications on their websites[4][5]",
+          "General inquiry: Washington State Department of Health at 360-236-4210 or charitycare@doh.wa.gov[5]"
+        ],
+        "processing_time": "Not specified in available materials. One hospital example (Washington Health System) grants assistance for 3-month periods after approval, but overall processing timeline is not documented.[2]",
+        "waitlist": "No waitlist information provided in available materials.",
+        "forms": [
+          "Hospital-specific Charity Care application form (name varies by hospital; some hospitals call it 'Bridge Assistance' or 'Financial Assistance')[4]",
+          "Plain language summary of policy available from each hospital[2]"
+        ],
+        "documents": [
+          "Most recently filed income tax return[2]",
+          "2 months of checking/savings account statements[2]",
+          "1 month of current paystubs[2]",
+          "If unemployed: copies of unemployment income documentation if applicable[2]",
+          "Copy of Medicaid eligibility determination (approval or denial)[2]",
+          "Alternative income documentation if above unavailable: W-2 withholding statement, pay stubs, income tax return, DSHS Medicaid approval/denial forms, unemployment compensation approval/denial, written statements from employers or welfare agencies, or signed statement of indigency[3]",
+          "If household includes dependent adults, foster children, or adopted children: guardianship papers[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program applies to all acute care hospitals licensed under RCW 70.41 and psychiatric hospitals licensed under RCW 71.12 in Washington State.[1]",
+        "regional_variations": "Each hospital has its own Charity Care policy, which may differ in income thresholds, asset limits, and specific services covered. Policies must be posted on each hospital's website and are available through the Washington State Department of Health.[1][4][5]",
+        "offices_or_providers": "All licensed acute care and psychiatric hospitals in Washington State; no centralized application office. Patients apply directly to the hospital where they received care."
+      },
+      "official_source": "Washington State Department of Health Charity Care information: https://www.doh.wa.gov/ (search 'Charity Care'); statewide hospital policy list available through DOH; individual hospital policies on hospital websites",
+      "gotchas": [
+        "No single statewide income table—each hospital's policy may differ. You must check your specific hospital's policy for exact income limits.[1][4]",
+        "Charity Care does NOT cover independent contractors (radiologists, anesthesiologists, etc.) even if they work in the hospital. These providers may bill separately.[4]",
+        "Outpatient clinic visits are typically NOT covered; only inpatient and emergency room services qualify.[4]",
+        "You must exhaust third-party coverage first. If you have any insurance, Medicaid, or other coverage, the hospital will bill those before Charity Care applies.[1]",
+        "Even with insurance, you may qualify if deductibles or co-pays are high relative to income.[4]",
+        "Collection activity is suspended during Charity Care review, but you should apply promptly to avoid debt collection.[2]",
+        "Some hospitals use different program names ('Bridge Assistance,' 'Financial Assistance'), so ask specifically for 'Charity Care' or financial assistance programs.[4]",
+        "The law states it's an 'unreasonable burden' to require patients to apply for state/federal programs if they're obviously ineligible or were denied in the prior 12 months—hospitals should not require this.[1]",
+        "No deadline to apply, but applying early (during hospitalization or shortly after) is advisable to prevent collection action.[4]"
+      ],
+      "data_shape_notes": "Washington Charity Care is a decentralized, hospital-specific program rather than a single centralized program. Benefits and eligibility scale by household size and federal poverty level, with variation by hospital classification and individual hospital policy. The program is mandatory for all licensed hospitals but lacks a single statewide application process, income table, or processing timeline. Eligibility is income-based with asset considerations, but specific asset limits are hospital-determined. No age requirement exists, making it potentially relevant for elderly patients of any age. The program is notable for covering both insured and uninsured patients and for not restricting eligibility based on citizenship.",
+      "_raw": "```json\n{\n  \"name\": \"Washington Charity Care Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income limits are based on federal poverty level and vary by hospital and patient group classification. Group 1 hospitals (the primary category) provide: (1) Free care to patients with income ≤300% of federal poverty level, adjusted for family size; (2) 75% discount for patients with income between 301-350% of federal poverty level, adjusted for family size. Some hospitals may offer assistance up to 400% of federal poverty level. Specific dollar amounts vary annually with federal poverty guidelines and by household size—consult your hospital's specific policy or the current Federal Poverty Guidelines from U.S. Health and Human Services for exact thresholds.[1][4][5]\",\n    \"asset_limits\": \"Asset limits are referenced in the law but specific thresholds are not detailed in available materials. The law mentions that discounts 'may be reduced by amounts reasonably related to' certain assets, but the exact asset limits and what counts as exempt are determined by individual hospital policies.[1] Contact your specific hospital's financial assistance department for asset limit details.\",\n    \"other_requirements\": [\n      \"Patient or guarantor must have exhausted any third-party coverage (insurance, Medicaid, etc.) before qualifying[1]\",\n      \"Care must be 'medically necessary' or emergent[4]\",\n      \"No citizenship requirement—all patients regardless of citizenship status can qualify if otherwise eligible[4]\",\n      \"No deadline to apply; patients can apply while hospitalized or after discharge[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Free or discounted hospital care. Group 1 hospitals provide: (1) 100% free care for patients at ≤300% of federal poverty level; (2) 75% discount on patient responsibility for those at 301-350% of federal poverty level. Coverage includes inpatient hospital stays and emergency room visits. Does NOT cover independent medical providers (e.g., radiologists, anesthesiologists not employed by hospital) or outpatient clinic visits.[4]\",\n    \"varies_by\": \"household_size and hospital classification\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person: Ask hospital staff during admission or at billing/financial assistance department\",\n      \"Phone: Contact your hospital's financial assistance or billing department (number on hospital website or billing statement)[5]\",\n      \"Mail: Submit completed application to hospital's financial assistance department\",\n      \"Online: Many hospitals post applications on their websites[4][5]\",\n      \"General inquiry: Washington State Department of Health at 360-236-4210 or charitycare@doh.wa.gov[5]\"\n    ],\n    \"processing_time\": \"Not specified in available materials. One hospital example (Washington Health System) grants assistance for 3-month periods after approval, but overall processing timeline is not documented.[2]\",\n    \"waitlist\": \"No waitlist information provided in available materials.\",\n    \"forms\": [\n      \"Hospital-specific Charity Care application form (name varies by hospital; some hospitals call it 'Bridge Assistance' or 'Financial Assistance')[4]\",\n      \"Plain language summary of policy available from each hospital[2]\"\n    ],\n    \"documents\": [\n      \"Most recently filed income tax return[2]\",\n      \"2 months of checking/savings account statements[2]\",\n      \"1 month of current paystubs[2]\",\n      \"If unemployed: copies of unemployment income documentation if applicable[2]\",\n      \"Copy of Medicaid eligibility determination (approval or denial)[2]\",\n      \"Alternative income documentation if above unavailable: W-2 withholding statement, pay stubs, income tax return, DSHS Medicaid approval/denial forms, unemployment compensation approval/denial, written statements from employers or welfare agencies, or signed statement of indigency[3]\",\n      \"If household includes dependent adults, foster children, or adopted children: guardianship papers[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program applies to all acute care hospitals licensed under RCW 70.41 and psychiatric hospitals licensed under RCW 71.12 in Washington State.[1]\",\n    \"regional_variations\": \"Each hospital has its own Charity Care policy, which may differ in income thresholds, asset limits, and specific services covered. Policies must be posted on each hospital's website and are available through the Washington State Department of Health.[1][4][5]\",\n    \"offices_or_providers\": \"All licensed acute care and psychiatric hospitals in Washington State; no centralized application office. Patients apply directly to the hospital where they received care.\"\n  },\n  \"official_source\": \"Washington State Department of Health Charity Care information: https://www.doh.wa.gov/ (search 'Charity Care'); statewide hospital policy list available through DOH; individual hospital policies on hospital websites\",\n  \"gotchas\": [\n    \"No single statewide income table—each hospital's policy may differ. You must check your specific hospital's policy for exact income limits.[1][4]\",\n    \"Charity Care does NOT cover independent contractors (radiologists, anesthesiologists, etc.) even if they work in the hospital. These providers may bill separately.[4]\",\n    \"Outpatient clinic visits are typically NOT covered; only inpatient and emergency room services qualify.[4]\",\n    \"You must exhaust third-party coverage first. If you have any insurance, Medicaid, or other coverage, the hospital will bill those before Charity Care applies.[1]\",\n    \"Even with insurance, you may qualify if deductibles or co-pays are high relative to income.[4]\",\n    \"Collection activity is suspended during Charity Care review, but you should apply promptly to avoid debt collection.[2]\",\n    \"Some hospitals use different program names ('Bridge Assistance,' 'Financial Assistance'), so ask specifically for 'Charity Care' or financial assistance programs.[4]\",\n    \"The law states it's an 'unreasonable burden' to require patients to apply for state/federal programs if they're obviously ineligible or were denied in the prior 12 months—hospitals should not require this.[1]\",\n    \"No deadline to apply, but applying early (during hospitalization or shortly after) is advisable to prevent collection action.[4]\"\n  ],\n  \"data_shape_notes\": \"Washington Charity Care is a decentralized, hospital-specific program rather than a single centralized program. Benefits and eligibility scale by household size and federal poverty level, with variation by hospital classification and individual hospital policy. The program is mandatory for all licensed hospitals but lacks a single statewide application process, income table, or processing timeline. Eligibility is income-based with asset considerations, but specific asset limits are hospital-determined. No age requirement exists, making it potentially relevant for elderly patients of any age. The program is notable for covering both insured and uninsured patients and for not restricting eligibility based on citizenship.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start here:** Contact your hospital's financial assistance or billing department directly. Each hospital administers its own program with potentially different income limits and policies.[4][5]\n\n**Income matters most:** If your elderly loved one's household income is at or below 300% of the federal poverty level (adjusted for family size), they likely qualify for free care at Group 1 hospitals. Check current poverty guidelines for exact dollar amounts.[1][4]\n\n**Apply even if uncertain:** There's no deadline and no penalty for applying. Collection activity pauses during review.[2][4]\n\n**Insurance doesn't disqualify you:** Even with Medicare, Medicaid, or private insurance, high deductibles or co-pays may make you eligible for Charity Care.[4]\n\n**Watch the scope:** Charity Care covers hospital inpatient stays and emergency room visits, but typically not outpatient clinics or independent medical providers who bill separately.[4]"
+    },
+    {
+      "name": "Housing and Essential Needs (HEN) Referral Program",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "Countable income at or below monthly limits in WAC 388-478-0090 (varies by assistance unit size; e.g., follows ABD cash assistance standards like 100% Federal Poverty Level adjusted for household). Specific tables in WAC 388-478-0090; low-income required per DSHS financial need rules in WAC 388-450 and resources in RCW 74.04.005/WAC 388-470[1][6].",
+        "asset_limits": "Subject to resource requirements in RCW 74.04.005 and WAC 388-470 (standard ABD limits apply; primary residence, one vehicle, household goods often exempt—exact counts/exemptions detailed in WAC 388-470)[1].",
+        "other_requirements": [
+          "Apply for cash assistance (WAC 388-406-0010) and complete DSHS interview[1].",
+          "Incapacitated (unable to work at least 90 days due to physical/mental/SUD incapacity per WAC 388-447-0001; verified by DSHS health screening)[1][2][6].",
+          "ABD cash assistance recipient (recent change allows eligibility in addition to ABD benefits)[1][4][6].",
+          "Financial need, citizenship/immigration status (WAC 388-424-0015), SSN verification (WAC 388-476-0005), residency (WAC 388-468-0005), verification (WAC 388-490-0005)[1].",
+          "Not in public correctional facility; not eligible if receiving TANF, SSI, or able to work with income over federal limits[1][2][6].",
+          "Homeless or at risk of homelessness/housing instability (self-attestation possible)[2][3].",
+          "Valid DSHS referral required[2][5]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Essential needs items (e.g., hygiene bags), transportation assistance, potential rental/utility assistance, homeless prevention/rapid rehousing (as funding allows; no fixed dollar/hour amounts—case-by-case via local providers)[3][5][6][8].",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: washingtonconnection.org[2][6].",
+          "Phone: 877-501-2233 (DSHS cash assistance/HEN referral)[4][6].",
+          "In-person: Any DSHS Community Services Office[2][6].",
+          "After DSHS referral: Contact county HEN provider (e.g., King County: 206-328-5755)[6][8]."
+        ],
+        "processing_time": "Not specified; DSHS referral issued after cash assistance application/interview/eligibility determination[2][6].",
+        "waitlist": "Rent interest lists used by providers (e.g., King County prioritizes from list as funding allows; currently no new rent/utility for some areas)[6][8].",
+        "forms": [
+          "No specific form named; DSHS referral letter generated post-approval[6]."
+        ],
+        "documents": [
+          "Health/housing/income documentation for DSHS evaluation[2].",
+          "Proof of incapacity, income/resources, citizenship/SSN/residency[1].",
+          "For rent: Landlord W9, rental agreement/Intent to Rent, Habitability Standards form[8]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide via DSHS referral, but services via local Dept. of Commerce network of homeless prevention providers by county[3][4].",
+        "regional_variations": "Administered locally (e.g., King County: CCSWW, rent lists, phone 206-328-5755; other counties have specific providers—see county list PDF[4][6][8]. Wait times/funding vary; some areas limit new rent assistance[8].",
+        "offices_or_providers": [
+          "County-specific HEN providers (e.g., Rural Resources, CCSWW in King County)[4][5][8]."
+        ]
+      },
+      "official_source": "https://www.law.cornell.edu/regulations/washington/WAC-388-400-0070 (primary reg); washingtonconnection.org (apply)",
+      "gotchas": [
+        "Requires DSHS referral first—not direct apply to providers[2][5].",
+        "12-month limit on eligibility post-referral, even if incapacity persists[7].",
+        "Excludes TANF/SSI recipients, those able to work, or in correctional facilities[1][6].",
+        "Rent/utility not guaranteed—depends on local funding/priority lists; currently limited for new clients in some areas[6][8].",
+        "Referrals expire if not acted on promptly[2].",
+        "ABD recipients now eligible additionally, but must report changes[1][4]."
+      ],
+      "data_shape_notes": "Referral-based only (DSHS gates eligibility, Commerce providers deliver); benefits case-by-case via county providers with funding caps/waitlists; tied to ABD/incapacity cash assistance rules; regional provider variations and no fixed benefit amounts.",
+      "_raw": "{\n  \"name\": \"Housing and Essential Needs (HEN) Referral Program\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Countable income at or below monthly limits in WAC 388-478-0090 (varies by assistance unit size; e.g., follows ABD cash assistance standards like 100% Federal Poverty Level adjusted for household). Specific tables in WAC 388-478-0090; low-income required per DSHS financial need rules in WAC 388-450 and resources in RCW 74.04.005/WAC 388-470[1][6].\",\n    \"asset_limits\": \"Subject to resource requirements in RCW 74.04.005 and WAC 388-470 (standard ABD limits apply; primary residence, one vehicle, household goods often exempt—exact counts/exemptions detailed in WAC 388-470)[1].\",\n    \"other_requirements\": [\n      \"Apply for cash assistance (WAC 388-406-0010) and complete DSHS interview[1].\",\n      \"Incapacitated (unable to work at least 90 days due to physical/mental/SUD incapacity per WAC 388-447-0001; verified by DSHS health screening)[1][2][6].\",\n      \"ABD cash assistance recipient (recent change allows eligibility in addition to ABD benefits)[1][4][6].\",\n      \"Financial need, citizenship/immigration status (WAC 388-424-0015), SSN verification (WAC 388-476-0005), residency (WAC 388-468-0005), verification (WAC 388-490-0005)[1].\",\n      \"Not in public correctional facility; not eligible if receiving TANF, SSI, or able to work with income over federal limits[1][2][6].\",\n      \"Homeless or at risk of homelessness/housing instability (self-attestation possible)[2][3].\",\n      \"Valid DSHS referral required[2][5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Essential needs items (e.g., hygiene bags), transportation assistance, potential rental/utility assistance, homeless prevention/rapid rehousing (as funding allows; no fixed dollar/hour amounts—case-by-case via local providers)[3][5][6][8].\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: washingtonconnection.org[2][6].\",\n      \"Phone: 877-501-2233 (DSHS cash assistance/HEN referral)[4][6].\",\n      \"In-person: Any DSHS Community Services Office[2][6].\",\n      \"After DSHS referral: Contact county HEN provider (e.g., King County: 206-328-5755)[6][8].\"\n    ],\n    \"processing_time\": \"Not specified; DSHS referral issued after cash assistance application/interview/eligibility determination[2][6].\",\n    \"waitlist\": \"Rent interest lists used by providers (e.g., King County prioritizes from list as funding allows; currently no new rent/utility for some areas)[6][8].\",\n    \"forms\": [\"No specific form named; DSHS referral letter generated post-approval[6].\"],\n    \"documents\": [\n      \"Health/housing/income documentation for DSHS evaluation[2].\",\n      \"Proof of incapacity, income/resources, citizenship/SSN/residency[1].\",\n      \"For rent: Landlord W9, rental agreement/Intent to Rent, Habitability Standards form[8].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide via DSHS referral, but services via local Dept. of Commerce network of homeless prevention providers by county[3][4].\",\n    \"regional_variations\": \"Administered locally (e.g., King County: CCSWW, rent lists, phone 206-328-5755; other counties have specific providers—see county list PDF[4][6][8]. Wait times/funding vary; some areas limit new rent assistance[8].\",\n    \"offices_or_providers\": [\"County-specific HEN providers (e.g., Rural Resources, CCSWW in King County)[4][5][8].\"]\n  },\n  \"official_source\": \"https://www.law.cornell.edu/regulations/washington/WAC-388-400-0070 (primary reg); washingtonconnection.org (apply)\",\n  \"gotchas\": [\n    \"Requires DSHS referral first—not direct apply to providers[2][5].\",\n    \"12-month limit on eligibility post-referral, even if incapacity persists[7].\",\n    \"Excludes TANF/SSI recipients, those able to work, or in correctional facilities[1][6].\",\n    \"Rent/utility not guaranteed—depends on local funding/priority lists; currently limited for new clients in some areas[6][8].\",\n    \"Referrals expire if not acted on promptly[2].\",\n    \"ABD recipients now eligible additionally, but must report changes[1][4].\"\n  ],\n  \"data_shape_notes\": \"Referral-based only (DSHS gates eligibility, Commerce providers deliver); benefits case-by-case via county providers with funding caps/waitlists; tied to ABD/incapacity cash assistance rules; regional provider variations and no fixed benefit amounts.\"\n}"
+    },
+    {
+      "name": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Countable income must be at or below monthly limits in WAC 388-478-0090 (specific dollar amounts not detailed in sources; check official WAC for current table by household size). Sources note examples like below $339/month for some disability cases (older data).[1][5]",
+        "asset_limits": "Countable resources not more than $6,000 total (similar to SSI limits of $2,000 individual/$3,000 couple). Counts most cash, bank accounts, some property; exemptions not fully detailed but follow chapters 388-450, 388-470, 388-488 WAC.[2][3]",
+        "other_requirements": [
+          "Blind as defined by SSA, or likely disabled per WAC 388-449-0001-0100 (physical/mental disability preventing work for 12+ months, not primarily substance abuse; medical verification required).",
+          "At least 18 years old (or under 18 if married couple member).",
+          "In financial need per ABD rules.",
+          "U.S. citizen or qualified alien per WAC 388-424-0015.",
+          "Provide Social Security number per WAC 388-476-0005.",
+          "Reside in Washington per WAC 388-468-0005.",
+          "Sign interim assistance reimbursement authorization to repay ABD if SSI approved later.",
+          "Not receiving SSI or TANF (TANF preferred if eligible as it pays more)."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "State-funded monthly cash stipend: up to $450 (single) or $570 (couple); older data shows $417 single/$528 couple or averages $184.76 (2022). Includes automatic referral to Housing and Essential Needs (HEN) program; SSI application facilitator assigned.[1][2][3][4]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: Washington Connection eligibility tool (washingtonconnection.org).",
+          "Phone/mail/in-person: Contact local DSHS Community Service Office (CSO); specific numbers vary by region, e.g., CCS HEN line 206-328-5755 post-referral.",
+          "Automatic HEN referral upon ABD approval via DSHS."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number listed; apply via DSHS processes under WAC 388-400-0060."
+        ],
+        "documents": [
+          "Proof of age (65+), blindness (SSA definition), or disability (medical verification).",
+          "Income/resource documentation per WAC chapters 388-450/470/488.",
+          "Social Security number.",
+          "Proof of citizenship/immigration status.",
+          "Washington residency proof.",
+          "Interim assistance reimbursement authorization."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; must reside in Washington state.",
+        "regional_variations": "Administered via local DSHS Community Service Offices (CSOs); potential differences in offices/providers but program rules uniform statewide. HEN referral processed regionally (e.g., CCS in some areas). No wait time variations specified.",
+        "offices_or_providers": [
+          "Local DSHS CSOs; example: CCS offices for HEN post-referral."
+        ]
+      },
+      "official_source": "https://www.dshs.wa.gov/esa/community-services-offices or WAC 388-400-0060 (https://www.law.cornell.edu/regulations/washington/WAC-388-400-0060)",
+      "gotchas": [
+        "Interim program: Must repay ABD benefits from future SSI (average $4,545 payback).[3]",
+        "Not eligible if receiving SSI or TANF (choose TANF if possible for higher benefit).[4]",
+        "Disability requires medical verification and 'likely' determination; not for substance abuse primary cause.[1][4]",
+        "Income/resources strictly counted; limits similar but not identical to SSI.[2]",
+        "Under 18 only if married couple.[1]"
+      ],
+      "data_shape_notes": "Interim bridge to SSI with mandatory payback; benefits scale by household size (single/couple); uniform statewide rules via DSHS CSOs but local admin; no income table in sources—refer to WAC 388-478-0090.",
+      "_raw": "{\n  \"name\": \"Aged, Blind, or Disabled (ABD) Cash Assistance Program\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Countable income must be at or below monthly limits in WAC 388-478-0090 (specific dollar amounts not detailed in sources; check official WAC for current table by household size). Sources note examples like below $339/month for some disability cases (older data).[1][5]\",\n    \"asset_limits\": \"Countable resources not more than $6,000 total (similar to SSI limits of $2,000 individual/$3,000 couple). Counts most cash, bank accounts, some property; exemptions not fully detailed but follow chapters 388-450, 388-470, 388-488 WAC.[2][3]\",\n    \"other_requirements\": [\n      \"Blind as defined by SSA, or likely disabled per WAC 388-449-0001-0100 (physical/mental disability preventing work for 12+ months, not primarily substance abuse; medical verification required).\",\n      \"At least 18 years old (or under 18 if married couple member).\",\n      \"In financial need per ABD rules.\",\n      \"U.S. citizen or qualified alien per WAC 388-424-0015.\",\n      \"Provide Social Security number per WAC 388-476-0005.\",\n      \"Reside in Washington per WAC 388-468-0005.\",\n      \"Sign interim assistance reimbursement authorization to repay ABD if SSI approved later.\",\n      \"Not receiving SSI or TANF (TANF preferred if eligible as it pays more).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"State-funded monthly cash stipend: up to $450 (single) or $570 (couple); older data shows $417 single/$528 couple or averages $184.76 (2022). Includes automatic referral to Housing and Essential Needs (HEN) program; SSI application facilitator assigned.[1][2][3][4]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Washington Connection eligibility tool (washingtonconnection.org).\",\n      \"Phone/mail/in-person: Contact local DSHS Community Service Office (CSO); specific numbers vary by region, e.g., CCS HEN line 206-328-5755 post-referral.\",\n      \"Automatic HEN referral upon ABD approval via DSHS.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; apply via DSHS processes under WAC 388-400-0060.\"],\n    \"documents\": [\n      \"Proof of age (65+), blindness (SSA definition), or disability (medical verification).\",\n      \"Income/resource documentation per WAC chapters 388-450/470/488.\",\n      \"Social Security number.\",\n      \"Proof of citizenship/immigration status.\",\n      \"Washington residency proof.\",\n      \"Interim assistance reimbursement authorization.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; must reside in Washington state.\",\n    \"regional_variations\": \"Administered via local DSHS Community Service Offices (CSOs); potential differences in offices/providers but program rules uniform statewide. HEN referral processed regionally (e.g., CCS in some areas). No wait time variations specified.\",\n    \"offices_or_providers\": [\"Local DSHS CSOs; example: CCS offices for HEN post-referral.\"]\n  },\n  \"official_source\": \"https://www.dshs.wa.gov/esa/community-services-offices or WAC 388-400-0060 (https://www.law.cornell.edu/regulations/washington/WAC-388-400-0060)\",\n  \"gotchas\": [\n    \"Interim program: Must repay ABD benefits from future SSI (average $4,545 payback).[3]\",\n    \"Not eligible if receiving SSI or TANF (choose TANF if possible for higher benefit).[4]\",\n    \"Disability requires medical verification and 'likely' determination; not for substance abuse primary cause.[1][4]\",\n    \"Income/resources strictly counted; limits similar but not identical to SSI.[2]\",\n    \"Under 18 only if married couple.[1]\"\n  ],\n  \"data_shape_notes\": \"Interim bridge to SSI with mandatory payback; benefits scale by household size (single/couple); uniform statewide rules via DSHS CSOs but local admin; no income table in sources—refer to WAC 388-478-0090.\"\n}"
+    },
+    {
+      "name": "WA Cares Fund",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "No income limits or asset limits apply. Eligibility is based on work history and contributions, not financial means.",
+        "asset_limits": "No asset limits. No assets count or are exempt as there is no means test.",
+        "other_requirements": [
+          "Reside in Washington state or have elected to keep coverage if relocated out-of-state[1][3]",
+          "Worked at least 500 hours per year in Washington for qualifying periods[1][2][3]",
+          "Meet one of three contribution pathways: (1) Lifetime access: 10 years total contributions without 5+ consecutive year break; (2) Early access: 3 of last 6 years at time of application; (3) Partial benefit for near-retirees (born before Jan 1, 1968): 10% of full benefit per qualifying year[1][3]",
+          "Have qualifying long-term care needs (e.g., activities of daily living assistance)[2]",
+          "Not holding a permanent exemption (e.g., veteran with 70%+ service-connected disability); conditional exemptions pause contributions but allow future eligibility[1][3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Up to full lifetime benefit amount for vested individuals (exact dollar cap not specified in sources; partial 10% per year for near-retirees); provides cash benefit for long-term services and supports, payable directly to individual or provider[1][2][3]",
+        "varies_by": "contribution_pathway"
+      },
+      "application": {
+        "methods": [
+          "Apply through WA Employment Security Department (ESD); specific phone, URL, mail, or in-person details not in sources—check official ESD WA Cares site",
+          "For exemptions or rescission: Follow ESD instructions online[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "No specific form names/numbers provided in sources"
+        ],
+        "documents": [
+          "Approval letter from ESD for exemptions; work history proof for contributions; documentation for exemptions (e.g., VA rating for veterans); details for qualifying health needs to be confirmed with ESD][1][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must have worked in Washington (localized work); out-of-state residents eligible only if elected coverage[1][3][4]",
+        "regional_variations": null,
+        "offices_or_providers": []
+      },
+      "official_source": "https://wa-cares.esd.wa.gov/ (inferred primary ESD site based on context; confirm via ESD)",
+      "gotchas": [
+        "Permanent exemptions (e.g., 70%+ veteran disability) make you ineligible for benefits unless rescinded[1][3][4]",
+        "Must notify employer/ESD within 90 days if conditional exemption ends (e.g., move to WA, visa change)[3][4]",
+        "500 hours/year minimum (~10 hrs/week) required for each counting year; breaks over 5 years reset 10-year clock[1][2][3]",
+        "Benefits start Jan 1, 2025; near-retirees get only partial unless meeting other pathways[3][4]",
+        "No means test, but must have qualifying care needs—not automatic upon vesting[2]"
+      ],
+      "data_shape_notes": "No income/asset test; eligibility tied to payroll contributions and work hours via three vesting pathways; exemptions can block benefits; statewide for WA workers",
+      "_raw": "{\n  \"name\": \"WA Cares Fund\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"No income limits or asset limits apply. Eligibility is based on work history and contributions, not financial means.\",\n    \"asset_limits\": \"No asset limits. No assets count or are exempt as there is no means test.\",\n    \"other_requirements\": [\n      \"Reside in Washington state or have elected to keep coverage if relocated out-of-state[1][3]\",\n      \"Worked at least 500 hours per year in Washington for qualifying periods[1][2][3]\",\n      \"Meet one of three contribution pathways: (1) Lifetime access: 10 years total contributions without 5+ consecutive year break; (2) Early access: 3 of last 6 years at time of application; (3) Partial benefit for near-retirees (born before Jan 1, 1968): 10% of full benefit per qualifying year[1][3]\",\n      \"Have qualifying long-term care needs (e.g., activities of daily living assistance)[2]\",\n      \"Not holding a permanent exemption (e.g., veteran with 70%+ service-connected disability); conditional exemptions pause contributions but allow future eligibility[1][3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Up to full lifetime benefit amount for vested individuals (exact dollar cap not specified in sources; partial 10% per year for near-retirees); provides cash benefit for long-term services and supports, payable directly to individual or provider[1][2][3]\",\n    \"varies_by\": \"contribution_pathway\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Apply through WA Employment Security Department (ESD); specific phone, URL, mail, or in-person details not in sources—check official ESD WA Cares site\",\n      \"For exemptions or rescission: Follow ESD instructions online[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form names/numbers provided in sources\"],\n    \"documents\": [\"Approval letter from ESD for exemptions; work history proof for contributions; documentation for exemptions (e.g., VA rating for veterans); details for qualifying health needs to be confirmed with ESD][1][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must have worked in Washington (localized work); out-of-state residents eligible only if elected coverage[1][3][4]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://wa-cares.esd.wa.gov/ (inferred primary ESD site based on context; confirm via ESD)\",\n  \"gotchas\": [\n    \"Permanent exemptions (e.g., 70%+ veteran disability) make you ineligible for benefits unless rescinded[1][3][4]\",\n    \"Must notify employer/ESD within 90 days if conditional exemption ends (e.g., move to WA, visa change)[3][4]\",\n    \"500 hours/year minimum (~10 hrs/week) required for each counting year; breaks over 5 years reset 10-year clock[1][2][3]\",\n    \"Benefits start Jan 1, 2025; near-retirees get only partial unless meeting other pathways[3][4]\",\n    \"No means test, but must have qualifying care needs—not automatic upon vesting[2]\"\n  ],\n  \"data_shape_notes\": \"No income/asset test; eligibility tied to payroll contributions and work hours via three vesting pathways; exemptions can block benefits; statewide for WA workers\"\n}"
+    },
+    {
+      "name": "Seattle Gold Card (Age-Friendly Discount Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits or asset limits apply. Open to all qualifying by age or disability without financial tests.[1][3][5]",
+        "asset_limits": "No asset limits or tests. No information on what counts or exemptions, as none required.[1][5]",
+        "other_requirements": [
+          "Must be a resident of Seattle, King County, or Washington state.[1][3][5]",
+          "No proof of residency explicitly required in sources, but residency stated as eligibility.[3]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Discounts at over 110 participating Seattle-area businesses and nonprofits, including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, Seattle Art Museum, Museum of Flight, fitness/recreation, food/beverage/grocery, pet adoption/licensing (50% fee reduction at Seattle Animal Shelter), retail, services, arts, entertainment, tourism. Specific discount amounts vary by business; cardholders should confirm acceptance. Directory available online with mapping by zip code.[1][2][5][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online: seattle.gov/AgeFriendlyDiscounts or civiform.seattle.gov/programs/gold-card-hsd (10 minutes, 16 languages, card mailed if qualified).[1][2][5][7]",
+          "In-person: Seattle Public Library branches, senior activity centers, community centers, City of Seattle customer service centers, Disability Empowerment Center service centers (Seattle, Redmond, Auburn).[1][4][8]",
+          "Bulk for organizations: Email agefriendly@seattle.gov.[2]",
+          "Phone: (206) 582-5011 (M-F 8am-3:30pm).[5]"
+        ],
+        "processing_time": "Online applicants receive card in mail within 1-2 weeks.[5]",
+        "waitlist": null,
+        "forms": [
+          "Online application form at seattle.gov/AgeFriendlyDiscounts or civiform.seattle.gov (no specific form name/number listed).[1][2][7]"
+        ],
+        "documents": [
+          "No specific documents listed in sources; application described as easy with no mention of required proofs beyond self-attestation of age/residency.[1][2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Seattle, King County, or Washington state residents (administered by City of Seattle, but open beyond city limits).[1][3][5]",
+        "regional_variations": "Discounts focused on Seattle-area businesses; available to King County/WA residents including Bellevue and visitors with family. No noted differences in processing or wait times by region; in-person pickup at select centers (e.g., Redmond, Auburn).[1][4]",
+        "offices_or_providers": [
+          "Seattle Public Library branches, senior/community centers, customer service centers, Disability Empowerment Center (Seattle, Redmond, Auburn).[1][4][8]"
+        ]
+      },
+      "official_source": "https://www.seattle.gov/agefriendly/about/discount-program",
+      "gotchas": [
+        "Not limited to Seattle residents—open to all King County/WA residents 60+ and visitors with family, which surprises some.[1]",
+        "Must confirm with each business if they accept the card, as participation voluntary and list updated regularly.[5][6]",
+        "Separate FLASH Card for 18-59 with disabilities; not the same program.[1][2][5]",
+        "Online application prompts for other Affordable Seattle programs, but Gold Card itself has no income test.[1]",
+        "Physical cards available at libraries/centers without online application.[1][4][8]"
+      ],
+      "data_shape_notes": "No income or asset test; residency broadly defined across King County/WA; discounts vary by participating businesses only (no fixed dollar/hour value); multiple easy access points including libraries; pairs with FLASH for disabilities.",
+      "_raw": "{\n  \"name\": \"Seattle Gold Card (Age-Friendly Discount Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits or asset limits apply. Open to all qualifying by age or disability without financial tests.[1][3][5]\",\n    \"asset_limits\": \"No asset limits or tests. No information on what counts or exemptions, as none required.[1][5]\",\n    \"other_requirements\": [\"Must be a resident of Seattle, King County, or Washington state.[1][3][5]\", \"No proof of residency explicitly required in sources, but residency stated as eligibility.[3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Discounts at over 110 participating Seattle-area businesses and nonprofits, including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, Seattle Art Museum, Museum of Flight, fitness/recreation, food/beverage/grocery, pet adoption/licensing (50% fee reduction at Seattle Animal Shelter), retail, services, arts, entertainment, tourism. Specific discount amounts vary by business; cardholders should confirm acceptance. Directory available online with mapping by zip code.[1][2][5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: seattle.gov/AgeFriendlyDiscounts or civiform.seattle.gov/programs/gold-card-hsd (10 minutes, 16 languages, card mailed if qualified).[1][2][5][7]\", \"In-person: Seattle Public Library branches, senior activity centers, community centers, City of Seattle customer service centers, Disability Empowerment Center service centers (Seattle, Redmond, Auburn).[1][4][8]\", \"Bulk for organizations: Email agefriendly@seattle.gov.[2]\", \"Phone: (206) 582-5011 (M-F 8am-3:30pm).[5]\"],\n    \"processing_time\": \"Online applicants receive card in mail within 1-2 weeks.[5]\",\n    \"waitlist\": null,\n    \"forms\": [\"Online application form at seattle.gov/AgeFriendlyDiscounts or civiform.seattle.gov (no specific form name/number listed).[1][2][7]\"],\n    \"documents\": [\"No specific documents listed in sources; application described as easy with no mention of required proofs beyond self-attestation of age/residency.[1][2][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Seattle, King County, or Washington state residents (administered by City of Seattle, but open beyond city limits).[1][3][5]\",\n    \"regional_variations\": \"Discounts focused on Seattle-area businesses; available to King County/WA residents including Bellevue and visitors with family. No noted differences in processing or wait times by region; in-person pickup at select centers (e.g., Redmond, Auburn).[1][4]\",\n    \"offices_or_providers\": [\"Seattle Public Library branches, senior/community centers, customer service centers, Disability Empowerment Center (Seattle, Redmond, Auburn).[1][4][8]\"]\n  },\n  \"official_source\": \"https://www.seattle.gov/agefriendly/about/discount-program\",\n  \"gotchas\": [\"Not limited to Seattle residents—open to all King County/WA residents 60+ and visitors with family, which surprises some.[1]\", \"Must confirm with each business if they accept the card, as participation voluntary and list updated regularly.[5][6]\", \"Separate FLASH Card for 18-59 with disabilities; not the same program.[1][2][5]\", \"Online application prompts for other Affordable Seattle programs, but Gold Card itself has no income test.[1]\", \"Physical cards available at libraries/centers without online application.[1][4][8]\"],\n  \"data_shape_notes\": \"No income or asset test; residency broadly defined across King County/WA; discounts vary by participating businesses only (no fixed dollar/hour value); multiple easy access points including libraries; pairs with FLASH for disabilities.\"\n}"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "state": "NM",
+  "stateName": "New Mexico",
+  "comparedAt": "2026-04-09T15:27:42.550Z",
+  "total": 5,
+  "newPrograms": 4,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 3,
+    "in_kind": 1,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "fixed": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Centennial Care Community Benefit Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to Medicaid MCOs with NFLOC assessment; two models (Agency-Based then optional Self-Directed); waitlist via Central Registry for non-Medicaid eligible",
+      "gotchas": [
+        "Must have full Medicaid and MCO enrollment first; not standalone",
+        "Requires NFLOC via functional assessment—not automatic for dementia diagnoses",
+        "Self-direction (SDCB) only after 120 days in Agency-Based (ABCB)[2][3]",
+        "Does not cover room/board or 24-hour care; supplements natural supports[2][6]",
+        "Limited provider applications for some services like adult personal care[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hca.nm.gov/community-benefit-program/[7]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive all-inclusive services including: primary care physician services, hospital care (including laboratory and x-ray services), emergency services, physical and occupational therapy, nursing home and home care, prescription drugs, dental services, meals and nutritional counseling, social services, and transportation[1][2]",
+          "source": "https://www.hca.nm.gov/lookingforinformation/pace/ (New Mexico Human Services Department)[5]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hca.nm.gov/lookingforinformation/pace/ (New Mexico Human Services Department)[5]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Only one PACE provider (InnovAge) operates in New Mexico, with a single center in Albuquerque[2][7]. Eligibility requires residing in the service area of the PACE organization[1].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACE in New Mexico is severely geographically restricted to a single provider and location (Albuquerque). The program has no specified income or asset limits in available sources—eligibility appears to hinge primarily on age (55+), state certification of nursing home care need, and residency in the service area. Benefits are fixed and comprehensive rather than tiered. Critical information gaps: specific processing timelines, application forms, required documentation, and income/asset thresholds are not available in search results and would require direct contact with InnovAge or the New Mexico HCA.",
+      "gotchas": [
+        "PACE is the **sole provider** of services once enrolled—participants cannot use other providers for covered services[2]",
+        "Participants can withdraw from the program at any time[2]",
+        "Geographic limitation: Only available in Albuquerque; families outside this service area cannot access the program[2][7]",
+        "State certification of nursing home level of care is required before enrollment—this is not automatic and must be obtained separately[1][9]",
+        "Medicaid recipients pay no monthly premium, but Medicare recipients may pay a monthly premium for additional coverage[2]",
+        "No deductibles or co-pays in the program[2]",
+        "Most PACE participants are dually eligible for both Medicare and Medicaid[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.hca.nm.gov/lookingforinformation/pace/ (New Mexico Human Services Department)[5]"
+    },
+    {
+      "name": "Community Benefit Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to Medicaid MCOs with NF LOC functional test; two tracks (Medicaid-full vs. registry allocation); benefits via individualized MCO care plan; 120-day ABCB trial before self-direct option.",
+      "gotchas": [
+        "Must first qualify/enroll in full Medicaid (strict ABD income/asset limits) or get rare registry allocation; not direct access.",
+        "Requires MCO enrollment; services only after NF LOC assessment.",
+        "New participants must try Agency-Based CB (ABCB) for 120 days before switching to Self-Directed CB (SDCB).[4]",
+        "2022 income figures may be outdated; verify current Medicaid ABD limits.",
+        "Limited slots for non-Medicaid via registry; high demand.",
+        "Certain members get continuous NF LOC (no annual reassess since 2019), but criteria apply.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hca.nm.gov/community-benefit-program/"
+    },
+    {
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Age varies by Native American status; income at 185% FPL or proxy program enrollment (SNAP/CSFP/TEFAP); one-time fixed benefit; statewide with first-come funding cap",
+      "gotchas": [
+        "Different age thresholds: 55+ for Native Americans, 60+ for others—easy to miss[1][2][5][7]",
+        "First-come, first-served; funds may deplete (open enrollment starts mid-February, e.g., Feb 15 for 2024)[1][5]",
+        "Must reapply every year, even if previously eligible[1]",
+        "Honey only for seniors (not WIC FMNP); only eligible fresh, local, unprocessed foods[2]",
+        "Only authorized farmers/markets; no wholesalers[2][4]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.nmwic.org/fmnp/[2]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Grantee-based with multiple providers (NICOA, Goodwill, ALTSD); priority tiers affect access; funding variability by region; no fixed asset limits or statewide wait times; rural/frontier county focus in NM.[2][3][4]",
+      "gotchas": [
+        "Funding fluctuations may cause pauses/slowdowns (e.g., 2025 issues); local waitlists common; not guaranteed permanent job—focus is training to unsubsidized employment; priority groups get preference; separate from state-funded SEP (similar but general funds); physical exam post-enrollment.[1][2][4][7]",
+        "Income test strictly 125% FPL—contact for exact table; open to all qualifying, not just Native American via NICOA.[2]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.aging.nm.gov/aging-network/senior-employment-programs/"
+    }
+  ]
+}

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface UpgradeModalProps {
-  interviewsUsed: number;
+  creditsUsed: number;
   onClose: () => void;
 }
 
-export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps) {
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -15,7 +17,11 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/medjobs/checkout", { method: "POST" });
+      const res = await fetch("/api/medjobs/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl: pathname }),
+      });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to start checkout."); return; }
       if (data.url) window.location.href = data.url;
@@ -37,11 +43,13 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
 
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Unlock unlimited interviews</h2>
         <p className="text-sm text-gray-500 mb-4">
-          You&apos;ve scheduled {interviewsUsed} interview{interviewsUsed !== 1 ? "s" : ""} and experienced MedJobs firsthand. Keep hiring the best student caregivers.
+          {creditsUsed > 0
+            ? "You\u2019ve used your free interviews and experienced MedJobs firsthand. Keep hiring the best student caregivers."
+            : "Upgrade to schedule interviews with top student caregivers."}
         </p>
 
         <div className="bg-gray-50 rounded-xl p-4 mb-5">
-          <p className="text-2xl font-bold text-gray-900">$50<span className="text-sm font-normal text-gray-500">/month</span></p>
+          <p className="text-2xl font-bold text-gray-900">$49<span className="text-sm font-normal text-gray-500">/month</span></p>
           <p className="text-xs text-gray-400 mt-1">Cancel anytime</p>
         </div>
 
@@ -56,6 +64,12 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
             <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
+            Unlimited review requests
+          </li>
+          <li className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
             Full candidate contact info
           </li>
           <li className="flex items-center gap-2">
@@ -63,12 +77,6 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Resume downloads & LinkedIn access
-          </li>
-          <li className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Full candidate names
           </li>
         </ul>
 
@@ -82,6 +90,14 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
           className="w-full px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
           Not now
         </button>
+
+        <p className="mt-4 text-xs text-gray-400">
+          Had a bad experience with your free interview?{" "}
+          <a href="mailto:support@olera.care" className="underline hover:text-gray-600">
+            Contact support
+          </a>{" "}
+          for another free credit.
+        </p>
       </div>
     </div>
   );

@@ -1,0 +1,166 @@
+{
+  "entity": "Hawaii",
+  "entitySlug": "hawaii",
+  "state": "HI",
+  "stateName": "Hawaii",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T12:53:44.825Z",
+  "programCount": 21,
+  "programs": [
+    {
+      "name": "Med-QUEST (Medicaid for seniors/disabled)",
+      "what_it_does": "Med-QUEST administers Medicaid in Hawaii, providing health coverage including long-term care services for eligible seniors and disabled individuals. It serves as the primary safety net for medical needs not covered by Medicare.",
+      "who_its_for": "Seniors aged 65+, legally blind individuals, or those totally and permanently disabled with low income and limited resources.",
+      "official_url": "https://humanservices.hawaii.gov/bessd/",
+      "benefit_value": "Varies by eligibility; covers medical services, long-term care, and cash assistance via AABD for essentials like food and shelter."
+    },
+    {
+      "name": "Kūpuna Care Program",
+      "what_it_does": "The Kūpuna Care Program delivers community-based long-term care services to enable seniors to remain at home. It funds home and community-based services waiver programs through contracted agencies.",
+      "who_its_for": "Hawaii residents aged 60+ with functional impairments, U.S. citizens or qualified aliens, not residing in institutions or covered by comparable services.",
+      "official_url": "https://elderlyaffairs.com",
+      "benefit_value": "Community-based services including case management, personal care, and home support; value depends on assessed needs."
+    },
+    {
+      "name": "Sage PLUS Program (PACE equivalent)",
+      "what_it_does": "Sage PLUS provides comprehensive health and long-term care coordination for frail seniors, integrating medical and social services. It functions similarly to federal PACE by supporting aging in place through day health and home services.",
+      "who_its_for": "Medicare-eligible seniors aged 55+ who are nursing facility-eligible and live in service areas.",
+      "official_url": "https://hawaiiship.org",
+      "benefit_value": "Full capitated care covering all Medicare and Medicaid services; monthly premium or copay based on income."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, and copayments for low-income seniors. Administered via Med-QUEST as Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).",
+      "who_its_for": "Medicare enrollees with incomes below specific federal poverty levels (e.g., 100-135% FPL depending on program) and limited resources.",
+      "official_url": "https://hawaiiship.org/information/financial-assistance/",
+      "benefit_value": "Full/partial coverage of premiums (up to $185/month for Part B), deductibles ($240/year Part B), and cost-sharing."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing nutritious food at approved retailers. It supplements food budgets for low-income households including seniors.",
+      "who_its_for": "Low-income seniors 60+, disabled, or aged/blind individuals meeting income (e.g., <130% FPL) and resource limits.",
+      "official_url": "https://humanservices.hawaii.gov/bessd/fnsrandr/",
+      "benefit_value": "Average $200-300/month per eligible senior household, depending on income and household size."
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP offers grants to help pay home energy bills and address heating/cooling needs. It prevents utility shutoffs and improves energy efficiency for vulnerable households.",
+      "who_its_for": "Low-income households (≤150% FPL) including seniors, disabled, or those with high energy burdens.",
+      "official_url": "https://hawaiiship.org/information/financial-assistance/",
+      "benefit_value": "One-time grants averaging $300-700 per household for bill payment or crisis assistance."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency upgrades like insulation, sealing, and efficient appliances. It reduces energy costs and improves health/safety for low-income homes.",
+      "who_its_for": "Low-income (≤200% FPL) households with seniors, disabled, or children; priority for elderly.",
+      "official_url": "https://humanservices.hawaii.gov/bessd/",
+      "benefit_value": "Free home improvements valued at $3,000-8,000 per household."
+    },
+    {
+      "name": "Hawaii SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "SHIP offers free, personalized Medicare counseling, education, and assistance with enrollment. Counselors help with Medicare options, appeals, and low-income aids.",
+      "who_its_for": "Medicare beneficiaries, caregivers, and pre-retirees seeking insurance guidance.",
+      "official_url": "https://hawaiiship.org",
+      "benefit_value": "Free one-on-one counseling; saves thousands via proper enrollment and aid access."
+    },
+    {
+      "name": "Home-Delivered Meals (via Kūpuna Aging in Place grantees)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Provided through nonprofits funded for kūpuna services.",
+      "who_its_for": "Low-to-moderate income seniors 65+ who are homebound and unable to prepare meals.",
+      "official_url": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place",
+      "benefit_value": "5-7 meals/week; annual value ~$2,000-3,000 per participant."
+    },
+    {
+      "name": "Caregiver Support (via Executive Office on Aging)",
+      "what_it_does": "Offers respite care, training, counseling, and support groups for family caregivers. Helps sustain caregiving to support kūpuna aging in place.",
+      "who_its_for": "Family caregivers of seniors 60+ or adults 18+ with disabilities like Alzheimer's.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Respite grants up to $500-1,000/year; training and groups at no cost."
+    },
+    {
+      "name": "Retired Senior Volunteer Program (RSVP, related to SCSEP)",
+      "what_it_does": "Connects seniors 55+ to paid part-time community service jobs with stipends. Builds skills, income, and community ties while addressing workforce needs.",
+      "who_its_for": "Unemployed low-income adults 55+ seeking work experience and wages.",
+      "official_url": "https://elderlyaffairs.com",
+      "benefit_value": "Stipends ~$3-4/hour for 20 hours/week; annual earnings up to $7,000-10,000."
+    },
+    {
+      "name": "Senior Legal Helpline (via Area Agencies on Aging)",
+      "what_it_does": "Provides free legal advice, representation, and education on elder rights issues. Covers benefits, housing, abuse, and consumer problems.",
+      "who_its_for": "Low-income seniors 60+ facing legal barriers to services or rights violations.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Free consultations and case help; saves $1,000s in legal fees."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program (LTCOP)",
+      "what_it_does": "Advocates for residents in long-term care facilities, resolving complaints and protecting rights. Offers confidential assistance and systemic advocacy.",
+      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities; families/caregivers.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Free advocacy services; improves care quality and resolves 80%+ of complaints."
+    },
+    {
+      "name": "Kahi Malama – A Place of Caring",
+      "what_it_does": "Serves as the Aging & Disability Resource Center for Hawai’i County, providing planning, coordination, advocacy, and administration of programs for older persons. Offers access to home and community-based services including case management, personal care, and protective services for vulnerable adults regardless of income.",
+      "who_its_for": "Older adults aged 60+ and individuals with disabilities on the Big Island (Hawai’i County), including frail elders and vulnerable adults.",
+      "whats_unique": "County-specific Area Agency on Aging (AAA) with branches in Hilo and Kona, delivering localized protective and community services not replicated identically in other states' structures.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Varies by service; free information/referral, income-based eligibility for home care and protective services."
+    },
+    {
+      "name": "Elderly Affairs Division (EAD) / Honolulu ADRC",
+      "what_it_does": "Acts as the Area Agency on Aging for Oʻahu, contracting with organizations for services like case management, personal care, homemaker care, home-delivered meals, and housing assistance. Operates a helpline for consultation, information, and referral while providing outreach and education.",
+      "who_its_for": "Seniors aged 60+ and caregivers in Honolulu County (Oʻahu), including frail elders needing in-home support.",
+      "whats_unique": "Sponsors city-specific ADRC programs tailored to Oʻahu's urban kupuna needs, with contracted services emphasizing community partnerships unique to Hawaii's island demographics.",
+      "official_url": "https://www.honolulu.gov/ead.html",
+      "benefit_value": "Contracted services at low/no cost based on income; helpline free."
+    },
+    {
+      "name": "Kaua’i Agency on Elderly Affairs",
+      "what_it_does": "Provides aging services coordination, advocacy, and direct support through the Kauai ADRC, including access to home and community-based services. Facilitates programs for independent living via referrals to local resources.",
+      "who_its_for": "Older adults 60+ and disabled individuals on Kauaʻi island.",
+      "whats_unique": "Island-specific agency addressing rural Kauai's unique geographic challenges, distinct from mainland state models.",
+      "official_url": "https://www.kauai.gov/Government/Departments-Agencies/Area-Agencies-on-Aging",
+      "benefit_value": "Free referrals and coordination; service costs vary by eligibility."
+    },
+    {
+      "name": "Home and Community Services (Statewide via EOA)",
+      "what_it_does": "Offers services like adult day care, assisted transportation, attendant care, case management, chore services, congregate/home-delivered meals, personal care, and nutrition education to promote independence. Delivered through county offices on aging across all islands.",
+      "who_its_for": "Older adults aged 60+ who are frail or have disabilities, needing support to remain at home.",
+      "whats_unique": "State-funded array coordinated by Executive Office on Aging (EOA), customized for Hawaii's multi-island, culturally diverse kupuna population beyond standard federal programs.",
+      "official_url": "https://health.hawaii.gov/eoa/home/home-and-community-services/",
+      "benefit_value": "Low-cost or free based on income; e.g., door-to-door transport, meals (specific $ values not listed)."
+    },
+    {
+      "name": "Transportation Friends for Kupuna (TFK)",
+      "what_it_does": "Provides free door-through-door transportation and escort assistance via volunteers. Helps independent seniors access essential destinations when they cannot drive.",
+      "who_its_for": "Seniors aged 60+ living independently on Oahu who need transport support.",
+      "whats_unique": "Volunteer-driven, Hawaii-specific program by Catholic Charities focused on Oahu's kupuna, emphasizing aloha culture in peer assistance.",
+      "official_url": "https://www.catholiccharitieshawaii.org/senior-services/",
+      "benefit_value": "Free transportation and escort services."
+    },
+    {
+      "name": "Senior Companion Program",
+      "what_it_does": "Matches income-eligible seniors 55+ as companions to serve frail seniors with oversight and social support. Promotes community engagement while aiding isolated elders.",
+      "who_its_for": "Income-eligible persons 55+ volunteering to assist frail seniors; recipients are vulnerable older adults.",
+      "whats_unique": "State-administered via Adult & Community Care Branch, tailored for Hawaii's aging population with cultural sensitivity.",
+      "official_url": "https://www.hawaii.gov/dhs",
+      "benefit_value": "Stipend for companions; free service to frail seniors."
+    },
+    {
+      "name": "Foster Grandparent Program",
+      "what_it_does": "Recruits income-eligible persons 55+ to serve children with special needs in schools, fostering intergenerational support. Provides structured volunteer roles with training.",
+      "who_its_for": "Income-eligible adults 55+ interested in mentoring children; indirectly benefits senior mental health.",
+      "whats_unique": "Hawaii DHS program uniquely linking kupuna to keiki (children) in school settings, reflecting island community values.",
+      "official_url": "https://www.hawaii.gov/dhs",
+      "benefit_value": "Stipend and benefits for participants 55+."
+    },
+    {
+      "name": "Memory Mentor Program",
+      "what_it_does": "Offers free in-home visits by trained mentors for seniors with memory loss living alone. Provides companionship, safety checks, and light support to delay institutionalization.",
+      "who_its_for": "Seniors with memory loss (e.g., dementia) living alone with minimal caregiving on Oahu.",
+      "whats_unique": "Catholic Charities Hawaii program specifically for isolated kupuna with cognitive decline, volunteer-based and home-focused.",
+      "official_url": "https://www.catholiccharitieshawaii.org/senior-services/",
+      "benefit_value": "Free in-home service."
+    }
+  ]
+}

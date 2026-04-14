@@ -1,0 +1,278 @@
+{
+  "state": "NJ",
+  "stateName": "New Jersey",
+  "checkedAt": "2026-04-14T10:06:10.188Z",
+  "total": 8,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 0,
+  "totalFlags": 0,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "nj-stay-nj-property-tax-relief",
+      "programName": "Stay NJ",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6092926400",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 500000,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+          "income": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income test details distinguishing income_1/2 or assets found; no official phone for program-specific inquiries identified"
+      },
+      "flags": [],
+      "notes": "No income test details distinguishing income_1/2 or assets found; no official phone for program-specific inquiries identified"
+    },
+    {
+      "programId": "nj-senior-freeze-property-tax",
+      "programName": "Senior Freeze (Property Tax Reimbursement)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008826597",
+          "8003234400",
+          "711"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18008826597",
+        "sources": {
+          "age": "https://www.nj.gov/treasury/taxation/ptr/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www20.state.nj.us/TYTR_PTR_INQ/jsp/PTRLogin.jsp"
+        },
+        "notes": "No specific income or asset limits found in official sources; program has income eligibility but values not detailed in results. Age from context of senior citizens 65+."
+      },
+      "flags": [],
+      "notes": "No specific income or asset limits found in official sources; program has income eligibility but values not detailed in results. Age from context of senior citizens 65+."
+    },
+    {
+      "programId": "nj-jacc-community-caregiving",
+      "programName": "Jersey Assistance for Community Caregiving (JACC)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phones": [
+          "18772223737",
+          "9087881361",
+          "9084756591"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 4855,
+        "income_2": 6582,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phone": "8772223737",
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "income": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "assets": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "phone": "https://www.warrencountynj.gov/government/human-services/division-of-aging-and-disability-services/jersey-assistance-for-community-caregivers"
+        },
+        "notes": ""
+      },
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nj-paad-prescription-assistance",
+      "programName": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
+      "facts": {
+        "age": 65,
+        "income_1": 4579,
+        "income_2": 5199,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8666572835",
+          "18007929745",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 4579,
+        "income_2": 5199,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8007929745",
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/l-p/paad/",
+          "income": "https://www.nj.gov/humanservices/doas/services/l-p/paad/",
+          "assets": null,
+          "phone": "https://www.nj.gov/humanservices/doas/services/l-p/paad/"
+        },
+        "notes": ""
+      },
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nj-lifeline-utility-credit",
+      "programName": "Lifeline Credit",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 54943,
+        "income_2": 62390,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/",
+          "income": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Eligibility tied to PAAD requirements; no assets test specified for seniors"
+      },
+      "flags": [],
+      "notes": "Eligibility tied to PAAD requirements; no assets test specified for seniors"
+    },
+    {
+      "programId": "nj-statewide-respite-care",
+      "programName": "New Jersey Statewide Respite Care Program",
+      "facts": {
+        "age": 18,
+        "income_1": 2982,
+        "income_2": 5964,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phones": [
+          "18772223737",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2982,
+        "income_2": 5964,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phone": "8772223737",
+        "sources": {
+          "age": null,
+          "income": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
+          "assets": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
+          "phone": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/"
+        },
+        "notes": "Official NJ.gov source provides 2026 figures; county sites show prior-year limits (e.g., $2742/$5484). No minimum age for seniors (care recipients age 18+ with functional impairment)."
+      },
+      "flags": [],
+      "notes": "Official NJ.gov source provides 2026 figures; county sites show prior-year limits (e.g., $2742/$5484). No minimum age for seniors (care recipients age 18+ with functional impairment)."
+    },
+    {
+      "programId": "nj-alzheimers-adult-day-services",
+      "programName": "Alzheimer's Adult Day Services Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/a-k/aads/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program active as of 2026; income and asset guidelines referenced but specific limits not detailed in official source. Applications via centers; Aging and Disability Resource Connection phone 1-877-222-3737 mentioned but not main application number."
+      },
+      "flags": [],
+      "notes": "Program active as of 2026; income and asset guidelines referenced but specific limits not detailed in official source. Applications via centers; Aging and Disability Resource Connection phone 1-877-222-3737 mentioned but not main application number."
+    },
+    {
+      "programId": "nj-senior-ezpass-discount",
+      "programName": "Senior Citizen E-ZPass Discount",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "7327505300",
+          "18882886865",
+          "8569682000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8882886865",
+        "sources": {
+          "age": "https://seniordiscount.njta.gov",
+          "income": null,
+          "assets": null,
+          "phone": "https://seniordiscount.njta.gov"
+        },
+        "notes": ""
+      },
+      "flags": [],
+      "notes": null
+    }
+  ]
+}

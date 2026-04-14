@@ -1,0 +1,127 @@
+{
+  "entity": "Florida",
+  "entitySlug": "florida",
+  "state": "FL",
+  "stateName": "Florida",
+  "isRegion": false,
+  "exploredAt": "2026-04-13T17:43:17.318Z",
+  "programCount": 16,
+  "programs": [
+    {
+      "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+      "what_it_does": "Offers home and community-based services (HCBS) waivers under SMMC-LTC to provide non-medical supports like personal care, respite, meal delivery, and adult companion care, allowing seniors to avoid institutional care. These preserve prior waiver benefits in a managed care model with limited enrollment due to funding.[1][3][6]",
+      "who_its_for": "Low-income Florida seniors/disabled individuals aged 65+ meeting nursing home level of care, financial limits (income ≤$2,982/month, assets ≤$2,000), often facing waitlists.[2][3]",
+      "official_url": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program",
+      "benefit_value": "Comprehensive HCBS up to institutional level costs (e.g., $2,982/month individual), including personal care and respite; waitlist-managed enrollment.[2][3]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Combines Medicaid and Medicare benefits into one program providing comprehensive long-term care, medical services, and extras like dental/eye care primarily in community settings. Available in limited Florida sites for eligible dual-eligible seniors.[2]",
+      "who_its_for": "Florida seniors 55+ certified for nursing home level care, eligible for both Medicare and Medicaid, living in PACE service areas.[2]",
+      "official_url": "https://www.medicaidplanningassistance.org/medicaid-eligibility-florida/",
+      "benefit_value": "All-inclusive capitation covering Medicare/Medicaid services plus extras; value equivalent to full LTC coverage without premiums/copays for eligibles.[2]"
+    },
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs (Qualified Medicare Beneficiary, Specified Low-Income Medicare Beneficiary, Qualifying Individual) help pay Medicare premiums, deductibles, and copays for low-income seniors. Administered via Florida Medicaid to reduce out-of-pocket costs.[6]",
+      "who_its_for": "Florida Medicare beneficiaries 65+ with low income/assets (varies: QMB up to 100% FPL, SLMB/QI higher with limits).[6]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "QMB: Full Part A/B premiums/cost-sharing ($0 premiums); SLMB: Part B premium (~$185/month); QI: Part B premium; annual value $2,000+ per person.[6]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly food assistance benefits via EBT card to purchase groceries for low-income seniors. Florida administers federally through Department of Children and Families.[8]",
+      "who_its_for": "Florida seniors 60+ with income ≤130-165% FPL (higher deductions for elderly), limited assets.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Average $200-300/month per eligible senior household for food purchases."
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "Offers help with energy bills, crisis assistance, and weatherproofing for low-income households including seniors. Florida DOEA coordinates federal funds.[8]",
+      "who_its_for": "Florida low-income seniors 60+ at or below 150% FPL, priority for elderly/disabled.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "$200-1,000+ annually in bill assistance per household, one-time payments."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Provides free home energy efficiency upgrades like insulation, sealing, and efficient appliances to reduce utility costs. Federal program via Florida agencies targeting vulnerable including seniors.[8]",
+      "who_its_for": "Low-income Florida households including seniors 60+ below 200% FPL, priority for elderly.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "$3,000-7,000 in free home improvements per household, long-term energy savings."
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "what_it_does": "Offers free, unbiased counseling on Medicare, Medicaid, and related options via trained volunteers. Florida DOEA program through Area Agencies on Aging.[9]",
+      "who_its_for": "All Florida Medicare beneficiaries 65+, caregivers, and families seeking insurance guidance.[9]",
+      "official_url": "https://www.floridashine.org",
+      "benefit_value": "Free personalized counseling sessions, helping save thousands on premiums/coverage choices annually."
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote independence and health. Provided via Florida Area Agencies on Aging.[8]",
+      "who_its_for": "Homebound Florida seniors 60+ unable to prepare meals, often low-income or mobility-limited.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "5-14 meals/week at low/no cost ($2 suggested donation), nutritional support valued at $1,000+/year."
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI) Respite Services",
+      "what_it_does": "Provides caregiver respite and support services including short-term relief care for dementia patients. Florida DOEA Medicaid waiver program.[6][8]",
+      "who_its_for": "Florida caregivers of seniors with Alzheimer's/dementia meeting Medicaid waiver eligibility.[6]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Up to 360 hours/year respite/personal care, plus training; value $5,000+ annually."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid community service jobs with training for low-income seniors to gain employment skills. Federal program administered locally in Florida.[8]",
+      "who_its_for": "Unemployed Florida seniors 55+ with income ≤125% FPL.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Minimum wage part-time work (20 hrs/week, ~$7,000/year) plus job placement support."
+    },
+    {
+      "name": "Legal Aid for Seniors (Area Agency Legal Services)",
+      "what_it_does": "Provides free legal assistance for issues like benefits, housing, abuse, and guardianship via Area Agencies on Aging. Florida DOEA coordinates.[8]",
+      "who_its_for": "Low-income Florida seniors 60+ needing civil legal help.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Free consultations/representation, averting losses of $10,000+ in benefits/housing."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care rights. Statewide Florida DOEA program.[8]",
+      "who_its_for": "Florida seniors in nursing homes, ALFs, and adult family care homes, plus families.[8]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Free advocacy resolving 80%+ complaints, protecting rights and improving care conditions."
+    },
+    {
+      "name": "Home Care for the Elderly (HCE) Program",
+      "what_it_does": "Provides a basic subsidy to support family-type living arrangements for seniors aged 60 and older within private homes. This state-funded program helps caregivers keep elderly relatives out of institutional care by covering essential living expenses.[3][5]",
+      "who_its_for": "Seniors aged 60+ living in family-type settings with caregivers, meeting state income and functional needs criteria.[3]",
+      "whats_unique": "Florida-specific state-funded subsidy unique to FL, not a federal program, focused on preventing nursing home placement through family caregiving support.[3]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Basic monthly subsidy (amount varies by eligibility; exact figures available via application through local Aging and Disability Resource Centers)."
+    },
+    {
+      "name": "Community Care for the Elderly (CCE) Program",
+      "what_it_does": "Delivers community-based services like medical supplies, emergency alerts, and therapeutic care in a continuum to support functionally impaired elders. Aims to enable living in the least restrictive, cost-effective home environment.[3][8]",
+      "who_its_for": "Functionally impaired elders eligible under state guidelines, typically low-income seniors needing non-institutional support.[3]",
+      "whats_unique": "State-administered FL program providing coordinated in-home services beyond federal Older Americans Act allotments, tailored to avoid institutionalization.[3]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Varies by service package; includes supplies, alerts, and therapy (funded through state appropriations; contact local provider for estimates)."
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "what_it_does": "Offers in-home respite care to give family caregivers breaks while supporting homebound elderly care. Enhances family units' ability to provide ongoing care without burnout.[3][5]",
+      "who_its_for": "Homebound seniors with family caregivers, meeting income and need-based eligibility through the FL Department of Elder Affairs.[3]",
+      "whats_unique": "Florida-exclusive state program specifically for in-home respite, distinct from federal caregiver supports, administered statewide.[3][5]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "In-home respite hours (duration based on assessment; state-funded, no fixed dollar amount specified)."
+    },
+    {
+      "name": "Elder Options",
+      "what_it_does": "Manages Medicaid waiver programs enabling long-term care in community settings instead of institutions. Coordinates services like home health to promote independence.[1][2]",
+      "who_its_for": "Medicaid-eligible seniors needing long-term care, subject to asset/income limits and waitlists.[1][2]",
+      "whats_unique": "Florida's state-specific Medicaid State Plan and waiver framework, including unique options like ADI for Alzheimer's, beyond standard federal Medicaid.[1][2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Home/community-based services (value equivalent to institutional care; e.g., respite, home health; waitlisted)."
+    }
+  ]
+}

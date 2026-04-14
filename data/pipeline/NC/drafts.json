@@ -1,0 +1,2827 @@
+{
+  "state": "NC",
+  "stateName": "North Carolina",
+  "draftedAt": "2026-04-13T21:50:19.550Z",
+  "total": 15,
+  "successful": 15,
+  "programs": [
+    {
+      "id": "medicaid-hcbs-waivers",
+      "name": "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+      "shortName": "NC HCBS Waivers",
+      "tagline": "If your parent needs daily care help, NC's waiver programs can cover personal assistance, respite care, and home modifications to keep them safely at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSS, CAP/C Case Management Agencies, LME/MCO Directory",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home instead of entering a nursing facility, North Carolina's HCBS waivers can provide those services at no cost. These Medicaid programs cover personal care assistants, adult day health services, respite care for family caregivers, home modifications like ramps and grab bars, and medical transportation.\n\nFour different waivers serve different needs: CAP/DA for disabled adults with physical limitations, CAP/C for medically fragile children, TBI for traumatic brain injury survivors, and Innovations for people with intellectual or developmental disabilities. Your parent must qualify for NC Medicaid (income limit around $2,901/month for an individual in 2026) and meet Nursing Facility Level of Care (a clinical assessment of whether they need daily assistance with basic activities).\n\nBecause these programs have limited slots and waitlists, early application matters. The services are designed to cost no more than nursing home care while allowing your parent to remain in their own home.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must qualify for NC Medicaid",
+          "Income limit ~$2,901/month individual",
+          "Need daily care help (NFLOC assessment)",
+          "Assets under $2,000",
+          "Able to remain safely at home with services"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Retirement accounts",
+            "Cash",
+            "Most investments"
+          ],
+          "exemptAssets": [
+            "Primary home (equity up to $752,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Pre-need burial contracts"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
+        "otherRequirements": [
+          "Must be able to remain safely at home with waiver services",
+          "Specific waiver requirements: CAP/DA for disabled adults 18+, CAP/C for medically fragile children 0-20, TBI for traumatic brain injury survivors 18+, Innovations for intellectual/developmental disabilities all ages"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for NC Medicaid first through ePASS, then contact the appropriate waiver agency for assessment — processing includes both Medicaid approval and clinical evaluation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for NC Medicaid",
+            "description": "Complete application at NC ePASS online or contact your local Department of Social Services. You must qualify for Medicaid before accessing any waiver."
+          },
+          {
+            "step": 2,
+            "title": "Contact the correct waiver program",
+            "description": "CAP/DA (disabled adults): Request assessment through local DSS after Medicaid approval. CAP/C (children): Contact local Case Management Agency from CAP-C directory. TBI: Contact your local LME/MCO from NC DHHS directory. Innovations (I/DD): Contact your local LME/MCO."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "A clinical assessor will evaluate whether your parent meets Nursing Facility Level of Care through in-person assessment of daily living activities and medical needs."
+          },
+          {
+            "step": 4,
+            "title": "Wait for slot availability",
+            "description": "Most waivers have limited slots. You may be placed on a waitlist (called 'Registry of Unmet Needs' for Innovations) until funding becomes available in your area."
+          }
+        ],
+        "processingTime": "Varies — includes Medicaid approval time plus waiver-specific assessment and slot availability",
+        "waitlist": "Yes for most waivers — waitlist length varies by waiver type and region, with some areas having immediate openings while others have extended waits",
+        "tip": "Start with Medicaid application immediately even if you're unsure which waiver fits — you need Medicaid approval before any waiver assessment can begin.",
+        "urls": [
+          {
+            "label": "NC ePASS (Medicaid Application)",
+            "url": "https://epass.nc.gov"
+          },
+          {
+            "label": "NC Medicaid HCBS Information",
+            "url": "https://medicaid.ncdhhs.gov/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for applicant and spouse",
+        "Birth certificate or other proof of age",
+        "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter or disability determination",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of any other income (pensions, retirement, employment)",
+        "Medical records documenting condition requiring daily care assistance",
+        "Medicare card if applicable",
+        "Vehicle titles and registration",
+        "Property deeds or mortgage statements",
+        "Life insurance policies with cash values",
+        "Documentation of medical expenses paid out-of-pocket",
+        "Pre-need burial contracts if applicable",
+        "Power of attorney documents if someone else is applying"
+      ],
+      "contacts": [
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for connecting to local DSS and waiver agencies",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "NC Medicaid Customer Service",
+          "phone": "(888) 245-0179",
+          "description": "General Medicaid questions and ePASS application help",
+          "hours": "Mon-Fri 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Each waiver serves different populations — make sure you're contacting the right one for your parent's specific condition and age",
+        "Waitlist times vary dramatically by region and waiver type — ask about current wait times in your specific county when applying",
+        "You can appeal Medicaid denials or functional assessments if you disagree with the determination",
+        "Some areas use different Case Management Agencies or LME/MCOs — verify you're working with the correct local entity for your county"
+      ],
+      "relatedPrograms": [
+        "NC Medicaid",
+        "NC Special Assistance (In-Home)",
+        "NC Family Caregiver Support Program",
+        "NC Senior Community Service Employment Program"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Which Waiver Program Fits Your Parent?",
+          "content": [
+            {
+              "name": "CAP/DA (Community Alternatives Program for Disabled Adults)",
+              "description": "For adults 18+ with physical disabilities or adults 65+ needing daily care",
+              "services": "Personal care assistance, adult day health, respite care, home modifications, non-medical transportation, nutritional services, personal emergency response systems"
+            },
+            {
+              "name": "CAP/C (Community Alternatives Program for Children)",
+              "description": "For medically fragile children ages 0-20",
+              "services": "In-home aide services, respite care, assistive technology, vehicle modifications, nurse aide services"
+            },
+            {
+              "name": "TBI Waiver",
+              "description": "For adults 18+ with traumatic brain injury",
+              "services": "Day supports, cognitive and physical therapies, home modifications, supported living services"
+            },
+            {
+              "name": "Innovations Waiver",
+              "description": "For people of all ages with intellectual or developmental disabilities",
+              "services": "Comprehensive array including residential supports, day services, therapies, respite, behavioral supports"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes. The $2,000 asset limit doesn't include your parent's primary home, as long as the home equity doesn't exceed $752,000 (2026 limit). The home is completely exempt if your parent or their spouse lives there."
+        },
+        {
+          "question": "What if my parent's income is slightly over the Medicaid limit?",
+          "answer": "Your parent may still qualify through a spend-down process or by setting up a Miller Trust (Qualified Income Trust). Contact your local Department of Social Services to discuss options — many people who appear over-income can still qualify."
+        },
+        {
+          "question": "How long are the waitlists really?",
+          "answer": "It varies dramatically by waiver and location. Some areas have immediate CAP/DA openings while Innovations waitlists can stretch years. Ask specifically about wait times in your county when you apply — don't rely on statewide averages."
+        },
+        {
+          "question": "Can I apply on behalf of my parent?",
+          "answer": "Yes, if you have power of attorney or are your parent's authorized representative. You'll need to provide the legal documentation with your application. If your parent can sign, they can also designate you as their representative during the application process."
+        },
+        {
+          "question": "Can my parent get both regular Medicaid and a waiver?",
+          "answer": "Yes — the waiver supplements regular Medicaid. Your parent keeps all their regular Medicaid benefits (doctor visits, hospital care, prescriptions) plus gets the additional home and community services through the waiver."
+        },
+        {
+          "question": "What happens if my parent's needs change after enrollment?",
+          "answer": "Waiver services are reassessed regularly (typically annually) and can be adjusted up or down based on changing needs. If your parent needs more care, contact their case manager immediately rather than waiting for the scheduled review."
+        },
+        {
+          "question": "Can family members be paid to provide care through the waiver?",
+          "answer": "In some cases, yes. Personal care services under CAP/DA and some other waivers can be provided by family members who meet training and background check requirements. However, spouses typically cannot be paid caregivers. Ask your case manager about family caregiver options."
+        },
+        {
+          "question": "What if we need services immediately due to a hospital discharge?",
+          "answer": "Contact the hospital discharge planner immediately — they often have direct connections to expedite waiver applications for people being discharged. Some emergency or crisis situations may qualify for expedited processing, but don't wait until discharge to start the Medicaid application."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "2-1-1",
+      "sourceUrl": "https://medicaid.ncdhhs.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "pace-comprehensive-care",
+      "name": "NC Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "NC PACE",
+      "tagline": "All-in-one healthcare team that keeps your parent at home instead of a nursing home — no copays or deductibles.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Carolina SeniorCare (serves Davidson, Rowan, Davie, Iredell Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Other NC PACE centers (specific list available at NC PACE Association website)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, NC PACE provides everything — doctors, specialists, medications, transportation, and daily support — under one coordinated program. Because PACE becomes both your parent's insurance and their care provider, they won't juggle multiple doctors or worry about copays for approved services.\n\nYour parent must be 55+ and certified as needing nursing facility level of care (extensive help with bathing, dressing, toileting, walking, transferring, or eating). Income limit: $2,901/month for Medicaid coverage, though higher-income families can still enroll by paying a monthly fee. Asset limit: $2,000 (excluding primary home).\n\nPACE is only available in certain North Carolina counties where PACE organizations operate — you must live in a designated service area to qualify.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive healthcare service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home level of care",
+          "Lives in PACE service area",
+          "Income below $2,901/month for Medicaid coverage"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "Personal belongings",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by NC Medicaid as needing nursing facility level of care — extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
+        "otherRequirements": [
+          "Must live in a PACE organization's service area",
+          "Cannot be enrolled in Medicare Advantage (Part C)",
+          "Must be able to live safely in the community with PACE support",
+          "Cannot be enrolled in hospice services",
+          "Must be U.S. citizen or legal resident for 5+ years"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local PACE Center directly for enrollment — no standardized application timeline available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE Center",
+            "description": "Call NC PACE Association at 919-855-4340 to locate PACE centers in your area, or visit ncpace.org for service area maps."
+          },
+          {
+            "step": 2,
+            "title": "Contact your local PACE Center",
+            "description": "Call the PACE center serving your county. You, your parent, or their doctor can make the referral."
+          },
+          {
+            "step": 3,
+            "title": "Complete nursing facility level of care assessment",
+            "description": "NC Medicaid will assess whether your parent needs extensive daily assistance with activities like bathing, dressing, or medication management."
+          },
+          {
+            "step": 4,
+            "title": "Financial eligibility review",
+            "description": "If seeking Medicaid coverage, provide income and asset documentation. Higher-income families can still enroll by paying monthly fees."
+          },
+          {
+            "step": 5,
+            "title": "Safety assessment",
+            "description": "PACE team evaluates whether your parent can live safely in the community with program support."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start the process early — the nursing facility level of care certification can take time, and you want to have PACE in place before a health crisis.",
+        "urls": [
+          {
+            "label": "NC PACE Association",
+            "url": "https://www.ncpace.org/"
+          },
+          {
+            "label": "Official NC Medicaid PACE page",
+            "url": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "NC PACE Association",
+          "phone": "(919) 855-4340",
+          "description": "Find local PACE centers and service areas",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Carolina SeniorCare",
+          "phone": null,
+          "description": "Serves Davidson, Rowan, Davie, and Iredell Counties",
+          "hours": "Contact through NC PACE Association"
+        },
+        {
+          "label": "NC Care360",
+          "phone": "2-1-1",
+          "description": "Free helpline for all NC social services and aging programs",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "PACE is only available in specific counties — confirm service area availability before starting the application process",
+        "If you have Medicare Advantage, you must disenroll before joining PACE — PACE becomes your sole insurance coverage",
+        "Higher-income families can still enroll by paying Patient Monthly Liability fees determined by Medicaid based on income and assets",
+        "All services except emergencies must be pre-approved by your PACE organization — using outside providers without approval means you pay full cost"
+      ],
+      "relatedPrograms": [
+        "NC Innovations Waiver",
+        "NC CAP/DA Waiver",
+        "Adult Day Health Programs",
+        "NC Family Caregiver Support Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes. The primary residence is exempt from the $2,000 asset limit regardless of value. Your parent can own their home and still qualify for Medicaid coverage through PACE."
+        },
+        {
+          "question": "What happens if my parent's income is above $2,901/month?",
+          "answer": "They can still enroll in PACE but will pay a Patient Monthly Liability fee determined by Medicaid based on their income and assets. If they have only Medicare (no Medicaid), they pay a set monthly fee to the PACE organization."
+        },
+        {
+          "question": "Can my parent see their current doctors after joining PACE?",
+          "answer": "No. PACE becomes both the insurer and care provider — your parent will receive all care through the PACE team of doctors and specialists. All services except emergencies must be approved by PACE."
+        },
+        {
+          "question": "How do I know if PACE is available in my parent's area?",
+          "answer": "Call NC PACE Association at 919-855-4340 or visit ncpace.org. PACE is only available in specific counties where organizations operate — availability is limited across North Carolina."
+        },
+        {
+          "question": "Can my parent leave PACE if they don't like it?",
+          "answer": "Yes, participants can disenroll at any time and return to traditional Medicare/Medicaid or other coverage options. However, they'll need to find new doctors since PACE was providing all their care."
+        },
+        {
+          "question": "What if my parent needs emergency care while in PACE?",
+          "answer": "Emergency services are covered without pre-approval. However, PACE must be notified as soon as possible, and the PACE team will coordinate ongoing care after the emergency."
+        },
+        {
+          "question": "How much does PACE cost if my parent has neither Medicare nor Medicaid?",
+          "answer": "Private pay costs approximately $4,000–$5,000 per month. This covers all medical care, medications, transportation, and support services normally covered by Medicare and Medicaid."
+        },
+        {
+          "question": "Can I apply for PACE while my parent is in the hospital?",
+          "answer": "Yes, you can start the PACE application process while your parent is hospitalized. Hospital discharge planners can often help initiate the referral, especially if nursing home discharge is being considered."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "editorial"
+      },
+      "icon": "Hospital",
+      "phone": "(919) 855-4340",
+      "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "medicare-savings-programs",
+      "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent is on Medicare with limited income, they could save $2,400-$8,000 yearly on premiums and medical costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county Department of Social Services (DSS) offices across NC",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums, deductibles, and copays, North Carolina's Medicare Savings Programs can provide immediate relief. These programs pay some or all Medicare costs for people with income below $1,816/month (single) or $2,455/month (couple), plus assets under $9,950/$14,910.\n\nThere are three tiers: QMB covers all Medicare costs including the $202.90 monthly Part B premium, deductibles, and copays. SLMB and QI cover just the Part B premium ($2,435 yearly savings). All three automatically qualify your parent for Extra Help with prescription drug costs. Because QI has limited federal funding, it operates first-come, first-served and may run out each year — apply early if your parent's income is in the highest bracket.",
+      "savingsRange": "$2,400 – $8,000/year in 2026",
+      "savingsSource": "Medicare Part B premiums, deductibles, copays, and Extra Help prescription savings",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled with Medicare",
+          "Income below $1,816/month (single)",
+          "Assets under $9,950 (individual)",
+          "North Carolina resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Investment accounts",
+            "Second vehicles",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Burial plots",
+            "Life insurance up to certain values",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A and/or B",
+          "U.S. citizen or qualified immigrant",
+          "Not eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through NC ePASS or call your local county Department of Social Services — processing typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county DSS office",
+            "description": "Visit the NC DHHS directory online or call 2-1-1 to find your local county Department of Social Services office contact information."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Apply online at epass.nc.gov using the NC Medicaid application, call your county DSS office directly, or visit in person with required documents."
+          },
+          {
+            "step": 3,
+            "title": "Submit complete application",
+            "description": "Complete the NC Medicaid Application (Form DMA-3000 or online equivalent) with all required income, asset, and identity documentation."
+          },
+          {
+            "step": 4,
+            "title": "Attend interview if required",
+            "description": "Some counties may schedule a phone or in-person interview to review your application and verify information."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "You'll receive a written decision typically within 45 days. If approved, benefits begin the month after approval."
+          }
+        ],
+        "processingTime": "Typically 45 days, but varies by county",
+        "waitlist": "QI program only operates first-come, first-served with limited federal funding and may run out annually — reapply each year",
+        "tip": "If your parent's income is close to the QI limit ($1,816/month), apply early in the year before funding runs out.",
+        "urls": [
+          {
+            "label": "NC ePASS Online Application",
+            "url": "https://epass.nc.gov"
+          },
+          {
+            "label": "NC Medicaid MSP Information",
+            "url": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (both Part A and Part B)",
+        "Social Security cards for your parent and spouse",
+        "Birth certificate or other proof of age",
+        "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
+        "Social Security award letter or most recent statement",
+        "Pension or retirement income statements for last 2 months",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities, trust agreements)",
+        "Vehicle titles and registration for all vehicles",
+        "Life insurance policies with face values",
+        "Property documents (deeds, tax statements)",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Proof of citizenship or legal immigration status",
+        "Current health insurance premium statements",
+        "Documentation of any other income sources"
+      ],
+      "contacts": [
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your local county DSS office and other services",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "NC Medicaid Customer Service",
+          "phone": "(888) 245-0179",
+          "description": "Questions about Medicaid programs including Medicare Savings Programs",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "Medicare.gov",
+          "phone": "(800) 633-4227",
+          "description": "General Medicare questions and verification of current coverage",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "QI program funding is limited and distributed first-come, first-served — if your parent's income is between $1,585-$1,816/month, apply early in the calendar year",
+        "Income includes the standard $20 general disregard, so your parent may qualify even if their gross income appears slightly over the limit",
+        "QMB beneficiaries cannot be billed by providers for covered Medicare services — make sure your parent carries their MSP identification card",
+        "All Medicare Savings Programs automatically trigger enrollment in Extra Help for prescription drugs, but confirm this benefit is active"
+      ],
+      "relatedPrograms": [
+        "NC Medicaid",
+        "Medicare Extra Help (Low Income Subsidy)",
+        "NC SNAP Food Benefits",
+        "NC LIHEAP Energy Assistance"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "QMB vs SLMB vs QI: Which Program Fits Your Parent?",
+          "content": "**QMB (Qualified Medicare Beneficiary)** — Income up to $1,350/month (single): Covers Part B premium ($202.90/month), all deductibles, copays, and coinsurance. Providers cannot bill your parent for covered services.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)** — Income $1,350-$1,616/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings).\n\n**QI (Qualifying Individual)** — Income $1,616-$1,816/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings). Limited funding, first-come first-served."
+        },
+        {
+          "type": "callout",
+          "title": "Asset Counting: What's Included and Exempt",
+          "content": "**Counted toward $9,950 limit**: Bank accounts, certificates of deposit, stocks, bonds, mutual funds, second vehicles, cash value of life insurance over certain amounts.\n\n**Exempt (not counted)**: Your parent's primary home regardless of value, one vehicle, burial plots, burial funds up to $1,500 per person, personal belongings, irrevocable burial trusts."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. The primary residence is completely exempt from the $9,950 asset limit regardless of value. Only countable assets like bank accounts, investments, and second vehicles count toward the limit."
+        },
+        {
+          "question": "What if my parent's income is just over the limit by a small amount?",
+          "answer": "They may still qualify because North Carolina applies a $20 general income disregard. So if your parent's income is $1,370/month, only $1,350 counts for QMB eligibility. Always apply if income is close to the limits."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia or can't handle paperwork?",
+          "answer": "Yes. Family members can apply on behalf of elderly parents, especially those with cognitive impairment. You may need to provide power of attorney documentation or become an authorized representative through the county DSS office."
+        },
+        {
+          "question": "How is the QI waitlist handled if funding runs out?",
+          "answer": "QI operates first-come, first-served with limited federal funding that may exhaust before year-end. If funding runs out, new applications go on a waiting list for the next calendar year. Apply in January or February for the best chance."
+        },
+        {
+          "question": "What happens if my parent gets approved for QMB but providers still send bills?",
+          "answer": "Providers are legally prohibited from billing QMB beneficiaries for covered Medicare services. Keep the MSP identification card handy, contact the provider's billing department to show QMB status, and report persistent billing issues to your county DSS office."
+        },
+        {
+          "question": "Can my parent apply for Medicare Savings Programs and regular Medicaid at the same time?",
+          "answer": "No. Medicare Savings Programs are specifically for Medicare beneficiaries who don't qualify for full Medicaid due to income or assets being slightly too high. If your parent qualifies for full Medicaid, they would get that instead."
+        },
+        {
+          "question": "How often does my parent need to renew their Medicare Savings Program benefits?",
+          "answer": "Renewals are typically required annually, similar to other Medicaid programs. Your county DSS office will send renewal paperwork before benefits expire. QI beneficiaries must reapply each year regardless due to the program's annual funding structure."
+        },
+        {
+          "question": "Will Medicare Savings Programs automatically sign my parent up for Extra Help with prescriptions?",
+          "answer": "Yes. All three programs (QMB, SLMB, QI) automatically qualify your parent for the full Extra Help benefit for Medicare Part D prescription costs. However, verify this enrollment is active by checking with Medicare at (800) 633-4227."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "CurrencyDollar",
+      "phone": "(888) 245-0179",
+      "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "snap-food-benefits",
+      "name": "NC Food and Nutrition Services (FNS)/SNAP",
+      "shortName": "NC SNAP",
+      "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes — up to $281/month on an EBT card",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county Department of Social Services (DSS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100–300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers — no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your parent receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your parent has very low income and urgent food needs.",
+      "savingsRange": "$1,400 – $3,400/year in 2026",
+      "savingsSource": "Monthly benefits of $188 average for seniors, up to $281 maximum for single-person household",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or household with someone 60+)",
+          "Net income below $1,133/month (1 person)",
+          "Assets below $4,500",
+          "North Carolina resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1133
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 1920
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2313
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household goods",
+            "Retirement accounts",
+            "Life insurance with face value under $1,500"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen (5+ years residency, children under 18, or disability benefits)",
+          "Buy and prepare food with household members",
+          "Not disqualified from previous SNAP violations"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at NC ePASS or call your local county DSS office — processing takes 30 days, or 7 days for expedited cases",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at epass.nc.gov or call your county Department of Social Services office. If your parent receives SSI and is 65+, they may get an automatic application in the mail for Simplified SNAP."
+          },
+          {
+            "step": 2,
+            "title": "Submit required documents",
+            "description": "Provide proof of income, expenses, assets, and identity. Medical expenses over $35/month are crucial deductions for seniors — include doctor bills, prescription costs, and health insurance premiums."
+          },
+          {
+            "step": 3,
+            "title": "Complete phone or in-person interview",
+            "description": "Your county DSS worker will schedule an interview to review the application. You can attend with your parent or represent them with proper authorization."
+          },
+          {
+            "step": 4,
+            "title": "Get approval decision",
+            "description": "Receive approval or denial within 30 days (or 7 days if expedited). If approved, benefits start within 30 days and load monthly on an EBT card."
+          }
+        ],
+        "processingTime": "30 days standard; expedited within 7 days if income under $150/month and cash under $100, or if monthly income plus cash is less than rent plus utilities",
+        "waitlist": null,
+        "tip": "Medical expenses are key for seniors — gather all receipts for medications, doctor visits, insurance premiums, and medical equipment from the past 3 months",
+        "urls": [
+          {
+            "label": "NC ePASS Online Application",
+            "url": "https://epass.nc.gov"
+          },
+          {
+            "label": "Find Your County DSS Office",
+            "url": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security award letter or pension statements for all household members",
+        "Bank statements for all accounts (last 3 months)",
+        "Birth certificate or driver's license for identification",
+        "Proof of North Carolina residency (utility bill, lease, or mail)",
+        "Medical expense receipts from last 3 months (prescriptions, doctor bills, insurance premiums)",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water, phone)",
+        "Vehicle titles and registration for all vehicles",
+        "Life insurance policies with face values",
+        "Investment statements (stocks, bonds, retirement accounts)",
+        "SSI award letter (if applicable for Simplified SNAP)",
+        "Immigration documents if not U.S. citizen",
+        "Property tax statements for real estate other than primary home"
+      ],
+      "contacts": [
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your local DSS office and other services",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "NC DHHS Food and Nutrition Services",
+          "phone": "(919) 855-4800",
+          "description": "State office for SNAP program questions",
+          "hours": "Mon-Fri 8am-5pm EST"
+        }
+      ],
+      "applicationNotes": [
+        "Expedited processing available if monthly income is under $150 and cash/bank accounts under $100, or if monthly income plus cash is less than rent plus utilities",
+        "Households with elderly (60+) members only need to meet net income limits — no gross income test applies",
+        "Medical expenses over $35/month count as deductions, including Medicare premiums, prescription costs, and ongoing medical bills",
+        "Simplified SNAP for SSI recipients 65+ provides 3-year certification with minimal paperwork and automatic renewal"
+      ],
+      "relatedPrograms": [
+        "NC Low Income Energy Assistance Program (LIEAP)",
+        "Commodity Supplemental Food Program (CSFP)",
+        "Senior Farmers Market Nutrition Program",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $4,500?",
+          "answer": "Yes. The primary home where your parent lives doesn't count toward the $4,500 asset limit, regardless of value. Only countable assets like bank accounts, investments, and second properties count toward the limit."
+        },
+        {
+          "question": "What medical expenses help my parent qualify?",
+          "answer": "Medical expenses over $35/month count as deductions from income: Medicare premiums, prescription costs, doctor visits, medical equipment, and ongoing treatment costs. Gather receipts from the last 3 months — these deductions often make the difference for seniors on fixed incomes."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes. You can complete the application and attend the interview as your parent's authorized representative. You'll need to sign Form DSS-8207 (Authorized Representative) or provide a signed statement from your parent giving you permission."
+        },
+        {
+          "question": "How quickly can my parent get benefits if they're in crisis?",
+          "answer": "Expedited SNAP provides benefits within 7 days if your parent's monthly income is under $150 and they have less than $100 in cash/bank accounts, or if their income plus cash is less than their rent plus utilities. Tell the DSS worker this is an emergency food situation."
+        },
+        {
+          "question": "What happens if my parent's income changes after approval?",
+          "answer": "Report income changes within 10 days if monthly income increases by more than $125. Benefits may increase or decrease based on new income. For seniors on Simplified SNAP, changes are reviewed annually instead of monthly."
+        },
+        {
+          "question": "Can my parent get SNAP and Medicaid at the same time?",
+          "answer": "Yes. Your parent can receive SNAP, Medicaid, and other programs simultaneously. In fact, qualifying for one program sometimes makes it easier to qualify for others, and you can often apply for multiple programs through the same NC ePASS application."
+        },
+        {
+          "question": "Does living in assisted living disqualify my parent?",
+          "answer": "Not necessarily. If your parent buys and prepares their own food separately (has their own kitchen facilities), they can qualify. If the facility provides all meals, they're not eligible unless they're elderly, disabled, and the facility is authorized to accept SNAP benefits."
+        },
+        {
+          "question": "What can't my parent buy with SNAP benefits?",
+          "answer": "SNAP covers most grocery food items, including fresh produce, meat, dairy, and non-alcoholic beverages. It cannot be used for alcohol, tobacco, hot prepared foods, vitamins, household supplies, or pet food. Restaurant meals are not covered unless the retailer participates in a special elderly program."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(919) 855-4800",
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "liheap-energy-assistance",
+      "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
+      "shortName": "NC Energy Assistance",
+      "tagline": "One-time payment of $300–500 sent directly to your parent's heating bill if they're on a fixed income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is 60+ and struggles to pay heating bills, NC LIHEAP provides a one-time payment of $300, $400, or $500 sent directly to their energy company. The exact amount depends on their household size and primary heating source. Last year, the program helped over 134,000 North Carolina households with approximately $48 million in assistance.\n\nPriority households (age 60+ or disabled receiving services through NC Division of Aging) can apply December 1–31 only. All other eligible households can apply January 1–March 31 or until funds run out. Because this operates on a first-come, first-served basis with limited federal funding, timing your application is critical.\n\nYour parent doesn't need to be behind on their energy bills to qualify. The payment goes directly to their heating vendor — they cannot redirect the funds. This is a one-time benefit per funding cycle, not ongoing monthly assistance.",
+      "savingsRange": "$300 – $500 in 2026",
+      "savingsSource": "One-time vendor payment based on NC DHHS program data",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (priority)",
+          "Income up to $2,838/month (family of 4)",
+          "Assets under $2,250",
+          "Must pay own heating bill"
+        ],
+        "ageRequirement": "60+ (priority tier)",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1427
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1930
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2434
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2838
+          }
+        ],
+        "assetLimits": {
+          "individual": 2250,
+          "couple": 2250,
+          "countedAssets": [
+            "Savings accounts",
+            "Checking accounts",
+            "Cash on hand"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "At least one U.S. citizen or qualified non-citizen in household",
+          "Responsible for paying home heating/cooling bill",
+          "Must reside in county where applying",
+          "Disabled persons must receive services through NC Division of Aging and Adult Services for priority status"
+        ],
+        "povertyLevelReference": "130% FPL (150% FPL for priority households)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through your county social services or call your local Department of Social Services — priority households (60+) must apply in December, all others January–March.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check your application window",
+            "description": "Priority households (age 60+ or disabled receiving NC Division of Aging services): December 1–31 only. All other households: January 1–March 31 or until funds exhausted."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need photo ID, Social Security cards, income proof from last 30 days, bank statements, citizenship documentation, and recent heating bills."
+          },
+          {
+            "step": 3,
+            "title": "Apply through your county",
+            "description": "Contact your local county Department of Social Services or Division of Aging and Adult Services. Some counties offer online applications through the NC DHHS website."
+          },
+          {
+            "step": 4,
+            "title": "Wait for vendor payment",
+            "description": "If approved, the $300–500 payment goes directly to your parent's heating vendor. Processing times vary by county and application volume."
+          }
+        ],
+        "processingTime": "Varies by county; payments made until funds are exhausted",
+        "waitlist": null,
+        "tip": "If your parent received LIEAP last year and meets priority criteria, they may get automatic payment without reapplying — but only if they received an eligibility notice.",
+        "urls": [
+          {
+            "label": "NC DHHS Energy Assistance",
+            "url": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Photo ID and contact information",
+        "Valid Social Security card or number for all household members",
+        "Citizenship or immigration status verification",
+        "Proof of address (lease, rental agreement, or shelter documentation)",
+        "Earned income documentation (wage stubs, tax forms, or employer contact)",
+        "Unearned income documentation (benefit award letters, retirement statements)",
+        "Bank statements for all accounts",
+        "Asset documentation (ownership records, court documents)",
+        "Copy of recent heating bills"
+      ],
+      "contacts": [
+        {
+          "label": "Local County Social Services",
+          "phone": null,
+          "description": "Contact your county Department of Social Services for applications and questions",
+          "hours": "Varies by county"
+        },
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free referral service to find your local social services office",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Income limits are based on gross (pre-tax) income, not what your parent takes home",
+        "Asset limits are strict — even modest savings over $2,250 can disqualify your parent ($3,000 in some counties)",
+        "Missing the December window for priority households means waiting until the next funding cycle — there are no exceptions",
+        "The program provides only one payment per funding cycle, regardless of your parent's ongoing energy costs"
+      ],
+      "relatedPrograms": [
+        "NC Weatherization Assistance Program",
+        "NC Crisis Intervention Program",
+        "Duke Energy EnergyShare",
+        "Salvation Army Energy Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent has $3,000 in savings — are they automatically disqualified?",
+          "answer": "In most NC counties, yes — the asset limit is $2,250. However, Union County allows up to $3,000, suggesting some regional variation. Call your local social services office to confirm the exact limit in your county."
+        },
+        {
+          "question": "Can I apply in January if my parent is 65 but missed the December priority window?",
+          "answer": "No. Priority households (60+) can only apply December 1–31. If they miss this window, they must wait until the next funding cycle. There are no exceptions to this rule."
+        },
+        {
+          "question": "What if my parent received LIHEAP last year — do they need to reapply?",
+          "answer": "It depends. If they meet priority criteria and received an eligibility notice, they may get automatic payment. If they didn't receive a notice, they must apply manually during their designated window."
+        },
+        {
+          "question": "Can my disabled parent get priority status without being 60+?",
+          "answer": "Only if they're receiving services through the NC Division of Aging and Adult Services. Simply having a disability isn't enough — they must be actively enrolled in Division services."
+        },
+        {
+          "question": "What if my parent rents and doesn't pay the heating bill directly?",
+          "answer": "They're not eligible. The household must be responsible for paying the home heating or cooling bill directly to qualify for LIHEAP assistance."
+        },
+        {
+          "question": "Can my parent apply for LIHEAP and the Crisis Intervention Program at the same time?",
+          "answer": "Yes, these are separate programs. LIHEAP provides one-time annual assistance, while Crisis Intervention helps with emergency situations like disconnection notices. Contact your local social services office about applying for both."
+        },
+        {
+          "question": "How long does the money last once my parent gets approved?",
+          "answer": "This is a one-time payment sent directly to the energy company, not ongoing monthly assistance. The $300–500 payment is applied to their account as a credit, which will reduce future bills until used up."
+        },
+        {
+          "question": "What happens if the program runs out of money while my parent is waiting?",
+          "answer": "Applications stop being processed once the $96.3 million in federal funding is exhausted. Your parent would need to wait until the next funding cycle and reapply during the appropriate window."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": null,
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "weatherization-assistance-program",
+      "name": "NC Weatherization Assistance Program",
+      "shortName": "NC Weatherization",
+      "tagline": "Free home energy improvements that can cut your parent's utility bills by $215-$372 per year",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "NC DEQ Energy Office (statewide contact); local subgrantees per county/region",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's utility bills are straining their budget, North Carolina's Weatherization Assistance Program provides free home energy improvements worth an average of $2,500. The program installs insulation, seals air leaks, and upgrades heating and cooling systems at no cost to eligible households.\n\nYour parent may qualify if their household income is at or below 200% of federal poverty guidelines — that's $31,300/year for a single person or $42,300 for a couple in 2025. Households receiving SSI, TANF, or similar assistance automatically qualify. The program serves homeowners and renters (with landlord permission).\n\nBecause funding is limited and distributed first-come, first-served, elderly residents get priority when funds run low. The improvements typically save households $215-$372 annually on energy bills, with some seeing even greater savings depending on their home's condition.",
+      "savingsRange": "$215 – $372/year",
+      "savingsSource": "Average annual energy bill savings from NC DEQ Energy Office",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 200% federal poverty level",
+          "Own home or rent with landlord permission",
+          "Home suitable for weatherization (no major repairs needed)",
+          "Priority given to elderly, disabled, and families with children"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3525
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6275
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 9025
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must pass pre-assessment (not needing major structural repairs)",
+          "Single-family homes, duplexes, condos, and mobile homes qualify",
+          "Only one weatherization service per household",
+          "Renters must have written landlord permission"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider by phone to request an application — processing includes income verification and home assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Wake/Durham counties: Call Resources for Seniors at 919-713-1570. Piedmont Triad: Call PTRC at 336-904-0338. Southeastern NC (11 counties including Brunswick, Bladen): Call Action Pathways. Other areas: Call NC Energy Office at 919-713-1570 for your local provider."
+          },
+          {
+            "step": 2,
+            "title": "Request application packet",
+            "description": "Call your regional provider to request the Customer Program Application and Assessment Form. Some providers mail applications, others offer online forms or in-person pickup."
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application with documents",
+            "description": "Return your signed application with 12 months of income proof for all household members, photo ID, Social Security number verification, and 12 months of utility bills."
+          },
+          {
+            "step": 4,
+            "title": "Wait for income and home eligibility determination",
+            "description": "Your provider will verify income eligibility first, then schedule a home assessment to ensure your home is suitable for weatherization (no major repairs needed)."
+          },
+          {
+            "step": 5,
+            "title": "Schedule energy audit and installation",
+            "description": "If approved, contractors will conduct a detailed energy audit and install appropriate energy-saving measures like insulation, air sealing, and heating/cooling improvements."
+          }
+        ],
+        "processingTime": "Processing time varies by provider and funding availability — applications processed first-come, first-served until annual funds are exhausted",
+        "waitlist": "No formal waitlist — when annual funding runs out, applications typically resume the following program year with new federal allocation",
+        "tip": "Apply early in the program year (typically starting in fall/winter) when funding is most available, and elderly households get priority if funds become limited.",
+        "urls": [
+          {
+            "label": "NC Energy Office Weatherization Program",
+            "url": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Photo ID or driver's license with current address",
+        "Social Security cards for all household members",
+        "Proof of income for all household members for the past 12 months (pay stubs, Social Security award letters, pension statements)",
+        "12 months of electric utility bills",
+        "12 months of gas or propane utility bills (if applicable)",
+        "Property tax records (for homeowners)",
+        "Lease agreement and written landlord permission form (for renters)",
+        "SSI or TANF award letters (if receiving these benefits)",
+        "Birth certificates for all household members under 18",
+        "Proof of citizenship or legal residency status for all household members"
+      ],
+      "contacts": [
+        {
+          "label": "NC DEQ Energy Office",
+          "phone": "(919) 713-1570",
+          "description": "Statewide program information and referrals to local providers",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "Resources for Seniors (Wake/Durham)",
+          "phone": "(919) 713-1570",
+          "description": "Weatherization applications for Wake and Durham counties",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "PTRC (Piedmont Triad)",
+          "phone": "(336) 904-0338",
+          "description": "Weatherization applications for Piedmont Triad region",
+          "hours": "Mon-Fri 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Households receiving SSI, TANF, or Work First automatically qualify income-wise but still need home assessment",
+        "Priority is given to elderly, disabled individuals, and families with children when funding becomes limited",
+        "Homes needing major structural repairs are ineligible — the program is for energy improvements, not general rehabilitation",
+        "Each address can only receive weatherization services once, so if previous owners received services, your parent may not qualify"
+      ],
+      "relatedPrograms": [
+        "NC LIHEAP (Low Income Energy Assistance)",
+        "NC Crisis Intervention Program",
+        "Duke Energy and Dominion Energy low-income assistance programs",
+        "NC Department of Health and Human Services energy assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're a renter?",
+          "answer": "Yes, but only with written permission from the landlord. The landlord must sign a permission form agreeing to the weatherization improvements. Many landlords agree because the improvements increase property value at no cost to them."
+        },
+        {
+          "question": "What if my parent's home needs major repairs?",
+          "answer": "Homes requiring major structural repairs are not eligible for weatherization. The program only provides energy efficiency improvements to homes in decent condition. Your parent would need to complete necessary repairs first, then reapply."
+        },
+        {
+          "question": "How long does the actual weatherization work take?",
+          "answer": "Installation typically takes 1-3 days depending on the scope of work. Contractors will schedule the work after the energy audit determines what improvements are needed. Your parent will be notified of the schedule in advance."
+        },
+        {
+          "question": "Can my parent apply if they received weatherization years ago?",
+          "answer": "No, each household can only receive weatherization services once. This includes if previous owners or tenants at the same address received services. The one-service limit applies to the property address, not the individual."
+        },
+        {
+          "question": "What happens if my parent's income is just over the limit?",
+          "answer": "If total household income exceeds 200% of federal poverty guidelines and they don't receive SSI or TANF, they won't qualify. However, income limits are updated annually, so they could potentially qualify in a future program year."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "You can help your parent apply, but they must sign the Customer Program Application and Assessment Form themselves. If your parent has a power of attorney or guardian, that person can sign with proper legal documentation."
+        },
+        {
+          "question": "Will the weatherization work damage my parent's home?",
+          "answer": "No, certified contractors perform all work and must restore any areas they access. The program includes quality control inspections. If any issues arise, the local weatherization provider will address them at no cost."
+        },
+        {
+          "question": "What if funding runs out before my parent's application is processed?",
+          "answer": "Applications are processed first-come, first-served until annual federal funding is exhausted. When funds run out, new applications typically wait until the next program year. Apply as early as possible when new funding cycles begin."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "(919) 713-1570",
+      "sourceUrl": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "home-delivered-meals",
+      "name": "NC Home-Delivered Meals (County-Specific Programs)",
+      "shortName": "Home-Delivered Meals",
+      "tagline": "Nutritious meals delivered to your parent's door if they're homebound and can't shop or cook.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Pender Adult Services, Inc. (Pender County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Haywood County Meals on Wheels (Haywood County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Mecklenburg County CFAS (704-432-1111 or 704-336-3144)",
+            "type": "service-area"
+          },
+          {
+            "name": "Onslow County (60+ and homebound)",
+            "type": "service-area"
+          },
+          {
+            "name": "Blue Ridge Community Action (Caldwell County)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound due to illness or disability, county meal delivery programs can bring nutritious meals directly to their door. Because your parent can't shop or prepare food safely, these programs provide regular home-delivered meals at no cost to help them stay nourished and independent.\n\nEach county in North Carolina runs its own program independently — Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell counties have documented programs. Because there's no statewide system, eligibility requirements and application processes vary by county, though all require your parent to be homebound and unable to obtain or prepare food.\n\nAll programs maintain waiting lists, so expect delays between application and meal delivery. Contact your county's Area Agency on Aging or Department of Social Services to find your local program and verify current availability.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (65+ in Brunswick County)",
+          "Homebound due to illness or disability",
+          "Unable to prepare meals safely",
+          "County resident",
+          "May have waiting list"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound due to illness or incapacitating disability and unable to obtain food or prepare meals due to physical or cognitive impairment",
+        "otherRequirements": [
+          "County resident (program-specific)",
+          "No responsible person able and willing to assist with food preparation",
+          "May be unable to attend congregate nutrition sites"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's meal program for phone screening — most accept applications by phone and process based on waitlist availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Identify your county program",
+            "description": "Find your county's specific program contact through your Area Agency on Aging or Department of Social Services, as each operates independently."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone screening",
+            "description": "Call for initial screening to verify age, homebound status, and inability to prepare meals. Provide medical information and dietary restrictions."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide proof of age, county residency, medical documentation of homebound status, and any dietary restriction information."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "All programs maintain waiting lists. You'll be contacted when meal delivery slots become available in your area."
+          }
+        ],
+        "processingTime": "Varies by county and waitlist status",
+        "waitlist": "Waiting lists exist in all documented programs — specific wait times not available from counties",
+        "tip": "Apply as early as possible since all programs have waiting lists, and provide complete medical documentation to avoid delays.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or birth certificate for proof of age",
+        "Proof of county residency (utility bill, lease agreement, or property tax statement)",
+        "Medical documentation of homebound status from doctor or healthcare provider",
+        "List of current medications and medical conditions",
+        "Dietary restrictions or special diet requirements documentation",
+        "Emergency contact information for family member or caregiver"
+      ],
+      "contacts": [
+        {
+          "label": "Mecklenburg County CFAS",
+          "phone": "(704) 432-1111",
+          "description": "Mecklenburg County meal delivery program",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Mecklenburg County CFAS (Alternative)",
+          "phone": "(704) 336-3144",
+          "description": "Alternative number for Mecklenburg County",
+          "hours": "Business hours"
+        },
+        {
+          "label": "North Carolina 2-1-1",
+          "phone": "2-1-1",
+          "description": "Statewide helpline to find your county's meal program",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Each county operates independently — contact information and eligibility requirements differ significantly between counties",
+        "Waiting lists are standard across all programs, so apply early even if your parent's needs aren't urgent yet",
+        "County residency is strictly enforced — you cannot receive meals from a neighboring county's program",
+        "Age requirements vary by county (60+ in most areas, 65+ in Brunswick County)"
+      ],
+      "relatedPrograms": [
+        "NC SNAP (Food and Nutrition Services)",
+        "NC Senior Farmers Market Nutrition Program",
+        "NC Congregate Nutrition Programs"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply on behalf of my parent who lives in a different county?",
+          "answer": "Yes, but your parent must apply to their county of residence, not yours. Each county runs its own program independently, so you'll need to contact the Area Agency on Aging or Department of Social Services in your parent's county to find the local meal delivery program."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "All documented county programs maintain waiting lists, but specific wait times aren't published. The actual wait depends on your county, current demand, and how many people are ahead of you. Contact your county program directly for current waitlist estimates."
+        },
+        {
+          "question": "What if my parent can walk but just can't drive to the store?",
+          "answer": "Programs require your parent to be homebound due to illness or incapacitating disability, not just transportation issues. If your parent can leave home safely but lacks transportation, they may not qualify for home delivery but could be eligible for congregate meal programs instead."
+        },
+        {
+          "question": "Can my parent get meals if they live in assisted living?",
+          "answer": "This depends on the county program's specific rules and whether the assisted living facility allows outside meal delivery. Contact your county program to ask about their policy for assisted living residents, as requirements vary significantly between counties."
+        },
+        {
+          "question": "What happens if my parent's condition improves and they're no longer homebound?",
+          "answer": "Most programs require periodic reassessment of homebound status. If your parent's condition improves, they may no longer qualify for home delivery but could transition to congregate nutrition programs at senior centers instead."
+        },
+        {
+          "question": "Do I need to prove my parent's income to qualify?",
+          "answer": "Income limits aren't specified in available program documentation, so requirements vary by county. When you call your county program for screening, they'll tell you what financial information, if any, they need to verify eligibility."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "2-1-1",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "lifespan-respite-family-caregiver-support",
+      "name": "NC Lifespan Respite Program / Family Caregiver Support",
+      "shortName": "Respite Care Vouchers",
+      "tagline": "Get up to $750/year to hire someone to watch your parent so you can take a break from caregiving",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "High Country Area Agency on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent 60+ or someone with disabilities who needs daily help, North Carolina provides up to $750 per year in vouchers to pay for temporary respite care. This means you can hire an agency, facility, or individual caregiver to watch your parent while you take a break — whether for a few hours, overnight, or several days.\n\nYou must be referred by a professional (like a social worker, counselor, or senior center staff) — you cannot apply directly. Priority goes to caregivers with the greatest financial need who have been providing unpaid care for at least 3 months. The vouchers cover any type of short-term care you choose, but you pay upfront and get reimbursed later.",
+      "savingsRange": "Up to $750/year",
+      "savingsSource": "Reimbursement vouchers for respite care services",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+ caregiver",
+          "North Carolina resident",
+          "Caring for someone 60+ or with disabilities",
+          "No current publicly-funded respite care",
+          "Must be referred by a professional"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Care recipient must need regular assistance with activities of daily living (bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Must be North Carolina resident",
+          "Cannot be receiving ongoing publicly-funded in-home care or respite care",
+          "Must be referred by an agency or professional — direct caregiver applications not accepted",
+          "Voucher funds must be used within 90 days",
+          "Priority to caregivers who have provided direct care for at least 3 months"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "A professional must refer you — call High Country Area Agency on Aging to find a referring agency near you.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find a referring professional",
+            "description": "Contact Pat Guarnieri at 828-265-5434 ext. 139 to identify counselors, senior centers, or area agencies on aging in your area who can make referrals."
+          },
+          {
+            "step": 2,
+            "title": "Work with referring agency",
+            "description": "The professional completes the secure online referral application at www.highcountryaging.org/services/lifespan-respite-project on your behalf."
+          },
+          {
+            "step": 3,
+            "title": "Wait for approval",
+            "description": "High Country Area Agency on Aging reviews your application and contacts you directly if approved."
+          },
+          {
+            "step": 4,
+            "title": "Use vouchers within 90 days",
+            "description": "Hire your chosen respite provider, pay upfront, and submit receipts for reimbursement up to $750 per calendar year."
+          }
+        ],
+        "processingTime": "Application takes only minutes; no specific processing timeline provided",
+        "waitlist": "Priority-based allocation — those with greatest economic need and 3+ months of caregiving get preference",
+        "tip": "Call ahead to confirm the referring agency serves your county — not all professionals can make referrals to this program.",
+        "urls": [
+          {
+            "label": "Lifespan Respite Program",
+            "url": "www.highcountryaging.org/services/lifespan-respite-project"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
+        "Details about care recipient's age and disability status",
+        "Documentation of care duration (how long you've been providing care)",
+        "Contact information for referring agency or professional",
+        "Information about care recipient's current services (to verify no publicly-funded respite)",
+        "Description of caregiving tasks you perform (activities of daily living assistance)",
+        "Receipts and invoices from respite care providers (for reimbursement)"
+      ],
+      "contacts": [
+        {
+          "label": "Pat Guarnieri, High Country Area Agency on Aging",
+          "phone": "(828) 265-5434 ext. 139",
+          "description": "Primary contact for referrals and program questions",
+          "hours": "Business hours (call for specific times)"
+        },
+        {
+          "label": "Tammy Nelson, High Country Area Agency on Aging",
+          "phone": "(828) 265-5434 ext. 139",
+          "description": "Alternative contact for program information",
+          "hours": "Business hours (call for specific times)"
+        },
+        {
+          "label": "Lifespan Program Email",
+          "phone": "lifespan@hccog.org",
+          "description": "Email inquiries about the program",
+          "hours": "Email response during business days"
+        },
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "24/7 helpline for all North Carolina social services and caregiver resources",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Emergency or extenuating circumstances may qualify for priority even without 3 months of prior caregiving",
+        "You must have provided no publicly-funded respite care in the last 3 months to be eligible",
+        "Vouchers are reimbursement-based — you pay the respite provider first, then submit receipts",
+        "Funds expire 90 days after approval, so plan your respite care timing carefully"
+      ],
+      "relatedPrograms": [
+        "NC Family Caregiver Support Program",
+        "Senior Community Service Employment Program",
+        "Area Agency on Aging Services",
+        "NC Medicaid Personal Care Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply directly or do I really need a professional referral?",
+          "answer": "You cannot apply directly — all applications must come through a referring agency or professional like a counselor, social worker, or senior center staff. Call 828-265-5434 ext. 139 to find approved referring agencies in your area."
+        },
+        {
+          "question": "What if my parent gets some help from Medicaid — are we still eligible?",
+          "answer": "You cannot receive ongoing publicly-funded in-home care or respite care to be eligible. If your parent gets Medicaid personal care services or other regular government-funded assistance, you likely won't qualify. Check with the program coordinator about your specific situation."
+        },
+        {
+          "question": "How quickly do I need to use the vouchers once approved?",
+          "answer": "You must use all voucher funds within 90 days of approval. Plan your respite care timing before applying, especially if you want to save the money for a longer break or vacation."
+        },
+        {
+          "question": "Can I hire a family member or friend with these vouchers?",
+          "answer": "Yes, the vouchers are flexible — you can hire an agency, facility, or individual for respite care. The program doesn't restrict who you choose as long as they provide the temporary caregiving services."
+        },
+        {
+          "question": "What counts as 'greatest economic need' for priority consideration?",
+          "answer": "The program mentions priority for caregivers with greatest economic need but doesn't specify income limits or dollar amounts. The referring professional will likely assess your financial situation as part of the application process."
+        },
+        {
+          "question": "If I'm denied, can I reapply later in the year?",
+          "answer": "The research doesn't specify reapplication rules. Since it's priority-based allocation with limited funding, contact Pat Guarnieri at 828-265-5434 ext. 139 to ask about reapplication timing and what might improve your chances."
+        },
+        {
+          "question": "Can I get vouchers if I'm caring for my spouse with dementia who's under 60?",
+          "answer": "Yes, the program covers caregivers helping adults of any age with disabilities who need regular assistance with daily activities. Your spouse's dementia would likely qualify regardless of age if they need help with bathing, dressing, eating, or medication management."
+        },
+        {
+          "question": "What if I need more than $750 worth of respite care?",
+          "answer": "The program caps at $750 per calendar year. You would need to pay additional costs out-of-pocket or look for other caregiver support programs through your local Area Agency on Aging or NC 2-1-1."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "HandHeart",
+      "phone": "(828) 265-5434",
+      "sourceUrl": "www.highcountryaging.org/services/lifespan-respite-project",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-community-service-employment-program",
+      "name": "NC Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Part-time paid job training for adults 55+ to build skills and transition to permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "NC DHHS Division of Aging (ncdhhs.gov/divisions/aging/senior-community-services-employment-program)",
+            "type": "service-area"
+          },
+          {
+            "name": "NCBA (ncbainc.org/scsep)",
+            "type": "service-area"
+          },
+          {
+            "name": "Mid-Carolina Regional Council (mccog.org/scsep)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid job training (about 20 hours/week) at minimum wage while building skills for permanent employment. Your parent works at community host sites like schools, hospitals, or senior centers in roles such as teacher's aide, customer service, or maintenance worker while receiving training and job placement assistance.\n\nThis is a bridge program, typically lasting 6 months, designed to help participants transition to unsubsidized employment. Your parent earns a paycheck during training while developing marketable skills like computer literacy, customer service, or specialized job training. Veterans and their spouses get priority placement, followed by those over 65, with disabilities, or facing barriers to employment.",
+      "savingsRange": "$2,320 – $3,480 in training wages",
+      "savingsSource": "Based on 6 months of 20 hours/week at minimum wage ($7.25/hour federal minimum)",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income at or below 125% of federal poverty level",
+          "Currently unemployed",
+          "U.S. citizen or authorized to work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1693
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2289
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2885
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3481
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed and seeking work",
+          "Veterans and qualified spouses receive priority",
+          "Second priority: age 65+, disability, low literacy/limited English proficiency, rural residence, homeless/at risk, low employment prospects"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact local grantee organizations directly or call NC 2-1-1 for referral to your area provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Call NC 2-1-1 or visit ncdhhs.gov/divisions/aging/senior-community-services-employment-program to identify the grantee serving your area (NCBA, Mid-Carolina Regional Council, or other local provider)."
+          },
+          {
+            "step": 2,
+            "title": "Contact the local grantee",
+            "description": "Call your area provider directly or visit an American Job Center. Each grantee has its own intake process and application timeline."
+          },
+          {
+            "step": 3,
+            "title": "Complete eligibility screening",
+            "description": "Provide income documentation, proof of unemployment, and other required documents. Priority applicants (veterans, 65+) are processed first."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If eligible and slots are available, you'll be matched with a host site for training. Waitlists are possible due to funding limits."
+          }
+        ],
+        "processingTime": "Varies by grantee and funding availability; training typically begins after eligibility determination",
+        "waitlist": "Possible due to funding limits and transitions; varies by grantee and community demand",
+        "tip": "Veterans and their spouses should emphasize this status when applying as they receive first priority for available slots.",
+        "urls": [
+          {
+            "label": "NC DHHS SCSEP Information",
+            "url": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program"
+          },
+          {
+            "label": "NCBA SCSEP",
+            "url": "https://ncbainc.org/scsep"
+          },
+          {
+            "label": "Mid-Carolina Regional Council SCSEP",
+            "url": "https://mccog.org/scsep"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or birth certificate",
+        "Social Security card",
+        "Proof of income for all household members (tax returns, Social Security award letter, pay stubs)",
+        "Documentation of unemployment status",
+        "DD-214 discharge papers if claiming veteran priority",
+        "Proof of spouse's veteran status if applicable",
+        "Proof of U.S. citizenship or work authorization",
+        "Proof of North Carolina residency (utility bill, lease agreement, or state-issued document)"
+      ],
+      "contacts": [
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for referral to local SCSEP providers",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "NC DHHS Division of Aging",
+          "phone": null,
+          "description": "State program oversight and provider directory",
+          "hours": "Visit website for contact information"
+        },
+        {
+          "label": "NCBA SCSEP",
+          "phone": null,
+          "description": "Serves multiple NC counties",
+          "hours": "Contact via ncbainc.org/scsep"
+        },
+        {
+          "label": "Mid-Carolina Regional Council",
+          "phone": null,
+          "description": "Serves central NC region",
+          "hours": "Contact via mccog.org/scsep"
+        }
+      ],
+      "applicationNotes": [
+        "Multiple grantee organizations serve different regions of NC — make sure you contact the one serving your county",
+        "Priority is strictly enforced: veterans first, then 65+, then other qualifying categories — non-priority applicants may face longer waits",
+        "This is temporary employment (average 6 months) designed to lead to permanent jobs — not ongoing income support",
+        "Participants must be actively seeking unsubsidized employment and willing to leave the program when placed in regular work"
+      ],
+      "relatedPrograms": [
+        "WIOA Adult Program",
+        "SNAP (Food Benefits)",
+        "LIHEAP (Energy Assistance)",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply for SCSEP while receiving Social Security or retirement benefits?",
+          "answer": "Yes, as long as their total household income remains at or below 125% of the federal poverty level. Social Security and pension income count toward the income limit, but receiving benefits doesn't disqualify them from SCSEP if they're still under the threshold and seeking work."
+        },
+        {
+          "question": "What if there's no immediate opening but my parent is eligible?",
+          "answer": "Waitlists are common due to funding limits. Priority applicants (veterans, 65+, disabled, rural residents) get placed first when slots open. Your parent's name goes on the waiting list and the local grantee will contact them when funding becomes available."
+        },
+        {
+          "question": "Can my parent choose what type of job training they receive?",
+          "answer": "Training opportunities depend on available host sites in your area and your parent's interests and abilities. Common placements include teacher's aide, administrative support, maintenance, customer service, and healthcare support roles. The local grantee works to match participants with suitable positions."
+        },
+        {
+          "question": "What happens if my parent finds a permanent job before completing the 6-month training?",
+          "answer": "That's the goal of the program. Participants are expected to leave SCSEP when they find unsubsidized employment. The program provides job placement assistance and continues to support participants transitioning to permanent work."
+        },
+        {
+          "question": "Does my veteran father automatically get accepted into SCSEP?",
+          "answer": "Veterans receive priority, but they still must meet all eligibility requirements including the income limit and unemployment status. Priority means they're placed ahead of non-veterans when slots are available, but funding limits can still create waits."
+        },
+        {
+          "question": "Can my parent apply to multiple SCSEP grantees to increase their chances?",
+          "answer": "No, participants can only be enrolled with one grantee at a time, and grantees typically serve specific geographic areas. Contact the grantee serving your county rather than applying to multiple organizations."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "The program is designed as temporary training, typically 6 months, with the goal of transitioning to unsubsidized employment. Extensions may be possible in limited circumstances, but the focus is on moving participants into permanent jobs as quickly as possible."
+        },
+        {
+          "question": "What if my parent has been out of work for many years?",
+          "answer": "Long-term unemployment actually makes your parent a priority candidate under the 'low employment prospects' category. The program specifically targets people who have had difficulty finding work and provides both skills training and confidence-building through real work experience."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "legal-assistance-for-older-adults",
+      "name": "NC Legal Assistance for Older Adults",
+      "shortName": "NC Legal Assistance",
+      "tagline": "Free legal help for North Carolina seniors with wills, benefits, housing, and consumer protection issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Aid of North Carolina Senior Law Project",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60 or older in North Carolina, they can get free civil legal help with essential issues like writing wills, obtaining benefits, preventing eviction, and stopping financial abuse. Legal Aid of North Carolina's Senior Law Project provides legal advice, document review, advocacy letters, and referrals to local attorneys at no cost — regardless of your parent's income or assets.\n\nThe program handles the legal issues that most threaten seniors' safety and independence: Medicaid and SNAP applications, wrongful evictions, consumer scams, unemployment compensation, and powers of attorney. Because seniors 60+ are exempt from all income limits, your parent qualifies for help based on age alone, though priority goes to those with the greatest economic or social need.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "No income limits",
+          "North Carolina residents",
+          "Civil legal matters only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Priority given to seniors with greatest economic or social need",
+          "Does not serve prisoners",
+          "Civil legal matters only"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Senior Legal Helpline at 1-877-579-7562 during intake hours — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call during intake hours",
+            "description": "Phone 1-877-579-7562 Monday through Friday, 9:00 AM–11:00 AM or 1:00 PM–3:00 PM. Outside these hours, you'll reach voicemail."
+          },
+          {
+            "step": 2,
+            "title": "Explain your parent's legal issue",
+            "description": "Describe the problem: benefits denial, eviction notice, consumer fraud, need for will or power of attorney. Staff will assess urgency and your parent's needs."
+          },
+          {
+            "step": 3,
+            "title": "Receive immediate help or referral",
+            "description": "High-priority cases get direct legal assistance. Others receive advice, sample letters, or referrals to local Legal Aid offices or volunteer attorneys."
+          }
+        ],
+        "processingTime": "Immediate phone advice; follow-up services vary by case priority",
+        "waitlist": null,
+        "tip": "Call exactly during the intake hours — 9-11 AM or 1-3 PM weekdays. Have details about your parent's legal issue ready to explain.",
+        "urls": [
+          {
+            "label": "Senior Law Project",
+            "url": "https://legalaidnc.org/project/senior-law-project/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Senior Legal Helpline",
+          "phone": "1-877-579-7562",
+          "description": "Free legal help for seniors 60+",
+          "hours": "Mon-Fri 9-11am, 1-3pm"
+        },
+        {
+          "label": "General Legal Aid Line",
+          "phone": "1-866-219-5262",
+          "description": "For those under 60 or general legal questions",
+          "hours": "Mon-Fri business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "NC 2-1-1",
+        "Senior Health Insurance Information Program (SHIIP)",
+        "Adult Protective Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my elderly parent?",
+          "answer": "Yes, family members can call for their parents. The attorneys will need to speak directly with your parent at some point to verify they consent to the help, but you can initiate the call and explain the situation. Have your parent available during the call if possible."
+        },
+        {
+          "question": "What if my parent has money but still needs legal help?",
+          "answer": "Your parent still qualifies regardless of income or assets — seniors 60+ are exempt from financial eligibility requirements. However, priority goes to those with the greatest economic need, so wealthy seniors may receive referrals to private attorneys rather than direct representation."
+        },
+        {
+          "question": "Will they represent my parent in court?",
+          "answer": "It depends on the case priority and complexity. High-priority cases involving basic needs like housing, safety, or essential benefits may get full representation. Other cases typically receive legal advice, template documents, or referrals to local Legal Aid offices or volunteer lawyers who can provide court representation."
+        },
+        {
+          "question": "What happens if I call outside the intake hours?",
+          "answer": "You'll reach voicemail. Leave a detailed message with your parent's name, your contact information, and a description of the legal issue. Staff will return calls during business hours, typically within 1-2 business days."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "1-877-579-7562",
+      "sourceUrl": "https://legalaidnc.org/project/senior-law-project/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "long-term-care-ombudsman",
+      "name": "NC Long-Term Care Ombudsman Program",
+      "shortName": "NC Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems with their nursing home, assisted living, or care facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "16 Regional Long-Term Care Ombudsman Offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide Office of the State Long-Term Care Ombudsman",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Community Advisory Committees (CACs) per county/region",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a North Carolina nursing home, assisted living, or other long-term care facility and you're concerned about their treatment, care quality, or rights, the NC Long-Term Care Ombudsman Program provides free advocacy. Trained ombudsmen investigate complaints, mediate disputes with facilities, and work to resolve issues confidentially at no cost to families.\n\nThe program serves residents in nursing homes, adult care homes, family care homes, assisted housing communities, continuing care retirement communities (CCRCs), and independent living rental communities for seniors. No income or age requirements apply — any current resident, former resident, family member, or concerned party can request help. North Carolina operates 16 regional ombudsman offices covering all 100 counties, with local volunteers conducting regular facility visits and monitoring compliance with federal and state long-term care laws.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in NC long-term care facility",
+          "No income or asset limits",
+          "Available to residents and families",
+          "Covers all facility types"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must reside in a qualifying long-term care facility in North Carolina (nursing homes, adult care homes, family care homes, assisted housing, CCRCs, or senior independent living communities)",
+          "Open to current residents, former residents, families, and concerned parties"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional ombudsman office directly — no forms required and initial consultation starts immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional office",
+            "description": "Locate your county's ombudsman office using the NC DHHS directory — each of the 16 regional offices serves specific counties and has direct phone numbers listed."
+          },
+          {
+            "step": 2,
+            "title": "Call with complaint details",
+            "description": "Provide the resident's name, facility address, your relationship to the resident, and description of the concern — ombudsmen can accept complaints verbally with no paperwork required."
+          },
+          {
+            "step": 3,
+            "title": "Work with ombudsman",
+            "description": "The ombudsman will investigate, visit the facility if needed, and work to resolve the issue through mediation or advocacy — all services remain confidential unless you request otherwise."
+          }
+        ],
+        "processingTime": "Initial consultation provided promptly upon contact",
+        "waitlist": null,
+        "tip": "Have the facility name and address ready when you call, plus specific dates and details about the incident or ongoing concern.",
+        "urls": [
+          {
+            "label": "NC DHHS Ombudsman Directory",
+            "url": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Regional Ombudsman Offices",
+          "phone": "See county directory",
+          "description": "Direct complaint line for your area — 16 offices serving all NC counties",
+          "hours": "Varies by region"
+        },
+        {
+          "label": "State Ombudsman Office",
+          "phone": "Contact via NCDHHS",
+          "description": "Statewide coordination and complex case assistance",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "NC Division of Health Service Regulation",
+        "Adult Protective Services",
+        "NC Department of Social Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can the ombudsman help if my parent refuses to let them get involved?",
+          "answer": "No — ombudsmen cannot act on behalf of a resident who refuses their involvement. The resident must consent to ombudsman services, though family members can still receive information about rights and options. If your parent has cognitive impairment and you have legal authority, discuss this with the ombudsman directly."
+        },
+        {
+          "question": "What's the difference between calling the ombudsman versus reporting abuse to the state?",
+          "answer": "Ombudsmen handle quality of care complaints and advocacy, while suspected abuse or neglect must be reported to the NC Division of Health Service Regulation or local law enforcement. For serious safety concerns like physical abuse, financial exploitation, or medical neglect, call both — the ombudsman can advocate while regulators investigate. You can file abuse reports at (800) 624-3004."
+        },
+        {
+          "question": "Will the facility know I complained if I call the ombudsman?",
+          "answer": "Services are confidential unless you specifically request that your identity be shared. Ombudsmen can investigate concerns and work with facilities without revealing who made the complaint. However, if formal mediation or specific advocacy is needed, some level of disclosure may be necessary to resolve the issue effectively."
+        },
+        {
+          "question": "Can the ombudsman help us choose a facility before admission?",
+          "answer": "Yes — ombudsmen provide education about resident rights, facility selection guidance, and can explain what to look for in admission agreements. They cannot approve or disapprove specific facilities, but can help you understand inspection reports, resident rights, and warning signs. They cannot help with Medicaid applications or funding — contact your local Department of Social Services for financial assistance."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": null,
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "homestead-exemption",
+      "name": "North Carolina Homestead Exemption",
+      "shortName": "Homestead Exemption",
+      "tagline": "Your parent could save hundreds to thousands per year on property taxes if they're 65+ and own their home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County Tax Assessor's Office (e.g., Gaston, Davidson, Harnett, Iredell, Mecklenburg)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and owns their North Carolina home, they may qualify to exclude a significant portion of their property value from taxation. The Elderly and Disabled Homestead Exclusion removes either $25,000 or 50% of the home's appraised value from their tax bill — whichever is greater. For a $100,000 home, this means paying taxes on only $50,000 of value.\n\nTo qualify, your parent's total income from the previous year must be below $38,800 (2025 limit), and they must own and live in the home as their permanent residence. Because this is a one-time application with a June 1 deadline, missing the window means waiting until the next tax year. The savings can be substantial — often $500 to $2,000+ annually depending on local tax rates and property values.\n\nThis program is separate from North Carolina's bankruptcy homestead exemption and cannot be combined with other property tax relief programs. Each county administers applications locally, so you'll work directly with your parent's county tax assessor's office.",
+      "savingsRange": "$500 – $2,000+/year",
+      "savingsSource": "Property tax reduction based on exclusion of $25,000 or 50% of appraised value, whichever is greater",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or totally disabled",
+          "Income below $38,800/year (2025)",
+          "Own and occupy home as permanent residence",
+          "North Carolina resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must own and occupy property as permanent residence on January 1",
+          "Income limit of $38,800 for previous calendar year (applies to combined spousal income)",
+          "One-time application with June 1 deadline",
+          "Cannot receive other property tax relief simultaneously"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your county tax assessor's office for a one-time application that must be submitted by June 1.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find Your County Tax Assessor",
+            "description": "Contact your county tax assessor's office to request the Elderly or Disabled Homestead Exclusion application form. Each county handles applications locally."
+          },
+          {
+            "step": 2,
+            "title": "Gather Required Documents",
+            "description": "Collect proof of age, income from the previous calendar year, North Carolina residency, and property ownership documentation."
+          },
+          {
+            "step": 3,
+            "title": "Complete County-Specific Form",
+            "description": "Fill out your county's application form (based on NC GS 105-277.1). If applying based on disability instead of age, include physician or government agency certification."
+          },
+          {
+            "step": 4,
+            "title": "Submit by June 1 Deadline",
+            "description": "Mail or deliver your completed application to your county tax office before the June 1 deadline. Missing this date means waiting until next year."
+          },
+          {
+            "step": 5,
+            "title": "Wait for Processing",
+            "description": "Your county will review the application and notify you if denied. Approval typically takes effect for the current tax year."
+          }
+        ],
+        "processingTime": "Varies by county; notification provided if application is denied",
+        "waitlist": null,
+        "tip": "This is a one-time application — once approved, the exemption continues automatically as long as your parent remains eligible. Don't wait until the last minute, as June 1 is a hard deadline.",
+        "urls": [
+          {
+            "label": "NC General Statute 105-277.1",
+            "url": "https://www.ncleg.net/enactedlegislation/statutes/html/bysection/chapter_105/gs_105-277.1.html"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Birth certificate or government-issued ID showing age 65+ as of January 1",
+        "Previous year's tax return or Social Security award letter showing total income",
+        "Property deed or mortgage documents proving ownership",
+        "Utility bills or voter registration confirming North Carolina residency",
+        "Property tax bill or assessment notice showing current appraised value",
+        "If applying based on disability: Certificate from NC-licensed physician or government agency",
+        "If veteran applying for separate veteran exclusion: Form AV-9 with VA certification",
+        "Marriage certificate if applying as married couple (for combined income verification)"
+      ],
+      "contacts": [
+        {
+          "label": "County Tax Assessor Offices",
+          "phone": null,
+          "description": "Contact your specific county tax assessor for applications and local requirements",
+          "hours": "Varies by county"
+        },
+        {
+          "label": "NC Department of Revenue",
+          "phone": "(877) 252-3052",
+          "description": "General questions about property tax exemptions statewide",
+          "hours": "Mon-Fri 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Income is based on the full previous calendar year — if your parent exceeded $38,800 even briefly, they're ineligible for that year",
+        "Temporary nursing home stays for health reasons don't disqualify your parent if the home remains unoccupied or is occupied by a spouse or dependent",
+        "The exemption applies to the home plus up to 1 acre of land — larger properties may have portions that remain taxable",
+        "Cannot combine with Circuit Breaker tax relief or other property tax programs — choose the one that provides greater savings"
+      ],
+      "relatedPrograms": [
+        "North Carolina Property Tax Circuit Breaker",
+        "Disabled Veteran Property Tax Exclusion",
+        "North Carolina Energy Assistance Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if their income was slightly over $38,800 last year?",
+          "answer": "No, the income limit is strict. Income of $38,801 or more for the previous calendar year disqualifies them. However, they can apply in future years if their income drops below the limit."
+        },
+        {
+          "question": "What if my parent's house is worth $300,000 — how much would they save?",
+          "answer": "They would exclude 50% of the appraised value (since 50% of $300,000 exceeds the $25,000 minimum), meaning they'd pay taxes on only $150,000. With typical county tax rates of 0.5-1.0%, this could save $750-$1,500 annually."
+        },
+        {
+          "question": "My parent is in assisted living but still owns their home — do they qualify?",
+          "answer": "Only if the home remains their permanent residence and is unoccupied or occupied by a spouse or dependent. If they've moved permanently to assisted living and rent or sell the home, they're no longer eligible."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can apply if they have legal authority (power of attorney) or if the parent is unable to apply themselves. Contact your county tax assessor about required documentation for representative applications."
+        },
+        {
+          "question": "What happens if we miss the June 1 deadline?",
+          "answer": "You must wait until the following year to apply. There are no exceptions or late applications accepted. Mark your calendar and apply early in the year to avoid missing this hard deadline."
+        },
+        {
+          "question": "Should my parent choose this exemption or the Circuit Breaker program?",
+          "answer": "Compare both options. The homestead exemption is often better for lower-value homes, while Circuit Breaker (4-5% income cap) may save more on expensive properties. You cannot use both simultaneously."
+        },
+        {
+          "question": "My parent is a disabled veteran — is there a better option?",
+          "answer": "Veterans may qualify for the separate Disabled Veteran exclusion of $45,000 with no income limits. Compare this to the standard elderly exemption to see which provides greater savings based on your parent's property value and income."
+        },
+        {
+          "question": "Do we need to reapply every year once approved?",
+          "answer": "No, this is a one-time application. Once approved, the exemption continues automatically unless your parent's circumstances change (sells the home, income consistently exceeds limits, or moves permanently)."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "CurrencyDollar",
+      "phone": "(877) 252-3052",
+      "sourceUrl": "https://www.ncleg.net/enactedlegislation/statutes/html/bysection/chapter_105/gs_105-277.1.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "long-term-care-medicaid",
+      "name": "North Carolina Long-Term Care Medicaid",
+      "shortName": "NC LTC Medicaid",
+      "tagline": "Covers nursing home, assisted living, and home care costs when your parent needs daily help with bathing, dressing, or medication management.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county DSS offices; PACE organizations in select areas (e.g., Wake County LTC office).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, North Carolina Long-Term Care Medicaid can cover the full cost of nursing home care, assisted living, or home-based services. Your parent pays most of their income toward care costs (keeping only $70/month for personal needs), and Medicaid covers the remainder — which can be $8,000–$11,000/month for nursing home care depending on the facility.\n\nTo qualify, your parent must have less than $2,000 in countable assets (singles) or $3,000 (married couples both needing care), plus income below the regional nursing home pay rate (estimated $7,898–$11,218/month in 2026). They can keep their home if equity is under $730,000 and they intend to return, or if a spouse or disabled child lives there. Because this program requires a clinical assessment proving need for daily care, the application takes 45–90 days including the functional evaluation.",
+      "savingsRange": "$8,000 – $11,000/month in 2026",
+      "savingsSource": "Regional nursing home pay rates covered by Medicaid minus patient liability",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below regional facility rate ($7,898–$11,218/month)",
+          "Assets under $2,000 (singles)",
+          "Need daily care assistance",
+          "NC resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home (equity up to $730,000 if intent to return)",
+            "One vehicle",
+            "Personal belongings",
+            "Life insurance (face value $1,500 or less)",
+            "Burial plots and funeral funds"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care (clinical assessment showing need for daily help with bathing, dressing, eating, toileting, mobility, or managing medications and household tasks)",
+        "otherRequirements": [
+          "North Carolina resident",
+          "US citizen or qualified immigrant",
+          "Need care for 30+ consecutive days"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at epass.nc.gov or call your local county DSS office — processing takes 45–90 days including the required clinical assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at epass.nc.gov (NC ePASS portal) or call the NC Medicaid Contact Center at 1-888-245-0179. You can also visit your local county Department of Social Services office in person."
+          },
+          {
+            "step": 2,
+            "title": "Submit required documents",
+            "description": "Gather financial documents, medical records, and proof of identity. Submit Form DSS-8209 for long-term care along with your standard Medicaid application."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "A qualified assessor will evaluate your parent's need for daily care using the PREADMIT or PASRR assessment forms to determine Nursing Facility Level of Care."
+          },
+          {
+            "step": 4,
+            "title": "Choose care setting",
+            "description": "If approved, decide between nursing home care (usually no waitlist) or home/community-based services through HCBS waivers (may have waitlists)."
+          }
+        ],
+        "processingTime": "45–90 days for full determination, including NFLOC assessment",
+        "waitlist": "HCBS waivers have waitlists; nursing home Medicaid generally no waitlist but bed availability varies by facility",
+        "tip": "Start the application while your parent is still in the hospital — discharge planners can often initiate the process and help coordinate the required assessments.",
+        "urls": [
+          {
+            "label": "NC ePASS Online Application",
+            "url": "https://epass.nc.gov"
+          },
+          {
+            "label": "Local DSS Office Directory",
+            "url": "https://www.ncdhhs.gov/divisions/social-services/local-dss-directory"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Birth certificate or passport for proof of age and citizenship",
+        "Social Security card",
+        "Social Security award letter (most recent)",
+        "Bank statements for all accounts (last 3-6 months)",
+        "Investment statements (stocks, bonds, annuities, retirement accounts)",
+        "Property deeds and current tax assessments",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Pension or retirement income statements",
+        "Medical records and physician statements documenting care needs",
+        "Medicare card and any other health insurance cards",
+        "Proof of North Carolina residency (utility bill or lease agreement)",
+        "Spouse's financial documents if married",
+        "Burial plots documentation or pre-need funeral contracts",
+        "Power of attorney or guardianship papers if applicable"
+      ],
+      "contacts": [
+        {
+          "label": "NC Medicaid Contact Center",
+          "phone": "1-888-245-0179",
+          "description": "Medicaid applications and long-term care questions",
+          "hours": "Monday-Friday 8am-5pm ET"
+        },
+        {
+          "label": "Local County DSS Office",
+          "phone": "Contact varies by county",
+          "description": "In-person assistance with applications and assessments",
+          "hours": "Varies by office"
+        },
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "General information and referrals to local services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "There's a 5-year look-back period for asset transfers — any gifts or asset sales for less than fair market value can result in penalty periods delaying coverage",
+        "If your parent's income exceeds the facility pay rate, they may still qualify through medically needy spend-down by applying medical expenses toward the excess income",
+        "Home and community-based services waivers have longer waitlists in high-demand areas, but nursing home placement typically has shorter waits",
+        "Spousal impoverishment protections allow the community spouse to retain up to half of joint assets up to $162,660 (2026) — complex rules apply"
+      ],
+      "relatedPrograms": [
+        "North Carolina SNAP (Food Assistance)",
+        "Medicare Savings Programs",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Low Income Energy Assistance Program (LIEAP)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the home is exempt from asset limits if your parent intends to return home, equity is under $730,000, or if a spouse, child under 21, or disabled child lives there. The home only counts toward the $2,000 limit if none of these conditions apply."
+        },
+        {
+          "question": "What happens to my parent's Social Security and pension income?",
+          "answer": "Your parent pays almost all income toward their care cost, keeping only $70/month for personal needs. They can also deduct health insurance premiums and certain spousal allowances before calculating what goes to the facility."
+        },
+        {
+          "question": "How long is the waitlist for home care services really?",
+          "answer": "HCBS waivers like CAP/DA can have waitlists of several months to multiple years depending on your region and your parent's priority level. Nursing home Medicaid typically has no waitlist, though finding an available bed may take time."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, you can apply as an authorized representative if your parent cannot apply themselves due to physical or mental limitations. You'll need to complete additional forms establishing your authority to act on their behalf."
+        },
+        {
+          "question": "What if my parent gave money to grandchildren in the past few years?",
+          "answer": "Gifts or asset transfers within 5 years of applying create penalty periods that delay Medicaid coverage. The penalty equals the gift amount divided by the average monthly nursing home cost in your area, creating months of ineligibility."
+        },
+        {
+          "question": "Can my parent apply for this and regular Medicaid at the same time?",
+          "answer": "Your parent typically needs ABD Medicaid (for those 65+, blind, or disabled) first, then adds long-term care coverage. You can apply for both simultaneously through the same application process."
+        },
+        {
+          "question": "What happens if my parent's condition improves after enrollment?",
+          "answer": "Medicaid conducts periodic reviews to ensure your parent still meets the Nursing Facility Level of Care requirement. If their condition significantly improves, they may lose long-term care coverage but could retain basic Medicaid."
+        },
+        {
+          "question": "Does this cover assisted living or just nursing homes?",
+          "answer": "It covers nursing home care directly, plus assisted living and home care through HCBS waivers. However, assisted living and home care options often have waitlists and may not be available immediately in all areas."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Bed",
+      "phone": "1-888-245-0179",
+      "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "project-care-dementia-caregiver-support",
+      "name": "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)",
+      "shortName": "Project C.A.R.E.",
+      "tagline": "Free consultation and respite support for North Carolina families caring for someone with dementia.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Land of Sky Area Agency on Aging (339 New Leicester Hwy, Suite 140)",
+            "type": "service-area"
+          },
+          {
+            "name": "Albemarle Commission Area Agency on Aging (serves Regions L, P, Q, R)",
+            "type": "service-area"
+          },
+          {
+            "name": "Western Piedmont Council of Governments (WPCOG)",
+            "type": "service-area"
+          },
+          {
+            "name": "Cape Fear Council of Governments",
+            "type": "service-area"
+          },
+          {
+            "name": "Mecklenburg County (Just1Call: 704-432-1111)",
+            "type": "service-area"
+          },
+          {
+            "name": "High Country Aging (828-265-5434 ext. 139)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent with Alzheimer's disease or related dementia in North Carolina, you may qualify for free care consultation and limited respite care vouchers through Project C.A.R.E. This state-funded program provides dementia-specific support services including professional consultation, caregiver education, and connections to community resources.\n\nThe program serves unpaid family caregivers and friends who are North Carolina residents. Because Project C.A.R.E. gives priority to low-income families, minorities, and those in rural areas, higher-income families may face longer waits. Respite care vouchers are explicitly limited in availability — not all eligible caregivers will receive them.\n\nProject C.A.R.E. operates through regional Area Agencies on Aging, so availability depends on which agency serves your county. The program is not available statewide and contact information varies by region.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Care recipient has dementia diagnosis",
+          "Unpaid family caregiver or friend",
+          "North Carolina resident",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Care recipient must have a diagnosis of Alzheimer's disease or related dementia (including Lewy Body Dementia, Vascular Dementia, Frontotemporal Dementia)",
+          "Caregiver must be unpaid (family member or friend)",
+          "Caregivers of persons currently receiving NC Medicaid CAP/DA Waiver are NOT eligible for care consultation but can receive education and referrals",
+          "Caregivers of persons on a CAP/DA waitlist CAN be served"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional Area Agency on Aging or Just1Call intake line — processing time not publicly available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Project C.A.R.E. is not statewide. Contact varies by county: Mecklenburg County call Just1Call at 704-432-1111, High Country region call 828-265-5434 ext. 139, or search online for '[your county] Area Agency on Aging North Carolina.'"
+          },
+          {
+            "step": 2,
+            "title": "Call for eligibility screening",
+            "description": "When you call, explain that you're caring for someone with dementia and need information about Project C.A.R.E. services. They will verify your parent's dementia diagnosis and that you're an unpaid caregiver."
+          },
+          {
+            "step": 3,
+            "title": "Complete intake process",
+            "description": "Your regional provider will assess your specific needs and connect you with a Family Consultant. Some regions offer online eligibility pre-check forms before the phone call."
+          }
+        ],
+        "processingTime": "Not specified in available sources",
+        "waitlist": null,
+        "tip": "Health professionals can complete referral applications on your behalf if you're working with a doctor, social worker, or discharge planner.",
+        "urls": [
+          {
+            "label": "NC DHHS Project C.A.R.E. Official Page",
+            "url": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of North Carolina residency (utility bill, driver's license, or state-issued document)",
+        "Documentation of care recipient's dementia diagnosis (medical records or doctor's statement)",
+        "Caregiver identification (driver's license or state ID)",
+        "Documentation of relationship to care recipient (if not obvious from shared address)",
+        "Information about current services (if care recipient is on Medicaid CAP/DA waitlist or receiving other dementia services)"
+      ],
+      "contacts": [
+        {
+          "label": "Mecklenburg County Just1Call",
+          "phone": "704-432-1111",
+          "description": "Intake for Charlotte metro area Project C.A.R.E. services",
+          "hours": "Business hours (specific hours not listed)"
+        },
+        {
+          "label": "High Country Aging",
+          "phone": "828-265-5434",
+          "description": "Project C.A.R.E. services for mountain region — press ext. 139",
+          "hours": "Business hours (specific hours not listed)"
+        },
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to locate your regional Area Agency on Aging",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "If your parent is currently receiving Medicaid CAP/DA Waiver services, you cannot get care consultation but can still receive dementia education and referrals",
+        "Processing times and waitlist status are not publicly documented — ask your regional provider for current timelines",
+        "Priority is given to low-income, minority, and rural families, which may affect how quickly you receive services",
+        "Respite care vouchers are limited — ask specifically about availability when you apply"
+      ],
+      "relatedPrograms": [
+        "NC Medicaid CAP/DA Waiver",
+        "Family Caregiver Support Program",
+        "Senior Community Service Employment Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I get Project C.A.R.E. if my parent is already on the Medicaid CAP/DA Waiver?",
+          "answer": "No, caregivers of people currently receiving CAP/DA Waiver services cannot get care consultation through Project C.A.R.E. However, you can still receive dementia education, training, and referrals to other services. If your parent is on the CAP/DA waitlist (not yet receiving services), you can be served by Project C.A.R.E."
+        },
+        {
+          "question": "How long will I wait for respite care vouchers?",
+          "answer": "Respite care vouchers are explicitly limited in availability and not all eligible caregivers will receive them. The sources don't provide specific wait times. When you contact your regional provider, ask about current availability and whether you should expect vouchers or focus on other support services."
+        },
+        {
+          "question": "What if Project C.A.R.E. isn't available in my county?",
+          "answer": "Project C.A.R.E. operates through regional host agencies and is not statewide. If your county isn't served, call NC 2-1-1 to find your local Area Agency on Aging, which may offer similar family caregiver support services or can refer you to the Family Caregiver Support Program."
+        },
+        {
+          "question": "Does my parent need to be a certain age or have a specific type of dementia?",
+          "answer": "No age requirements apply to either caregivers or care recipients. The dementia diagnosis must be Alzheimer's disease or related dementia, including Lewy Body Dementia, Vascular Dementia, or Frontotemporal Dementia. A formal medical diagnosis is required."
+        },
+        {
+          "question": "Will my income disqualify me from Project C.A.R.E.?",
+          "answer": "There are no income limits, but the program gives priority to low-income individuals, minorities, and those in rural areas. Higher-income families can still apply but may face longer waits or lower priority for services, especially for limited respite care vouchers."
+        },
+        {
+          "question": "Can someone else apply for Project C.A.R.E. on my behalf?",
+          "answer": "Yes, health and human service professionals can complete a referral application on behalf of a caregiver. This is common when working with doctors, social workers, or hospital discharge planners who recognize the need for caregiver support services."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "HandHeart",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "special-assistance-in-home",
+      "name": "State-County Special Assistance - In Home",
+      "shortName": "Special Assistance In-Home",
+      "tagline": "Up to $1,700/month in cash assistance for North Carolina seniors who need care but want to stay home",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county Department of Social Services (DSS)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs the level of care typically provided in an adult care home but wants to stay in their own home, North Carolina's State-County Special Assistance - In Home provides monthly cash payments to make this possible. The program pays up to $1,326/month for basic needs (food, shelter, clothing) or up to $1,700/month for parents with Alzheimer's or dementia.\n\nYour parent must be 65+ or disabled, with income below federal poverty levels, and a doctor must verify they need adult care home-level care using an FL-2 form. Because this program automatically includes Medicaid eligibility, your parent gets both cash assistance and healthcare coverage. The state eliminated waitlists in recent years, so eligible applicants get approved without delay.\n\nThis program requires exhausting other Medicaid and community resources first, and includes mandatory case management with monthly contact, quarterly visits, and annual assessments.",
+      "savingsRange": "$15,912 – $20,400/year in 2024",
+      "savingsSource": "Maximum monthly rates: Basic $1,326/month, Enhanced $1,700/month",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income below federal poverty level",
+          "Need adult care home level of care",
+          "Doctor verification via FL-2 form",
+          "North Carolina resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must require the level of care provided in a licensed Adult Care Home, verified by a doctor using FL-2 form, but be able to live safely at home with services like in-home aide, home modifications, case management, and supplies",
+        "otherRequirements": [
+          "U.S. citizen or qualified alien",
+          "North Carolina resident",
+          "Receive SSI or be financially ineligible for SSI solely due to excess income",
+          "All Medicaid and community resources must be considered first",
+          "Cannot be an inmate of a public institution"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your county Department of Social Services office — processing takes up to 45 days for seniors 65+.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county DSS office",
+            "description": "Call your local Department of Social Services to start the application process. For example, Wake County residents can call Catherine Goldman at 919-250-3835 for information or Tracy Gregory at 919-212-7549 to apply."
+          },
+          {
+            "step": 2,
+            "title": "Get doctor's FL-2 form completed",
+            "description": "Your parent's doctor must complete an FL-2 form verifying they need adult care home level of care. For Enhanced rate ($1,700/month), the FL-2 must also verify an Alzheimer's or dementia diagnosis."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect income and asset information, insurance details, state-issued proof of identity, and information about your parent's life and financial situation for assessment."
+          },
+          {
+            "step": 4,
+            "title": "Submit application and await decision",
+            "description": "DSS will process the application within 45 days for applicants 65+ or 60 days for those 18-64. Mandatory case management begins upon approval with monthly contact and quarterly visits."
+          }
+        ],
+        "processingTime": "Up to 45 days for applicants 65+; up to 60 days for applicants 18-64",
+        "waitlist": null,
+        "tip": "Start with the FL-2 form early — having your parent's doctor complete this verification form is often the longest part of the process.",
+        "urls": [
+          {
+            "label": "NC DHHS Special Assistance Program",
+            "url": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "FL-2 form completed by your parent's doctor verifying adult care home level of care",
+        "State-issued photo identification (driver's license or ID card)",
+        "Social Security award letter or SSI documentation",
+        "Proof of all income sources (pensions, retirement, wages, benefits)",
+        "Bank statements for all accounts (last 3 months)",
+        "Insurance cards (Medicare, Medicaid, private insurance)",
+        "Proof of North Carolina residency (utility bill, lease, voter registration)",
+        "Asset documentation (property deeds, vehicle titles, investment accounts)",
+        "Birth certificate or other proof of age",
+        "Immigration documents if not a U.S. citizen",
+        "Information about current medical conditions and treatments",
+        "Contact information for current healthcare providers",
+        "Details about current living situation and care needs"
+      ],
+      "contacts": [
+        {
+          "label": "Wake County DSS (Information)",
+          "phone": "(919) 250-3835",
+          "description": "Catherine Goldman for State-County Special Assistance information",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Wake County DSS (Applications)",
+          "phone": "(919) 212-7549",
+          "description": "Tracy Gregory for State-County Special Assistance applications",
+          "hours": "Business hours"
+        },
+        {
+          "label": "NC 2-1-1",
+          "phone": "2-1-1",
+          "description": "Find your local county DSS office and other social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Eligibility is determined case-by-case — meeting the basic criteria doesn't guarantee approval",
+        "Your spouse's income and assets do not affect your parent's eligibility for this program",
+        "Enhanced rate ($1,700/month) requires valid FL-2 form specifically documenting Alzheimer's or dementia diagnosis",
+        "Case management is mandatory and includes monthly contact, quarterly home visits, and annual assessments"
+      ],
+      "relatedPrograms": [
+        "North Carolina Medicaid",
+        "Community Alternatives Program (CAP)",
+        "Adult Day Health Services",
+        "Home and Community Care Block Grant"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Basic vs Enhanced Rate",
+          "content": {
+            "tiers": [
+              {
+                "name": "Basic Rate",
+                "amount": "$1,326/month",
+                "requirements": [
+                  "Age 65+ or disabled",
+                  "Income below poverty level",
+                  "FL-2 form verifying adult care home level of care",
+                  "Able to live safely at home with services"
+                ]
+              },
+              {
+                "name": "Enhanced Rate",
+                "amount": "$1,700/month",
+                "requirements": [
+                  "All Basic Rate requirements",
+                  "Alzheimer's or dementia diagnosis",
+                  "FL-2 form must specifically verify dementia diagnosis"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "callout",
+          "title": "No More Waitlist",
+          "content": "North Carolina eliminated the waitlist for State-County Special Assistance - In Home. Eligible applicants are now approved without delay, though processing still takes up to 45 days for complete applications."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and still qualify?",
+          "answer": "Yes, your parent can own their home and still qualify. The home where they live is typically not counted as an asset for Special Assistance programs, though specific asset limits apply to other property and resources."
+        },
+        {
+          "question": "What if the doctor won't complete the FL-2 form?",
+          "answer": "The FL-2 form is required — without it, your parent cannot qualify. If their current doctor won't complete it, consider getting a second medical opinion or asking for a referral to a geriatrician who is familiar with these assessments."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can help with the application process. Contact your county DSS office to discuss what authorization or documentation you need to act on your parent's behalf during the application."
+        },
+        {
+          "question": "How much higher is the Enhanced rate really worth?",
+          "answer": "The Enhanced rate pays $374 more per month than the Basic rate ($1,700 vs $1,326), which equals $4,488 more per year. However, it requires a doctor-verified Alzheimer's or dementia diagnosis on the FL-2 form."
+        },
+        {
+          "question": "What happens if my parent's needs change after approval?",
+          "answer": "The program includes mandatory case management with quarterly home visits and annual assessments. If your parent's care needs increase or decrease, the case manager will reassess eligibility and payment levels during these regular reviews."
+        },
+        {
+          "question": "Can my parent get this and regular Medicaid at the same time?",
+          "answer": "Yes, State-County Special Assistance - In Home automatically includes Medicaid eligibility. Your parent gets both the monthly cash payment for living expenses and full Medicaid healthcare coverage."
+        },
+        {
+          "question": "Why do they make you try other programs first?",
+          "answer": "North Carolina requires exploring all Medicaid waiver programs and community resources before approving Special Assistance - In Home. This ensures your parent gets the most comprehensive services available, though it can extend the initial application process."
+        },
+        {
+          "question": "What does 'adult care home level of care' actually mean?",
+          "answer": "This means your parent needs daily help with activities like bathing, dressing, medication management, or mobility — the same level of assistance provided in licensed adult care homes. A doctor must verify this on the FL-2 form based on clinical assessment."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    }
+  ],
+  "stateOverview": {
+    "intro": "North Carolina offers 15 programs to help seniors and their families — 12 provide direct financial benefits like monthly payments, reduced bills, or covered services, plus 2 free resources available to anyone. Your parent could potentially access multiple programs simultaneously, from $281/month in grocery assistance to thousands in yearly savings on Medicare costs and property taxes. The state coordinates many services through county offices, and several programs specifically support family caregivers with respite funding and consultation.\n\nStart by checking the highest-value programs first — Medicare Savings Programs and Long-Term Care Medicaid can save thousands annually, while SNAP provides immediate monthly grocery relief. Most benefit programs have income limits around $2,000-$3,000/month for a single person, but free resources like legal assistance and ombudsman services are available regardless of income.",
+    "startHere": [
+      {
+        "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medicare-savings-programs",
+        "why": "Can save $2,400-$8,000 yearly on Medicare premiums and medical costs if your parent has limited income."
+      },
+      {
+        "name": "NC Food and Nutrition Services (FNS)/SNAP",
+        "programId": "food-nutrition-services-snap",
+        "why": "Immediate monthly grocery benefits up to $281 that you can apply for online within days."
+      },
+      {
+        "name": "North Carolina Long-Term Care Medicaid",
+        "programId": "long-term-care-medicaid",
+        "why": "Covers expensive nursing home, assisted living, or home care costs when your parent needs daily personal assistance."
+      },
+      {
+        "name": "North Carolina Homestead Exemption",
+        "programId": "homestead-exemption",
+        "why": "Automatic property tax savings of hundreds to thousands per year if your parent is 65+ and owns their home."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for daily care",
+        "programs": [
+          "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+          "North Carolina Long-Term Care Medicaid",
+          "State-County Special Assistance - In Home"
+        ],
+        "description": "Three programs that can cover personal care assistance, home modifications, or cash payments to keep your parent safely at home."
+      },
+      {
+        "need": "All-in-one healthcare management",
+        "programs": [
+          "NC Program of All-Inclusive Care for the Elderly (PACE)"
+        ],
+        "description": "Complete medical team coordination with no copays or deductibles for eligible seniors."
+      },
+      {
+        "need": "Monthly bills and expenses",
+        "programs": [
+          "NC Food and Nutrition Services (FNS)/SNAP",
+          "NC Low-Income Energy Assistance Program (LIHEAP)",
+          "NC Weatherization Assistance Program",
+          "North Carolina Homestead Exemption"
+        ],
+        "description": "Direct assistance with grocery costs, heating bills, energy efficiency improvements, and property taxes."
+      },
+      {
+        "need": "Medicare cost relief",
+        "programs": [
+          "NC Medicare Savings Programs (QMB, SLMB, QI)"
+        ],
+        "description": "Significant yearly savings on Medicare premiums, deductibles, and copayments for qualifying seniors."
+      },
+      {
+        "need": "Caregiver support and respite",
+        "programs": [
+          "NC Lifespan Respite Program / Family Caregiver Support",
+          "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)"
+        ],
+        "description": "Financial assistance and consultation to help family caregivers get breaks and specialized dementia support."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "NC Legal Assistance for Older Adults",
+          "NC Long-Term Care Ombudsman Program"
+        ],
+        "description": "Professional help with legal issues, benefits problems, and care facility concerns at no cost."
+      }
+    ],
+    "quickFacts": [
+      "North Carolina coordinates many senior services through county Departments of Social Services — your local office handles applications for multiple programs.",
+      "Most financial benefit programs require income below approximately $2,000-$3,000/month for a single person, but limits vary by program.",
+      "Several programs provide same-day or next-day responses: SNAP applications process within days, and ombudsman services respond to urgent care facility issues immediately.",
+      "North Carolina offers specific support for dementia caregivers through Project C.A.R.E., separate from general caregiver assistance programs."
+    ],
+    "resourcesVsBenefits": "Benefits like SNAP, Medicaid waivers, and energy assistance require your parent to meet income and asset limits — typically under $2,000-$3,000/month income. Resources like Legal Assistance for Older Adults and the Long-Term Care Ombudsman are free to all North Carolina seniors regardless of income, assets, or insurance status. You can access free resources immediately while waiting for benefit applications to process."
+  }
+}

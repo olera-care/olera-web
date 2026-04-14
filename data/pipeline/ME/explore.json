@@ -1,0 +1,74 @@
+{
+  "entity": "Maine",
+  "entitySlug": "maine",
+  "state": "ME",
+  "stateName": "Maine",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T13:50:22.787Z",
+  "programCount": 9,
+  "programs": [
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health and home care. It coordinates all Medicare and Medicaid-covered care to avoid nursing homes.",
+      "who_its_for": "Seniors 55+ certified for nursing home care, able to live safely in community, meeting MaineCare/Medicare eligibility.",
+      "official_url": "https://www.maine.gov/dhhs/oms/programs-services/pace",
+      "benefit_value": "Full capitation coverage of approved services at no additional cost beyond premiums."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "These MaineCare-funded waivers provide in-home supportive services like personal care and homemaker services to eligible seniors and disabled adults. Services aim to promote independence and delay institutionalization, accessed via Maximus MED assessment.",
+      "who_its_for": "Seniors and disabled adults eligible for nursing home level of care but preferring community living, meeting financial criteria.",
+      "official_url": "https://www.maine.gov/dhhs/oms/programs-services/long-term-care",
+      "benefit_value": "Varies; covers services like adult day, personal care based on assessed needs, potentially with co-pay."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly EBT benefits to buy food for low-income households including seniors. In Maine, it's administered by DHHS with deductions for seniors' expenses.",
+      "who_its_for": "Low-income seniors 60+ or disabled households meeting income tests (net income ≤100% FPL).",
+      "official_url": "https://www.maine.gov/dhhs/ofi/programs-services/snap",
+      "benefit_value": "Average $200-300/month per senior household; max up to $291/single (2026 rates)."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP provides grants to help eligible low-income households, including seniors, meet heating costs. Maine's program includes one-time payments and crisis assistance.",
+      "who_its_for": "Low-income households (≤150% FPL, higher for elderly/disabled) with high energy burdens.",
+      "official_url": "https://www.maine.gov/dhhs/ofi/programs-services/liheap",
+      "benefit_value": "$200-$1,500 one-time grant depending on income, household size, fuel type."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation and sealing for low-income homes to reduce energy costs. Maine administers federally funded services prioritizing seniors.",
+      "who_its_for": "Low-income (≤200% FPL) owner/renter households, especially elderly, disabled, children.",
+      "official_url": "https://www.maine.gov/energy/initiatives/weatherization",
+      "benefit_value": "Free services saving 10-30% on energy bills; ~$5,000 average per home investment."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "what_it_does": "SHIP offers free counseling on Medicare, Medigap, and related options. Maine's program helps seniors select plans and resolve issues.",
+      "who_its_for": "All Maine Medicare beneficiaries 65+, disabled, or caregivers seeking insurance guidance.",
+      "official_url": "https://www.maine.gov/pfr/insurance/consumers/seniors-health-insurance",
+      "benefit_value": "Free one-on-one counseling; potential savings of thousands on premiums/coverage gaps."
+    },
+    {
+      "name": "Home Delivered Meals",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors to promote health and independence. Funded via MaineCare, AoA, and state sources through aging agencies.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, meeting minimal income guidelines.",
+      "official_url": "https://www.maine.gov/dhhs/aging",
+      "benefit_value": "5-14 meals/week at low/no cost (suggested donation $3/meal); ~$1,500/yr value."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "SCSEP provides part-time paid community service training leading to employment for low-income seniors. AmeriCorps Seniors operates Foster Grandparents in Maine regions.",
+      "who_its_for": "Unemployed low-income (≤125% FPL) adults 55+ unable to find work.",
+      "official_url": "http://volunteermaine.gov/serve-in-maine/americorps-seniors",
+      "benefit_value": "Minimum wage pay (~$10-15/hr, 20 hrs/wk) plus training; ~$10,000/yr."
+    },
+    {
+      "name": "Maine Legal Services for the Elderly",
+      "what_it_does": "Provides free legal assistance to low-income seniors on issues like benefits, housing, abuse. Pine Tree Legal Aid partners for broader support.",
+      "who_its_for": "Low-income seniors 60+ in Maine facing civil legal problems.",
+      "official_url": "https://www.mainelegalservices.org/elderly",
+      "benefit_value": "Free legal representation; protects benefits/housing worth thousands."
+    }
+  ]
+}

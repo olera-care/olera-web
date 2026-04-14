@@ -369,3 +369,48 @@ export function profileIncompleteNudgeEmail({
     </p>
   `);
 }
+
+// ── Provider Templates ────────────────────────────────────────────
+
+/**
+ * Sent when a provider successfully subscribes to MedJobs Pro ($49/mo).
+ * Confirms their subscription and highlights what's now unlocked.
+ */
+export function providerSubscriptionConfirmationEmail({
+  providerName,
+}: {
+  providerName: string;
+}): string {
+  const firstName = providerName.split(" ")[0];
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs Pro!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${firstName}, thank you for subscribing to MedJobs Pro. Your subscription is now active.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What&apos;s now unlocked:</p>
+        <ul style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li><strong>Full candidate profiles</strong> &mdash; names, contact info, resumes</li>
+          <li><strong>Unlimited interview scheduling</strong> &mdash; no credit limits</li>
+          <li><strong>LinkedIn profiles</strong> &mdash; view candidate backgrounds</li>
+          <li><strong>Unlimited review requests</strong> &mdash; grow your Google reviews</li>
+        </ul>
+      </td></tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Your plan</p>
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0;">MedJobs Pro &mdash; $49/month</p>
+        <p style="font-size:12px;color:#9ca3af;margin:4px 0 0;">Cancel anytime from your account settings</p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("Browse Candidates", `${BASE_URL}/medjobs/candidates`)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
+      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:#9ca3af;">support@olera.care</a>
+    </p>
+  `);
+}

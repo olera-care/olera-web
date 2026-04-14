@@ -1,0 +1,221 @@
+{
+  "state": "MI",
+  "stateName": "Michigan",
+  "checkedAt": "2026-04-14T10:03:40.568Z",
+  "total": 6,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "mi-choice-waiver",
+      "programName": "Michigan Choice Waiver Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9950,
+        "assets_couple": null,
+        "phones": [
+          "7347222830",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9660,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.detroitseniorsolution.org/clinical-services/mi-choice-waiver-mich/",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/michigan-choice-waiver/",
+          "phone": null
+        },
+        "notes": "Values from 2025 sources; no 2026 updates found in official sources. Income limits mentioned but not used per instructions. No statewide phone; regional contacts only. Assets are countable financial limit."
+      },
+      "flags": [],
+      "notes": "Values from 2025 sources; no 2026 updates found in official sources. Income limits mentioned but not used per instructions. No statewide phone; regional contacts only. Assets are countable financial limit."
+    },
+    {
+      "programId": "mi-health-link-program",
+      "programName": "MI Health Link Program",
+      "facts": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program transitioned to MI Coordinated Health on Jan 1, 2026; no age test for seniors (duals aged 21+); no income/asset limits as eligibility is dual Medicare-Medicaid"
+      },
+      "flags": [],
+      "notes": "Program transitioned to MI Coordinated Health on Jan 1, 2026; no age test for seniors (duals aged 21+); no income/asset limits as eligibility is dual Medicare-Medicaid"
+    },
+    {
+      "programId": "mi-options",
+      "programName": "MI Options",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008037174",
+          "8338015587",
+          "5175921974"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008037174",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options"
+        },
+        "notes": "MI Options is a free counseling program with no age, income, or asset eligibility tests for seniors; open to adults including older adults and people with disabilities"
+      },
+      "flags": [],
+      "notes": "MI Options is a free counseling program with no age, income, or asset eligibility tests for seniors; open to adults including older adults and people with disabilities"
+    },
+    {
+      "programId": "mi-senior-project-fresh",
+      "programName": "Senior Project Fresh Program",
+      "facts": {
+        "age": 60,
+        "income_1": 2322,
+        "income_2": 3151,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 2413,
+        "income_2": 3261,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh",
+          "income": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits from March 2026 update are annual figures divided by 12 and rounded ($28,952.50/12=2412.71→2413; $39,127.50/12=3260.625→3261). No assets test or main phone found. Tribal members 55+ also eligible."
+      },
+      "flags": [],
+      "notes": "Income limits from March 2026 update are annual figures divided by 12 and rounded ($28,952.50/12=2412.71→2413; $39,127.50/12=3260.625→3261). No assets test or main phone found. Tribal members 55+ also eligible."
+    },
+    {
+      "programId": "michigan-micafe-food-access",
+      "programName": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8776642233",
+          "8664009164",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8776642233",
+        "sources": {
+          "age": "https://www.michigan.gov/mdhhs/assistance-programs/other-help",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.ageways.org/caregiver_service/micafe-michigans-coordinated-access-to-food-for-the-elderly/"
+        },
+        "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+); no specific income/assets limits found in sources as it refers to SNAP criteria"
+      },
+      "flags": [],
+      "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+); no specific income/assets limits found in sources as it refers to SNAP criteria"
+    },
+    {
+      "programId": "mi-senior-companion-program",
+      "programName": "Senior Companion Program",
+      "facts": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2485373300",
+          "8102573769",
+          "2693820515",
+          "5173738230"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is a volunteer opportunity for low-income seniors age 55+ to provide companionship; no central application phone or senior recipient eligibility found from official sources"
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 21,
+          "verifiedValue": 55
+        }
+      ],
+      "notes": "Program is a volunteer opportunity for low-income seniors age 55+ to provide companionship; no central application phone or senior recipient eligibility found from official sources"
+    }
+  ]
+}

@@ -1,0 +1,2203 @@
+{
+  "state": "IN",
+  "stateName": "Indiana",
+  "draftedAt": "2026-04-13T21:50:19.538Z",
+  "total": 12,
+  "successful": 12,
+  "programs": [
+    {
+      "id": "hoosier-care-connect",
+      "name": "Hoosier Care Connect",
+      "shortName": "Hoosier Care Connect",
+      "tagline": "If your parent under 60 is blind or disabled and not on Medicare, this covers all their medical care with coordinated support.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local FSSA DFR offices by county; statewide enrollment centers; MCEs: Anthem, MHS, UnitedHealthcare with contracted PMPs/specialists",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is under 60, blind or disabled, and not eligible for Medicare, Hoosier Care Connect provides comprehensive medical coverage through Indiana Medicaid. Because this is managed care, your parent gets all their healthcare coordinated through one team — no juggling between separate providers or worrying about coverage gaps.\n\nThe program covers all standard Indiana Medicaid benefits plus individualized care coordination based on your parent's specific health needs. Your parent must select from one of three managed care organizations (Anthem, Managed Health Services, or UnitedHealthcare) that will coordinate all their care through a Primary Medical Provider network.\n\nIncome limits vary significantly by situation: $994/month for individuals in the standard program, but up to $2,982/month for those needing institutional or waiver services (though higher-income participants may have patient liability costs). Most eligible individuals are already receiving Supplemental Security Income (SSI) or enrolled through M.E.D. Works.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 59 or younger",
+          "Blind or disabled",
+          "Not eligible for Medicare",
+          "Income below $994/month (standard)",
+          "Indiana resident"
+        ],
+        "ageRequirement": "59 or younger",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be blind or disabled as determined by Social Security Administration or state disability determination",
+        "otherRequirements": [
+          "Not eligible for or enrolled in Medicare",
+          "Must be receiving Supplemental Security Income (SSI) OR enrolled through M.E.D. Works",
+          "Living in the community (not institutionalized unless in specific waiver programs)",
+          "Some children who are wards of the state or in foster care may qualify"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at IndianaMedicaid.com or at your local FSSA office — processing time varies but you'll need to select a managed care organization.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if your parent already qualifies",
+            "description": "If they receive SSI or are enrolled in M.E.D. Works, they may already be eligible. Visit IndianaMedicaid.com to check current status."
+          },
+          {
+            "step": 2,
+            "title": "Submit Medicaid application",
+            "description": "Apply online at IndianaMedicaid.com, by phone/mail/fax, or visit your local FSSA Division of Family Resources office (find yours at the Find My Local DFR Office website)."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documentation",
+            "description": "Submit all household information, income documentation, Social Security numbers, and proof of identity. If aged, blind, disabled, or on Medicare, include all checking/savings account information."
+          },
+          {
+            "step": 4,
+            "title": "Select managed care organization",
+            "description": "Choose between Anthem, Managed Health Services (MHS), or UnitedHealthcare. This choice determines your provider network and care coordination team."
+          },
+          {
+            "step": 5,
+            "title": "Get assigned Primary Medical Provider",
+            "description": "Your chosen MCE will help you select a Primary Medical Provider who will coordinate all care and referrals within their network."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent receives SSI, they're likely already eligible — check their current status before starting a new application.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://IndianaMedicaid.com"
+          },
+          {
+            "label": "Find Local DFR Office",
+            "url": "https://www.in.gov/fssa/dfr/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Names and dates of birth for all household members",
+        "Social Security Numbers for all household members",
+        "Proof of identity (driver's license, State ID, Social Security card, or picture ID)",
+        "Income documentation from jobs or training (pay stubs, employer documentation)",
+        "Current and past benefits documentation (SSI award letter, Social Security benefits, veteran's benefits, child support)",
+        "Family and tax relationship information",
+        "Checking and savings account statements (if aged, blind, disabled, or on Medicare)",
+        "Documentation of any other resources or assets (if aged, blind, disabled, or on Medicare)",
+        "Proof of any health coverage payments or medical benefits",
+        "Proof of private insurance if applicable (insurance card or policy number)"
+      ],
+      "contacts": [
+        {
+          "label": "Indiana Medicaid",
+          "phone": null,
+          "description": "Online application and eligibility checking",
+          "hours": "24/7 online access"
+        },
+        {
+          "label": "Local FSSA DFR Office",
+          "phone": null,
+          "description": "In-person application assistance by county",
+          "hours": "Varies by location"
+        }
+      ],
+      "applicationNotes": [
+        "You must stay with your chosen managed care organization (Anthem, MHS, or UnitedHealthcare) through the calendar year — choose carefully based on provider networks",
+        "All services require medical necessity and must go through your Primary Medical Provider or their referrals — you cannot see specialists directly",
+        "Higher income individuals may qualify through M.E.D. Works but will have premium payments or patient liability costs",
+        "Some services may require prior approval or doctor's orders, and coverage limits may apply even within the Medicaid benefit package"
+      ],
+      "relatedPrograms": [
+        "Indiana SNAP (food assistance)",
+        "Indiana LIHEAP (energy assistance)",
+        "Indiana Housing Voucher Program",
+        "M.E.D. Works (higher income disabled Medicaid)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent choose their own doctor under Hoosier Care Connect?",
+          "answer": "Your parent must select a Primary Medical Provider from their chosen managed care organization's network (Anthem, MHS, or UnitedHealthcare). They cannot see doctors outside this network except in emergencies. All specialist care requires referrals from the Primary Medical Provider."
+        },
+        {
+          "question": "What if my parent's income is slightly above $994 per month?",
+          "answer": "They may still qualify through M.E.D. Works if disabled, with income limits up to $2,982/month for individuals. However, higher-income participants typically pay premiums or patient liability costs. The exact amount depends on their specific situation and institutional or waiver service needs."
+        },
+        {
+          "question": "Can I apply on behalf of my disabled parent?",
+          "answer": "Yes, family members can apply on behalf of disabled relatives. You'll need all their documentation including Social Security numbers, income information, and asset details. If you're not their legal guardian, you may need additional authorization forms."
+        },
+        {
+          "question": "What happens if my parent is already on SSI?",
+          "answer": "Most people receiving SSI automatically qualify for Hoosier Care Connect. Check their current Medicaid status at IndianaMedicaid.com before starting a new application to avoid duplicating coverage or creating processing delays."
+        },
+        {
+          "question": "Can my parent switch managed care organizations if they don't like their provider network?",
+          "answer": "Generally no — you must stay with your chosen MCE (Anthem, MHS, or UnitedHealthcare) through the calendar year. You can only switch during open enrollment periods or for specific qualifying events. Choose carefully by comparing provider networks upfront."
+        },
+        {
+          "question": "What if my parent turns 60 while enrolled in Hoosier Care Connect?",
+          "answer": "They will need to transition to a different Medicaid program since Hoosier Care Connect is only for those 59 and younger. The state should automatically transition them, but contact your MCE or local DFR office to ensure smooth continuation of coverage."
+        },
+        {
+          "question": "Does Hoosier Care Connect cover dental and vision care?",
+          "answer": "Coverage includes all standard Indiana Medicaid Package A benefits, which typically includes limited dental and vision services. Your specific MCE may offer enhanced benefits beyond the standard package — ask about additional coverage when selecting your plan."
+        },
+        {
+          "question": "What if my parent needs long-term care services?",
+          "answer": "Hoosier Care Connect primarily serves those living in the community. If your parent needs nursing home level care, they may need to transition to institutional Medicaid with different income limits (up to $2,982/month) and potential patient liability costs."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Stethoscope",
+      "phone": null,
+      "sourceUrl": "https://www.in.gov/medicaid/members/member-programs/hoosier-care-connect/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "pathways-aging-waiver",
+      "name": "Indiana PathWays for Aging Waiver",
+      "shortName": "PathWays Aging Waiver",
+      "tagline": "Home care services to help your parent avoid nursing home placement if they're 60+ and need daily help with bathing, dressing, or medications.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging (AAA) statewide; Managed care plans like Anthem; Maximus Health Services (assessments from July 2025)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs daily help with bathing, dressing, eating, or medication management, Indiana PathWays for Aging provides home care services as an alternative to nursing home placement. This Medicaid waiver program covers meal preparation, transportation to medical appointments, home health visits, adult day center services, and other supports based on your parent's assessed needs.\n\nTo qualify, your parent must be Medicaid-eligible (income under $2,901/month for a single person in 2025) and meet Nursing Facility Level of Care through a clinical assessment. Because this program has limited slots, there is typically a waitlist — priority goes to those at highest risk of immediate nursing home placement. Services are individualized rather than offering fixed dollar amounts or hours.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income under $2,901/month",
+          "Need help with 3+ daily activities",
+          "Must qualify for Medicaid",
+          "Indiana resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3933
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks and bonds",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $730,000)",
+            "Primary home (if spouse or disabled child lives there)",
+            "Burial funds",
+            "One vehicle"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need help with at least 3 activities of daily living (bathing, dressing, mobility, eating, toileting) or be medically unable to provide self-care, verified through clinical assessment",
+        "otherRequirements": [
+          "Indiana resident",
+          "Must be Medicaid-eligible",
+          "Cannot be enrolled in Healthy Indiana Plan or Hoosier Healthwise",
+          "Ages 60-64 must have disability determination from Social Security"
+        ],
+        "povertyLevelReference": "300% of SSI maximum"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging for functional assessment, then enroll through Medicaid managed care plans during open enrollment (October-December).",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid eligibility",
+            "description": "Contact Indiana Family and Social Services Administration (FSSA) to apply for Medicaid. You must qualify for Medicaid before accessing waiver services."
+          },
+          {
+            "step": 2,
+            "title": "Request functional assessment",
+            "description": "Contact your local Area Agency on Aging (AAA) to schedule a Nursing Facility Level of Care assessment. This determines if your parent needs help with 3+ daily activities."
+          },
+          {
+            "step": 3,
+            "title": "Get placed on waitlist",
+            "description": "If assessment shows your parent qualifies, they'll be placed on the PathWays waiver waitlist. Priority is given to those at highest risk of nursing home placement."
+          },
+          {
+            "step": 4,
+            "title": "Choose managed care plan",
+            "description": "During open enrollment (October-December), select a managed care plan like Anthem that participates in PathWays. Services begin when slot becomes available."
+          }
+        ],
+        "processingTime": "Functional assessment timeline varies by region; managed care enrollment effective January following open enrollment",
+        "waitlist": "Waitlist exists with priority tiers; wait time varies by region and risk level",
+        "tip": "Start the Medicaid application process early — you can request the functional assessment while Medicaid eligibility is being processed.",
+        "urls": [
+          {
+            "label": "Indiana PathWays Portal",
+            "url": "https://www.in.gov/pathways/home/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Medicare card (both parts A and B)",
+        "Proof of age (birth certificate, passport, or driver's license)",
+        "Proof of Indiana residency (utility bill, lease agreement, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities, trust agreements)",
+        "Property documents (deeds, tax statements, home equity documentation)",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medical records documenting need for assistance with daily activities",
+        "List of current medications and medical conditions",
+        "Disability determination letter (if ages 60-64)",
+        "Tax household documentation for income verification"
+      ],
+      "contacts": [
+        {
+          "label": "Indiana 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your local Area Agency on Aging",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "FSSA Customer Service",
+          "phone": "(800) 403-0864",
+          "description": "Medicaid application and eligibility questions",
+          "hours": "Monday-Friday 8am-4:30pm ET"
+        },
+        {
+          "label": "PathWays Information",
+          "phone": "(800) 986-3505",
+          "description": "General waiver program questions",
+          "hours": "Monday-Friday 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Assessment process is transitioning from Area Agencies on Aging to Maximus Health Services in July 2025 — current applicants may experience process changes",
+        "Those currently in nursing facilities, hospitals, or at immediate risk of placement receive priority for available slots",
+        "You cannot be enrolled in other Indiana waivers (Family Support, Community Integration, TBI, ESRD) while receiving PathWays services",
+        "Home equity over $730,000 disqualifies your parent unless their spouse or disabled child lives in the home"
+      ],
+      "relatedPrograms": [
+        "Indiana CHOICE Medicaid Waiver",
+        "Indiana Structured Family Caregiving Program",
+        "Indiana SNAP Food Benefits",
+        "Indiana LIHEAP Energy Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as home equity doesn't exceed $730,000. If your parent's spouse or disabled child lives in the home, there's no equity limit at all."
+        },
+        {
+          "question": "What if my parent is 62 and doesn't have a disability determination from Social Security?",
+          "answer": "Your parent must obtain a disability determination from Social Security Administration or the Indiana Health Coverage Programs before qualifying for PathWays. This requirement only applies to ages 60-64."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Wait times vary significantly by region and your parent's priority level. Those at immediate risk of nursing home placement get priority, while others may wait months to years depending on available slots in their area."
+        },
+        {
+          "question": "Can I apply for PathWays if my parent is already on Healthy Indiana Plan?",
+          "answer": "No, your parent cannot be enrolled in Healthy Indiana Plan, Hoosier Healthwise, or other Indiana waivers while receiving PathWays services. They must transition to traditional Medicaid first."
+        },
+        {
+          "question": "What happens if my parent's needs increase after enrollment?",
+          "answer": "Care plans are reassessed regularly and services can be adjusted based on changing needs. The same managed care team coordinates any changes to avoid disruption in care."
+        },
+        {
+          "question": "Can my parent receive PathWays services while living in assisted living?",
+          "answer": "Your parent must live at home or have intent to return home to qualify. The program is specifically designed as an alternative to nursing facility placement for community-dwelling seniors."
+        },
+        {
+          "question": "What if my parent needs nursing home care temporarily for rehabilitation?",
+          "answer": "Short-term nursing facility stays for rehabilitation are allowed, but your parent must maintain intent to return home. Extended stays may affect waiver eligibility."
+        },
+        {
+          "question": "Can I help my parent apply if they have dementia?",
+          "answer": "Yes, family members can assist with applications and serve as representatives. However, dementia alone doesn't qualify for services — your parent must still meet the functional requirement of needing help with 3+ daily activities."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(800) 986-3505",
+      "sourceUrl": "https://www.in.gov/pathways/home/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "pathways-aging-ltss",
+      "name": "Indiana PathWays for Aging (PACE equivalent)",
+      "shortName": "PathWays for Aging",
+      "tagline": "Coordinated long-term care services that help your parent stay home instead of moving to a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed care entities: Anthem, Humana, UnitedHealthcare; Area Agencies on Aging for assessments; Maximus Health Services (Enrollment Broker/LCAR from July 2025)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and already on Indiana Medicaid, PathWays for Aging provides coordinated long-term services and supports through one managed care team. Because all care is coordinated under one program, your parent won't need to navigate between separate providers — one team manages home health visits, meal preparation help, transportation to medical appointments, adult day centers, and other supports based on their needs.\n\nThis program aims to keep 75% of participants living at home or in the community rather than nursing facilities. Your parent must qualify for Nursing Facility Level of Care (needing daily help with at least 3 activities like bathing, dressing, mobility, eating, or toileting) to access home and community-based services.\n\nPathWays operates through three managed care entities statewide: Anthem, Humana, and UnitedHealthcare. If your parent is already eligible for Indiana Medicaid under aged, blind, or disabled categories, enrollment may be automatic.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Current Indiana Medicaid recipient",
+          "Nursing Facility Level of Care assessment",
+          "Indiana resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $730,000 equity)",
+            "Household goods",
+            "One vehicle"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need daily help with at least 3 activities of daily living (bathing, dressing, mobility, eating, toileting) as determined by Area Agency on Aging assessment",
+        "otherRequirements": [
+          "Must already qualify for full Indiana Medicaid coverage",
+          "Cannot be on Healthy Indiana Plan, Hoosier Healthwise, or certain other waivers",
+          "Cannot have intellectual/developmental disability requiring immediate care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Most eligible Medicaid recipients are enrolled automatically, but you must select a managed care entity (Anthem, Humana, or UnitedHealthcare).",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Confirm Medicaid eligibility",
+            "description": "Verify your parent has full Indiana Medicaid coverage under aged, blind, or disabled categories. Check eligibility at in.gov/pathways or call the IHCP Provider line."
+          },
+          {
+            "step": 2,
+            "title": "Receive enrollment letter",
+            "description": "If eligible, you'll receive a letter with managed care entity selection instructions, typically sent before your parent's 60th birthday or after Medicaid approval."
+          },
+          {
+            "step": 3,
+            "title": "Choose managed care entity",
+            "description": "Select from Anthem, Humana, or UnitedHealthcare. You can change your choice within 90 days of enrollment start date."
+          },
+          {
+            "step": 4,
+            "title": "Complete functional assessment",
+            "description": "Your local Area Agency on Aging will assess whether your parent needs Nursing Facility Level of Care for home and community-based services."
+          },
+          {
+            "step": 5,
+            "title": "Begin coordinated care",
+            "description": "Your chosen managed care entity will coordinate all long-term services and supports based on the assessment results."
+          }
+        ],
+        "processingTime": "Automatic enrollment for eligible members with 90-day continuity of care window for plan changes",
+        "waitlist": null,
+        "tip": "Keep all prior authorizations and service documentation during the transition — you have 90 days of continuity of care protection.",
+        "urls": [
+          {
+            "label": "PathWays for Aging Information",
+            "url": "https://www.in.gov/pathways/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Current Indiana Medicaid card",
+        "Social Security card",
+        "Medicare card (both parts if applicable)",
+        "Proof of Indiana residency (utility bill or state-issued document)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Property deeds and tax statements",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Home equity documentation if home value exceeds $730,000",
+        "Medical records supporting need for daily care assistance",
+        "Current medication list and prescribing physician information",
+        "Documentation of current services or care providers",
+        "Power of attorney or guardianship papers if applicable"
+      ],
+      "contacts": [
+        {
+          "label": "PathWays Information",
+          "phone": null,
+          "description": "Visit in.gov/pathways for enrollment details and managed care entity selection",
+          "hours": "Online resource available 24/7"
+        },
+        {
+          "label": "Indiana 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and Medicaid questions",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "IHCP Provider Portal",
+          "phone": null,
+          "description": "Verify eligibility and check enrollment status online",
+          "hours": "Available 24/7 online"
+        }
+      ],
+      "applicationNotes": [
+        "If your parent was previously on the Aged & Disabled Waiver or in a nursing facility, they were automatically transitioned on July 1, 2024",
+        "You have 90 days from enrollment to change managed care entities without penalty",
+        "Dual-eligible participants (Medicare + Medicaid) can enroll in D-SNP plans with their chosen managed care entity for better coordination",
+        "Assessment for Nursing Facility Level of Care is required for home and community-based services — a dementia diagnosis alone is not sufficient"
+      ],
+      "relatedPrograms": [
+        "Indiana Medicaid",
+        "Aged & Disabled Waiver",
+        "Medicare"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $730,000?",
+          "answer": "No, if your parent lives in the home or intends to return, the home equity cannot exceed $730,000. However, this limit doesn't apply if a spouse, child under 18, or disabled/blind child lives in the home. Other property and assets follow standard Medicaid rules."
+        },
+        {
+          "question": "What's the difference between the three managed care entities?",
+          "answer": "Anthem, Humana, and UnitedHealthcare all provide the same core PathWays services, but their provider networks and service delivery may vary by region. You can change your selection within 90 days of enrollment or during open enrollment periods (October-December each year)."
+        },
+        {
+          "question": "Can I apply if my parent is already in a nursing home?",
+          "answer": "Yes, nursing facility residents are eligible for PathWays and may have been automatically enrolled if they were already on Medicaid. The program can help coordinate a transition back to home or community-based care if appropriate and desired."
+        },
+        {
+          "question": "What happens if my parent doesn't qualify for Nursing Facility Level of Care?",
+          "answer": "They can still receive basic Medicaid services through PathWays, but won't be eligible for intensive home and community-based services like meal preparation help or adult day centers. The Area Agency on Aging conducts this assessment based on need for help with activities of daily living."
+        },
+        {
+          "question": "Can my parent have PathWays and Medicare at the same time?",
+          "answer": "Yes, many PathWays participants are dual-eligible for both Medicare and Medicaid. Your parent can enroll in a D-SNP (Dual Special Needs Plan) through their chosen managed care entity to better coordinate Medicare and Medicaid benefits."
+        },
+        {
+          "question": "What if my parent is currently on a different Indiana waiver program?",
+          "answer": "Some waiver participants are excluded from PathWays, including those on Family Support, CIH, Traumatic Brain Injury waivers, or intellectual/developmental disability services requiring immediate care. However, Aged & Disabled Waiver participants were automatically transitioned to PathWays on July 1, 2024."
+        },
+        {
+          "question": "How long does it take to start receiving services after enrollment?",
+          "answer": "Enrollment is typically automatic for eligible Medicaid recipients, with services beginning immediately. You have 90 days of continuity of care protection, meaning existing services continue while transitioning to your chosen managed care entity's providers."
+        },
+        {
+          "question": "Can a family member make managed care entity selections for my parent?",
+          "answer": "Yes, if you have power of attorney or guardianship documentation, you can make enrollment decisions on your parent's behalf. Keep these legal documents with your enrollment materials and provide copies to the chosen managed care entity."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Signpost",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.in.gov/pathways/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "medicare-savings-programs",
+      "name": "Healthy Indiana Plan Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,433/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local FSSA offices by county: full list at https://www.in.gov/fssa/da/locations/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and struggles to pay premiums, deductibles, or copays, Indiana's Medicare Savings Programs can help. These programs pay Medicare costs for people with income up to $2,433/month (single) or $3,281/month (married couple) — higher limits than most states offer.\n\nThere are three tiers: QMB pays all Medicare costs including premiums, deductibles, and copays. SLMB and QI pay only the Medicare Part B premium (about $185/month in 2026). Because QMB covers the most costs, your parent cannot be balance-billed by providers — they handle Medicare costs completely.\n\nIncome limits update each April. Asset limits are $9,950 for a single person or $14,910 for a married couple, not counting the home, one car, or burial funds up to $1,500.",
+      "savingsRange": "$185 – $3,000/year in 2026",
+      "savingsSource": "Medicare Part B premium plus potential deductibles and copays",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ with Medicare",
+          "Income below $2,433/month (single)",
+          "Assets under $9,950 (single)",
+          "Indiana resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1977
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2664
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2238
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2998
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2433
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3281
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Investment accounts",
+            "Cash value of life insurance over $1,500"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Irrevocable burial trusts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be entitled to Medicare Part A or eligible for premium-free Part A",
+          "U.S. citizen or qualified immigrant",
+          "Cannot be eligible for full Medicaid (unless applying for QMB-Also or SLMB-Also)"
+        ],
+        "povertyLevelReference": "150% FPL (QMB), 170% FPL (SLMB), 185% FPL (QI)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Indiana Medicaid ACCESS portal or call 1-800-403-0864 — processing takes 45-90 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose application method",
+            "description": "Apply online at https://www.in.gov/medicaid/apply-and-check-status/ and select Medicare Savings Program, or call Indiana Medicaid at 1-800-403-0864."
+          },
+          {
+            "step": 2,
+            "title": "Complete Medicaid Application Form FSSA-150AL",
+            "description": "Use the general Medicaid application but specify you're applying for Medicare Savings Programs. No separate MSP form required."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide income proof, asset statements, Medicare card, and identification. Mail to your local FSSA office or upload online."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "Processing takes 45-90 days. QI has limited federal funding slots, so apply early in the year to avoid waitlists."
+          },
+          {
+            "step": 5,
+            "title": "Receive approval decision",
+            "description": "If approved, benefits apply retroactively to application date. You'll get coverage information and provider instructions."
+          }
+        ],
+        "processingTime": "45-90 days typical for Medicaid programs in Indiana",
+        "waitlist": "QI has federal funding caps and potential waitlists (first-come, first-served); QMB and SLMB do not have waitlists",
+        "tip": "Indiana's income limits are higher than federal minimums — many people who think they don't qualify actually do.",
+        "urls": [
+          {
+            "label": "Indiana Medicaid ACCESS Portal",
+            "url": "https://www.in.gov/medicaid/apply-and-check-status/"
+          },
+          {
+            "label": "Find Your Local FSSA Office",
+            "url": "https://www.in.gov/fssa/da/locations/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security award letter (SSA-1099)",
+        "Medicare card (both Part A and Part B)",
+        "Birth certificate or driver's license for identification",
+        "Proof of Indiana residency (utility bill or lease)",
+        "Bank statements for all accounts (last 3 months)",
+        "Pension or retirement income statements",
+        "Investment account statements (stocks, bonds, mutual funds)",
+        "Life insurance policies showing face value",
+        "Vehicle titles and registration",
+        "Property deeds or tax statements",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Pay stubs if still working",
+        "Social Security number documentation"
+      ],
+      "contacts": [
+        {
+          "label": "Indiana Medicaid Benefits Line",
+          "phone": "(800) 403-0864",
+          "description": "Medicare Savings Program applications and questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Local FSSA Office",
+          "phone": null,
+          "description": "County-based offices for in-person help - find yours at in.gov/fssa/da/locations/",
+          "hours": "Varies by county"
+        }
+      ],
+      "applicationNotes": [
+        "QI has limited federal funding and may have waitlists — apply early in the calendar year for best chance",
+        "If you qualify for QMB, providers cannot balance-bill your parent for Medicare-covered services — report violations to the state",
+        "QMB-Also and SLMB-Also categories provide full Medicaid benefits in addition to Medicare cost assistance if income and assets allow",
+        "Benefits apply retroactively to your application date if approved, so don't delay applying"
+      ],
+      "relatedPrograms": [
+        "Indiana Medicaid for Seniors",
+        "Medicare Part D Extra Help",
+        "Indiana Energy Assistance Program (LIHEAP)",
+        "SNAP Food Benefits"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. Only countable assets like bank accounts, investments, and cash value of life insurance over $1,500 count toward the $9,950 (single) or $14,910 (couple) limits."
+        },
+        {
+          "question": "What's the difference between QMB, SLMB, and QI?",
+          "answer": "QMB has the lowest income limit ($1,977/month single) but pays all Medicare costs — premiums, deductibles, and copays. SLMB and QI only pay the Medicare Part B premium (about $185/month) but allow higher incomes — up to $2,238/month for SLMB and $2,433/month for QI."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all required documentation and may need to establish legal authority like power of attorney for ongoing management."
+        },
+        {
+          "question": "What happens if my parent's income is slightly over the limit?",
+          "answer": "Indiana uses higher income limits than federal minimums, so check all three programs. If over QMB limits, try SLMB. If over SLMB, try QI. Income limits update each April, and some deductions may apply to reduce countable income."
+        },
+        {
+          "question": "Will this affect my parent's Medicare Advantage or Part D coverage?",
+          "answer": "No, Medicare Savings Programs work with any Medicare coverage including Medicare Advantage and Part D. QMB members automatically qualify for Medicare Part D Extra Help for prescription costs."
+        },
+        {
+          "question": "How long does QI waitlist typically last?",
+          "answer": "QI waitlists vary because funding is limited by federal caps. Apply early in the calendar year for the best chance. QMB and SLMB don't have waitlists, so consider those first if income qualifies."
+        },
+        {
+          "question": "Can my parent have both Medicare Savings Programs and regular Medicaid?",
+          "answer": "Yes, through QMB-Also or SLMB-Also categories. These provide Medicare cost assistance plus full Medicaid benefits like Indiana PathWays for Aging if income and assets qualify for both programs."
+        },
+        {
+          "question": "What if a doctor tries to bill my parent after QMB approval?",
+          "answer": "QMB prohibits balance-billing for Medicare-covered services. If providers try to bill your parent for Medicare deductibles, coinsurance, or copays, report this to Indiana Medicaid immediately. Providers must accept Medicare payment plus QMB coverage as payment in full."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "CurrencyDollar",
+      "phone": "(800) 403-0864",
+      "sourceUrl": "https://www.in.gov/medicaid/providers/about-ihcp-programs/medicare-savings-programs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "If your parent is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county FSSA Division of Family Resources offices (find via https://www.in.gov/fssa/dfr/)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford nutritious food on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card to buy groceries at most stores. Benefits range from $100–400+ per month depending on income and household size — a 2-person elderly household with $1,200 in monthly income might receive $415/month.\n\nBecause your parent is 60+, they skip the gross income test and work requirements that apply to younger people. Indiana focuses on net income after subtracting medical expenses over $35/month and high shelter costs. Social Security, pensions, and VA benefits count as income, but the primary home and household goods don't count toward asset limits.\n\nAsset limits are $4,500 for households with someone 60+ or disabled. Bank accounts, non-primary real estate, and vehicles count, but retirement accounts and life insurance are exempt. You apply through your parent's county Division of Family Resources office, and benefits typically start within 30 days.",
+      "savingsRange": "$1,200 – $4,800/year",
+      "savingsSource": "Based on typical monthly SNAP benefits of $100-400 for elderly households",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "No gross income limit for elderly households",
+          "Asset limit $4,500",
+          "Must pass net income test after deductions"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1695
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2291
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2887
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3482
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4079
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 4674
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Non-primary real estate",
+            "Vehicles",
+            "Personal property"
+          ],
+          "exemptAssets": [
+            "Primary home and lot",
+            "Household goods",
+            "Personal belongings",
+            "Life insurance",
+            "Retirement/pension plans",
+            "SSI/TANF resources"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Indiana residency",
+          "U.S. citizenship or qualified non-citizen status",
+          "Household includes those who buy/prepare food together"
+        ],
+        "povertyLevelReference": "130% FPL for gross income (elderly exempt)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through ACCESS Indiana portal or at your local county office — processing takes 30 days (7 days if urgent).",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect income statements, ID, bank statements, and expense documentation before starting your application."
+          },
+          {
+            "step": 2,
+            "title": "Submit application online or in person",
+            "description": "Apply at https://www.in.gov/fssa/dfr/snap-food-assistance/ through ACCESS Indiana portal, or visit your county Division of Family Resources office."
+          },
+          {
+            "step": 3,
+            "title": "Complete eligibility interview",
+            "description": "Participate in phone or in-person interview with caseworker to verify information and calculate benefit amount."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits are loaded monthly onto Indiana EBT card for use at authorized retailers."
+          }
+        ],
+        "processingTime": "30 days for standard applications, 7 days for expedited cases",
+        "waitlist": null,
+        "tip": "Elderly households often qualify for expedited processing if they have less than $150 in monthly gross income and liquid resources.",
+        "urls": [
+          {
+            "label": "ACCESS Indiana Portal",
+            "url": "https://www.in.gov/fssa/dfr/snap-food-assistance/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Government-issued photo ID (driver's license, state ID, or passport)",
+        "Social Security award letters for all household members receiving benefits",
+        "Proof of any pension or retirement income",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of residence (utility bill, lease, or mortgage statement)",
+        "Medical expense receipts over $35/month for elderly or disabled members",
+        "Rent or mortgage payment documentation",
+        "Utility bills (electric, gas, water, phone)",
+        "Birth certificates for all household members",
+        "Immigration documents for non-citizens",
+        "Vehicle titles and registration",
+        "Life insurance policies",
+        "Documentation of any disability benefits"
+      ],
+      "contacts": [
+        {
+          "label": "Indiana FSSA Division of Family Resources",
+          "phone": "1-800-403-0864",
+          "description": "SNAP application help and general benefits questions",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
+          "label": "ACCESS Indiana Helpdesk",
+          "phone": "1-844-457-4515",
+          "description": "Online portal technical support",
+          "hours": "Mon-Fri 7am-7pm ET, Sat 8am-5pm ET"
+        },
+        {
+          "label": "Find Local County Office",
+          "phone": null,
+          "description": "Locate your county Division of Family Resources office",
+          "hours": "Visit https://www.in.gov/fssa/dfr/"
+        }
+      ],
+      "applicationNotes": [
+        "Expedited processing available if household has less than $150 gross monthly income and $100 or less in liquid resources",
+        "Elderly or disabled members can apply as separate household if both qualify under 165% poverty level even if living with others",
+        "Medical expenses must exceed $35/month to count as deductions — save all receipts for prescription drugs, medical supplies, and health insurance premiums",
+        "Social Security, pensions, and VA benefits all count as income but some deductions may significantly reduce your net income calculation"
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Indiana Weatherization Assistance Program",
+        "Medicaid",
+        "Senior Farmers' Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home and the lot it sits on are completely exempt from SNAP asset limits, regardless of value. Only non-primary real estate, bank accounts, and vehicles count toward the $4,500 limit for elderly households."
+        },
+        {
+          "question": "Do Social Security and pension payments count as income?",
+          "answer": "Yes, all Social Security, pension, VA benefits, and retirement income count as income for SNAP. However, elderly households get significant deductions for medical expenses over $35/month and high shelter costs that can dramatically reduce net income calculations."
+        },
+        {
+          "question": "Can I apply for my parent if they can't handle the paperwork?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to be designated as an authorized representative during the application process and may need to provide documentation of your authority to act on their behalf."
+        },
+        {
+          "question": "What if my parent lives with adult children — do their incomes count?",
+          "answer": "Only people who buy and prepare food together count as the same household. If your parent is 60+ and buys/prepares food separately, they can apply as a one-person household even if living with family members."
+        },
+        {
+          "question": "Can my parent use SNAP benefits at restaurants or for prepared food?",
+          "answer": "No, SNAP benefits can only buy groceries and food items for home preparation. You cannot use SNAP for hot prepared foods, alcohol, tobacco, vitamins, or non-food items like soap or paper products."
+        },
+        {
+          "question": "How often does my parent need to reapply or recertify?",
+          "answer": "Elderly households typically recertify every 24 months instead of every 12 months like younger households. You'll receive notice before your certification period expires with instructions for renewal."
+        },
+        {
+          "question": "What happens if my parent's income changes after they're approved?",
+          "answer": "You must report significant changes in income within 10 days. If income increases substantially, benefits may decrease, but if income drops due to reduced Social Security or pension, benefits may increase."
+        },
+        {
+          "question": "Can my parent apply for SNAP and Medicaid at the same time?",
+          "answer": "Yes, you can apply for multiple programs simultaneously through the ACCESS Indiana portal or at your county office. The same eligibility interview often covers multiple programs, saving time and paperwork."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "1-800-403-0864",
+      "sourceUrl": "https://www.in.gov/fssa/dfr/snap-food-assistance/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "weatherization-assistance-program",
+      "name": "Indiana Weatherization Assistance Program (Wx)",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free energy efficiency upgrades for your parent's home if their income is below $28,660 for a single person.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "NIPSCO customers: Contact TRC at 1-800-721-7385",
+            "type": "service-area"
+          },
+          {
+            "name": "All other Indiana residents: Find your LSP using the county map at https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/",
+            "type": "service-area"
+          },
+          {
+            "name": "Lincoln Hills Development Corporation (Crawford, Perry, Spencer Counties), Pace Community Action Agency, TRI-CAP, CAPE of Evansville, Indiana Community Action Association",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling with high heating and cooling bills, Indiana's Weatherization Assistance Program provides free energy efficiency upgrades to their home. The program covers weatherstripping, insulation installation, heating system tune-ups, water heater repairs, and air sealing — services that typically cost hundreds to thousands of dollars out of pocket.\n\nYour parent qualifies if their household income is at or below 200% of the Federal Poverty Level — $28,660 for a single person or $38,680 for a couple in 2026. They're automatically eligible if they receive Energy Assistance Program (EAP), SSI, or TANF benefits. The program serves both homeowners and renters statewide, though renters need written landlord permission before any permanent installations.\n\nBecause 2026 program funds are limited and available on a first-come, first-served basis, early application is critical. After income verification, applicants join a waitlist until a Local Service Provider can schedule the 1-2 hour home assessment that determines which specific upgrades their home receives.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% Federal Poverty Level",
+          "Must be 18+ years old",
+          "Home must be safe to weatherize",
+          "Cannot have received weatherization in past 3 years"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2388
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3223
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4058
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4893
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must be safe to weatherize as determined by Local Service Provider",
+          "NIPSCO customers cannot have received NIPSCO-sponsored weatherization in past 3 years",
+          "Renters must provide written landlord permission before permanent installations",
+          "Must be present for entire 1-2 hour assessment"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your Local Service Provider directly or call TRC at 1-800-721-7385 if you're a NIPSCO customer — processing time varies by provider waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your Local Service Provider",
+            "description": "If you're a NIPSCO customer, call TRC at 1-800-721-7385. For all other Indiana residents, use the county map at https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/ to find your regional provider."
+          },
+          {
+            "step": 2,
+            "title": "Submit income verification",
+            "description": "Provide your 2025 tax return to verify income at or below 200% Federal Poverty Level, or proof of EAP, TANF, or SSI benefits for automatic eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Join the waitlist",
+            "description": "After income eligibility is confirmed, you're placed on a waiting list. Your Local Service Provider will contact you when they're ready to schedule your home inspection."
+          },
+          {
+            "step": 4,
+            "title": "Schedule home assessment",
+            "description": "A technician will conduct a 1-2 hour inspection to determine which weatherization services your home needs. You must be present for the entire assessment."
+          },
+          {
+            "step": 5,
+            "title": "Receive weatherization services",
+            "description": "If your home qualifies as safe to weatherize, the provider will schedule installation of approved energy efficiency upgrades at no cost."
+          }
+        ],
+        "processingTime": "Not specified — varies by Local Service Provider and regional waitlist length",
+        "waitlist": "Yes — after income eligibility is determined, applicants are placed on waiting list. LSP contacts when ready to schedule inspection. 2026 program funds are limited and available first-come, first-served.",
+        "tip": "Apply early in the year since 2026 funds are limited and distributed first-come, first-served.",
+        "urls": [
+          {
+            "label": "Find Your Local Service Provider",
+            "url": "https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "2025 tax return (to verify income at or below 200% Federal Poverty Level)",
+        "Proof of Energy Assistance Program (EAP) benefits if using categorical eligibility",
+        "Supplemental Security Income (SSI) award letter if using categorical eligibility",
+        "Temporary Assistance for Needy Families (TANF) documentation if using categorical eligibility",
+        "Written landlord or property owner permission letter (required for renters before permanent installations)",
+        "Property Owner Authorization Form (specific form required for renters)",
+        "Government-issued photo ID showing you are at least 18 years old",
+        "Utility bills showing active residential service at the address to be weatherized"
+      ],
+      "contacts": [
+        {
+          "label": "NIPSCO Weatherization (TRC)",
+          "phone": "(800) 721-7385",
+          "description": "Weatherization program for NIPSCO residential customers only",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Indiana Housing & Community Development Authority",
+          "phone": null,
+          "description": "Find Local Service Provider contact information by county",
+          "hours": "Use online county map"
+        },
+        {
+          "label": "Lincoln Hills Development Corporation",
+          "phone": null,
+          "description": "Serves Crawford, Perry, and Spencer Counties - contact via mail at P.O. Box 336, Tell City, IN 47586",
+          "hours": "Contact for hours"
+        }
+      ],
+      "applicationNotes": [
+        "2026 program funds are limited and distributed first-come, first-served — apply as early as possible in the year",
+        "If your parent previously received weatherization through this program, they may be ineligible — contact your Local Service Provider to verify",
+        "NIPSCO customers who don't qualify for free weatherization may still be eligible for a discounted Home Energy Assessment",
+        "Renters must obtain written landlord permission before applying — the Property Owner Authorization Form is required before any permanent installations"
+      ],
+      "relatedPrograms": [
+        "Indiana Energy Assistance Program (EAP)",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Indiana Housing Choice Voucher Program",
+        "NIPSCO Home Energy Assessment"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're a renter?",
+          "answer": "Yes, renters can apply, but they must provide written permission from their landlord or property owner before any permanent installations occur. The Property Owner Authorization Form is required, and landlords must agree to the weatherization work being performed on their property."
+        },
+        {
+          "question": "What if my parent's home was weatherized before?",
+          "answer": "If your parent's home was previously weatherized through this program, they may not be eligible. NIPSCO customers specifically cannot receive weatherization if they had NIPSCO-sponsored weatherization in the past 3 years. Contact your Local Service Provider to verify eligibility based on previous weatherization history."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Waitlist times aren't published and vary significantly by Local Service Provider and regional funding availability. After income eligibility is confirmed, you're placed on a waiting list until your provider can schedule the home inspection. Contact your specific LSP for current wait estimates in your area."
+        },
+        {
+          "question": "What if my parent's home needs major repairs?",
+          "answer": "This program does NOT cover major home repairs like window/door replacement, roofing, siding, most plumbing, carpet/flooring, or access ramps. The home must be deemed 'safe to weatherize' by the Local Service Provider — homes requiring significant structural repairs may not qualify for the program."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "The homeowner or account holder must be at least 18 years old and present for the entire 1-2 hour assessment. While you can help with the application process, your parent must be physically present when the technician conducts the home inspection to determine which services are needed."
+        },
+        {
+          "question": "What happens if my parent receives SSI but their income seems too high?",
+          "answer": "If your parent receives Supplemental Security Income (SSI), Energy Assistance Program (EAP), or TANF benefits, they're categorically eligible regardless of their total household income. You don't need to meet the 200% Federal Poverty Level income limits — just provide proof of these benefits instead of tax returns."
+        },
+        {
+          "question": "Can my parent apply for weatherization and energy assistance at the same time?",
+          "answer": "Yes, your parent can apply for both Indiana's Energy Assistance Program (EAP) and weatherization simultaneously. In fact, receiving EAP benefits automatically qualifies them for weatherization regardless of income level, which can streamline the application process."
+        },
+        {
+          "question": "What exactly will they do during the home assessment?",
+          "answer": "The 1-2 hour assessment includes blower door testing, appliance safety and efficiency testing, inspection of ductwork and air venting, and evaluation of heating and water heating systems. The technician determines which specific services your parent's home needs, such as weatherstripping, insulation, caulking, or system tune-ups."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "(800) 721-7385",
+      "sourceUrl": "https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "indiana-ship-medicare-counseling",
+      "name": "Indiana SHIP (State Health Insurance Assistance Program)",
+      "shortName": "Indiana SHIP",
+      "tagline": "Free Medicare counseling to help your parent navigate insurance options and avoid costly mistakes.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Indiana Department of Insurance, 311 West Washington Street, 2nd Floor, Indianapolis IN 46204 (state office)",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional: CICOA (Central IN), Area IV Agency (West Central IN)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is approaching Medicare eligibility or already enrolled, Indiana SHIP provides free one-on-one counseling to help them understand their options. Trained volunteer counselors explain Medicare Parts A, B, and D, Medicare Supplement (Medigap) plans, Medicare Advantage options, and prescription drug coverage — helping your parent choose the right plan and avoid costly mistakes.\n\nSHIP counselors also help with Medicare Savings Programs, Low-Income Subsidy (Extra Help) applications, claims filing, appeals, and plan comparisons. Because Medicare decisions can save or cost thousands per year, this free counseling is available to anyone eligible for Medicare, plus their family members and caregivers. No income limits apply for counseling services.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare-eligible or soon to be",
+          "Family members and caregivers also eligible",
+          "No income or asset limits for counseling"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare (or soon to be), or be a family member/caregiver of a Medicare beneficiary"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional SHIP office to schedule free counseling — no forms or applications required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional SHIP office",
+            "description": "Central Indiana residents call CICOA at (317) 803-6131. West Central Indiana residents call Area IV Agency. Other regions visit in.gov/ship for local contacts."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "Tell them you need Medicare counseling. Sessions available by phone or in-person depending on your preference and counselor availability."
+          },
+          {
+            "step": 3,
+            "title": "Prepare for your session",
+            "description": "Gather your Medicare card and any insurance documents you have questions about. Counselors can provide personalized advice based on your parent's specific situation."
+          }
+        ],
+        "processingTime": "Immediate counseling available by phone or in-person",
+        "waitlist": null,
+        "tip": "Contact SHIP 3 months before your parent becomes Medicare-eligible for the best preparation and plan selection.",
+        "urls": [
+          {
+            "label": "Indiana SHIP Website",
+            "url": "https://www.in.gov/ship/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "CICOA (Central Indiana)",
+          "phone": "(317) 803-6131",
+          "description": "Free Medicare counseling for Central Indiana residents",
+          "hours": "Business hours"
+        },
+        {
+          "label": "National SHIP Helpline",
+          "phone": "(877) 839-2675",
+          "description": "General SHIP information and local office referrals",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Low-Income Subsidy (Extra Help)",
+        "Indiana Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I get SHIP counseling for my parent if they're already enrolled in Medicare?",
+          "answer": "Yes. SHIP counselors help people who are already enrolled compare their current plans during Open Enrollment (October 15 - December 7), understand claims issues, file appeals, or explore Medicare Savings Programs that could reduce their costs."
+        },
+        {
+          "question": "Is there a difference between SHIP counselors and insurance agents?",
+          "answer": "Yes — SHIP counselors are trained volunteers who provide impartial advice and don't sell insurance. They're not paid commissions, so they help you find the best plan for your parent's specific needs rather than promoting particular companies."
+        },
+        {
+          "question": "What if my parent qualifies for extra help with medical costs?",
+          "answer": "SHIP counselors can explain programs like Medicare Savings Programs for people with income under $2,500/month, but you'll need to apply for those programs separately through Medicaid or Social Security. SHIP helps you understand what's available but doesn't process those applications."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
+      "phone": "(317) 803-6131",
+      "sourceUrl": "https://www.in.gov/ship/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "meals-on-wheels",
+      "name": "Meals on Wheels (Indiana)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Home-delivered nutritious meals for parents who can't shop or cook safely on their own.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Meals on Wheels of Central Indiana (Indianapolis/Marion County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Hamilton County",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Northwest Indiana",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to prepare meals due to illness, disability, or mobility challenges, Meals on Wheels delivers hot, nutritious meals directly to their door. Most providers offer 5 meals per week, with options for medically tailored diets (diabetes-friendly, heart healthy, low-sodium, renal). Each delivery includes a friendly visit and wellness check.\n\nThis is not a single statewide program—each county operates independently with different rules and costs. Some providers have no age requirements and serve anyone who needs meal assistance, while others focus on seniors. You'll need a minimum 2-week commitment and upfront payment including a $5 application fee. Because eligibility depends entirely on your parent's address, you must contact the local provider for their specific delivery zone.",
+      "savingsRange": "",
+      "savingsSource": "Fee-based service with local subsidies available",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Physically or mentally unable to prepare meals",
+          "Lives in provider's delivery zone",
+          "Often requires doctor's dietary prescription",
+          "Some offer reduced rates for SNAP/Medicaid recipients"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be physically or mentally unable to prepare meals due to illness, disability, or being homebound. Some providers require that you cannot leave home to shop for groceries, while others focus on inability to cook safely.",
+        "otherRequirements": [
+          "Must live within the provider's delivery zone or eligible zip codes",
+          "Dietary prescription from physician often required",
+          "Minimum 2-week service commitment",
+          "Upfront payment required ($5 application fee plus first 2 weeks of meals)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or by phone with your local provider, with service typically starting within 1 week of payment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Check mealsonwheelsamerica.org/find-meals-and-services/ or contact your Area Agency on Aging to confirm which provider serves your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Get a dietary prescription",
+            "description": "Have your parent's doctor complete a dietary prescription form specifying any medical dietary needs (diabetes, heart healthy, low-sodium, etc.)."
+          },
+          {
+            "step": 3,
+            "title": "Submit application and payment",
+            "description": "Complete the client application online or by phone. Pay the $5 application fee plus first 2 weeks of meals upfront by check, money order, credit card, debit card, or EBT."
+          },
+          {
+            "step": 4,
+            "title": "Schedule delivery",
+            "description": "The provider will contact you within 5-7 business days to schedule regular delivery days and times. Service typically begins within 1 week of payment."
+          }
+        ],
+        "processingTime": "Typically less than 1 week for Central Indiana; 5-7 business days after application and payment for most providers",
+        "waitlist": "Generally no waitlist, but temporary waitlists possible in Marion County and other high-demand areas depending on funding",
+        "tip": "If your parent receives Medicaid through an Aged/Disabled waiver, ask their case manager about free meal delivery through partners like Mom's Meals before paying for Meals on Wheels.",
+        "urls": [
+          {
+            "label": "Meals on Wheels Central Indiana Application",
+            "url": "https://mealsonwheelsindy.org/apply/"
+          },
+          {
+            "label": "Hamilton County Services Request",
+            "url": "https://mealsonwheelshc.org/services/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Completed client application form",
+        "Dietary prescription from physician",
+        "Proof of age and residence (if required by provider)",
+        "Financial documentation (if applying for reduced rate assistance)",
+        "Payment for $5 application fee",
+        "Payment for first 2 weeks of meals (check, money order, credit/debit card, or EBT)",
+        "Financial Assistance Request form (Hamilton County, if seeking reduced rates)"
+      ],
+      "contacts": [
+        {
+          "label": "Meals on Wheels Central Indiana",
+          "phone": "(317) 252-5558",
+          "description": "Serves Indianapolis and Marion County",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Meals on Wheels Hamilton County",
+          "phone": "(317) 776-7159",
+          "description": "Serves Hamilton County area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Aging and Disability Resource Centers",
+          "phone": "1-800-986-3505",
+          "description": "Find local Meals on Wheels providers statewide",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "The $5 application fee and first 2 weeks payment are non-refundable, even if service is discontinued early",
+        "Some providers offer reduced rates for recipients of SNAP, SSDI, Medicaid Disability, SSI, Energy Assistance, or Veterans benefits—ask when applying",
+        "Car ownership or ability to leave home independently may disqualify applicants in some service areas",
+        "If your parent lives near county lines, check multiple providers as delivery zones may overlap or exclude border areas"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Benefits)",
+        "Area Agencies on Aging Services",
+        "Medicaid Home and Community-Based Services",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent lives in an area with no Meals on Wheels delivery?",
+          "answer": "Contact your local Area Agency on Aging at 1-800-986-3505 to ask about alternative meal programs or grocery delivery services. Some areas offer transportation to senior centers with meal programs instead of home delivery."
+        },
+        {
+          "question": "Can I pay for my parent's meals if they don't qualify for reduced rates?",
+          "answer": "Yes, family members can pay for meals directly. Contact the local provider for current pricing, which varies by location. You can pay by check, money order, credit card, debit card, or arrange automatic payments."
+        },
+        {
+          "question": "What happens if my parent is temporarily in the hospital or rehab?",
+          "answer": "Most providers require at least 24 hours notice to suspend delivery. You cannot get refunds for missed meals without proper notice, so contact the provider immediately if your parent will be away from home."
+        },
+        {
+          "question": "Does the driver provide any other help besides delivering meals?",
+          "answer": "Drivers conduct wellness checks and will alert the office if your parent doesn't answer the door or appears to need help. However, they cannot provide personal care, housework, or medication assistance."
+        },
+        {
+          "question": "Can my parent choose which days to receive meals?",
+          "answer": "Most providers offer 5 meals per week on a set schedule, but some allow daily delivery or fewer days based on need. Discuss options when applying, as changing the schedule later may require reapplying."
+        },
+        {
+          "question": "What if the doctor won't complete the dietary prescription form?",
+          "answer": "Some providers require a physician's dietary prescription while others do not. If your doctor refuses, ask the Meals on Wheels provider if they accept nurse practitioner signatures or have alternative documentation requirements."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(317) 252-5558",
+      "sourceUrl": "https://www.in.gov/fssa/ompp/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "caregiver-respite-services",
+      "name": "Indiana Caregiver Respite Services",
+      "shortName": "Respite Services",
+      "tagline": "Temporary care relief for family caregivers through Indiana's Medicaid waiver programs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging (AAA)",
+            "type": "service-area"
+          },
+          {
+            "name": "Approved DMHA providers",
+            "type": "service-area"
+          },
+          {
+            "name": "ResCare or similar for SFC",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for an aging parent or disabled family member who needs help with daily activities, Indiana's Caregiver Respite Services can provide temporary relief through professional in-home care. Your parent must be 60+ (or any age with disability) and Medicaid-eligible through one of Indiana's Home and Community Based Services (HCBS) waivers.\n\nThe program covers assistance with bathing, dressing, meal preparation, light housekeeping, companionship, and supervision — giving you scheduled breaks from caregiving duties. For the Structured Family Caregiving variant, you may even receive payment for providing care to your parent, along with required training and oversight.\n\nBecause this isn't a standalone program but part of various Medicaid waivers (CHOICE, Pathways for Aging, A&D, TBI), you'll work with your local Area Agency on Aging to determine which waiver fits your parent's needs and complete the required functional assessment.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or any age with disability",
+          "Medicaid income and asset limits",
+          "Unable to perform 2-3+ daily activities",
+          "Must qualify for HCBS waiver",
+          "Indiana resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Unable to perform 2+ activities of daily living (ADLs) for CHOICE waiver or 3+ ADLs for some other waivers. ADLs include bathing, dressing, eating, toileting, transferring, and walking.",
+        "otherRequirements": [
+          "Must be Indiana Medicaid-eligible",
+          "Must qualify for an HCBS waiver (CHOICE, Pathways for Aging, A&D, TBI, or Health and Wellness)",
+          "Must reside in family home or with legal guardian",
+          "Cannot be receiving conflicting services from other Medicaid waiver programs",
+          "For Structured Family Caregiving: Caregiver must be 18+, live with care recipient, pass background check, and complete training"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging for assessment and enrollment — processing time varies by region and waiver type.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local Area Agency on Aging",
+            "description": "Find your regional AAA office to begin the assessment process. They coordinate all HCBS waiver applications in your area."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional needs assessment",
+            "description": "A nurse will assess your parent's ability to perform daily activities and determine which HCBS waiver programs they qualify for."
+          },
+          {
+            "step": 3,
+            "title": "Submit Medicaid eligibility documentation",
+            "description": "Provide income verification, asset documentation, medical records, and other required documents to establish Medicaid eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Develop Plan of Care",
+            "description": "Work with the AAA to create a Plan of Care (POC) that includes respite services based on your parent's assessed needs."
+          },
+          {
+            "step": 5,
+            "title": "Complete background checks and training",
+            "description": "If pursuing Structured Family Caregiving, complete required background checks and caregiver training before services begin."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Gather all financial and medical documentation before your initial assessment to avoid delays in the approval process.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid photo ID for care recipient",
+        "Social Security cards for all household members",
+        "Income verification (pay stubs, Social Security award letters, pension statements)",
+        "Bank statements for all accounts (last 3 months)",
+        "Medical records and physician statements documenting functional limitations",
+        "Insurance policies and documentation of other assets",
+        "Proof of Indiana residency (utility bill, lease agreement, or state-issued document)",
+        "Long Term Care Services Eligibility Screen (completed during assessment)",
+        "Plan of Care documentation",
+        "Background check results for family caregivers (if applicable)",
+        "Proof of caregiver training completion (if applicable)",
+        "Vehicle registration and insurance (if transportation services needed)",
+        "Daily care log (recommended to document current care needs)"
+      ],
+      "contacts": [
+        {
+          "label": "Indiana Family and Social Services Administration",
+          "phone": null,
+          "description": "Main state agency overseeing HCBS waiver programs",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Local Area Agency on Aging",
+          "phone": null,
+          "description": "Regional coordination and assessment for respite services",
+          "hours": "Varies by location"
+        }
+      ],
+      "applicationNotes": [
+        "This is not a single program — respite services are embedded within multiple HCBS waivers, so you must first identify which waiver your parent qualifies for",
+        "Medicaid eligibility is required first, with strict income and asset limits that may require spend-down strategies",
+        "Some waivers have different ADL requirements — CHOICE requires inability to perform 2+ activities while others require 3+",
+        "Structured Family Caregiving allows payment to family member caregivers but excludes spouses in some programs"
+      ],
+      "relatedPrograms": [
+        "Indiana CHOICE Program",
+        "Pathways for Aging Waiver",
+        "Aged and Disabled Waiver",
+        "Structured Family Caregiving"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I get paid to care for my parent through this program?",
+          "answer": "Yes, through the Structured Family Caregiving (SFC) variant. You must be 18+, live with your parent, pass a background check, and complete required training. However, spouses are excluded from some SFC programs — check with your Area Agency on Aging about specific rules for your situation."
+        },
+        {
+          "question": "What if my parent has assets over the Medicaid limit but still needs help?",
+          "answer": "Your parent may still qualify through Medicaid spend-down provisions or certain exempt trusts. Asset limits follow standard Medicaid rules, but specific amounts aren't detailed in state guidance. Contact your local Area Agency on Aging to discuss spend-down strategies and exempt assets."
+        },
+        {
+          "question": "How many hours of respite care will my parent receive?",
+          "answer": "There are no predetermined hours — respite services are included in your parent's individualized Plan of Care based on assessed needs. The amount varies depending on your parent's functional limitations and your family's caregiving situation."
+        },
+        {
+          "question": "Can my parent receive respite services if they're already getting other Medicaid services?",
+          "answer": "It depends on the specific services. Your parent cannot receive respite through HCBS waivers if they're already getting conflicting services from other Medicaid waiver programs or the Bureau of Developmental Disabilities. The Area Agency on Aging will review all current services during assessment."
+        },
+        {
+          "question": "What's the difference between the various HCBS waivers that include respite?",
+          "answer": "CHOICE is statewide for ages 60+ and requires inability to perform 2+ daily activities. Other waivers like Pathways for Aging, A&D, and TBI may require 3+ ADL limitations and serve different populations. Your functional assessment will determine which waiver(s) your parent qualifies for."
+        },
+        {
+          "question": "Does my parent need to be homebound to receive respite services?",
+          "answer": "No, but your parent must reside in a family home or with a legal guardian — not in an institutional setting. The services are designed to help people remain in their homes rather than move to nursing facilities."
+        },
+        {
+          "question": "What happens if my parent's needs change after we're enrolled?",
+          "answer": "The Plan of Care can be updated based on changing needs. Contact your Area Agency on Aging if your parent's functional abilities improve or decline significantly, as this may affect the type and amount of respite services provided."
+        },
+        {
+          "question": "How long does it take to get approved and start receiving services?",
+          "answer": "Processing time isn't specified in state sources and varies by region and waiver type. The process includes Medicaid eligibility determination, functional assessment, and Plan of Care development. Contact your local Area Agency on Aging for current timelines in your area."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "HandHeart",
+      "phone": null,
+      "sourceUrl": "https://faqs.in.gov/hc/en-us/articles/360042089872-Who-is-eligible-to-receive-Caregiver-Support-Services",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "scsep-employment-program",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "If your parent is 55+ and looking for work, they can get paid job training at minimum wage while serving the community.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Eastern Indiana Works",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works (subgrantee network)",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Indy",
+            "type": "service-area"
+          },
+          {
+            "name": "National Able",
+            "type": "service-area"
+          },
+          {
+            "name": "Indiana DWD (state slots)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides paid job training in community service roles like child care aide, customer service, or health care worker. Your parent earns minimum wage for about 20 hours per week while developing job-ready skills, with the goal of transitioning to permanent employment within 6 months.\n\nBecause this program combines income, training, and work experience, it helps older adults rebuild confidence and skills while earning money. Indiana has 1,059 available positions across multiple providers, but slots are limited and waitlists are common. Priority goes to veterans, adults 65+, those with disabilities, and rural residents.",
+      "savingsRange": "$2,900 – $3,770/year in 2026",
+      "savingsSource": "Federal minimum wage ($7.25/hour) × 20 hours/week × 52 weeks",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Family income at 125% of poverty level",
+          "Indiana resident",
+          "Willing to work community service role"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "Indiana resident in provider service area",
+          "Willing to attend training and meetings",
+          "Seeking job-ready skills training",
+          "Available to work average 20 hours per week"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider directly — each covers specific counties and maintains their own waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Eastern Indiana Works serves eastern counties (easternindianaworks.org/scsep). CWI Works covers central regions (cwiworks.org, select Indiana). Check in.gov/dwd for state-administered slots."
+          },
+          {
+            "step": 2,
+            "title": "Submit SCSEP Participant Form",
+            "description": "Complete eligibility paperwork including proof of age, income, unemployment status, and residency. Provider will schedule assessment interview."
+          },
+          {
+            "step": 3,
+            "title": "Complete Individual Employment Plan (IEP)",
+            "description": "Work with staff to identify skills gaps, training needs, and career goals. This determines your community service placement."
+          },
+          {
+            "step": 4,
+            "title": "Begin paid training placement",
+            "description": "Start working 20 hours/week at host site while receiving job search support and skills development toward unsubsidized employment."
+          }
+        ],
+        "processingTime": "Processing time varies by provider — eligibility determination after application review and staff approval",
+        "waitlist": "Waitlists common if no immediate openings in your service area — enrollment depends on funding availability",
+        "tip": "Call multiple providers to check availability — some regions have shorter waits than others.",
+        "urls": [
+          {
+            "label": "Eastern Indiana Works SCSEP",
+            "url": "https://easternindianaworks.org/scsep"
+          },
+          {
+            "label": "CWI Works Indiana",
+            "url": "https://cwiworks.org"
+          },
+          {
+            "label": "Indiana Workforce Development",
+            "url": "https://in.gov/dwd"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid photo ID (driver's license or state ID)",
+        "Birth certificate or passport for age verification",
+        "Social Security card",
+        "Proof of Indiana residency (utility bill, lease agreement, or voter registration)",
+        "Income documentation for all household members (Social Security award letters, pay stubs, pension statements)",
+        "Unemployment verification (unemployment benefits letter or termination notice)",
+        "Veterans DD-214 form (if applicable for priority)",
+        "Disability documentation (if applicable for priority)",
+        "Bank statements for all accounts (last 3 months)",
+        "Tax return from most recent year filed"
+      ],
+      "contacts": [
+        {
+          "label": "Eastern Indiana Works",
+          "phone": null,
+          "description": "SCSEP services for eastern Indiana counties",
+          "hours": "Contact via easternindianaworks.org/scsep"
+        },
+        {
+          "label": "Indiana 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free referral to local SCSEP providers and American Job Centers",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Indiana Workforce Development",
+          "phone": null,
+          "description": "State-administered SCSEP slots",
+          "hours": "Contact via in.gov/dwd"
+        }
+      ],
+      "applicationNotes": [
+        "Priority given to veterans, adults 65+, those with disabilities, and rural residents — others may wait longer for openings",
+        "Some providers like Goodwill Indy temporarily pause applications when fully enrolled — check current status",
+        "Must recertify eligibility annually to continue in program",
+        "Income limits are family-based at 125% of Federal Poverty Level — verify current thresholds as they update yearly"
+      ],
+      "relatedPrograms": [
+        "WIOA Adult Program",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent work SCSEP and collect Social Security at the same time?",
+          "answer": "Yes, but Social Security earnings limits apply if your parent hasn't reached full retirement age. SCSEP wages count toward the annual limit ($23,400 in 2026 for those under full retirement age). Contact Social Security at (800) 772-1213 to understand how this affects their specific benefits."
+        },
+        {
+          "question": "What if there's no SCSEP opening in our county?",
+          "answer": "Indiana has multiple providers serving different regions. Call 2-1-1 to check all available options, including state-administered slots through Indiana DWD. You may need to travel to a neighboring county if that provider has openings and accepts out-of-area residents."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "The goal is transition to unsubsidized employment within about 6 months, though timeframes vary. Participants must recertify eligibility annually and work toward their Individual Employment Plan goals. The program isn't designed for permanent placement."
+        },
+        {
+          "question": "What happens if my parent gets sick during their SCSEP placement?",
+          "answer": "SCSEP provides support services and referrals to help remove barriers to employment, including connecting participants with health resources. Extended absences may require program reassessment — contact your provider immediately to discuss options."
+        },
+        {
+          "question": "Can I apply for SCSEP and unemployment benefits at the same time?",
+          "answer": "You must be unemployed to qualify for SCSEP, but once accepted, SCSEP wages may affect unemployment eligibility since you'll be working and earning income. Contact your unemployment office to understand how SCSEP participation impacts benefits."
+        },
+        {
+          "question": "What if my parent's family income is slightly over 125% of poverty level?",
+          "answer": "Income limits are firm requirements updated annually. Contact providers directly to verify current thresholds for your household size, as Federal Poverty Guidelines change yearly. There's no flexibility on income limits, but asset limits don't apply."
+        },
+        {
+          "question": "Do SCSEP participants get any benefits besides wages?",
+          "answer": "Participants receive minimum wage pay, skills training including computer use, job search assistance, and support service referrals. The program doesn't provide health insurance or other traditional employee benefits — it's designed as temporary paid training toward permanent employment."
+        },
+        {
+          "question": "What types of community service jobs are actually available?",
+          "answer": "Common placements include child care aide, customer service, teacher's aide, computer technician, building maintenance, and health care worker roles. Specific opportunities depend on host sites in your area and your skills assessment in the Individual Employment Plan process."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.in.gov/dwd/files/INDWD_SCSEP_State_Plan_24-27.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-legal-aid",
+      "name": "Indiana Senior Legal Aid",
+      "shortName": "Senior Legal Aid",
+      "tagline": "Free legal help for seniors 60+ with wills, housing, benefits appeals, and nursing home rights.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Indiana Legal Services (statewide)",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Law Project (Indianapolis: 151 N. Delaware St., Ste. 1800)",
+            "type": "service-area"
+          },
+          {
+            "name": "CICOA-funded in Central Indiana",
+            "type": "service-area"
+          },
+          {
+            "name": "LAVA Project for abuse victims (statewide)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs help with legal issues like estate planning, housing problems, or benefits appeals, Indiana Senior Legal Aid provides free legal assistance. This includes drafting wills and powers of attorney, fighting wrongful evictions, appealing denied Social Security claims, and protecting nursing home rights. The program serves seniors with limited income and assets statewide through Indiana Legal Services.\n\nBecause this is free legal aid specifically for seniors, your parent won't pay attorney fees that could cost hundreds or thousands of dollars. The Senior Law Project handles everything from simple advice letters to full court representation, depending on the situation. Special programs like LAVA (Legal Aid for Victims of Abuse) have no income limits and focus on seniors who've experienced financial exploitation or abuse.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income generally below 125% federal poverty level",
+          "Assets under $10,000 (home and car don't count)",
+          "U.S. citizen or legal immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 10000,
+          "couple": 10000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen, legal immigrant, or certain crime victims",
+          "Cannot be fee-generating cases unless no private attorney available",
+          "No criminal defense cases (expungements allowed)"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-869-0212 for Senior Law Project intake, Monday–Friday 8:30am–5pm, or complete online screening at indianalegalservices.org.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call or go online",
+            "description": "Call 800-869-0212 for Senior Law Project intake (Mon-Fri 8:30am-5pm) or visit indianalegalservices.org for online eligibility screening."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake screening",
+            "description": "Answer questions about your income, assets, and legal issue. Have income documentation and ID ready."
+          },
+          {
+            "step": 3,
+            "title": "Wait for assignment",
+            "description": "If eligible, you'll be assigned to an attorney or referred to the appropriate specialized project based on your legal need."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Senior projects often have more flexible income and asset limits than general legal aid — mention your age when calling.",
+        "urls": [
+          {
+            "label": "Indiana Legal Services",
+            "url": "https://www.indianalegalservices.org"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid photo ID showing age 60+",
+        "Proof of income from last 30 days (Social Security letter, pension statements, pay stubs)",
+        "Bank statements for all accounts (last 3 months)",
+        "Documentation related to your legal issue (eviction notice, benefits denial letter, etc.)",
+        "Proof of citizenship or legal immigration status",
+        "For employment/pension cases: full employer name, Social Security number, date of birth, pension plan name"
+      ],
+      "contacts": [
+        {
+          "label": "Senior Law Project Intake",
+          "phone": "(800) 869-0212",
+          "description": "Free legal aid for seniors 60+",
+          "hours": "Mon-Fri 8:30am-5pm"
+        },
+        {
+          "label": "Indianapolis Office",
+          "phone": null,
+          "description": "151 N. Delaware St., Ste. 1800, Indianapolis, IN 46204",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "LAVA Project for abuse victims has no income limits — all seniors who've experienced financial exploitation or abuse qualify",
+        "If your legal issue could generate attorney fees (like personal injury), you may be referred to private attorneys instead"
+      ],
+      "relatedPrograms": [
+        "Indiana SHIP (Medicare counseling)",
+        "Area Agencies on Aging services",
+        "Adult Protective Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get help if their house is worth more than $10,000?",
+          "answer": "Yes. The primary residence is exempt from the $10,000 asset limit, regardless of value. Only countable assets like bank accounts, investments, and cash count toward the limit. Senior-specific projects often have even more relaxed asset rules."
+        },
+        {
+          "question": "What if my parent was financially abused but has higher income?",
+          "answer": "The LAVA Project (Legal Aid for Victims of Abuse) has no income limits. Any senior who experienced financial exploitation, scams, or abuse can get free legal help regardless of their financial situation. Call the same intake number at 800-869-0212."
+        },
+        {
+          "question": "Will an attorney actually go to court or just give advice?",
+          "answer": "Depending on the case, attorneys provide everything from advice letters and phone negotiations to full court representation. For complex cases like guardianship or housing disputes, they'll represent your parent in court proceedings if needed."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "(800) 869-0212",
+      "sourceUrl": "https://www.indianalegalservices.org/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "long-term-care-ombudsman",
+      "name": "Indiana Long-Term Care Ombudsman Program",
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocacy to protect your parent's rights and resolve problems in nursing homes or assisted living facilities.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local ombudsman offices statewide; central office in Indianapolis.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in an Indiana nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to protect their rights. Trained ombudsmen investigate complaints, represent residents at discharge hearings, and work to resolve issues directly with facility staff.\n\nBecause ombudsmen visit facilities regularly and understand state and federal regulations, they can address problems that families often struggle to resolve alone — from medication errors to billing disputes to quality of care concerns. The service is completely free and confidential, with no income or asset requirements.\n\nThe program serves residents of all Indiana nursing homes and licensed assisted living facilities through a network of local offices statewide. Anyone can contact the ombudsman on behalf of a resident, but all advocacy focuses on what the resident wants.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of Indiana nursing home or assisted living",
+          "No income or asset limits",
+          "Free and confidential service"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of an Indiana nursing home or licensed assisted living facility (home care services not covered)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-622-4484 to report concerns — no application needed and service begins immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Call 1-800-622-4484 or 317-232-7134 to speak with an ombudsman about your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Describe the concern",
+            "description": "Explain the problem — care issues, billing disputes, discharge concerns, or other facility-related problems. No forms required."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, speak with your parent, and work with facility staff to resolve the issue based on your parent's wishes."
+          }
+        ],
+        "processingTime": "Investigation begins immediately; complaint resolution time varies by complexity",
+        "waitlist": null,
+        "tip": "Anyone can contact the ombudsman, but remember that all advocacy actions require the resident's consent and focus on their preferences.",
+        "urls": [
+          {
+            "label": "Indiana Long-Term Care Ombudsman",
+            "url": "https://www.in.gov/ombudsman/long-term-care-ombudsman/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Indiana Long-Term Care Ombudsman",
+          "phone": "1-800-622-4484",
+          "description": "Primary hotline for all nursing home and assisted living concerns",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Indianapolis Office",
+          "phone": "(317) 232-7134",
+          "description": "Central office for ombudsman services",
+          "hours": "Mon-Fri 8am-4:30pm EST"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Indiana FSSA Division of Aging",
+        "Indiana State Department of Health",
+        "Indiana Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman even if my parent doesn't want me to?",
+          "answer": "Yes, anyone can contact the ombudsman to report concerns. However, the ombudsman can only take advocacy action with your parent's consent. The ombudsman will speak privately with your parent to understand their wishes before proceeding."
+        },
+        {
+          "question": "What if my parent is being threatened with discharge from their facility?",
+          "answer": "The ombudsman can represent your parent at involuntary discharge hearings and help ensure proper procedures are followed. Call immediately if you receive State Form 49669 (Notice of Transfer or Discharge) — time limits apply for requesting hearings."
+        },
+        {
+          "question": "Does this program help with home care problems?",
+          "answer": "No, the ombudsman program only covers residents of nursing homes and licensed assisted living facilities. Home care services are not included, even though state law requires it — federal funding limits the program to facility residents only."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "1-800-622-4484",
+      "sourceUrl": "https://www.in.gov/ombudsman/long-term-care-ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Indiana offers 12 programs to help your aging parent — 8 direct benefits they can qualify for plus 3 free resources available to all seniors. These range from $100–400/month for groceries through SNAP to comprehensive medical care through Hoosier Care Connect, plus home weatherization worth thousands in energy savings. Most benefits require income verification, but resources like Indiana SHIP Medicare counseling and Senior Legal Aid are free regardless of income.\n\nStart by checking if your parent qualifies for the PathWays for Aging programs if they need daily care help, or Medicare Savings Programs if they're struggling with Medicare costs. Then explore the free resources — even high-income families can use Indiana SHIP for Medicare guidance and the Ombudsman Program for nursing home advocacy.",
+    "startHere": [
+      {
+        "name": "Indiana PathWays for Aging Waiver",
+        "programId": "indiana-pathways-aging-waiver",
+        "why": "Covers home care services that can cost $20-30/hour privately, helping your parent avoid nursing home placement."
+      },
+      {
+        "name": "Healthy Indiana Plan Medicare Savings Programs",
+        "programId": "healthy-indiana-plan-medicare-savings",
+        "why": "Reduces Medicare costs significantly if your parent's income is under $2,433/month."
+      },
+      {
+        "name": "SNAP",
+        "programId": "indiana-snap",
+        "why": "Provides $100–400/month for groceries with no asset limits for seniors 60+."
+      },
+      {
+        "name": "Indiana SHIP",
+        "programId": "indiana-ship",
+        "why": "Free Medicare counseling that can save thousands by avoiding wrong plan choices — available to all income levels."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care and staying out of nursing homes",
+        "programs": [
+          "Indiana PathWays for Aging Waiver",
+          "Indiana PathWays for Aging (PACE equivalent)",
+          "Indiana Caregiver Respite Services"
+        ],
+        "description": "These programs provide home care services and caregiver relief to help your parent remain safely at home."
+      },
+      {
+        "need": "Medicare and healthcare cost assistance",
+        "programs": [
+          "Healthy Indiana Plan Medicare Savings Programs",
+          "Hoosier Care Connect",
+          "Indiana SHIP"
+        ],
+        "description": "Get help paying Medicare premiums and copays, or free counseling to choose the right Medicare plan."
+      },
+      {
+        "need": "Food and basic needs assistance",
+        "programs": [
+          "SNAP",
+          "Meals on Wheels (Indiana)"
+        ],
+        "description": "Monthly grocery benefits or home-delivered meals for parents who can't shop or cook safely."
+      },
+      {
+        "need": "Home maintenance and employment",
+        "programs": [
+          "Indiana Weatherization Assistance Program",
+          "Senior Community Service Employment Program"
+        ],
+        "description": "Free energy efficiency upgrades for low-income homeowners and paid job training for seniors 55+."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Indiana Senior Legal Aid",
+          "Indiana Long-Term Care Ombudsman Program"
+        ],
+        "description": "Free legal help and nursing home advocacy available to all seniors regardless of income."
+      }
+    ],
+    "quickFacts": [
+      "Most Indiana benefit programs require income below $2,433/month for a single person, though limits vary by program",
+      "Indiana SHIP, Senior Legal Aid, and Ombudsman services are free to all seniors regardless of income",
+      "Indiana PathWays for Aging programs require clinical assessment showing your parent needs daily help with bathing, dressing, or medication management"
+    ],
+    "resourcesVsBenefits": "Indiana's benefit programs require qualifying based on income, age, or disability level — like SNAP requiring income verification or PathWays for Aging requiring clinical assessment of daily care needs. But three programs are free resources available to any Indiana senior: SHIP provides Medicare counseling, Senior Legal Aid offers legal help for anyone 60+, and the Long-Term Care Ombudsman advocates for nursing home residents regardless of how they pay."
+  }
+}

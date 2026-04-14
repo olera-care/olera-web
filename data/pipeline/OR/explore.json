@@ -1,0 +1,126 @@
+{
+  "entity": "Oregon",
+  "entitySlug": "oregon",
+  "state": "OR",
+  "stateName": "Oregon",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T16:02:25.807Z",
+  "programCount": 16,
+  "programs": [
+    {
+      "name": "Oregon Health Plan (OHP)",
+      "what_it_does": "Provides comprehensive healthcare coverage including medical care, dental services, mental health treatment, prescriptions, vision care, and emergency services for low-income seniors. It also pays for long-term care services for eligible individuals who meet income and resource requirements.[1][2]",
+      "who_its_for": "Low-income seniors aged 65+ and disabled individuals meeting specific income and asset limits.[1][2]",
+      "official_url": "https://www.oregon.gov/odhs/aging-disability-services/pages/long-term-care.aspx",
+      "benefit_value": "Free or low-cost health coverage; long-term care services in home or facility; expanded dental benefits as of 2023.[1][2]"
+    },
+    {
+      "name": "OPI-M (Medicaid-funded)",
+      "what_it_does": "Delivers home and community-based long-term care services for adults needing help with daily activities and health-related tasks. Funded by Medicaid, it allows eligible individuals to receive free services to stay in their homes.[2]",
+      "who_its_for": "Adults with limited income/resources needing home-based care; income up to $5,217/month (1 person, 2025), assets up to $94,523.[2]",
+      "official_url": "https://www.oregon.gov/odhs/aging-disability-services/pages/long-term-care.aspx",
+      "benefit_value": "Free in-home services including personal care and health tasks; higher eligibility limits than regular OHP.[2]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Not explicitly detailed in Oregon-specific sources; federally administered program providing comprehensive medical and social services to eligible seniors. Allows frail seniors to live safely in the community with coordinated care.",
+      "who_its_for": "Nursing facility-eligible seniors aged 55+ who can live safely in the community with services.",
+      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans/pace",
+      "benefit_value": "All-inclusive care including primary care, hospitalization, prescription drugs, and social services; value varies by provider."
+    },
+    {
+      "name": "Medicare Savings Programs",
+      "what_it_does": "Helps pay Medicare premiums, deductibles, and cost-sharing through programs like QMB, SLMB, QI; counseled via SHIBA. Provides financial assistance to low-income Medicare beneficiaries to reduce out-of-pocket costs.[4]",
+      "who_its_for": "Low-income Medicare enrollees meeting income/resource criteria; accessible via OregONEligibility portal.[4]",
+      "official_url": "https://www.oregon.gov/odhs/clients-benefits/pages/medicare-savings.aspx",
+      "benefit_value": "Covers Part A/B premiums (up to $185+/month), deductibles, coinsurance; exact amounts based on federal standards."
+    },
+    {
+      "name": "SNAP Food Benefits",
+      "what_it_does": "Provides monthly food assistance benefits to purchase groceries and nutritional support. Helps low-income seniors maintain adequate nutrition without financial burden.[1][6]",
+      "who_its_for": "Low-income seniors, available via OregONEligibility; income-based eligibility.[1][6]",
+      "official_url": "https://www.oregon.gov/dhs/assistance/food-benefits/pages/snap.aspx",
+      "benefit_value": "Monthly EBT benefits averaging $200+ per person depending on household size/income; supplements food costs."
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)",
+      "what_it_does": "LIHEAP offers grants for energy bills and heating repairs; OEAP prevents utility disconnections for at-risk households. Tackles utility costs through provider grants and emergency aid.[1]",
+      "who_its_for": "Seniors with income at or below 60% state median income.[1]",
+      "official_url": "https://www.oregon.gov/energy/Pages/LIHEAP.aspx",
+      "benefit_value": "Grants for bills/repairs; emergency aid to prevent shutoffs; distributed via 30+ partner agencies statewide.[1]"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Not explicitly detailed in results; federally funded program improving energy efficiency in low-income homes via insulation, sealing, and repairs. Reduces energy costs and improves home safety for seniors.",
+      "who_its_for": "Low-income households including seniors; priority for elderly, disabled.",
+      "official_url": "https://www.oregon.gov/energy/energy-assistance/Pages/Weatherization.aspx",
+      "benefit_value": "Free home upgrades saving 10-30% on energy bills; health/safety improvements."
+    },
+    {
+      "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
+      "what_it_does": "Offers free, unbiased, confidential counseling on Medicare options, coverage, and savings programs. Helps seniors navigate enrollment, benefits, and Medicare Savings Programs.[4][5]",
+      "who_its_for": "Medicare enrollees aged 65+, new or current beneficiaries seeking advice.[4][5]",
+      "official_url": "https://shiba.oregon.gov",
+      "benefit_value": "Free counseling services; assistance accessing thousands in premium/cost savings annually."
+    },
+    {
+      "name": "Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors, providing over 2 million meals yearly. Supports nutritional needs and reduces food insecurity for isolated older adults.[1][5]",
+      "who_its_for": "Homebound or disabled seniors; available via local providers like Council on Aging.[1][5]",
+      "official_url": "https://www.mealsonwheelspeople.org",
+      "benefit_value": "Free or low-cost home-delivered meals (1-2/day); community dining options."
+    },
+    {
+      "name": "Caregiver Support Programs",
+      "what_it_does": "Not explicitly named; supports family caregivers via respite, training, and resources through Aging and Disability Services. Helps caregivers manage stress and provide better care to seniors.[2]",
+      "who_its_for": "Family caregivers of seniors/disabled adults eligible for long-term services.",
+      "official_url": "https://www.oregon.gov/odhs/aging-disability-services/pages/caregiver.aspx",
+      "benefit_value": "Respite care, counseling, training; value in hours of relief care (varies)."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Not detailed in results; federal program offering part-time paid training jobs in community service to unemployed low-income seniors. Promotes skill-building and transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income seniors aged 55+.",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Minimum wage training positions (up to 20 hrs/week); work experience and stipends."
+    },
+    {
+      "name": "Legal Aid Services of Oregon (LASO)",
+      "what_it_does": "Provides free legal services for low-income seniors on issues like benefits, housing, and consumer rights. Guides complex retirement and public benefit decisions.[1][4]",
+      "who_its_for": "Low-income seniors aged 60+ facing legal issues.[4]",
+      "official_url": "https://oregonlawhelp.org",
+      "benefit_value": "Free legal representation/advice; resolves disputes saving thousands in potential costs."
+    },
+    {
+      "name": "Long-term Care Ombudsman",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Protects rights of seniors in nursing homes and assisted living.[2]",
+      "who_its_for": "Seniors in long-term care facilities and their families.",
+      "official_url": "https://www.oregon.gov/odhs/aging-disability-services/pages/ombudsman.aspx",
+      "benefit_value": "Free advocacy and complaint resolution; improves facility conditions statewide."
+    },
+    {
+      "name": "Elderly Rental Assistance Program",
+      "what_it_does": "Provides rental assistance to help low-income seniors afford housing and avoid displacement. It targets elderly individuals to support stable living arrangements.[1]",
+      "who_its_for": "Low-income seniors in Oregon.",
+      "whats_unique": "Oregon-specific housing program for seniors, distinct from federal Section 8 or general rental aid, emphasizing elderly needs.[1]",
+      "official_url": "https://seniorsite.org/resource/top-benefits-and-free-services-for-seniors-in-oregon/",
+      "benefit_value": "Rental subsidies; amount based on income and housing costs (specific figures not detailed in sources)."
+    },
+    {
+      "name": "Oregon Senior Free Tuition Audit Program",
+      "what_it_does": "Allows seniors to audit college classes tuition-free on a space-available basis. Universities like Oregon State University and University of Oregon waive fees for non-credit course participation.[2]",
+      "who_its_for": "Oregon residents aged 65 and older.",
+      "whats_unique": "State-specific tuition waivers at public universities for senior auditing, not universally available in all states.[2]",
+      "official_url": "https://www.councilonaging.org/blog/10-products-or-services-seniors-can-get-for-free/",
+      "benefit_value": "Free auditing of classes (tuition waived); online options may be available."
+    },
+    {
+      "name": "Health Related Social Needs Benefits (HSRN)",
+      "what_it_does": "Provides extra help with housing, food, or climate-related needs like air conditioners for health-impacted individuals. It supports those with complex health needs, homelessness risks, or life transitions.[4]",
+      "who_its_for": "Members of Oregon Health Plan or Health Share of Oregon with complicated health needs or related vulnerabilities.",
+      "whats_unique": "Oregon-specific enhancement to state health plans, integrating social supports like climate aid directly with medical coverage.[4]",
+      "official_url": "https://oregonlawhelp.org/topics/government-benefits/guide-government-assistance-programs-oregon",
+      "benefit_value": "Targeted aid for housing, food, or items like AC units; value varies by assessed needs."
+    }
+  ]
+}

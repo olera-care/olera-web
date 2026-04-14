@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Review, GoogleReviewsData } from "@/lib/types";
-import ReviewModal from "@/components/providers/ReviewModal";
-import AllReviewsModal, { normalizeReviews } from "@/components/providers/AllReviewsModal";
+import AllReviewsModal, { normalizeReviews, type OleraGuestReview } from "@/components/providers/AllReviewsModal";
 
 // ── Icons ──
 
@@ -86,14 +86,15 @@ export default function ReviewsSection({
 
   // Data
   const [realReviews, setRealReviews] = useState<Review[]>([]);
+  const [oleraGuestReviews, setOleraGuestReviews] = useState<OleraGuestReview[]>([]);
   const [loading, setLoading] = useState(true);
 
   // UI state
   const [allReviewsModalOpen, setAllReviewsModalOpen] = useState(false);
   const [scrollToReviewId, setScrollToReviewId] = useState<string | null>(null);
 
-  // Write review modal
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  // Review link URL (new Google flow)
+  const reviewPageUrl = `/review/${providerSlug}`;
 
   // Edit review state
   const [editingReview, setEditingReview] = useState<{
@@ -111,64 +112,44 @@ export default function ReviewsSection({
 
   const fetchReviews = useCallback(async () => {
     try {
-      const res = await fetch(`/api/reviews?provider_id=${encodeURIComponent(providerId)}`);
-      if (res.ok) {
-        const data = await res.json();
+      // Fetch both authenticated Olera reviews and guest Olera reviews in parallel
+      const [authRes, guestRes] = await Promise.all([
+        fetch(`/api/reviews?provider_id=${encodeURIComponent(providerId)}`),
+        fetch(`/api/provider/${encodeURIComponent(providerSlug)}/olera-reviews`),
+      ]);
+
+      if (authRes.ok) {
+        const data = await authRes.json();
         setRealReviews(data.reviews ?? []);
+      }
+
+      if (guestRes.ok) {
+        const data = await guestRes.json();
+        setOleraGuestReviews(data.reviews ?? []);
       }
     } catch {
       // Silently fail — mock reviews will show
     } finally {
       setLoading(false);
     }
-  }, [providerId]);
+  }, [providerId, providerSlug]);
 
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
 
   // ── Detect deferred action (returning from auth) ──
-  // If review data was saved, auto-submit it
+  // Redirect to the new review page flow
 
   useEffect(() => {
     if (!user) return;
     const deferred = getDeferredAction();
     if (deferred?.action === "review" && deferred?.targetProfileId === providerId) {
       clearDeferredAction();
-
-      // If review data exists, auto-submit
-      if (deferred.reviewData) {
-        const { rating, comment, title, relationship } = deferred.reviewData;
-        (async () => {
-          try {
-            const res = await fetch("/api/reviews", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                provider_id: providerId,
-                rating,
-                comment,
-                title: title || undefined,
-                relationship: relationship || undefined,
-              }),
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              if (data.review) {
-                setRealReviews((prev) => [data.review, ...prev]);
-              }
-            }
-          } catch {
-            // Silently fail - user can retry manually
-          }
-        })();
-      } else {
-        // Legacy fallback - open modal
-        setReviewModalOpen(true);
-      }
+      // Redirect to the new Google review flow
+      window.location.href = reviewPageUrl;
     }
-  }, [user, providerId]);
+  }, [user, providerId, reviewPageUrl]);
 
   // ── Close more menu on outside click ──
 
@@ -185,7 +166,7 @@ export default function ReviewsSection({
 
   // ── Normalize reviews ──
 
-  const { reviews: allReviews, averageRating } = normalizeReviews(realReviews, mockReviews, googleReviewsData?.reviews);
+  const { reviews: allReviews, averageRating } = normalizeReviews(realReviews, mockReviews, googleReviewsData?.reviews, oleraGuestReviews);
   const googleMapsUrl = placeId
     ? `https://search.google.com/local/reviews?placeid=${placeId}`
     : null;
@@ -475,12 +456,12 @@ export default function ReviewsSection({
 
             {/* Add review button (hidden for non-family profiles) */}
             {canWriteReview && (
-              <button
-                onClick={() => setReviewModalOpen(true)}
+              <Link
+                href={reviewPageUrl}
                 className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
               >
-                Add review
-              </button>
+                Leave a review
+              </Link>
             )}
           </div>
         </>
@@ -495,12 +476,12 @@ export default function ReviewsSection({
               : "No family reviews have been shared yet."}
           </p>
           {canWriteReview && (
-            <button
-              onClick={() => setReviewModalOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
+            <Link
+              href={reviewPageUrl}
+              className="inline-block px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
             >
               Write a review
-            </button>
+            </Link>
           )}
         </div>
       )}
@@ -517,18 +498,9 @@ export default function ReviewsSection({
         averageRating={averageRating}
         scrollToReviewId={scrollToReviewId}
         isDemoMode={showingDemoReviews}
-        onWriteReview={() => setReviewModalOpen(true)}
-      />
-
-      {/* Write Review Modal */}
-      <ReviewModal
-        isOpen={reviewModalOpen}
-        onClose={() => setReviewModalOpen(false)}
-        providerId={providerId}
-        providerSlug={providerSlug}
-        providerName={providerName}
-        googlePlaceId={placeId}
-        onReviewSubmitted={(review) => setRealReviews((prev) => [review, ...prev])}
+        onWriteReview={() => {
+          window.location.href = reviewPageUrl;
+        }}
       />
 
       {/* Edit Review Modal */}

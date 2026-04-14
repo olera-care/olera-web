@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import { interviewRequestEmail } from "@/lib/email-templates";
+import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 
 function getAdminClient() {
   return createClient(
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       studentProfileId,
       type = "video",
       proposedTime,
+      alternativeTime,
       notes,
       provider,
     } = body;
@@ -156,48 +158,83 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // No org selected from autocomplete - check by email or create new
-      const { data: existingProfile } = await admin
+      // No org selected from autocomplete - check by email first
+      const { data: profileByEmail } = await admin
         .from("business_profiles")
         .select("id, account_id, display_name, slug")
         .eq("email", normalizedEmail)
         .in("type", ["organization", "caregiver"])
         .maybeSingle();
 
-      if (existingProfile) {
-        // Use existing profile
-        providerProfileId = existingProfile.id;
-        providerDisplayName = existingProfile.display_name;
-        providerSlug = existingProfile.slug;
+      if (profileByEmail) {
+        // Use existing profile found by email
+        providerProfileId = profileByEmail.id;
+        providerDisplayName = profileByEmail.display_name;
+        providerSlug = profileByEmail.slug;
       } else {
-        // Create a new business_profile without account_id
-        const slug = generateSlug(provider.organization, provider.city);
-        const displayName = provider.organization;
+        // Email not found - also check by organization name + city to prevent paywall bypass
+        // Use case-insensitive match on display_name and city
+        const normalizedOrgName = provider.organization.trim().toLowerCase();
+        const normalizedCity = provider.city.trim().toLowerCase();
 
-        const { data: newProfile, error: profileError } = await admin
+        const { data: profileByOrg } = await admin
           .from("business_profiles")
-          .insert({
-            slug,
-            type: "organization",
-            display_name: displayName,
-            email: normalizedEmail,
-            city: provider.city,
-            state: provider.state || null,
-            care_types: [],
-            source: "medjobs_quick_schedule",
-          })
-          .select("id")
-          .single();
+          .select("id, account_id, display_name, slug")
+          .ilike("display_name", normalizedOrgName)
+          .ilike("city", normalizedCity)
+          .in("type", ["organization", "caregiver"])
+          .limit(1)
+          .maybeSingle();
 
-        if (profileError || !newProfile) {
-          console.error("[medjobs/interviews/quick] profile creation error:", profileError);
-          return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+        if (profileByOrg) {
+          // Found existing org by name + city - use it (paywall check will run)
+          providerProfileId = profileByOrg.id;
+          providerDisplayName = profileByOrg.display_name;
+          providerSlug = profileByOrg.slug;
+        } else {
+          // No existing profile found - create a new one
+          const slug = generateSlug(provider.organization, provider.city);
+          const displayName = provider.organization;
+
+          const { data: newProfile, error: profileError } = await admin
+            .from("business_profiles")
+            .insert({
+              slug,
+              type: "organization",
+              display_name: displayName,
+              email: normalizedEmail,
+              city: provider.city,
+              state: provider.state || null,
+              care_types: [],
+              source: "medjobs_quick_schedule",
+            })
+            .select("id")
+            .single();
+
+          if (profileError || !newProfile) {
+            console.error("[medjobs/interviews/quick] profile creation error:", profileError);
+            return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+          }
+
+          providerProfileId = newProfile.id;
+          providerDisplayName = displayName;
+          providerSlug = slug;
+          isNewProfile = true;
         }
+      }
+    }
 
-        providerProfileId = newProfile.id;
-        providerDisplayName = displayName;
-        providerSlug = slug;
-        isNewProfile = true;
+    // Paywall check: if using an existing profile (found by email, org slug, or org name+city), enforce credits
+    if (!isNewProfile) {
+      const { data: existingMeta } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", providerProfileId)
+        .single();
+      const meta = ((existingMeta?.metadata as Record<string, unknown>) ?? {});
+      const access = getAccessTier(true, meta);
+      if (!canScheduleInterview(access)) {
+        return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
       }
     }
 
@@ -210,6 +247,7 @@ export async function POST(request: NextRequest) {
         status: "proposed",
         type,
         proposed_time: proposedTime,
+        alternative_time: alternativeTime || null,
         notes: notes || null,
         proposed_by: providerProfileId,
       })
@@ -223,6 +261,15 @@ export async function POST(request: NextRequest) {
         await admin.from("business_profiles").delete().eq("id", providerProfileId);
       }
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
+    }
+
+    // Increment credits used for outbound request
+    const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+      p_profile_id: providerProfileId,
+      p_key: "medjobs_credits_used",
+    });
+    if (creditError) {
+      console.error("[medjobs/interviews/quick] credit increment error:", creditError);
     }
 
     // Generate magic link URL for the confirmation email
@@ -268,6 +315,18 @@ export async function POST(request: NextRequest) {
 
     // Also notify the student that they have an interview request
     if (student.email) {
+      // Format alternative time if provided
+      const formattedAltTime = alternativeTime
+        ? new Date(alternativeTime).toLocaleString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZoneName: "short",
+          })
+        : null;
+
       try {
         await sendEmail({
           to: student.email,
@@ -276,10 +335,13 @@ export async function POST(request: NextRequest) {
             <h2>You have an interview request!</h2>
             <p><strong>${providerDisplayName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
             <p><strong>Proposed time:</strong> ${formattedDateTime}</p>
+            ${formattedAltTime ? `<p><strong>Alternative time:</strong> ${formattedAltTime}</p>` : ""}
             ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
             <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & respond on Olera</a></p>
           `,
           emailType: "interview_proposed",
+          recipientType: "student",
+          recipientProfileId: student.id,
         });
       } catch (emailError) {
         console.error("[medjobs/interviews/quick] student email error:", emailError);

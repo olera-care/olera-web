@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getAccessTier, formatCandidateName } from "@/lib/medjobs-access";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
 function getSupabaseAdmin() {
@@ -35,7 +36,7 @@ async function getAuthenticatedProvider(req: NextRequest) {
 
   const { data: profiles } = await supabaseAdmin
     .from("business_profiles")
-    .select("id, type, display_name")
+    .select("id, type, display_name, metadata")
     .eq("account_id", account.id)
     .in("type", ["organization", "caregiver"]);
 
@@ -125,17 +126,21 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Redact contact info for non-providers
-    if (!isProvider) {
+    // Compute access tier for redaction
+    const providerMeta = auth?.providerProfile?.metadata as Record<string, unknown> | undefined;
+    const accessInfo = getAccessTier(isProvider, providerMeta ?? null);
+
+    // Redact de-platforming data for all non-paid users
+    if (!accessInfo.isPaid) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       candidates = candidates.map((c: any) => ({
         ...c,
+        display_name: formatCandidateName(c.display_name || "", accessInfo),
         email: undefined,
         phone: undefined,
         metadata: {
           ...c.metadata,
           resume_url: undefined,
-          video_intro_url: undefined,
           linkedin_url: undefined,
         },
       }));

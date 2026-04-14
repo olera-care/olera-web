@@ -1,0 +1,273 @@
+{
+  "state": "NM",
+  "stateName": "New Mexico",
+  "diveAt": "2026-04-09T09:38:03.899Z",
+  "total": 5,
+  "parsed": 5,
+  "programs": [
+    {
+      "name": "Centennial Care Community Benefit Program",
+      "eligibility": {
+        "age": "65+ for elderly or 0-64 if disabled (disabled over 64 qualify under aged category)",
+        "income_limits": "Requires full Medicaid coverage; specific dollar amounts or household size tables not detailed in sources—must qualify for New Mexico Medicaid ABD category first[1][2][3]",
+        "asset_limits": "Determined by full Medicaid eligibility rules; sources do not specify asset details, what counts, or exemptions for this program[1]",
+        "other_requirements": [
+          "New Mexico resident",
+          "Nursing Facility Level of Care (NFLOC): assistance needed with 2+ Activities of Daily Living (ADLs: bathing, dressing, eating, toileting, mobility, transitioning)",
+          "Full Medicaid coverage or waiver category",
+          "Enrolled in a Centennial Care Managed Care Organization (MCO)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services including: adult day health care, assisted living services, behavior support consultation, community transition services (from nursing home to home), customized community supports, emergency response services, employment supports, environmental modifications, home health aide, nutritional counseling, personal care services (age 21+), private duty nursing for adults, nursing respite services, skilled therapies; supplements natural supports, not 24-hour care; based on individual needs[1][2][3][4][6][7]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "If enrolled in full Medicaid and MCO: speak with care coordinator or MCO representative",
+          "If full Medicaid but no MCO: call 1-800-283-4465 for MCO enrollment",
+          "If not qualifying for full Medicaid: contact New Mexico Aging and Long-Term Services Department (ALTSD) for Central Registry waitlist (phone/website not specified in sources)",
+          "Talk to care coordinator for assessment[7]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Central Registry for those not qualifying for full Medicaid; slots based on need[7]",
+        "forms": [
+          "No specific form names/numbers provided"
+        ],
+        "documents": [
+          "Not detailed; prepare for functional assessment of ADLs and Medicaid eligibility proof"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Mexico residents only",
+        "regional_variations": "No regional differences specified; delivered statewide via MCOs",
+        "offices_or_providers": [
+          "Managed Care Organizations (MCOs); ALTSD for waitlist"
+        ]
+      },
+      "official_source": "https://www.hca.nm.gov/community-benefit-program/[7]",
+      "gotchas": [
+        "Must have full Medicaid and MCO enrollment first; not standalone",
+        "Requires NFLOC via functional assessment—not automatic for dementia diagnoses",
+        "Self-direction (SDCB) only after 120 days in Agency-Based (ABCB)[2][3]",
+        "Does not cover room/board or 24-hour care; supplements natural supports[2][6]",
+        "Limited provider applications for some services like adult personal care[4]"
+      ],
+      "data_shape_notes": "Tied to Medicaid MCOs with NFLOC assessment; two models (Agency-Based then optional Self-Directed); waitlist via Central Registry for non-Medicaid eligible",
+      "_raw": "{\n  \"name\": \"Centennial Care Community Benefit Program\",\n  \"eligibility\": {\n    \"age\": \"65+ for elderly or 0-64 if disabled (disabled over 64 qualify under aged category)\",\n    \"income_limits\": \"Requires full Medicaid coverage; specific dollar amounts or household size tables not detailed in sources—must qualify for New Mexico Medicaid ABD category first[1][2][3]\",\n    \"asset_limits\": \"Determined by full Medicaid eligibility rules; sources do not specify asset details, what counts, or exemptions for this program[1]\",\n    \"other_requirements\": [\n      \"New Mexico resident\",\n      \"Nursing Facility Level of Care (NFLOC): assistance needed with 2+ Activities of Daily Living (ADLs: bathing, dressing, eating, toileting, mobility, transitioning)\",\n      \"Full Medicaid coverage or waiver category\",\n      \"Enrolled in a Centennial Care Managed Care Organization (MCO)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services including: adult day health care, assisted living services, behavior support consultation, community transition services (from nursing home to home), customized community supports, emergency response services, employment supports, environmental modifications, home health aide, nutritional counseling, personal care services (age 21+), private duty nursing for adults, nursing respite services, skilled therapies; supplements natural supports, not 24-hour care; based on individual needs[1][2][3][4][6][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"If enrolled in full Medicaid and MCO: speak with care coordinator or MCO representative\",\n      \"If full Medicaid but no MCO: call 1-800-283-4465 for MCO enrollment\",\n      \"If not qualifying for full Medicaid: contact New Mexico Aging and Long-Term Services Department (ALTSD) for Central Registry waitlist (phone/website not specified in sources)\",\n      \"Talk to care coordinator for assessment[7]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Central Registry for those not qualifying for full Medicaid; slots based on need[7]\",\n    \"forms\": [\"No specific form names/numbers provided\"],\n    \"documents\": [\"Not detailed; prepare for functional assessment of ADLs and Medicaid eligibility proof\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Mexico residents only\",\n    \"regional_variations\": \"No regional differences specified; delivered statewide via MCOs\",\n    \"offices_or_providers\": [\"Managed Care Organizations (MCOs); ALTSD for waitlist\"]\n  },\n  \"official_source\": \"https://www.hca.nm.gov/community-benefit-program/[7]\",\n  \"gotchas\": [\n    \"Must have full Medicaid and MCO enrollment first; not standalone\",\n    \"Requires NFLOC via functional assessment—not automatic for dementia diagnoses\",\n    \"Self-direction (SDCB) only after 120 days in Agency-Based (ABCB)[2][3]\",\n    \"Does not cover room/board or 24-hour care; supplements natural supports[2][6]\",\n    \"Limited provider applications for some services like adult personal care[4]\"\n  ],\n  \"data_shape_notes\": \"Tied to Medicaid MCOs with NFLOC assessment; two models (Agency-Based then optional Self-Directed); waitlist via Central Registry for non-Medicaid eligible\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Not specified in available sources. PACE uses Medicare or Medicaid funds; applicants' financial situations are considered, but specific income thresholds are not provided in search results.",
+        "asset_limits": "Not specified in available sources.",
+        "other_requirements": [
+          "Must be certified by the state as requiring nursing home level of care[1][9]",
+          "Must reside in the service area of a PACE organization[1]",
+          "Must be capable of living safely in the PACE community setting[1]",
+          "Must be eligible for Medicare, Medicaid, or both[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive all-inclusive services including: primary care physician services, hospital care (including laboratory and x-ray services), emergency services, physical and occupational therapy, nursing home and home care, prescription drugs, dental services, meals and nutritional counseling, social services, and transportation[1][2]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: (844) 945-0467 (InnovAge New Mexico PACE)[3]",
+          "Phone: 505-916-1932 (InnovAge Albuquerque center)[7]",
+          "In-person: 904 Las Lomas Rd NE, Albuquerque, NM 87102[3][7]",
+          "Email: info@innovage.com[3]",
+          "TTY: 711[3]"
+        ],
+        "processing_time": "Not specified in available sources.",
+        "waitlist": "Not specified in available sources.",
+        "forms": "Not specified in available sources.",
+        "documents": "Not specified in available sources."
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Currently only available in Albuquerque[2][7]",
+        "regional_variations": "Only one PACE provider (InnovAge) operates in New Mexico, with a single center in Albuquerque[2][7]. Eligibility requires residing in the service area of the PACE organization[1].",
+        "offices_or_providers": [
+          "InnovAge New Mexico PACE, 904 Las Lomas Rd NE, Albuquerque, NM 87102 (opened 1998)[7]"
+        ]
+      },
+      "official_source": "https://www.hca.nm.gov/lookingforinformation/pace/ (New Mexico Human Services Department)[5]",
+      "gotchas": [
+        "PACE is the **sole provider** of services once enrolled—participants cannot use other providers for covered services[2]",
+        "Participants can withdraw from the program at any time[2]",
+        "Geographic limitation: Only available in Albuquerque; families outside this service area cannot access the program[2][7]",
+        "State certification of nursing home level of care is required before enrollment—this is not automatic and must be obtained separately[1][9]",
+        "Medicaid recipients pay no monthly premium, but Medicare recipients may pay a monthly premium for additional coverage[2]",
+        "No deductibles or co-pays in the program[2]",
+        "Most PACE participants are dually eligible for both Medicare and Medicaid[4]"
+      ],
+      "data_shape_notes": "PACE in New Mexico is severely geographically restricted to a single provider and location (Albuquerque). The program has no specified income or asset limits in available sources—eligibility appears to hinge primarily on age (55+), state certification of nursing home care need, and residency in the service area. Benefits are fixed and comprehensive rather than tiered. Critical information gaps: specific processing timelines, application forms, required documentation, and income/asset thresholds are not available in search results and would require direct contact with InnovAge or the New Mexico HCA.",
+      "_raw": "```json\n{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Not specified in available sources. PACE uses Medicare or Medicaid funds; applicants' financial situations are considered, but specific income thresholds are not provided in search results.\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"Must be certified by the state as requiring nursing home level of care[1][9]\",\n      \"Must reside in the service area of a PACE organization[1]\",\n      \"Must be capable of living safely in the PACE community setting[1]\",\n      \"Must be eligible for Medicare, Medicaid, or both[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive all-inclusive services including: primary care physician services, hospital care (including laboratory and x-ray services), emergency services, physical and occupational therapy, nursing home and home care, prescription drugs, dental services, meals and nutritional counseling, social services, and transportation[1][2]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (844) 945-0467 (InnovAge New Mexico PACE)[3]\",\n      \"Phone: 505-916-1932 (InnovAge Albuquerque center)[7]\",\n      \"In-person: 904 Las Lomas Rd NE, Albuquerque, NM 87102[3][7]\",\n      \"Email: info@innovage.com[3]\",\n      \"TTY: 711[3]\"\n    ],\n    \"processing_time\": \"Not specified in available sources.\",\n    \"waitlist\": \"Not specified in available sources.\",\n    \"forms\": \"Not specified in available sources.\",\n    \"documents\": \"Not specified in available sources.\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Currently only available in Albuquerque[2][7]\",\n    \"regional_variations\": \"Only one PACE provider (InnovAge) operates in New Mexico, with a single center in Albuquerque[2][7]. Eligibility requires residing in the service area of the PACE organization[1].\",\n    \"offices_or_providers\": [\n      \"InnovAge New Mexico PACE, 904 Las Lomas Rd NE, Albuquerque, NM 87102 (opened 1998)[7]\"\n    ]\n  },\n  \"official_source\": \"https://www.hca.nm.gov/lookingforinformation/pace/ (New Mexico Human Services Department)[5]\",\n  \"gotchas\": [\n    \"PACE is the **sole provider** of services once enrolled—participants cannot use other providers for covered services[2]\",\n    \"Participants can withdraw from the program at any time[2]\",\n    \"Geographic limitation: Only available in Albuquerque; families outside this service area cannot access the program[2][7]\",\n    \"State certification of nursing home level of care is required before enrollment—this is not automatic and must be obtained separately[1][9]\",\n    \"Medicaid recipients pay no monthly premium, but Medicare recipients may pay a monthly premium for additional coverage[2]\",\n    \"No deductibles or co-pays in the program[2]\",\n    \"Most PACE participants are dually eligible for both Medicare and Medicaid[4]\"\n  ],\n  \"data_shape_notes\": \"PACE in New Mexico is severely geographically restricted to a single provider and location (Albuquerque). The program has no specified income or asset limits in available sources—eligibility appears to hinge primarily on age (55+), state certification of nursing home care need, and residency in the service area. Benefits are fixed and comprehensive rather than tiered. Critical information gaps: specific processing timelines, application forms, required documentation, and income/asset thresholds are not available in search results and would require direct contact with InnovAge or the New Mexico HCA.\"\n}\n```\n\n## Key Findings for Families\n\n**Geographic Reality**: This program is **only available in Albuquerque through InnovAge**[2][7]. If your family member lives outside Albuquerque, PACE is not an option in New Mexico.\n\n**Eligibility Pathway**: Your loved one must be at least 55 years old and **state-certified as needing nursing home level of care**[1]. This certification is a critical first step—it's not automatic and must be obtained through the state before PACE enrollment is possible.\n\n**What Makes PACE Different**: Unlike traditional Medicare or Medicaid, PACE becomes the **sole provider of all services**[2]. This means comprehensive coordination but also means you cannot supplement with outside providers for covered services. The program includes services typically not covered by Medicare alone, such as meals, transportation, and dental care[1].\n\n**Cost Structure**: Medicaid recipients pay no monthly premium[2]. Medicare recipients may pay a monthly premium for long-term care and prescription drug coverage[2]. Importantly, there are **no deductibles or co-pays**[2].\n\n**Critical Information Gaps**: The search results do not specify income limits, asset limits, processing timelines, required application documents, or the specific application forms needed. **Contact InnovAge directly at (844) 945-0467 or 505-916-1932 to obtain this information**[3][7]."
+    },
+    {
+      "name": "Community Benefit Program",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Requires full Medicaid coverage. For aged, blind, or disabled (2022 figures): single person - $10,092 annual income; two-person household - $15,137 annual income. Exact current limits vary by household size and require Medicaid eligibility check; ABD category has income up to ~$1,000/month single with 5% disregard plus asset test. Non-Medicaid eligible may access via registry based on need with limited slots.[1][2][3]",
+        "asset_limits": "Medicaid ABD: single - $2,000 max; two-person household - $3,000 max. Counts typical countable assets (cash, bank accounts, non-exempt property); exempts primary home (if intent to return), one vehicle, personal belongings, burial plots.[1]",
+        "other_requirements": [
+          "New Mexico resident",
+          "U.S. citizen or legal alien",
+          "Meet Nursing Facility Level of Care (NF LOC) criteria: daily assistance with 2+ activities of daily living (ADLs)",
+          "Enrolled in a Medicaid Managed Care Organization (MCO)",
+          "Proven need for long-term care to avoid nursing home",
+          "For non-Medicaid: allocation from Central Registry"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based long-term care services to remain at home instead of nursing home, including home health care financial assistance, personal care, adult day health, assisted living, and other supports based on individual care plan approved by MCO. Specific services vary by need; no fixed dollar/hour amount stated, allocated per NF LOC assessment.[1][2][4][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "If enrolled in Medicaid MCO: Contact your MCO care coordinator for assessment.",
+          "If Medicaid but no MCO: Call 1-800-283-4465 to enroll in MCO.",
+          "If not on Medicaid: Apply at yes.nm.gov or call 1-800-283-4465; for long-term services without full Medicaid, contact Aging & Long-Term Services Department Central Registry at 1-800-432-2080 or email abcbproviderenrollment@state.nm.us.",
+          "Paper or in-person: NM Human Services Department field office."
+        ],
+        "processing_time": "Not specified; assessment by MCO determines eligibility.",
+        "waitlist": "Central Registry waitlist for non-Medicaid eligible slots based on need; limited open positions.[1][5][7][9]",
+        "forms": [
+          "No specific form named; MCO assessment process or MAD 335 for providers"
+        ],
+        "documents": [
+          "Proof of income, assets, residency, citizenship/legal status, medical/functional assessment for NF LOC (handled via MCO or registry)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Mexico residents only",
+        "regional_variations": "Administered via statewide MCOs with possible provider differences; no explicit regional wait time or office variations noted.[2][5]",
+        "offices_or_providers": [
+          "Managed Care Organizations (MCOs) statewide; Aging & Long-Term Services Department for registry"
+        ]
+      },
+      "official_source": "https://www.hca.nm.gov/community-benefit-program/",
+      "gotchas": [
+        "Must first qualify/enroll in full Medicaid (strict ABD income/asset limits) or get rare registry allocation; not direct access.",
+        "Requires MCO enrollment; services only after NF LOC assessment.",
+        "New participants must try Agency-Based CB (ABCB) for 120 days before switching to Self-Directed CB (SDCB).[4]",
+        "2022 income figures may be outdated; verify current Medicaid ABD limits.",
+        "Limited slots for non-Medicaid via registry; high demand.",
+        "Certain members get continuous NF LOC (no annual reassess since 2019), but criteria apply.[2]"
+      ],
+      "data_shape_notes": "Tied to Medicaid MCOs with NF LOC functional test; two tracks (Medicaid-full vs. registry allocation); benefits via individualized MCO care plan; 120-day ABCB trial before self-direct option.",
+      "_raw": "{\n  \"name\": \"Community Benefit Program\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Requires full Medicaid coverage. For aged, blind, or disabled (2022 figures): single person - $10,092 annual income; two-person household - $15,137 annual income. Exact current limits vary by household size and require Medicaid eligibility check; ABD category has income up to ~$1,000/month single with 5% disregard plus asset test. Non-Medicaid eligible may access via registry based on need with limited slots.[1][2][3]\",\n    \"asset_limits\": \"Medicaid ABD: single - $2,000 max; two-person household - $3,000 max. Counts typical countable assets (cash, bank accounts, non-exempt property); exempts primary home (if intent to return), one vehicle, personal belongings, burial plots.[1]\",\n    \"other_requirements\": [\"New Mexico resident\", \"U.S. citizen or legal alien\", \"Meet Nursing Facility Level of Care (NF LOC) criteria: daily assistance with 2+ activities of daily living (ADLs)\", \"Enrolled in a Medicaid Managed Care Organization (MCO)\", \"Proven need for long-term care to avoid nursing home\", \"For non-Medicaid: allocation from Central Registry\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based long-term care services to remain at home instead of nursing home, including home health care financial assistance, personal care, adult day health, assisted living, and other supports based on individual care plan approved by MCO. Specific services vary by need; no fixed dollar/hour amount stated, allocated per NF LOC assessment.[1][2][4][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"If enrolled in Medicaid MCO: Contact your MCO care coordinator for assessment.\",\n      \"If Medicaid but no MCO: Call 1-800-283-4465 to enroll in MCO.\",\n      \"If not on Medicaid: Apply at yes.nm.gov or call 1-800-283-4465; for long-term services without full Medicaid, contact Aging & Long-Term Services Department Central Registry at 1-800-432-2080 or email abcbproviderenrollment@state.nm.us.\",\n      \"Paper or in-person: NM Human Services Department field office.\"\n    ],\n    \"processing_time\": \"Not specified; assessment by MCO determines eligibility.\",\n    \"waitlist\": \"Central Registry waitlist for non-Medicaid eligible slots based on need; limited open positions.[1][5][7][9]\",\n    \"forms\": [\"No specific form named; MCO assessment process or MAD 335 for providers\"],\n    \"documents\": [\"Proof of income, assets, residency, citizenship/legal status, medical/functional assessment for NF LOC (handled via MCO or registry)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Mexico residents only\",\n    \"regional_variations\": \"Administered via statewide MCOs with possible provider differences; no explicit regional wait time or office variations noted.[2][5]\",\n    \"offices_or_providers\": [\"Managed Care Organizations (MCOs) statewide; Aging & Long-Term Services Department for registry\"]\n  },\n  \"official_source\": \"https://www.hca.nm.gov/community-benefit-program/\",\n  \"gotchas\": [\n    \"Must first qualify/enroll in full Medicaid (strict ABD income/asset limits) or get rare registry allocation; not direct access.\",\n    \"Requires MCO enrollment; services only after NF LOC assessment.\",\n    \"New participants must try Agency-Based CB (ABCB) for 120 days before switching to Self-Directed CB (SDCB).[4]\",\n    \"2022 income figures may be outdated; verify current Medicaid ABD limits.\",\n    \"Limited slots for non-Medicaid via registry; high demand.\",\n    \"Certain members get continuous NF LOC (no annual reassess since 2019), but criteria apply.[2]\"\n  ],\n  \"data_shape_notes\": \"Tied to Medicaid MCOs with NF LOC functional test; two tracks (Medicaid-full vs. registry allocation); benefits via individualized MCO care plan; 120-day ABCB trial before self-direct option.\"\n}"
+    },
+    {
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "eligibility": {
+        "age": "60 years or older for non-Native Americans; 55 years or older for Native Americans[1][2][5][7]",
+        "income_limits": "Household income at or below 185% of the federal poverty level, based on household size. Exact 2021-2022 example: $1,986 monthly for household of 1 (older guidelines; check current via official sources as levels update annually)[2][5]. Participation in SNAP, TEFAP, or CSFP may qualify without separate income test[5]. Full current table available via NM DOH or USDA guidelines[8]",
+        "asset_limits": "No asset limits mentioned in program guidelines[1][2][3][4][5]",
+        "other_requirements": [
+          "Must live in New Mexico[1][2]",
+          "First-time and previous applicants must reapply annually to confirm eligibility[1]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "One-time annual benefit of up to $100 (2024) via electronic shopper card for locally grown fresh fruits, vegetables, herbs, and honey at participating farmers' markets and roadside stands. Older references note up to $50[1][2][4][5]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Online: shopper.soliportal.com[1]",
+          "Phone: (505) 469-0548, (505) 487-0904; also 575-528-5197 (office), 575-649-0754 (mobile)[1]",
+          "Email: doh.fmnp@doh.nm.gov or DOH.FMNP@state.nm.us[1][5]",
+          "In-person or paper: Any NM Department of Health (DOH) public health office WIC counter, local senior centers, AAA, or AARP offices statewide[1]"
+        ],
+        "processing_time": "Benefits issued within the month of July (historical); first-come, first-served[5]",
+        "waitlist": "First-come, first-served basis; may run out of funds (no formal waitlist specified)[1][5]",
+        "forms": [
+          "Paper applications available at WIC offices, senior centers, etc.; no specific form number listed[1][5]"
+        ],
+        "documents": [
+          "Proof of age, income or participation in SNAP/TEFAP/CSFP, household size; specifics not detailed but standard for income verification[1][2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide at participating farmers' markets and roadside stands. Farmers must grow within NM or 80-mile radius[1][2][6]",
+        "regional_variations": "No differences noted; uniform statewide administration via NM DOH WIC[1][2]",
+        "offices_or_providers": [
+          "NM DOH WIC offices, local senior centers, AAA/AARP; list of markets at SFMNP locations page[1]"
+        ]
+      },
+      "official_source": "https://www.nmwic.org/fmnp/[2]",
+      "gotchas": [
+        "Different age thresholds: 55+ for Native Americans, 60+ for others—easy to miss[1][2][5][7]",
+        "First-come, first-served; funds may deplete (open enrollment starts mid-February, e.g., Feb 15 for 2024)[1][5]",
+        "Must reapply every year, even if previously eligible[1]",
+        "Honey only for seniors (not WIC FMNP); only eligible fresh, local, unprocessed foods[2]",
+        "Only authorized farmers/markets; no wholesalers[2][4]"
+      ],
+      "data_shape_notes": "Age varies by Native American status; income at 185% FPL or proxy program enrollment (SNAP/CSFP/TEFAP); one-time fixed benefit; statewide with first-come funding cap",
+      "_raw": "{\n  \"name\": \"New Mexico Senior Farmers' Market Nutrition Program (SFMNP)\",\n  \"eligibility\": {\n    \"age\": \"60 years or older for non-Native Americans; 55 years or older for Native Americans[1][2][5][7]\",\n    \"income_limits\": \"Household income at or below 185% of the federal poverty level, based on household size. Exact 2021-2022 example: $1,986 monthly for household of 1 (older guidelines; check current via official sources as levels update annually)[2][5]. Participation in SNAP, TEFAP, or CSFP may qualify without separate income test[5]. Full current table available via NM DOH or USDA guidelines[8]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines[1][2][3][4][5]\",\n    \"other_requirements\": [\n      \"Must live in New Mexico[1][2]\",\n      \"First-time and previous applicants must reapply annually to confirm eligibility[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"One-time annual benefit of up to $100 (2024) via electronic shopper card for locally grown fresh fruits, vegetables, herbs, and honey at participating farmers' markets and roadside stands. Older references note up to $50[1][2][4][5]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: shopper.soliportal.com[1]\",\n      \"Phone: (505) 469-0548, (505) 487-0904; also 575-528-5197 (office), 575-649-0754 (mobile)[1]\",\n      \"Email: doh.fmnp@doh.nm.gov or DOH.FMNP@state.nm.us[1][5]\",\n      \"In-person or paper: Any NM Department of Health (DOH) public health office WIC counter, local senior centers, AAA, or AARP offices statewide[1]\"\n    ],\n    \"processing_time\": \"Benefits issued within the month of July (historical); first-come, first-served[5]\",\n    \"waitlist\": \"First-come, first-served basis; may run out of funds (no formal waitlist specified)[1][5]\",\n    \"forms\": [\"Paper applications available at WIC offices, senior centers, etc.; no specific form number listed[1][5]\"],\n    \"documents\": [\"Proof of age, income or participation in SNAP/TEFAP/CSFP, household size; specifics not detailed but standard for income verification[1][2][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide at participating farmers' markets and roadside stands. Farmers must grow within NM or 80-mile radius[1][2][6]\",\n    \"regional_variations\": \"No differences noted; uniform statewide administration via NM DOH WIC[1][2]\",\n    \"offices_or_providers\": [\"NM DOH WIC offices, local senior centers, AAA/AARP; list of markets at SFMNP locations page[1]\"]\n  },\n  \"official_source\": \"https://www.nmwic.org/fmnp/[2]\",\n  \"gotchas\": [\n    \"Different age thresholds: 55+ for Native Americans, 60+ for others—easy to miss[1][2][5][7]\",\n    \"First-come, first-served; funds may deplete (open enrollment starts mid-February, e.g., Feb 15 for 2024)[1][5]\",\n    \"Must reapply every year, even if previously eligible[1]\",\n    \"Honey only for seniors (not WIC FMNP); only eligible fresh, local, unprocessed foods[2]\",\n    \"Only authorized farmers/markets; no wholesalers[2][4]\"\n  ],\n  \"data_shape_notes\": \"Age varies by Native American status; income at 185% FPL or proxy program enrollment (SNAP/CSFP/TEFAP); one-time fixed benefit; statewide with first-come funding cap\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level (FPL). Exact 2026 dollar amounts not specified in sources; contact local office to confirm based on current HHS poverty guidelines, which vary by household size (e.g., for 2025 reference: 1-person ~$19,000; 2-person ~$25,500 at 125% FPL—verify latest).[1][2][4]",
+        "asset_limits": null,
+        "other_requirements": [
+          "Unemployed",
+          "U.S. citizen or authorized to work",
+          "Priority to: veterans/qualifying spouses, age 65+, limited English/low literacy, rural residents, disabled, low employment prospects, failed One-Stop employment services, homeless/at risk.[2]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time subsidized training positions (typically 20 hours/week) at nonprofits/public agencies; modest wages paid directly by ALTSD; on-the-job training, job development, resume building, post-placement support. Examples: customer service, maintenance, teacher assistant, childcare, food prep, retail, shipping/receiving. Goal: transition to unsubsidized employment.[4][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact NM Aging & Long-Term Services Department (ALTSD) via https://www.aging.nm.gov/aging-network/senior-employment-programs/ or local SCSEP office",
+          "NICOA for eligible areas: https://www.nicoa.org/programs/scsep/ (covers NM)",
+          "Goodwill NM: https://www.goodwillnm.org/seniors or call/walk-in to locations (e.g., 1030 18th Street NW)",
+          "Find local provider via national locator or state workforce board.[1][2][4][5]"
+        ],
+        "processing_time": "Not specified; enrollment if eligible and no waitlist.",
+        "waitlist": "Possible depending on location and funding; varies by local availability and funding cycles (some 2025 pauses noted).[1]",
+        "forms": [
+          "Complete application at local SCSEP office; no specific form name/number listed."
+        ],
+        "documents": [
+          "Proof of age, income, unemployment status, work authorization; physical exam offered at enrollment (not required to apply).[1][2][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered by multiple grantees (e.g., NICOA for parts of NM including American Indian focus, Goodwill, ALTSD); availability, wait times, positions vary by funding/local offices; 26 of 33 counties 'frontier' with rural priority.[2][3][4][5]",
+        "offices_or_providers": [
+          "NM Aging & Long-Term Services Department (ALTSD)",
+          "NICOA (AZ, MN, NM, ND, OK, SD, WI)",
+          "Goodwill Industries of NM",
+          "Local SCSEP offices via state workforce boards.[2][3][4][5]"
+        ]
+      },
+      "official_source": "https://www.aging.nm.gov/aging-network/senior-employment-programs/",
+      "gotchas": [
+        "Funding fluctuations may cause pauses/slowdowns (e.g., 2025 issues); local waitlists common; not guaranteed permanent job—focus is training to unsubsidized employment; priority groups get preference; separate from state-funded SEP (similar but general funds); physical exam post-enrollment.[1][2][4][7]",
+        "Income test strictly 125% FPL—contact for exact table; open to all qualifying, not just Native American via NICOA.[2]"
+      ],
+      "data_shape_notes": "Grantee-based with multiple providers (NICOA, Goodwill, ALTSD); priority tiers affect access; funding variability by region; no fixed asset limits or statewide wait times; rural/frontier county focus in NM.[2][3][4]",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level (FPL). Exact 2026 dollar amounts not specified in sources; contact local office to confirm based on current HHS poverty guidelines, which vary by household size (e.g., for 2025 reference: 1-person ~$19,000; 2-person ~$25,500 at 125% FPL—verify latest).[1][2][4]\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\"Unemployed\", \"U.S. citizen or authorized to work\", \"Priority to: veterans/qualifying spouses, age 65+, limited English/low literacy, rural residents, disabled, low employment prospects, failed One-Stop employment services, homeless/at risk.[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time subsidized training positions (typically 20 hours/week) at nonprofits/public agencies; modest wages paid directly by ALTSD; on-the-job training, job development, resume building, post-placement support. Examples: customer service, maintenance, teacher assistant, childcare, food prep, retail, shipping/receiving. Goal: transition to unsubsidized employment.[4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact NM Aging & Long-Term Services Department (ALTSD) via https://www.aging.nm.gov/aging-network/senior-employment-programs/ or local SCSEP office\", \"NICOA for eligible areas: https://www.nicoa.org/programs/scsep/ (covers NM)\", \"Goodwill NM: https://www.goodwillnm.org/seniors or call/walk-in to locations (e.g., 1030 18th Street NW)\", \"Find local provider via national locator or state workforce board.[1][2][4][5]\"],\n    \"processing_time\": \"Not specified; enrollment if eligible and no waitlist.\",\n    \"waitlist\": \"Possible depending on location and funding; varies by local availability and funding cycles (some 2025 pauses noted).[1]\",\n    \"forms\": [\"Complete application at local SCSEP office; no specific form name/number listed.\"],\n    \"documents\": [\"Proof of age, income, unemployment status, work authorization; physical exam offered at enrollment (not required to apply).[1][2][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered by multiple grantees (e.g., NICOA for parts of NM including American Indian focus, Goodwill, ALTSD); availability, wait times, positions vary by funding/local offices; 26 of 33 counties 'frontier' with rural priority.[2][3][4][5]\",\n    \"offices_or_providers\": [\"NM Aging & Long-Term Services Department (ALTSD)\", \"NICOA (AZ, MN, NM, ND, OK, SD, WI)\", \"Goodwill Industries of NM\", \"Local SCSEP offices via state workforce boards.[2][3][4][5]\"]\n  },\n  \"official_source\": \"https://www.aging.nm.gov/aging-network/senior-employment-programs/\",\n  \"gotchas\": [\"Funding fluctuations may cause pauses/slowdowns (e.g., 2025 issues); local waitlists common; not guaranteed permanent job—focus is training to unsubsidized employment; priority groups get preference; separate from state-funded SEP (similar but general funds); physical exam post-enrollment.[1][2][4][7]\", \"Income test strictly 125% FPL—contact for exact table; open to all qualifying, not just Native American via NICOA.[2]\"],\n  \"data_shape_notes\": \"Grantee-based with multiple providers (NICOA, Goodwill, ALTSD); priority tiers affect access; funding variability by region; no fixed asset limits or statewide wait times; rural/frontier county focus in NM.[2][3][4]\"\n}"
+    }
+  ]
+}

@@ -1,0 +1,625 @@
+{
+  "state": "KS",
+  "stateName": "Kansas",
+  "comparedAt": "2026-04-09T13:35:35.725Z",
+  "total": 14,
+  "newPrograms": 7,
+  "withDiffs": 7,
+  "withNovelFields": 7,
+  "benefitTypes": {
+    "service": 8,
+    "financial": 3,
+    "employment": 1,
+    "advocacy": 1,
+    "service|advocacy": 1
+  },
+  "variationPatterns": {
+    "individual_needs": 1,
+    "not_applicable — all participants receive the same comprehensive benefit package regardless of payment source[4]": 1,
+    "priority_tier": 4,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "not_applicable": 3,
+    "priority_tier|region": 1,
+    "fixed": 1,
+    "region": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 7,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Food Assistance (SNAP)",
+        "Low-Income Energy Assistance Program (LIHEAP)",
+        "Senior Health Insurance Counseling for Kansas (SHICK)",
+        "Caregiver Support Programs",
+        "Kansas Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 7,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Food Assistance (SNAP)",
+        "Low-Income Energy Assistance Program (LIHEAP)",
+        "Senior Health Insurance Counseling for Kansas (SHICK)",
+        "Caregiver Support Programs",
+        "Kansas Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 4,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Senior Health Insurance Counseling for Kansas (SHICK)",
+        "Caregiver Support Programs",
+        "Kansas Legal Services (Legal Aid for Seniors)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 7,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Food Assistance (SNAP)",
+        "Low-Income Energy Assistance Program (LIHEAP)",
+        "Senior Health Insurance Counseling for Kansas (SHICK)",
+        "Caregiver Support Programs",
+        "Kansas Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Food Assistance (SNAP)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "KanCare Frail Elderly Waiver (FE Waiver)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No fixed income limit but patient liability of $2,982/month (2026); NFLOC via FAI assessment; statewide with waitlist due to slot limits; ties to underlying Medicaid eligibility",
+      "gotchas": [
+        "Must first qualify for KanCare Medicaid; waiver denial if not financially eligible[2]",
+        "60-month Look-Back Rule on asset transfers leads to penalty periods[1]",
+        "Limited slots create waitlists; not guaranteed immediate access[3]",
+        "Services require prior authorization via POC; no coverage for room/board[4][5]",
+        "Home equity limit $752,000 (2026); intent to return required for exemption[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "individual_needs",
+      "officialSource": "https://khap.kdhe.ks.gov/KEESM/Oct_2020_Output/keesm8210.htm (KDADS policy); https://portal.kmap-state-ks.us/Documents/Provider/Provider%20Manuals/HCBS_FE_24281_24277.pdf (HCBS FE Provider Manual)[3][4]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$967",
+          "found": "$2,901",
+          "source": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive package including: all Medicaid-covered services, multidisciplinary assessment and treatment planning, primary care (physician and nursing), social work services, restorative therapies (physical therapy, occupational therapy, speech-language pathology), personal care and supportive services, nutritional counseling, recreational therapy, transportation, meals, and medical specialty services[4]",
+          "source": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits for PACE eligibility itself[3]. For Medicaid-funded PACE: assets must be $2,000 or less, excluding primary home and one automobile[2][5].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Three approved PACE providers serve different regions of Kansas[1][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources — contact PACE provider for required documentation",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACE in Kansas is geographically restricted to three provider service areas, making location the primary eligibility barrier. No income/asset test for PACE itself, but funding source (Medicare/Medicaid vs. private pay) dramatically affects cost. Dual-eligible status is nearly universal among participants. Age 55-64 cohort faces additional disability verification requirement. All participants receive identical comprehensive benefit package regardless of payment source.",
+      "gotchas": [
+        "PACE is NOT available statewide — you must live in one of three specific service areas to qualify[1][4]",
+        "No income or asset limits for PACE itself, but ~99% of participants are dual-eligible (Medicare + Medicaid) because Medicaid covers most costs[5]. Private pay is possible but costs $7,000+/month or $200-900/month share of cost[5]",
+        "You cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or prescription drug plans to join PACE[3] — this is a common barrier for seniors already in MA plans",
+        "Persons age 55-64 face an additional hurdle: must be determined disabled by Social Security standards, not just need nursing home level of care[1]",
+        "Must be able to live safely in community at enrollment — PACE is not for those requiring immediate institutional care[3][7]",
+        "Medicaid eligibility pathways are complex and state-specific; not meeting standard income/asset limits doesn't disqualify you — Medicaid Planning Professionals can help explore alternative pathways[2]",
+        "Average PACE participant is 76 years old with multiple complex conditions[3] — program is designed for frail elderly with significant needs"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable — all participants receive the same comprehensive benefit package regardless of payment source[4]",
+      "officialSource": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State-administered with federal FPL-based tiers (QMB 100%, SLMB 120%, QI 135%); income/assets for individual/couple only (no larger household table); annual updates and QI caps create variability; local DCF application required, no central online portal.",
+      "gotchas": [
+        "Income/resource limits change annually (Feb/May FPL updates); always confirm current via 1-800-792-4884[5][6][8].",
+        "QI requires annual reapplication and may have funding caps/waitlists[2].",
+        "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays possible[2].",
+        "Auto-qualifies for Extra Help, but must report changes promptly.",
+        "Not full Medicaid; doesn't cover long-term care.",
+        "Outdated web data (e.g., 2022 limits); use state sources for 2026[1][4].",
+        "Married couple limits apply if both on Medicare; household size mainly 1-2."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://khap.kdhe.ks.gov (Kansas Department of Health and Environment/Kansas Health Assistance Programs); local DCF centers"
+    },
+    {
+      "name": "Food Assistance (SNAP)",
+      "isNew": false,
+      "existingId": "kansas-food-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1922",
+          "found": "$15,060",
+          "source": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Maximum allotments (Oct 2025-Sept 2026, 48 states): 1-person $298; 2 $546; 3 $785; 4 $994; 5 $1,183; 6 $1,421; 7 $1,571; 8 $1,789 (+$218 each additional). Actual amount: max allotment minus 30% of net income.[4]",
+          "source": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets below $2,750, or $4,250 if a household member is elderly (60+) or disabled. Countable: cash, bank accounts, non-exempt property. Exempt: primary home, household goods, retirement savings, life insurance cash value (varies), income-producing property (details via DCF).[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Households with a member 60+ or disabled are exempt from the gross income limit (130% FPL) and only need to meet the net income limit. For example, 2025 limits: $15,060 gross/month for 1 person, $20,440 for 2 (general reference; Kansas uses expanded rules for elderly). Net income is gross minus deductions like standard $209, medical over $35 for elderly/disabled, shelter (rent/utilities exceeding 50% income after other deductions, capped at $744 unless elderly/disabled). Social Security, pensions, VA/disability count as income.[1][2][3][4][6]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by county DCF offices; potential processing/wait differences by county, but no specific variations detailed.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID, residency, income (pay stubs, Social Security award letters, pensions), expenses (medical bills over $35/month for elderly, rent/utilities, shelter costs), citizenship/immigration status, assets."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled exempt from gross income test; higher asset limit; deductions for medical/shelter uncapped for them; county-based application; benefits scale by household size and net income.",
+      "gotchas": [
+        "Elderly households skip gross income test but must meet net income and assets; deduct high medical/shelter costs.",
+        "No broad-based categorical eligibility in Kansas (stricter than some states).",
+        "Assets include countable resources; exemptions often missed (e.g., home exempt).",
+        "Social Security/pensions count as income.",
+        "Apply in correct county; authorized reps allowed for mobility issues."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx"
+    },
+    {
+      "name": "Low-Income Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "low-income-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$3091",
+          "found": "$1,956",
+          "source": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment to help meet home energy costs (heating fuel); exact amount varies by household income, size, dwelling type, heating fuel type, and utility rates. Subject to available federal funding.[4][6]",
+          "source": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Available resources are considered in eligibility, but no specific dollar limits or exemptions detailed in sources.[4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Submitted to designated DCF Regional LIEAP processing offices; possible differences in events/wait times, but no specific variations detailed.[3][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (earned/unearned) for all in residence (e.g., VA/SSA/SSI/pension award letters, recent tax return for self-employment).[2][6]",
+            "Copies of fuel bills (gas, electric, propane, etc.).[2]",
+            "Proof of child support payments or court order.[2]",
+            "Rental/lease agreement if heating in rent, subsidized housing, or bills in landlord's name.[2]",
+            "Other info as requested.[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income based on full household at address (not just applicant family); varies by income/size/fuel/dwelling/utility rates; seasonal app period ends late March; regional DCF processing.",
+      "gotchas": [
+        "Everyone at the address (not just applicant) income counted, unlike TANF/FA which may exclude others.[5]",
+        "Must be personally responsible for heating costs; ineligible if fully included in subsidized rent.[2][5]",
+        "College students don't count unless living full-time at home (no dorms/apartments).[1]",
+        "Separate LIEAP app required, not auto from other benefits; application period only (e.g., 2026: Jan 20-Mar 31).[4][5]",
+        "No duplicates with tribal programs; one benefit per year.[1]",
+        "Legally incapacitated ineligible without guardian.[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide via KHRC with regional subgrantees; priority for SSI/TAF/LIEAP households; 15-year repeat restriction; income at 200% FPL or categorical eligibility; free services only after audit.",
+      "gotchas": [
+        "No services if home weatherized in past 15 years (unless disaster exception); no repeats of prior measures[1][2].",
+        "Renters need landlord permission and agreement not to raise rent for 2 years[6].",
+        "Active utilities required; home must be occupiable without major safety/structural issues[1][2].",
+        "Eligibility prioritizes SSI/TAF/LIEAP recipients; income verification strictly required for past 12 months[1][2].",
+        "Apply via local provider, not centrally; find agency by region[3][4][6][8]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://kshousingcorp.org/weatherization-assistance"
+    },
+    {
+      "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
+      "isNew": false,
+      "existingId": "senior-health-insurance-counseling-for-kansas",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "Free counseling service",
+          "found": "Free, confidential, one-on-one counseling on Medicare (Parts A-D), Medicare Supplement (Medigap), Medicare Advantage, prescription drug coverage (Part D), Extra Help, long-term care insurance, claims/appeals, supplemental rate comparisons, employer group plans, Medicaid, and other health insurance options; public education presentations; available Monday-Friday, typically 8:30 a.m.-3 p.m. or 8 a.m.-5 p.m. via phone or in-person[1][2][3][4][5][7][8]",
+          "source": "https://www.kdads.ks.gov/services-programs/aging/medicare-programs/senior-health-insurance-counseling-for-kansas-shick"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.kdads.ks.gov/services-programs/aging/medicare-programs/senior-health-insurance-counseling-for-kansas-shick"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[2][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through local Area Agencies on Aging and volunteer counselors with regional contacts and offices (e.g., Central Plains AAA in Wichita: 800-367-7298 ext. 5132, Wyandotte/Leavenworth AAA in Kansas City: 888-661-1444); no differences in services, but local providers handle appointments[1][5][6][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No waitlist mentioned; appointments available via phone[1][2][4][5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance documents, prescription lists recommended for counseling sessions but not mandatory for scheduling[7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; counseling service via statewide volunteer network through Area Agencies on Aging; part of federal SHIP program",
+      "gotchas": [
+        "Not an insurance provider or sales program—counselors are independent volunteers not affiliated with insurers[1][2][4][8]",
+        "Busy during Medicare Open Enrollment (mid-October to early December), so call early[6]",
+        "Free service, not financial aid or direct healthcare—focuses on education and assistance[2][7]",
+        "Available to anyone with Medicare questions, not just seniors[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.kdads.ks.gov/services-programs/aging/medicare-programs/senior-health-insurance-counseling-for-kansas-shick"
+    },
+    {
+      "name": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income or asset limits statewide; priority on age 60+ and spouses; delivered via 15 local Area Agencies on Aging with potential regional capacity differences; requires local assessment for home-delivered.",
+      "gotchas": [
+        "No statewide income test, but local providers determine full eligibility including homebound status for delivery—always confirm locally.[2]",
+        "Spouses qualify regardless of age, unlike some programs requiring 60+ for all.[2]",
+        "Funded under Older Americans Act; availability tied to federal/local funding and capacity.[2]",
+        "Distinct from Kansas Senior Farmers Market Nutrition Program, which has strict 185% FPL income limits and provides produce coupons only.[1][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.kdads.ks.gov/services-programs/aging/kansas-senior-nutrition-program[2]"
+    },
+    {
+      "name": "Caregiver Support Programs",
+      "isNew": false,
+      "existingId": "family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Respite care, personal care, homemaker services, support services; K-RAD subsidizes up to $1,000/year per care recipient for respite (paid to provider).[5][6] Specifics vary by waiver (e.g., HCBS for frail elderly).[1]",
+          "source": "https://www.kdads.ks.gov/services-programs/aging/caregivers"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.kdads.ks.gov/services-programs/aging/caregivers"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified; no asset tests detailed for caregiver support programs.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local Area Agencies on Aging (e.g., Northeast Kansas AAA, East Central AAA); services, providers, funding availability differ by region.[2][5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Funding limited, no awards guaranteed; potential wait if funds exhausted.[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not explicitly listed; may include proof of caregiver status, care recipient diagnosis (e.g., Alzheimer's for K-RAD), background check for paid roles.[1][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Decentralized by Area Agencies on Aging and waivers; no uniform income/asset tables; ties to Medicaid level of care; regional providers and limited funding pools.",
+      "gotchas": [
+        "Not a single program but network of waivers (e.g., Frail Elderly, I/DD) and local AAA services; requires nursing facility level of care determination.[1]",
+        "Funding limited (e.g., K-RAD $1,000 cap, first-come).[5]",
+        "Often requires enrollment in Medicaid/KanCare; spouses/family may qualify but need to live with care recipient and pass checks.[1]",
+        "Varies county-to-county; contact local AAA essential.[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.kdads.ks.gov/services-programs/aging/caregivers"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCSEP in Kansas is administered through multiple state and national nonprofit providers rather than a single centralized system. Income eligibility is pegged to federal poverty guidelines (125% threshold) but specific dollar amounts are not published in these sources and must be obtained from local providers. The program prioritizes certain populations (veterans, seniors over 65, disabled individuals, rural residents) which may affect application processing. No information is available on processing times, waitlists, or required documentation. Families must contact their local provider directly for application specifics.",
+      "gotchas": [
+        "Income limit is strict: 125% of federal poverty level, not higher[2][6]. Families must verify exact dollar threshold for their household size before applying.",
+        "Program is subsidized training, not permanent employment. It serves as a bridge to unsubsidized employment[2][7]. Participants should expect to transition to regular jobs after training.",
+        "Only 20 hours per week on average[2][7]—this is part-time work, not full-time employment.",
+        "Enrollment priority system means some applicants may wait longer than others depending on their circumstances (age, veteran status, disability, etc.)[2].",
+        "Multiple providers operate SCSEP in Kansas (SER, AARP, others through WorkforceONE). The specific provider and services available may vary by location.",
+        "Program requires participants to be unemployed and have poor employment prospects[2][6]—those with recent employment or strong job prospects may not qualify.",
+        "Digital literacy training is now a component of some SCSEP programs, particularly through AARP Foundation[4], but availability varies by provider."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.kansascommerce.gov/program/workforce-services/state-of-kansas-senior-employment-services/"
+    },
+    {
+      "name": "Kansas Legal Services (Legal Aid for Seniors)",
+      "isNew": false,
+      "existingId": "legal-assistance-for-older-kansans",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Advice, document preparation, limited case representation, legal consultations on estate planning, advance directives, powers-of-attorney, living wills, consumer advocacy, public benefits access, elder abuse prevention; Elder Law Hotline provides free legal advice (no drafting pleadings or full representation); public education on elders' rights.",
+          "source": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits specified for senior legal aid programs. (Note: Separate Medicare Extra Help asset limits mentioned—$14,610 single/$29,160 married—but not applicable to KLS senior legal services; excludes home, vehicles, personal possessions, life insurance, burial plots/contracts, back payments.)",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "In-person consultations limited in some areas (e.g., Johnson County three sites); hotline statewide to address rural mobility issues; cooperates with Area Agencies on Aging.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Services subject to availability of funding; no specific waitlist details.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Household size, exact income details (hourly rate/hours, gross salary), rent/mortgage, fixed debts, child support, medical debt, identifying information, name of opposing party in legal issue"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No fixed income/asset tests for seniors (unlike general KLS); priority-based on vulnerability; hotline statewide with no eligibility barriers beyond age/residency; local in-person varies (e.g., 3 Johnson County centers); services limited scope (advice/document prep, not full representation).",
+      "gotchas": [
+        "Elder Hotline provides advice only—no document drafting or court representation; may need to seek private attorney afterward.",
+        "Services subject to funding availability; priority to most vulnerable.",
+        "No criminal cases; civil only.",
+        "Intake asks detailed financial/opposing party info.",
+        "Johnson County in-person limited to specific sites/appointments."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Identify, investigate, and resolve complaints; provide information on long-term care services and resident rights; advocate for improvements in quality of life and care; represent interests before agencies; ensure access to services; handle issues from daily care to food service while protecting privacy and confidentiality[1][3][4][7]",
+          "source": "https://www.ombudsman.ks.gov[8]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ombudsman.ks.gov[8]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[1][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through regional ombudsman offices with local contacts, supervision, and training; find specific office via program website[1][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No specific documents needed; provide details of the concern or complaint[1][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy services only for long-term care facility residents; regional delivery model; open to all without application",
+      "gotchas": [
+        "Not a financial aid or direct service program—provides advocacy only, not healthcare, housing, or payments[1][3][4]",
+        "Distinct from KanCare Ombudsman, which handles Medicaid issues[4]",
+        "Anyone can contact (residents, families, staff, community members)—no 'qualification' process[4][5]",
+        "Volunteering requires training and checks, but receiving services does not[1]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.ombudsman.ks.gov[8]"
+    },
+    {
+      "name": "Senior Care Act Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered regionally via 11 AAAs with county-specific services and providers; sliding fee scale ties benefits to income/assets; functional assessment drives plan of care; self-direction option unique for family/friend caregivers",
+      "gotchas": [
+        "Services are not free—sliding fee scale based on income/assets (donation to 100% cost); not entitlement program",
+        "Functional assessment required to qualify; dementia diagnosis alone insufficient",
+        "Varies significantly by county/AAA—must contact local AAA for exact services available",
+        "Early intervention focus, not long-term like Medicaid waivers; self-pay portion common",
+        "Income guidelines change annually in July"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.kdads.ks.gov/services-programs/aging/senior-care-act-sca"
+    },
+    {
+      "name": "Senior Citizen Law Project (SCLP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCLP eligibility is based on 'greatest economic need' and 'greatest social need' rather than strict income cutoffs. The program is statewide but delivered through regional Area Agencies on Aging. The Elder Law Hotline (a related but distinct service) has no income test and serves as an entry point. Specific dollar amounts, household tables, asset limits, processing times, and detailed application procedures are not provided in the available search results and require direct contact with Kansas Legal Services or local Area Agencies on Aging.",
+      "gotchas": [
+        "No income eligibility requirement for the Elder Law Hotline component, but SCLP itself targets those in greatest economic and social need—clarify which service applies to your situation.[2][7]",
+        "Search results do not provide specific dollar amounts for income thresholds, household-size tables, or asset limits—you must contact the program directly for precise eligibility determination.",
+        "Processing time and waitlist information not available in search results; contact the program to understand current delays.",
+        "Program is designed to help low-income, isolated, and/or institutionalized older persons, but even those not meeting strict criteria may receive consultation.[5]",
+        "The program prioritizes cases involving elder abuse, healthcare access, and financial assistance—other legal matters may have lower priority or be referred elsewhere."
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+    }
+  ]
+}

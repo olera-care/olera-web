@@ -69,8 +69,8 @@ function MedJobsOnboardContent() {
 
   const initRef = useRef(false);
 
-  // Redirect URL for interviews page
-  const interviewsUrl = "/portal/medjobs/interviews";
+  // Redirect URL for provider interviews page
+  const interviewsUrl = "/provider/caregivers";
 
   // Initialize: validate token, show interview immediately, auto-sign-in in background
   useEffect(() => {
@@ -306,7 +306,7 @@ function MedJobsOnboardContent() {
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">You&apos;re all set!</h1>
           <p className="text-gray-500 mb-6">Your account is ready. View your interviews to confirm or manage your schedule.</p>
           <button
-            onClick={() => router.push(interviewsUrl)}
+            onClick={() => { window.location.href = interviewsUrl; }}
             className="px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors"
           >
             View Interviews
@@ -330,12 +330,12 @@ function MedJobsOnboardContent() {
             Olera
           </Link>
           {isSignedIn && (
-            <Link
+            <a
               href={interviewsUrl}
               className="text-sm font-medium text-primary-600 hover:text-primary-700"
             >
               View all interviews →
-            </Link>
+            </a>
           )}
         </div>
       </header>
@@ -433,16 +433,22 @@ function MedJobsOnboardContent() {
               </span>
             </div>
 
+            {/* Full page navigation (not router.push) ensures auth cookies are sent */}
             <button
-              onClick={() => router.push(interviewsUrl)}
-              className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              onClick={() => { window.location.href = interviewsUrl; }}
+              disabled={!isSignedIn}
+              className={`w-full py-3 font-semibold rounded-xl transition-colors ${
+                isSignedIn
+                  ? "bg-primary-600 hover:bg-primary-700 text-white"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
             >
-              {isSignedIn ? "View All Interviews" : "View All Interviews"}
+              {isSignedIn ? "View All Interviews" : "Setting up your account..."}
             </button>
 
             {!isSignedIn && (
               <p className="mt-3 text-center text-xs text-gray-500">
-                Signing you in automatically...
+                This usually takes a few seconds.
               </p>
             )}
           </div>

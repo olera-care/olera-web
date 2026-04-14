@@ -1,0 +1,2051 @@
+{
+  "state": "GA",
+  "stateName": "Georgia",
+  "draftedAt": "2026-04-13T22:29:50.196Z",
+  "total": 11,
+  "successful": 11,
+  "programs": [
+    {
+      "id": "ccsp-home-care",
+      "name": "Community Care Services Program (CCSP)",
+      "shortName": "CCSP Home Care",
+      "tagline": "Home care services to help your parent avoid nursing home placement while staying on Medicaid",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging (contact via 866-552-4464 for local)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, CCSP provides home care services as an alternative to nursing home placement. The program covers personal care, meal preparation, light housekeeping, respite care, and home-delivered meals — all while your parent stays in their own home.\n\nBecause CCSP is a Medicaid waiver program, it follows nursing home financial eligibility rules. Your parent must qualify for intermediate nursing facility level of care (a clinical assessment of whether they need daily assistance with basic activities). Services are limited to the average annual cost of Medicaid nursing facility care in Georgia.\n\nThe program operates through 12 regional Area Agencies on Aging statewide, but waitlists are common because the program prioritizes those with the greatest need.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or disabled under 65)",
+          "Need daily help with bathing, dressing, or medication",
+          "Meet Medicaid nursing home income limits",
+          "Georgia resident",
+          "Assets under $121,220 if married"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": 121220,
+          "countedAssets": [
+            "Bank accounts",
+            "Investment accounts",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $752,000 equity if living there)",
+            "Home if spouse or dependent relative lives there",
+            "Pre-need burial contracts"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must require intermediate Nursing Facility Level of Care — assessed through functional evaluation of daily activities like mobility, eating, toileting, meal preparation, and money management",
+        "otherRequirements": [
+          "Georgia resident",
+          "Choose community-based care over nursing home",
+          "Physician approval of care plan",
+          "Can live safely in community with services",
+          "Participate in only one waiver program at a time"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional Area Agency on Aging for functional assessment — Medicaid application comes after CCSP evaluation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for initial screening",
+            "description": "Call 1-866-55-AGING (866-552-4464) to reach your regional Area Agency on Aging. They will conduct intake screening and determine if your parent meets basic eligibility."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional assessment",
+            "description": "Schedule Determination of Need Functional Assessment-Revised (DON-R) and Minimum Data Set Home Care (MDS-HC) to evaluate your parent's need for daily assistance with activities."
+          },
+          {
+            "step": 3,
+            "title": "Get physician approval",
+            "description": "Your parent's doctor must approve the care plan and confirm they need intermediate nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Apply for Medicaid",
+            "description": "After CCSP assessment, apply for Medicaid through your county Department of Family and Children Services office."
+          },
+          {
+            "step": 5,
+            "title": "Wait for prioritization",
+            "description": "If approved, you may be placed on a waitlist. The program prioritizes those with the greatest unmet care needs."
+          }
+        ],
+        "processingTime": "Not specified — depends on assessment scheduling and Medicaid processing",
+        "waitlist": "Possible — program prioritizes those most in need",
+        "tip": "Start with the functional assessment even if you're not sure about Medicaid eligibility — the evaluation determines if your parent qualifies medically before financial review.",
+        "urls": [
+          {
+            "label": "Georgia Division of Aging Services",
+            "url": "https://aging.georgia.gov"
+          },
+          {
+            "label": "Apply for Elderly and Disabled Waiver",
+            "url": "https://georgia.gov/apply-elderly-and-disabled-waiver-program"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for your parent and spouse",
+        "Medicare card (both parts A and B)",
+        "Proof of Georgia residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities, trust agreements)",
+        "Property documents (deeds, tax statements)",
+        "Life insurance policies with face values",
+        "Vehicle titles and registration",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medical records documenting functional impairment",
+        "Physician statement confirming need for intermediate nursing facility level of care",
+        "Verification of citizenship or legal residency"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia Area Agencies on Aging",
+          "phone": "(866) 552-4464",
+          "description": "Primary contact for CCSP assessment and intake",
+          "hours": "Business hours vary by region"
+        },
+        {
+          "label": "Coastal Georgia AAA (example region)",
+          "phone": "(800) 580-6860",
+          "description": "Regional contact for coastal counties",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "General social services helpline for referrals",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You may be potentially Medicaid eligible only after CCSP admission — the functional assessment comes before financial eligibility",
+        "The home may be subject to Medicaid Estate Recovery after your parent's death, even though it's exempt during benefits",
+        "Regional variations exist in providers and waitlist times — some Area Agencies have more immediate availability than others",
+        "Your parent must choose between CCSP and other waiver programs — they cannot participate in multiple waivers simultaneously"
+      ],
+      "relatedPrograms": [
+        "Georgia Medicaid",
+        "SNAP (Food Stamps)",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Medicare Savings Programs"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $752,000?",
+          "answer": "No, if your parent lives in the home or intends to return, home equity cannot exceed $752,000 in 2026. However, the home is completely exempt if a spouse, dependent child, or certain relatives live there regardless of value."
+        },
+        {
+          "question": "What happens if my parent needs more care than CCSP provides?",
+          "answer": "CCSP services are capped at the average annual cost of nursing facility care in Georgia. If your parent's needs exceed this limit, they may need to transition to nursing home care or supplement with private-pay services."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Waitlist times vary by region and your parent's priority level based on unmet care needs. Those with the greatest functional impairment and least family support get priority. Contact your regional Area Agency on Aging at 866-552-4464 for current wait times."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can initiate the application process. However, your parent must participate in the functional assessment, and you may need power of attorney or guardianship to complete financial portions of the Medicaid application."
+        },
+        {
+          "question": "Can my parent get CCSP and other Medicaid waiver services at the same time?",
+          "answer": "No, your parent can only participate in one waiver program at a time. They must choose between CCSP and other Georgia Medicaid waivers like the Comprehensive Supports Waiver."
+        },
+        {
+          "question": "What if my parent's income is slightly over the Medicaid limit?",
+          "answer": "SSI recipients automatically qualify financially. For others, Georgia follows complex Medicaid nursing facility income rules. Contact your county Department of Family and Children Services to determine eligibility based on your parent's specific situation."
+        },
+        {
+          "question": "Does CCSP cover 24-hour care?",
+          "answer": "No, CCSP provides intermittent services like personal care visits, meal delivery, and respite care. If your parent needs 24-hour supervision, they may not be appropriate for community-based care and might need nursing facility placement."
+        },
+        {
+          "question": "What happens to my parent's estate after they die?",
+          "answer": "Georgia may pursue Medicaid Estate Recovery to recoup costs from your parent's estate, including the home. However, recovery is postponed if a surviving spouse lives in the home, and there are other protections for certain family members."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(866) 552-4464",
+      "sourceUrl": "https://aging.georgia.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "home-community-based-services",
+      "name": "Home & Community-Based Services Program",
+      "shortName": "Georgia HCBS",
+      "tagline": "Get personal care, homemaker services, and adult day care so your parent can stay home instead of entering a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with daily tasks like bathing, dressing, or meal preparation but wants to avoid nursing home placement, Georgia's Home & Community-Based Services Program provides in-home personal care, homemaker services, adult day care, and respite care. Your parent must be 65+, qualify for Georgia Medicaid, and meet nursing home level of care requirements through a clinical assessment.\n\nBecause this is a Medicaid waiver program with enrollment caps, there are often waiting lists. The program prioritizes those with the greatest need first. A registered nurse will visit your parent's home to conduct the required Minimum Data Set Home Care (MDS-HC) assessment to determine if they need daily help with activities like transferring, mobility, eating, toileting, or have cognitive issues like dementia.\n\nWhile your parent can keep their home (if equity is under $752,000 in 2026), Georgia will pursue Estate Recovery after death to recoup costs from the estate, including the home. The 60-month look-back rule penalizes any asset transfers below fair market value made in the five years before applying.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Georgia Medicaid eligible",
+          "Meet nursing home level of care",
+          "Georgia resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity ≤ $752,000)",
+            "One vehicle",
+            "Household furnishings and appliances",
+            "Personal effects"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through MDS-HC assessment showing impairments in daily activities (transferring, mobility, eating, toileting, meal prep, money management, housework) or cognitive issues like dementia",
+        "otherRequirements": [
+          "Must qualify for Georgia Medicaid first",
+          "Must be Georgia resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging to start the Medicaid application process, then schedule the required in-home nursing assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Georgia Medicaid",
+            "description": "Contact your local Area Agency on Aging or Department of Community Health to begin the Medicaid application process. You must qualify for Medicaid before accessing HCBS services."
+          },
+          {
+            "step": 2,
+            "title": "Request HCBS assessment",
+            "description": "Once Medicaid-eligible, request the Home & Community-Based Services assessment through your Area Agency on Aging."
+          },
+          {
+            "step": 3,
+            "title": "Complete MDS-HC assessment",
+            "description": "A registered nurse will visit your parent's home to conduct the Minimum Data Set Home Care assessment to determine if they meet nursing home level of care requirements."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval and enrollment",
+            "description": "If approved, you'll be placed on the enrollment list. Due to caps on enrollment, there may be a waiting period before services begin."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Often waiting lists due to enrollment caps set by the state",
+        "tip": "Apply early and be prepared for potential wait times. Priority goes to those with the greatest documented need.",
+        "urls": [
+          {
+            "label": "Georgia Department of Community Health HCBS",
+            "url": "https://dch.georgia.gov/programs/hcbs"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for applicant and spouse",
+        "Medicare card (both parts A and B)",
+        "Birth certificate or passport for proof of age",
+        "Proof of Georgia residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities, trust agreements)",
+        "Property documents (deeds, tax statements)",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medical records documenting functional limitations",
+        "Current medication list from physician",
+        "Documentation of existing home care services"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia Department of Community Health",
+          "phone": null,
+          "description": "Primary state agency for HCBS program information",
+          "hours": null
+        },
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to connect with local Area Agency on Aging",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You cannot apply directly for HCBS - you must first qualify for Georgia Medicaid",
+        "The MDS-HC assessment must be conducted in person at your parent's home by a registered nurse",
+        "Don't confuse this with non-Medicaid HCBS programs for seniors 60+ that use sliding scale fees",
+        "Estate Recovery will pursue reimbursement from your parent's estate after death, including the home"
+      ],
+      "relatedPrograms": [
+        "Georgia Medicaid",
+        "SNAP (Food Stamps)",
+        "LIHEAP Energy Assistance",
+        "Medicare Savings Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, your parent can keep their primary home as long as the equity doesn't exceed $752,000 in 2026 and they live there or intend to return. However, Georgia will pursue Estate Recovery after death to recoup program costs from the home and other estate assets."
+        },
+        {
+          "question": "What if my parent needs help but doesn't meet nursing home level of care?",
+          "answer": "This program is only for seniors who meet nursing home level of care requirements through the MDS-HC assessment. If your parent needs lighter assistance, look into Georgia's non-Medicaid HCBS programs for seniors 60+ that use sliding scale fees based on income."
+        },
+        {
+          "question": "How long is the waiting list really?",
+          "answer": "Wait times vary by region and are not specified by the state. Because Georgia caps enrollment in this program, waiting lists are common. Priority goes to those with the greatest documented need first."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, adult children can apply on behalf of a parent with cognitive impairment. You may need to become their authorized representative or have power of attorney to complete the application and make decisions about their care."
+        },
+        {
+          "question": "What happens if my parent transfers assets to qualify?",
+          "answer": "Georgia looks back 60 months for any asset transfers below fair market value. Transfers during this period will create a penalty period where your parent is ineligible for services, even if they otherwise qualify."
+        },
+        {
+          "question": "Can my parent get both Medicare home health and HCBS services?",
+          "answer": "Yes, but the services can't duplicate each other. Medicare covers skilled nursing and therapy visits, while HCBS covers personal care, homemaker services, and adult day care that Medicare doesn't cover."
+        },
+        {
+          "question": "What if my parent's needs change after enrollment?",
+          "answer": "Your parent will have periodic reassessments to determine if their care needs have changed. Services can be increased if needs grow, or decreased if they improve, based on the updated MDS-HC assessment."
+        },
+        {
+          "question": "Do I have to choose between this program and nursing home care?",
+          "answer": "No, if your parent's needs become too great for home-based care, they can transition to nursing home care covered by Medicaid. The goal is to delay or prevent nursing home placement as long as safely possible."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "2-1-1",
+      "sourceUrl": "https://dch.georgia.gov/programs/hcbs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "medicare-savings-programs",
+      "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Get help paying Medicare premiums and costs if your parent's income is below $1,660/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Department of Family & Children Services (DFCS) offices; SHIP counselors statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and limited income, Georgia's Medicare Savings Programs can pay their Medicare premiums and out-of-pocket costs. The three programs — QMB, SLMB, and QI — save between $2,435 and $6,000+ per year by covering Medicare Part B premiums ($202.90/month in 2026) and, for QMB enrollees, all Medicare deductibles and copayments.\n\nQMB (Qualified Medicare Beneficiary) provides the most help for parents earning up to $1,325/month ($1,783 for couples). SLMB and QI cover only the Part B premium for slightly higher incomes up to $1,660/month for individuals. Because QMB enrollees cannot be billed by providers for Medicare cost-sharing, it works like comprehensive Medigap coverage. All three programs automatically qualify your parent for Extra Help with prescription drug costs.\n\nThese programs fill the gap for parents who earn too much for full Medicaid but struggle with Medicare costs. Apply early in the year for QI — funding is limited and eligible applicants can be denied once the federal allocation runs out.",
+      "savingsRange": "$2,435 – $6,000+/year in 2026",
+      "savingsSource": "Part B premium savings ($2,435/year) plus Medicare cost-sharing for QMB enrollees",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Have Medicare Part A",
+          "Income below $1,325-$1,660/month (varies by program)",
+          "Assets below $9,090 individual/$13,630 couple",
+          "Georgia resident",
+          "Not eligible for full Medicaid"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1325,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1783,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1478,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1992,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1660,
+            "program": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2239,
+            "program": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9090,
+          "couple": 13630,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Investment accounts",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Irrevocable burial trusts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A",
+          "U.S. citizen or qualified immigrant",
+          "Georgia resident",
+          "Not eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Georgia Gateway online or call SHIP at 1-866-552-4464 — processing typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Medicare card, Social Security award letters, bank statements from last 3 months, and proof of Georgia residency before starting your application."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Apply online at Georgia Gateway (gateway.ga.gov) using the Medicaid application, call Georgia SHIP at 1-866-552-4464 (Option 4), or visit your local DFCS office."
+          },
+          {
+            "step": 3,
+            "title": "Submit complete application",
+            "description": "Use the Georgia Medicaid Application (J2F form) and select Medicare Savings Program. Include all required documentation to avoid delays."
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility determination",
+            "description": "Processing takes up to 45 days. SLMB and QI can provide up to 3 months retroactive coverage with premium refunds if approved."
+          },
+          {
+            "step": 5,
+            "title": "Receive benefits",
+            "description": "QMB benefits start the month after approval. SLMB and QI members receive Medicare Part B premium payments directly to Medicare."
+          }
+        ],
+        "processingTime": "Up to 45 days from complete application",
+        "waitlist": "QI may have waitlist or reach funding cap during the year — apply early",
+        "tip": "Apply for QI early in the calendar year — it's funded by a limited federal block grant and eligible people can be denied once funds run out.",
+        "urls": [
+          {
+            "label": "Georgia Gateway (Online Application)",
+            "url": "https://gateway.ga.gov"
+          },
+          {
+            "label": "Georgia Medicaid Medicare Savings Programs",
+            "url": "https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (showing Parts A and B)",
+        "Social Security award letter or SSI award letter",
+        "Pay stubs from last 3 months (if working)",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Birth certificate or proof of age",
+        "Social Security card",
+        "Proof of Georgia residency (utility bill, lease, or state-issued document)",
+        "Proof of U.S. citizenship or qualified immigrant status",
+        "Life insurance policies with face values",
+        "Vehicle titles and registration",
+        "Property documents (deeds, tax statements) if you own real estate",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Documentation of any other income sources"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia SHIP (Medicare Help)",
+          "phone": "1-866-552-4464",
+          "description": "Press Option 4 for Medicare Savings Program assistance",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "Georgia Medicaid Customer Service",
+          "phone": "1-877-423-4746",
+          "description": "Questions about Medicaid applications and eligibility",
+          "hours": "Mon-Fri 8am-6pm ET"
+        },
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "General assistance finding local DFCS offices and social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "QI funding is limited by federal block grant — eligible applicants may be denied if funds are exhausted for the year",
+        "Income and asset limits update every April 1 — confirm current figures at medicaid.georgia.gov before applying",
+        "QMB protects your parent from provider billing for Medicare cost-sharing, but providers can still bill for non-Medicare covered services",
+        "Asset limits include your parent's spouse's assets even if the spouse is not applying for the program"
+      ],
+      "relatedPrograms": [
+        "Georgia Medicaid",
+        "Medicare Part D Extra Help",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low Income Home Energy Assistance Program (LIHEAP)"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Program Comparison: QMB vs SLMB vs QI",
+          "content": [
+            {
+              "program": "QMB (Qualified Medicare Beneficiary)",
+              "incomeLimit": "Up to $1,325/month individual, $1,783/month couple",
+              "benefits": "Pays Part B premium ($202.90/month) + ALL Medicare deductibles, coinsurance, and copayments. Providers cannot bill you.",
+              "savings": "$6,000+ per year"
+            },
+            {
+              "program": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "incomeLimit": "$1,326-$1,478/month individual, $1,784-$1,992/month couple",
+              "benefits": "Pays Part B premium ($202.90/month) only",
+              "savings": "$2,435 per year"
+            },
+            {
+              "program": "QI (Qualifying Individual)",
+              "incomeLimit": "$1,479-$1,660/month individual, $1,993-$2,239/month couple",
+              "benefits": "Pays Part B premium ($202.90/month) only",
+              "savings": "$2,435 per year"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. Only countable assets like bank accounts, stocks, and second vehicles count toward the $9,090 individual/$13,630 couple limit."
+        },
+        {
+          "question": "What happens if my parent gets approved for QMB and a provider still sends bills?",
+          "answer": "Providers cannot legally bill QMB enrollees for Medicare deductibles, coinsurance, or copayments. Contact the provider's billing department with your parent's QMB card, and if they continue billing, report them to Georgia Medicaid at 1-877-423-4746."
+        },
+        {
+          "question": "Can I apply for Medicare Savings Programs and SNAP at the same time?",
+          "answer": "Yes, you can apply for both programs simultaneously through Georgia Gateway or your local DFCS office. Both use similar income documentation, which can speed up the process."
+        },
+        {
+          "question": "How long is the QI waitlist really?",
+          "answer": "QI doesn't have a traditional waitlist — instead, eligible applicants are denied once the federal funding allocation runs out for the year. This typically happens later in the calendar year, so apply by March or April for the best chance."
+        },
+        {
+          "question": "What if my parent's income changes after they're approved?",
+          "answer": "Report income changes to Georgia Medicaid within 30 days. Small increases might move them between programs (QMB to SLMB to QI) rather than losing benefits entirely. Annual redetermination reviews happen automatically."
+        },
+        {
+          "question": "Can a family member apply on behalf of an elderly parent?",
+          "answer": "Yes, adult children can apply as authorized representatives. You'll need to complete additional paperwork establishing your authority to act on their behalf, or have legal documents like power of attorney."
+        },
+        {
+          "question": "Does Extra Help for prescription drugs happen automatically?",
+          "answer": "Yes, all Medicare Savings Program enrollees automatically qualify for Medicare Part D Extra Help (Low Income Subsidy). Medicare will notify your parent directly about this additional benefit, which can save $1,000+ annually on prescription costs."
+        },
+        {
+          "question": "What if my parent has Medicare Advantage instead of Original Medicare?",
+          "answer": "Medicare Savings Programs work with both Original Medicare and Medicare Advantage plans. The program pays the Medicare Part B premium regardless of which Medicare option your parent chose, and QMB covers cost-sharing for Medicare-covered services."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "CurrencyDollar",
+      "phone": "1-866-552-4464",
+      "sourceUrl": "https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-snap",
+      "name": "Senior Supplemental Nutrition Assistance Program (Senior SNAP)",
+      "shortName": "Senior SNAP",
+      "tagline": "Grocery assistance for Georgia seniors 60+ who live on fixed income only",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered by Georgia Division of Family & Children Services (DFCS); apply via central phone/email, no regional offices specified for Senior SNAP",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives only on fixed income like Social Security or retirement benefits, they may qualify for monthly grocery assistance through Senior SNAP. This streamlined version of food stamps provides benefits loaded onto an EBT card (works like a debit card at grocery stores) with simplified application requirements for seniors.\n\nBecause Senior SNAP is designed for seniors on fixed income, your parent cannot have any earned income from work — only Social Security, SSI, retirement, VA benefits, or disability payments qualify. Income limits are $1,695/month for a single person or $2,291/month for a couple (130% of federal poverty level). The age requirement increases from 60+ to 66+ starting February 2, 2026.",
+      "savingsRange": "",
+      "savingsSource": "Monthly grocery benefits based on household income",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (changing to 66+ in February 2026)",
+          "Fixed income only - no work earnings",
+          "Income under $1,695/month (single) or $2,291/month (couple)",
+          "Georgia resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1695
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2291
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2887
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3482
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4079
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 4674
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 5270
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Home",
+            "Retirement savings",
+            "Household goods"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "No earned income from work (including excluded types)",
+          "Fixed income only: Social Security, SSI, retirement, VA benefits, Railroad Retirement",
+          "U.S. citizen or qualified non-citizen (5+ years residency, disability benefits, or child under 18)",
+          "All household members must meet age/no-work criteria and share food preparation"
+        ],
+        "povertyLevelReference": "130% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call to request an application by mail — no office visits or face-to-face interviews required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Request application",
+            "description": "Call (404) 370-6236 to request a Senior SNAP application be mailed to you, or email seniorsnap@dhr.state.ga.us"
+          },
+          {
+            "step": 2,
+            "title": "Complete and return",
+            "description": "Fill out the mailed application and return it to Georgia DFCS at the address provided with your application packet"
+          },
+          {
+            "step": 3,
+            "title": "Provide documents",
+            "description": "Submit required verification documents — fixed income is often auto-verified through computer matches, so minimal paperwork may be needed"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Because this is for seniors on fixed income, the verification process is streamlined — Social Security and other benefits are often verified automatically without needing additional paperwork.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Social Security card",
+        "Proof of citizenship or qualified non-citizen status",
+        "Social Security award letter (if not auto-verified)",
+        "SSI award letter (if applicable)",
+        "Retirement or pension income statements",
+        "VA benefits award letter (if applicable)",
+        "Railroad Retirement documentation (if applicable)",
+        "Proof of Georgia residency (utility bill, lease, or state document)",
+        "Medical expense receipts (if reporting medical costs)",
+        "Shelter expense documentation (rent receipt, mortgage statement, property tax)",
+        "Bank statements for any accounts with more than $4,500 total"
+      ],
+      "contacts": [
+        {
+          "label": "Senior SNAP Application Line",
+          "phone": "(404) 370-6236",
+          "description": "Request Senior SNAP application by mail",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and benefits",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Age requirement changes to 66+ effective February 2, 2026 — current 60+ seniors remain eligible",
+        "If your parent has any work earnings, they're not eligible for Senior SNAP but can apply for regular SNAP with medical expense deductions",
+        "Computer matches often auto-verify Social Security and other fixed income — you may not need to submit additional income proof",
+        "All household members must meet the age and no-work requirements and share food preparation"
+      ],
+      "relatedPrograms": [
+        "Regular SNAP (if ineligible for Senior SNAP)",
+        "LIHEAP Energy Assistance",
+        "Georgia Senior Rx Program",
+        "Commodity Supplemental Food Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What happens when the age requirement changes to 66 in February 2026?",
+          "answer": "Seniors already enrolled at age 60+ can continue receiving benefits. The new 66+ age requirement only applies to new applicants starting February 2, 2026. Current recipients won't lose benefits due to the age change."
+        },
+        {
+          "question": "Can my parent work part-time and still get Senior SNAP?",
+          "answer": "No. Senior SNAP prohibits any earned income from work, even part-time or excluded types. If your parent has work earnings, they should apply for regular SNAP instead, which allows medical expense deductions that may increase benefits."
+        },
+        {
+          "question": "What if my parent receives both Social Security and a small pension?",
+          "answer": "Multiple fixed income sources are allowed as long as there's no work earnings. Social Security, pensions, retirement benefits, and VA payments can be combined. The total monthly income must stay under the limits: $1,695 for one person or $2,291 for a couple."
+        },
+        {
+          "question": "How much will my parent receive in grocery benefits?",
+          "answer": "Benefit amounts depend on household size and net income. Generally, every $100 more in net income reduces benefits by about $30. The exact amount follows standard SNAP benefit calculations but varies by individual circumstances."
+        },
+        {
+          "question": "Can I apply for Senior SNAP on behalf of my parent?",
+          "answer": "The application process allows representatives, but you'll need proper legal documentation. Call (404) 370-6236 to discuss your situation and what legal documents are required to apply on your parent's behalf."
+        },
+        {
+          "question": "What if my parent gets denied for Senior SNAP?",
+          "answer": "If denied due to work income or age requirements, your parent can apply for regular SNAP benefits through the standard process. Regular SNAP has different rules and allows medical expense deductions that might increase benefit amounts."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(404) 370-6236",
+      "sourceUrl": "https://dfcs.georgia.gov/services/snap/senior-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "liheap-energy-assistance",
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP",
+      "tagline": "Get $350-400 applied directly to your parent's energy bills if they're on a limited income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agencies (CAAs), e.g., Community Action For Improvement (https://www.cafi-ga.org), Enrichment Services (https://enrichmentservices.org), Fulton Atlanta Community Action Authority (https://www.facaa.org), Southwest Georgia Community Action Council (https://www.swgacac.com). Full list via Georgia DFCS",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating or cooling bills, LIHEAP can provide $350-400 paid directly to their energy company each year. Because the program prioritizes seniors age 60+, your parent gets first access to appointment slots and receives the maximum $400 benefit amount.\n\nThe program covers one heating benefit and one cooling benefit per year, with payments going straight to the utility company — your parent never handles the money directly. Because each county has its own Community Action Agency with separate budgets and waitlists, availability varies significantly by location.\n\nYour parent's energy company must be a registered LIHEAP vendor, and household income must be at or below 60% of Georgia's median income for their household size. Applications require scheduled appointments and operate first-come, first-served until county funds run out.",
+      "savingsRange": "$350 – $400/year",
+      "savingsSource": "Direct payments to energy suppliers, with seniors 60+ receiving maximum $400",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 60% of state median",
+          "Responsible for paying home energy bills",
+          "U.S. citizen or legal resident",
+          "Energy company must be registered LIHEAP vendor"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Responsible for paying the cost of energy for the primary home heating source",
+          "U.S. citizen or lawfully admitted immigrant",
+          "Energy supplier must be a registered LIHEAP vendor with Georgia Department of Human Services",
+          "Must apply in county of residence"
+        ],
+        "povertyLevelReference": "60% of Georgia State Median Income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Schedule an appointment with your county's Community Action Agency — seniors 60+ get priority scheduling starting in January.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Community Action Agency",
+            "description": "Visit dfcs.georgia.gov to locate your county's specific CAA. Each county has its own agency, budget, and phone number."
+          },
+          {
+            "step": 2,
+            "title": "Schedule an appointment",
+            "description": "Call your local CAA or check their online portal for appointment scheduling. Seniors 60+ typically get priority access starting January 2nd."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof of income for all household members (last 30 days), Social Security cards, most recent gas and electric bills, and valid photo ID."
+          },
+          {
+            "step": 4,
+            "title": "Attend your appointment",
+            "description": "Meet with your local CAA representative. If you're homebound, ask about home visits — many agencies provide this service."
+          },
+          {
+            "step": 5,
+            "title": "Payment goes directly to utility",
+            "description": "If approved, LIHEAP pays your energy company directly. You'll see the credit on your next bill."
+          }
+        ],
+        "processingTime": "First-come, first-served basis with no specific timeline provided",
+        "waitlist": "Yes — if appointment slots are full, you can join a waitlist or check back periodically. Wait times vary significantly by county funding.",
+        "tip": "Call early in the program year and ask specifically about senior priority dates — many counties open applications for 60+ or 65+ residents before general enrollment.",
+        "urls": [
+          {
+            "label": "Georgia DFCS LIHEAP Information",
+            "url": "https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid U.S. issued photo ID",
+        "Social Security cards for all household members",
+        "Proof of income for all household members 18+ from the last 30 days (pay stubs, Social Security award letters, pension statements)",
+        "Zero-income form if anyone has no income (completed at appointment)",
+        "Most recent gas bill showing name, address, account number, and amount due",
+        "Most recent electric bill showing name, address, account number, and amount due",
+        "Verification of age if required for priority consideration",
+        "Signed letter if a representative is applying on behalf of the household member"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "Statewide helpline for all social services and local CAA contact information",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Georgia DFCS",
+          "phone": null,
+          "description": "Visit dfcs.georgia.gov for complete list of county Community Action Agencies",
+          "hours": "Online resource"
+        }
+      ],
+      "applicationNotes": [
+        "Seniors 60+ receive priority scheduling and the maximum $400 benefit amount",
+        "You cannot switch counties if your local agency runs out of funds — you must apply where you live",
+        "Energy suppliers must be registered LIHEAP vendors or you'll be ineligible, regardless of income",
+        "Bring copies of all documents to your appointment — originals may be required for verification"
+      ],
+      "relatedPrograms": [
+        "Weatherization Assistance Program (WAP)",
+        "Georgia Power CARE Program",
+        "SNAP (Food Benefits)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's energy company isn't a registered LIHEAP vendor?",
+          "answer": "Your parent cannot receive LIHEAP benefits, even if they meet all income requirements. Contact your local Community Action Agency to confirm which companies are registered vendors in your area before applying."
+        },
+        {
+          "question": "Can my parent get both heating and cooling assistance in the same year?",
+          "answer": "Yes, if funding is available. LIHEAP provides one heating benefit and one cooling benefit per program year. Cooling assistance is seasonal and depends on your county's available budget."
+        },
+        {
+          "question": "What happens if my parent's county runs out of money before their appointment?",
+          "answer": "They cannot switch to another county's program — LIHEAP requires you to apply where you live. They'll need to join the waitlist or wait for the next program year when new federal funding becomes available."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, but you'll need a signed letter authorizing you to represent them. Some agencies also offer home visits for homebound applicants, which might be easier than having you serve as a representative."
+        },
+        {
+          "question": "How does the 60% state median income limit work for different household sizes?",
+          "answer": "Income limits vary by household size, but specific dollar amounts aren't published online. Your local Community Action Agency will have the current income table and can tell you the exact limit for your parent's household size over the phone."
+        },
+        {
+          "question": "What if my parent has zero income?",
+          "answer": "They can still apply. You'll need to complete a zero-income form at the appointment to document their situation. Having no income doesn't automatically disqualify them if other household members have income below the limits."
+        },
+        {
+          "question": "When do applications typically open each year?",
+          "answer": "Timing varies by county, but many agencies prioritize seniors starting January 2nd, with general applications opening February 2nd. Call your local Community Action Agency in December to confirm their specific schedule."
+        },
+        {
+          "question": "Can my parent apply for LIHEAP and other utility assistance programs at the same time?",
+          "answer": "Yes, LIHEAP can be combined with Georgia Power CARE and other utility assistance programs. The agencies typically coordinate to maximize your parent's benefits without duplication."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "2-1-1",
+      "sourceUrl": "https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "WAP Weatherization",
+      "tagline": "Free home energy improvements to reduce your parent's utility bills if they qualify by income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local providers listed by county at https://gefa.georgia.gov/weatherization",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's income is at or below 200% of the Federal Poverty Level (about $30,120/year for one person in 2026), they may qualify for free home energy efficiency improvements through Georgia's Weatherization Assistance Program. Because this program provides services based on an energy audit, your parent gets customized improvements like air sealing, insulation, HVAC upgrades, and energy-efficient lighting at no cost.\n\nThe program serves both homeowners and renters (renters need landlord permission). Because elderly households receive priority, your parent may move through the process faster than younger applicants. The improvements are designed to reduce monthly utility bills, though savings vary based on the home's current condition and which improvements are installed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% Federal Poverty Level",
+          "Homeowners and renters eligible",
+          "Single-family or manufactured homes",
+          "Priority given to elderly households"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3407
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4303
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5200
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in single-family home or manufactured home (campers and non-stationary trailers ineligible)",
+          "Renters need written landlord permission",
+          "Program does not fix structural issues like roofing, walls, or flooring holes"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your county's community action agency by phone — processing includes income verification, energy audit, then contractor installation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's agency",
+            "description": "Visit https://gefa.georgia.gov/weatherization to find your local community action agency. Examples: CSRA EOA serves Richmond, Columbia, and surrounding counties at (706) 945-1616. Action Pact serves Savannah/Chatham County."
+          },
+          {
+            "step": 2,
+            "title": "Call to request application",
+            "description": "Contact your local agency by phone. Some agencies like CSRA EOA also offer downloadable applications at www.csraeoa.org. Be prepared for potential waitlist due to high demand."
+          },
+          {
+            "step": 3,
+            "title": "Submit income verification",
+            "description": "Provide proof your household income is at or below 200% Federal Poverty Level, or proof of Supplemental Security Income (SSI) receipt. Include proof of residency and landlord permission if renting."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy audit",
+            "description": "Once qualified, an energy auditor will assess your parent's home to determine which improvements will provide the most energy savings."
+          },
+          {
+            "step": 5,
+            "title": "Contractor installation",
+            "description": "Approved contractors install improvements at no cost based on audit results — may include air sealing, insulation, HVAC work, or energy-efficient lighting."
+          }
+        ],
+        "processingTime": "Processing time varies by local agency and waitlist length",
+        "waitlist": "Due to high demand, there may be a waiting list",
+        "tip": "Elderly households receive priority, so mention your parent's age when calling.",
+        "urls": [
+          {
+            "label": "County Agency Directory",
+            "url": "https://gefa.georgia.gov/weatherization"
+          },
+          {
+            "label": "CSRA EOA Application (Richmond/Columbia counties)",
+            "url": "https://www.csraeoa.org"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of household income for last 30 days (pay stubs, Social Security award letter, pension statements)",
+        "Social Security cards for all household members",
+        "Proof of residency (utility bill, lease agreement, or mortgage statement)",
+        "Written landlord permission letter (renters only)",
+        "Birth certificates or other proof of age for household members",
+        "SSI award letter if qualifying through SSI receipt",
+        "Most recent electric and gas utility bills",
+        "Property deed or lease agreement showing home type eligibility"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia Weatherization Directory",
+          "phone": null,
+          "description": "County-by-county listing of local agencies",
+          "hours": "Visit https://gefa.georgia.gov/weatherization"
+        },
+        {
+          "label": "CSRA Economic Opportunity Authority",
+          "phone": "(706) 945-1616",
+          "description": "Serves Richmond, Columbia, and surrounding CSRA counties",
+          "hours": "Contact for hours"
+        },
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "Help finding local services and programs",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Priority given to elderly households, families with children, and households with disabilities — mention these factors when applying",
+        "Renters must get landlord agreement before applying — some landlords are hesitant because they benefit from improvements at no cost",
+        "Program cannot fix pre-existing structural problems — if your parent's home needs major roof, wall, or foundation repairs, address those separately",
+        "Each county uses different community action agencies, so you must contact the specific agency for your parent's county"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Georgia Power Budget Billing",
+        "SNAP (Food Benefits)",
+        "Supplemental Security Income (SSI)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they rent their home?",
+          "answer": "Yes, renters qualify but need written permission from their landlord. Because the improvements increase property value at no cost to the landlord, many agree once they understand the program. Contact your local agency if the landlord has questions about the process."
+        },
+        {
+          "question": "What if my parent's home needs major structural repairs first?",
+          "answer": "The program cannot fix pre-existing structural issues like roof damage, wall holes, or foundation problems. These must be addressed separately before weatherization work begins. The energy audit will identify if structural repairs are needed first."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Waitlist length varies by county and local agency capacity. Because elderly households receive priority, your parent may move through faster than younger applicants. Call your local agency for current wait times in your area."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can help with the application process. You'll need your parent's consent and may need to provide documentation showing you're authorized to act on their behalf for some steps in the process."
+        },
+        {
+          "question": "What if my parent receives SSI but their total household income seems too high?",
+          "answer": "SSI recipients automatically qualify regardless of other household income. Provide the SSI award letter as proof of eligibility instead of calculating total household income against the Federal Poverty Level limits."
+        },
+        {
+          "question": "Will the improvements actually reduce utility bills?",
+          "answer": "Energy savings vary based on your parent's home condition and which improvements are installed. The program focuses on cost-effective measures identified through the energy audit, but cannot guarantee specific dollar savings amounts."
+        },
+        {
+          "question": "Can my parent apply for both weatherization and LIHEAP energy assistance?",
+          "answer": "Yes, these are separate programs and your parent can apply for both. LIHEAP helps with current energy bills while weatherization makes long-term improvements to reduce future bills. Contact the same local agencies for both programs."
+        },
+        {
+          "question": "What happens if we move to a different county after applying?",
+          "answer": "You'll need to restart the application process with the community action agency in the new county. Weatherization improvements stay with the property, not the person, so completed work benefits the home's future occupants."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": null,
+      "sourceUrl": "https://gefa.georgia.gov/weatherization",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "ship-medicare-counseling",
+      "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
+      "shortName": "Georgia SHIP",
+      "tagline": "Free Medicare counseling to help your parent choose the right plan and avoid costly mistakes.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide helpline; local examples: Athens (706-549-4850, lplatter@accaging.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare or is turning 65, Georgia SHIP provides free, unbiased counseling to help them navigate Medicare choices, appeals, and enrollment. Trained volunteers help with everything from choosing between Medicare Advantage and Original Medicare to understanding prescription drug coverage and resolving billing disputes.\n\nGeorgia SHIP counselors also help your parent apply for money-saving programs like Medicare Savings Programs (which can cover Medicare premiums for people earning up to $1,478/month) and Extra Help for prescription drugs. Because these counselors don't sell insurance, they'll give you honest guidance based on your parent's specific health needs and budget.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiaries and their families",
+          "No income or asset limits",
+          "Georgia residents",
+          "Includes caregivers and family members"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary or caregiver/family member of one",
+          "Georgia resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide helpline at 1-866-552-4464 (option 4) to schedule free counseling — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Georgia SHIP helpline",
+            "description": "Call 1-866-552-4464 and select option 4. Lines are open Monday-Friday 8am-5pm."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "A volunteer counselor will schedule a phone or in-person appointment based on your preference and location."
+          },
+          {
+            "step": 3,
+            "title": "Prepare your Medicare documents",
+            "description": "Gather your parent's Medicare card, recent medical bills, and any Medicare Summary Notices for a more personalized session."
+          }
+        ],
+        "processingTime": "Services provided immediately upon contact during business hours",
+        "waitlist": null,
+        "tip": "Have your parent's Medicare number ready when you call — it helps counselors provide more specific guidance.",
+        "urls": [
+          {
+            "label": "Georgia SHIP Website",
+            "url": "https://ship.georgia.gov"
+          },
+          {
+            "label": "Georgia Aging Services",
+            "url": "https://aging.georgia.gov/georgia-ship"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Georgia SHIP Helpline",
+          "phone": "(866) 552-4464",
+          "description": "Statewide Medicare counseling (select option 4)",
+          "hours": "Monday-Friday 8am-5pm"
+        },
+        {
+          "label": "Athens Area Office",
+          "phone": "(706) 549-4850",
+          "description": "Local SHIP services for Athens region",
+          "hours": "Contact for local hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Programs (QMB/SLMB)",
+        "Extra Help (Low Income Subsidy)",
+        "Georgia Medicaid",
+        "Senior Medicare Patrol (SMP)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my parent who has dementia?",
+          "answer": "Yes, family members and caregivers can call Georgia SHIP for guidance. However, if you need to make changes to your parent's Medicare plans or access their personal information, you'll need to be their authorized representative through Medicare first."
+        },
+        {
+          "question": "Will SHIP counselors try to sell me insurance?",
+          "answer": "No. Georgia SHIP counselors are trained volunteers who don't sell insurance or get paid by insurance companies. They provide unbiased information to help you compare all available options based on your parent's specific needs."
+        },
+        {
+          "question": "Can SHIP help if my parent is already enrolled in Medicare Advantage?",
+          "answer": "Yes. SHIP counselors help with ongoing Medicare issues including plan changes during Open Enrollment, appeals and grievances, billing problems, and understanding coverage. They can also help evaluate whether your parent should switch to Original Medicare."
+        },
+        {
+          "question": "What if my parent makes too much for Medicaid but struggles with Medicare costs?",
+          "answer": "SHIP counselors specialize in programs like Medicare Savings Programs (for people earning up to $1,478/month single) and Extra Help for prescription drugs (up to about $1,800/month single). Many people don't know these programs exist."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
+      "phone": "(866) 552-4464",
+      "sourceUrl": "https://ship.georgia.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "shortName": "Meals on Wheels",
+      "tagline": "Get nutritious meals delivered to your parent's home if they're 60+ and can't shop or cook safely.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "12 Area Agencies on Aging statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to shop for groceries or prepare meals safely, Georgia's Home-Delivered Meals program brings nutritious meals directly to their door. Most participants receive 5 meals per week (Monday through Friday) at no charge — each meal provides at least one-third of daily nutritional needs following USDA guidelines.\n\nThe program prioritizes homebound seniors with functional impairments (difficulty bathing, dressing, or managing medications), high nutrition risk, or food insecurity. Because this runs through 12 regional Area Agencies on Aging, meal providers and delivery schedules vary by county — some areas use Open Hand Atlanta, others use Mom's Meals or GA Foods through health plans.\n\nAfter 20 consecutive meals, your parent will be reassessed and may be placed on a waiting list to make room for others in crisis. Voluntary contributions are welcomed but not required.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound with functional impairments",
+          "Unable to shop or prepare meals",
+          "Priority for greatest social/economic need"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound with functional impairments preventing shopping or meal preparation, assessed using the DON-R instrument (measures ability to perform daily activities like bathing, dressing, medication management)",
+        "otherRequirements": [
+          "Moderate to high nutrition risk",
+          "Food insecurity may qualify",
+          "Spouses of any age if married to someone 60+"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging for a phone assessment — no forms needed upfront.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Call the Eldercare Locator at 1-800-677-1116 or visit Eldercare.acl.gov to get your county's AAA contact information."
+          },
+          {
+            "step": 2,
+            "title": "Request a needs assessment",
+            "description": "Call your AAA to request home-delivered meals. They'll conduct a phone assessment covering functional abilities, nutrition risk, and food security."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "Answer questions about your parent's ability to shop, cook, bathe, dress, and manage medications. This DON-R assessment determines priority level."
+          },
+          {
+            "step": 4,
+            "title": "Get matched with local provider",
+            "description": "If approved, your AAA will connect you with the meal delivery service in your area (Open Hand Atlanta, Mom's Meals, GA Foods, or other local provider)."
+          },
+          {
+            "step": 5,
+            "title": "Start receiving meals",
+            "description": "Meals typically begin within 1-2 weeks and arrive Monday through Friday. Delivery includes a wellness check and nutrition education."
+          }
+        ],
+        "processingTime": "Not specified in program guidelines",
+        "waitlist": "After 20 consecutive meals, reassessment required and may be placed on waiting list",
+        "tip": "If your parent has Medicaid or Medicare Advantage, contact their case manager first — they may have faster access through existing care coordination.",
+        "urls": [
+          {
+            "label": "Eldercare Locator",
+            "url": "https://eldercare.acl.gov"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Eldercare Locator",
+          "phone": "1-800-677-1116",
+          "description": "Find your local Area Agency on Aging",
+          "hours": "Monday-Friday 9am-8pm ET"
+        },
+        {
+          "label": "Georgia Division of Aging Services",
+          "phone": "404-657-5258",
+          "description": "State program information and AAA contacts",
+          "hours": "Monday-Friday 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "No formal application forms — assessment is conducted over the phone by your local Area Agency on Aging",
+        "Priority is given to those in greatest social and economic need, but no specific income limits apply",
+        "If your parent receives Community Care Services or SOURCE program benefits, they may already be connected to meal delivery",
+        "Meals can extend to spouse or household members if it supports maintaining the eligible senior in their home"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Stamps)",
+        "Community Care Services Program",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get meals on weekends too?",
+          "answer": "Most providers deliver Monday through Friday only. Some may offer frozen or shelf-stable meals for weekends, but this varies by your local Area Agency on Aging and provider. Ask specifically about weekend coverage when you apply."
+        },
+        {
+          "question": "What happens after my parent receives 20 meals?",
+          "answer": "After 20 consecutive meals, your parent will be reassessed for continued need. They may be placed on a waiting list to make room for others in crisis, or referred to other nutrition programs like congregate meals or food assistance."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of aging parents who cannot manage the process themselves. The Area Agency on Aging will work with you to complete the functional assessment based on your observations of your parent's abilities."
+        },
+        {
+          "question": "Does my parent's income matter for eligibility?",
+          "answer": "There are no specific income limits, but priority is given to those in greatest social and economic need. Higher-income seniors may still qualify if they're homebound and can't safely shop or prepare meals."
+        },
+        {
+          "question": "Can my parent get meals while also receiving SNAP benefits?",
+          "answer": "Yes, home-delivered meals don't affect SNAP eligibility or benefits. These are separate programs that can work together to address food security for seniors."
+        },
+        {
+          "question": "What if there's no meal delivery provider in my parent's rural area?",
+          "answer": "Coverage varies by county and provider capacity. Contact your Area Agency on Aging to ask about alternative options like frozen meal delivery, transportation to congregate meal sites, or connections to local food pantries."
+        },
+        {
+          "question": "How much should my parent contribute for the meals?",
+          "answer": "Meals are provided at no charge, but voluntary contributions are welcomed and help sustain the program. There's no required amount — contribute what you can afford or nothing at all."
+        },
+        {
+          "question": "Can meals be customized for diabetes or other medical conditions?",
+          "answer": "Providers follow USDA dietary guidelines and may offer some accommodations for common conditions like diabetes. Discuss specific dietary needs during your assessment — some providers are better equipped for medical diets than others."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "1-800-677-1116",
+      "sourceUrl": "https://pamms.dhs.ga.gov/das/hcbs-5300-manual/304/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "respite-care-out-of-home",
+      "name": "Caregiver Programs (Out-of-Home Respite Care)",
+      "shortName": "Out-of-Home Respite",
+      "tagline": "Temporary licensed facility care for your parent so you can rest and recharge",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Medicaid HCBS waiver providers statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "Easterseals Southern Georgia",
+            "type": "service-area"
+          },
+          {
+            "name": "Georgia Center for Resources and Support",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for an aging parent with disabilities or chronic illness, Georgia's out-of-home respite programs can provide temporary care in licensed facilities while you take a break. Your parent receives professional supervision, personal care assistance, and help with daily activities like bathing and dressing — giving you hours or overnight relief from caregiving responsibilities.\n\nMost out-of-home respite comes through Georgia's Medicaid Home and Community-Based Services (HCBS) waivers, including the Elderly and Disabled Waiver Program (EDWP) for aging adults. Services range from 4-hour blocks to up to 18 hours per week in special cases, delivered in licensed facilities or approved provider homes. Because this isn't a single program but rather a service delivered through multiple pathways, eligibility and benefits vary significantly by which program your parent qualifies for.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Enrolled in Georgia Medicaid HCBS waiver",
+          "Parent has disability, chronic illness, or age-related condition",
+          "Primary caregiver needs temporary relief",
+          "Income varies by specific program"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Parent must qualify for Medicaid HCBS waiver services, which requires meeting Nursing Facility Level of Care (a clinical assessment that your parent needs daily help with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Parent must be enrolled in Georgia Medicaid HCBS waivers (Comprehensive Supports, New Options, or Elderly and Disabled Waiver Program)",
+          "Parent has disabilities, chronic illnesses, or age-related conditions requiring care",
+          "You serve as the primary caregiver and need temporary relief",
+          "Some programs assess caregiver stress levels for priority placement"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your parent's Medicaid waiver provider or contact specialized programs directly — processing varies by program type.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Determine your pathway",
+            "description": "If your parent has Medicaid HCBS waiver services, contact their current waiver provider first. If they don't have waiver services, they'll need to apply for Medicaid and waiver enrollment first."
+          },
+          {
+            "step": 2,
+            "title": "Contact the appropriate program",
+            "description": "For adoptive medically fragile children: Call Georgia Center for Resources and Support at 1-866-272-7368 or visit www.gacrs.org. For Southern Georgia: Contact Easterseals at 229-439-7061 or info@essga.org."
+          },
+          {
+            "step": 3,
+            "title": "Complete assessment",
+            "description": "Programs will assess your parent's care needs and your caregiver stress level. Have medical documentation and income information ready."
+          },
+          {
+            "step": 4,
+            "title": "Submit required documentation",
+            "description": "Provide proof of Medicaid waiver enrollment, medical provider statements, and income/family size details as requested by the specific program."
+          }
+        ],
+        "processingTime": "DFCS adoptive program: up to 1 year approval timeframe; other programs vary by provider",
+        "waitlist": "Priority based on caregiver stress assessment; wait times vary by local provider capacity",
+        "tip": "Contact multiple providers in your area as availability and wait times can vary significantly between organizations.",
+        "urls": [
+          {
+            "label": "DFCS Respite Care Information",
+            "url": "https://dfcs.georgia.gov/respite-care"
+          },
+          {
+            "label": "Georgia Center for Resources and Support",
+            "url": "http://www.gacrs.org"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of parent's Medicaid HCBS waiver enrollment",
+        "Medical provider statement documenting parent's medical condition or fragility",
+        "Recent income statements for all household members",
+        "Documentation of family size and household composition",
+        "Caregiver stress or burden assessment (may be completed during application)",
+        "For DFCS program: Adoption assistance documentation",
+        "For DFCS program: Proof that child was placed through DFCS custody",
+        "Parent's Social Security card and Medicare information",
+        "Current medication list and medical history",
+        "Emergency contact information for family members",
+        "Insurance information for parent",
+        "Legal guardianship or power of attorney documents if applicable"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia Center for Resources and Support",
+          "phone": "(866) 272-7368",
+          "description": "DFCS respite program for adoptive medically fragile children",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Easterseals Southern Georgia",
+          "phone": "(229) 439-7061",
+          "description": "Respite services in Southern Georgia region",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Georgia Medicaid Customer Service",
+          "phone": "(877) 423-4746",
+          "description": "Questions about HCBS waiver enrollment and eligibility",
+          "hours": "Mon-Fri 8am-5pm EST"
+        }
+      ],
+      "applicationNotes": [
+        "Out-of-home respite specifically requires licensed facilities — not all respite programs offer this option, so confirm when calling",
+        "DFCS program is limited to adoptive children who are medically fragile and receive adoption assistance — very specific criteria",
+        "If your parent isn't already on a Medicaid waiver, that process must be completed first, which can add months to the timeline",
+        "Priority placement often depends on caregiver stress levels and crisis situations — be honest about your caregiving burden during assessments"
+      ],
+      "relatedPrograms": [
+        "Georgia Medicaid HCBS Waivers",
+        "In-Home Respite Care Services",
+        "Adult Day Care Programs",
+        "Family Caregiver Support Programs"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get out-of-home respite if they're not on a Medicaid waiver yet?",
+          "answer": "Generally no — most out-of-home respite requires enrollment in Georgia's Medicaid HCBS waivers first. Your parent would need to apply for Medicaid, meet Nursing Facility Level of Care requirements, and get approved for waiver services. This process can take several months."
+        },
+        {
+          "question": "What's the difference between out-of-home and in-home respite?",
+          "answer": "Out-of-home respite takes your parent to a licensed facility or approved provider's home for care, while in-home brings a caregiver to your parent's house. Out-of-home gives you complete time away from caregiving, but your parent must be able to adapt to a new environment temporarily."
+        },
+        {
+          "question": "How many hours of out-of-home respite can my parent get per month?",
+          "answer": "It varies significantly by program. The DFCS program offers up to 5 hours monthly at $6/hour for the first child. Other programs typically offer 4-hour blocks, with up to 18 hours weekly in special cases like ALS. Your waiver provider will determine specific allocations."
+        },
+        {
+          "question": "Can I choose which licensed facility my parent goes to for respite?",
+          "answer": "Your choices depend on which facilities are approved by your parent's waiver provider and have availability. Ask your waiver provider for a list of approved out-of-home respite locations in your area and visit them beforehand if possible."
+        },
+        {
+          "question": "What happens if my parent has a medical emergency during out-of-home respite?",
+          "answer": "Licensed respite facilities are required to have emergency protocols and staff trained in basic medical response. They'll contact emergency services if needed and notify you immediately. Make sure the facility has current emergency contacts and medical information."
+        },
+        {
+          "question": "How long is the waitlist for out-of-home respite services?",
+          "answer": "Wait times aren't specified in official sources and vary by local provider capacity and your priority level based on caregiver stress assessment. Contact multiple providers in your area as availability differs significantly between organizations."
+        },
+        {
+          "question": "Can I apply for both in-home and out-of-home respite at the same time?",
+          "answer": "Yes, many waiver programs offer both options, though your total allocated respite hours may be shared between the two. Discuss with your waiver provider about combining services to maximize your relief time."
+        },
+        {
+          "question": "What if my parent refuses to go to out-of-home respite?",
+          "answer": "This is common, especially for parents with dementia or those resistant to change. Start with short visits, involve your parent in choosing the facility if possible, and consider whether in-home respite might be a better fit initially. The facility may have strategies to help with transitions."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "HandHeart",
+      "phone": "(866) 272-7368",
+      "sourceUrl": "https://dfcs.georgia.gov/respite-care",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "scsep-employment-program",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Part-time paid work experience at nonprofits and public agencies to help your parent age 55+ transition back into employment.",
+      "programType": "employment",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "AARP Foundation: 1718 Peachtree Street NW, Suite 991, Atlanta, GA 30309 (Cobb, DeKalb, Douglas, Fulton, Gwinnett)",
+            "type": "service-area"
+          },
+          {
+            "name": "ACC Aging: Contact (706) 549-4850 (NW GA counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legacy Link (statewide remainder)",
+            "type": "service-area"
+          },
+          {
+            "name": "WorkSource Georgia Career Centers for referrals",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides part-time paid employment (average 20 hours per week) at nonprofits, schools, hospitals, and senior centers while they develop job skills. They earn at least minimum wage ($7.25/hour in most Georgia areas) for up to 1,300 hours per year while receiving job training, resume help, and placement assistance to transition to unsubsidized employment.\n\nTo qualify, your parent's total household income must be at or below 125% of federal poverty level — $19,563/year for a single person or $26,519 for a couple in 2025. Because spots are limited (only 236 participants statewide in 2020), priority goes to veterans, those over 65, people with disabilities, and rural residents. Not available in all counties — coverage depends on which provider serves your area.",
+      "savingsRange": "$7,540/year",
+      "savingsSource": "20 hours/week at $7.25/hour minimum wage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed with poor job prospects",
+          "Household income below 125% poverty level",
+          "Must live in covered county"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1631
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2210
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2788
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3349
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Currently unemployed and seeking to re-enter the workforce",
+          "Poor employment prospects based on assessment",
+          "Reside in a county served by a Georgia SCSEP provider"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional provider directly — processing varies by area and current openings.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your provider",
+            "description": "Metro Atlanta (Cobb, DeKalb, Douglas, Fulton, Gwinnett): Call AARP Foundation at 1-855-850-2525 Monday-Friday 9am-6pm ET. Northwest Georgia: Call ACC Aging at (706) 549-4850. Other areas: Use the AARP locator at my.aarpfoundation.org/locator/scsep/ or contact WorkSource Georgia."
+          },
+          {
+            "step": 2,
+            "title": "Complete application and income verification",
+            "description": "Submit SCSEP application with proof of age, income for all household members, residency, and veteran/disability status if applicable. Provider will assess employment prospects and determine priority level."
+          },
+          {
+            "step": 3,
+            "title": "Assessment and placement",
+            "description": "If accepted, provider will match your parent with a community service host site and develop an Individual Employment Plan with training goals and job search assistance."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible due to limited spots — varies by region and provider",
+        "tip": "Priority goes to veterans, those over 65, people with disabilities, and rural residents — mention these if they apply to your parent.",
+        "urls": [
+          {
+            "label": "AARP Foundation SCSEP Locator",
+            "url": "https://my.aarpfoundation.org/locator/scsep/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or driver's license",
+        "Proof of age (birth certificate or passport)",
+        "Proof of residence (utility bill or lease agreement)",
+        "Income documentation for all household members (Social Security award letters, pay stubs, tax returns)",
+        "Bank statements for all accounts (last 3 months)",
+        "Veteran status documentation (DD-214 discharge papers if applicable)",
+        "Disability documentation if claiming priority status"
+      ],
+      "contacts": [
+        {
+          "label": "AARP Foundation SCSEP",
+          "phone": "(855) 850-2525",
+          "description": "Metro Atlanta counties (Cobb, DeKalb, Douglas, Fulton, Gwinnett)",
+          "hours": "Monday-Friday 9am-6pm ET"
+        },
+        {
+          "label": "ACC Aging SCSEP",
+          "phone": "(706) 549-4850",
+          "description": "Northwest Georgia counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "WorkSource Georgia",
+          "phone": "2-1-1",
+          "description": "General employment services and SCSEP provider referrals",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Georgia stopped administering SCSEP directly as of July 1, 2025 — you must contact regional providers like AARP or ACC Aging, not state agencies",
+        "Each provider serves different counties — use the online locator to confirm your area is covered before applying",
+        "Limited enrollment means waitlists are common — ask about current availability and expected wait times when you call"
+      ],
+      "relatedPrograms": [
+        "Workforce Innovation and Opportunity Act (WIOA)",
+        "WorkSource Georgia Career Services",
+        "SNAP Employment and Training",
+        "Trade Adjustment Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "Up to 1,300 hours per year maximum, which equals about 25 hours per week for 52 weeks or 65 weeks at 20 hours. Because this is a training program designed to transition to unsubsidized employment, participants are expected to actively job search and move to permanent employment when ready."
+        },
+        {
+          "question": "Can my parent collect Social Security while working in SCSEP?",
+          "answer": "Yes, but they need to report SCSEP wages to Social Security Administration. If your parent is under full retirement age, earnings may reduce Social Security benefits if they exceed annual limits ($23,400 in 2025). Contact SSA at (800) 772-1213 to understand how SCSEP wages will affect their specific benefits."
+        },
+        {
+          "question": "What if my parent lives in a county that doesn't have SCSEP coverage?",
+          "answer": "Use the AARP locator at my.aarpfoundation.org/locator/scsep/ to confirm availability in your county. If no provider serves your area, contact WorkSource Georgia at 2-1-1 for alternative employment and training programs that may be available."
+        },
+        {
+          "question": "Does my parent's spouse's income count toward the income limit?",
+          "answer": "Yes, SCSEP counts total household income including spouse's Social Security, pensions, and any other income sources. For 2025, a married couple cannot exceed $26,519 combined annual income to qualify for the program."
+        },
+        {
+          "question": "Can my parent apply to multiple SCSEP providers to increase their chances?",
+          "answer": "No, you should only apply to the provider that serves your county. Each provider has exclusive service areas — for example, AARP Foundation only serves metro Atlanta counties while ACC Aging covers northwest Georgia counties."
+        },
+        {
+          "question": "What happens if my parent gets a job offer while waiting for SCSEP?",
+          "answer": "Take the job — that's the ultimate goal. SCSEP is specifically for unemployed individuals seeking to re-enter the workforce. If the job doesn't work out later and they meet income requirements again, they can reapply to SCSEP."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Briefcase",
+      "phone": "(855) 850-2525",
+      "sourceUrl": "https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "elderly-legal-assistance-elap",
+      "name": "Elderly Legal Assistance Program (ELAP)",
+      "shortName": "ELAP Legal Aid",
+      "tagline": "Free legal help for Georgians 60+ facing civil issues like benefit denials, Medicare appeals, elder abuse, or housing problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County-specific law firms listed at https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Atlanta: 2 Peachtree St. NW 33rd Floor, (404) 657-5258[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "River Valley (16 counties): Columbus office of Georgia Legal Services[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Coastal: Georgia Legal Services 1-888-220-8399[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and facing a civil legal issue that threatens their well-being — like a SNAP denial, Medicare appeal, housing problem, or elder abuse — Georgia's Elderly Legal Assistance Program provides free legal representation through contracted law firms statewide. Because federal law prohibits income and asset testing for this program, any Georgia resident 60+ qualifies regardless of their financial situation.\n\nThe program prioritizes cases where circumstances put your parent's life or well-being at risk, particularly targeting vulnerable populations including low-income seniors, rural residents, and those with limited English proficiency. Services include legal advice, community education, brief consultation, and full case representation in priority areas like public benefits, health care access, Social Security appeals, consumer fraud, advance directives, and guardianship defense.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Georgia resident",
+          "Civil legal issue only",
+          "Problem affects well-being"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Georgia resident",
+          "Civil legal issue in priority areas (public benefits, health care, housing, consumer issues, elder abuse, Social Security, Medicare appeals)",
+          "Circumstances that put life or well-being at risk",
+          "No criminal cases or fee-generating matters"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your county's ELAP law firm directly by phone — services are often provided the same day for urgent matters.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's ELAP provider",
+            "description": "Go to aging.georgia.gov/tools-resources/elderly-legal-assistance-program to find the law firm serving your county, or call the Aging and Disability Resource Connection at (866) 552-4464."
+          },
+          {
+            "step": 2,
+            "title": "Call your local provider",
+            "description": "Contact your county's law firm directly. Examples: Atlanta area (404) 657-5258, Coastal region 1-888-220-8399, River Valley region 1-800-615-4379. Have details about the legal issue ready."
+          },
+          {
+            "step": 3,
+            "title": "Describe the legal problem",
+            "description": "Explain how the civil legal issue affects your parent's well-being. Priority goes to cases involving benefit denials, housing threats, elder abuse, or health care access problems."
+          }
+        ],
+        "processingTime": "Services often provided same day by phone; Georgia Senior Legal Hotline callbacks within 2 business days",
+        "waitlist": null,
+        "tip": "For urgent situations involving active benefit terminations or housing threats, emphasize the emergency nature when you call.",
+        "urls": [
+          {
+            "label": "County ELAP Provider Directory",
+            "url": "https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program"
+          },
+          {
+            "label": "Aging and Disability Resource Connection",
+            "url": "https://aging.georgia.gov/adrc"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Aging and Disability Resource Connection",
+          "phone": "(866) 552-4464",
+          "description": "Statewide helpline to find your county's ELAP provider",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Georgia Senior Legal Hotline",
+          "phone": "(404) 389-9992",
+          "description": "Brief legal advice and referrals (separate from full ELAP representation)",
+          "hours": "Callbacks within 2 business days"
+        },
+        {
+          "label": "Atlanta ELAP Office",
+          "phone": "(404) 657-5258",
+          "description": "ELAP services for Atlanta metro area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Coastal Georgia Legal Services",
+          "phone": "1-888-220-8399",
+          "description": "ELAP services for coastal region",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Georgia Senior Legal Hotline",
+        "Adult Protective Services",
+        "SNAP (Food Stamps)",
+        "Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get help with both a SNAP denial and a Medicare appeal at the same time?",
+          "answer": "Yes, because ELAP covers multiple priority areas including public benefits and Medicare appeals. The same law firm can often handle related cases for your parent. Call your county's ELAP provider to discuss all pending legal issues at once."
+        },
+        {
+          "question": "What if my parent's legal issue doesn't seem life-threatening but is causing stress?",
+          "answer": "ELAP prioritizes cases where circumstances put well-being at risk, which includes financial security and housing stability. Consumer fraud, debt collection, or benefit denials often qualify even if not immediately life-threatening. Call your county provider to discuss — they can determine if your parent's situation meets priority criteria."
+        },
+        {
+          "question": "Is there a difference between ELAP and the Georgia Senior Legal Hotline?",
+          "answer": "Yes. The Georgia Senior Legal Hotline at (404) 389-9992 provides brief advice and referrals only. ELAP provides full legal representation and advocacy through local law firms. For complex cases needing ongoing representation, you want ELAP through your county provider."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(866) 552-4464",
+      "sourceUrl": "https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Georgia offers 10 major programs to help your aging parent — 7 financial benefits that require income qualification, 2 free resources available to everyone, and 1 employment program. These range from covering home care costs (Community Care Services Program can pay for personal care to avoid nursing home placement) to reducing monthly expenses (Medicare Savings Programs can cut Medicare premiums by $175+ per month). Most benefits require income below $2,000-3,000 per month for a single person, but qualification rules vary significantly by program. Start by checking the highest-impact benefits first — home care assistance and Medicare cost reduction — since these typically provide the largest monthly savings for Georgia families.",
+    "startHere": [
+      {
+        "name": "Community Care Services Program (CCSP)",
+        "programId": "ccsp",
+        "why": "Can cover thousands in monthly home care costs to keep your parent out of nursing homes while on Medicaid."
+      },
+      {
+        "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medicare-savings",
+        "why": "Reduces Medicare premiums and costs for anyone with income below $1,660/month."
+      },
+      {
+        "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
+        "programId": "ship",
+        "why": "Free Medicare counseling available to everyone — start here to avoid costly plan mistakes."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "Community Care Services Program (CCSP)",
+          "Home & Community-Based Services Program"
+        ],
+        "description": "Both programs help your parent stay home instead of entering a nursing home by covering personal care and homemaker services."
+      },
+      {
+        "need": "Reducing Medicare and medical costs",
+        "programs": [
+          "Georgia Medicare Savings Programs (QMB, SLMB, QI)"
+        ],
+        "description": "Help paying Medicare premiums, deductibles, and copayments for qualifying low-income seniors."
+      },
+      {
+        "need": "Food and nutrition support",
+        "programs": [
+          "Senior Supplemental Nutrition Assistance Program (Senior SNAP)",
+          "Home-Delivered Meals"
+        ],
+        "description": "Monthly grocery assistance or delivered meals for seniors who can't shop or cook safely."
+      },
+      {
+        "need": "Caregiver support and respite",
+        "programs": [
+          "Caregiver Programs (Out-of-Home Respite Care)"
+        ],
+        "description": "Temporary licensed facility care so you can take breaks from caregiving."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
+          "Elderly Legal Assistance Program (ELAP)"
+        ],
+        "description": "Free Medicare counseling and legal help for benefit denials, elder abuse, or housing problems."
+      },
+      {
+        "need": "Lowering home expenses",
+        "programs": [
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Free energy improvements to reduce your parent's monthly utility bills."
+      }
+    ],
+    "quickFacts": [
+      "Most Georgia benefit programs require income below $2,000-3,000/month for a single person, but limits vary by program",
+      "Georgia SHIP and legal assistance are free resources — no income limits or applications required",
+      "Many programs have waiting lists, especially home care services, so apply early even if your parent doesn't need help immediately"
+    ],
+    "resourcesVsBenefits": "Georgia offers two types of help: qualification-based benefits that require income limits (like CCSP home care or SNAP grocery assistance) and free resources available to everyone regardless of income. Georgia SHIP provides free Medicare counseling to any senior, while the Elderly Legal Assistance Program offers free legal help to anyone 60+ facing benefit denials or elder abuse — no financial qualification needed."
+  }
+}

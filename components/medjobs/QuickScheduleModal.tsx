@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import { useCitySearch } from "@/hooks/use-city-search";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import type { StudentMetadata } from "@/lib/types";
@@ -243,6 +244,9 @@ export default function QuickScheduleModal({
   const [format, setFormat] = useState<InterviewFormat>("video");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [showAltTime, setShowAltTime] = useState(false);
+  const [altDate, setAltDate] = useState("");
+  const [altTime, setAltTime] = useState("");
   const [notes, setNotes] = useState("");
 
   // Step 2: Provider info
@@ -288,6 +292,7 @@ export default function QuickScheduleModal({
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Date options
   const dateOptions = useMemo(() => getDateOptions(), []);
@@ -321,6 +326,7 @@ export default function QuickScheduleModal({
 
     try {
       const proposedTime = new Date(`${selectedDate}T${selectedTime}`).toISOString();
+      const alternativeTime = altDate && altTime ? new Date(`${altDate}T${altTime}`).toISOString() : undefined;
 
       const res = await fetch("/api/medjobs/interviews/quick", {
         method: "POST",
@@ -329,6 +335,7 @@ export default function QuickScheduleModal({
           studentProfileId: candidate.id,
           type: format === "flexible" ? "video" : format,
           proposedTime,
+          alternativeTime,
           notes: notes.trim() || undefined,
           provider: {
             email: email.trim().toLowerCase(),
@@ -345,6 +352,10 @@ export default function QuickScheduleModal({
 
       const data = await res.json();
 
+      if (res.status === 402 || data.error === "upgrade_required") {
+        setShowUpgradeModal(true);
+        return;
+      }
       if (!res.ok) {
         setError(data.error || "Failed to send request. Please try again.");
         return;
@@ -357,7 +368,7 @@ export default function QuickScheduleModal({
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, selectedDate, selectedTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
+  }, [canSubmit, selectedDate, selectedTime, altDate, altTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
 
   const handleCitySelect = useCallback((selectedCity: string, selectedState: string) => {
     setCity(selectedCity);
@@ -394,6 +405,9 @@ export default function QuickScheduleModal({
       setFormat("video");
       setSelectedDate("");
       setSelectedTime("");
+      setShowAltTime(false);
+      setAltDate("");
+      setAltTime("");
       setNotes("");
       setOrganization("");
       setSelectedOrg(null);
@@ -401,6 +415,7 @@ export default function QuickScheduleModal({
       setState("");
       setEmail("");
       setError("");
+      setShowUpgradeModal(false);
     }, 200);
   }, [onClose]);
 
@@ -470,6 +485,53 @@ export default function QuickScheduleModal({
             label="Select time"
           />
         </div>
+      </div>
+
+      {/* Alternative time - progressive disclosure */}
+      <div className="mt-6">
+        {!showAltTime ? (
+          <button
+            type="button"
+            onClick={() => setShowAltTime(true)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Offer another time
+          </button>
+        ) : (
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-gray-700">
+                Alternative time
+              </label>
+              <button
+                type="button"
+                onClick={() => { setShowAltTime(false); setAltDate(""); setAltTime(""); }}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <StyledDropdown
+                options={dateOptions}
+                value={altDate}
+                onChange={setAltDate}
+                placeholder="Select date"
+                label="Select alternative date"
+              />
+              <StyledDropdown
+                options={timeOptions}
+                value={altTime}
+                onChange={setAltTime}
+                placeholder="Select time"
+                label="Select alternative time"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Notes */}
@@ -662,56 +724,57 @@ export default function QuickScheduleModal({
 
   const renderConfirmation = () => (
     <div className="py-8 text-center">
-      {/* Success icon */}
-      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success-100 flex items-center justify-center">
-        <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      {/* Email icon */}
+      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary-100 flex items-center justify-center">
+        <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       </div>
 
       {/* Title */}
       <h2 className="text-xl font-semibold text-gray-900">
-        Request sent!
+        Check your email
       </h2>
-      <p className="mt-2 text-sm text-gray-500 max-w-[280px] mx-auto">
-        {candidateFirstName} will review and confirm within 24 hours.
+      <p className="mt-2 text-sm text-gray-500 max-w-[300px] mx-auto">
+        We sent a verification link to{" "}
+        <span className="font-semibold text-gray-900">{email}</span>.
+        Click it to access your account and manage your interviews.
       </p>
 
-      {/* Summary */}
-      <div className="mt-8 bg-gray-50 rounded-xl p-5 text-left">
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">With</span>
-            <span className="font-medium text-gray-900">{candidate.displayName}</span>
+      {/* Interview summary card */}
+      <div className="mt-6 bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-left">
+        <div className="flex items-center gap-2 mb-3">
+          <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-sm font-semibold text-emerald-800">Request sent to {candidateFirstName}</span>
+        </div>
+        <div className="space-y-1.5 text-sm text-emerald-700">
+          <div className="flex justify-between">
+            <span>When</span>
+            <span className="font-medium">{formatDateDisplay(selectedDate)}, {formatTimeSlot(selectedTime)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">When</span>
-            <span className="font-medium text-gray-900">
-              {formatDateDisplay(selectedDate)}, {formatTimeSlot(selectedTime)}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Format</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {format === "in_person" ? "In person" : format}
-            </span>
+          {altDate && altTime && (
+            <div className="flex justify-between">
+              <span>Alternative</span>
+              <span className="font-medium">{formatDateDisplay(altDate)}, {formatTimeSlot(altTime)}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span>Format</span>
+            <span className="font-medium capitalize">{format === "in_person" ? "In person" : format}</span>
           </div>
         </div>
       </div>
-
-      {/* Email note */}
-      <p className="mt-5 text-xs text-gray-400">
-        Confirmation sent to {email}
-      </p>
 
       {/* Close button */}
       <div className="mt-8">
         <button
           type="button"
           onClick={handleClose}
-          className="w-full py-3.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-900 transition-colors min-h-[48px]"
+          className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
         >
-          Done
+          Got it
         </button>
       </div>
     </div>
@@ -728,6 +791,10 @@ export default function QuickScheduleModal({
       <div className={`w-2 h-2 rounded-full transition-colors ${step === "info" ? "bg-gray-900" : "bg-gray-200"}`} />
     </div>
   );
+
+  if (showUpgradeModal && isOpen) {
+    return <UpgradeModal creditsUsed={3} onClose={handleClose} />;
+  }
 
   return (
     <Modal

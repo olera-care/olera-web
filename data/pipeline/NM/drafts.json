@@ -1,0 +1,987 @@
+{
+  "state": "NM",
+  "stateName": "New Mexico",
+  "draftedAt": "2026-04-13T21:50:19.557Z",
+  "total": 5,
+  "successful": 5,
+  "programs": [
+    {
+      "id": "centennial-care-community-benefit",
+      "name": "Centennial Care Community Benefit Program",
+      "shortName": "Community Benefit Program",
+      "tagline": "Home care services for New Mexico seniors on Medicaid who need help with daily activities",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed Care Organizations (MCOs)",
+            "type": "service-area"
+          },
+          {
+            "name": "ALTSD Central Registry",
+            "type": "waitlist-office"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ on New Mexico Medicaid and needs help with bathing, dressing, or other daily activities, this program provides home care services to help them avoid nursing home placement. Services include personal care, adult day health, emergency response systems, home modifications, and skilled nursing — all delivered through your parent's Medicaid managed care plan.\n\nYour parent must already have full Medicaid coverage and be enrolled in a Centennial Care MCO. The program requires a clinical assessment proving they need nursing facility-level care (help with 2 or more daily activities like bathing, dressing, eating, toileting, or mobility). This isn't 24-hour care — it supplements family support to help your parent stay home safely.\n\nIf your parent doesn't qualify for full Medicaid yet, they can join a Central Registry waitlist and receive services when funding becomes available based on their priority level.",
+      "savingsRange": "",
+      "savingsSource": "Free service through Medicaid",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or disabled under 65)",
+          "Full New Mexico Medicaid coverage",
+          "Needs help with 2+ daily activities",
+          "Must be in Centennial Care MCO"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need nursing facility level of care — clinical assessment showing your parent needs assistance with 2 or more Activities of Daily Living (bathing, dressing, eating, toileting, mobility, or transitioning between positions)",
+        "otherRequirements": [
+          "New Mexico resident",
+          "Full Medicaid coverage or waiver category",
+          "Enrolled in Centennial Care Managed Care Organization"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your parent's MCO care coordinator if already enrolled, or call 1-800-283-4465 for MCO enrollment — functional assessment required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Ensure Medicaid enrollment",
+            "description": "If your parent has full Medicaid but no MCO, call 1-800-283-4465 to enroll in Centennial Care. If no Medicaid yet, contact ALTSD for Central Registry waitlist."
+          },
+          {
+            "step": 2,
+            "title": "Contact MCO care coordinator",
+            "description": "Once enrolled in an MCO, speak with your parent's assigned care coordinator to request Community Benefit services assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "Care coordinator arranges clinical assessment to determine if your parent meets nursing facility level of care requirements."
+          },
+          {
+            "step": 4,
+            "title": "Develop service plan",
+            "description": "If approved, work with care coordinator to create individualized service plan based on your parent's needs and available services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Central Registry waitlist available for those not qualifying for full Medicaid — slots allocated based on priority level",
+        "tip": "Start with Agency-Based services first — you can switch to Self-Directed model after 120 days if you want more control over care decisions.",
+        "urls": [
+          {
+            "label": "New Mexico HCA Community Benefit Program",
+            "url": "https://www.hca.nm.gov/community-benefit-program/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicaid card or approval letter",
+        "Medicare card (both parts) if applicable",
+        "Social Security award letter",
+        "Proof of New Mexico residency (utility bill or state ID)",
+        "Current medication list from doctor or pharmacy",
+        "Medical records showing functional limitations",
+        "Documentation of current care needs and assistance required",
+        "Insurance cards for any supplemental coverage",
+        "Power of attorney documents if family member is applying",
+        "Contact information for current healthcare providers"
+      ],
+      "contacts": [
+        {
+          "label": "Centennial Care MCO Enrollment",
+          "phone": "(800) 283-4465",
+          "description": "Enroll in managed care organization if you have Medicaid",
+          "hours": "Business hours"
+        },
+        {
+          "label": "New Mexico 2-1-1",
+          "phone": "2-1-1",
+          "description": "General information on all social services including Medicaid application",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You must have full Medicaid coverage first — this is not a standalone program",
+        "Self-direction option (managing your own care services) only becomes available after 120 days in agency-based services",
+        "Program does not cover room and board or 24-hour supervision — it supplements natural family supports",
+        "Limited provider networks for some services like personal care — ask about availability in your area when applying"
+      ],
+      "relatedPrograms": [
+        "New Mexico Medicaid",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [
+        {
+          "type": "service-breakdown",
+          "title": "Available Services",
+          "content": "Adult day health care, assisted living services, behavior support consultation, community transition services (moving from nursing home back home), customized community supports, emergency response services, employment supports, environmental modifications (home safety improvements), home health aide, nutritional counseling, personal care services (age 21+), private duty nursing, nursing respite services, and skilled therapies (physical, occupational, speech)."
+        },
+        {
+          "type": "two-models",
+          "title": "Agency-Based vs Self-Directed",
+          "content": "Everyone starts with Agency-Based Community Benefit (ABCB) where the MCO arranges all services. After 120 days, you can switch to Self-Directed Community Benefit (SDCB) where you have more control over hiring and managing care providers, but also more responsibility for paperwork and compliance."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent get these services if they don't have full Medicaid yet?",
+          "answer": "Yes, but they'll join the Central Registry waitlist managed by ALTSD. Services are provided when funding becomes available based on priority level determined by their functional and financial needs. Contact ALTSD to get on the waitlist while pursuing Medicaid eligibility."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid home health?",
+          "answer": "Community Benefit provides broader services beyond medical care — personal care, adult day programs, home modifications, emergency response systems, and respite care. Regular Medicaid home health is limited to skilled nursing and therapy visits prescribed by a doctor."
+        },
+        {
+          "question": "How long does the functional assessment take and what does it involve?",
+          "answer": "The assessment is conducted by the MCO care coordinator and evaluates your parent's ability to perform Activities of Daily Living like bathing, dressing, eating, toileting, and mobility. They need assistance with 2 or more ADLs to qualify for nursing facility level of care."
+        },
+        {
+          "question": "Can family members be paid to provide care through this program?",
+          "answer": "Under the Self-Directed model (available after 120 days in agency-based services), family members may be hired as care providers in some circumstances. However, spouses and legal guardians typically cannot be paid caregivers. Check with your care coordinator about specific family member restrictions."
+        },
+        {
+          "question": "What happens if my parent's needs increase and they need more services?",
+          "answer": "The care coordinator conducts regular reassessments to adjust the service plan based on changing needs. If your parent's condition deteriorates significantly, they may qualify for additional services or higher service levels within their approved budget."
+        },
+        {
+          "question": "Are there geographic areas in New Mexico where services aren't available?",
+          "answer": "The program is statewide, but provider availability varies by region. Rural areas may have limited personal care providers or adult day programs. When choosing an MCO, ask specifically about service availability in your parent's zip code."
+        },
+        {
+          "question": "Can my parent use these services while living in assisted living?",
+          "answer": "Yes, the program includes assisted living services and can supplement care in assisted living facilities. However, the program doesn't pay for room and board costs — only the additional care services your parent needs beyond what the facility provides."
+        },
+        {
+          "question": "What if we're not satisfied with the MCO's service coordination?",
+          "answer": "You can switch MCOs during open enrollment periods or for cause (like poor service coordination). Each MCO has different provider networks and service approaches, so switching may improve access to needed services. Call 1-800-283-4465 to discuss MCO options."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(800) 283-4465",
+      "sourceUrl": "https://www.hca.nm.gov/community-benefit-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "pace-comprehensive-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "Complete medical care, meals, transportation, and home services under one program for parents who need nursing home level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "InnovAge New Mexico PACE, 904 Las Lomas Rd NE, Albuquerque, NM 87102",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid nursing home placement, PACE provides everything under one roof: primary care, hospital care, prescription drugs, physical therapy, meals, transportation to appointments, and home care services. Because PACE coordinates all medical and support services through one team, your parent won't need to juggle multiple providers or worry about coverage gaps.\n\nPACE serves as both healthcare plan and care provider. Most participants are eligible for both Medicare and Medicaid, which cover the costs. The program includes no deductibles or co-pays, but requires your parent to use PACE providers exclusively for all covered services.\n\nIn New Mexico, PACE is only available in Albuquerque through one provider (InnovAge). Your parent must live in the service area and be certified by the state as needing nursing home level of care (requiring daily help with activities like bathing, dressing, or medication management).",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Certified for nursing home level care",
+          "Lives in Albuquerque service area",
+          "Eligible for Medicare or Medicaid"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by the state as requiring nursing home level of care (needing daily assistance with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Must live in the PACE service area (Albuquerque)",
+          "Must be eligible for Medicare, Medicaid, or both",
+          "Must be capable of living safely in the community with PACE services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call InnovAge directly at (844) 945-0467 for assessment and enrollment — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call InnovAge PACE",
+            "description": "Call (844) 945-0467 or (505) 916-1932 to start the enrollment process and schedule an assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete clinical assessment",
+            "description": "PACE team evaluates whether your parent needs nursing home level of care and can safely live in the community with PACE services."
+          },
+          {
+            "step": 3,
+            "title": "Verify service area eligibility",
+            "description": "Confirm your parent lives within the Albuquerque service area boundaries."
+          },
+          {
+            "step": 4,
+            "title": "Complete enrollment paperwork",
+            "description": "Submit Medicare/Medicaid information and sign enrollment documents to begin receiving services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can withdraw from PACE at any time if it's not working for your family — there's no lock-in period.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Medicare card (both parts if applicable)",
+        "Medicaid card (if applicable)",
+        "Valid government-issued photo ID",
+        "Social Security card",
+        "Proof of address in Albuquerque service area (utility bill or lease)",
+        "Current medication list with dosages",
+        "Recent medical records or physician summaries",
+        "Insurance information for any supplemental coverage",
+        "Emergency contact information",
+        "Healthcare proxy or power of attorney documents (if applicable)"
+      ],
+      "contacts": [
+        {
+          "label": "InnovAge New Mexico PACE",
+          "phone": "(844) 945-0467",
+          "description": "Main enrollment and information line",
+          "hours": "Business hours"
+        },
+        {
+          "label": "InnovAge Albuquerque Center",
+          "phone": "(505) 916-1932",
+          "description": "Local center at 904 Las Lomas Rd NE",
+          "hours": "Business hours"
+        },
+        {
+          "label": "TTY Line",
+          "phone": "711",
+          "description": "For hearing impaired callers",
+          "hours": "24/7"
+        },
+        {
+          "label": "New Mexico Aging & Disability Services",
+          "phone": "1-800-432-2080",
+          "description": "General information about PACE and other senior services",
+          "hours": "Mon-Fri 8am-5pm MT"
+        }
+      ],
+      "applicationNotes": [
+        "PACE becomes your parent's sole healthcare provider — they cannot use other doctors or hospitals for covered services while enrolled",
+        "Geographic restriction is strict — only Albuquerque residents can access the program, with no other locations in New Mexico",
+        "State certification for nursing home level of care is required before enrollment and involves a separate clinical assessment process",
+        "Medicaid recipients pay no monthly premium, but Medicare-only recipients may have monthly costs for additional coverage"
+      ],
+      "relatedPrograms": [
+        "New Mexico Medicaid Waiver Programs",
+        "Medicare Advantage Plans",
+        "Meals on Wheels",
+        "New Mexico Aging Network Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep seeing their current doctor if they join PACE?",
+          "answer": "No. PACE becomes your parent's exclusive healthcare provider for all covered services. They must use PACE doctors, hospitals, and specialists. However, you can withdraw from PACE at any time to return to other providers."
+        },
+        {
+          "question": "What if we live outside Albuquerque but want PACE services?",
+          "answer": "PACE is only available to residents within the InnovAge service area in Albuquerque. If your parent lives elsewhere in New Mexico, they cannot access PACE. Consider looking into Medicaid waiver programs or Medicare Advantage plans with similar comprehensive benefits."
+        },
+        {
+          "question": "How do I get the state certification for nursing home level of care?",
+          "answer": "Contact the New Mexico Aging & Disability Services Department at 1-800-432-2080 to request a clinical assessment. This evaluation determines if your parent needs daily assistance with activities like bathing, dressing, or medication management — the same level of care provided in nursing homes."
+        },
+        {
+          "question": "Will my parent have to pay anything out of pocket with PACE?",
+          "answer": "PACE has no deductibles or co-pays for covered services. If your parent has both Medicare and Medicaid (dual eligible), there are typically no monthly premiums. Medicare-only participants may pay a monthly premium for the Medicaid-equivalent coverage."
+        },
+        {
+          "question": "Can I apply for PACE on behalf of my parent?",
+          "answer": "Yes, family members can initiate the PACE enrollment process. However, your parent (or their legal representative with power of attorney) must participate in the clinical assessment and sign enrollment documents."
+        },
+        {
+          "question": "What happens if my parent's needs change after enrollment?",
+          "answer": "PACE teams regularly reassess participants and adjust services as needs change. The program is designed to adapt — providing more intensive home care or adult day services as your parent requires more support, with the goal of avoiding nursing home placement."
+        },
+        {
+          "question": "How quickly can PACE services start after enrollment?",
+          "answer": "Processing time is not specified in available information. Call InnovAge directly at (844) 945-0467 to ask about current enrollment timelines and when services would begin after completing the assessment and paperwork."
+        },
+        {
+          "question": "Can my parent use PACE if they only have Medicare but not Medicaid?",
+          "answer": "Yes, but they will pay a monthly premium to cover the services that Medicaid would normally fund. Most PACE participants are dual eligible for both programs, which eliminates monthly costs. Contact InnovAge to discuss premium amounts for Medicare-only coverage."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Hospital",
+      "phone": "(844) 945-0467",
+      "sourceUrl": "https://www.hca.nm.gov/lookingforinformation/pace/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "community-benefit-program",
+      "name": "Community Benefit Program",
+      "shortName": "Community Benefit",
+      "tagline": "Home care services for your parent who needs daily help but wants to stay home instead of entering a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed Care Organizations (MCOs) statewide; Aging & Long-Term Services Department for registry",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home, New Mexico's Community Benefit Program provides home care services to keep them out of nursing homes. Your parent must qualify for full Medicaid first — income below $1,000/month for a single person and assets under $2,000.\n\nThe program covers personal care, home health services, adult day programs, and assisted living based on your parent's individual care plan. Because everything goes through your parent's Medicaid Managed Care Organization (MCO), one team coordinates all services instead of juggling multiple providers.\n\nIf your parent doesn't qualify for Medicaid, limited slots are available through a Central Registry waitlist, but these fill quickly and have long wait times.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Full Medicaid coverage required",
+          "Daily help with 2+ activities (bathing, dressing, etc.)",
+          "New Mexico resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1000
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1262
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Non-exempt property",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary home (if intent to return)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need daily assistance with 2+ activities of daily living (bathing, dressing, eating, toileting, transferring, or medication management) — assessed through Nursing Facility Level of Care evaluation",
+        "otherRequirements": [
+          "New Mexico resident",
+          "U.S. citizen or legal alien",
+          "Enrolled in Medicaid Managed Care Organization",
+          "Must try Agency-Based services for 120 days before Self-Directed option"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "If your parent has Medicaid, contact their MCO care coordinator for assessment — processing time varies by MCO.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check Medicaid status",
+            "description": "If your parent has Medicaid but no MCO, call 1-800-283-4465 to enroll. If no Medicaid, apply at yes.nm.gov or call the same number."
+          },
+          {
+            "step": 2,
+            "title": "Contact MCO for assessment",
+            "description": "Once enrolled in an MCO, contact your parent's care coordinator to request Nursing Facility Level of Care assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "MCO will assess whether your parent needs daily help with 2+ activities of daily living to qualify for nursing home level care."
+          },
+          {
+            "step": 4,
+            "title": "Receive care plan approval",
+            "description": "If approved, MCO develops individualized care plan covering personal care, home health, adult day services, or assisted living as needed."
+          },
+          {
+            "step": 5,
+            "title": "Start with Agency-Based services",
+            "description": "New participants must use Agency-Based Community Benefit (ABCB) for 120 days before switching to Self-Directed option."
+          }
+        ],
+        "processingTime": "Not specified — varies by MCO assessment schedule",
+        "waitlist": "Limited slots available through Central Registry for non-Medicaid eligible applicants — contact 1-800-432-2080 for waitlist status",
+        "tip": "If your parent is in the hospital, ask the discharge planner to help initiate the MCO assessment process before they come home.",
+        "urls": [
+          {
+            "label": "Apply for Medicaid online",
+            "url": "https://yes.nm.gov"
+          },
+          {
+            "label": "Community Benefit Program information",
+            "url": "https://www.hca.nm.gov/community-benefit-program/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for your parent and spouse",
+        "Medicare card (both parts A and B)",
+        "Medicaid card or approval letter",
+        "Birth certificate or passport for age verification",
+        "Proof of New Mexico residency (utility bill, lease, or state ID)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Pension or retirement income statements",
+        "Property deeds or tax assessments",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Medical records documenting functional limitations",
+        "Current medication list from doctor or pharmacy",
+        "Documentation of current home care needs or services",
+        "Legal documents if someone has power of attorney"
+      ],
+      "contacts": [
+        {
+          "label": "Medicaid MCO Enrollment",
+          "phone": "(800) 283-4465",
+          "description": "Enroll in Medicaid Managed Care Organization",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Central Registry (non-Medicaid)",
+          "phone": "(800) 432-2080",
+          "description": "Waitlist for limited slots without full Medicaid",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "New Mexico 2-1-1",
+          "phone": "2-1-1",
+          "description": "General information and referral service",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Some MCOs have immediate openings while others maintain waitlists — ask about current capacity when choosing your MCO",
+        "Certain members approved before 2019 may have continuous eligibility without annual reassessments — verify your parent's status",
+        "If your parent doesn't qualify for full Medicaid, the Central Registry has very limited slots with long wait times",
+        "You must start with Agency-Based services for 120 days before switching to Self-Directed Community Benefit option"
+      ],
+      "relatedPrograms": [
+        "New Mexico Medicaid",
+        "Aging and Disability Waiver",
+        "Mi Via Waiver Program",
+        "Adult Protective Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as your parent intends to return or lives there. However, they still must meet the $2,000 limit for other countable assets like bank accounts and investments."
+        },
+        {
+          "question": "What if my parent has Medicaid but isn't enrolled in an MCO yet?",
+          "answer": "Call 1-800-283-4465 immediately to enroll in a Medicaid MCO. Your parent cannot access Community Benefit services without MCO enrollment, and you'll want to ask about each MCO's current waitlist status."
+        },
+        {
+          "question": "How long is the waitlist if my parent doesn't qualify for full Medicaid?",
+          "answer": "The Central Registry has very limited slots for non-Medicaid eligible applicants, and wait times can be extensive. Call 1-800-432-2080 for current availability, but most families find it faster to help their parent qualify for full Medicaid first."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, if you have legal authority through power of attorney or guardianship. You'll need to provide those legal documents during the application process. Family members can also help with applications even without formal legal authority."
+        },
+        {
+          "question": "What's the difference between Agency-Based and Self-Directed Community Benefit?",
+          "answer": "Agency-Based means a home care agency provides and manages all services. Self-Directed lets your parent (or family) hire and manage their own caregivers. All new participants must try Agency-Based for 120 days first before switching to Self-Directed."
+        },
+        {
+          "question": "Can my parent get Community Benefit services and still live in assisted living?",
+          "answer": "Yes, assisted living is one of the covered services under Community Benefit. The MCO will include assisted living costs in your parent's individual care plan if that's the most appropriate setting for their needs."
+        },
+        {
+          "question": "What happens if my parent's health gets worse and they need more help?",
+          "answer": "Contact your parent's MCO care coordinator immediately to request a care plan reassessment. The MCO can adjust services and authorize additional hours of care based on changing needs without requiring a completely new application."
+        },
+        {
+          "question": "Does my parent have to pay anything for Community Benefit services?",
+          "answer": "No, Community Benefit services are covered by Medicaid with no copays or deductibles. However, your parent may have a small monthly Medicaid spend-down if their income is slightly above limits but they still qualify medically."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(800) 283-4465",
+      "sourceUrl": "https://www.hca.nm.gov/community-benefit-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-farmers-market-nutrition",
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "shortName": "Senior Farmers Market",
+      "tagline": "Up to $100/year toward fresh fruits and vegetables at local farmers markets for seniors on fixed incomes",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NM DOH WIC offices, local senior centers, AAA/AARP offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to afford fresh fruits and vegetables on a fixed income, New Mexico's Senior Farmers' Market Nutrition Program provides up to $100 per year (2024) on an electronic card to shop at local farmers markets and roadside stands. The program targets seniors with household income at or below 185% of federal poverty level — $2,739/month for a single person in 2024.\n\nBecause this program operates on a first-come, first-served basis and typically opens applications in mid-February, timing matters. Your parent must be 60+ (or 55+ if Native American) and reapply annually even if they participated before. The electronic card works only for locally grown fresh fruits, vegetables, herbs, and honey at authorized New Mexico farmers and markets.\n\nBecause funding is limited each year, the program may close once allocations are exhausted. Benefits are distributed in July to approved applicants, so early application in February-March gives your parent the best chance of receiving assistance.",
+      "savingsRange": "Up to $100/year in 2024",
+      "savingsSource": "Annual electronic benefit card for fresh produce at farmers markets",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (55+ for Native Americans)",
+          "Income at or below 185% federal poverty level",
+          "New Mexico resident",
+          "Must reapply annually"
+        ],
+        "ageRequirement": "60+ (55+ Native Americans)",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2739
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3706
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4673
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5640
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in New Mexico",
+          "Must reapply every year",
+          "Automatic qualification if already receiving SNAP, TEFAP, or CSFP"
+        ],
+        "povertyLevelReference": "185% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online starting mid-February or call (505) 469-0548 — benefits issued in July on first-come, first-served basis.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply early in application season",
+            "description": "Applications typically open mid-February (February 15 for 2024). Apply immediately as funding is limited and distributed first-come, first-served."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Apply online at shopper.soliportal.com, call (505) 469-0548 or (505) 487-0904, email doh.fmnp@doh.nm.gov, or visit any NM DOH WIC office, senior center, or AAA/AARP location."
+          },
+          {
+            "step": 3,
+            "title": "Provide eligibility documentation",
+            "description": "Submit proof of age, income (or SNAP/TEFAP/CSFP participation), and household size. Specific document requirements vary by application method."
+          },
+          {
+            "step": 4,
+            "title": "Receive electronic benefit card",
+            "description": "If approved, benefits are issued in July via electronic shopper card that works at participating New Mexico farmers markets and roadside stands."
+          }
+        ],
+        "processingTime": "Benefits issued within July for approved applicants",
+        "waitlist": "First-come, first-served — no formal waitlist, program closes when funding exhausted",
+        "tip": "If your parent already receives SNAP, TEFAP, or CSFP benefits, they may qualify automatically without separate income verification.",
+        "urls": [
+          {
+            "label": "Online Application",
+            "url": "https://shopper.soliportal.com"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://www.nmwic.org/fmnp/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or birth certificate for age verification",
+        "Social Security award letter or other proof of income from all sources",
+        "SNAP, TEFAP, or CSFP participation letter (if applicable for automatic qualification)",
+        "Proof of New Mexico residency (utility bill, lease agreement, or state-issued document)",
+        "Documentation showing household size and composition",
+        "Most recent bank statements if self-employed or have irregular income"
+      ],
+      "contacts": [
+        {
+          "label": "NM SFMNP Main Line",
+          "phone": "(505) 469-0548",
+          "description": "Primary application and program information line",
+          "hours": "Business hours, Mon-Fri"
+        },
+        {
+          "label": "NM SFMNP Secondary",
+          "phone": "(505) 487-0904",
+          "description": "Alternative application and information line",
+          "hours": "Business hours, Mon-Fri"
+        },
+        {
+          "label": "Las Cruces Office",
+          "phone": "(575) 528-5197",
+          "description": "Local office line with mobile support",
+          "hours": "Business hours, mobile: (575) 649-0754"
+        }
+      ],
+      "applicationNotes": [
+        "Native American applicants qualify at age 55 instead of 60 — make sure to specify tribal membership when applying",
+        "Applications open mid-February and close when funding runs out — don't wait until summer to apply",
+        "Even if your parent participated last year, they must reapply annually to maintain eligibility",
+        "Electronic cards work only at authorized New Mexico farmers and stands — verify vendor participation before shopping"
+      ],
+      "relatedPrograms": [
+        "New Mexico SNAP Food Benefits",
+        "WIC Farmers' Market Nutrition Program",
+        "The Emergency Food Assistance Program (TEFAP)",
+        "Commodity Supplemental Food Program (CSFP)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're 58 but Native American?",
+          "answer": "Yes. Native Americans qualify at age 55, while non-Native Americans must be 60 or older. Make sure to specify tribal membership when applying to ensure the correct age threshold is applied."
+        },
+        {
+          "question": "What happens if we miss the February application window?",
+          "answer": "You can still apply after February, but the program operates first-come, first-served and closes when funding is exhausted. Applications that open in mid-February have the best chance of receiving benefits distributed in July."
+        },
+        {
+          "question": "Can the electronic card be used at regular grocery stores?",
+          "answer": "No. The card works only at participating New Mexico farmers markets and roadside stands selling locally grown produce. Farmers must grow within New Mexico or within an 80-mile radius of the state border."
+        },
+        {
+          "question": "If my parent already gets SNAP, do they need to prove income again?",
+          "answer": "No. Participation in SNAP, TEFAP, or CSFP automatically qualifies your parent for SFMNP without separate income verification. Just provide proof of current participation in those programs."
+        },
+        {
+          "question": "Can we save unused benefits from one year to the next?",
+          "answer": "No. The annual $100 benefit expires at the end of each program year, and your parent must reapply annually. Unused funds don't roll over, so plan to use the full amount during the active benefit period."
+        },
+        {
+          "question": "What exactly can my parent buy with the card?",
+          "answer": "Only fresh, locally grown fruits, vegetables, herbs, and honey from authorized vendors. No processed foods, plants, seeds, or non-food items. Honey is allowed for seniors (unlike the regular WIC program)."
+        },
+        {
+          "question": "How do we find participating farmers markets near us?",
+          "answer": "Contact the NM DOH SFMNP office at (505) 469-0548 for a current list of participating markets and vendors. Authorized locations can change seasonally, so verify before making trips."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can help with the application process. You'll need your parent's documentation and may need to provide proof of your authority to act on their behalf for some application methods."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(505) 469-0548",
+      "sourceUrl": "https://www.nmwic.org/fmnp/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-employment-training-program",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Training",
+      "tagline": "Part-time subsidized training positions for unemployed parents 55+ earning below $19,000-$25,500 annually",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "NM Aging & Long-Term Services Department (ALTSD)",
+            "type": "service-area"
+          },
+          {
+            "name": "NICOA (AZ, MN, NM, ND, OK, SD, WI)",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Industries of NM",
+            "type": "service-area"
+          },
+          {
+            "name": "Local SCSEP offices via state workforce boards.[2][3][4][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with family income below 125% of the federal poverty level (roughly $19,000 for a single person, $25,500 for a couple), they may qualify for subsidized part-time training positions through SCSEP. Your parent would earn wages working typically 20 hours per week at nonprofits or public agencies while building job skills in roles like customer service, teacher assistant, maintenance, or food preparation.\n\nBecause SCSEP pays wages directly and provides on-the-job training, your parent gains work experience while earning income during their transition back to unsubsidized employment. Priority goes to veterans and their spouses, people 65+, rural residents, those with disabilities, and people with limited English or low literacy skills.\n\nNew Mexico has 26 of 33 counties classified as 'frontier,' so rural residents get priority placement. However, funding fluctuations can create waitlists, and availability varies by region depending on which organization administers the program in your area.",
+      "savingsRange": "",
+      "savingsSource": "Part-time wages paid directly by program",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Family income below 125% federal poverty level",
+          "U.S. citizen or authorized to work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "U.S. citizen or authorized to work",
+          "Priority to veterans/qualifying spouses, age 65+, limited English/low literacy, rural residents, disabled, low employment prospects, failed One-Stop employment services, homeless/at risk"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional SCSEP provider directly — enrollment depends on funding availability and may have waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Identify your regional provider",
+            "description": "ALTSD serves most areas via https://www.aging.nm.gov/aging-network/senior-employment-programs/. NICOA covers eligible areas with American Indian focus at https://www.nicoa.org/programs/scsep/. Goodwill NM serves select locations — call (505) 881-6401 or visit 1030 18th Street NW."
+          },
+          {
+            "step": 2,
+            "title": "Contact the local SCSEP office",
+            "description": "Call your provider to check current availability and funding status. Some areas experienced enrollment pauses in 2025 due to funding fluctuations."
+          },
+          {
+            "step": 3,
+            "title": "Complete application at local office",
+            "description": "Bring required documents to verify age, income, unemployment status, and work authorization. Physical exam is offered after enrollment but not required to apply."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement notification",
+            "description": "If eligible and funding is available, you'll be matched with a training position at a local nonprofit or public agency."
+          }
+        ],
+        "processingTime": "Enrollment if eligible and no waitlist",
+        "waitlist": "Possible depending on location and funding cycles — varies by regional availability",
+        "tip": "Priority groups get preference, so mention if your parent is 65+, a veteran, has limited English, lives in a rural area, or has a disability.",
+        "urls": [
+          {
+            "label": "NM ALTSD Senior Employment",
+            "url": "https://www.aging.nm.gov/aging-network/senior-employment-programs/"
+          },
+          {
+            "label": "NICOA SCSEP Program",
+            "url": "https://www.nicoa.org/programs/scsep/"
+          },
+          {
+            "label": "Goodwill NM Seniors",
+            "url": "https://www.goodwillnm.org/seniors"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or driver's license",
+        "Birth certificate or passport (proof of age)",
+        "Social Security card",
+        "Proof of citizenship or work authorization",
+        "Most recent tax return or statement showing family income",
+        "Social Security award letter if receiving benefits",
+        "Unemployment verification or statement of job loss",
+        "Bank statements (last 3 months)",
+        "Proof of address (utility bill, lease agreement, or mail within last 30 days)"
+      ],
+      "contacts": [
+        {
+          "label": "NM Aging & Long-Term Services Department",
+          "phone": "(505) 476-4799",
+          "description": "Primary SCSEP provider for most New Mexico areas",
+          "hours": "Mon-Fri 8am-5pm MT"
+        },
+        {
+          "label": "NICOA SCSEP Program",
+          "phone": "(505) 292-2001",
+          "description": "American Indian focus areas and select NM counties",
+          "hours": "Mon-Fri 8am-5pm MT"
+        },
+        {
+          "label": "Goodwill Industries of NM",
+          "phone": "(505) 881-6401",
+          "description": "Select locations including Albuquerque area",
+          "hours": "Mon-Fri 9am-5pm MT"
+        },
+        {
+          "label": "NM Aging Helpline",
+          "phone": "(800) 432-2080",
+          "description": "General senior services information and referrals",
+          "hours": "Mon-Fri 8am-5pm MT"
+        }
+      ],
+      "applicationNotes": [
+        "Funding fluctuations can cause temporary enrollment pauses — call to confirm current availability before gathering documents",
+        "Multiple providers serve different areas of New Mexico, so you may need to contact 2-3 organizations to find the right one for your location",
+        "Priority groups (veterans, 65+, rural residents, disabled, limited English) get preference when positions are limited",
+        "This is a training program with the goal of transitioning to unsubsidized employment — not a permanent job placement"
+      ],
+      "relatedPrograms": [
+        "New Mexico Senior Employment Program (SEP)",
+        "SNAP Food Benefits",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent work at SCSEP while receiving Social Security retirement benefits?",
+          "answer": "Yes, but Social Security retirement benefits may be reduced if your parent is under full retirement age and earns over the annual limit ($23,400 in 2026). Contact Social Security at (800) 772-1213 to understand how SCSEP wages might affect benefits."
+        },
+        {
+          "question": "What if there's a waitlist in our area — how long will my parent have to wait?",
+          "answer": "Wait times vary significantly by region and funding cycles. Some areas had enrollment pauses in 2025. Rural areas may have shorter waits due to priority status, while urban areas may have longer lists. Call your local provider monthly to check status."
+        },
+        {
+          "question": "Does my parent have to take any job placement they're offered?",
+          "answer": "SCSEP tries to match participants with positions that use their skills and interests, but options depend on what's available with local nonprofit and public agency partners. You can discuss preferences during the application process."
+        },
+        {
+          "question": "What happens if my parent gets sick or injured during the training position?",
+          "answer": "SCSEP positions are covered by workers' compensation. Your parent will also receive a physical exam after enrollment. However, this is temporary training, not permanent employment with full benefits."
+        },
+        {
+          "question": "Can we apply to multiple SCSEP providers in New Mexico at the same time?",
+          "answer": "Contact the provider that serves your specific area first. If ALTSD, NICOA, or Goodwill don't serve your location, they'll refer you to the correct provider. Applying to multiple providers for the same area isn't necessary."
+        },
+        {
+          "question": "How does the income limit work if my parent lives with family members?",
+          "answer": "The 125% federal poverty level applies to total household income, not just your parent's income. For 2026, contact your local provider for exact dollar amounts based on household size, as these change annually."
+        },
+        {
+          "question": "What if my parent hasn't worked in several years — will that disqualify them?",
+          "answer": "No, being out of the workforce actually supports eligibility. SCSEP specifically serves people who are unemployed and may have been out of work for extended periods. The program provides refresher training and job skills."
+        },
+        {
+          "question": "Is there any guarantee my parent will find permanent work after SCSEP?",
+          "answer": "SCSEP provides job development services and post-placement support to help transition to unsubsidized employment, but there's no guarantee of permanent placement. Success depends on local job market conditions and individual circumstances."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "(505) 476-4799",
+      "sourceUrl": "https://www.aging.nm.gov/aging-network/senior-employment-programs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    }
+  ],
+  "stateOverview": {
+    "intro": "If your parent lives in New Mexico and needs help with daily care, food costs, or employment, 5 state and federal programs could provide direct support. These range from comprehensive medical care and home services (PACE) to $100/year for fresh produce (Senior Farmers' Market program) to part-time paid training positions for parents 55+ earning under $25,500 annually (SCSEP). Most programs target parents with limited incomes or specific care needs — like requiring daily help with bathing, dressing, or medication management.\n\nStart by identifying your parent's most pressing need: staying home safely with care support, reducing food costs, or finding employment. Each program has different income limits and eligibility requirements, but you can apply for multiple programs simultaneously.",
+    "startHere": [
+      {
+        "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+        "programId": "pace",
+        "why": "Covers all medical care, home services, meals, and transportation under one program for parents who need nursing home level care."
+      },
+      {
+        "name": "Centennial Care Community Benefit Program",
+        "programId": "centennial-care-community-benefit",
+        "why": "Provides home care services for New Mexico seniors on Medicaid who need help with daily activities but want to stay home."
+      },
+      {
+        "name": "Senior Community Service Employment Program (SCSEP)",
+        "programId": "scsep",
+        "why": "Offers part-time paid training positions for unemployed parents 55+ with income below $19,000-$25,500 annually."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help staying home safely with care support",
+        "programs": [
+          "Program of All-Inclusive Care for the Elderly (PACE)",
+          "Centennial Care Community Benefit Program",
+          "Community Benefit Program"
+        ],
+        "description": "Home care services and comprehensive support for parents who need daily help but want to avoid nursing homes."
+      },
+      {
+        "need": "Food assistance for seniors on fixed incomes",
+        "programs": [
+          "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)"
+        ],
+        "description": "Up to $100/year toward fresh fruits and vegetables at local farmers markets."
+      },
+      {
+        "need": "Employment and income for older adults",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Part-time subsidized training positions for unemployed parents 55+ with low incomes."
+      }
+    ],
+    "quickFacts": [
+      "New Mexico operates Centennial Care as its Medicaid program, which includes home care benefits for qualifying seniors",
+      "SCSEP income limits range from $19,000-$25,500 annually depending on household size",
+      "PACE serves parents who qualify for nursing home care but provides services to keep them at home instead"
+    ],
+    "resourcesVsBenefits": "Most New Mexico programs for seniors are qualification-based benefits requiring specific income limits or care needs assessments. For example, Centennial Care Community Benefit Program requires Medicaid eligibility, while SCSEP requires income below $19,000-$25,500 annually. The Senior Farmers' Market program targets seniors on fixed incomes. Only PACE provides comprehensive services regardless of specific income thresholds, but requires meeting nursing home level care criteria."
+  }
+}

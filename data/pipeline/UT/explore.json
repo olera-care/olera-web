@@ -1,0 +1,103 @@
+{
+  "entity": "Utah",
+  "entitySlug": "utah",
+  "state": "UT",
+  "stateName": "Utah",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T16:45:01.520Z",
+  "programCount": 13,
+  "programs": [
+    {
+      "name": "Utah Medicaid Program",
+      "what_it_does": "Provides medical services for low-income seniors and individuals with disabilities, including long-term care options like nursing homes and in-home care.[2][5] It covers health care costs for eligible beneficiaries once approved.[4]",
+      "who_its_for": "Low-income seniors aged 65+ and people with disabilities meeting income and asset requirements.[4][5]",
+      "official_url": "https://medicaid.utah.gov/",
+      "benefit_value": "Pays for medical services, nursing home care, and waiver-based in-home services; value varies by need and eligibility."
+    },
+    {
+      "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible seniors in community settings, including adult day health care and transportation. It coordinates all Medicare and Medicaid-covered care to support aging in place.",
+      "who_its_for": "Seniors aged 55+ who are nursing facility eligible, live in PACE service areas, and can safely reside in the community.",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Full capitation coverage for all needed services; average annual value exceeds $50,000 per participant."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Helps pay Medicare Part A/B premiums, deductibles, coinsurance, and copayments for eligible low-income seniors.[5] Administered through Utah Medicaid as prescription drug and premium assistance.[2]",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income/asset limits (e.g., QMB up to 100% FPL, SLMB 120%, QI 135%).[5]",
+      "official_url": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+      "benefit_value": "Premium payments ($170+/month for Part B), deductibles, and cost-sharing; saves up to $5,000+ annually."
+    },
+    {
+      "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase food for low-income households.[5] Helps ensure nutritional needs are met for seniors on fixed incomes.",
+      "who_its_for": "Low-income seniors (60+) and disabled individuals meeting income guidelines.[5]",
+      "official_url": "https://jobs.utah.gov/my2cents/",
+      "benefit_value": "Average $200-300/month per household; max for one person ~$291/month (2026 rates)."
+    },
+    {
+      "name": "Utah LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "Offers help with heating/cooling bills, crisis assistance, and weather-related repairs for low-income households. Administered statewide for energy needs.",
+      "who_its_for": "Low-income households including seniors 60+ meeting income eligibility (up to 150% FPL).",
+      "official_url": "https://www.utah.gov/local/seniors/seniors/benefits.html",
+      "benefit_value": "One-time grants $200-1,000+ for bills; crisis aid up to $600."
+    },
+    {
+      "name": "Utah Weatherization Assistance Program",
+      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and heating upgrades. Reduces utility costs and health risks from poor conditions.",
+      "who_its_for": "Low-income households (200% FPL), prioritizing seniors, disabled, and families with children.",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Free home upgrades worth $5,000-10,000, saving $300+/year on energy."
+    },
+    {
+      "name": "Utah SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Provides free counseling on Medicare options, appeals, and extra help programs.[5] Helps seniors navigate coverage and save money.",
+      "who_its_for": "All Utah Medicare beneficiaries, especially low-income seniors.[2]",
+      "official_url": "https://www.utah.gov/local/seniors/seniors/benefits.html",
+      "benefit_value": "Free one-on-one advice; helps access thousands in savings annually."
+    },
+    {
+      "name": "Utah Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often includes safety checks and friendly visits.",
+      "who_its_for": "Homebound seniors 60+ who are unable to prepare meals, with suggested donations.",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "5-7 meals/week; value $7-10/meal, often subsidized."
+    },
+    {
+      "name": "Utah Caregiver Support Program (UCSP)",
+      "what_it_does": "Supports family caregivers with respite, counseling, training, and access to services to delay institutionalization.[4] Includes no low-income requirement for core services.",
+      "who_its_for": "Unpaid family caregivers of adults 60+, those with Alzheimer's/related disorders, or older relatives (55+) caring for children/disabled.[4]",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Respite up to 240 hours/year, counseling, and supplies; value $2,000-5,000/year."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides community service work training and paid part-time jobs to unemployed low-income seniors.[4] Helps transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income adults 55+ unable to find work.[4]",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Minimum wage part-time work (20 hrs/week), ~$7,000/year income/support."
+    },
+    {
+      "name": "Utah Legal Services for Seniors",
+      "what_it_does": "Offers free legal aid for issues like housing, benefits, abuse, and consumer problems. Partners with Area Agencies on Aging.",
+      "who_its_for": "Low-income seniors 60+ facing civil legal needs.",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Free representation; saves thousands in legal fees."
+    },
+    {
+      "name": "Utah Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, resolving complaints and protecting rights. Provides education and investigation services.",
+      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities in Utah.",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "Free advocacy and complaint resolution; improves quality of life and care."
+    },
+    {
+      "name": "Utah Aging Waiver",
+      "what_it_does": "Provides long-term home and community-based services (HCBS) for elderly state residents who require nursing home level of care, aiming to prevent unnecessary institutionalization. Services include in-home personal care, adult companion services, respite care, home modifications, assistive technology, and personal emergency response systems.[1]",
+      "who_its_for": "Utah residents aged 65 or older requiring nursing home level of care, determined by functional and financial eligibility; not an entitlement with limited slots and waitlist.[1]",
+      "whats_unique": "State-specific 1915(c) Medicaid HCBS waiver tailored for seniors 65+, offering a broad array of non-medical supportive services like chore services (snow removal, lawn care) and adult companion services not universally available in other states' waivers.[1]",
+      "official_url": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/",
+      "benefit_value": "Varies by needs; covers services up to nursing home level without fixed cash amount; limited enrollment slots.[1]"
+    }
+  ]
+}

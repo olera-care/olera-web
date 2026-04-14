@@ -1,0 +1,630 @@
+{
+  "state": "CA",
+  "stateName": "California",
+  "classifiedAt": "2026-04-13T17:37:21.045Z",
+  "total": 17,
+  "typeSummary": {
+    "benefit": 12,
+    "resource": 4,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "federal": 6,
+    "local": 2,
+    "state": 9
+  },
+  "complexitySummary": {
+    "deep": 9,
+    "simple": 4,
+    "medium": 4
+  },
+  "programs": [
+    {
+      "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county social services agency (find via county website or DHCS directory)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Multipurpose Senior Services Program Waiver (MSSP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local MSSP sites via California Department of Aging (CDA)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: California Health Collaborative (CHC) for specific Northern CA counties; Partners in Care Foundation (likely LA area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Community Based Adult Services (CBAS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "CalFresh",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County social services agencies (e.g., Alameda SSA, LA DPSS, Ventura HSA, Riverside DPSS).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Maravilla: San Fernando Valley, Northeast LA, East LA areas[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE: West LA, Central LA, South LA areas[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Long Beach Community Action Partnership (LBCAP): Harbor area[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Inyo Mono Advocates for Community Action (IMACA): Owens Valley area[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "CSD local service providers statewide.[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Spectrum Community Services (Alameda County).[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "CSET (call 1-844-224-1316).[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "211 LA providers.[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Agency on Aging Area 4 (serves Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, Yuba counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "San Joaquin Department of Aging and Community Services PSA 11 (serves San Joaquin County)",
+            "type": "service-area"
+          },
+          {
+            "name": "California Department of Aging (statewide coordination)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Meals on Wheels (via Older Americans Act / CA Dept. of Aging)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) across California; locate via https://aging.ca.gov/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Multipurpose Senior Services Program (MSSP) Caregiver Support",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "37 sites statewide administered by various organizations[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Independence at Home (largest provider)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Partners In Care Foundation (Los Angeles County, 20+ years experience)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Huntington Hospital (San Gabriel Valley and Pomona Valley, LA County)[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Sourcewise (specific service areas)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Sonoma County Health and Human Services[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "California Health Collaborative[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact California Department of Aging for complete provider list by county",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "California Department of Aging (state administrator)[1][8]",
+            "type": "service-area"
+          },
+          {
+            "name": "SER California (serves 23 counties)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Felton Institute (San Francisco, Marin, San Benito, San Mateo, Santa Clara, Santa Cruz counties; phone: 415-982-7007 ext. 334)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "ACC Senior Services (Sacramento County)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "NEW Solutions (Northern California and Wyoming)[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation (operates SCSEP in multiple locations)[10]",
+            "type": "service-area"
+          },
+          {
+            "name": "Orange County Department of Aging (Orange County)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "LA Department of Aging (Los Angeles)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "19 national non-profit organizations serve as SCSEP grantees[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "California Senior Legal Services (via Legal Services Inc. / Area Agencies)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose"
+      ],
+      "signals": {
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "35 local ombudsman programs throughout California",
+            "type": "service-area"
+          },
+          {
+            "name": "Administered by California Department of Aging (state level)",
+            "type": "service-area"
+          },
+          {
+            "name": "Services provided locally by contracted agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": null,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "State Supplementary Payment (SSP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Social Security Administration offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Property Tax Postponement Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered centrally by California State Controller's Office",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "In-Home Supportive Services (IHSS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County IHSS offices (find via https://www.cdss.ca.gov/in-home-supportive-services or county social services)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Caregiver Resource Centers (CRC)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "11 nonprofit centers statewide; examples: Inland Caregiver Resource Center (www.inlandcaregivers.org), Los Angeles CRC (losangelescrc.usc.edu), full list at caregivercalifornia.org and dhcs.ca.gov[4][5][6][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community-Based Adult Services (CBAS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

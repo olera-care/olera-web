@@ -248,6 +248,7 @@ export async function POST(request: NextRequest) {
             recipientType: "provider",
             providerId: provider.id,
             emailLogId: emailLogId ?? undefined,
+            recipientProfileId: provider.id,
           });
           await sendLoopsEvent({
             email: providerEmail,

@@ -1,0 +1,443 @@
+{
+  "state": "TX",
+  "stateName": "Texas",
+  "comparedAt": "2026-04-09T16:37:51.855Z",
+  "total": 12,
+  "newPrograms": 8,
+  "withDiffs": 3,
+  "withNovelFields": 4,
+  "benefitTypes": {
+    "service": 9,
+    "in_kind": 1,
+    "financial": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "household_size|priority_tier": 1,
+    "priority_tier": 3,
+    "region": 2,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "priority_tier|region": 1,
+    "not_applicable": 3
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 4,
+      "programs": [
+        "STAR+PLUS",
+        "Weatherization Assistance Program",
+        "Meals on Wheels",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 4,
+      "programs": [
+        "STAR+PLUS",
+        "Weatherization Assistance Program",
+        "Meals on Wheels",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "STAR+PLUS",
+        "Weatherization Assistance Program",
+        "Meals on Wheels"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 4,
+      "programs": [
+        "STAR+PLUS",
+        "Weatherization Assistance Program",
+        "Meals on Wheels",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "MBIC income scales by household size (300% FPL); premiums vary by income/insurance; QI capped enrollment; dual MBIC (kids) vs Medicare help (elderly); disability=SSI criteria key",
+      "gotchas": [
+        "MBIC premium required (sliding scale—not free; based on AGI, family size, employer insurance).",
+        "Income up to 300% FPL only—many assume 'too high' disqualifies entirely.",
+        "QI: Waitlist/annual funding limits (not guaranteed).",
+        "QMB/SLMB/QI assets exclude home/car but count cash—providers can't bill QMB patients.",
+        "Must meet SSI-level disability (not just diagnosis).",
+        "Children up to 18 only (transition to adult Buy-In at 19 if working).",
+        "Forms computer-only; confirm receipt post-submit."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/medicaid-buy-children-mbic or www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html; QMB/SLMB/QI: https://www.hhs.texas.gov/services/medicare-medicaid"
+    },
+    {
+      "name": "STAR+PLUS",
+      "isNew": false,
+      "existingId": "star-plus-home-and-community-based-services",
+      "existingVerified": "2026-04-04",
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "21",
+          "found": "65",
+          "source": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2,982",
+          "found": "$2,901",
+          "source": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$20,000 – $50,000/year in 2026",
+          "found": "Managed care Medicaid including acute care (physician visits, hospital, pharmacy, dental, vision, NEMT), long-term services (service coordination, nursing, therapies), and HCBS waiver for those qualifying: Day Activity & Health Services (DAHS, up to 5 days/week Mon-Fri for physical/mental/medical/social needs), Personal Attendant Services (PAS), minor home modifications, specialized medical equipment, respite, transition services. Nursing facility residents get room/board, supplies, rehab. Extra plan-specific perks (e.g., Weight Watchers subscription, camp allowances, asthma supplies) vary by MCO.[3][5][6]",
+          "source": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Assets limited to $2,000 (countable resources). Exempt: primary home if equity ≤ $730,000 and applicant lives there or intends to return, or if spouse/child under 21/disabled child lives there; one vehicle; personal belongings; burial plots; life insurance up to $1,500 face value.[1][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Different MCOs/providers by region (e.g., Community First central TX, Molina, Superior, Wellpoint); some extras limited to counties (e.g., Weight Watchers in Dallas/Hidalgo); wait times vary regionally",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Long interest lists (many years wait for HCBS invitation); some exceptions exist",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of identity (ID, SSN)",
+            "Income proof (pay stubs, SSI award letters)",
+            "Asset statements (bank, property)",
+            "Proof of residency",
+            "Medical records/disability proof for NFLOC",
+            "Physician certification for level of care"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Long interest list wait for HCBS waiver; MCO-specific in regions; fixed individual income/asset limits (no household scaling); NFLOC medical tier required",
+      "gotchas": [
+        "Must join interest list first; years-long wait for HCBS (not immediate)",
+        "Income/asset limits apply individually even for couples; home equity cap $730,000",
+        "Requires NFLOC (nursing home level need); not just low income/age",
+        "Managed by MCOs—select carefully as benefits/extras vary by plan/region",
+        "Cannot be in another waiver; nursing home residents may transition out",
+        "Applicant pays applied income toward nursing facility if applicable"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Only available in limited Texas regions via specific providers like Bienvivir; no direct income/asset test for PACE but tied to Medicaid financials for full benefits; requires nursing home certification while allowing community living",
+      "gotchas": [
+        "Limited geographic availability in Texas—not statewide, must live in specific provider service area[1][2]",
+        "No Medicare Advantage or hospice enrollment allowed[2]",
+        "State certification for nursing home level care required, involves assessment[1][4]",
+        "Most participants dually eligible, but private pay possible if not Medicaid-qualified[2][3]",
+        "Voluntary enrollment; approval by Texas state after provider assistance[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Seniors 60+ simplified: net income only, no gross test; benefits scale by household size; medical/shelter deductions key for elderly; Texas-specific asset limit and HHSC administration.",
+      "gotchas": [
+        "Seniors only need **net income test** (not gross)—deduct medical/shelter costs to qualify[1][3].",
+        "Own home/savings? Often still eligible (exempt assets)[1].",
+        "Include **all household members** who share food, even non-eligible[1].",
+        "Social Security/pensions **count as income**[1][3].",
+        "Texas has **asset test** ($2k); not waived like some states[4].",
+        "Work rules exempt seniors 60+, but verify if under 60[2][5].",
+        "2025 changes: Updated work/non-citizen rules via One Big Beautiful Bill Act[3][5]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.yourtexasbenefits.com"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered regionally via 254 county subrecipients (CAAs/CEAP); income by household size; no asset test; benefits vary by fuel type, crisis status, and local funding; waitlists and slight guideline variations by area.",
+      "gotchas": [
+        "Primarily delivered as CEAP in Texas (integrates LIHEAP funds); contact local CAA, not statewide office.",
+        "Household includes all at address sharing utility bill (unlike SNAP).",
+        "Funding limited by federal availability; waitlists common.",
+        "Benefits paid directly to utility, not applicant.",
+        "Priorities for elderly/disabled/crisis, but open to all qualifying.[1][2][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "isNew": false,
+      "existingId": "texas-weatherization-assistance-program",
+      "existingVerified": "2026-04-04",
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $8,000 in free improvements",
+          "found": "Energy audit of home efficiency (identifies air leaks, inefficient appliances). Installation of weatherization measures including caulking, weather-stripping, ceiling/wall/floor insulation, patching building envelope holes, duct work, tune-up/repair/replacement of heating/cooling systems. Must meet specific energy-savings goals per DOE standards. No fixed dollar amount or hours; services based on audit results. Education on energy savings. Does not typically replace full HVAC systems[6][4][3].",
+          "source": "https://www.tdhca.texas.gov/weatherization-assistance-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned across sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Yes: different subrecipients/providers per region with unique applications, phones, addresses, forms, home type rules (e.g., mobile homes excluded by some[3], allowed by others[5]), additional requirements (e.g., Austin Energy customer, property value limits[5]), wait times/funding vary[4][6]. Full subrecipient list via TDHCA.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Common due to funding limits; prioritization matrix used (e.g., points for elderly, disabled, children under 6); strive for timely service but patience requested[4].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income for all household members 18+ (last 30 days): check stubs, SSI/SSDI/SSA award letters, unemployment docs, pension/retirement letters, workers comp, TANF; notarized Declaration if no income. Bank statements/W2s/tax docs not accepted[1][2][4][7].",
+            "Proof of citizenship/immigration for all household members: birth certificate, naturalization/citizenship certificate, US passport[1].",
+            "Proof of ID for all 18+: driver's license, state ID, passport, military ID, permanent residency card[1].",
+            "Household info: names, DOB for all members[7].",
+            "Utility bills: current electric/gas/propane with 12-month history[7].",
+            "Landlord agreement if renting[7][5]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered via ~30 regional subrecipients with unique apps/forms/contacts; 200% FPL income test; priority tiers by vulnerability; services audit-driven, not fixed amount; county-restricted providers; mobile home eligibility varies; strict 30-day income docs only.",
+      "gotchas": [
+        "Must contact correct regional subrecipient, not state directly; statewide but hyper-local[6].",
+        "Income proof strictly last 30 days annualized, no bank statements/W2s; notarized zero-income declaration required[1][7].",
+        "Citizenship/qualified alien verification for EVERY household member, including children[4][1].",
+        "Home must pass energy audit; no service if not needed. Mobile homes often excluded[3][6].",
+        "Prioritization tiers (elderly/disabled/young kids first); long waitlists common[4].",
+        "Renter needs landlord permission; owners may need financial commitment info[1][5].",
+        "No recent prior weatherization (e.g., last 10 years in some areas)[5].",
+        "Varies by utility/provider in some regions (e.g., Austin Energy customers only)[5]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.tdhca.texas.gov/weatherization-assistance-program"
+    },
+    {
+      "name": "Texas State Health Insurance Assistance Program (SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; counseling service only, not benefits; statewide via local networks; Texas-specific name HICAP; volunteer-driven with national oversight by ACL[1][2][4][7]",
+      "gotchas": [
+        "Not a direct healthcare or financial aid program—provides counseling only, not payments or services; in Texas called Health Information, Counseling, and Advocacy Program (HICAP); free but relies on trained volunteers/staff, so availability may depend on local capacity; often confused with Medicare Savings Programs it helps apply for[1][3][6][7]",
+        "No enrollment wait or caps, but peak times (e.g., Open Enrollment) may have higher demand[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.shiphelp.org/ships/texas/[7]"
+    },
+    {
+      "name": "Meals on Wheels",
+      "isNew": false,
+      "existingId": "texas-meals-on-wheels",
+      "existingVerified": "2026-04-04",
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year in 2026",
+          "found": "Home-delivered nutritious, often medically-tailored meals (typically 1 hot meal per weekday; some offer weekend frozen meals). Includes safety check and brief social contact by volunteer deliverers; case management for holistic needs assessment.[1][2][4]",
+          "source": "https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned across programs.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Operated by independent local providers with slight differences in age/disability rules, priority groups, delivery details, and short-term options; must contact local program.[1][2][3][4][5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible in some programs, leading to longer processing.[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age, residence, medical info/dietary restrictions (sometimes); health problems, DOB, SSN, doctor's info, emergency contacts (requested at referral).[1][4]",
+            "Financial docs rare, as income not a factor.[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Decentralized local providers with no statewide uniformity; no income/asset tests; service area and minor eligibility nuances vary by county/region; find via local Area Agency on Aging or Meals on Wheels America search.",
+      "gotchas": [
+        "Not a single statewide program—must find and contact the specific local provider for your area; eligibility/geography strictly local.[1][2][3][6]",
+        "Homebound status key: those who can easily leave home or have cooking help may not qualify.[1][4]",
+        "Car ownership or non-homebound status may disqualify.[1]",
+        "Voluntary contributions expected but not required; some trial meals require payment if skipping full assessment.[6]",
+        "Short-term service available for recovery but limited (e.g., 6 weeks).[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+    },
+    {
+      "name": "Community Based Alternatives (CBA) Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Capped by nursing facility payment rate; priority-based waitlist; integrated with STAR+PLUS managed care; financial eligibility via standard Medicaid + waiver-specific NFLOC; no fixed service hours/dollars, plan individualized.",
+      "gotchas": [
+        "Must choose waiver over nursing facility (informed choice required; cannot dual-enroll).",
+        "Not automatic Medicaid; separate financial/functional eligibility checks.",
+        "Waitlists can be years long; apply to interest list early even if not ready.",
+        "Income over SSI may still qualify via waiver rules (up to 300% SSI) but requires spend-down.",
+        "Home equity limit $730,000; estate recovery may apply post-death.",
+        "Overlaps with STAR+PLUS HCBS; some STAR+PLUS enrollees excluded if under 1115 waiver.",
+        "Services capped by nursing facility cost; not unlimited."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba"
+    },
+    {
+      "name": "Community Caregiver Support Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No dedicated Texas 'Community Caregiver Support Program' found; data fragmented across CCAD (non-Medicaid in-home aid), STAR+PLUS (Medicaid waiver), and possible confusion with VA program; county-level ADRC delivery with income/functional tests",
+      "gotchas": [
+        "Program name may refer to VA national program, not Texas-specific; families should verify with Texas HHS as results point to CCAD or STAR+PLUS instead[1][2][6]",
+        "Eligibility often tied to not receiving duplicate Medicaid services; income/assets adjusted annually[2]",
+        "Caregiver support under Texas Admin Code requires meeting broader criteria in §700.1003, details unavailable here[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "No primary .gov URL for exact 'Community Caregiver Support Program'; see Texas HHS for CCAD/CCSE: implied via ADRC contacts[2]"
+    },
+    {
+      "name": "Legal Aid for Seniors through AAAs",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized across 28 regional AAAs covering all counties; no fixed income/asset tests but need-based prioritization; focuses on referrals to civil legal aid with separate eligibility; services free with ombudsman/benefit counseling core[3][4]",
+      "gotchas": [
+        "Not direct legal representation; primarily counseling, ombudsman advocacy, and referrals to low-income legal aid orgs like Legal Aid of NorthWest Texas which have stricter 125-200% FPL income limits[1][2][4]",
+        "Legal aid referrals require separate low-income eligibility (e.g., below 125-200% Federal Poverty Guidelines, U.S. citizen/LPR)[1][2]",
+        "Prioritization for highest need (e.g., low-income minorities, rural, isolated, high nutritional risk); others may get referrals only[3][4]",
+        "Civil matters only; no criminal/personal injury[1]",
+        "Contact local AAA first, not statewide number[4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help[4]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "texas-long-term-care-ombudsman",
+      "existingVerified": "2026-04-04",
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial eligibility requirements apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by Area Agencies on Aging or independent councils (e.g., H-GAC in Harris County[1][3], Texoma Council of Governments[4], CAPCOG[9], AAACP[6]); availability depends on local volunteer/staff presence but services are free and confidential statewide.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate contact; provide details of the resident's situation, facility name, and specific concerns."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; open to all LTC residents statewide via local independent councils; advocacy-focused, not benefits/entitlements; volunteer-driven with regional administration",
+      "gotchas": [
+        "Not a service provider or eligibility-determining program—purely advocacy for existing LTC residents, not for admission or financial aid.[5][9]",
+        "Volunteers/staff must be independent with no conflicts (e.g., no facility employment or Medicaid eligibility roles).[2]",
+        "Confidentiality applies to all complaints.[5]",
+        "Does not cover non-LTC settings or developmental disability state centers.[7]",
+        "People mistake it for direct care/funding; it's complaint resolution and rights protection only."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://ltco.texas.gov"
+    }
+  ]
+}

@@ -1,0 +1,1036 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "diveAt": "2026-04-09T13:43:49.465Z",
+  "total": 16,
+  "parsed": 16,
+  "programs": [
+    {
+      "name": "Kentucky Medicaid",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "For 2026, long-term care programs (Nursing Home Medicaid, HCBS Waivers, ABD Medicaid): Single applicant or applicant spouse: $2,982/month. Both spouses applying: $5,964/month combined ($2,982 per spouse). Community spouse income not counted for applicant. Income cap state; excess income handled via Qualified Income Trust (QIT / Miller Trust).[2][5][6]",
+        "asset_limits": "Countable assets: $2,000 for single applicant; $4,000 combined if both spouses apply; applicant $2,000 + community spouse minimum $31,584 to $162,660 (2026 fair hearing level). Exempt: primary home (if intent to return and equity under $713,000 federal cap), one vehicle, personal belongings, burial plots/funds up to $1,500 prepaid, life insurance up to $1,500 face value. 60-month look-back for transfers with penalties.[1][2][5]",
+        "other_requirements": [
+          "Kentucky resident",
+          "US citizen or qualified immigrant",
+          "Nursing Facility Level of Care (NFLOC): need help with ≥3 ADLs like bathing/dressing, or cognitive/behavioral issues like dementia",
+          "For ABD: aged 65+, blind, or disabled; functional assessment for LTC services"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Nursing Home Medicaid: full nursing home costs or home-based waiver equivalent (personal care, home health, therapies). ABD Long-Term Care: in-home personal care, adult day care, meal delivery, home modifications, PERS—one benefit at a time based on assessment (unlike immediate full access in nursing home). Covers doctor visits, prescriptions, hospital stays, LTC supports.[1][3][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: kynect.ky.gov (prescreening tool)",
+          "Phone: 1-855-306-8959 (Kynect) or local DCBS office",
+          "Mail/In-person: local Department for Community Based Services (DCBS) office; find via chfs.ky.gov",
+          "Assisted: via elder law attorney or area agency on aging"
+        ],
+        "processing_time": "45-90 days typical; varies by completeness and assessment scheduling",
+        "waitlist": "Possible for nursing home beds or waiver slots; no statewide waitlist length specified, check regionally",
+        "forms": [
+          "Kynect application (online)",
+          "HP-001A (medical/long-term care form for NFLOC assessment)"
+        ],
+        "documents": [
+          "Proof of identity/citizenship (birth certificate, passport)",
+          "Residency proof (utility bill)",
+          "Income: bank statements, pension/SSI awards (3 months)",
+          "Assets: bank/investment statements, deeds, vehicle titles (current market value)",
+          "Medical: doctor's records, functional assessment if needed",
+          "Spousal info if married"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available all Kentucky counties",
+        "regional_variations": "Processing/wait times vary by DCBS office load; waiver slots may differ regionally; providers (nursing homes, waiver agencies) local",
+        "offices_or_providers": [
+          "Local DCBS offices statewide; waiver via Division of Long-Term Services and Supports (chfs.ky.gov/agencies/dms/dca)"
+        ]
+      },
+      "official_source": "https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx",
+      "gotchas": [
+        "60-month look-back penalties for asset transfers/gifts",
+        "Income over $2,982 requires QIT (Miller Trust)—special needs trust setup needed",
+        "ABD benefits one-at-a-time vs. full nursing home package",
+        "Must prove NFLOC; not automatic at 65",
+        "Community spouse asset protection has min/max—plan ahead",
+        "Many deplete savings unaware of eligibility[1]",
+        "Waivers may have waitlists unlike immediate nursing home coverage if bed available"
+      ],
+      "data_shape_notes": "Income/asset caps with spousal impoverishment protections; tiered by program (Nursing Home vs. ABD/Waivers); QIT for income cap; functional NFLOC test required; benefits assessed one-by-one in ABD",
+      "_raw": "{\n  \"name\": \"Kentucky Medicaid\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For 2026, long-term care programs (Nursing Home Medicaid, HCBS Waivers, ABD Medicaid): Single applicant or applicant spouse: $2,982/month. Both spouses applying: $5,964/month combined ($2,982 per spouse). Community spouse income not counted for applicant. Income cap state; excess income handled via Qualified Income Trust (QIT / Miller Trust).[2][5][6]\",\n    \"asset_limits\": \"Countable assets: $2,000 for single applicant; $4,000 combined if both spouses apply; applicant $2,000 + community spouse minimum $31,584 to $162,660 (2026 fair hearing level). Exempt: primary home (if intent to return and equity under $713,000 federal cap), one vehicle, personal belongings, burial plots/funds up to $1,500 prepaid, life insurance up to $1,500 face value. 60-month look-back for transfers with penalties.[1][2][5]\",\n    \"other_requirements\": [\n      \"Kentucky resident\",\n      \"US citizen or qualified immigrant\",\n      \"Nursing Facility Level of Care (NFLOC): need help with ≥3 ADLs like bathing/dressing, or cognitive/behavioral issues like dementia\",\n      \"For ABD: aged 65+, blind, or disabled; functional assessment for LTC services\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nursing Home Medicaid: full nursing home costs or home-based waiver equivalent (personal care, home health, therapies). ABD Long-Term Care: in-home personal care, adult day care, meal delivery, home modifications, PERS—one benefit at a time based on assessment (unlike immediate full access in nursing home). Covers doctor visits, prescriptions, hospital stays, LTC supports.[1][3][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: kynect.ky.gov (prescreening tool)\",\n      \"Phone: 1-855-306-8959 (Kynect) or local DCBS office\",\n      \"Mail/In-person: local Department for Community Based Services (DCBS) office; find via chfs.ky.gov\",\n      \"Assisted: via elder law attorney or area agency on aging\"\n    ],\n    \"processing_time\": \"45-90 days typical; varies by completeness and assessment scheduling\",\n    \"waitlist\": \"Possible for nursing home beds or waiver slots; no statewide waitlist length specified, check regionally\",\n    \"forms\": [\"Kynect application (online)\", \"HP-001A (medical/long-term care form for NFLOC assessment)\"],\n    \"documents\": [\n      \"Proof of identity/citizenship (birth certificate, passport)\",\n      \"Residency proof (utility bill)\",\n      \"Income: bank statements, pension/SSI awards (3 months)\",\n      \"Assets: bank/investment statements, deeds, vehicle titles (current market value)\",\n      \"Medical: doctor's records, functional assessment if needed\",\n      \"Spousal info if married\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available all Kentucky counties\",\n    \"regional_variations\": \"Processing/wait times vary by DCBS office load; waiver slots may differ regionally; providers (nursing homes, waiver agencies) local\",\n    \"offices_or_providers\": [\"Local DCBS offices statewide; waiver via Division of Long-Term Services and Supports (chfs.ky.gov/agencies/dms/dca)\"]\n  },\n  \"official_source\": \"https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx\",\n  \"gotchas\": [\n    \"60-month look-back penalties for asset transfers/gifts\",\n    \"Income over $2,982 requires QIT (Miller Trust)—special needs trust setup needed\",\n    \"ABD benefits one-at-a-time vs. full nursing home package\",\n    \"Must prove NFLOC; not automatic at 65\",\n    \"Community spouse asset protection has min/max—plan ahead\",\n    \"Many deplete savings unaware of eligibility[1]\",\n    \"Waivers may have waitlists unlike immediate nursing home coverage if bed available\"\n  ],\n  \"data_shape_notes\": \"Income/asset caps with spousal impoverishment protections; tiered by program (Nursing Home vs. ABD/Waivers); QIT for income cap; functional NFLOC test required; benefits assessed one-by-one in ABD\"\n}"
+    },
+    {
+      "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
+      "eligibility": {
+        "age": "65 or older, OR blind or disabled at any age[2][5]",
+        "income_limits": {
+          "description": "Gross monthly income at or below $2,022[5]",
+          "note": "If income exceeds $2,022, applicants may become eligible by establishing a Qualifying Income Trust (QIT)[5]",
+          "all_income_sources_counted": true
+        },
+        "asset_limits": {
+          "description": "Asset limits are assessed but specific dollar amounts are not provided in available sources[1]",
+          "lookback_period": "5 years in Kentucky[1]",
+          "lookback_purpose": "Prevents applicants from giving away assets or selling them below fair market value to meet Medicaid's asset limit[1]",
+          "note": "Asset transfers should be done carefully; Medicaid-compliant annuities can convert assets into income without impacting eligibility[1]"
+        },
+        "other_requirements": [
+          "Must be Medicaid-eligible[2][7]",
+          "Must meet nursing facility level of care requirements — physician must certify in writing that nursing facility services would be ordered and admission would occur in the immediate future without waiver services[5]",
+          "Must meet nursing facility level of care criteria considering medical diagnosis, age-related dependencies, care needs, services, and health personnel required[5]",
+          "Access and Functional Needs Assessment conducted to evaluate applicant's level of care and support needs[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "services_provided": [
+          "Personal care assistance (attendant care)[1][5][6]",
+          "Respite care (specialized and non-specialized)[1][4][6]",
+          "Adult day health services[1][4][6]",
+          "Homemaker services[1][5][6]",
+          "Case management/program coordination[1][5][6]",
+          "Home modifications (environmental and minor home adaptations)[1][4][6]",
+          "Meal delivery services (home delivered meals)[1][4]",
+          "Personal emergency response systems (PERS)[1]",
+          "Financial management services[4]",
+          "Goods and services[4]"
+        ],
+        "value": "Specific dollar amounts and hours per week not provided in available sources; services are individualized based on participant goals and preferences[2]",
+        "varies_by": "Individual participant needs and preferences; services are personalized[2]",
+        "patient_liability": "Participants may be required to pay part of the cost of care. Patient liability is determined by considering income, allowing a $694 deduction for personal needs, maintenance deductions for spouse or family members, and deductions for medical expenses and health insurance premiums. The remaining amount is what must be paid to the waiver provider[5]"
+      },
+      "application": {
+        "methods": [
+          "Online via kynect (Kentucky's Medicaid portal)[2]",
+          "Phone: (855) 306-8959 (Department for Community Based Services - DCBS) for initial Medicaid application[2]",
+          "In-person at a DCBS office in the county where applicant lives[5]",
+          "In-person at an Aging and Disability Resource Center[2]",
+          "In-person at a Community Mental Health Center[2]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Currently, there is a waiting list for HCB services and supports. Placement on the waiting list is determined by the date the completed application is received[2]",
+        "application_steps": [
+          "First, obtain financial eligibility for Medicaid by applying through kynect, calling DCBS at (855) 306-8959, or visiting a DCBS office in person[2]",
+          "Once Medicaid-eligible, complete HCB waiver services application online via kynect or in person at an Aging and Disability Resource Center or Community Mental Health Center[2]"
+        ],
+        "forms": [
+          "Medicaid Waiver Services Fact Sheet (lists helpful documents to have when applying)[2]"
+        ],
+        "documents": [
+          "Proof of citizenship[5]",
+          "Identity documentation[5]",
+          "Social security number[5]",
+          "Income documentation[5]",
+          "Resources/asset documentation[5]",
+          "Health insurance card[5]",
+          "Health insurance premiums documentation[5]",
+          "Medical bills[5]",
+          "Physician certification that nursing facility services would be ordered without waiver services[5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Applicants must apply at the DCBS office in the county where they live[5]",
+        "regional_variations": "Not specified in available sources; however, the program is operated jointly by the Division of Community Alternatives (DMS) and the Department for Aging and Independent Living (DAIL)[2]",
+        "contact_for_information": "Email DAIL or call (877) 315-0589 for more information about the HCB program[2]; Lincoln Trail Aging and Disability Resource Center at 270-737-6082 for general waiver program information[3]"
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx[2]",
+      "gotchas": [
+        "There is currently a waiting list for HCB services — applying early is critical, as placement is determined by the date the completed application is received[2][3]",
+        "Applicants must first qualify for Medicaid before they can apply for the waiver; this is a two-step process[2]",
+        "The 5-year lookback period for asset transfers can affect eligibility — families should be cautious about transferring assets before applying[1]",
+        "Medicaid's Estate Recovery program allows the state to recover costs from the applicant's estate, which can affect inheritance for heirs[1]",
+        "Patient liability (cost-sharing) applies — participants may need to pay part of care costs based on income after deductions[5]",
+        "A physician must certify in writing that nursing facility admission would occur without waiver services — this is a strict requirement[5]",
+        "The program is specifically for those who would otherwise require nursing facility level of care; it is not for lower levels of care[2][5]",
+        "Income limits are strict at $2,022/month gross; exceeding this requires establishing a Qualifying Income Trust, which adds complexity[5]"
+      ],
+      "data_shape_notes": "This program's eligibility and benefits are highly individualized. Income limits are fixed ($2,022/month), but asset limits are not specified in available sources. Services are customized to participant goals rather than tiered by priority level. The program operates statewide but requires county-level application. A critical gotcha is the current waiting list — families should apply immediately even if services are not needed immediately. The program requires a two-step application process (Medicaid first, then waiver), and physician certification of nursing facility-level care need is mandatory. Patient liability varies by individual income and deductions.",
+      "_raw": "```json\n{\n  \"name\": \"Kentucky Home and Community-Based Services (HCBS) Waivers\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR blind or disabled at any age[2][5]\",\n    \"income_limits\": {\n      \"description\": \"Gross monthly income at or below $2,022[5]\",\n      \"note\": \"If income exceeds $2,022, applicants may become eligible by establishing a Qualifying Income Trust (QIT)[5]\",\n      \"all_income_sources_counted\": true\n    },\n    \"asset_limits\": {\n      \"description\": \"Asset limits are assessed but specific dollar amounts are not provided in available sources[1]\",\n      \"lookback_period\": \"5 years in Kentucky[1]\",\n      \"lookback_purpose\": \"Prevents applicants from giving away assets or selling them below fair market value to meet Medicaid's asset limit[1]\",\n      \"note\": \"Asset transfers should be done carefully; Medicaid-compliant annuities can convert assets into income without impacting eligibility[1]\"\n    },\n    \"other_requirements\": [\n      \"Must be Medicaid-eligible[2][7]\",\n      \"Must meet nursing facility level of care requirements — physician must certify in writing that nursing facility services would be ordered and admission would occur in the immediate future without waiver services[5]\",\n      \"Must meet nursing facility level of care criteria considering medical diagnosis, age-related dependencies, care needs, services, and health personnel required[5]\",\n      \"Access and Functional Needs Assessment conducted to evaluate applicant's level of care and support needs[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"services_provided\": [\n      \"Personal care assistance (attendant care)[1][5][6]\",\n      \"Respite care (specialized and non-specialized)[1][4][6]\",\n      \"Adult day health services[1][4][6]\",\n      \"Homemaker services[1][5][6]\",\n      \"Case management/program coordination[1][5][6]\",\n      \"Home modifications (environmental and minor home adaptations)[1][4][6]\",\n      \"Meal delivery services (home delivered meals)[1][4]\",\n      \"Personal emergency response systems (PERS)[1]\",\n      \"Financial management services[4]\",\n      \"Goods and services[4]\"\n    ],\n    \"value\": \"Specific dollar amounts and hours per week not provided in available sources; services are individualized based on participant goals and preferences[2]\",\n    \"varies_by\": \"Individual participant needs and preferences; services are personalized[2]\",\n    \"patient_liability\": \"Participants may be required to pay part of the cost of care. Patient liability is determined by considering income, allowing a $694 deduction for personal needs, maintenance deductions for spouse or family members, and deductions for medical expenses and health insurance premiums. The remaining amount is what must be paid to the waiver provider[5]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via kynect (Kentucky's Medicaid portal)[2]\",\n      \"Phone: (855) 306-8959 (Department for Community Based Services - DCBS) for initial Medicaid application[2]\",\n      \"In-person at a DCBS office in the county where applicant lives[5]\",\n      \"In-person at an Aging and Disability Resource Center[2]\",\n      \"In-person at a Community Mental Health Center[2]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Currently, there is a waiting list for HCB services and supports. Placement on the waiting list is determined by the date the completed application is received[2]\",\n    \"application_steps\": [\n      \"First, obtain financial eligibility for Medicaid by applying through kynect, calling DCBS at (855) 306-8959, or visiting a DCBS office in person[2]\",\n      \"Once Medicaid-eligible, complete HCB waiver services application online via kynect or in person at an Aging and Disability Resource Center or Community Mental Health Center[2]\"\n    ],\n    \"forms\": [\n      \"Medicaid Waiver Services Fact Sheet (lists helpful documents to have when applying)[2]\"\n    ],\n    \"documents\": [\n      \"Proof of citizenship[5]\",\n      \"Identity documentation[5]\",\n      \"Social security number[5]\",\n      \"Income documentation[5]\",\n      \"Resources/asset documentation[5]\",\n      \"Health insurance card[5]\",\n      \"Health insurance premiums documentation[5]\",\n      \"Medical bills[5]\",\n      \"Physician certification that nursing facility services would be ordered without waiver services[5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Applicants must apply at the DCBS office in the county where they live[5]\",\n    \"regional_variations\": \"Not specified in available sources; however, the program is operated jointly by the Division of Community Alternatives (DMS) and the Department for Aging and Independent Living (DAIL)[2]\",\n    \"contact_for_information\": \"Email DAIL or call (877) 315-0589 for more information about the HCB program[2]; Lincoln Trail Aging and Disability Resource Center at 270-737-6082 for general waiver program information[3]\"\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx[2]\",\n  \"gotchas\": [\n    \"There is currently a waiting list for HCB services — applying early is critical, as placement is determined by the date the completed application is received[2][3]\",\n    \"Applicants must first qualify for Medicaid before they can apply for the waiver; this is a two-step process[2]\",\n    \"The 5-year lookback period for asset transfers can affect eligibility — families should be cautious about transferring assets before applying[1]\",\n    \"Medicaid's Estate Recovery program allows the state to recover costs from the applicant's estate, which can affect inheritance for heirs[1]\",\n    \"Patient liability (cost-sharing) applies — participants may need to pay part of care costs based on income after deductions[5]\",\n    \"A physician must certify in writing that nursing facility admission would occur without waiver services — this is a strict requirement[5]\",\n    \"The program is specifically for those who would otherwise require nursing facility level of care; it is not for lower levels of care[2][5]\",\n    \"Income limits are strict at $2,022/month gross; exceeding this requires establishing a Qualifying Income Trust, which adds complexity[5]\"\n  ],\n  \"data_shape_notes\": \"This program's eligibility and benefits are highly individualized. Income limits are fixed ($2,022/month), but asset limits are not specified in available sources. Services are customized to participant goals rather than tiered by priority level. The program operates statewide but requires county-level application. A critical gotcha is the current waiting list — families should apply immediately even if services are not needed immediately. The program requires a two-step application process (Medicaid first, then waiver), and physician certification of nursing facility-level care need is mandatory. Patient liability varies by individual income and deductions.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The most important thing to understand:** This program has a **waiting list**[2], so families should apply as soon as they think their loved one might qualify, even if they don't need services immediately. Placement is based on application date[2].\n\n**The two-step process:** Applicants must first become Medicaid-eligible, then apply for the waiver itself[2]. This is not a single application.\n\n**The physician requirement:** A doctor must certify in writing that without waiver services, the person would be admitted to a nursing facility in the immediate future[5]. This is non-negotiable and must be obtained before or during the application process.\n\n**Income and assets matter:** The $2,022/month income limit is strict, but a Qualifying Income Trust can help those slightly over the limit[5]. Asset limits exist but specific thresholds aren't detailed in available sources — families should contact DCBS directly for clarification.\n\n**You'll likely pay something:** Even if approved, participants typically pay part of care costs based on income after specific deductions ($694 for personal needs, plus spouse/family maintenance and medical expenses)[5].\n\n**Contact information for next steps:** Call (855) 306-8959 for Medicaid application or (877) 315-0589 for HCB waiver-specific questions[2]."
+    },
+    {
+      "name": "Kentucky PACE",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No specific income limits for medical eligibility; financial eligibility tied to Medicaid for dual-eligible (Medicare + Medicaid) participants who receive services at no cost. Medicare-only participants pay a monthly fee (estimated $200-$900 share of cost or $7,000+ privately). No dollar amounts or household size table specified for Kentucky[2][9].",
+        "asset_limits": "No asset test for program eligibility; Medicaid financial rules apply for full coverage (assets excluding house and one car typically under state Medicaid thresholds, but no Kentucky PACE-specific amounts provided[5][9]).",
+        "other_requirements": [
+          "Live in the service area of a PACE provider",
+          "Certified by Kentucky as needing nursing home level of care",
+          "Able to live safely in the community with PACE services",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[5][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "All-inclusive preventive, primary, acute, and long-term care services including primary care by PACE physician, specialist services (non-emergency must be through PACE), prescription drugs, hospital care, therapies, home care, adult day health, transportation, personal care, meals, social services, and interdisciplinary team care plan. PACE becomes sole source of Medicare/Medicaid services; 100% covered for dual-eligible[1][2][6].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact specific provider (e.g., Senior CommUnity Care at (502) 676-7550[1])",
+          "In-person or home intake by enrollment coordinator, followed by center assessment[1]",
+          "No statewide online or mail specified; provider-specific",
+          "Verify Medicaid eligibility: (800) 807-1301 or KYHealth-Net[6]"
+        ],
+        "processing_time": "Not specified; involves intake, clinical assessment, care plan development, and enrollment paperwork[1].",
+        "waitlist": "Not mentioned in sources; may vary by provider[2].",
+        "forms": [
+          "Enrollment paperwork completed by provider team; no specific form name/number listed[1]"
+        ],
+        "documents": [
+          "Medicaid verification details; health/medical records for assessment (not explicitly listed, prepare proof of residency, Medicare/Medicaid status)[6]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of approved PACE providers (e.g., Senior CommUnity Care - not specified counties; Horizon PACE - Barren, Butler, Clinton, Estill, Jackson, Laurel, Logan, Madison, McCreary, Pulaski, Rockcastle, Simpson, Warren, Wayne; Care Guide Partners - Bullitt, Grayson, Hardin, Hart, LaRue, Nelson). As of July 2023, only 3 programs statewide[2][3][4].",
+        "regional_variations": "Services coordinated by specific providers; different centers, teams, and coverage counties; potential differences in wait times or capacity[1][2][3][4].",
+        "offices_or_providers": [
+          "Senior CommUnity Care of Kentucky PACE",
+          "Horizon PACE (14 counties)",
+          "Care Guide Partners PACE (6 counties)"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
+      "gotchas": [
+        "Not statewide - must live in specific provider service area; check county[2][3][4]",
+        "Medicare-only pay fees; all non-emergency care must go through PACE or risk personal liability[2]",
+        "Becomes sole source of services - no outside Medicare/Medicaid use for covered items[2][6]",
+        "Nursing home level certification required despite community living[1][5]",
+        "Voluntary but disenrollment coordinated with Medicare/Medicaid[1][2]"
+      ],
+      "data_shape_notes": "Only available via 3 regional providers with county-restricted service areas; no income/asset test for entry but Medicaid needed for free services; all care centralized through PACE center",
+      "_raw": "{\n  \"name\": \"Kentucky PACE\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for medical eligibility; financial eligibility tied to Medicaid for dual-eligible (Medicare + Medicaid) participants who receive services at no cost. Medicare-only participants pay a monthly fee (estimated $200-$900 share of cost or $7,000+ privately). No dollar amounts or household size table specified for Kentucky[2][9].\",\n    \"asset_limits\": \"No asset test for program eligibility; Medicaid financial rules apply for full coverage (assets excluding house and one car typically under state Medicaid thresholds, but no Kentucky PACE-specific amounts provided[5][9]).\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE provider\",\n      \"Certified by Kentucky as needing nursing home level of care\",\n      \"Able to live safely in the community with PACE services\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[5][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All-inclusive preventive, primary, acute, and long-term care services including primary care by PACE physician, specialist services (non-emergency must be through PACE), prescription drugs, hospital care, therapies, home care, adult day health, transportation, personal care, meals, social services, and interdisciplinary team care plan. PACE becomes sole source of Medicare/Medicaid services; 100% covered for dual-eligible[1][2][6].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact specific provider (e.g., Senior CommUnity Care at (502) 676-7550[1])\",\n      \"In-person or home intake by enrollment coordinator, followed by center assessment[1]\",\n      \"No statewide online or mail specified; provider-specific\",\n      \"Verify Medicaid eligibility: (800) 807-1301 or KYHealth-Net[6]\"\n    ],\n    \"processing_time\": \"Not specified; involves intake, clinical assessment, care plan development, and enrollment paperwork[1].\",\n    \"waitlist\": \"Not mentioned in sources; may vary by provider[2].\",\n    \"forms\": [\"Enrollment paperwork completed by provider team; no specific form name/number listed[1]\"],\n    \"documents\": [\"Medicaid verification details; health/medical records for assessment (not explicitly listed, prepare proof of residency, Medicare/Medicaid status)[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of approved PACE providers (e.g., Senior CommUnity Care - not specified counties; Horizon PACE - Barren, Butler, Clinton, Estill, Jackson, Laurel, Logan, Madison, McCreary, Pulaski, Rockcastle, Simpson, Warren, Wayne; Care Guide Partners - Bullitt, Grayson, Hardin, Hart, LaRue, Nelson). As of July 2023, only 3 programs statewide[2][3][4].\",\n    \"regional_variations\": \"Services coordinated by specific providers; different centers, teams, and coverage counties; potential differences in wait times or capacity[1][2][3][4].\",\n    \"offices_or_providers\": [\n      \"Senior CommUnity Care of Kentucky PACE\",\n      \"Horizon PACE (14 counties)\",\n      \"Care Guide Partners PACE (6 counties)\"\n    ]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/pace.aspx\",\n  \"gotchas\": [\n    \"Not statewide - must live in specific provider service area; check county[2][3][4]\",\n    \"Medicare-only pay fees; all non-emergency care must go through PACE or risk personal liability[2]\",\n    \"Becomes sole source of services - no outside Medicare/Medicaid use for covered items[2][6]\",\n    \"Nursing home level certification required despite community living[1][5]\",\n    \"Voluntary but disenrollment coordinated with Medicare/Medicaid[1][2]\"\n  ],\n  \"data_shape_notes\": \"Only available via 3 regional providers with county-restricted service areas; no income/asset test for entry but Medicaid needed for free services; all care centralized through PACE center\"\n}"
+    },
+    {
+      "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "description": "Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. Limits shown are for 2026 and include a $20 disregard.[5]",
+          "programs": [
+            {
+              "program": "Qualified Medicare Beneficiary (QMB)",
+              "threshold": "100% FPL",
+              "single": "$1,325/month",
+              "couple": "$1,783/month",
+              "notes": "Lowest income limit of the three programs"
+            },
+            {
+              "program": "Specified Low-Income Medicare Beneficiary (SLMB)",
+              "threshold": "100-120% FPL",
+              "single": "$1,585/month",
+              "couple": "$2,135/month",
+              "notes": "Must have income above QMB level"
+            },
+            {
+              "program": "Qualifying Individual (QI-1)",
+              "threshold": "120-135% FPL",
+              "single": "$1,781/month",
+              "couple": "$2,400/month",
+              "notes": "Highest income limit; funds are finite block-grant based"
+            }
+          ]
+        },
+        "asset_limits": {
+          "description": "Resource limits (assets) for QMB, SLMB, and QI-1:[5][7]",
+          "single": "$9,660",
+          "couple": "$14,470",
+          "notes": "Resources include countable assets; some states have more generous standards (e.g., Connecticut has no asset limit for QI)"
+        },
+        "other_requirements": [
+          "Must be eligible for Medicare (enrolled in Part A and/or Part B)[1]",
+          "Must be a Kentucky resident",
+          "Income and asset limits are based on countable income and resources"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "programs": [
+          {
+            "program": "QMB",
+            "covers": [
+              "Medicare Part A premiums (when applicable)[4]",
+              "Medicare Part B premiums[4]",
+              "Medicare Part A and B deductibles[4]",
+              "Coinsurance and copayments for Medicare-covered services[4]",
+              "Cost-sharing imposed by Medicare Advantage plans[1]",
+              "Some Medicare Part D prescription drug plan premiums[3]",
+              "Portion of Original Medicare drug costs[3]"
+            ],
+            "value": "Can save recipients hundreds or even thousands of dollars per year[1]",
+            "note": "Operates like a basic Medicare Supplement (Medigap) policy[1]"
+          },
+          {
+            "program": "SLMB",
+            "covers": [
+              "Medicare Part B premiums only[5]",
+              "Does not cover deductibles or coinsurance[5]"
+            ]
+          },
+          {
+            "program": "QI-1",
+            "covers": [
+              "Medicare Part B premiums only[5]"
+            ],
+            "critical_note": "Funds come from a finite block-grant; once exhausted, even eligible individuals cannot access the program[1]"
+          }
+        ],
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          {
+            "method": "In-person or mail",
+            "contact": "Kentucky Cabinet for Health and Family Services (CHFS), Department of Medicaid Services",
+            "note": "Specific phone number and online application portal not provided in search results"
+          }
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "QI program has potential delays due to finite block-grant funding; no other waitlist information provided",
+        "forms": [
+          "Form MAP16 (Medicare Savings Program Fact Sheet reference)[5]",
+          "Specific application form names not detailed in search results"
+        ],
+        "documents": [
+          "Proof of Medicare eligibility",
+          "Income documentation (pay stubs, tax returns, Social Security statements)",
+          "Asset/resource documentation",
+          "Proof of Kentucky residency",
+          "Specific document requirements not fully detailed in search results"
+        ],
+        "application_note": "Search results do not provide complete application instructions, specific phone numbers, or online portal URLs. Families should contact Kentucky CHFS Department of Medicaid Services directly for current application procedures."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Kentucky-wide program; no county-specific restrictions mentioned",
+        "regional_variations": null,
+        "offices_or_providers": "Administered through Kentucky Cabinet for Health and Family Services; specific office locations not provided in search results",
+        "note": "Kentucky uses federal asset limits for all three programs (unlike some states with more generous standards)"
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx",
+      "gotchas": [
+        "QI program has finite funding: Once block-grant funds are exhausted, even eligible individuals cannot access benefits[1]",
+        "Income limits change annually on April 1 based on Federal Poverty Level; families must requalify each year[1][5]",
+        "QMB automatically qualifies beneficiaries for Medicare Part D Extra Help program[3]",
+        "SLMB and QI only cover Part B premiums—they do NOT cover deductibles, coinsurance, or copayments[5]",
+        "Providers are prohibited from billing QMB beneficiaries for Medicare Part A or B deductibles or coinsurance[1]",
+        "Asset limits are strict: $9,660 for individuals, $14,470 for couples; exceeding these disqualifies applicants regardless of income[5]",
+        "The $20 income disregard is included in the stated limits[5]",
+        "Search results do not provide complete application procedures, phone numbers, or online portal information—families must contact CHFS directly"
+      ],
+      "data_shape_notes": "Kentucky Medicare Savings Programs consist of three tiered programs based on income level (QMB < SLMB < QI), with benefits decreasing as income increases. QMB provides comprehensive cost-sharing coverage, while SLMB and QI cover only Part B premiums. The QI program is constrained by finite block-grant funding, creating potential access limitations. Income limits are uniform statewide and change annually. Asset limits are consistent across all three programs. No age requirement exists; eligibility is based solely on Medicare enrollment, income, and assets.",
+      "_raw": "```json\n{\n  \"name\": \"Kentucky Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. Limits shown are for 2026 and include a $20 disregard.[5]\",\n      \"programs\": [\n        {\n          \"program\": \"Qualified Medicare Beneficiary (QMB)\",\n          \"threshold\": \"100% FPL\",\n          \"single\": \"$1,325/month\",\n          \"couple\": \"$1,783/month\",\n          \"notes\": \"Lowest income limit of the three programs\"\n        },\n        {\n          \"program\": \"Specified Low-Income Medicare Beneficiary (SLMB)\",\n          \"threshold\": \"100-120% FPL\",\n          \"single\": \"$1,585/month\",\n          \"couple\": \"$2,135/month\",\n          \"notes\": \"Must have income above QMB level\"\n        },\n        {\n          \"program\": \"Qualifying Individual (QI-1)\",\n          \"threshold\": \"120-135% FPL\",\n          \"single\": \"$1,781/month\",\n          \"couple\": \"$2,400/month\",\n          \"notes\": \"Highest income limit; funds are finite block-grant based\"\n        }\n      ]\n    },\n    \"asset_limits\": {\n      \"description\": \"Resource limits (assets) for QMB, SLMB, and QI-1:[5][7]\",\n      \"single\": \"$9,660\",\n      \"couple\": \"$14,470\",\n      \"notes\": \"Resources include countable assets; some states have more generous standards (e.g., Connecticut has no asset limit for QI)\"\n    },\n    \"other_requirements\": [\n      \"Must be eligible for Medicare (enrolled in Part A and/or Part B)[1]\",\n      \"Must be a Kentucky resident\",\n      \"Income and asset limits are based on countable income and resources\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"programs\": [\n      {\n        \"program\": \"QMB\",\n        \"covers\": [\n          \"Medicare Part A premiums (when applicable)[4]\",\n          \"Medicare Part B premiums[4]\",\n          \"Medicare Part A and B deductibles[4]\",\n          \"Coinsurance and copayments for Medicare-covered services[4]\",\n          \"Cost-sharing imposed by Medicare Advantage plans[1]\",\n          \"Some Medicare Part D prescription drug plan premiums[3]\",\n          \"Portion of Original Medicare drug costs[3]\"\n        ],\n        \"value\": \"Can save recipients hundreds or even thousands of dollars per year[1]\",\n        \"note\": \"Operates like a basic Medicare Supplement (Medigap) policy[1]\"\n      },\n      {\n        \"program\": \"SLMB\",\n        \"covers\": [\n          \"Medicare Part B premiums only[5]\",\n          \"Does not cover deductibles or coinsurance[5]\"\n        ]\n      },\n      {\n        \"program\": \"QI-1\",\n        \"covers\": [\n          \"Medicare Part B premiums only[5]\"\n        ],\n        \"critical_note\": \"Funds come from a finite block-grant; once exhausted, even eligible individuals cannot access the program[1]\"\n      }\n    ],\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      {\n        \"method\": \"In-person or mail\",\n        \"contact\": \"Kentucky Cabinet for Health and Family Services (CHFS), Department of Medicaid Services\",\n        \"note\": \"Specific phone number and online application portal not provided in search results\"\n      }\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"QI program has potential delays due to finite block-grant funding; no other waitlist information provided\",\n    \"forms\": [\n      \"Form MAP16 (Medicare Savings Program Fact Sheet reference)[5]\",\n      \"Specific application form names not detailed in search results\"\n    ],\n    \"documents\": [\n      \"Proof of Medicare eligibility\",\n      \"Income documentation (pay stubs, tax returns, Social Security statements)\",\n      \"Asset/resource documentation\",\n      \"Proof of Kentucky residency\",\n      \"Specific document requirements not fully detailed in search results\"\n    ],\n    \"application_note\": \"Search results do not provide complete application instructions, specific phone numbers, or online portal URLs. Families should contact Kentucky CHFS Department of Medicaid Services directly for current application procedures.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Kentucky-wide program; no county-specific restrictions mentioned\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Administered through Kentucky Cabinet for Health and Family Services; specific office locations not provided in search results\",\n    \"note\": \"Kentucky uses federal asset limits for all three programs (unlike some states with more generous standards)\"\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx\",\n  \"gotchas\": [\n    \"QI program has finite funding: Once block-grant funds are exhausted, even eligible individuals cannot access benefits[1]\",\n    \"Income limits change annually on April 1 based on Federal Poverty Level; families must requalify each year[1][5]\",\n    \"QMB automatically qualifies beneficiaries for Medicare Part D Extra Help program[3]\",\n    \"SLMB and QI only cover Part B premiums—they do NOT cover deductibles, coinsurance, or copayments[5]\",\n    \"Providers are prohibited from billing QMB beneficiaries for Medicare Part A or B deductibles or coinsurance[1]\",\n    \"Asset limits are strict: $9,660 for individuals, $14,470 for couples; exceeding these disqualifies applicants regardless of income[5]\",\n    \"The $20 income disregard is included in the stated limits[5]\",\n    \"Search results do not provide complete application procedures, phone numbers, or online portal information—families must contact CHFS directly\"\n  ],\n  \"data_shape_notes\": \"Kentucky Medicare Savings Programs consist of three tiered programs based on income level (QMB < SLMB < QI), with benefits decreasing as income increases. QMB provides comprehensive cost-sharing coverage, while SLMB and QI cover only Part B premiums. The QI program is constrained by finite block-grant funding, creating potential access limitations. Income limits are uniform statewide and change annually. Asset limits are consistent across all three programs. No age requirement exists; eligibility is based solely on Medicare enrollment, income, and assets.\"\n}\n```\n\n## Critical Information for Families\n\n**Most Important Takeaway:** The three programs form an income-based ladder.[2] If your elderly loved one's income is at or below 100% of the Federal Poverty Level (~$1,325/month for individuals in 2026), they qualify for **QMB**, which provides the most comprehensive coverage—essentially functioning as a Medigap policy that eliminates all Medicare cost-sharing.[1] If income is slightly higher (up to 120% FPL), they may qualify for **SLMB**, which covers only Part B premiums. If income is even higher (up to 135% FPL), they may qualify for **QI**, but this program's funding is limited and may not be available depending on when they apply.[1]\n\n**Application Gap:** The search results do not contain specific phone numbers, online application portals, or detailed step-by-step application instructions. Families should contact the **Kentucky Cabinet for Health and Family Services, Department of Medicaid Services** directly to apply. The official website is available at the source listed above.\n\n**Annual Recertification Required:** Income limits reset every April 1, so beneficiaries must requalify annually.[1]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPL - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 per additional. If over gross, qualify via Net Income test (≤100% FPL) and Asset test ($4500). No gross income test required for elderly/disabled in KY's expanded rules; net income determines benefit amount[1][2][4].",
+        "asset_limits": "No asset limit in Kentucky for most households. Home and vehicles exempt. For elderly/disabled households failing gross income test, federal asset limit of $4500 applies (countable: bank accounts; exempt: home, vehicles, retirement savings in some cases)[1][2].",
+        "other_requirements": [
+          "Household defined as people who live together, buy, and prepare food together (exceptions for adult children/siblings over 21 preparing separately)[6].",
+          "U.S. citizen or qualified non-citizen (e.g., 5+ years residency, children under 18, disability benefits)[5].",
+          "No work requirements for seniors 60+ or disabled; new rules (Feb 2026) apply to able-bodied adults 18-64 without dependents under 14[3][5].",
+          "ESAP available for elderly/disabled households with no earned income (children ok, no other adults)[8]."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Amount based on net income: ~$30 less benefit per $100 more net income. Minimums/maximums vary; e.g., elderly/disabled 2-person example: $415/month after deductions. Average senior 1-person: ~$188/month (state-varying)[1][4][7].",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: Kentucky Benefits Portal (kybenefits.ky.gov, implied from state DCBS site)[6].",
+          "Phone: Call local DCBS office or 1-855-306-8959 (standard KY SNAP line, verify via chfs.ky.gov).[6]",
+          "Mail/In-person: Local Department for Community Based Services (DCBS) offices by county; form: SNAP application (no specific number listed, use online/paper via chfs.ky.gov).[6]",
+          "ESAP simplified process for elderly/disabled no earned income[8]."
+        ],
+        "processing_time": "Benefits may start soon after applying under certain circumstances (e.g., expedited); standard interview required, approval letter sent with amount and recertification date[6].",
+        "waitlist": null,
+        "forms": [
+          "SNAP application (standard form via DCBS), ESAP for eligible elderly/disabled[6][8]"
+        ],
+        "documents": [
+          "Proof of income (Social Security, pension statements).",
+          "Proof of expenses (medical costs, shelter, utilities for deductions).",
+          "ID, residency proof, disability verification if applicable.",
+          "Household details (who lives together, food prep)[1][2][6]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered via local DCBS offices by county; possible processing/wait differences, but uniform rules statewide[6].",
+        "offices_or_providers": [
+          "Local DCBS Nutrition Assistance Branch offices (find via chfs.ky.gov)[6]"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx",
+      "gotchas": [
+        "Elderly/disabled: Can skip gross income test in KY (expanded rules), but over 200% FPL triggers $4500 asset test—many miss this alternate path[1].",
+        "Household composition: Must include food-sharing members; adult kids 21+ may separate if preparing independently[6].",
+        "Medical/shelter deductions boost benefits—track high costs (e.g., Medicare premiums)[1][4].",
+        "ESAP simplifies for no-earned-income elderly/disabled households—fewer recertifications[8].",
+        "New 2026 work rules don't apply to 60+, but check for mixed households[3].",
+        "Own home/savings often exempt; ~half eligible seniors don't apply[2][7]."
+      ],
+      "data_shape_notes": "KY expands federal SNAP with no asset limit standard, gross income optional for elderly/disabled; benefits scale by household size/net income with elderly medical/shelter deductions; ESAP tier for no-earned-income seniors; statewide via county DCBS.",
+      "_raw": "{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPL - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 per additional. If over gross, qualify via Net Income test (≤100% FPL) and Asset test ($4500). No gross income test required for elderly/disabled in KY's expanded rules; net income determines benefit amount[1][2][4].\",\n    \"asset_limits\": \"No asset limit in Kentucky for most households. Home and vehicles exempt. For elderly/disabled households failing gross income test, federal asset limit of $4500 applies (countable: bank accounts; exempt: home, vehicles, retirement savings in some cases)[1][2].\",\n    \"other_requirements\": [\n      \"Household defined as people who live together, buy, and prepare food together (exceptions for adult children/siblings over 21 preparing separately)[6].\",\n      \"U.S. citizen or qualified non-citizen (e.g., 5+ years residency, children under 18, disability benefits)[5].\",\n      \"No work requirements for seniors 60+ or disabled; new rules (Feb 2026) apply to able-bodied adults 18-64 without dependents under 14[3][5].\",\n      \"ESAP available for elderly/disabled households with no earned income (children ok, no other adults)[8].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Amount based on net income: ~$30 less benefit per $100 more net income. Minimums/maximums vary; e.g., elderly/disabled 2-person example: $415/month after deductions. Average senior 1-person: ~$188/month (state-varying)[1][4][7].\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Kentucky Benefits Portal (kybenefits.ky.gov, implied from state DCBS site)[6].\",\n      \"Phone: Call local DCBS office or 1-855-306-8959 (standard KY SNAP line, verify via chfs.ky.gov).[6]\",\n      \"Mail/In-person: Local Department for Community Based Services (DCBS) offices by county; form: SNAP application (no specific number listed, use online/paper via chfs.ky.gov).[6]\",\n      \"ESAP simplified process for elderly/disabled no earned income[8].\"\n    ],\n    \"processing_time\": \"Benefits may start soon after applying under certain circumstances (e.g., expedited); standard interview required, approval letter sent with amount and recertification date[6].\",\n    \"waitlist\": null,\n    \"forms\": [\"SNAP application (standard form via DCBS), ESAP for eligible elderly/disabled[6][8]\"],\n    \"documents\": [\n      \"Proof of income (Social Security, pension statements).\",\n      \"Proof of expenses (medical costs, shelter, utilities for deductions).\",\n      \"ID, residency proof, disability verification if applicable.\",\n      \"Household details (who lives together, food prep)[1][2][6].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered via local DCBS offices by county; possible processing/wait differences, but uniform rules statewide[6].\",\n    \"offices_or_providers\": [\"Local DCBS Nutrition Assistance Branch offices (find via chfs.ky.gov)[6]\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx\",\n  \"gotchas\": [\n    \"Elderly/disabled: Can skip gross income test in KY (expanded rules), but over 200% FPL triggers $4500 asset test—many miss this alternate path[1].\",\n    \"Household composition: Must include food-sharing members; adult kids 21+ may separate if preparing independently[6].\",\n    \"Medical/shelter deductions boost benefits—track high costs (e.g., Medicare premiums)[1][4].\",\n    \"ESAP simplifies for no-earned-income elderly/disabled households—fewer recertifications[8].\",\n    \"New 2026 work rules don't apply to 60+, but check for mixed households[3].\",\n    \"Own home/savings often exempt; ~half eligible seniors don't apply[2][7].\"\n  ],\n  \"data_shape_notes\": \"KY expands federal SNAP with no asset limit standard, gross income optional for elderly/disabled; benefits scale by household size/net income with elderly medical/shelter deductions; ESAP tier for no-earned-income seniors; statewide via county DCBS.\"\n}"
+    },
+    {
+      "name": "Kentucky Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income at or below 150% of the Federal Poverty Level (FPL) for the calendar month prior to application. Subsidy component may use 130% FPL in some cases (e.g., November-December). Exact dollar amounts vary by year and household size; add $511 per additional member beyond listed sizes per older guidelines. Contact local agency for current FPL table as 2026 figures not specified in sources[1][2][3][5].",
+        "asset_limits": "Liquid resources not to exceed $2,000; up to $4,000 if a household member has a catastrophic illness and assets are used for medical/living expenses[3].",
+        "other_requirements": [
+          "Live in Kentucky and apply in county of residence[1].",
+          "Be directly responsible for home energy costs or undesignated portion of rent[1][2].",
+          "Have minimal liquid resources[2].",
+          "For Crisis: Within 4 days of running out of bulk fuel (coal, fuel oil, propane, kerosene, wood); past due/disconnect notice for natural gas/electric; eviction notice if heat in undesignated rent; or ≤10 days pre-paid electric[1][2][4][5]."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payment to utility/fuel provider for heating/cooling costs. Subsidy: Based on income and fuel type. Crisis: Amount to alleviate crisis up to maximum benefit (exact max not specified). Summer cooling: One-time electric payment or air conditioner if no access and at health risk from heat[2][3].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Community Action Agency (CAA) by phone or in-person; find locations at casoky.org/locations[4].",
+          "Apply at local CAA offices or designated sites in each county[5].",
+          "No statewide online or mail specified; agency-specific."
+        ],
+        "processing_time": "Not specified; applications first-come, first-served until funds depleted[4].",
+        "waitlist": "No waitlist mentioned; funds may run out[3][4].",
+        "forms": [
+          "Complete an application (no specific form name/number listed; agency-provided)[1]."
+        ],
+        "documents": [
+          "Proof of SSN or Permanent Residence card (Green Card) for each household member[4][5].",
+          "Proof of all household income from preceding month[4][5].",
+          "Most current electric bill, landlord statement if included in rent, or pre-pay electric statement[4][5].",
+          "Account number and name on account for main heating fuel and electric[4][5].",
+          "For Crisis: Disconnect/past-due notice, eviction notice if applicable, or proof of ≤4 days fuel/≤10 days pre-pay[4][5]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Apply in county of residence[1].",
+        "regional_variations": "Administered by 23 Community Action Agencies across all 120 counties; program dates, wait times, and availability may vary by agency and fund depletion[3][5]. Crisis: Jan 6-Mar 27, 2026 in some areas[4].",
+        "offices_or_providers": [
+          "Local Community Action Agencies; statewide via Cabinet for Health and Family Services contracting with CAAs[3][5]."
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx",
+      "gotchas": [
+        "Multiple components (Subsidy Nov-Dec at 130% FPL in some cases; Crisis Jan-Mar; Summer if funds available)—must match crisis criteria for winter crisis aid[3].",
+        "No need for crisis notice for regular subsidy, but crisis requires proof of emergency[2].",
+        "Funds limited and first-come, first-served; apply early[4].",
+        "Prior LIHEAP does not disqualify from Crisis[4].",
+        "Income based on prior month's combined household income[1].",
+        "Liquid assets strictly limited, with exception only for catastrophic illness[3]."
+      ],
+      "data_shape_notes": "Two-tiered (Subsidy vs Crisis) with crisis requiring emergency proof; administered via 23 local Community Action Agencies in all 120 counties; income at 150% FPL (sometimes 130%); benefits vary by income, fuel type, and component; seasonal with potential early close due to funding.",
+      "_raw": "{\n  \"name\": \"Kentucky Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income at or below 150% of the Federal Poverty Level (FPL) for the calendar month prior to application. Subsidy component may use 130% FPL in some cases (e.g., November-December). Exact dollar amounts vary by year and household size; add $511 per additional member beyond listed sizes per older guidelines. Contact local agency for current FPL table as 2026 figures not specified in sources[1][2][3][5].\",\n    \"asset_limits\": \"Liquid resources not to exceed $2,000; up to $4,000 if a household member has a catastrophic illness and assets are used for medical/living expenses[3].\",\n    \"other_requirements\": [\n      \"Live in Kentucky and apply in county of residence[1].\",\n      \"Be directly responsible for home energy costs or undesignated portion of rent[1][2].\",\n      \"Have minimal liquid resources[2].\",\n      \"For Crisis: Within 4 days of running out of bulk fuel (coal, fuel oil, propane, kerosene, wood); past due/disconnect notice for natural gas/electric; eviction notice if heat in undesignated rent; or ≤10 days pre-paid electric[1][2][4][5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility/fuel provider for heating/cooling costs. Subsidy: Based on income and fuel type. Crisis: Amount to alleviate crisis up to maximum benefit (exact max not specified). Summer cooling: One-time electric payment or air conditioner if no access and at health risk from heat[2][3].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Action Agency (CAA) by phone or in-person; find locations at casoky.org/locations[4].\",\n      \"Apply at local CAA offices or designated sites in each county[5].\",\n      \"No statewide online or mail specified; agency-specific.\"\n    ],\n    \"processing_time\": \"Not specified; applications first-come, first-served until funds depleted[4].\",\n    \"waitlist\": \"No waitlist mentioned; funds may run out[3][4].\",\n    \"forms\": [\"Complete an application (no specific form name/number listed; agency-provided)[1].\"],\n    \"documents\": [\n      \"Proof of SSN or Permanent Residence card (Green Card) for each household member[4][5].\",\n      \"Proof of all household income from preceding month[4][5].\",\n      \"Most current electric bill, landlord statement if included in rent, or pre-pay electric statement[4][5].\",\n      \"Account number and name on account for main heating fuel and electric[4][5].\",\n      \"For Crisis: Disconnect/past-due notice, eviction notice if applicable, or proof of ≤4 days fuel/≤10 days pre-pay[4][5].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Apply in county of residence[1].\",\n    \"regional_variations\": \"Administered by 23 Community Action Agencies across all 120 counties; program dates, wait times, and availability may vary by agency and fund depletion[3][5]. Crisis: Jan 6-Mar 27, 2026 in some areas[4].\",\n    \"offices_or_providers\": [\"Local Community Action Agencies; statewide via Cabinet for Health and Family Services contracting with CAAs[3][5].\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx\",\n  \"gotchas\": [\n    \"Multiple components (Subsidy Nov-Dec at 130% FPL in some cases; Crisis Jan-Mar; Summer if funds available)—must match crisis criteria for winter crisis aid[3].\",\n    \"No need for crisis notice for regular subsidy, but crisis requires proof of emergency[2].\",\n    \"Funds limited and first-come, first-served; apply early[4].\",\n    \"Prior LIHEAP does not disqualify from Crisis[4].\",\n    \"Income based on prior month's combined household income[1].\",\n    \"Liquid assets strictly limited, with exception only for catastrophic illness[3].\"\n  ],\n  \"data_shape_notes\": \"Two-tiered (Subsidy vs Crisis) with crisis requiring emergency proof; administered via 23 local Community Action Agencies in all 120 counties; income at 150% FPL (sometimes 130%); benefits vary by income, fuel type, and component; seasonal with potential early close due to funding.\"\n}"
+    },
+    {
+      "name": "Kentucky Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "description": "Household income must meet ONE of two criteria",
+          "criterion_1": "Total annualized income at or below 200% of federal poverty level (most recent OMB guidelines)[2]",
+          "criterion_2": "Household has a member who received TANF or K-TAP cash assistance within the 12 months prior to eligibility determination[2]",
+          "note": "Some local programs use 125% of poverty level instead of 200%[1]",
+          "poverty_level_table_example": "2017-2018 LIHEAP guidelines (actual current limits vary annually): 1 person: $24,120 annual/$2,010 monthly; 2 people: $32,460 annual/$2,705 monthly; 3 people: $40,800 annual/$3,400 monthly; 4 people: $49,140 annual/$4,095 monthly; 5 people: $57,480 annual/$4,790 monthly; 6 people: $65,820 annual/$5,485 monthly; 7 people: $73,460 annual/$6,121 monthly; 8 people: $81,780 annual/$6,815 monthly; add $8,320 annually per additional person[5]"
+        },
+        "asset_limits": null,
+        "other_requirements": [
+          "Dwelling must be occupied by the applicant/family[2]",
+          "Applicant must reside in the home to be weatherized[2]",
+          "Dwelling must not have received weatherization assistance on or after September 30, 1994 (with exception for re-weatherization of homes weatherized prior to October 1, 1993)[1][4]",
+          "If renting, landlord written permission required[4][6]",
+          "Proof of U.S. citizenship or natural residency required[5]",
+          "Applicant eligibility remains valid for 12 months from date of verified eligibility; if 12 months pass without work beginning, household must re-verify eligibility[2]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Energy conservation improvements to dwelling including: weatherization materials and labor (specific improvements determined by energy audit); examples include sealing and insulating ductwork[6], blower door testing, energy audits, and energy systems evaluations[1]",
+        "varies_by": "household_priority_tier",
+        "priority_system": "Applications assigned point values; priority given to: elderly applicants, disabled applicants, households with young children, households with children at risk of removal due to substandard dwelling conditions (emergency priority—immediate assistance)[1][6]",
+        "cost_to_participant": "Free to eligible applicants[6]"
+      },
+      "application": {
+        "methods": [
+          "In-person at local Community Action Agency office[1][3]",
+          "Contact local Community Action Agency by phone (varies by region; examples: Boyd County 606-405-0019[6])",
+          "Mail application to local Community Action Agency[6]"
+        ],
+        "processing_time": "Applications prioritized at least every six months[1]; specific processing timeline not provided in available documentation",
+        "waitlist": "Applications maintained until services provided or applicant/dwelling no longer eligible; prioritized based on point system[1]",
+        "forms": [
+          "Application and Prioritization for Weatherization Services (WX800)[2]",
+          "Declaration of Income Statement Form (if proof of income cannot be provided)[5]"
+        ],
+        "documents": [
+          "Proof of household gross income for past 30 days from application date (pay stubs, Social Security statements, retirement/pension verification letters, LIHEAP application, TANF/K-TAP documentation, food stamp program documentation)[2][5]",
+          "Social Security cards for all household members[3][6]",
+          "Copies of deed or mobile home title[3][6]",
+          "Current utility bills (12 months of utility bills preferred)[3][6]",
+          "Proof of disability if applicable[3]",
+          "Birth certificate and photo ID or passport (proof of U.S. citizenship or natural residency)[5]",
+          "Qualified alien status documentation if applicable (Permanent Resident I-155 Card or other documentation)[5]",
+          "Date of birth for all household members[6]",
+          "If renting: written landlord permission[4][6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Program delivered through Community Action Kentucky's local Community Action Agencies (20-22 agencies across state)[3][7]; some regional variation in income eligibility thresholds (125% vs. 200% of poverty level)[1]; specific wait times and service availability vary by region[1]",
+        "offices_or_providers": [
+          "Jefferson County: City of Louisville or Jefferson County Community Development Division[1]",
+          "Northern Kentucky: Northern Kentucky Community Action Commission (NKCAC), 717 Madison Avenue, Covington, Kentucky 41011, (859) 581-6607[5]",
+          "Northeast Kentucky: Northeast Ky Community Action Program Center (Boyd County: 606-405-0019)[6]",
+          "Contact Kentucky Housing Corporation or Community Action Kentucky to locate your local agency[3][7]"
+        ]
+      },
+      "official_source": "https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx",
+      "gotchas": [
+        "Income limits vary by local program administrator—some use 125% of poverty level, others use 200%; verify with your local Community Action Agency[1][2]",
+        "Eligibility expires after 12 months if no work has begun; you must re-verify income and eligibility to continue[2]",
+        "Dwellings weatherized on or after September 30, 1994 are generally ineligible unless they meet specific re-weatherization criteria (weatherized prior to October 1, 1993)[1][4]",
+        "Renters must obtain landlord written permission before applying; landlord must sign documents granting permission to work on home[4][6]",
+        "Applications are prioritized based on point system, not first-come-first-served; elderly and disabled applicants and households with young children receive priority[1][6]",
+        "Households with children at risk of removal due to substandard dwelling conditions receive emergency priority and immediate assistance[1]",
+        "Program is funded through U.S. Department of Energy and Kentucky Cabinet for Health and Family Services' LIHEAP; funding and availability may vary year to year[3][7]",
+        "Staff and contractors must be trained and certified in dwelling needs evaluation, blower door testing, energy audits, and energy systems evaluations before performing work[1]"
+      ],
+      "data_shape_notes": "Benefits are in-kind (energy improvements) rather than cash; value determined by individual energy audit rather than fixed amount. Eligibility uses dual-criterion approach (income OR categorical eligibility via TANF/K-TAP). Program prioritizes based on point system rather than application date. Income limits tied to federal poverty guidelines updated annually by OMB. Delivered through decentralized network of 20-22 local Community Action Agencies with regional variations in thresholds and wait times. No asset limits documented. No age requirement, but elderly status increases priority points.",
+      "_raw": "```json\n{\n  \"name\": \"Kentucky Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"Household income must meet ONE of two criteria\",\n      \"criterion_1\": \"Total annualized income at or below 200% of federal poverty level (most recent OMB guidelines)[2]\",\n      \"criterion_2\": \"Household has a member who received TANF or K-TAP cash assistance within the 12 months prior to eligibility determination[2]\",\n      \"note\": \"Some local programs use 125% of poverty level instead of 200%[1]\",\n      \"poverty_level_table_example\": \"2017-2018 LIHEAP guidelines (actual current limits vary annually): 1 person: $24,120 annual/$2,010 monthly; 2 people: $32,460 annual/$2,705 monthly; 3 people: $40,800 annual/$3,400 monthly; 4 people: $49,140 annual/$4,095 monthly; 5 people: $57,480 annual/$4,790 monthly; 6 people: $65,820 annual/$5,485 monthly; 7 people: $73,460 annual/$6,121 monthly; 8 people: $81,780 annual/$6,815 monthly; add $8,320 annually per additional person[5]\"\n    },\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Dwelling must be occupied by the applicant/family[2]\",\n      \"Applicant must reside in the home to be weatherized[2]\",\n      \"Dwelling must not have received weatherization assistance on or after September 30, 1994 (with exception for re-weatherization of homes weatherized prior to October 1, 1993)[1][4]\",\n      \"If renting, landlord written permission required[4][6]\",\n      \"Proof of U.S. citizenship or natural residency required[5]\",\n      \"Applicant eligibility remains valid for 12 months from date of verified eligibility; if 12 months pass without work beginning, household must re-verify eligibility[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Energy conservation improvements to dwelling including: weatherization materials and labor (specific improvements determined by energy audit); examples include sealing and insulating ductwork[6], blower door testing, energy audits, and energy systems evaluations[1]\",\n    \"varies_by\": \"household_priority_tier\",\n    \"priority_system\": \"Applications assigned point values; priority given to: elderly applicants, disabled applicants, households with young children, households with children at risk of removal due to substandard dwelling conditions (emergency priority—immediate assistance)[1][6]\",\n    \"cost_to_participant\": \"Free to eligible applicants[6]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at local Community Action Agency office[1][3]\",\n      \"Contact local Community Action Agency by phone (varies by region; examples: Boyd County 606-405-0019[6])\",\n      \"Mail application to local Community Action Agency[6]\"\n    ],\n    \"processing_time\": \"Applications prioritized at least every six months[1]; specific processing timeline not provided in available documentation\",\n    \"waitlist\": \"Applications maintained until services provided or applicant/dwelling no longer eligible; prioritized based on point system[1]\",\n    \"forms\": [\n      \"Application and Prioritization for Weatherization Services (WX800)[2]\",\n      \"Declaration of Income Statement Form (if proof of income cannot be provided)[5]\"\n    ],\n    \"documents\": [\n      \"Proof of household gross income for past 30 days from application date (pay stubs, Social Security statements, retirement/pension verification letters, LIHEAP application, TANF/K-TAP documentation, food stamp program documentation)[2][5]\",\n      \"Social Security cards for all household members[3][6]\",\n      \"Copies of deed or mobile home title[3][6]\",\n      \"Current utility bills (12 months of utility bills preferred)[3][6]\",\n      \"Proof of disability if applicable[3]\",\n      \"Birth certificate and photo ID or passport (proof of U.S. citizenship or natural residency)[5]\",\n      \"Qualified alien status documentation if applicable (Permanent Resident I-155 Card or other documentation)[5]\",\n      \"Date of birth for all household members[6]\",\n      \"If renting: written landlord permission[4][6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Program delivered through Community Action Kentucky's local Community Action Agencies (20-22 agencies across state)[3][7]; some regional variation in income eligibility thresholds (125% vs. 200% of poverty level)[1]; specific wait times and service availability vary by region[1]\",\n    \"offices_or_providers\": [\n      \"Jefferson County: City of Louisville or Jefferson County Community Development Division[1]\",\n      \"Northern Kentucky: Northern Kentucky Community Action Commission (NKCAC), 717 Madison Avenue, Covington, Kentucky 41011, (859) 581-6607[5]\",\n      \"Northeast Kentucky: Northeast Ky Community Action Program Center (Boyd County: 606-405-0019)[6]\",\n      \"Contact Kentucky Housing Corporation or Community Action Kentucky to locate your local agency[3][7]\"\n    ]\n  },\n  \"official_source\": \"https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx\",\n  \"gotchas\": [\n    \"Income limits vary by local program administrator—some use 125% of poverty level, others use 200%; verify with your local Community Action Agency[1][2]\",\n    \"Eligibility expires after 12 months if no work has begun; you must re-verify income and eligibility to continue[2]\",\n    \"Dwellings weatherized on or after September 30, 1994 are generally ineligible unless they meet specific re-weatherization criteria (weatherized prior to October 1, 1993)[1][4]\",\n    \"Renters must obtain landlord written permission before applying; landlord must sign documents granting permission to work on home[4][6]\",\n    \"Applications are prioritized based on point system, not first-come-first-served; elderly and disabled applicants and households with young children receive priority[1][6]\",\n    \"Households with children at risk of removal due to substandard dwelling conditions receive emergency priority and immediate assistance[1]\",\n    \"Program is funded through U.S. Department of Energy and Kentucky Cabinet for Health and Family Services' LIHEAP; funding and availability may vary year to year[3][7]\",\n    \"Staff and contractors must be trained and certified in dwelling needs evaluation, blower door testing, energy audits, and energy systems evaluations before performing work[1]\"\n  ],\n  \"data_shape_notes\": \"Benefits are in-kind (energy improvements) rather than cash; value determined by individual energy audit rather than fixed amount. Eligibility uses dual-criterion approach (income OR categorical eligibility via TANF/K-TAP). Program prioritizes based on point system rather than application date. Income limits tied to federal poverty guidelines updated annually by OMB. Delivered through decentralized network of 20-22 local Community Action Agencies with regional variations in thresholds and wait times. No asset limits documented. No age requirement, but elderly status increases priority points.\"\n}\n```\n\n## Key Takeaways for Families with Elderly Loved Ones\n\n**Eligibility is straightforward but has two paths:** Your elderly relative qualifies if household income is at or below 200% of federal poverty level (or if someone in the household received TANF/K-TAP in the past 12 months)[2]. For 2017-2018 reference, a single person at 200% poverty earned up to approximately $24,120 annually[5]; current limits are higher due to annual adjustments.\n\n**The program provides actual home improvements, not cash:** This isn't a utility bill subsidy—weatherization crews will audit the home and make energy-efficiency improvements (sealing ducts, insulation, etc.) at no cost[6]. The specific work depends on what the energy audit identifies.\n\n**Priority is built in for elderly applicants:** Applications are scored, and elderly status automatically increases priority points[1][6]. Households with children at risk of removal due to substandard conditions get emergency priority with immediate service[1].\n\n**Apply through your local Community Action Agency:** There's no statewide online portal; you must contact your regional office in person, by phone, or by mail[1][3]. Find your local agency through Kentucky Housing Corporation's website[7].\n\n**Expect a 6+ month wait in most areas:** Applications are reviewed at least every six months, but specific timelines vary by region and current caseload[1].\n\n**The biggest gotcha:** If your relative's home was weatherized after September 30, 1994, they're likely ineligible unless it meets narrow re-weatherization criteria[4]. Verify this before applying."
+    },
+    {
+      "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits or asset limits apply. Open to all without financial restrictions.[3][8]",
+        "asset_limits": "No asset limits. No requirements for what counts or is exempt, as assets are not considered.[3][8]",
+        "other_requirements": [
+          "Seniors (typically Medicare-eligible), disabled individuals, their family members, and caregivers.[3][7][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, personalized information, counseling, and assistance on: Medicare Part A/B, Part D, Medigap, Medicare Advantage (HMOs/PPOs), long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription drug assistance programs, rights under Medicare, coverage changes, cost concerns, and KPAP for free/reduced-cost prescriptions. Provided by trained local counselors who do not sell insurance.[3][4][7][8]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Statewide hotline (877) 293-7447 (option #2 for SHIP) or (502) 564-6930 (ask for SHIP counselor); Local providers e.g., KIPDA (502) 266-5571; Website: https://chfs.ky.gov/agencies/dail/Pages/ship.aspx; In-person: Local counselors via hotline referral.[5][6][7][8]"
+        ],
+        "processing_time": "No formal application or processing time; services provided upon contact with counselors.[3][8]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; counselors assist directly.[1][8]"
+        ],
+        "documents": [
+          "For counseling: Beneficiary full name, DOB, Medicare number, address/phone (to verify identity if needed). No documents mandated upfront.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; covers all 120 counties.[8]",
+        "regional_variations": "Services delivered by local counselors and partners (e.g., KIPDA in some areas), but core services uniform statewide. Contact statewide hotline for local referral.[7][8]",
+        "offices_or_providers": [
+          "State office: Department for Aging and Independent Living, 275 East Main Street, 3E-E, Frankfort KY 40621; Local via hotline.[5][8]"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or services; Counselors do not sell insurance and represent no companies; Primarily for Medicare-related decisions, not general health insurance; Services free but rely on trained volunteers/staff which may affect availability.[3][7][8][9]"
+      ],
+      "data_shape_notes": "no income test; statewide with local counselor delivery; counseling-only (no financial benefits or limits); open to families/caregivers without eligibility barriers",
+      "_raw": "{\n  \"name\": \"Kentucky State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits or asset limits apply. Open to all without financial restrictions.[3][8]\",\n    \"asset_limits\": \"No asset limits. No requirements for what counts or is exempt, as assets are not considered.[3][8]\",\n    \"other_requirements\": [\"Seniors (typically Medicare-eligible), disabled individuals, their family members, and caregivers.[3][7][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, personalized information, counseling, and assistance on: Medicare Part A/B, Part D, Medigap, Medicare Advantage (HMOs/PPOs), long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription drug assistance programs, rights under Medicare, coverage changes, cost concerns, and KPAP for free/reduced-cost prescriptions. Provided by trained local counselors who do not sell insurance.[3][4][7][8]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Statewide hotline (877) 293-7447 (option #2 for SHIP) or (502) 564-6930 (ask for SHIP counselor); Local providers e.g., KIPDA (502) 266-5571; Website: https://chfs.ky.gov/agencies/dail/Pages/ship.aspx; In-person: Local counselors via hotline referral.[5][6][7][8]\"],\n    \"processing_time\": \"No formal application or processing time; services provided upon contact with counselors.[3][8]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; counselors assist directly.[1][8]\"],\n    \"documents\": [\"For counseling: Beneficiary full name, DOB, Medicare number, address/phone (to verify identity if needed). No documents mandated upfront.[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; covers all 120 counties.[8]\",\n    \"regional_variations\": \"Services delivered by local counselors and partners (e.g., KIPDA in some areas), but core services uniform statewide. Contact statewide hotline for local referral.[7][8]\",\n    \"offices_or_providers\": [\"State office: Department for Aging and Independent Living, 275 East Main Street, 3E-E, Frankfort KY 40621; Local via hotline.[5][8]\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/ship.aspx\",\n  \"gotchas\": [\"Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or services; Counselors do not sell insurance and represent no companies; Primarily for Medicare-related decisions, not general health insurance; Services free but rely on trained volunteers/staff which may affect availability.[3][7][8][9]\"],\n  \"data_shape_notes\": \"no income test; statewide with local counselor delivery; counseling-only (no financial benefits or limits); open to families/caregivers without eligibility barriers\"\n}"
+    },
+    {
+      "name": "Kentucky Meals on Wheels",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific income limits or dollar amounts mentioned across sources; income not always a factor in eligibility, though some programs may adjust fees based on ability to pay[1][2].",
+        "asset_limits": "No asset limits mentioned; no details on what counts or exemptions.",
+        "other_requirements": [
+          "Unable to prepare or provide own meals due to disability, illness, or incapacitating condition[1][2][3][4][5][9]",
+          "Homebound or unable to attend congregate sites with no one able to cook[1][4][5][9]",
+          "Reside in program delivery zone or service area[1][2]",
+          "Spouses of any age or disabled dependents may qualify[5][9]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "One nutritionally balanced home-delivered meal per day (Monday-Friday, including weekday holidays); some providers deliver two meals per day at $30 per week ($6 per day)[2][9]; no special diets in some areas[2]; includes nutrition screening, education, and counseling[9]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging or provider for your region (e.g., Meals on Wheels Lexington directly[2], Kipda for their area[5], Northern Kentucky Area Development District at 859-283-1885[8])[1][3]",
+          "Home visit or assessment by coordinator for eligibility determination[1][4]",
+          "Refer someone else if they qualify[3]"
+        ],
+        "processing_time": "Varies; some within a week, others longer if waitlist exists[1]",
+        "waitlist": "Possible in some programs, leading to longer processing[1]",
+        "forms": [
+          "Application required by most providers; no specific form names/numbers listed[3]"
+        ],
+        "documents": [
+          "Proof of age, residence, medical information; dietary restrictions, emergency contacts; financial documents sometimes but not always[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to delivery zones/service areas of local providers; must verify coverage[1]",
+        "regional_variations": "Operated by local providers (e.g., Meals on Wheels Lexington: inability to prepare meals only, $30/week cost[2]; Frankfort: home visit required, re-evaluation every 6 months[4]; Kipda: additional home-delivered requirements[5]; Northern KY specific contact[8])[2][4][5][8]",
+        "offices_or_providers": [
+          "Meals on Wheels Lexington (mealsonwheelslex.org)[2]",
+          "Capital City Activity Center (Frankfort)[4]",
+          "Kipda[5]",
+          "Northern Kentucky Area Development District[8]",
+          "Local Area Agencies on Aging[1]"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+      "gotchas": [
+        "Not a single centralized program; must contact local provider for exact eligibility, zones, costs, and processes[1][2][8]",
+        "Fees may apply (e.g., $30/week in Lexington) even if not free; private pay options exist[2][6]",
+        "Car ownership or ability to leave home easily may disqualify[1]",
+        "No special diets in some areas[2]",
+        "Re-evaluation every 6 months in some programs[4]",
+        "Separate from Medicaid HCB waivers which have stricter rules[7]"
+      ],
+      "data_shape_notes": "Decentralized local providers with varying costs, eligibility details, and service areas; no uniform income/asset tests; spouses/dependents included but homebound focus for delivery",
+      "_raw": "{\n  \"name\": \"Kentucky Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits or dollar amounts mentioned across sources; income not always a factor in eligibility, though some programs may adjust fees based on ability to pay[1][2].\",\n    \"asset_limits\": \"No asset limits mentioned; no details on what counts or exemptions.\",\n    \"other_requirements\": [\"Unable to prepare or provide own meals due to disability, illness, or incapacitating condition[1][2][3][4][5][9]\", \"Homebound or unable to attend congregate sites with no one able to cook[1][4][5][9]\", \"Reside in program delivery zone or service area[1][2]\", \"Spouses of any age or disabled dependents may qualify[5][9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"One nutritionally balanced home-delivered meal per day (Monday-Friday, including weekday holidays); some providers deliver two meals per day at $30 per week ($6 per day)[2][9]; no special diets in some areas[2]; includes nutrition screening, education, and counseling[9]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Area Agency on Aging or provider for your region (e.g., Meals on Wheels Lexington directly[2], Kipda for their area[5], Northern Kentucky Area Development District at 859-283-1885[8])[1][3]\", \"Home visit or assessment by coordinator for eligibility determination[1][4]\", \"Refer someone else if they qualify[3]\"],\n    \"processing_time\": \"Varies; some within a week, others longer if waitlist exists[1]\",\n    \"waitlist\": \"Possible in some programs, leading to longer processing[1]\",\n    \"forms\": [\"Application required by most providers; no specific form names/numbers listed[3]\"],\n    \"documents\": [\"Proof of age, residence, medical information; dietary restrictions, emergency contacts; financial documents sometimes but not always[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to delivery zones/service areas of local providers; must verify coverage[1]\",\n    \"regional_variations\": \"Operated by local providers (e.g., Meals on Wheels Lexington: inability to prepare meals only, $30/week cost[2]; Frankfort: home visit required, re-evaluation every 6 months[4]; Kipda: additional home-delivered requirements[5]; Northern KY specific contact[8])[2][4][5][8]\",\n    \"offices_or_providers\": [\"Meals on Wheels Lexington (mealsonwheelslex.org)[2]\", \"Capital City Activity Center (Frankfort)[4]\", \"Kipda[5]\", \"Northern Kentucky Area Development District[8]\", \"Local Area Agencies on Aging[1]\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx\",\n  \"gotchas\": [\"Not a single centralized program; must contact local provider for exact eligibility, zones, costs, and processes[1][2][8]\", \"Fees may apply (e.g., $30/week in Lexington) even if not free; private pay options exist[2][6]\", \"Car ownership or ability to leave home easily may disqualify[1]\", \"No special diets in some areas[2]\", \"Re-evaluation every 6 months in some programs[4]\", \"Separate from Medicaid HCB waivers which have stricter rules[7]\"],\n  \"data_shape_notes\": \"Decentralized local providers with varying costs, eligibility details, and service areas; no uniform income/asset tests; spouses/dependents included but homebound focus for delivery\"\n}"
+    },
+    {
+      "name": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+      "eligibility": {
+        "age": "Varies by caregiver type: 55+ for grandparents/relatives; no age limit for adult family members caring for seniors 60+",
+        "income_limits": {
+          "note": "Income limits apply ONLY to Kentucky Family Caregiver Program (grandparent/relative caregivers), NOT to National Family Caregiver Support Program",
+          "kfcp_limit": "150% of federal poverty level (specific dollar amounts vary by household size and year; as of 2026, approximately $2,128/month for single, $4,398/month for family of 4, but verify current year amounts with local AAA)",
+          "nfcsp_limit": "No income limit"
+        },
+        "asset_limits": "Not specified in search results; contact local Area Agency on Aging for clarification",
+        "other_requirements": {
+          "national_family_caregiver_support_program": [
+            "Care recipient must be: (a) age 60 or older, OR (b) any age with Alzheimer's disease or related dementia, OR (c) age 19-59 with disabilities (if caregiver is grandparent/relative 55+, not parent)",
+            "Caregiver must be adult family member or informal in-home/community care provider",
+            "For grandparent/relative caregivers of children: child must be under 18, related by blood/marriage/adoption, live in caregiver's home, and biological/adoptive parents unable or unwilling to serve as primary caregiver",
+            "Caregiver and/or care recipient must reside in eligible Kentucky counties (varies by regional provider)",
+            "Care recipient must require help with Activities of Daily Living (ADLs) or Instrumental Activities of Daily Living (IADLs)"
+          ],
+          "kentucky_family_caregiver_program": [
+            "Grandparent must be primary caregiver of grandchild no older than 18",
+            "Child must be related by blood, marriage, or adoption",
+            "Child must live in caregiver's home",
+            "Biological/adoptive parents may NOT reside in household",
+            "Household income must not exceed 150% of federal poverty level",
+            "Relationship requirement: related by blood, marriage, or adoption"
+          ]
+        }
+      },
+      "benefits": {
+        "type": "service + in_kind + advocacy",
+        "value": "National Family Caregiver Support Program: information about available services, assistance accessing services, educational opportunities, support group information, supplemental services (limited), and respite care (temporary relief from caregiving). Kentucky Family Caregiver Program: support group matching, information about resources, assistance accessing services, counseling, and training. No fee for services. Specific dollar amounts or hours per week NOT specified in search results.",
+        "varies_by": "Program type (NFCSP vs KFCP); respite care availability may vary by region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging and Independent Living (specific phone numbers and websites not provided in search results; search 'Area Agency on Aging [your county name] Kentucky')",
+          "In-person at local AAA office",
+          "Phone to local AAA",
+          "Mail to local AAA (specific addresses not provided in search results)"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": [
+          "Formal functional assessment (conducted by case manager for care recipient)",
+          "Specific form names/numbers not provided in search results"
+        ],
+        "documents": [
+          "Proof of relationship (for grandparent/relative caregivers)",
+          "Proof of residency in eligible county",
+          "Income documentation (for Kentucky Family Caregiver Program only)",
+          "Functional assessment results (for respite care or supplemental services under NFCSP)",
+          "Specific document list not fully detailed in search results; contact local AAA for complete requirements"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "County-based administration through regional Area Agencies on Aging. Specific eligible counties vary by AAA region. Examples: KIPDA region (Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin); Northern Kentucky (Boone, Campbell, Carroll, Gallatin, Grant, Kenton, Owen, Pendleton); Louisville area (LCADD); other regions have different AAAs",
+        "regional_variations": "Program administered through local Area Agencies on Aging; eligibility and services may vary slightly by region. Priority given to individuals with greatest social and economic need, particularly low-income older individuals.",
+        "offices_or_providers": [
+          "KIPDA (Kentucky Interagency on Aging)",
+          "NKADD (Northern Kentucky Area Development District)",
+          "LCADD (Louisville/Central Kentucky Area Development District)",
+          "FIVCO (Five County Area Development District)",
+          "Other regional AAAs throughout Kentucky (contact Cabinet for Health and Family Services for complete list)"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)",
+      "gotchas": [
+        "TWO SEPARATE PROGRAMS: National Family Caregiver Support Program (NFCSP, no income limit, broader eligibility) and Kentucky Family Caregiver Program (KFCP, 150% poverty income limit, grandparent/relative focused). Families must determine which applies to their situation.",
+        "INCOME LIMIT TRAP: Kentucky Family Caregiver Program has strict 150% federal poverty level income cap—much tighter than many other social programs. This is a common reason for rejection.",
+        "DOUBLE DIP RULE: Cannot receive Kentucky Family Caregiver Program benefits if already receiving Kinship Care payments; must evaluate which program offers better support.",
+        "PARENT RESIDENCY RULE: For grandparent/relative caregivers, biological/adoptive parents CANNOT reside in the home. This disqualifies many multi-generational households.",
+        "FRAILTY DEFINITION REQUIRED: For respite care or supplemental services under NFCSP, care recipient must meet specific 'frail' definition: (a) impaired in 2+ ADLs, OR (b) impaired in 3+ IADLs, OR (c) impaired in 1 ADL + 2 IADLs, OR (d) requires substantial supervision due to cognitive/mental impairment posing safety hazard.",
+        "COUNTY RESTRICTIONS: Eligibility depends on which county you live in and which AAA serves that region. Not all services available everywhere.",
+        "RELATIONSHIP REQUIREMENT: For KFCP, caregiver must be related by blood, marriage, or adoption—close friends do not qualify.",
+        "LIMITED SUPPLEMENTAL SERVICES: NFCSP offers 'limited' supplemental services; specific limits not detailed in search results.",
+        "NO SPECIFIC DOLLAR AMOUNTS: Search results do not specify respite care hours per week, dollar amounts for services, or how benefits scale. Contact local AAA for specific benefit amounts.",
+        "PROCESSING TIME UNKNOWN: No information provided on how long applications take or if there are waitlists."
+      ],
+      "data_shape_notes": "This program has a complex dual-structure: NFCSP (federal, broader, no income test) and KFCP (state, narrower, strict income test). Eligibility and benefits vary significantly by county and regional AAA. The program is service-based rather than cash-based, with respite care and support services as primary benefits. Specific dollar amounts, hours, and processing timelines are not standardized across regions and must be obtained from local AAA. The 'frailty' definition for care recipients creates an additional eligibility gate for certain services. Income limits apply only to KFCP, not NFCSP, creating a critical distinction for families just above the poverty threshold.",
+      "_raw": "```json\n{\n  \"name\": \"National Family Caregiver Support Program / Kentucky Family Caregiver Program\",\n  \"eligibility\": {\n    \"age\": \"Varies by caregiver type: 55+ for grandparents/relatives; no age limit for adult family members caring for seniors 60+\",\n    \"income_limits\": {\n      \"note\": \"Income limits apply ONLY to Kentucky Family Caregiver Program (grandparent/relative caregivers), NOT to National Family Caregiver Support Program\",\n      \"kfcp_limit\": \"150% of federal poverty level (specific dollar amounts vary by household size and year; as of 2026, approximately $2,128/month for single, $4,398/month for family of 4, but verify current year amounts with local AAA)\",\n      \"nfcsp_limit\": \"No income limit\"\n    },\n    \"asset_limits\": \"Not specified in search results; contact local Area Agency on Aging for clarification\",\n    \"other_requirements\": {\n      \"national_family_caregiver_support_program\": [\n        \"Care recipient must be: (a) age 60 or older, OR (b) any age with Alzheimer's disease or related dementia, OR (c) age 19-59 with disabilities (if caregiver is grandparent/relative 55+, not parent)\",\n        \"Caregiver must be adult family member or informal in-home/community care provider\",\n        \"For grandparent/relative caregivers of children: child must be under 18, related by blood/marriage/adoption, live in caregiver's home, and biological/adoptive parents unable or unwilling to serve as primary caregiver\",\n        \"Caregiver and/or care recipient must reside in eligible Kentucky counties (varies by regional provider)\",\n        \"Care recipient must require help with Activities of Daily Living (ADLs) or Instrumental Activities of Daily Living (IADLs)\"\n      ],\n      \"kentucky_family_caregiver_program\": [\n        \"Grandparent must be primary caregiver of grandchild no older than 18\",\n        \"Child must be related by blood, marriage, or adoption\",\n        \"Child must live in caregiver's home\",\n        \"Biological/adoptive parents may NOT reside in household\",\n        \"Household income must not exceed 150% of federal poverty level\",\n        \"Relationship requirement: related by blood, marriage, or adoption\"\n      ]\n    }\n  },\n  \"benefits\": {\n    \"type\": \"service + in_kind + advocacy\",\n    \"value\": \"National Family Caregiver Support Program: information about available services, assistance accessing services, educational opportunities, support group information, supplemental services (limited), and respite care (temporary relief from caregiving). Kentucky Family Caregiver Program: support group matching, information about resources, assistance accessing services, counseling, and training. No fee for services. Specific dollar amounts or hours per week NOT specified in search results.\",\n    \"varies_by\": \"Program type (NFCSP vs KFCP); respite care availability may vary by region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging and Independent Living (specific phone numbers and websites not provided in search results; search 'Area Agency on Aging [your county name] Kentucky')\",\n      \"In-person at local AAA office\",\n      \"Phone to local AAA\",\n      \"Mail to local AAA (specific addresses not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": [\n      \"Formal functional assessment (conducted by case manager for care recipient)\",\n      \"Specific form names/numbers not provided in search results\"\n    ],\n    \"documents\": [\n      \"Proof of relationship (for grandparent/relative caregivers)\",\n      \"Proof of residency in eligible county\",\n      \"Income documentation (for Kentucky Family Caregiver Program only)\",\n      \"Functional assessment results (for respite care or supplemental services under NFCSP)\",\n      \"Specific document list not fully detailed in search results; contact local AAA for complete requirements\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"County-based administration through regional Area Agencies on Aging. Specific eligible counties vary by AAA region. Examples: KIPDA region (Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin); Northern Kentucky (Boone, Campbell, Carroll, Gallatin, Grant, Kenton, Owen, Pendleton); Louisville area (LCADD); other regions have different AAAs\",\n    \"regional_variations\": \"Program administered through local Area Agencies on Aging; eligibility and services may vary slightly by region. Priority given to individuals with greatest social and economic need, particularly low-income older individuals.\",\n    \"offices_or_providers\": [\n      \"KIPDA (Kentucky Interagency on Aging)\",\n      \"NKADD (Northern Kentucky Area Development District)\",\n      \"LCADD (Louisville/Central Kentucky Area Development District)\",\n      \"FIVCO (Five County Area Development District)\",\n      \"Other regional AAAs throughout Kentucky (contact Cabinet for Health and Family Services for complete list)\"\n    ]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)\",\n  \"gotchas\": [\n    \"TWO SEPARATE PROGRAMS: National Family Caregiver Support Program (NFCSP, no income limit, broader eligibility) and Kentucky Family Caregiver Program (KFCP, 150% poverty income limit, grandparent/relative focused). Families must determine which applies to their situation.\",\n    \"INCOME LIMIT TRAP: Kentucky Family Caregiver Program has strict 150% federal poverty level income cap—much tighter than many other social programs. This is a common reason for rejection.\",\n    \"DOUBLE DIP RULE: Cannot receive Kentucky Family Caregiver Program benefits if already receiving Kinship Care payments; must evaluate which program offers better support.\",\n    \"PARENT RESIDENCY RULE: For grandparent/relative caregivers, biological/adoptive parents CANNOT reside in the home. This disqualifies many multi-generational households.\",\n    \"FRAILTY DEFINITION REQUIRED: For respite care or supplemental services under NFCSP, care recipient must meet specific 'frail' definition: (a) impaired in 2+ ADLs, OR (b) impaired in 3+ IADLs, OR (c) impaired in 1 ADL + 2 IADLs, OR (d) requires substantial supervision due to cognitive/mental impairment posing safety hazard.\",\n    \"COUNTY RESTRICTIONS: Eligibility depends on which county you live in and which AAA serves that region. Not all services available everywhere.\",\n    \"RELATIONSHIP REQUIREMENT: For KFCP, caregiver must be related by blood, marriage, or adoption—close friends do not qualify.\",\n    \"LIMITED SUPPLEMENTAL SERVICES: NFCSP offers 'limited' supplemental services; specific limits not detailed in search results.\",\n    \"NO SPECIFIC DOLLAR AMOUNTS: Search results do not specify respite care hours per week, dollar amounts for services, or how benefits scale. Contact local AAA for specific benefit amounts.\",\n    \"PROCESSING TIME UNKNOWN: No information provided on how long applications take or if there are waitlists.\"\n  ],\n  \"data_shape_notes\": \"This program has a complex dual-structure: NFCSP (federal, broader, no income test) and KFCP (state, narrower, strict income test). Eligibility and benefits vary significantly by county and regional AAA. The program is service-based rather than cash-based, with respite care and support services as primary benefits. Specific dollar amounts, hours, and processing timelines are not standardized across regions and must be obtained from local AAA. The 'frailty' definition for care recipients creates an additional eligibility gate for certain services. Income limits apply only to KFCP, not NFCSP, creating a critical distinction for families just above the poverty threshold.\"\n}\n```\n\n---\n\n## Key Takeaways for Families\n\n**Start here:** Contact your local Area Agency on Aging and Independent Living. They administer both programs and can determine which one your family qualifies for.[8] The specific office depends on which Kentucky county you live in.\n\n**Critical distinction:** The **National Family Caregiver Support Program has no income limit** and covers caregivers of seniors 60+, anyone with Alzheimer's/dementia (any age), and grandparents 55+ caring for adults with disabilities.[7][8] The **Kentucky Family Caregiver Program is income-restricted** (150% federal poverty level) and focuses on grandparent/relative caregivers of children under 18.[8][9]\n\n**What you actually get:** Services include information about local resources, help accessing services, educational opportunities, support groups, limited supplemental services, and respite care (temporary relief from caregiving duties).[2][8] There is no fee.[2] However, search results do not specify exact hours of respite care per week or dollar amounts for supplemental services—these vary by region and must be confirmed with your local AAA.\n\n**The income trap:** If you're applying for the Kentucky Family Caregiver Program, your household income cannot exceed 150% of the federal poverty level.[9] This is stricter than many other social programs and is a common reason for rejection.[4]\n\n**The parent residency rule:** For grandparent/relative caregivers under either program, the biological or adoptive parents cannot live in the home.[8][9] This disqualifies many multi-generational households.\n\n**Application process:** Contact your local Area Agency on Aging by phone, in-person, or mail. You'll need proof of relationship, residency in an eligible county, and (for KFCP) income documentation. A formal functional assessment of the care recipient will be conducted.[6][8] Specific form names, phone numbers, and processing timelines are not provided in available sources—contact your local AAA directly."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income must not exceed 125% of the federal poverty guidelines. Exact dollar amounts vary annually and by household size; families must check current federal poverty levels (e.g., via HHS guidelines) as specific 2026 figures not listed in sources. Applies to individual or family income.",
+        "asset_limits": null,
+        "other_requirements": [
+          "Unemployed or poor employment prospects",
+          "Kentucky resident",
+          "Eligible to work in the United States",
+          "Priority given to: veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at risk, low employment prospects, or prior American Job Center users"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time on-the-job training (average 20 hours/week, up to 15-20 hours depending on provider) at nonprofit or public agencies; paid highest of federal, state, or local minimum wage; job training, resume building, interviewing assistance, case management, supportive services, and bridge to unsubsidized employment",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Varies by provider/region (e.g., Goodwill KY: 833-439-7759; Big Sandy CAP: 606-789-6517; Audubon Area: 270-686-1607; NKCAC: 859-581-6607; WKAS: contact via wkas-ky.org)",
+          "Email: SCSEP@bsacap.org (Big Sandy)",
+          "In-person: Provider offices (e.g., Goodwill: 130 W. New Circle Rd., Ste. 110, Lexington, KY 40507)",
+          "Online pre-application: NKCAC Senior Employment Pre Application (via nkcac.org)"
+        ],
+        "processing_time": null,
+        "waitlist": "Possible; state plan mentions enrolling 2 participants per month and 'swaps' among grantees to manage slots, indicating potential limits",
+        "forms": [
+          "Senior Employment Pre Application (NKCAC)"
+        ],
+        "documents": [
+          "Proof of age (e.g., ID)",
+          "Proof of income (to verify <=125% poverty level)",
+          "Proof of residency (Kentucky)",
+          "Proof of work eligibility (e.g., Social Security card)",
+          "Veteran status or disability documentation if claiming priority"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Served by multiple grantees covering specific counties/regions, not uniform statewide access",
+        "regional_variations": "Different providers manage regions with varying hours (15-20/week), contact points, and services; e.g., Goodwill (Lexington-focused), Big Sandy CAP (Elliott, Floyd, Johnson, Lawrence, Letcher, Magoffin, Martin, Pike, Rowan), WKAS (Ballard, Calloway, Fulton, Graves, McCracken, Marshall), Audubon Area (Henderson, Ohio, Union, Webster; Butler, Edmonson, Hart, Warren; Breckinridge, Grayson, Hardin, Larue, Meade), NKCAC (Northern KY counties)",
+        "offices_or_providers": [
+          "Goodwill KY (Lexington: 833-439-7759)",
+          "Big Sandy Area CAP (606-789-6517)",
+          "WKAS (western counties)",
+          "Audubon Area Community Services (270-686-1607)",
+          "NKCAC (859-581-6607)"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
+      "gotchas": [
+        "Not statewide; must contact specific regional provider for your county—coverage gaps possible",
+        "Unemployed status required; not for current workers",
+        "Priority tiers limit access; non-priority may face longer waits or denial",
+        "Temporary training program aimed at unsubsidized jobs, not permanent SCSEP employment",
+        "Income test strictly at 125% poverty (updates yearly; verify current levels)",
+        "Limited hours (15-20/week) at minimum wage only—no full benefits like health insurance specified"
+      ],
+      "data_shape_notes": "Regionally administered by multiple grantees with county-specific coverage, varying contacts/hours, and slot limits managed via monthly enrollments and inter-grantee swaps; income fixed at 125% poverty scaled by household size",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income must not exceed 125% of the federal poverty guidelines. Exact dollar amounts vary annually and by household size; families must check current federal poverty levels (e.g., via HHS guidelines) as specific 2026 figures not listed in sources. Applies to individual or family income.\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Unemployed or poor employment prospects\",\n      \"Kentucky resident\",\n      \"Eligible to work in the United States\",\n      \"Priority given to: veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at risk, low employment prospects, or prior American Job Center users\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time on-the-job training (average 20 hours/week, up to 15-20 hours depending on provider) at nonprofit or public agencies; paid highest of federal, state, or local minimum wage; job training, resume building, interviewing assistance, case management, supportive services, and bridge to unsubsidized employment\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Varies by provider/region (e.g., Goodwill KY: 833-439-7759; Big Sandy CAP: 606-789-6517; Audubon Area: 270-686-1607; NKCAC: 859-581-6607; WKAS: contact via wkas-ky.org)\",\n      \"Email: SCSEP@bsacap.org (Big Sandy)\",\n      \"In-person: Provider offices (e.g., Goodwill: 130 W. New Circle Rd., Ste. 110, Lexington, KY 40507)\",\n      \"Online pre-application: NKCAC Senior Employment Pre Application (via nkcac.org)\"\n    ],\n    \"processing_time\": null,\n    \"waitlist\": \"Possible; state plan mentions enrolling 2 participants per month and 'swaps' among grantees to manage slots, indicating potential limits\",\n    \"forms\": [\n      \"Senior Employment Pre Application (NKCAC)\"\n    ],\n    \"documents\": [\n      \"Proof of age (e.g., ID)\",\n      \"Proof of income (to verify <=125% poverty level)\",\n      \"Proof of residency (Kentucky)\",\n      \"Proof of work eligibility (e.g., Social Security card)\",\n      \"Veteran status or disability documentation if claiming priority\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Served by multiple grantees covering specific counties/regions, not uniform statewide access\",\n    \"regional_variations\": \"Different providers manage regions with varying hours (15-20/week), contact points, and services; e.g., Goodwill (Lexington-focused), Big Sandy CAP (Elliott, Floyd, Johnson, Lawrence, Letcher, Magoffin, Martin, Pike, Rowan), WKAS (Ballard, Calloway, Fulton, Graves, McCracken, Marshall), Audubon Area (Henderson, Ohio, Union, Webster; Butler, Edmonson, Hart, Warren; Breckinridge, Grayson, Hardin, Larue, Meade), NKCAC (Northern KY counties)\",\n    \"offices_or_providers\": [\n      \"Goodwill KY (Lexington: 833-439-7759)\",\n      \"Big Sandy Area CAP (606-789-6517)\",\n      \"WKAS (western counties)\",\n      \"Audubon Area Community Services (270-686-1607)\",\n      \"NKCAC (859-581-6607)\"\n    ]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx\",\n  \"gotchas\": [\n    \"Not statewide; must contact specific regional provider for your county—coverage gaps possible\",\n    \"Unemployed status required; not for current workers\",\n    \"Priority tiers limit access; non-priority may face longer waits or denial\",\n    \"Temporary training program aimed at unsubsidized jobs, not permanent SCSEP employment\",\n    \"Income test strictly at 125% poverty (updates yearly; verify current levels)\",\n    \"Limited hours (15-20/week) at minimum wage only—no full benefits like health insurance specified\"\n  ],\n  \"data_shape_notes\": \"Regionally administered by multiple grantees with county-specific coverage, varying contacts/hours, and slot limits managed via monthly enrollments and inter-grantee swaps; income fixed at 125% poverty scaled by household size\"\n}"
+    },
+    {
+      "name": "Kentucky Legal Aid for Seniors",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Typically 125% to 200% of federal poverty guidelines, varying by specific legal aid organization and county. Exact 2026 dollar amounts not specified in sources; e.g., Legal Aid Society serves up to 125%-200% FPL in select counties[4][6]. For OAA-funded services, targets low-income elderly without fixed dollar table provided[2].",
+        "asset_limits": "Not specified for legal aid programs; asset rules apply to related Medicaid long-term care (varies by marital status, program type like Nursing Home Medicaid or HCBS Waivers), but not directly for legal aid[1].",
+        "other_requirements": [
+          "Live in Kentucky and served county[1][4][5]",
+          "Low-income or greatest social/economic need, prioritizing caregivers of dementia patients, minorities, rural residents, disabled, limited English proficiency[2]",
+          "Receiving Title III OAA services for some programs[2]",
+          "Not denied for failure to disclose income/resources[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal assistance on elder law issues including Medicaid long-term care eligibility, asset transfers, undue hardship waivers, income/family/housing/safety/health problems; individual client services, group activities, accessible via phone/home visit/center/person-to-person[1][2][4][5]. Institutionalized older persons prioritized[2]. No specific dollar amounts or hours stated.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Regional offices e.g., 270-782-1924 or 800-782-1924 (Bowling Green)[5], 502-584-1254 (Louisville)[5], 859-431-8200 (Lexington)[5], 866-277-5733 (Prestonsburg)[5]",
+          "In-person: Regional offices e.g., 1700 Destiny Lane, Bowling Green KY 42104; 416 W. Muhammad Ali Blvd Suite 300, Louisville KY 40202; 300 East Main St Suite 110, Lexington KY 40507; 120 N. Front Ave, Prestonsburg KY 41653[5]",
+          "Website: Regional e.g., yourlegalaid.org (Legal Aid Society); kyjustice.org for screening[1][4]",
+          "See if you qualify for free legal services via kyjustice.org[1]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [
+          "Not specified; intake via phone or regional office"
+        ],
+        "documents": [
+          "Income/resources info (not required to disclose for eligibility determination[2]); proof for elder law cases like Medicaid (income/assets, marital status, nursing facility level of care need)[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "County-specific by 4 regional legal aid programs covering different areas of Kentucky[4][5]",
+        "regional_variations": "Services via 4 programs: Western KY (Bowling Green), Louisville-area (15 counties), North/Northeast (e.g., Lexington serving 28 counties), Eastern/Southcentral (e.g., Prestonsburg serving 36 counties). Income thresholds and access vary by organization (e.g., 125-200% FPL in Louisville area)[4][5]. PACE-related not statewide[1].",
+        "offices_or_providers": [
+          "Legal Aid Society (Louisville: Breckinridge, Bullitt, etc.[4])",
+          "AppalReD Legal Aid (Prestonsburg)[5]",
+          "Kentucky Legal Aid (Lexington, Bowling Green)[5]"
+        ]
+      },
+      "official_source": "https://kycourts.gov/Legal-Help/Pages/Civil-Legal-Aid-Programs.aspx[5]",
+      "gotchas": [
+        "Not fully statewide; must contact specific regional office for your county[5]",
+        "Prioritizes greatest need (e.g., low-income minorities, rural, dementia caregivers); may not serve all seniors[2]",
+        "For Medicaid-related, asset transfers can trigger ineligibility periods—contact legal aid for waivers[1]",
+        "OAA services target 60+ on Title III; general legal aid may have broader but county-limited reach[2][4]",
+        "No fixed processing times or asset limits detailed for legal aid itself[1][2]"
+      ],
+      "data_shape_notes": "Delivered via 4 regional nonprofit legal aid orgs with county restrictions, not centralized state program; income 125-200% FPL varies by org; prioritizes vulnerable subgroups under OAA; tied to elder law like Medicaid LTC",
+      "_raw": "{\n  \"name\": \"Kentucky Legal Aid for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Typically 125% to 200% of federal poverty guidelines, varying by specific legal aid organization and county. Exact 2026 dollar amounts not specified in sources; e.g., Legal Aid Society serves up to 125%-200% FPL in select counties[4][6]. For OAA-funded services, targets low-income elderly without fixed dollar table provided[2].\",\n    \"asset_limits\": \"Not specified for legal aid programs; asset rules apply to related Medicaid long-term care (varies by marital status, program type like Nursing Home Medicaid or HCBS Waivers), but not directly for legal aid[1].\",\n    \"other_requirements\": [\"Live in Kentucky and served county[1][4][5]\", \"Low-income or greatest social/economic need, prioritizing caregivers of dementia patients, minorities, rural residents, disabled, limited English proficiency[2]\", \"Receiving Title III OAA services for some programs[2]\", \"Not denied for failure to disclose income/resources[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal assistance on elder law issues including Medicaid long-term care eligibility, asset transfers, undue hardship waivers, income/family/housing/safety/health problems; individual client services, group activities, accessible via phone/home visit/center/person-to-person[1][2][4][5]. Institutionalized older persons prioritized[2]. No specific dollar amounts or hours stated.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Regional offices e.g., 270-782-1924 or 800-782-1924 (Bowling Green)[5], 502-584-1254 (Louisville)[5], 859-431-8200 (Lexington)[5], 866-277-5733 (Prestonsburg)[5]\", \"In-person: Regional offices e.g., 1700 Destiny Lane, Bowling Green KY 42104; 416 W. Muhammad Ali Blvd Suite 300, Louisville KY 40202; 300 East Main St Suite 110, Lexington KY 40507; 120 N. Front Ave, Prestonsburg KY 41653[5]\", \"Website: Regional e.g., yourlegalaid.org (Legal Aid Society); kyjustice.org for screening[1][4]\", \"See if you qualify for free legal services via kyjustice.org[1]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [\"Not specified; intake via phone or regional office\"],\n    \"documents\": [\"Income/resources info (not required to disclose for eligibility determination[2]); proof for elder law cases like Medicaid (income/assets, marital status, nursing facility level of care need)[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"County-specific by 4 regional legal aid programs covering different areas of Kentucky[4][5]\",\n    \"regional_variations\": \"Services via 4 programs: Western KY (Bowling Green), Louisville-area (15 counties), North/Northeast (e.g., Lexington serving 28 counties), Eastern/Southcentral (e.g., Prestonsburg serving 36 counties). Income thresholds and access vary by organization (e.g., 125-200% FPL in Louisville area)[4][5]. PACE-related not statewide[1].\",\n    \"offices_or_providers\": [\"Legal Aid Society (Louisville: Breckinridge, Bullitt, etc.[4])\", \"AppalReD Legal Aid (Prestonsburg)[5]\", \"Kentucky Legal Aid (Lexington, Bowling Green)[5]\"]\n  },\n  \"official_source\": \"https://kycourts.gov/Legal-Help/Pages/Civil-Legal-Aid-Programs.aspx[5]\",\n  \"gotchas\": [\"Not fully statewide; must contact specific regional office for your county[5]\", \"Prioritizes greatest need (e.g., low-income minorities, rural, dementia caregivers); may not serve all seniors[2]\", \"For Medicaid-related, asset transfers can trigger ineligibility periods—contact legal aid for waivers[1]\", \"OAA services target 60+ on Title III; general legal aid may have broader but county-limited reach[2][4]\", \"No fixed processing times or asset limits detailed for legal aid itself[1][2]\"],\n  \"data_shape_notes\": \"Delivered via 4 regional nonprofit legal aid orgs with county restrictions, not centralized state program; income 125-200% FPL varies by org; prioritizes vulnerable subgroups under OAA; tied to elder law like Medicaid LTC\"\n}"
+    },
+    {
+      "name": "Kentucky Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to all qualifying residents regardless of income.",
+        "asset_limits": "No asset limits; no financial tests apply.",
+        "other_requirements": [
+          "Must be a resident (or applicant) of a nursing home, personal care home, or family care home in Kentucky.",
+          "Complaints or requests can be made by the resident, family, or representative on their behalf."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Identifying, investigating, and resolving complaints; providing information on long-term care services; representing residents before agencies; seeking administrative, legal, or other remedies; regular friendly visits; technical support for resident and family councils; monitoring facilities and government actions; educating facilities, providers, and the public. No charge for services; funded by federal, state, and local sources.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Use county-specific ombudsman listing via https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx or https://ombuddy.org/state-long-term-care-ombudsman-program/ (e.g., State Ombudsman: (859) 277-9215; Big Sandy District: (606) 886-2374 or 1-800-737-2723).",
+          "In-person or local contact: 15 district programs affiliated with Area Agencies on Aging and Independent Living; find via ombudsman listing by county.",
+          "No formal application form; contact ombudsman directly to file a complaint or request assistance."
+        ],
+        "processing_time": "Not specified; ombudsmen investigate complaints promptly upon contact, with confidentiality and resident control over process.",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; complaints handled directly and confidentially."
+        ],
+        "documents": [
+          "No documents needed to initiate; provide details of complaint or concern. Access to resident records may be requested during investigation with resident authorization."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all 120 Kentucky counties, serving residents of long-term care facilities.",
+        "regional_variations": "Coordinated statewide through Office of the State Long Term Care Ombudsman, with 15 district programs (affiliated with Area Agencies on Aging and Independent Living) handling local services; different district offices and volunteer ombudsmen by region (e.g., NKADD for Boone, Campbell, etc.; Big Sandy for Floyd, Johnson, etc.). Contact varies by county.",
+        "offices_or_providers": [
+          "15 district programs; use county listing on https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx or https://ombuddy.org/ for specifics."
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx",
+      "gotchas": [
+        "Not a direct care or financial aid program—purely advocacy and complaint resolution; requires resident/family authorization to act.",
+        "Services only for those in (or applying to) specific long-term care facilities (nursing homes, personal care homes, family care homes)—not home-based or community care.",
+        "Confidentiality protected, but ombudsmen only intervene with permission; find local contact by county to avoid delays.",
+        "Overseen by state office but delivered locally via districts—don't call state for local issues."
+      ],
+      "data_shape_notes": "no income test; advocacy-only for long-term care facility residents; delivered via 15 regional districts with county-specific contacts; resident-centered with strict confidentiality and authorization requirements.",
+      "_raw": "{\n  \"name\": \"Kentucky Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to all qualifying residents regardless of income.\",\n    \"asset_limits\": \"No asset limits; no financial tests apply.\",\n    \"other_requirements\": [\"Must be a resident (or applicant) of a nursing home, personal care home, or family care home in Kentucky.\", \"Complaints or requests can be made by the resident, family, or representative on their behalf.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Identifying, investigating, and resolving complaints; providing information on long-term care services; representing residents before agencies; seeking administrative, legal, or other remedies; regular friendly visits; technical support for resident and family councils; monitoring facilities and government actions; educating facilities, providers, and the public. No charge for services; funded by federal, state, and local sources.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Use county-specific ombudsman listing via https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx or https://ombuddy.org/state-long-term-care-ombudsman-program/ (e.g., State Ombudsman: (859) 277-9215; Big Sandy District: (606) 886-2374 or 1-800-737-2723).\", \"In-person or local contact: 15 district programs affiliated with Area Agencies on Aging and Independent Living; find via ombudsman listing by county.\", \"No formal application form; contact ombudsman directly to file a complaint or request assistance.\"],\n    \"processing_time\": \"Not specified; ombudsmen investigate complaints promptly upon contact, with confidentiality and resident control over process.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; complaints handled directly and confidentially.\"],\n    \"documents\": [\"No documents needed to initiate; provide details of complaint or concern. Access to resident records may be requested during investigation with resident authorization.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 120 Kentucky counties, serving residents of long-term care facilities.\",\n    \"regional_variations\": \"Coordinated statewide through Office of the State Long Term Care Ombudsman, with 15 district programs (affiliated with Area Agencies on Aging and Independent Living) handling local services; different district offices and volunteer ombudsmen by region (e.g., NKADD for Boone, Campbell, etc.; Big Sandy for Floyd, Johnson, etc.). Contact varies by county.\",\n    \"offices_or_providers\": [\"15 district programs; use county listing on https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx or https://ombuddy.org/ for specifics.\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx\",\n  \"gotchas\": [\"Not a direct care or financial aid program—purely advocacy and complaint resolution; requires resident/family authorization to act.\", \"Services only for those in (or applying to) specific long-term care facilities (nursing homes, personal care homes, family care homes)—not home-based or community care.\", \"Confidentiality protected, but ombudsmen only intervene with permission; find local contact by county to avoid delays.\", \"Overseen by state office but delivered locally via districts—don't call state for local issues.\"],\n  \"data_shape_notes\": \"no income test; advocacy-only for long-term care facility residents; delivered via 15 regional districts with county-specific contacts; resident-centered with strict confidentiality and authorization requirements.\"\n}"
+    },
+    {
+      "name": "Home and Community Based (HCB) Waiver",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "No income restrictions or income testing. Must meet financial qualifications for Medicaid, which apply special rules for this waiver without standard income or asset limits specified in program details[1][3].",
+        "asset_limits": "No asset testing or restrictions specified for the program[1].",
+        "other_requirements": [
+          "Have a physical disability (if under 65) or be elderly[1][3][4].",
+          "Meet nursing facility level of care as defined in 907 KAR 1:022 (would be admitted to a nursing facility without waiver services)[1][3].",
+          "Be Medicaid eligible (financial eligibility required first)[3]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Adult day health, case management, specialized respite, financial management services, attendant care, environmental and minor home adaptations, goods and services, home delivered meals, non-specialized respite, homemaker services, personal care services, respite care, minor home adaptations, adult day health care, personal emergency response systems (PERS)[2][3][4][5].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online via kynect (for Medicaid first, then HCB application)[3].",
+          "Phone: Department for Community Based Services (DCBS) at (855) 306-8959 (for Medicaid); (877) 315-0589 (for HCB info via DAIL)[3].",
+          "In-person at DCBS office (for Medicaid), Aging and Disability Resource Center (ADRC), or Community Mental Health Center (for HCB)[3][7].",
+          "Mail: Division of Community Alternatives, Home and Community Based Services Branch, 275 East Main St., 6 W-B, Frankfort, KY 40621[5]."
+        ],
+        "processing_time": "Not specified; waiting list placement by date of completed application receipt[3].",
+        "waitlist": "Currently a waiting list for HCB services; priority by application receipt date[3].",
+        "forms": [
+          "Medicaid Waiver Services Fact Sheet lists helpful documents; apply via kynect or in-person[3]."
+        ],
+        "documents": [
+          "Documents listed in Medicaid Waiver Services Fact Sheet (e.g., for Medicaid financial eligibility); prepare proof for Medicaid and level of care assessment[3]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; available statewide[3][4].",
+        "regional_variations": "Administered statewide by DMS and DAIL; local ADRCs or Community Mental Health Centers handle applications, potential regional wait time differences not detailed[3][7].",
+        "offices_or_providers": [
+          "Aging and Disability Resource Centers (ADRC), Community Mental Health Centers, DCBS offices statewide[3][7]."
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx",
+      "gotchas": [
+        "Must first obtain Medicaid financial eligibility before HCB application; special financial rules apply but no income/asset test for waiver itself[1][3].",
+        "Waiting list exists with priority by application date—apply early[3].",
+        "Requires nursing facility level of care determination via assessment[1][3].",
+        "Not for intellectual/developmental disabilities (other waivers like SCL apply)[2][4].",
+        "Services support community living but vary by participant goals[3]."
+      ],
+      "data_shape_notes": "No income/asset testing for waiver; must meet Medicaid financial eligibility first with special HCB rules; statewide with local application points and waitlist by receipt date.",
+      "_raw": "{\n  \"name\": \"Home and Community Based (HCB) Waiver\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"No income restrictions or income testing. Must meet financial qualifications for Medicaid, which apply special rules for this waiver without standard income or asset limits specified in program details[1][3].\",\n    \"asset_limits\": \"No asset testing or restrictions specified for the program[1].\",\n    \"other_requirements\": [\n      \"Have a physical disability (if under 65) or be elderly[1][3][4].\",\n      \"Meet nursing facility level of care as defined in 907 KAR 1:022 (would be admitted to a nursing facility without waiver services)[1][3].\",\n      \"Be Medicaid eligible (financial eligibility required first)[3].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Adult day health, case management, specialized respite, financial management services, attendant care, environmental and minor home adaptations, goods and services, home delivered meals, non-specialized respite, homemaker services, personal care services, respite care, minor home adaptations, adult day health care, personal emergency response systems (PERS)[2][3][4][5].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via kynect (for Medicaid first, then HCB application)[3].\",\n      \"Phone: Department for Community Based Services (DCBS) at (855) 306-8959 (for Medicaid); (877) 315-0589 (for HCB info via DAIL)[3].\",\n      \"In-person at DCBS office (for Medicaid), Aging and Disability Resource Center (ADRC), or Community Mental Health Center (for HCB)[3][7].\",\n      \"Mail: Division of Community Alternatives, Home and Community Based Services Branch, 275 East Main St., 6 W-B, Frankfort, KY 40621[5].\"\n    ],\n    \"processing_time\": \"Not specified; waiting list placement by date of completed application receipt[3].\",\n    \"waitlist\": \"Currently a waiting list for HCB services; priority by application receipt date[3].\",\n    \"forms\": [\"Medicaid Waiver Services Fact Sheet lists helpful documents; apply via kynect or in-person[3].\"],\n    \"documents\": [\"Documents listed in Medicaid Waiver Services Fact Sheet (e.g., for Medicaid financial eligibility); prepare proof for Medicaid and level of care assessment[3].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide[3][4].\",\n    \"regional_variations\": \"Administered statewide by DMS and DAIL; local ADRCs or Community Mental Health Centers handle applications, potential regional wait time differences not detailed[3][7].\",\n    \"offices_or_providers\": [\"Aging and Disability Resource Centers (ADRC), Community Mental Health Centers, DCBS offices statewide[3][7].\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx\",\n  \"gotchas\": [\n    \"Must first obtain Medicaid financial eligibility before HCB application; special financial rules apply but no income/asset test for waiver itself[1][3].\",\n    \"Waiting list exists with priority by application date—apply early[3].\",\n    \"Requires nursing facility level of care determination via assessment[1][3].\",\n    \"Not for intellectual/developmental disabilities (other waivers like SCL apply)[2][4].\",\n    \"Services support community living but vary by participant goals[3].\"\n  ],\n  \"data_shape_notes\": \"No income/asset testing for waiver; must meet Medicaid financial eligibility first with special HCB rules; statewide with local application points and waitlist by receipt date.\"\n}"
+    },
+    {
+      "name": "Money Follows the Person (Kentucky Transitions)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be eligible for Kentucky Medicaid long-term care, which typically requires monthly income not exceeding $2,901 (2025 figure; confirm current) and countable assets not exceeding $2,000 for an individual. Limits apply to Medicaid enrollment prior to transition and do not vary by household size in program-specific rules[2][1].",
+        "asset_limits": "Countable assets limited to $2,000 for Medicaid long-term care eligibility. Standard Medicaid rules apply: primary home (if intent to return), one vehicle, personal belongings, and certain life insurance are typically exempt; bank accounts, secondary properties, and investments count[2].",
+        "other_requirements": [
+          "Residing in a Medicaid-funded institution (nursing home, intermediate care facility, etc.) for at least 60 consecutive days[1][9].",
+          "Enrolled in Medicaid (e.g., Nursing Home Medicaid, HCBS waiver, or ABD Medicaid) for at least one day prior to transition[2][5].",
+          "Requires Nursing Facility Level of Care but can live in community with HCBS[1][2].",
+          "Expresses desire to transition to community living (own home, relative's home, apartment, or small group home with max 4 unrelated residents)[2][5]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Transitional supports (security deposit, moving expenses, furniture); post-transition HCBS via existing waivers like ABI or HCBW, potentially including extra personal care hours, adult day care, home health visits, physical therapy. Enhanced federal funding covers costs for 365 days from transition date; self-direction option allows choosing services and hiring caregivers (e.g., relatives)[1][2][3].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Referral to local contact agency (Area Agency on Aging, Aging and Disability Resource Center, independent living center, or Medicaid agency) by applicant, family, or facility staff[1].",
+          "Contact Kentucky Department for Medicaid Services via https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx[7].",
+          "Phone or in-person through local agencies (specific numbers via CHFS site or regional AAAs; no central phone listed in results)."
+        ],
+        "processing_time": "Not specified in available data.",
+        "waitlist": "Possible, as typical for MFP programs, but no Kentucky-specific details[1].",
+        "forms": [
+          "No specific form name/number identified; process starts with referral."
+        ],
+        "documents": [
+          "Proof of Medicaid enrollment.",
+          "Documentation of 60+ days in institution.",
+          "Evidence of Nursing Facility Level of Care need.",
+          "Income and asset verification for Medicaid.",
+          "Transition plan details (housing, supports)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide for eligible Medicaid members in qualifying institutions.",
+        "regional_variations": "Administered through local contact agencies (e.g., Area Agencies on Aging), which may lead to differences in providers, processing, or wait times by region; no specific variations detailed[1][3][7].",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging (AAA), Aging and Disability Resource Centers (ADRC), via KY Department for Medicaid Services."
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
+      "gotchas": [
+        "Limited to 365 days of enhanced MFP funding; after that, continues on standard Medicaid waivers (e.g., ABI, HCBW) without extras[2][3].",
+        "Must already be Medicaid-enrolled and in institution 60+ days; not for preventing institutionalization[1][9].",
+        "Services routed through existing waivers post-transition, so waiver slots/availability may limit options[3].",
+        "Program is 'Kentucky Transitions' specifically, not generic MFP[3][7][9].",
+        "Income/asset limits are for underlying Medicaid, not MFP itself—many miss need for prior Medicaid eligibility[2]."
+      ],
+      "data_shape_notes": "Requires prior institutionalization (60 days); 1-year enhanced funding then shifts to standard HCBS waivers (ABI/HCBW); referral-based via local agencies; no age minimum, tied to Medicaid LTC eligibility.",
+      "_raw": "{\n  \"name\": \"Money Follows the Person (Kentucky Transitions)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be eligible for Kentucky Medicaid long-term care, which typically requires monthly income not exceeding $2,901 (2025 figure; confirm current) and countable assets not exceeding $2,000 for an individual. Limits apply to Medicaid enrollment prior to transition and do not vary by household size in program-specific rules[2][1].\",\n    \"asset_limits\": \"Countable assets limited to $2,000 for Medicaid long-term care eligibility. Standard Medicaid rules apply: primary home (if intent to return), one vehicle, personal belongings, and certain life insurance are typically exempt; bank accounts, secondary properties, and investments count[2].\",\n    \"other_requirements\": [\n      \"Residing in a Medicaid-funded institution (nursing home, intermediate care facility, etc.) for at least 60 consecutive days[1][9].\",\n      \"Enrolled in Medicaid (e.g., Nursing Home Medicaid, HCBS waiver, or ABD Medicaid) for at least one day prior to transition[2][5].\",\n      \"Requires Nursing Facility Level of Care but can live in community with HCBS[1][2].\",\n      \"Expresses desire to transition to community living (own home, relative's home, apartment, or small group home with max 4 unrelated residents)[2][5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Transitional supports (security deposit, moving expenses, furniture); post-transition HCBS via existing waivers like ABI or HCBW, potentially including extra personal care hours, adult day care, home health visits, physical therapy. Enhanced federal funding covers costs for 365 days from transition date; self-direction option allows choosing services and hiring caregivers (e.g., relatives)[1][2][3].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Referral to local contact agency (Area Agency on Aging, Aging and Disability Resource Center, independent living center, or Medicaid agency) by applicant, family, or facility staff[1].\",\n      \"Contact Kentucky Department for Medicaid Services via https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx[7].\",\n      \"Phone or in-person through local agencies (specific numbers via CHFS site or regional AAAs; no central phone listed in results).\"\n    ],\n    \"processing_time\": \"Not specified in available data.\",\n    \"waitlist\": \"Possible, as typical for MFP programs, but no Kentucky-specific details[1].\",\n    \"forms\": [\"No specific form name/number identified; process starts with referral.\"],\n    \"documents\": [\n      \"Proof of Medicaid enrollment.\",\n      \"Documentation of 60+ days in institution.\",\n      \"Evidence of Nursing Facility Level of Care need.\",\n      \"Income and asset verification for Medicaid.\",\n      \"Transition plan details (housing, supports).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide for eligible Medicaid members in qualifying institutions.\",\n    \"regional_variations\": \"Administered through local contact agencies (e.g., Area Agencies on Aging), which may lead to differences in providers, processing, or wait times by region; no specific variations detailed[1][3][7].\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging (AAA), Aging and Disability Resource Centers (ADRC), via KY Department for Medicaid Services.\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx\",\n  \"gotchas\": [\n    \"Limited to 365 days of enhanced MFP funding; after that, continues on standard Medicaid waivers (e.g., ABI, HCBW) without extras[2][3].\",\n    \"Must already be Medicaid-enrolled and in institution 60+ days; not for preventing institutionalization[1][9].\",\n    \"Services routed through existing waivers post-transition, so waiver slots/availability may limit options[3].\",\n    \"Program is 'Kentucky Transitions' specifically, not generic MFP[3][7][9].\",\n    \"Income/asset limits are for underlying Medicaid, not MFP itself—many miss need for prior Medicaid eligibility[2].\"\n  ],\n  \"data_shape_notes\": \"Requires prior institutionalization (60 days); 1-year enhanced funding then shifts to standard HCBS waivers (ABI/HCBW); referral-based via local agencies; no age minimum, tied to Medicaid LTC eligibility.\"\n}"
+    },
+    {
+      "name": "State-Funded Senior Meals Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For CSFP (Commodity Supplemental Food Program, a key state-funded senior food box component): Income must be under 130% of the federal poverty level (specific dollar amounts not listed in sources; varies by household size—contact local agency for current table). Nutrition Program for the Elderly (congregate and home-delivered meals): No specific income limits mentioned; open to persons 60+ and spouses regardless of age or income[1][2][5].",
+        "asset_limits": null,
+        "other_requirements": [
+          "Kentucky resident.",
+          "For home-delivered meals: Due to illness or incapacitating disability, unable to attend congregate site, and no one in home able to prepare nutritious meal regularly.",
+          "Valid ID (e.g., driver's license, Permanent Resident Card, passport) for CSFP.",
+          "Priority for frail and isolated individuals in home-delivered meals[1][2][5]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "One nutritionally balanced home-delivered or congregate dining-style meal per day (Nutrition Program for the Elderly). CSFP: Monthly food box with ~$50 worth of USDA foods (canned fruits/vegetables, meats, pasta/rice, beans/peanut butter, juices, cereals, cheese, milk). Additional: nutrition screening, education, counseling[1][2][5].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-877-925-0037 (statewide Area Agency on Aging hotline).",
+          "Contact local Area Agency on Aging or senior center (find via hotline).",
+          "Local food bank for CSFP.",
+          "In-person at senior centers, nutrition sites, churches (e.g., FIVCO centers in Boyd, Carter, Greenup counties).",
+          "No specific online URL or mail form listed; download SNAP-related apps if applicable but separate[5][6]."
+        ],
+        "processing_time": null,
+        "waitlist": "Some areas may have waiting lists; not all services in all areas[2][5].",
+        "forms": [
+          null
+        ],
+        "documents": [
+          "Valid ID for CSFP (driver's license, Permanent Resident Card, passport). No other specific documents listed; prepare proof of age/residency if requested[1]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered through local Area Agencies on Aging and Independent Living; different providers (e.g., FIVCO ADD senior centers in Boyd, Carter, Greenup, etc.); waitlists and availability vary by area; congregate sites at senior centers, churches, nutrition sites[2][5][6].",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging (contact via 1-877-925-0037).",
+          "Examples: Boyd County Community Center (606-739-6349), Carter County (606-474-4179), Greenup County (606-473-6244), Olive Hill Nutrition Site (606-286-8338)[6]."
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+      "gotchas": [
+        "Not all areas offer all services; check for waitlists.",
+        "CSFP has income limit (130% FPL) unlike main Nutrition Program which has none listed.",
+        "Home-delivered restricted to homebound with no meal prep help; spouses eligible but priority to frail/isolated.",
+        "CSFP supplements, not replaces, all food needs—can combine with SNAP.",
+        "Separate from Medicaid/Medicare meals or SNAP[1][2][5]."
+      ],
+      "data_shape_notes": "Administered via 12+ Area Agencies on Aging with local variation in sites/waitlists; no centralized income table in sources (FPL-based for CSFP); priority tiers for home-delivered; statewide but provider-specific.",
+      "_raw": "{\n  \"name\": \"State-Funded Senior Meals Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For CSFP (Commodity Supplemental Food Program, a key state-funded senior food box component): Income must be under 130% of the federal poverty level (specific dollar amounts not listed in sources; varies by household size—contact local agency for current table). Nutrition Program for the Elderly (congregate and home-delivered meals): No specific income limits mentioned; open to persons 60+ and spouses regardless of age or income[1][2][5].\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\"Kentucky resident.\", \"For home-delivered meals: Due to illness or incapacitating disability, unable to attend congregate site, and no one in home able to prepare nutritious meal regularly.\", \"Valid ID (e.g., driver's license, Permanent Resident Card, passport) for CSFP.\", \"Priority for frail and isolated individuals in home-delivered meals[1][2][5].\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"One nutritionally balanced home-delivered or congregate dining-style meal per day (Nutrition Program for the Elderly). CSFP: Monthly food box with ~$50 worth of USDA foods (canned fruits/vegetables, meats, pasta/rice, beans/peanut butter, juices, cereals, cheese, milk). Additional: nutrition screening, education, counseling[1][2][5].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-877-925-0037 (statewide Area Agency on Aging hotline).\", \"Contact local Area Agency on Aging or senior center (find via hotline).\", \"Local food bank for CSFP.\", \"In-person at senior centers, nutrition sites, churches (e.g., FIVCO centers in Boyd, Carter, Greenup counties).\", \"No specific online URL or mail form listed; download SNAP-related apps if applicable but separate[5][6].\"],\n    \"processing_time\": null,\n    \"waitlist\": \"Some areas may have waiting lists; not all services in all areas[2][5].\",\n    \"forms\": [null],\n    \"documents\": [\"Valid ID for CSFP (driver's license, Permanent Resident Card, passport). No other specific documents listed; prepare proof of age/residency if requested[1].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered through local Area Agencies on Aging and Independent Living; different providers (e.g., FIVCO ADD senior centers in Boyd, Carter, Greenup, etc.); waitlists and availability vary by area; congregate sites at senior centers, churches, nutrition sites[2][5][6].\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging (contact via 1-877-925-0037).\", \"Examples: Boyd County Community Center (606-739-6349), Carter County (606-474-4179), Greenup County (606-473-6244), Olive Hill Nutrition Site (606-286-8338)[6].\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx\",\n  \"gotchas\": [\"Not all areas offer all services; check for waitlists.\", \"CSFP has income limit (130% FPL) unlike main Nutrition Program which has none listed.\", \"Home-delivered restricted to homebound with no meal prep help; spouses eligible but priority to frail/isolated.\", \"CSFP supplements, not replaces, all food needs—can combine with SNAP.\", \"Separate from Medicaid/Medicare meals or SNAP[1][2][5].\"],\n  \"data_shape_notes\": \"Administered via 12+ Area Agencies on Aging with local variation in sites/waitlists; no centralized income table in sources (FPL-based for CSFP); priority tiers for home-delivered; statewide but provider-specific.\"\n}"
+    }
+  ]
+}

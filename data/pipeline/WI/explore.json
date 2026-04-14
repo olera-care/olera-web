@@ -1,0 +1,51 @@
+{
+  "entity": "Wisconsin",
+  "entitySlug": "wisconsin",
+  "state": "WI",
+  "stateName": "Wisconsin",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T17:37:22.666Z",
+  "programCount": 5,
+  "programs": [
+    {
+      "name": "SeniorCare",
+      "what_it_does": "SeniorCare is a state-funded prescription drug assistance program that helps pay for prescription drugs and vaccines for eligible seniors. It provides copayments and coverage for medications not fully covered by other programs.[6]",
+      "who_its_for": "Wisconsin residents aged 65 or older who meet income and asset limits.",
+      "whats_unique": "This is a Wisconsin-specific state program offering pharmaceutical assistance beyond federal Medicare Part D, with a $30 annual enrollment fee and targeted copays.[6]",
+      "official_url": "https://www.dhs.wisconsin.gov/seniorcare/apply.htm",
+      "benefit_value": "Copays of $5-$15 per prescription after $30 annual fee; covers many drugs and vaccines."
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "what_it_does": "The EBS Program provides free counseling, assistance, and advocacy on public benefits, health insurance, and consumer law issues for seniors. Benefit specialists, trained by elder law attorneys, help with applications and problem resolution.[2]",
+      "who_its_for": "Wisconsin residents aged 60 or older, available through county aging offices.",
+      "whats_unique": "This is a statewide Wisconsin program with attorney-supervised specialists focused exclusively on elder benefits and rights, not replicated in most states.[2]",
+      "official_url": "https://gwaar.org/elder-benefit-specialist-ebs-program",
+      "benefit_value": "Free services including application help, advocacy, and resolution of issues like Medicare, Medicaid, and debt collection."
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "what_it_does": "WISE offers part-time, community-based job opportunities and training to help low-income seniors re-enter the workforce. It includes support services to overcome employment barriers.[5]",
+      "who_its_for": "Wisconsin residents aged 55 or older with low income, based on employment status and other benefits.",
+      "whats_unique": "This is Wisconsin's state-administered senior employment initiative, providing subsidized jobs and training tailored to older adults, distinct from federal programs.[3][5]",
+      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
+      "benefit_value": "Part-time paid positions (typically minimum wage) plus free training and support services."
+    },
+    {
+      "name": "Family Care",
+      "what_it_does": "Family Care is a Medicaid managed care program delivering long-term care services to help seniors stay in their homes or communities. It covers personal care, adult day services, and institutional care as needed.[3]",
+      "who_its_for": "Wisconsin Medicaid-eligible adults aged 65 or older, or younger with disabilities, needing long-term care.",
+      "whats_unique": "Wisconsin's pioneering self-directed Medicaid long-term care model (includes options like IRIS for participant-directed services), more integrated than standard federal Medicaid waivers.[3]",
+      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
+      "benefit_value": "Comprehensive long-term care services including home care, with self-direction options up to thousands in annual support."
+    },
+    {
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "what_it_does": "IRIS allows participants to self-direct their long-term care services by managing a budget and hiring caregivers. It promotes independence through participant-controlled care plans.[3]",
+      "who_its_for": "Wisconsin Medicaid-eligible individuals needing long-term care, including seniors aged 65+.",
+      "whats_unique": "A unique Wisconsin Medicaid self-direction program giving participants cash budgets and hiring authority, expanding beyond typical federal home care options.[3]",
+      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
+      "benefit_value": "Individual budgets for services (often $20,000-$50,000+ annually depending on needs) for self-managed care."
+    }
+  ]
+}

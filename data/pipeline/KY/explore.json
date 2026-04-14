@@ -1,0 +1,126 @@
+{
+  "entity": "Kentucky",
+  "entitySlug": "kentucky",
+  "state": "KY",
+  "stateName": "Kentucky",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T13:43:09.322Z",
+  "programCount": 16,
+  "programs": [
+    {
+      "name": "Kentucky Medicaid",
+      "what_it_does": "Provides health coverage for low-income seniors, including those who are aged or disabled. Covers medical expenses for eligible elderly individuals age 65 and above.[4][6]",
+      "who_its_for": "Low-income seniors aged 65+, disabled individuals, and other qualifying low-income Kentuckians based on income and household size.",
+      "official_url": "https://kyvoicesforhealth.org/get-help/",
+      "benefit_value": "Coverage for medical expenses; lasts up to 12 months with annual recertification."
+    },
+    {
+      "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "Offers services to allow seniors and disabled individuals to receive care at home instead of in institutions. Includes personal care, homemaker services, and other supports to promote independence.",
+      "who_its_for": "Seniors and disabled individuals eligible for nursing facility level of care but preferring home-based services.",
+      "official_url": "https://chfs.ky.gov",
+      "benefit_value": "Varies by waiver program and individual needs assessment."
+    },
+    {
+      "name": "Kentucky PACE",
+      "what_it_does": "Program of All-Inclusive Care for the Elderly provides comprehensive medical and social services to frail seniors. Enables participants to live safely in the community with capitated Medicare and Medicaid funding.",
+      "who_its_for": "Nursing home eligible seniors aged 55+ who can live safely in the community with PACE services.",
+      "official_url": "https://chfs.ky.gov",
+      "benefit_value": "Full coverage of approved medical and long-term care services."
+    },
+    {
+      "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Helps low-income Medicare beneficiaries pay for Medicare Part A and B premiums, deductibles, coinsurance, and copayments. QMB covers full premiums and cost-sharing; SLMB and QI cover premiums only.",
+      "who_its_for": "Low-income seniors on Medicare with income and resource limits specific to each category.",
+      "official_url": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx",
+      "benefit_value": "Varies: QMB up to $1,255 Part B premium + cost-sharing; SLMB/QI premium assistance."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits to purchase food for eligible low-income households. Seniors 60+ have simplified application processes and medical expense deductions.[1]",
+      "who_its_for": "Low-income seniors 60+ and other eligible households; income limit $1,580/month for individual.",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/kentucky/",
+      "benefit_value": "Up to $291/month maximum benefit."
+    },
+    {
+      "name": "Kentucky Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Provides financial assistance to help low-income households pay heating and cooling bills. Application period runs October through March.[1]",
+      "who_its_for": "Low-income seniors and other households meeting income guidelines.",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/kentucky/",
+      "benefit_value": "$500–$1,000/year maximum benefit."
+    },
+    {
+      "name": "Kentucky Weatherization Assistance Program",
+      "what_it_does": "Improves energy efficiency in homes of low-income households through insulation, weatherstripping, and other upgrades. Reduces energy costs and improves home safety.[1]",
+      "who_its_for": "Low-income seniors and households, priority often given to elderly and disabled.",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/kentucky/",
+      "benefit_value": "Free home energy improvements valued at thousands of dollars."
+    },
+    {
+      "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Provides free counseling and assistance on Medicare options, including Part D, Medicare Advantage, and supplemental coverage. Helps access prescription assistance through KPAP partnership.[5]",
+      "who_its_for": "Seniors, disabled individuals, families, and caregivers in all 120 Kentucky counties.",
+      "official_url": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx",
+      "benefit_value": "Free personalized counseling; prescription drug savings."
+    },
+    {
+      "name": "Kentucky Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often coordinates with Area Agencies on Aging.",
+      "who_its_for": "Homebound seniors 60+ who are unable to prepare their own meals.",
+      "official_url": "https://chfs.ky.gov/agencies/dail",
+      "benefit_value": "Meals delivered 5 days/week; suggested donation for those who can contribute."
+    },
+    {
+      "name": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+      "what_it_does": "Provides support services including respite care, caregiver training, and counseling. Offers flexible benefits to family caregivers of seniors.[2]",
+      "who_its_for": "Informal caregivers of individuals 60+, Alzheimer's patients, or relatives 55+ caring for children.",
+      "official_url": "https://www.chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx",
+      "benefit_value": "Respite care, training, counseling; service hours vary by assessment."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time community service work and training for low-income seniors. Helps transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income seniors aged 55+.",
+      "official_url": "https://chfs.ky.gov/agencies/dail",
+      "benefit_value": "Minimum wage work experience up to 20 hours/week."
+    },
+    {
+      "name": "Kentucky Legal Aid for Seniors",
+      "what_it_does": "Provides free legal assistance for income-eligible seniors on issues like benefits, housing, and consumer protection. Often through Area Agencies on Aging.",
+      "who_its_for": "Low-income seniors 60+ facing legal issues.",
+      "official_url": "https://kfi.ky.gov/newstatic_Info.aspx?static_ID=620",
+      "benefit_value": "Free legal consultation and representation."
+    },
+    {
+      "name": "Kentucky Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents of long-term care facilities to protect rights and resolve complaints. Provides education and oversight of nursing homes and assisted living.",
+      "who_its_for": "Residents of nursing homes, assisted living, and other long-term care facilities in Kentucky.",
+      "official_url": "https://chfs.ky.gov/agencies/dail",
+      "benefit_value": "Free advocacy services and complaint resolution."
+    },
+    {
+      "name": "Home and Community Based (HCB) Waiver",
+      "what_it_does": "This Medicaid waiver program covers the cost of long-term care services for seniors either in a nursing home or at home. It includes the opportunity to pay family caregivers to assist with daily activities.",
+      "who_its_for": "Kentucky residents age 65 or older who meet Medicaid income and asset limits, require a nursing facility level of care, and have functional needs due to physical or cognitive impairments.",
+      "whats_unique": "Kentucky's specific implementation allows payment to caregivers under this state-administered waiver, supporting home-based care beyond standard federal Medicaid structure.",
+      "official_url": "https://www.kyelderlaw.com/blog/2025/02/how-to-navigate-medicaid-eligibility-for-elders-in-kentucky/",
+      "benefit_value": "Full coverage of approved home care services for eligible individuals, subject to income/asset limits and potential waiting lists."
+    },
+    {
+      "name": "Money Follows the Person",
+      "what_it_does": "This program assists seniors transitioning from nursing facilities back to home or community settings. It provides support for long-term care services in less restrictive environments.",
+      "who_its_for": "Kentucky seniors previously in nursing homes who meet Medicaid eligibility, including age 65+, income/asset limits, and nursing facility level of care needs.",
+      "whats_unique": "State-funded initiative tailored to Kentucky's Medicaid system to promote community reintegration, not universally available in all states.",
+      "official_url": "https://www.kyelderlaw.com/blog/2025/02/how-to-navigate-medicaid-eligibility-for-elders-in-kentucky/",
+      "benefit_value": "Covers transition services and ongoing home/community-based care costs for eligible participants."
+    },
+    {
+      "name": "State-Funded Senior Meals Program",
+      "what_it_does": "Provides meals to seniors through senior centers and other providers. State funding restores and supports daily meal services that may face federal budget constraints.",
+      "who_its_for": "Kentucky seniors relying on community meal programs, particularly those facing service cuts.",
+      "whats_unique": "Direct state-funded allocation (e.g., $9 million boost) to maintain meals program independently of federal funding levels.",
+      "official_url": "https://www.youtube.com/watch?v=orw5fflXWD8",
+      "benefit_value": "$9 million in state funding to restore most cut services through June of the fiscal year."
+    }
+  ]
+}

@@ -810,12 +810,15 @@ export default function ProviderOnboardPage() {
 
   // Get button text based on action type
   const getSuccessButtonText = () => {
-    // Check for stored redirect from reviews card click
+    // Check for stored redirect from card clicks
     const storedRedirect = typeof window !== "undefined"
       ? sessionStorage.getItem("olera_post_claim_redirect")
       : null;
     if (storedRedirect === "/provider/reviews") {
       return "Go to Reviews";
+    }
+    if (storedRedirect === "/provider/medjobs/candidates") {
+      return "Browse Caregivers";
     }
     if (actionParam === "lead" || actionParam === "message") {
       return "View Message";

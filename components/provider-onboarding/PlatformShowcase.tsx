@@ -13,6 +13,8 @@ interface PlatformShowcaseProps {
   completenessPercent: number;
   /** Called when user clicks the reviews card - triggers claim flow */
   onReviewsClick?: () => void;
+  /** Called when user clicks the hire staff card - triggers claim flow */
+  onHireStaffClick?: () => void;
 }
 
 // ── Individual Value Card (static, non-interactive) ──
@@ -185,6 +187,7 @@ export default function PlatformShowcase({
   provider,
   completenessPercent,
   onReviewsClick,
+  onHireStaffClick,
 }: PlatformShowcaseProps) {
   return (
     <div className="space-y-4 mt-2">
@@ -212,6 +215,7 @@ export default function PlatformShowcase({
           badge="New"
           icon={<StaffIcon />}
           delay={210}
+          onClick={onHireStaffClick}
         />
       </div>
 

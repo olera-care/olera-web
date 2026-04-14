@@ -245,6 +245,16 @@ export default function SmartDashboardShell({
               onClaimClick();
             }
           }}
+          onHireStaffClick={() => {
+            if (isSignedIn) {
+              // Already signed in via magic link - redirect directly
+              window.location.href = "/provider/medjobs/candidates";
+            } else {
+              // Need to auth first - store destination for after claim
+              sessionStorage.setItem("olera_post_claim_redirect", "/provider/medjobs/candidates");
+              onClaimClick();
+            }
+          }}
         />
       </div>
     </div>

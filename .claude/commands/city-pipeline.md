@@ -240,32 +240,34 @@ Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
 
 The `--resume` flag skips cities already marked Complete in Notion, enabling multi-session batches.
 
-### v2 script — opt-in shakedown
+### Script features (all active by default)
 
-An experimental `scripts/pipeline-batch-v2.js` exists alongside the stable v1. It adds three improvements over v1:
+`scripts/pipeline-batch.js` is the single processing script — no v1/v2 fork. Three features beyond the original sequential per-city flow:
 
 1. **Streaming discovery→clean overlap** via `--watch` flag — clean phase begins consuming city 1's discovery CSV the moment it appears, while discovery is still crawling later cities. Saves 20-30 min on the critical path for large batches. Watch mode polls each city's expansion dir for up to 90 min waiting for a CSV.
-2. **Global AI classify pooling** — instead of per-city batches of 25, v2 collects the full post-keyword-filter pool across all cities and runs Perplexity in batches of 80. Fewer round-trips, cheaper per provider. (Only active in non-watch mode; watch mode keeps per-city batches since cities arrive one at a time.)
+2. **Global AI classify pooling** — in non-watch mode, collects the full post-keyword-filter pool across all cities and runs Perplexity in batches of 80. Fewer round-trips, cheaper per provider. Watch mode keeps per-city batches since cities arrive one at a time.
 3. **Live site verification hook** — after load phase, fires off a background check that fetches 5 random `olera.com/assisted-living/{state}/{city}` pages and greps for `provider-card`. Reports pass/fail in the final summary. Non-blocking, non-fatal. Skipped when `--dry-run`.
 
-**Notion is handled outside the script.** Both v1 and v2 never successfully write Notion from their own process — the `NOTION_TOKEN` path has a history of silent failures that have wasted debugging time repeatedly. Claude should always create/update Notion pages via a subagent using the `mcp__notion__*` MCP integration (parallel to the clean phase for page creation, after pipeline completion for status updates). An earlier v2 draft tried to stream per-city Notion updates from within `phaseLoad`; that feature was removed. Do not re-add it.
+### Canonical workflows
 
-**Default is v1.** Only run v2 when the user explicitly says "use v2" or "shakedown v2". The invocation is identical except for the script path:
+**Notion page creation + status updates → always via Claude subagent.** The script does NOT write to Notion. Never try to set `NOTION_TOKEN` in `.env.local` to "fix" this — that path has a history of silent failures in this repo and has wasted debugging time repeatedly. The canonical pattern:
 
-```bash
-cd ~/Desktop/olera-web && node scripts/pipeline-batch-v2.js \
-  --batch <batch.csv or expansion-dir> \
-  --phase all \
-  --watch \
-  --resume
-```
+1. **When starting a batch**, spawn a general-purpose Agent *in parallel to the clean phase* to create Notion pages via `mcp__notion__API-post-page`. The agent should batch 10-12 page creations per message in parallel and report ONE LINE only (`Created X/N, failed: <list>`). This keeps per-page result objects (~3KB each) out of the main context. Database ID: `4cf471e5-0d7e-43a5-a793-a87410e2ae24`. Initial City Status: `Upload to Backend`.
+2. **After the pipeline finishes**, spawn a second Agent to patch pages to `Complete` via `mcp__notion__API-patch-page`, checking off all `Done: *` checkboxes except `Done: Fetch Email & Contact Info`. Same terse-reporting discipline.
 
-**Known v2 risks to watch during shakedown:**
-- Watch mode: if discovery crashes silently, the current city slot hangs for 90 min before timing out. Monitor the discovery background task and kill watch mode early if discovery dies.
-- Live site check: will log loud failures on fresh city pages before CDN/ISR warms — this is cosmetic, not a real failure.
-- Pooled AI batches of 80: if Perplexity response quality drops (truncation, weird JSON), fall back to v1 or edit the batch size down to 60.
+Both patterns validated on the 184-city batch (2026-04-13). Do not regress to in-script Notion writes.
 
-After v2 has run cleanly on 2-3 batches with no regressions, promote it to default by renaming: `pipeline-batch.js → pipeline-batch-v1.js`, `pipeline-batch-v2.js → pipeline-batch.js`, and update this section.
+**Always start shakedown batches small.** When the script has changed (new feature, refactor, dependency bump), run a 5-10 city batch first to confirm the three active features behave — not a full 150+ city production batch. A small batch surfaces issues in 15-30 minutes instead of 6+ hours.
+
+**Data-quality spot-check during enrichment.** Enrichment's long pole is trust signals (~2h for a 184-city batch). While it runs, consider spawning a subagent to query Supabase for data-quality issues on cities already loaded (out-of-state coordinates, null `place_id`, suspicious provider names, slug collisions, `google_reviews_data` null when `google_rating` populated). Catches pipeline bugs 30-60 min earlier than waiting for completion.
+
+### Known gotchas
+
+- **`NOTION_TOKEN` env var is dead** — don't chase it. See Canonical workflows above.
+- **Watch mode can hang on silent discovery crashes.** Watch mode polls each city's expansion dir for up to 90 min waiting for a CSV. If discovery crashes silently mid-batch, the current city slot blocks for the full 90 min before timing out. **Monitor the discovery background task** and kill watch mode early if discovery dies.
+- **Live site check logs noise on fresh cities.** Immediately after loading a new city, Vercel's ISR cache hasn't warmed, so the live site check will report failures for pages that actually render correctly minutes later. Cosmetic, non-fatal.
+- **Pooled AI batches of 80 are tuned for current Perplexity Sonar quality.** If batches start returning truncated/malformed JSON, too many providers fall into the "keep to be safe" fallback and filter quality degrades. If you notice significantly more providers surviving classify than usual, drop the batch size to 60 in the script's `phaseClean` pooled path.
+- **SCRATCHPAD.md is per-branch, per-session.** Do not queue cross-session instructions there — the next session won't see them unless it happens to use the same branch. Put durable cross-session warnings and patterns in THIS file.
 
 ### Error Handling
 

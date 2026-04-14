@@ -136,8 +136,8 @@ function VideoPanel() {
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
       {/* Section header */}
       <div className="px-5 pt-5 pb-4">
-        <h2 className="text-base font-semibold text-gray-900">Quick Tips</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Learn how to get more reviews</p>
+        <h2 className="text-base font-semibold text-gray-900">How to get more reviews</h2>
+        <p className="text-sm text-gray-500 mt-0.5">2 min watch</p>
       </div>
       <div className="aspect-video relative">
         {isPlaying ? (
@@ -475,7 +475,7 @@ function SendRequestForm({
             }`}
           >
             <MailIcon className="w-4 h-4" />
-            Via Email
+            Request via email
           </button>
           <button
             type="button"
@@ -488,7 +488,7 @@ function SendRequestForm({
             }`}
           >
             <LinkIcon className="w-4 h-4" />
-            Via Link
+            Request via link
           </button>
         </div>
       </div>

@@ -333,29 +333,55 @@ async function notionCompletePage(pageId) {
 // ---------------------------------------------------------------------------
 
 async function perplexityChat(prompt, temperature = 0.1) {
-  await rateLimiters.perplexity.wait();
-  cost.addPerplexity();
+  // Retry with exponential backoff on 429 (rate limit) and 5xx (server overload, incl. 529).
+  // Prior batch runs lost ~85% of providers to transient 429s with no retry — this is the
+  // long-pole fragility at scale. Up to 5 attempts, backoff 2s → 4s → 8s → 16s → 32s.
+  const MAX_ATTEMPTS = 5;
+  let lastErr;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    await rateLimiters.perplexity.wait();
 
-  const resp = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'sonar',
-      messages: [{ role: 'user', content: prompt }],
-      temperature,
-    }),
-  });
+    let resp;
+    try {
+      resp = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sonar',
+          messages: [{ role: 'user', content: prompt }],
+          temperature,
+        }),
+      });
+    } catch (err) {
+      lastErr = err;
+      if (attempt === MAX_ATTEMPTS) throw err;
+      const delay = 2000 * Math.pow(2, attempt - 1);
+      console.log(`  [perplexity retry ${attempt}/${MAX_ATTEMPTS}] network error (${err.message}), waiting ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
 
-  if (!resp.ok) {
+    if (resp.ok) {
+      // Only charge cost on success so retries don't double-count.
+      cost.addPerplexity();
+      const json = await resp.json();
+      return json.choices?.[0]?.message?.content || '';
+    }
+
+    // Retry on 429 (rate limit) and 5xx (server overload). Fail fast on 4xx client errors.
+    const shouldRetry = resp.status === 429 || (resp.status >= 500 && resp.status < 600);
     const text = await resp.text();
-    throw new Error(`Perplexity: ${resp.status} ${text.slice(0, 200)}`);
-  }
+    lastErr = new Error(`Perplexity: ${resp.status} ${text.slice(0, 200)}`);
+    if (!shouldRetry || attempt === MAX_ATTEMPTS) throw lastErr;
 
-  const json = await resp.json();
-  return json.choices?.[0]?.message?.content || '';
+    const delay = 2000 * Math.pow(2, attempt - 1);
+    console.log(`  [perplexity retry ${attempt}/${MAX_ATTEMPTS}] ${resp.status} — waiting ${delay}ms...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  throw lastErr;
 }
 
 function extractJson(text) {
@@ -502,6 +528,7 @@ async function phaseClean(cities, opts) {
     const { data, error } = await supabase
       .from('olera-providers')
       .select('provider_name, state, place_id')
+      .eq('deleted', false)
       .range(offset, offset + PAGE - 1);
     if (error || !data || data.length === 0) break;
     for (const row of data) {
@@ -820,10 +847,26 @@ async function phaseLoad(cities, opts) {
   console.log(`${'='.repeat(70)}`);
   console.log(`  Cities: ${cities.length}`);
 
-  // Get all existing slugs for collision detection
+  // Get all existing slugs for collision detection (paginated — PostgREST caps
+  // unpaginated queries at 10K rows, which means the unpaginated version only sees
+  // ~11% of an 86K-row database and misses real slug collisions at upsert time).
   console.log('  Loading existing slugs...');
-  const { data: allSlugs } = await supabase.from('olera-providers').select('slug');
-  const slugSet = new Set((allSlugs || []).map(s => s.slug));
+  const slugSet = new Set();
+  {
+    let slugOffset = 0;
+    const SLUG_PAGE = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('olera-providers')
+        .select('slug')
+        .range(slugOffset, slugOffset + SLUG_PAGE - 1);
+      if (error || !data || data.length === 0) break;
+      for (const row of data) if (row.slug) slugSet.add(row.slug);
+      slugOffset += data.length;
+      if (data.length < SLUG_PAGE) break;
+    }
+  }
+  console.log(`  Loaded ${slugSet.size} existing slugs for collision detection`);
 
   for (let i = 0; i < cities.length; i++) {
     const c = cities[i];
@@ -840,7 +883,8 @@ async function phaseLoad(cities, opts) {
     const { count: existingCount } = await supabase
       .from('olera-providers')
       .select('*', { count: 'exact', head: true })
-      .like('provider_id', `${idPrefix}%`);
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
 
     if (existingCount > 0 && !opts.force) {
       console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (${existingCount} already in DB)`);

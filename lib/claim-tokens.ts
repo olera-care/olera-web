@@ -150,7 +150,7 @@ export function generateMedJobsNotificationUrl(
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerSlug, email);
-  const url = new URL(`${baseUrl}/medjobs/claim/${action}`);
+  const url = new URL(`${baseUrl}/api/medjobs/claim-${action}`);
   url.searchParams.set("interviewId", actionId);
   url.searchParams.set("otk", token);
   return url.toString();

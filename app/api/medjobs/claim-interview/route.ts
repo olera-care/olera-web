@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { validateClaimToken } from "@/lib/claim-tokens";
 
 /**
- * GET /medjobs/claim/interview?otk=<token>&interviewId=<id>
+ * GET /api/medjobs/claim-interview?otk=<token>&interviewId=<id>
  *
  * One-click magic link landing for MedJobs interview scheduling. Handles
  * the entire claim flow server-side in a single response:

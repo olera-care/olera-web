@@ -792,8 +792,17 @@ export default function ProviderOnboardPage() {
   }
 
   // Determine success redirect URL based on action type
-  const getSuccessRedirectUrl = () =>
-    getActionRedirectUrl(actionParam, actionIdParam);
+  const getSuccessRedirectUrl = () => {
+    // Check for stored redirect from reviews card click
+    const storedRedirect = typeof window !== "undefined"
+      ? sessionStorage.getItem("olera_post_claim_redirect")
+      : null;
+    if (storedRedirect) {
+      sessionStorage.removeItem("olera_post_claim_redirect");
+      return storedRedirect;
+    }
+    return getActionRedirectUrl(actionParam, actionIdParam);
+  };
 
   // Get button text based on action type
   const getSuccessButtonText = () => {

@@ -235,6 +235,11 @@ export default function SmartDashboardShell({
         <PlatformShowcase
           provider={provider}
           completenessPercent={completeness.overall}
+          onReviewsClick={() => {
+            // Store intended destination for after claim
+            sessionStorage.setItem("olera_post_claim_redirect", "/provider/reviews");
+            onClaimClick();
+          }}
         />
       </div>
     </div>

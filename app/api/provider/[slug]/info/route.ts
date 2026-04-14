@@ -27,7 +27,7 @@ export async function GET(
     // First try: strict type filter (organization or caregiver)
     const { data: strictProfile } = await db
       .from("business_profiles")
-      .select("id, display_name, slug, image_url, city, state, metadata, type")
+      .select("id, display_name, slug, image_url, city, state, metadata, type, source_provider_id")
       .eq("slug", slug)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -39,7 +39,7 @@ export async function GET(
     if (!profile) {
       const { data: lenientProfile } = await db
         .from("business_profiles")
-        .select("id, display_name, slug, image_url, city, state, metadata, type")
+        .select("id, display_name, slug, image_url, city, state, metadata, type, source_provider_id")
         .eq("slug", slug)
         .not("type", "in", "(family,student)")
         .maybeSingle();
@@ -99,7 +99,21 @@ export async function GET(
     }
 
     // Extract Google Place ID from metadata
-    const googlePlaceId = profile.metadata?.google_metadata?.place_id || null;
+    let googlePlaceId = profile.metadata?.google_metadata?.place_id || null;
+
+    // If no Google Place ID in business_profiles, check linked olera-providers record
+    if (!googlePlaceId && profile.source_provider_id) {
+      const { data: linkedProvider } = await db
+        .from("olera-providers")
+        .select("place_id")
+        .eq("provider_id", profile.source_provider_id)
+        .not("deleted", "is", true)
+        .maybeSingle();
+
+      if (linkedProvider?.place_id) {
+        googlePlaceId = linkedProvider.place_id;
+      }
+    }
 
     // Use existing image_url, or fetch from Google Places if we have a place_id
     let imageUrl = profile.image_url;

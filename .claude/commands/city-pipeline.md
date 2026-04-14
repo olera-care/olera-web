@@ -152,11 +152,13 @@ Use `run_in_background: true` for long-running batches (trust signals, images) a
 
 While the pipeline script is running in the background, Claude is idle on the critical path. Use that time productively by delegating independent work to subagents. These two are validated patterns:
 
-**1. Notion page creation (run during clean phase).** `scripts/pipeline-batch.js` skips Notion pre-flight when `NOTION_TOKEN` is missing from `.env.local` (it usually is). Instead of doing the creation serially at the end:
-- The moment the pipeline prints `WARN: No NOTION_TOKEN — skipping Notion pre-flight`, spawn a general-purpose Agent to batch-create the Notion pages via `mcp__notion__API-post-page` in parallel to the running clean phase.
-- Hand the agent the full city+state list. Tell it to batch 10-12 page creations per message in parallel, and to report ONE LINE only (`Created X/N, failed: <list>`). This prevents the subagent's per-page result objects (~3KB each) from ever entering the main context.
-- Initial status `Upload to Backend`, then flip to `Complete` at the end in a second subagent pass that also checks off the `Done: *` boxes.
-- Validated on 184-city batch (2026-04-13): ~5 min subagent work, zero critical-path cost.
+**1. Notion page creation (run during clean phase).** `scripts/pipeline-batch.js` skips Notion pre-flight when `NOTION_TOKEN` is missing from `.env.local` (it usually is). Sizing guidance — choose inline vs subagent based on city count:
+
+- **≤20 cities: inline.** Call `mcp__notion__API-post-page` / `mcp__notion__API-patch-page` directly from the main conversation. Batch 3-5 calls in parallel in a single message. At this size the per-page result objects are small enough that context isn't at risk, and spawning a subagent costs more than it saves. For the 2026-04-14 3-city run the inline path took ~5s; the subagent attempt failed on permissions and burned ~20s for nothing.
+- **>20 cities: subagent.** The moment the pipeline prints `WARN: No NOTION_TOKEN — skipping Notion pre-flight`, spawn a general-purpose Agent to batch-create the Notion pages via `mcp__notion__API-post-page` in parallel to the running clean phase. Hand the agent the full city+state list. Tell it to batch 10-12 page creations per message in parallel, and to report ONE LINE only (`Created X/N, failed: <list>`). This prevents the subagent's per-page result objects (~3KB each) from ever entering the main context.
+- **>100 cities: subagent is mandatory** — inline would either overflow context or thrash the Notion rate limiter.
+- Initial status `Upload to Backend`, then flip to `Complete` at the end in a second pass (inline or subagent, same sizing rule) that also checks off the `Done: *` boxes.
+- Validated on 184-city batch (2026-04-13, subagent) and 3-city batch (2026-04-14, inline).
 
 **2. Data-quality spot-check (run during enrichment phase).** Enrichment's long pole is trust signals (~2h for a 184-city batch). While it runs, spawn a subagent to query Supabase for data-quality issues on cities already loaded. Common checks:
 - Coordinates outside the city's state bounding box (geocoding failures that slipped past the load-phase validator)
@@ -221,14 +223,26 @@ The script is **idempotent** — cities with existing discovery CSVs are skipped
 
 ### Stage 2: Processing
 
-After discovery completes, run the processing pipeline:
+After discovery completes, run the processing pipeline. **Always redirect raw stdout to a log file and arm a Monitor** — do NOT pipe through `tail -N`, which buffers everything until the process exits and leaves you blind for the whole phase.
 
 ```bash
+# Launch (run_in_background: true)
 cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
   --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
   --phase all \
-  --resume
+  --resume \
+  > /tmp/pipeline-all.log 2>&1
 ```
+
+Then arm a `Monitor` that tails the log with a grep covering progress + failure signatures:
+
+```bash
+tail -f /tmp/pipeline-all.log | grep -E --line-buffered "PHASE|\[[0-9]+/[0-9]+\]|providers|COMPLETE|Error|ERROR|FAIL|Traceback|429|529"
+```
+
+Size the Monitor timeout to the expected phase duration (clean ~5min, load ~4min/city, enrich ~35min+, finalize ~5min). For phase-all on a large batch, use `persistent: true` and stop manually.
+
+**Never pipe the script's output through `tail -N` in the launch command** — it buffers, hiding the entire run. Tail the log file, not the live pipe.
 
 This runs 4 internal phases:
 - **Clean**: Keyword filter + AI classify + category map + name check + IDs + dedup (all cities at once, loads 61MB dedup CSV once)
@@ -240,6 +254,59 @@ Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
 
 The `--resume` flag skips cities already marked Complete in Notion, enabling multi-session batches.
 
+### Reprocess Mode (CRITICAL — read before re-running an already-processed city)
+
+The pipeline's idempotency guards (`providers_ready.json` cache, "already in DB" skip, `--resume` Notion filter) all assume **"rerun = resume where you left off."** They do NOT assume "rerun = the previous result was bad, throw it out and try again." When you need to reprocess a city that was already run — because the previous result was wrong, or because soft-deleted rows are blocking re-import — you MUST take explicit pre-flight steps or the script will silently SKIP and report success with stale data.
+
+**When you need reprocess mode:**
+- A city is marked Complete in Notion but has few/zero active providers in Supabase
+- A previous run produced a cached `providers_ready.json` that you no longer trust
+- You fixed a pipeline-script bug and want to re-run affected cities
+
+**Reprocess command (one-liner, as of 2026-04-14):**
+
+```bash
+cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
+  --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
+  --cities "Bourne,MA;Nanuet,NY;North Bellmore,NY" \
+  --force \
+  --phase all \
+  > /tmp/pipeline-reprocess.log 2>&1
+```
+
+- `--cities` narrows the 1000+ cities in the Expansion dir down to the explicit allowlist. Format: semicolon-delimited `City,ST;City,ST` (case-insensitive, matches by the `parseBatchMd`/`readyCityList` keys). If any of the requested cities are missing from `--batch`, the script prints a WARN but proceeds with the found ones. Mandatory pairing with `--force` — the script will warn (not fail) if you pass `--force` without `--cities`.
+- `--force` bypasses BOTH cache layers: the `providers_ready.json` skip guard in `phaseClean` AND the "already in DB" count skip guard in `phaseLoad`. Without it, the script will silently report success with stale data.
+
+**Before running reprocess, still do these manual steps:**
+
+1. **Audit soft-deleted row counts** for each target city — this is how you verify the rerun actually did something:
+   ```javascript
+   const { count } = await supabase.from('olera-providers')
+     .select('*', { count: 'exact', head: true })
+     .like('provider_id', `${citySlug}-${stateSlug}-%`);
+   ```
+   Compare before/after.
+
+2. **Reset Notion status** back to `Upload to Backend` for the target cities and uncheck all `Done: *` boxes. The pipeline script does NOT touch Notion — you (or a subagent, per sizing rules above) handle Notion writes. Without this step, the pages stay green in the Notion board while the data was replaced underneath, which creates confusion later.
+
+**Gotcha — re-running clean against an already-loaded city produces zero providers.** Because the dedup set is loaded live from Supabase (filtered to `deleted=false`), the city's own active providers are in the dedup set and will dedup the incoming fresh discovery to ~zero. This is the idempotency guard working as intended, but it means reprocess for a *fully loaded and enriched* city requires also soft-deleting the existing rows first, or the clean phase will produce a nearly empty `providers_ready.json`. Practical rule: reprocess is for cities whose previous run was bad (most providers soft-deleted, few active). If a city is fully loaded and you want to refresh it, that's a different workflow — plan for it separately.
+
+**Pipeline-script behavior notes for reprocess:**
+- `phaseClean` dedup query filters out soft-deleted rows (fixed 2026-04-14) — a previously-soft-deleted provider will NOT block its own re-import.
+- `phaseLoad` "already in DB" count filters out soft-deleted rows (fixed 2026-04-14) — a city with only soft-deleted rows will correctly proceed to re-upload instead of SKIP'ing.
+- `perplexityChat` retries on 429/529 with exponential backoff (fixed 2026-04-14) — transient Perplexity overload no longer nukes whole batches.
+- If you are running a pipeline-batch.js version older than 2026-04-14, upgrade first.
+
+### Fix the pattern, not the line
+
+When you find a bug in `scripts/pipeline-batch.js`, GREP THE WHOLE FILE for the same pattern before relaunching. The two soft-delete filter bugs found on 2026-04-14 were both the same class (`.from('olera-providers')` read missing `.eq('deleted', false)`), and fixing only the first one cost a full relaunch cycle to discover the second bite from the second one. Standard audit command:
+
+```
+grep -n ".from('olera-providers')" scripts/pipeline-batch.js
+```
+
+and review every read site. Writes (upsert/update/delete) don't need the filter, but reads that feed dedup, count, or collision-detection logic almost always do.
+
 ### Script features (all active by default)
 
 `scripts/pipeline-batch.js` is the single processing script — no v1/v2 fork. Three features beyond the original sequential per-city flow:
@@ -250,12 +317,14 @@ The `--resume` flag skips cities already marked Complete in Notion, enabling mul
 
 ### Canonical workflows
 
-**Notion page creation + status updates → always via Claude subagent.** The script does NOT write to Notion. Never try to set `NOTION_TOKEN` in `.env.local` to "fix" this — that path has a history of silent failures in this repo and has wasted debugging time repeatedly. The canonical pattern:
+**Notion page creation + status updates → via Claude (inline or subagent, sized by city count).** The script does NOT write to Notion. Never try to set `NOTION_TOKEN` in `.env.local` to "fix" this — that path has a history of silent failures in this repo and has wasted debugging time repeatedly. Claude handles all Notion writes. Sizing rule:
 
-1. **When starting a batch**, spawn a general-purpose Agent *in parallel to the clean phase* to create Notion pages via `mcp__notion__API-post-page`. The agent should batch 10-12 page creations per message in parallel and report ONE LINE only (`Created X/N, failed: <list>`). This keeps per-page result objects (~3KB each) out of the main context. Database ID: `4cf471e5-0d7e-43a5-a793-a87410e2ae24`. Initial City Status: `Upload to Backend`.
-2. **After the pipeline finishes**, spawn a second Agent to patch pages to `Complete` via `mcp__notion__API-patch-page`, checking off all `Done: *` checkboxes except `Done: Fetch Email & Contact Info`. Same terse-reporting discipline.
+- **≤20 cities: inline** via `mcp__notion__API-post-page` / `mcp__notion__API-patch-page` (batch 3-5 in parallel in one message). Faster than a subagent at small scale, and avoids subagent permission-failure mode.
+- **>20 cities: subagent** — spawn a general-purpose Agent in parallel to the clean phase, tell it to batch 10-12 page operations per message in parallel, and report ONE LINE only (`Created X/N, failed: <list>`). This keeps per-page result objects (~3KB each) out of the main context. See "Notion updates: inline vs subagent sizing" section above for the full rationale.
 
-Both patterns validated on the 184-city batch (2026-04-13). Do not regress to in-script Notion writes.
+Database ID: `4cf471e5-0d7e-43a5-a793-a87410e2ae24`. Initial City Status: `Upload to Backend`. After the pipeline finishes, flip to `Complete` and check off all `Done: *` checkboxes except `Done: Fetch Email & Contact Info`.
+
+Validated on the 184-city batch (2026-04-13, subagent) and the 3-city batch (2026-04-14, inline). Do not regress to in-script Notion writes.
 
 **Always start shakedown batches small.** When the script has changed (new feature, refactor, dependency bump), run a 5-10 city batch first to confirm the three active features behave — not a full 150+ city production batch. A small batch surfaces issues in 15-30 minutes instead of 6+ hours.
 

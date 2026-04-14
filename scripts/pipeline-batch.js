@@ -52,6 +52,8 @@ function parseArgs() {
     expansionDir: path.resolve(process.env.HOME, 'Desktop/TJ-hq/Olera/Provider Database/Expansion'),
     dedupCsv: null, // deprecated: now queries Supabase live instead of stale CSV
     resume: false,
+    force: false,       // bypass providers_ready.json cache + "already in DB" skip guards (reprocess mode)
+    citiesFilter: null, // explicit city allowlist for reprocess mode (e.g. "Bourne,MA;Nanuet,NY")
     dryRun: false,
     concurrency: 5,
     watch: false,
@@ -65,6 +67,8 @@ function parseArgs() {
       case '--expansion-dir': opts.expansionDir = args[++i]; break;
       case '--dedup-csv':   opts.dedupCsv = args[++i]; break;
       case '--resume':      opts.resume = true; break;
+      case '--force':       opts.force = true; break;
+      case '--cities':      opts.citiesFilter = args[++i]; break;
       case '--dry-run':     opts.dryRun = true; break;
       case '--concurrency': opts.concurrency = parseInt(args[++i]) || 5; break;
       case '--watch':       opts.watch = true; break;
@@ -91,6 +95,11 @@ Options:
   --expansion-dir <dir> Base expansion directory (default: ~/Desktop/TJ-hq/.../Expansion)
   --dedup-csv <path>    Path to full provider export CSV for dedup
   --resume              Skip cities already marked Complete in Notion
+  --force               Bypass providers_ready.json cache + "already in DB" skip guards.
+                        Required for reprocess mode. Use with --cities to scope safely.
+  --cities <list>       Explicit city allowlist, semicolon-delimited: "City1,ST;City2,ST".
+                        Filters the --batch city list down to just these. Use with --force
+                        for reprocess mode so you don't reprocess the entire Expansion dir.
   --dry-run             Print what would happen without executing
   --concurrency <n>     Max parallel API calls per service (default: 5)
   --watch               Stream clean phase: wait up to 90m for each city's discovery CSV to appear (overlaps discovery+clean)
@@ -333,29 +342,55 @@ async function notionCompletePage(pageId) {
 // ---------------------------------------------------------------------------
 
 async function perplexityChat(prompt, temperature = 0.1) {
-  await rateLimiters.perplexity.wait();
-  cost.addPerplexity();
+  // Retry with exponential backoff on 429 (rate limit) and 5xx (server overload, incl. 529).
+  // Prior batch runs lost ~85% of providers to transient 429s with no retry — this is the
+  // long-pole fragility at scale. Up to 5 attempts, backoff 2s → 4s → 8s → 16s → 32s.
+  const MAX_ATTEMPTS = 5;
+  let lastErr;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    await rateLimiters.perplexity.wait();
 
-  const resp = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'sonar',
-      messages: [{ role: 'user', content: prompt }],
-      temperature,
-    }),
-  });
+    let resp;
+    try {
+      resp = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sonar',
+          messages: [{ role: 'user', content: prompt }],
+          temperature,
+        }),
+      });
+    } catch (err) {
+      lastErr = err;
+      if (attempt === MAX_ATTEMPTS) throw err;
+      const delay = 2000 * Math.pow(2, attempt - 1);
+      console.log(`  [perplexity retry ${attempt}/${MAX_ATTEMPTS}] network error (${err.message}), waiting ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
 
-  if (!resp.ok) {
+    if (resp.ok) {
+      // Only charge cost on success so retries don't double-count.
+      cost.addPerplexity();
+      const json = await resp.json();
+      return json.choices?.[0]?.message?.content || '';
+    }
+
+    // Retry on 429 (rate limit) and 5xx (server overload). Fail fast on 4xx client errors.
+    const shouldRetry = resp.status === 429 || (resp.status >= 500 && resp.status < 600);
     const text = await resp.text();
-    throw new Error(`Perplexity: ${resp.status} ${text.slice(0, 200)}`);
-  }
+    lastErr = new Error(`Perplexity: ${resp.status} ${text.slice(0, 200)}`);
+    if (!shouldRetry || attempt === MAX_ATTEMPTS) throw lastErr;
 
-  const json = await resp.json();
-  return json.choices?.[0]?.message?.content || '';
+    const delay = 2000 * Math.pow(2, attempt - 1);
+    console.log(`  [perplexity retry ${attempt}/${MAX_ATTEMPTS}] ${resp.status} — waiting ${delay}ms...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  throw lastErr;
 }
 
 function extractJson(text) {
@@ -502,6 +537,7 @@ async function phaseClean(cities, opts) {
     const { data, error } = await supabase
       .from('olera-providers')
       .select('provider_name, state, place_id')
+      .eq('deleted', false)
       .range(offset, offset + PAGE - 1);
     if (error || !data || data.length === 0) break;
     for (const row of data) {
@@ -820,10 +856,26 @@ async function phaseLoad(cities, opts) {
   console.log(`${'='.repeat(70)}`);
   console.log(`  Cities: ${cities.length}`);
 
-  // Get all existing slugs for collision detection
+  // Get all existing slugs for collision detection (paginated — PostgREST caps
+  // unpaginated queries at 10K rows, which means the unpaginated version only sees
+  // ~11% of an 86K-row database and misses real slug collisions at upsert time).
   console.log('  Loading existing slugs...');
-  const { data: allSlugs } = await supabase.from('olera-providers').select('slug');
-  const slugSet = new Set((allSlugs || []).map(s => s.slug));
+  const slugSet = new Set();
+  {
+    let slugOffset = 0;
+    const SLUG_PAGE = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('olera-providers')
+        .select('slug')
+        .range(slugOffset, slugOffset + SLUG_PAGE - 1);
+      if (error || !data || data.length === 0) break;
+      for (const row of data) if (row.slug) slugSet.add(row.slug);
+      slugOffset += data.length;
+      if (data.length < SLUG_PAGE) break;
+    }
+  }
+  console.log(`  Loaded ${slugSet.size} existing slugs for collision detection`);
 
   for (let i = 0; i < cities.length; i++) {
     const c = cities[i];
@@ -840,7 +892,8 @@ async function phaseLoad(cities, opts) {
     const { count: existingCount } = await supabase
       .from('olera-providers')
       .select('*', { count: 'exact', head: true })
-      .like('provider_id', `${idPrefix}%`);
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
 
     if (existingCount > 0 && !opts.force) {
       console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (${existingCount} already in DB)`);
@@ -1446,6 +1499,41 @@ async function main() {
   if (!cities || cities.length === 0) {
     console.error('ERROR: No cities found. Check --batch path.');
     process.exit(1);
+  }
+
+  // --cities filter: narrow the list to an explicit allowlist (reprocess mode).
+  // Format: "City1,ST;City2,ST" — matches by (city, state) case-insensitively.
+  if (opts.citiesFilter) {
+    const keyOf = c => `${c.city.toLowerCase()}|${c.state.toUpperCase()}`;
+    const allowlist = new Set(
+      opts.citiesFilter.split(';').map(pair => {
+        const [city, state] = pair.split(',').map(s => (s || '').trim());
+        if (!city || !state) return null;
+        return `${city.toLowerCase()}|${state.toUpperCase()}`;
+      }).filter(Boolean)
+    );
+    const originalCount = cities.length;
+    const originalSample = cities.slice(0, 10).map(c => `${c.city},${c.state}`).join('; ');
+    cities = cities.filter(c => allowlist.has(keyOf(c)));
+    console.log(`  --cities filter: ${originalCount} → ${cities.length} cities`);
+    if (cities.length === 0) {
+      console.error(`ERROR: --cities filter matched 0 cities. Allowlist: ${[...allowlist].join(', ')}`);
+      console.error(`  Available city keys (first 10 from --batch): ${originalSample}`);
+      process.exit(1);
+    }
+    const matched = new Set(cities.map(keyOf));
+    const missing = [...allowlist].filter(key => !matched.has(key));
+    if (missing.length) {
+      console.warn(`  WARN: --cities requested but not found in --batch: ${missing.join(', ')}`);
+    }
+  }
+
+  if (opts.force) {
+    console.log(`  --force mode: providers_ready.json cache and "already in DB" skip guards are BYPASSED.`);
+    if (!opts.citiesFilter) {
+      console.warn(`  WARN: --force without --cities will reprocess EVERY city in --batch. This is usually wrong.`);
+      console.warn(`        Pass --cities "City1,ST;City2,ST" to scope the reprocess.`);
+    }
   }
 
   // Cost/time estimates

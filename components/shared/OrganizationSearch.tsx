@@ -59,14 +59,16 @@ export default function OrganizationSearch({
     setLoading(true);
     try {
       const supabase = createClient();
+      // Wrap pattern in quotes to handle spaces in PostgREST filter syntax
       const searchPattern = `%${query}%`;
+      const quotedPattern = `"${searchPattern}"`;
 
       // Search business_profiles (by name OR city)
       const { data: bpResults } = await supabase
         .from("business_profiles")
         .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
         .in("type", ["organization", "caregiver"])
-        .or(`display_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .or(`display_name.ilike.${quotedPattern},city.ilike.${quotedPattern}`)
         .limit(50);
 
       // Search olera-providers (by name OR city)
@@ -74,7 +76,7 @@ export default function OrganizationSearch({
         .from("olera-providers")
         .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
         .not("deleted", "is", true)
-        .or(`provider_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .or(`provider_name.ilike.${quotedPattern},city.ilike.${quotedPattern}`)
         .limit(50);
 
       // Get claim states for olera-providers by checking if they have linked business_profiles

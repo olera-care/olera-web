@@ -242,12 +242,13 @@ The `--resume` flag skips cities already marked Complete in Notion, enabling mul
 
 ### v2 script — opt-in shakedown
 
-An experimental `scripts/pipeline-batch-v2.js` exists alongside the stable v1. It adds four improvements over v1:
+An experimental `scripts/pipeline-batch-v2.js` exists alongside the stable v1. It adds three improvements over v1:
 
 1. **Streaming discovery→clean overlap** via `--watch` flag — clean phase begins consuming city 1's discovery CSV the moment it appears, while discovery is still crawling later cities. Saves 20-30 min on the critical path for large batches. Watch mode polls each city's expansion dir for up to 90 min waiting for a CSV.
 2. **Global AI classify pooling** — instead of per-city batches of 25, v2 collects the full post-keyword-filter pool across all cities and runs Perplexity in batches of 80. Fewer round-trips, cheaper per provider. (Only active in non-watch mode; watch mode keeps per-city batches since cities arrive one at a time.)
-3. **Per-city Notion status updates streamed through `phaseLoad`** — cities get marked Complete in Notion the moment their load phase finishes, not at the end. `phaseFinalize` skips redundant patches.
-4. **Live site verification hook** — after load phase, fires off a background check that fetches 5 random `olera.com/assisted-living/{state}/{city}` pages and greps for `provider-card`. Reports pass/fail in the final summary. Non-blocking, non-fatal. Skipped when `--dry-run`.
+3. **Live site verification hook** — after load phase, fires off a background check that fetches 5 random `olera.com/assisted-living/{state}/{city}` pages and greps for `provider-card`. Reports pass/fail in the final summary. Non-blocking, non-fatal. Skipped when `--dry-run`.
+
+**Notion is handled outside the script.** Both v1 and v2 never successfully write Notion from their own process — the `NOTION_TOKEN` path has a history of silent failures that have wasted debugging time repeatedly. Claude should always create/update Notion pages via a subagent using the `mcp__notion__*` MCP integration (parallel to the clean phase for page creation, after pipeline completion for status updates). An earlier v2 draft tried to stream per-city Notion updates from within `phaseLoad`; that feature was removed. Do not re-add it.
 
 **Default is v1.** Only run v2 when the user explicitly says "use v2" or "shakedown v2". The invocation is identical except for the script path:
 

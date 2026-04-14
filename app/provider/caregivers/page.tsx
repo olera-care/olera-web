@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
@@ -12,34 +13,17 @@ type InterviewWithProfiles = Interview & {
   student?: { id: string; slug?: string; display_name: string; image_url?: string; email?: string; metadata?: Record<string, unknown> };
 };
 
-const PENDING_KEY = "medjobs:pending_interviews";
-const PENDING_TTL_MS = 5 * 60 * 1000; // 5 minutes — only fresh stashes matter
-
-// Hydrate initial state from sessionStorage (stashed by the onboard page
-// right before navigation). Survives the post-magic-link race where the
-// fresh API fetch may return empty.
-function readPendingStash(): InterviewWithProfiles[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = sessionStorage.getItem(PENDING_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as { list: InterviewWithProfiles[]; at: number };
-    if (!parsed?.list || Date.now() - parsed.at > PENDING_TTL_MS) {
-      sessionStorage.removeItem(PENDING_KEY);
-      return [];
-    }
-    return parsed.list;
-  } catch {
-    return [];
-  }
-}
-
 export default function ProviderCaregiversPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Capture once on mount — we strip this param via router.replace after
+  // opening the modal, but we still want the auto-open to fire even after
+  // the URL has been cleaned.
+  const initialNewInterviewIdRef = useRef<string | null>(searchParams.get("newInterview"));
+  const newInterviewId = initialNewInterviewIdRef.current;
   const { activeProfile, isLoading: authLoading } = useAuth();
-  const [interviews, setInterviews] = useState<InterviewWithProfiles[]>(readPendingStash);
-  // Start not-loading if we have stashed interviews — otherwise the spinner
-  // would briefly hide the interviews the user came here to see.
-  const [loading, setLoading] = useState(() => interviews.length === 0);
+  const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
+  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -47,35 +31,54 @@ export default function ProviderCaregiversPage() {
   const providerMeta = (activeProfile?.metadata ?? {}) as Record<string, unknown>;
   const accessInfo = getAccessTier(!!activeProfile, providerMeta);
 
-  const fetchInterviews = useCallback(async () => {
+  const fetchInterviews = useCallback(async (): Promise<InterviewWithProfiles[]> => {
     try {
       const res = await fetch("/api/medjobs/interviews");
       const data = await res.json();
-      if (!data.interviews) return;
-      const apiList = data.interviews as InterviewWithProfiles[];
-      // Merge API result with any pending stash — API wins on conflict, but
-      // a stashed interview survives if the API race returned empty.
-      setInterviews((prev) => {
-        const apiIds = new Set(apiList.map((iv) => iv.id));
-        const pendingExtras = prev.filter((iv) => !apiIds.has(iv.id));
-        const merged = [...apiList, ...pendingExtras];
-        // Clear the stash once API has caught up — no extras means API
-        // saw everything we had locally.
-        if (pendingExtras.length === 0 && typeof window !== "undefined") {
-          try { sessionStorage.removeItem(PENDING_KEY); } catch {}
-        }
-        return merged;
-      });
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+      const list = (data.interviews ?? []) as InterviewWithProfiles[];
+      setInterviews(list);
+      return list;
+    } catch {
+      return [];
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Wait for auth to complete before fetching interviews
+  // Initial fetch. If the URL carries ?newInterview=<id> from the claim
+  // redirect but that interview isn't visible in the first response (rare
+  // replica-lag edge case), retry a few times before giving up on the
+  // auto-open so the modal still lands.
   useEffect(() => {
-    if (!authLoading) {
-      fetchInterviews();
-    }
-  }, [fetchInterviews, authLoading]);
+    if (authLoading) return;
+    let cancelled = false;
+    (async () => {
+      const list = await fetchInterviews();
+      if (cancelled || !newInterviewId) return;
+      const found = list.some((iv) => iv.id === newInterviewId);
+      if (found) return;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await new Promise((r) => setTimeout(r, 500));
+        if (cancelled) return;
+        const retry = await fetchInterviews();
+        if (retry.some((iv) => iv.id === newInterviewId)) return;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchInterviews, authLoading, newInterviewId]);
+
+  // Once the auto-open has a target to work with, strip the URL param so
+  // refresh/back don't re-open the modal.
+  const urlCleanedRef = useRef(false);
+  useEffect(() => {
+    if (urlCleanedRef.current || !newInterviewId) return;
+    const match = interviews.find((iv) => iv.id === newInterviewId);
+    if (!match) return;
+    urlCleanedRef.current = true;
+    router.replace("/provider/caregivers", { scroll: false });
+  }, [interviews, newInterviewId, router]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
@@ -109,6 +112,7 @@ export default function ProviderCaregiversPage() {
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
           accessTier={accessInfo.tier}
+          initialSelectedId={newInterviewId ?? undefined}
         />
       </div>
 

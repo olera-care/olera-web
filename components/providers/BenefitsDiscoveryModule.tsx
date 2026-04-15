@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -32,6 +32,8 @@ interface BenefitsDiscoveryModuleProps {
   stateName: string;
   topPrograms: BenefitsProgram[];
   allPrograms: BenefitsProgram[];
+  providerName?: string;
+  providerSlug?: string;
 }
 
 // ─── URL helpers ─────────────────────────────────────────────────────────
@@ -167,6 +169,8 @@ export default function BenefitsDiscoveryModule({
   stateName,
   topPrograms,
   allPrograms,
+  providerName,
+  providerSlug,
 }: BenefitsDiscoveryModuleProps) {
   const [step, setStep] = useState<Step>("care-need");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
@@ -177,6 +181,98 @@ export default function BenefitsDiscoveryModule({
   const [email, setEmail] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const startTrackedRef = useRef(false);
+  const savedMatchCountRef = useRef<number | null>(null);
+  const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
+  const [echoVisible, setEchoVisible] = useState(false);
+
+  // ─── Spotlight handoff from Q&A section ───────────────────────────
+  // When a caregiver submits a question, the room quiets around us:
+  // body gets `benefits-spotlight-active`, siblings fade, the page bg
+  // warms to cream. We hold the quoted question as an italic serif line
+  // above the header and smooth-scroll into view. Perena/Wispr Flow move —
+  // no glow on the card, the environment does the work.
+  useEffect(() => {
+    let pendingTimeouts: number[] = [];
+
+    function clearPending() {
+      pendingTimeouts.forEach((id) => window.clearTimeout(id));
+      pendingTimeouts = [];
+    }
+
+    function handleQuestionSubmitted(e: Event) {
+      const detail = (e as CustomEvent<{ question: string }>).detail;
+      if (!detail?.question) return;
+
+      // Clear any in-flight spotlight from a previous submission so a rapid
+      // second submit doesn't get cut short by the first timer.
+      clearPending();
+      setEchoVisible(false);
+      setQuotedQuestion(detail.question);
+
+      // Defensive blur: if the caregiver just submitted from a text input
+      // (or the enrichment field on a page without benefits), drop focus so
+      // a) the browser doesn't fight our scroll, and b) subsequent typing
+      // doesn't land in an off-screen input.
+      const active = document.activeElement as HTMLElement | null;
+      if (active && typeof active.blur === "function") active.blur();
+
+      // Delay scroll one frame so the echo mounts before we animate.
+      // Respect prefers-reduced-motion — jump instantly instead of animating.
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      requestAnimationFrame(() => {
+        const el = document.getElementById("benefits");
+        if (el) {
+          el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+        }
+        document.body.classList.add("benefits-spotlight-active");
+      });
+
+      // Echo line fades in after the scroll has a moment to settle
+      pendingTimeouts.push(
+        window.setTimeout(() => setEchoVisible(true), 450),
+      );
+
+      // Spotlight holds briefly, then the room returns to normal.
+      // The echo line stays — it's the caregiver's own words, not a toast.
+      pendingTimeouts.push(
+        window.setTimeout(() => {
+          document.body.classList.remove("benefits-spotlight-active");
+        }, 2700),
+      );
+    }
+
+    window.addEventListener("olera:question-submitted", handleQuestionSubmitted);
+    return () => {
+      window.removeEventListener("olera:question-submitted", handleQuestionSubmitted);
+      clearPending();
+      document.body.classList.remove("benefits-spotlight-active");
+    };
+  }, []);
+
+  // Fire-and-forget: notify Slack + log that a user started the intake.
+  // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.
+  function trackStart(selectedCareNeed: CareNeed) {
+    if (startTrackedRef.current) return;
+    startTrackedRef.current = true;
+    const label = CARE_NEED_OPTIONS.find((o) => o.value === selectedCareNeed)?.label || selectedCareNeed;
+    try {
+      fetch("/api/benefits/track-start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          careNeedLabel: label,
+          stateCode: providerState,
+          stateName,
+          providerName: providerName || null,
+          providerSlug: providerSlug || null,
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {
+      // swallow — tracking must never block the UX
+    }
+  }
 
   // Live match count (based on whatever's been answered so far)
   const matchingPrograms = useMemo(
@@ -236,10 +332,14 @@ export default function BenefitsDiscoveryModule({
         setSaving(false);
         return;
       }
-      // Full-page navigation so the browser re-reads the session cookies
-      // the server just wrote. router.push keeps the stale Supabase client
-      // singleton and the welcome page gets stuck on the skeleton.
-      window.location.href = `/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`;
+      // Name/email captured → reveal results inline on the provider page.
+      // The user can click through to /welcome from the results CTA, which
+      // does the full-page reload needed to refresh the Supabase client singleton.
+      setSaving(false);
+      setStep("results");
+      // Track the match count the server actually saved, for the welcome redirect
+      savedMatchCountRef.current = data.matchCount || matchingPrograms.length;
+      return;
     } catch (err) {
       console.error("[BenefitsDiscoveryModule] Save failed:", err);
       setSaveError("Network error. Please try again.");
@@ -252,11 +352,17 @@ export default function BenefitsDiscoveryModule({
   // ═════════════════════════════════════════════════════════════════════
 
   // ─── Progress indicator + back button wrapper ─────────────────────────
-  // Step 5 (save) starts EMPTY and fills as the user types — see render block.
-  // Steps 1-4 are binary (filled when entered).
-  const baseStepNum = step === "care-need" ? 1 : step === "age" ? 2 : step === "financial" ? 3 : step === "results" ? 4 : step === "save" ? 4 : 1;
+  // Step 4 (save) starts EMPTY and fills as the user types — see render block.
+  // Step 5 (results) is the reveal after save succeeds.
+  const baseStepNum =
+    step === "care-need" ? 1 :
+    step === "age" ? 2 :
+    step === "financial" ? 3 :
+    step === "save" ? 3 :
+    step === "results" ? 5 :
+    1;
   const totalSteps = 5;
-  // For step 5: compute partial fill based on form completeness
+  // For step 4 (save): compute partial fill of the 4th segment based on form completeness
   const saveProgress = (() => {
     if (step !== "save") return 0;
     let p = 0;
@@ -278,13 +384,13 @@ export default function BenefitsDiscoveryModule({
       )}
       <div className="flex-1 flex items-center gap-1.5">
         {Array.from({ length: totalSteps }).map((_, i) => {
-          // Steps 1-4: binary filled when index < baseStepNum
-          // Step 5 (the last segment): partial fill driven by saveProgress
-          //  - On step "save": empty until user types; pulses softly when empty
-          //  - On step "results" and earlier: empty
-          const isLastSegment = i === totalSteps - 1;
-          if (isLastSegment) {
-            const fill = step === "save" ? saveProgress * 100 : 0;
+          // Segments 1-3: binary (filled once that step is reached).
+          // Segment 4 (the save gate): partial fill driven by name+email completeness,
+          //   pulses softly when empty to telegraph "you're not done yet".
+          // Segment 5 (the results reveal): fills once save succeeds.
+          const isSaveSegment = i === 3;
+          if (isSaveSegment) {
+            const fill = step === "save" ? saveProgress * 100 : step === "results" ? 100 : 0;
             const isPulsing = step === "save" && saveProgress === 0;
             return (
               <div key={i} className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden relative">
@@ -320,11 +426,23 @@ export default function BenefitsDiscoveryModule({
     return (
       <div>
         <StepHeader />
+
+        {/* ── Echo of the caregiver's question (appears after Q&A submit) ──
+            Italic serif, quiet. Proves the page heard them. Not a toast —
+            it stays in place as context for the rest of the flow. */}
+        {quotedQuestion && (
+          <p
+            className={`benefits-echo-line ${echoVisible ? "is-visible" : ""} font-display italic text-[15px] text-gray-500 mb-3 leading-relaxed`}
+          >
+            You just asked: <span className="text-gray-700">&ldquo;{quotedQuestion}&rdquo;</span>
+          </p>
+        )}
+
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          What kind of help is your family looking for?
+          Families like yours qualify for help.
         </h2>
         <p className="text-sm text-gray-500 mt-1 mb-6">
-          {stateName} has {allPrograms.length} programs that may help. Pick the one that fits best.
+          {stateName} has {allPrograms.length} programs. What kind of help does your family need?
         </p>
 
         {/* Care need cards — the main visual focal point */}
@@ -337,6 +455,7 @@ export default function BenefitsDiscoveryModule({
                 key={opt.value}
                 onClick={() => {
                   setCareNeed(opt.value);
+                  trackStart(opt.value);
                   setTimeout(() => setStep("age"), 180);
                 }}
                 className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
@@ -492,7 +611,7 @@ export default function BenefitsDiscoveryModule({
         </div>
 
         <button
-          onClick={() => setStep("results")}
+          onClick={() => setStep("save")}
           disabled={!canContinue}
           className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
             canContinue
@@ -507,7 +626,7 @@ export default function BenefitsDiscoveryModule({
     );
   }
 
-  // ─── Step 4: Results reveal (ungated) ─────────────────────────────────
+  // ─── Step 5: Results reveal (post-gate) ───────────────────────────────
   if (step === "results") {
     const ageNum = parseInt(age);
     const contextBits: string[] = [];
@@ -521,9 +640,9 @@ export default function BenefitsDiscoveryModule({
 
     return (
       <div>
-        <StepHeader onBack={() => setStep("financial")} />
+        <StepHeader />
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          You may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
+          {firstName ? `${firstName}, you` : "You"} may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
         </h2>
         {contextBits.length > 0 && (
           <p className="text-sm text-gray-500 mt-1 mb-6">
@@ -589,14 +708,17 @@ export default function BenefitsDiscoveryModule({
             </div>
 
             <button
-              onClick={() => setStep("save")}
+              onClick={() => {
+                const matchCount = savedMatchCountRef.current ?? matchingPrograms.length;
+                window.location.href = `/welcome?from=benefits&matches=${matchCount}`;
+              }}
               className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
             >
-              Save my matches and find providers who accept them
+              Go to my dashboard
               <ArrowRight className="w-4 h-4" weight="bold" />
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
-              We&apos;ll set up your dashboard with your benefits, providers in your area, and next steps.
+              Your matches are saved. Your dashboard has providers in your area and next steps.
             </p>
           </>
         )}
@@ -604,73 +726,114 @@ export default function BenefitsDiscoveryModule({
     );
   }
 
-  // ─── Step 5: Save (name + email) ──────────────────────────────────────
+  // ─── Step 4: Save gate (name + email) — now BEFORE results ───────────
+  // Typeform-style: one big question, huge underlined inputs, warm microcopy.
+  // The match count is teased in the headline so the user knows what they're
+  // unlocking — "loss aversion" pull instead of a cold form.
   if (step === "save") {
+    const matchCount = matchingPrograms.length;
+    const canSubmit = !saving && firstName.trim().length > 0 && email.includes("@");
+    const greeting = firstName.trim()
+      ? `Nice to meet you, ${firstName.trim().split(/\s+/)[0]}.`
+      : "We found programs for your family.";
+
     return (
       <div>
-        <StepHeader onBack={() => setStep("results")} />
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          One last step.
+        <StepHeader onBack={() => setStep("financial")} />
+
+        {/* ── Big headline — teases the reveal behind the gate ─────────── */}
+        <p className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-3">
+          {matchCount > 0 ? `${matchCount} ${matchCount === 1 ? "match" : "matches"} ready` : "Almost there"}
+        </p>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display leading-[1.1] mb-3">
+          {matchCount > 0 ? (
+            <>
+              {greeting}
+              <br />
+              <span className="text-gray-500">Where should we send your {matchCount === 1 ? "match" : "matches"}?</span>
+            </>
+          ) : (
+            <>Where should we send your results?</>
+          )}
         </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          We&apos;ll save your matches and use what you told us to find providers in {stateName} who accept these programs.
+        <p className="text-sm text-gray-500 mb-8">
+          No password. Just a magic link so you can come back anytime.
         </p>
 
-        <div className="space-y-3 mb-4">
+        {/* ── Typeform-style underlined inputs ─────────────────────────── */}
+        <div className="space-y-8 mb-8">
           <div>
-            <label htmlFor="benefits-name" className="text-xs text-gray-500 mb-1 block">Your first name</label>
+            <label htmlFor="benefits-name" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
+              1 · Your first name
+            </label>
             <input
               id="benefits-name"
               type="text"
               placeholder="Sarah"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-4 py-3 text-sm rounded-xl border border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-200 outline-none transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  document.getElementById("benefits-email")?.focus();
+                }
+              }}
+              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
               autoFocus
+              autoComplete="given-name"
             />
           </div>
           <div>
-            <label htmlFor="benefits-email" className="text-xs text-gray-500 mb-1 block">Email</label>
+            <label htmlFor="benefits-email" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
+              2 · Your email
+            </label>
             <input
               id="benefits-email"
               type="email"
+              inputMode="email"
               placeholder="sarah@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !saving) handleSave(); }}
-              className="w-full px-4 py-3 text-sm rounded-xl border border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-200 outline-none transition-colors"
+              onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
+              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
+              autoComplete="email"
             />
           </div>
         </div>
 
         {saveError && (
-          <p className="text-xs text-red-600 mb-3">{saveError}</p>
+          <p className="text-sm text-red-600 mb-4">{saveError}</p>
         )}
 
-        <button
-          onClick={handleSave}
-          disabled={saving || !firstName.trim() || !email.includes("@")}
-          className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
-            saving || !firstName.trim() || !email.includes("@")
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-gray-900 text-white hover:bg-gray-800"
-          }`}
-        >
-          {saving ? (
-            <>
-              <Spinner className="w-4 h-4 animate-spin" weight="bold" />
-              Setting up your dashboard...
-            </>
-          ) : (
-            <>
-              Apply for benefits
-              <ArrowRight className="w-4 h-4" weight="bold" />
-            </>
+        {/* ── Big, inviting primary button + keyboard hint ─────────────── */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleSave}
+            disabled={!canSubmit}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-base transition-all ${
+              canSubmit
+                ? "bg-gray-900 text-white hover:bg-gray-800 hover:scale-[1.02] shadow-lg shadow-gray-900/10"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            {saving ? (
+              <>
+                <Spinner className="w-5 h-5 animate-spin" weight="bold" />
+                Saving your matches...
+              </>
+            ) : (
+              <>
+                Show me my {matchCount === 1 ? "match" : matchCount > 0 ? `${matchCount} matches` : "results"}
+                <ArrowRight className="w-4 h-4" weight="bold" />
+              </>
+            )}
+          </button>
+          {canSubmit && !saving && (
+            <span className="text-xs text-gray-400 hidden sm:inline">
+              or press <kbd className="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono text-[10px]">Enter ↵</kbd>
+            </span>
           )}
-        </button>
-        <p className="text-xs text-gray-400 mt-3 text-center">
-          No password needed. We&apos;ll send a link so you can come back anytime.
-        </p>
+        </div>
       </div>
     );
   }

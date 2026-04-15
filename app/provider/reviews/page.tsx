@@ -299,6 +299,11 @@ function LandingView({
 }) {
   return (
     <div className="flex flex-col h-full">
+      {/* Title */}
+      <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 tracking-tight text-center mb-6">
+        Get more Google reviews
+      </h2>
+
       {/* Hero image with gradient blend */}
       <div className="relative rounded-xl overflow-hidden mb-8">
         <div className="aspect-[2/1] sm:aspect-[5/2] relative">
@@ -789,7 +794,7 @@ function SendRequestForm({
             aria-pressed={deliveryMethod === "email"}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-colors duration-200 ${
               deliveryMethod === "email"
-                ? "text-gray-900"
+                ? "text-primary-600"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -802,7 +807,7 @@ function SendRequestForm({
             aria-pressed={deliveryMethod === "link"}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-colors duration-200 ${
               deliveryMethod === "link"
-                ? "text-gray-900"
+                ? "text-primary-600"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >

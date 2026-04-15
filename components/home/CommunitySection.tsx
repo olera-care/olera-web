@@ -14,7 +14,7 @@ const links = [
   {
     title: "Caregiver Community",
     description: "11,000+ caregivers sharing advice and support on Facebook",
-    href: "https://www.facebook.com/groups/oleracaregivers",
+    href: "https://www.facebook.com/oleracare/",
     external: true,
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

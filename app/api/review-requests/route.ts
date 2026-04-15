@@ -31,7 +31,9 @@ interface OleraReviewRow {
 }
 
 // Free credit limit for review requests (lifetime, not monthly)
-const FREE_REVIEW_CREDITS = 3;
+// Set to Infinity to disable paywall while we gather usage data
+// TODO: Revert to 3 when ready to monetize
+const FREE_REVIEW_CREDITS = Infinity;
 
 /**
  * GET /api/review-requests

@@ -580,21 +580,13 @@ function OleraReviewsTab({ onFlaggedCountChange }: { onFlaggedCountChange: (coun
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex gap-2 justify-end">
-                        {review.flagged ? (
+                        {review.flagged && (
                           <button
                             onClick={() => handleFlag(review.id, false)}
                             disabled={actionLoading === review.id}
                             className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                           >
                             Unflag
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleFlag(review.id, true)}
-                            disabled={actionLoading === review.id}
-                            className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
-                          >
-                            Flag
                           </button>
                         )}
                         <button

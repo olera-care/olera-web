@@ -17,7 +17,7 @@ import {
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 import BackLink from "./BackLink";
-import VerifySubscriptionOnReturn from "@/components/medjobs/VerifySubscriptionOnReturn";
+import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 
 function getSupabase() {
   return createClient(
@@ -155,10 +155,10 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
-      {/* Runs the post-Stripe-checkout activation flow if ?upgraded=true
-          is in the URL. Stripe's returnUrl can land on this page when a
-          user starts checkout from a candidate profile. */}
-      <VerifySubscriptionOnReturn />
+      {/* Refreshes auth state after returning from Stripe checkout.
+          Webhook has already set the subscription flag server-side;
+          this just pulls the updated DB state into client memory. */}
+      <RefreshAfterCheckout />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-32 lg:pb-12">
         {/* Back link - hidden when viewing own profile */}
         <div className="mb-4">

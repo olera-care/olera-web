@@ -782,6 +782,10 @@ function SendRequestForm({
               </p>
               <a
                 href="/account/settings"
+                onClick={() => {
+                  setShowSuccess(false);
+                  setSuccessLink(null);
+                }}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Connect Google Business

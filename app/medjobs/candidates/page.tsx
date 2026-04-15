@@ -7,13 +7,23 @@ import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
-import MedjobsSubscriptionSync from "@/components/medjobs/MedjobsSubscriptionSync";
+import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 
 const PAGE_SIZE = 20;
 
 export default function CandidateBrowsePage() {
   const { openAuth, activeProfile, profiles } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+
+  // Re-fetch candidates when paid status flips — the API returns full
+  // names + contact info only for paid tiers, so the list must refresh
+  // after activation. Not a workaround — just correctly reactive UI.
+  const providerProfile = profiles?.find(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  const isPaid =
+    ((providerProfile?.metadata ?? {}) as Record<string, unknown>)
+      .medjobs_subscription_active === true;
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -28,16 +38,6 @@ export default function CandidateBrowsePage() {
   });
 
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Tracks paid status so the candidate list re-fetches when a
-  // background subscription sync flips the flag (the API returns
-  // full names + contact info only for paid tiers).
-  const providerProfile = profiles?.find(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  );
-  const isPaid =
-    ((providerProfile?.metadata ?? {}) as Record<string, unknown>)
-      .medjobs_subscription_active === true;
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {
@@ -80,8 +80,8 @@ export default function CandidateBrowsePage() {
     [filters]
   );
 
-  // Initial load, filter changes, AND paid-status flips all re-fetch
-  // so the API returns data appropriate for the current tier.
+  // Initial load, filter changes, and paid-status flips all trigger
+  // a fresh fetch so the API returns data appropriate for the tier.
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
@@ -124,9 +124,9 @@ export default function CandidateBrowsePage() {
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
-      {/* Auto-syncs paid state from Stripe when a provider has a
-          customer_id but no active flag. Runs once per session. */}
-      <MedjobsSubscriptionSync />
+      {/* Refreshes auth state after returning from Stripe checkout.
+          Webhook has already set the subscription flag server-side. */}
+      <RefreshAfterCheckout />
 
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">

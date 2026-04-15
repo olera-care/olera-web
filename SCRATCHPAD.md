@@ -255,6 +255,35 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
+### 2026-04-15 (Session 79) — 154-city pipeline batch
+
+**Branch:** `upbeat-sagan` (clean — no code changes, data-only run)
+
+Kicked off a single-session 154-city expansion batch (largest yet). Pipeline ran end-to-end: discovery → clean → load → enrich → finalize.
+
+**Results:**
+- 34,488 providers across 1,451 cities (includes backlog re-scan via cache skip)
+- $540.20 total · 4h 8m · ~$3.51/city (vs. my $21/city projection — way overcounted)
+- Enrichment: 3,490 descriptions, 10,674 reviews hydrated, 1,294 trust-confirmed, **1,639 soft-deleted as false positives** (unified entity+trust step working as intended), 2,807 snippets, 2,258 images
+- ~20 AI batch JSON parse errors in clean phase — auto-recovered via "keep batch"
+
+**Cities needing reprocess (stale `providers_ready.json` cache clamped discovery):**
+- **Empty (0 providers):** Bethpage NY, Holtsville NY
+- **Suspiciously thin:** Wilton NY (1), Wantagh NY (1), Scott PA (3), Whitestown NY (14), Willimantic CT (14), Stanford CA (15), Parole MD (18), Woodcrest CA (18), Wixom MI (20)
+- Fix: `--cities "Bethpage,NY;Holtsville,NY;..." --force --phase all` after soft-deleting current rows per skill playbook
+
+**Notion blocker (unresolved):** only 15/154 pages created. Subagent hit MCP permission denied for `mcp__notion__API-post-page`, and no `NOTION_TOKEN` exists in `.env.local` or TJ-hq, so HTTPS scripting wasn't possible. Inline MCP via main conversation worked but burned context (~3KB per response × 139 = prohibitive). TJ said skip and troubleshoot later. Needs either a Notion integration token or a subagent permission fix.
+
+**Decisions locked in this session:**
+- Projected costs for city batches should use ~$3.50/city, not $21/city
+- For >20-city batches, the subagent path for Notion is currently broken — don't rely on it until permission story is resolved
+
+**Next up:**
+1. Reprocess the 11 thin/empty cities with `--force`
+2. Notion credential/permission troubleshooting for visibility on future batches
+3. Spot-check live pages for strong new cities (Pinehurst NC 48, Holly Springs GA 54, Sunland Park NM 64)
+4. Return to ship-day queue from last session (vigilant-zhukovsky merge, SBF CTA, Chantel factcheck triage)
+
 ### 2026-04-14 (Session 78, ship day morning) — ReviewGuide + v2-as-default question
 
 **Branch:** `vigilant-zhukovsky` | **Latest commit:** `87947ca1`

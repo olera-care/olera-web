@@ -93,11 +93,12 @@ export async function POST() {
     const medjobsPrice = PRICE_IDS.medjobs_monthly || undefined;
 
     const findMedjobsSub = async (): Promise<Stripe.Subscription | null> => {
-      // Pull all non-cancelled subs. `all` includes active, trialing,
-      // incomplete, past_due, etc.
+      // No status filter — default Stripe behavior returns active,
+      // trialing, past_due, and incomplete (it omits cancelled). That's
+      // exactly the set we want. Explicit status: "all" may not be
+      // accepted in every Stripe API version so we rely on the default.
       const list = await stripe.subscriptions.list({
         customer: customerId,
-        status: "all",
         limit: 10,
       });
 
@@ -187,7 +188,8 @@ export async function POST() {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
-    console.error("[verify-subscription] unexpected error:", msg);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error("[verify-subscription] unexpected error:", msg, stack);
     return NextResponse.json({ error: "Internal error", detail: msg }, { status: 500 });
   }
 }

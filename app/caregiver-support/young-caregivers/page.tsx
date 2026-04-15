@@ -42,7 +42,7 @@ export default function YoungCaregiversPage() {
               </p>
               <div className="flex items-start">
                 <Link
-                  href="https://discord.gg/BmdZDwYB6Z"
+                  href="https://discord.com/invite/R8Mkj5VJsk"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center min-h-[56px] px-10 rounded-full font-bold text-base active:translate-y-[1px] transition-all duration-200 hover:brightness-110"
@@ -283,7 +283,7 @@ export default function YoungCaregiversPage() {
             Connect with caregivers who understand. No fees, no judgment, just support.
           </p>
           <Link
-            href="https://discord.gg/BmdZDwYB6Z"
+            href="https://discord.com/invite/R8Mkj5VJsk"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center min-h-[64px] px-14 rounded-full font-bold text-lg hover:scale-105 active:scale-100 transition-all duration-200"

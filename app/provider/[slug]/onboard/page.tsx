@@ -773,6 +773,7 @@ export default function ProviderOnboardPage() {
             <button
               onClick={() => {
                 clearClaimSession();
+                sessionStorage.removeItem("olera_post_claim_redirect");
                 window.location.reload();
               }}
               className="px-5 py-2.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px]"
@@ -792,11 +793,30 @@ export default function ProviderOnboardPage() {
   }
 
   // Determine success redirect URL based on action type
-  const getSuccessRedirectUrl = () =>
-    getActionRedirectUrl(actionParam, actionIdParam);
+  const getSuccessRedirectUrl = () => {
+    // Check for stored redirect from reviews card click
+    const storedRedirect = typeof window !== "undefined"
+      ? sessionStorage.getItem("olera_post_claim_redirect")
+      : null;
+    if (storedRedirect) {
+      sessionStorage.removeItem("olera_post_claim_redirect");
+      return storedRedirect;
+    }
+    return getActionRedirectUrl(actionParam, actionIdParam);
+  };
 
   // Get button text based on action type
   const getSuccessButtonText = () => {
+    // Check for stored redirect from card clicks
+    const storedRedirect = typeof window !== "undefined"
+      ? sessionStorage.getItem("olera_post_claim_redirect")
+      : null;
+    if (storedRedirect === "/provider/reviews") {
+      return "Go to Reviews";
+    }
+    if (storedRedirect === "/provider/medjobs/candidates") {
+      return "Browse Caregivers";
+    }
     if (actionParam === "lead" || actionParam === "message") {
       return "View Message";
     } else if (actionParam === "question") {

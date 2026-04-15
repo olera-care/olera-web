@@ -433,6 +433,42 @@ export function slackProviderAction(opts: {
   };
 }
 
+export function slackBenefitsStarted(opts: {
+  careNeedLabel: string;
+  stateCode: string | null;
+  stateName: string | null;
+  providerName: string | null;
+  providerSlug: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const providerLine = opts.providerName && opts.providerSlug
+    ? `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>`
+    : opts.providerName || "unknown provider";
+
+  return {
+    text: `Benefits intake started: ${opts.careNeedLabel}${opts.stateCode ? ` (${opts.stateCode})` : ""}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "👀 Benefits Intake Started", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Care need:*\n${opts.careNeedLabel}` },
+          ...(opts.stateName || opts.stateCode
+            ? [{ type: "mrkdwn", text: `*State:*\n${opts.stateName || opts.stateCode}` }]
+            : []),
+        ],
+      },
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `*On provider page:* ${providerLine}` },
+      },
+    ],
+  };
+}
+
 export function slackBenefitsCompleted(opts: {
   familyName: string;
   email: string;

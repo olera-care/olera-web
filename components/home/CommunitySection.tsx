@@ -34,7 +34,7 @@ const links = [
   {
     title: "Find Financial Aid Programs",
     description: "Medicare, Medicaid, and veteran benefits you may qualify for",
-    href: "/benefits",
+    href: "/senior-benefits",
     external: false,
     icon: (
       <Image src="/images/finances.png" alt="" width={20} height={20} className="object-contain opacity-40" />

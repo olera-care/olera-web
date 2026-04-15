@@ -895,7 +895,7 @@ export default async function ProviderPage({
       </div>
 
       {/* ===== Content Zone — White Background ===== */}
-      <div className="bg-white">
+      <div className="bg-white" data-spotlight-zone>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* -- Two-Column Grid (content + sticky sidebar) -- */}
@@ -907,7 +907,7 @@ export default async function ProviderPage({
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
-            <div>
+            <div data-spotlight-parent>
 
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
@@ -939,6 +939,7 @@ export default async function ProviderPage({
                     created_at: q.created_at,
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
+                  hasBenefitsSection={hasBenefitsData && !!benefitsData}
                 />
               </div>
 
@@ -949,6 +950,8 @@ export default async function ProviderPage({
                     providerState={profile.state!}
                     stateId={benefitsData.stateId}
                     stateName={benefitsData.stateName}
+                    providerName={profile.display_name}
+                    providerSlug={profile.slug}
                     topPrograms={benefitsData.programs.map((p) => ({
                       id: p.id,
                       name: p.name,

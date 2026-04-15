@@ -1,3 +1,23 @@
+/**
+ * DEPRECATED FOR PRODUCTION — kept as backup and for local dev.
+ *
+ * The production Stripe webhook receiver is now the Supabase Edge Function at
+ * `supabase/functions/stripe-webhook/index.ts`. Stripe no longer sends events
+ * to this URL — Vercel's Bot Protection edge layer blocks Stripe's GCP-origin
+ * POSTs with 403 regardless of Custom Bypass / System Bypass firewall rules
+ * (see April 2026 debugging notes). Supabase Edge Functions are not behind
+ * that layer, so we route webhooks there.
+ *
+ * WHEN EDITING: mirror any changes to the Supabase function at
+ * `supabase/functions/stripe-webhook/index.ts` until one is deleted.
+ *
+ * LOCAL DEV: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+ * still works against this route. No firewall issues locally.
+ *
+ * ROLLBACK: if the Supabase function fails, re-enable this endpoint in the
+ * Stripe Dashboard (URL `https://olera.care/api/stripe/webhook`) and disable
+ * the Supabase endpoint. No code changes required.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";

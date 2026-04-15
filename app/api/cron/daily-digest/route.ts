@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     // Fetch counts in parallel
-    const [connectionsRes, claimsRes, disputesRes] = await Promise.all([
+    const [connectionsRes, claimsRes, disputesRes, questionsAskedRes, questionsAnsweredRes] = await Promise.all([
       db
         .from("connections")
         .select("id, from_profile_id, to_profile_id, created_at", { count: "exact" })
@@ -44,14 +44,30 @@ export async function GET(request: NextRequest) {
         .gte("created_at", oneDayAgo)
         .order("created_at", { ascending: false })
         .limit(10),
+      db
+        .from("provider_questions")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", oneDayAgo),
+      db
+        .from("provider_questions")
+        .select("id", { count: "exact", head: true })
+        .gte("answered_at", oneDayAgo),
     ]);
 
     const newLeads = connectionsRes.count ?? 0;
     const newClaims = claimsRes.count ?? 0;
     const newDisputes = disputesRes.count ?? 0;
+    const questionsAsked = questionsAskedRes.count ?? 0;
+    const questionsAnswered = questionsAnsweredRes.count ?? 0;
 
     // Skip if nothing happened
-    if (newLeads === 0 && newClaims === 0 && newDisputes === 0) {
+    if (
+      newLeads === 0 &&
+      newClaims === 0 &&
+      newDisputes === 0 &&
+      questionsAsked === 0 &&
+      questionsAnswered === 0
+    ) {
       return NextResponse.json({ status: "skipped", reason: "No activity in last 24h" });
     }
 
@@ -75,6 +91,12 @@ export async function GET(request: NextRequest) {
         lines.push(`<p style="margin:0 0 4px;padding-left:16px;color:#555;">• ${dispute.provider_name}: ${dispute.reason?.slice(0, 80)}</p>`);
       }
     }
+    if (questionsAsked > 0) {
+      lines.push(`<p style="margin:0 0 8px;"><strong>${questionsAsked} question${questionsAsked === 1 ? "" : "s"} asked</strong></p>`);
+    }
+    if (questionsAnswered > 0) {
+      lines.push(`<p style="margin:0 0 8px;"><strong>${questionsAnswered} question${questionsAnswered === 1 ? "" : "s"} answered</strong></p>`);
+    }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     lines.push(`<p style="margin:24px 0 0;"><a href="${siteUrl}/admin" style="color:#198087;">View admin dashboard →</a></p>`);
@@ -83,7 +105,7 @@ export async function GET(request: NextRequest) {
     if (adminEmail) {
       await sendEmail({
         to: adminEmail,
-        subject: `Olera Daily Digest: ${newLeads} leads, ${newClaims} claims, ${newDisputes} disputes`,
+        subject: `Olera Daily Digest: ${newLeads} leads, ${newClaims} claims, ${newDisputes} disputes, ${questionsAsked} Qs asked, ${questionsAnswered} answered`,
         html: lines.join("\n"),
         emailType: "daily_digest",
         recipientType: "admin",
@@ -92,7 +114,7 @@ export async function GET(request: NextRequest) {
 
     // Slack summary
     try {
-      const slackText = `📊 *Daily Digest* — ${newLeads} leads, ${newClaims} claims, ${newDisputes} disputes in the last 24h`;
+      const slackText = `📊 *Daily Digest* — ${newLeads} leads, ${newClaims} claims, ${newDisputes} disputes, ${questionsAsked} questions asked, ${questionsAnswered} answered in the last 24h`;
       await sendSlackAlert(slackText);
     } catch {
       // Non-blocking
@@ -103,6 +125,8 @@ export async function GET(request: NextRequest) {
       leads: newLeads,
       claims: newClaims,
       disputes: newDisputes,
+      questionsAsked,
+      questionsAnswered,
     });
   } catch (err) {
     console.error("[cron/daily-digest] error:", err);

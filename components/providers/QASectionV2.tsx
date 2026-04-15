@@ -20,6 +20,12 @@ interface QASectionProps {
   providerImage?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
+  // When true, the page has a benefits discovery module below Q&A.
+  // In that case we skip the inline guest enrichment prompt (email capture)
+  // because the benefits intake is the stronger conversion path — it
+  // captures name + email + a full profile rather than just an email.
+  // The spotlight handoff then owns the post-submit moment.
+  hasBenefitsSection?: boolean;
 }
 
 // More menu icon component
@@ -103,6 +109,7 @@ export default function QASectionV2({
     "How quickly can you get started?",
     "Do you accept insurance or Medicaid?",
   ],
+  hasBenefitsSection = false,
 }: QASectionProps) {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -191,8 +198,11 @@ export default function QASectionV2({
       if (data.question) {
         setQuestions((prev) => [data.question, ...prev]);
 
-        // For guests: show enrichment prompt after successful submit
-        if (!user && data.question.id) {
+        // For guests: show enrichment prompt after successful submit.
+        // SKIP when the page has a benefits module — the benefits spotlight
+        // handoff owns the post-submit moment and captures email as part of
+        // its intake. Showing both fights for focus and scroll position.
+        if (!user && data.question.id && !hasBenefitsSection) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -200,6 +210,18 @@ export default function QASectionV2({
 
       setInputValue("");
       setSubmitStatus("success");
+
+      // ─── Benefits spotlight handoff ──────────────────────────────
+      // The Q&A moment is peak intent — the caregiver just articulated
+      // their exact worry. Pass the question text to the benefits module
+      // so it can quietly bring itself into focus.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("olera:question-submitted", {
+            detail: { question: questionText.trim() },
+          }),
+        );
+      }
 
       // Auto-dismiss success for authenticated users
       if (user) {
@@ -214,7 +236,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot]);
+  }, [providerId, user, honeypot, hasBenefitsSection]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {

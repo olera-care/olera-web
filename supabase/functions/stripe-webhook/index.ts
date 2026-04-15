@@ -24,7 +24,7 @@
 //                             need to call Stripe API; current handlers don't)
 //   STRIPE_WEBHOOK_SECRET   — whsec_... from Stripe Dashboard → webhook endpoint
 
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@20.3.0";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
@@ -41,7 +41,9 @@ if (!supabaseUrl || !serviceRoleKey) {
   console.error("[stripe-webhook] Supabase service role credentials not configured");
 }
 
-const stripe = new Stripe(stripeSecret, { apiVersion: "2025-03-31.basil" });
+// Match main codebase's Stripe API version (lib/stripe.ts) so event shapes
+// and any future API calls are consistent.
+const stripe = new Stripe(stripeSecret, { apiVersion: "2026-01-28.clover" });
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 Deno.serve(async (req) => {
@@ -91,14 +93,23 @@ Deno.serve(async (req) => {
 
         // Only handle MedJobs flow in MVP. Other checkout sessions are logged
         // and ignored — keeps scope narrow per product decision 2026-04-15.
-        if (
-          session.metadata?.product !== "medjobs" ||
-          !session.metadata?.profile_id
-        ) {
+        if (session.metadata?.product !== "medjobs") {
           console.log(
-            `[stripe-webhook] Ignoring non-medjobs checkout session ${session.id}`,
+            `[stripe-webhook] Ignoring non-medjobs checkout session ${session.id} (product=${session.metadata?.product ?? "<none>"})`,
           );
           break;
+        }
+
+        // MedJobs session but missing profile_id — this indicates a bug in
+        // /api/medjobs/checkout, not a normal case. Log loudly and return 500
+        // so Stripe retries and the failure stays visible in Stripe Dashboard.
+        if (!session.metadata?.profile_id) {
+          console.error(
+            `[stripe-webhook] MedJobs checkout session ${session.id} missing profile_id metadata`,
+          );
+          throw new Error(
+            `MedJobs session ${session.id} missing required profile_id metadata`,
+          );
         }
 
         const profileId = session.metadata.profile_id;

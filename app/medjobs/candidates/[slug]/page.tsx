@@ -17,7 +17,7 @@ import {
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 import BackLink from "./BackLink";
-import VerifySubscriptionOnReturn from "@/components/medjobs/VerifySubscriptionOnReturn";
+import MedjobsSubscriptionSync from "@/components/medjobs/MedjobsSubscriptionSync";
 
 function getSupabase() {
   return createClient(
@@ -155,10 +155,10 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
-      {/* Runs the post-Stripe-checkout activation flow if ?upgraded=true
-          is in the URL. Stripe's returnUrl can land on this page when a
-          user starts checkout from a candidate profile. */}
-      <VerifySubscriptionOnReturn />
+      {/* Auto-syncs the MedJobs subscription flag from Stripe if the
+          logged-in provider has a customer_id but no active flag yet.
+          Catches the post-checkout case without relying on URL params. */}
+      <MedjobsSubscriptionSync />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-32 lg:pb-12">
         {/* Back link - hidden when viewing own profile */}
         <div className="mb-4">

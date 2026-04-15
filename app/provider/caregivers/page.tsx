@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
@@ -12,7 +13,23 @@ type InterviewWithProfiles = Interview & {
   student?: { id: string; slug?: string; display_name: string; image_url?: string; email?: string; metadata?: Record<string, unknown> };
 };
 
+// useSearchParams requires a Suspense boundary for Next.js static prerender.
 export default function ProviderCaregiversPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProviderCaregiversContent />
+    </Suspense>
+  );
+}
+
+function ProviderCaregiversContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Capture once on mount — we strip this param via router.replace after
+  // opening the modal, but we still want the auto-open to fire even after
+  // the URL has been cleaned.
+  const initialNewInterviewIdRef = useRef<string | null>(searchParams.get("newInterview"));
+  const newInterviewId = initialNewInterviewIdRef.current;
   const { activeProfile, isLoading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,21 +40,54 @@ export default function ProviderCaregiversPage() {
   const providerMeta = (activeProfile?.metadata ?? {}) as Record<string, unknown>;
   const accessInfo = getAccessTier(!!activeProfile, providerMeta);
 
-  const fetchInterviews = useCallback(async () => {
+  const fetchInterviews = useCallback(async (): Promise<InterviewWithProfiles[]> => {
     try {
       const res = await fetch("/api/medjobs/interviews");
       const data = await res.json();
-      if (data.interviews) setInterviews(data.interviews);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+      const list = (data.interviews ?? []) as InterviewWithProfiles[];
+      setInterviews(list);
+      return list;
+    } catch {
+      return [];
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Wait for auth to complete before fetching interviews
+  // Initial fetch. If the URL carries ?newInterview=<id> from the claim
+  // redirect but that interview isn't visible in the first response (rare
+  // replica-lag edge case), retry a few times before giving up on the
+  // auto-open so the modal still lands.
   useEffect(() => {
-    if (!authLoading) {
-      fetchInterviews();
-    }
-  }, [fetchInterviews, authLoading]);
+    if (authLoading) return;
+    let cancelled = false;
+    (async () => {
+      const list = await fetchInterviews();
+      if (cancelled || !newInterviewId) return;
+      const found = list.some((iv) => iv.id === newInterviewId);
+      if (found) return;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await new Promise((r) => setTimeout(r, 500));
+        if (cancelled) return;
+        const retry = await fetchInterviews();
+        if (retry.some((iv) => iv.id === newInterviewId)) return;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchInterviews, authLoading, newInterviewId]);
+
+  // Once the auto-open has a target to work with, strip the URL param so
+  // refresh/back don't re-open the modal.
+  const urlCleanedRef = useRef(false);
+  useEffect(() => {
+    if (urlCleanedRef.current || !newInterviewId) return;
+    const match = interviews.find((iv) => iv.id === newInterviewId);
+    if (!match) return;
+    urlCleanedRef.current = true;
+    router.replace("/provider/caregivers", { scroll: false });
+  }, [interviews, newInterviewId, router]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
@@ -71,6 +121,7 @@ export default function ProviderCaregiversPage() {
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
           accessTier={accessInfo.tier}
+          initialSelectedId={newInterviewId ?? undefined}
         />
       </div>
 

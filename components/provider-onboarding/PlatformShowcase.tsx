@@ -11,6 +11,10 @@ import { getPrimaryImage } from "@/lib/types/provider";
 interface PlatformShowcaseProps {
   provider: Provider;
   completenessPercent: number;
+  /** Called when user clicks the reviews card - triggers claim flow */
+  onReviewsClick?: () => void;
+  /** Called when user clicks the hire staff card - triggers claim flow */
+  onHireStaffClick?: () => void;
 }
 
 // ── Individual Value Card (static, non-interactive) ──
@@ -21,13 +25,54 @@ function ValueCard({
   badge,
   icon,
   delay = 0,
+  onClick,
 }: {
   headline: string;
   subtext: string;
   badge?: string;
   icon: React.ReactNode;
   delay?: number;
+  onClick?: () => void;
 }) {
+  const content = (
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="text-base font-display font-semibold text-gray-900">
+            {headline}
+          </h3>
+          {badge && (
+            <span className="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-primary-50 text-primary-700">
+              {badge}
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 leading-relaxed">{subtext}</p>
+      </div>
+
+      {/* Icon */}
+      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+    </div>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="bg-white rounded-2xl border border-gray-100 p-6 text-left w-full hover:shadow-md hover:border-gray-200 transition-all duration-200"
+        style={{
+          animation: "card-enter 0.3s ease-out both",
+          animationDelay: `${delay}ms`,
+        }}
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
     <div
       className="bg-white rounded-2xl border border-gray-100 p-6"
@@ -36,26 +81,7 @@ function ValueCard({
         animationDelay: `${delay}ms`,
       }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <h3 className="text-base font-display font-semibold text-gray-900">
-              {headline}
-            </h3>
-            {badge && (
-              <span className="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-primary-50 text-primary-700">
-                {badge}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-500 leading-relaxed">{subtext}</p>
-        </div>
-
-        {/* Icon */}
-        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-          {icon}
-        </div>
-      </div>
+      {content}
     </div>
   );
 }
@@ -139,10 +165,10 @@ function ListingCard({
 
 // ── Icons ──
 
-function FamiliesIcon() {
+function ReviewsIcon() {
   return (
     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
     </svg>
   );
 }
@@ -160,9 +186,9 @@ function StaffIcon() {
 export default function PlatformShowcase({
   provider,
   completenessPercent,
+  onReviewsClick,
+  onHireStaffClick,
 }: PlatformShowcaseProps) {
-  const city = provider.city || "your area";
-
   return (
     <div className="space-y-4 mt-2">
       {/* Section label — subtle, not competing */}
@@ -176,10 +202,11 @@ export default function PlatformShowcase({
       {/* Value cards — 2-column, balanced */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ValueCard
-          headline="Families in your area"
-          subtext={`Families nearby in ${city} are looking for care`}
-          icon={<FamiliesIcon />}
+          headline="Get more reviews"
+          subtext="Request reviews from clients"
+          icon={<ReviewsIcon />}
           delay={150}
+          onClick={onReviewsClick}
         />
 
         <ValueCard
@@ -188,6 +215,7 @@ export default function PlatformShowcase({
           badge="New"
           icon={<StaffIcon />}
           delay={210}
+          onClick={onHireStaffClick}
         />
       </div>
 

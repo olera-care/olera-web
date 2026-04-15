@@ -7,12 +7,23 @@ import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
+import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 
 const PAGE_SIZE = 20;
 
 export default function CandidateBrowsePage() {
-  const { openAuth, activeProfile, refreshAccountData } = useAuth();
+  const { openAuth, activeProfile, profiles } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+
+  // Re-fetch candidates when paid status flips — the API returns full
+  // names + contact info only for paid tiers, so the list must refresh
+  // after activation. Not a workaround — just correctly reactive UI.
+  const providerProfile = profiles?.find(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  const isPaid =
+    ((providerProfile?.metadata ?? {}) as Record<string, unknown>)
+      .medjobs_subscription_active === true;
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -27,7 +38,6 @@ export default function CandidateBrowsePage() {
   });
 
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const hasVerified = useRef(false);
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {
@@ -70,37 +80,12 @@ export default function CandidateBrowsePage() {
     [filters]
   );
 
-  // Initial load + filter changes
+  // Initial load, filter changes, and paid-status flips all trigger
+  // a fresh fetch so the API returns data appropriate for the tier.
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
-  }, [fetchCandidates]);
-
-  // After returning from Stripe checkout, verify subscription and refresh auth
-  useEffect(() => {
-    if (hasVerified.current) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("upgraded") !== "true" || !isProvider) return;
-    hasVerified.current = true;
-
-    // Clear the query param from URL
-    params.delete("upgraded");
-    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
-    window.history.replaceState({}, "", newUrl);
-
-    // Verify subscription with Stripe and refresh auth context
-    (async () => {
-      try {
-        await fetch("/api/medjobs/verify-subscription", { method: "POST" });
-        await refreshAccountData();
-        // Re-fetch candidates with new access tier (now paid = full profiles)
-        setPage(0);
-        fetchCandidates(0, false);
-      } catch {
-        // Silent — webhook may still activate later
-      }
-    })();
-  }, [isProvider, refreshAccountData, fetchCandidates]);
+  }, [fetchCandidates, isPaid]);
 
   // Infinite scroll — intersection observer
   useEffect(() => {
@@ -139,6 +124,10 @@ export default function CandidateBrowsePage() {
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
+      {/* Refreshes auth state after returning from Stripe checkout.
+          Webhook has already set the subscription flag server-side. */}
+      <RefreshAfterCheckout />
+
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">

@@ -109,6 +109,7 @@ function ReviewPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Form state
+  const [reviewerName, setReviewerName] = useState(clientName);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [experience, setExperience] = useState("");
@@ -174,7 +175,7 @@ function ReviewPageContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reviewer_name: clientName || "Anonymous",
+          reviewer_name: reviewerName.trim() || "Anonymous",
           rating,
           review_text: experience.trim(),
         }),
@@ -360,12 +361,21 @@ function ReviewPageContent() {
 
               {/* Form content */}
               <div className="px-6 py-5">
-                {/* Personalized greeting */}
-                {clientName && (
-                  <p className="text-sm text-primary-600 font-medium mb-4 text-center">
-                    Hi {clientName}! Thanks for sharing your feedback.
-                  </p>
-                )}
+                {/* Name input field */}
+                <div className="mb-5">
+                  <label htmlFor="reviewer-name-olera" className="block text-sm font-medium text-gray-700 mb-1.5 text-center">
+                    Your name
+                  </label>
+                  <input
+                    type="text"
+                    id="reviewer-name-olera"
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    placeholder="Enter your name (optional)"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] text-center placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200"
+                    autoComplete="name"
+                  />
+                </div>
 
                 {/* Title + subtitle + stars as unified stack */}
                 <div className="text-center mb-6">
@@ -564,12 +574,28 @@ function ReviewPageContent() {
 
             {/* Form content */}
             <div className="px-6 py-5">
-              {/* Personalized greeting */}
+              {/* Personalized greeting (if name from URL) */}
               {clientName && (
                 <p className="text-sm text-primary-600 font-medium mb-4 text-center">
                   Hi {clientName}! Thanks for sharing your feedback.
                 </p>
               )}
+
+              {/* Name input field */}
+              <div className="mb-5">
+                <label htmlFor="reviewer-name-google" className="block text-sm font-medium text-gray-700 mb-1.5 text-center">
+                  Your name
+                </label>
+                <input
+                  type="text"
+                  id="reviewer-name-google"
+                  value={reviewerName}
+                  onChange={(e) => setReviewerName(e.target.value)}
+                  placeholder="Enter your name (optional)"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] text-center placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200"
+                  autoComplete="name"
+                />
+              </div>
 
               {/* Title + subtitle + stars as unified stack */}
               <div className="text-center mb-6">

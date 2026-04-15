@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
@@ -40,6 +40,8 @@ interface InterviewCalendarProps {
   actionLoading: string | null;
   /** Provider's access tier — used to show upgrade banner when exhausted */
   accessTier?: AccessTier;
+  /** If set, auto-open the detail modal for this interview id once it arrives */
+  initialSelectedId?: string;
 }
 
 /* ── Helpers ── */
@@ -113,11 +115,29 @@ export default function InterviewCalendar({
   onUpdateStatus,
   actionLoading,
   accessTier,
+  initialSelectedId,
 }: InterviewCalendarProps) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selected, setSelected] = useState<InterviewWithProfiles | null>(null);
+
+  // Auto-open the detail modal when arriving from the magic-link claim
+  // redirect. Fires once: after the interview actually appears in the list
+  // the user can close the modal without it re-opening.
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (autoOpenedRef.current || !initialSelectedId) return;
+    const match = interviews.find((iv) => iv.id === initialSelectedId);
+    if (!match) return;
+    autoOpenedRef.current = true;
+    setSelected(match);
+    // Jump the calendar view to the month of that interview so the user
+    // sees the highlighted day when they close the modal.
+    const d = new Date(match.confirmed_time || match.proposed_time);
+    setYear(d.getFullYear());
+    setMonth(d.getMonth());
+  }, [initialSelectedId, interviews]);
 
   // Count pending inbound requests (for upgrade banner)
   const pendingInboundCount = useMemo(() => {

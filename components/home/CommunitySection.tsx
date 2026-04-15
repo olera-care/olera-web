@@ -5,8 +5,8 @@ const links = [
   {
     title: "Young Caregivers Discord",
     description: "Connect with other young adults navigating caregiving",
-    href: "https://discord.gg/R8Mkj5VJsk",
-    external: true,
+    href: "/caregiver-support/young-caregivers",
+    external: false,
     icon: (
       <Image src="/images/discord.png" alt="" width={20} height={20} className="object-contain opacity-40" />
     ),
@@ -14,7 +14,7 @@ const links = [
   {
     title: "Caregiver Community",
     description: "11,000+ caregivers sharing advice and support on Facebook",
-    href: "https://www.facebook.com/groups/oleracaregivers",
+    href: "https://www.facebook.com/oleracare/",
     external: true,
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -60,12 +60,17 @@ export default function CommunitySection() {
               <span className="text-sm font-medium text-gray-400 tracking-wide uppercase">
                 Documentary Series
               </span>
-              <h3 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 leading-tight mt-2">
-                Aging in America
-              </h3>
-              <p className="mt-3 text-base text-gray-500 max-w-md leading-relaxed">
-                Explore the realities of senior care in America and discover how families navigate finding the right care.
-              </p>
+              <Link
+                href="/aging-in-america"
+                className="block group mt-2"
+              >
+                <h3 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 leading-tight group-hover:text-primary-700 transition-colors">
+                  Aging in America
+                </h3>
+                <p className="mt-3 text-base text-gray-500 max-w-md leading-relaxed">
+                  Explore the realities of senior care in America and discover how families navigate finding the right care.
+                </p>
+              </Link>
               <a
                 href="https://www.youtube.com/@OleraCare"
                 target="_blank"

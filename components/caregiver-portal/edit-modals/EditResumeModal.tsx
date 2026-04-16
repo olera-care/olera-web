@@ -27,6 +27,7 @@ export default function EditResumeModal({
   const [resumeUrl, setResumeUrl] = useState(meta.resume_url || "");
   const [resumeFile, setResumeFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -60,10 +61,17 @@ export default function EditResumeModal({
   };
 
   // Validate LinkedIn URL (after normalization)
+  // Accepts various LinkedIn URL formats:
+  // - linkedin.com/in/username
+  // - www.linkedin.com/in/username
+  // - uk.linkedin.com/in/username (country subdomains)
+  // - linkedin.com/in/username?locale=en_US (with query params)
+  // - linkedin.com/in/first-last-123abc/ (with trailing slash)
   const isValidLinkedIn = (url: string) => {
     if (!url.trim()) return true; // Empty is valid (optional field)
     const normalized = normalizeLinkedInUrl(url);
-    const pattern = /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/i;
+    // More permissive pattern: any subdomain, /in/username, optional trailing path/query
+    const pattern = /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/in\/[\w-]+/i;
     return pattern.test(normalized);
   };
 
@@ -139,8 +147,8 @@ export default function EditResumeModal({
 
       // Update local state with new URL and file info
       if (data.url) {
-        setResumeUrl(data.url);
-        setResumeFile({ name: file.name, size: file.size });
+        // Show success state briefly
+        setUploadSuccess(true);
 
         // Auto-save immediately after successful upload
         await saveStudentProfile({
@@ -150,9 +158,15 @@ export default function EditResumeModal({
           },
         });
 
-        // Show "Saved!" confirmation briefly
-        setResumeJustSaved(true);
-        setTimeout(() => setResumeJustSaved(false), 3000);
+        // After a brief delay, transition to the uploaded view
+        setTimeout(() => {
+          setUploadSuccess(false);
+          setResumeUrl(data.url);
+          setResumeFile({ name: file.name, size: file.size });
+          // Show "Saved!" confirmation
+          setResumeJustSaved(true);
+          setTimeout(() => setResumeJustSaved(false), 3000);
+        }, 800);
       }
     } catch {
       setError("Network error. Please try again.");
@@ -269,10 +283,21 @@ export default function EditResumeModal({
               }`}
             >
               {uploading ? (
-                <>
-                  <div className="w-10 h-10 border-[3px] border-gray-200 border-t-[#199087] rounded-full animate-spin mb-3" />
-                  <p className="text-sm font-medium text-gray-600">Uploading...</p>
-                </>
+                <div className="py-4">
+                  <div className="w-12 h-12 border-[3px] border-[#199087]/20 border-t-[#199087] rounded-full animate-spin mb-4 mx-auto" />
+                  <p className="text-base font-semibold text-[#199087]">Uploading your resume...</p>
+                  <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
+                </div>
+              ) : uploadSuccess ? (
+                <div className="py-4">
+                  <div className="w-12 h-12 rounded-full bg-[#199087] flex items-center justify-center mb-4 mx-auto animate-pulse">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-base font-semibold text-[#199087]">Upload complete!</p>
+                  <p className="text-sm text-gray-500 mt-1">Saving to your profile...</p>
+                </div>
               ) : (
                 <>
                   <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">

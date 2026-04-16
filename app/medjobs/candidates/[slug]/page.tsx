@@ -210,10 +210,10 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* University (hidden) + Track + Location - show track and location */}
+                  {/* University + Track + Location */}
                   <div className="mt-2 space-y-0.5">
                     {meta.university && (
-                      <p className="text-base text-gray-400 font-medium">University hidden</p>
+                      <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                     )}
                     <p className="text-sm text-gray-500">
                       {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
@@ -405,7 +405,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {meta.university && (
                     <div>
                       <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
-                      <dd className="text-base text-gray-400">Hidden</dd>
+                      <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
+                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{meta.major}</dd>}
                     </div>
                   )}
                   <div>

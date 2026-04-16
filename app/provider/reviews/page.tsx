@@ -750,7 +750,7 @@ function SendRequestForm({
               <button
                 type="button"
                 onClick={handleCopySuccessLink}
-                className="px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
+                className="px-3 py-2 text-xs font-medium text-primary-600 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
               >
                 Copy
               </button>

@@ -401,6 +401,148 @@ function maskEmail(email: string): string {
 }
 
 // ============================================================
+// Inline Question Response (respond without leaving the page)
+// ============================================================
+
+function InlineQuestionResponse({
+  questionId,
+  askerName,
+  providerCity,
+  providerState,
+}: {
+  questionId: string;
+  askerName: string;
+  providerCity?: string | null;
+  providerState?: string | null;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = async () => {
+    const trimmed = answer.trim();
+    if (!trimmed || isSubmitting) return;
+    if (trimmed.length > 2000) {
+      setError("Response must be under 2,000 characters.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const doFetch = () =>
+        fetch("/api/provider/questions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: questionId, answer: trimmed }),
+        });
+
+      let res = await doFetch();
+
+      // Retry once on 401 — background auto-sign-in may still be
+      // setting cookies when a fast typer submits within seconds
+      if (res.status === 401) {
+        await new Promise((r) => setTimeout(r, 2000));
+        res = await doFetch();
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Failed to send response. Please try again.");
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Location string for the success state
+  const locationStr = providerCity && providerState
+    ? ` in ${providerCity}`
+    : "";
+
+  // Success state — response sent, anchored to the moment
+  if (submitted) {
+    return (
+      <div className="py-1" style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Confirmation */}
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
+            <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[15px] font-semibold text-gray-900">
+              Response sent to {askerName}
+            </p>
+            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+              Your answer is now visible on your public profile. Families
+              researching senior care{locationStr} will see it.
+            </p>
+          </div>
+        </div>
+
+        {/* Pivot — earned context */}
+        <div className="border-t border-gray-100 pt-4">
+          <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-0.5">
+            Want more families to find you?
+          </p>
+          <p className="text-sm text-gray-500">
+            Reviews and Q&amp;A answers are the two biggest signals families use
+            when choosing a provider. You just did one — explore the other below.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Response form
+  return (
+    <div>
+      <textarea
+        ref={textareaRef}
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Type your response..."
+        rows={3}
+        maxLength={2000}
+        className="w-full px-4 py-3 text-[15px] text-gray-900 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-gray-400 transition-all"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+      />
+      {error && (
+        <p className="text-sm text-red-600 mt-2">{error}</p>
+      )}
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-xs text-gray-400">
+          {answer.length > 0 ? `${answer.length}/2,000` : ""}
+        </span>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!answer.trim() || isSubmitting}
+          className="px-6 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]"
+        >
+          {isSubmitting ? "Sending..." : "Send Response"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // Main Component
 // ============================================================
 
@@ -609,14 +751,14 @@ export default function ActionCard({
           )}
         </div>
 
-        {/* CTA */}
+        {/* Inline response or CTA */}
         {(isSignedIn || preVerifiedEmail) ? (
-          <Link
-            href={`/provider/qna?id=${notificationData.id}`}
-            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
-          >
-            View and answer
-          </Link>
+          <InlineQuestionResponse
+            questionId={notificationData.id}
+            askerName={personName}
+            providerCity={provider.city}
+            providerState={provider.state}
+          />
         ) : (
           <>
             <button

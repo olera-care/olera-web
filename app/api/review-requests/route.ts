@@ -280,18 +280,22 @@ export async function POST(request: NextRequest) {
       if (delivery_method === "link") {
         // Log the link share in background (don't block response)
         linkLogTasks.push(
-          db.from("email_log").insert({
-            provider_id: profile.id,
-            email_type: "review_request",
-            recipient: client.name || "Link shared",
-            status: "sent",
-            metadata: {
-              client_name: client.name || "Client",
-              delivery_method: "link",
-            },
-          }).then(() => {}).catch((err) => {
-            console.error("Failed to log link share:", err);
-          })
+          (async () => {
+            try {
+              await db.from("email_log").insert({
+                provider_id: profile.id,
+                email_type: "review_request",
+                recipient: client.name || "Link shared",
+                status: "sent",
+                metadata: {
+                  client_name: client.name || "Client",
+                  delivery_method: "link",
+                },
+              });
+            } catch (err) {
+              console.error("Failed to log link share:", err);
+            }
+          })()
         );
 
         // Always report success - logging failure shouldn't block the user
@@ -363,16 +367,20 @@ export async function POST(request: NextRequest) {
 
     // Log the review requests for analytics
     backgroundTasks.push(
-      db.from("review_request_logs").insert({
-        provider_id: profile.id,
-        provider_slug: profile.slug,
-        request_count: clients.length,
-        sent_count: sentCount,
-        delivery_method,
-        created_by: user.id,
-      }).then(() => {}).catch((err) => {
-        console.error("Failed to log review requests:", err);
-      })
+      (async () => {
+        try {
+          await db.from("review_request_logs").insert({
+            provider_id: profile.id,
+            provider_slug: profile.slug,
+            request_count: clients.length,
+            sent_count: sentCount,
+            delivery_method,
+            created_by: user.id,
+          });
+        } catch (err) {
+          console.error("Failed to log review requests:", err);
+        }
+      })()
     );
 
     // Increment review credits used (only for non-paid providers with limited credits)
@@ -380,18 +388,21 @@ export async function POST(request: NextRequest) {
     if (!isPaid && sentCount > 0 && FREE_REVIEW_CREDITS < 999999) {
       const newCreditsUsed = reviewCreditsUsed + sentCount;
       backgroundTasks.push(
-        db
-          .from("business_profiles")
-          .update({
-            metadata: {
-              ...metadata,
-              reviews_credits_used: newCreditsUsed,
-            },
-          })
-          .eq("id", profile.id)
-          .then(() => {}).catch((err) => {
+        (async () => {
+          try {
+            await db
+              .from("business_profiles")
+              .update({
+                metadata: {
+                  ...metadata,
+                  reviews_credits_used: newCreditsUsed,
+                },
+              })
+              .eq("id", profile.id);
+          } catch (err) {
             console.error("Failed to update review credits:", err);
-          })
+          }
+        })()
       );
     }
 

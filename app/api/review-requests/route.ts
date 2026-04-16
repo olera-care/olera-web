@@ -271,33 +271,36 @@ export async function POST(request: NextRequest) {
       : process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const results: { name: string; email?: string; status: "sent" | "skipped" | "failed"; error?: string }[] = [];
 
+    // Collect background logging tasks for link shares
+    const linkLogTasks: Promise<unknown>[] = [];
+
     // Process each client
     for (const client of clients) {
-      // Handle "link" delivery method - just log to email_log, no actual send
+      // Handle "link" delivery method - log to email_log in background, respond immediately
       if (delivery_method === "link") {
-        try {
-          // Log the link share to email_log for tracking
-          await db.from("email_log").insert({
-            provider_id: profile.id,
-            email_type: "review_request",
-            recipient: client.name || "Link shared", // Use name since no email
-            status: "sent", // Mark as sent since link was generated
-            metadata: {
-              client_name: client.name || "Client",
-              delivery_method: "link",
-            },
-          });
+        // Log the link share in background (don't block response)
+        linkLogTasks.push(
+          (async () => {
+            try {
+              await db.from("email_log").insert({
+                provider_id: profile.id,
+                email_type: "review_request",
+                recipient: client.name || "Link shared",
+                status: "sent",
+                metadata: {
+                  client_name: client.name || "Client",
+                  delivery_method: "link",
+                },
+              });
+            } catch (err) {
+              console.error("Failed to log link share:", err);
+            }
+          })()
+        );
 
-          results.push({ name: client.name || "Client", status: "sent" });
-        } catch (logErr) {
-          console.error("Failed to log link share:", logErr);
-          results.push({
-            name: client.name || "Client",
-            status: "failed",
-            error: "Failed to create request",
-          });
-        }
-        continue; // Skip email sending for link delivery
+        // Always report success - logging failure shouldn't block the user
+        results.push({ name: client.name || "Client", status: "sent" });
+        continue;
       }
 
       // Handle email delivery
@@ -356,41 +359,54 @@ export async function POST(request: NextRequest) {
       // When SMS is needed, integrate with Twilio or similar service
     }
 
-    // Log the review requests for analytics
-    try {
-      await db.from("review_request_logs").insert({
-        provider_id: profile.id,
-        provider_slug: profile.slug,
-        request_count: clients.length,
-        sent_count: results.filter((r) => r.status === "sent").length,
-        delivery_method,
-        created_by: user.id,
-      });
-    } catch (logErr) {
-      // Non-blocking — don't fail the request if logging fails
-      console.error("Failed to log review requests:", logErr);
-    }
-
     const sentCount = results.filter((r) => r.status === "sent").length;
 
-    // Increment review credits used (only for non-paid providers, and only for actually sent emails)
-    if (!isPaid && sentCount > 0) {
+    // Run non-blocking operations in parallel (don't await - fire and forget)
+    // This significantly speeds up the response time
+    const backgroundTasks: Promise<unknown>[] = [];
+
+    // Log the review requests for analytics
+    backgroundTasks.push(
+      (async () => {
+        try {
+          await db.from("review_request_logs").insert({
+            provider_id: profile.id,
+            provider_slug: profile.slug,
+            request_count: clients.length,
+            sent_count: sentCount,
+            delivery_method,
+            created_by: user.id,
+          });
+        } catch (err) {
+          console.error("Failed to log review requests:", err);
+        }
+      })()
+    );
+
+    // Increment review credits used (only for non-paid providers with limited credits)
+    // Skip if using unlimited credits (FREE_REVIEW_CREDITS >= 999999)
+    if (!isPaid && sentCount > 0 && FREE_REVIEW_CREDITS < 999999) {
       const newCreditsUsed = reviewCreditsUsed + sentCount;
-      try {
-        await db
-          .from("business_profiles")
-          .update({
-            metadata: {
-              ...metadata,
-              reviews_credits_used: newCreditsUsed,
-            },
-          })
-          .eq("id", profile.id);
-      } catch (creditErr) {
-        // Non-blocking — don't fail the request if credit tracking fails
-        console.error("Failed to update review credits:", creditErr);
-      }
+      backgroundTasks.push(
+        (async () => {
+          try {
+            await db
+              .from("business_profiles")
+              .update({
+                metadata: {
+                  ...metadata,
+                  reviews_credits_used: newCreditsUsed,
+                },
+              })
+              .eq("id", profile.id);
+          } catch (err) {
+            console.error("Failed to update review credits:", err);
+          }
+        })()
+      );
     }
+
+    // Don't await background tasks - let them complete after response
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export interface SelectedOrg {
   name: string;
@@ -49,7 +48,7 @@ export default function OrganizationSearch({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const resultRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // Search function
+  // Search function - calls server API for better scalability
   const searchOrganizations = useCallback(async (query: string) => {
     if (query.length < 2) {
       setResults([]);
@@ -58,100 +57,13 @@ export default function OrganizationSearch({
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      // Use * for wildcards in PostgREST .or() filter syntax (not %)
-      const searchPattern = `*${query}*`;
-
-      // Search business_profiles (by name OR city)
-      const { data: bpResults } = await supabase
-        .from("business_profiles")
-        .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
-        .in("type", ["organization", "caregiver"])
-        .or(`display_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
-        .limit(50);
-
-      // Search olera-providers (by name OR city)
-      const { data: opResults } = await supabase
-        .from("olera-providers")
-        .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
-        .not("deleted", "is", true)
-        .or(`provider_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
-        .limit(50);
-
-      // Get claim states for olera-providers by checking if they have linked business_profiles
-      const opProviderIds = opResults?.map((op) => op.provider_id) || [];
-      let claimStatesMap: Record<string, string | null> = {};
-
-      if (opProviderIds.length > 0) {
-        const { data: linkedBps } = await supabase
-          .from("business_profiles")
-          .select("source_provider_id, claim_state")
-          .in("source_provider_id", opProviderIds);
-
-        if (linkedBps) {
-          claimStatesMap = linkedBps.reduce(
-            (acc, bp) => {
-              if (bp.source_provider_id) {
-                acc[bp.source_provider_id] = bp.claim_state;
-              }
-              return acc;
-            },
-            {} as Record<string, string | null>
-          );
-        }
+      const res = await fetch(`/api/organization-search?q=${encodeURIComponent(query)}&limit=100`);
+      if (!res.ok) {
+        throw new Error("Search failed");
       }
 
-      // Merge and deduplicate results
-      const merged: SearchResult[] = [];
-      const seenIds = new Set<string>();
-
-      // Add business_profiles results first (they may be more authoritative)
-      for (const bp of bpResults || []) {
-        const slug = bp.slug || bp.id;
-        if (!seenIds.has(bp.id)) {
-          seenIds.add(bp.id);
-          merged.push({
-            id: bp.id,
-            name: bp.display_name,
-            slug,
-            city: bp.city,
-            state: bp.state,
-            email: bp.email,
-            claimState: bp.claim_state as SelectedOrg["claimState"],
-            source: "business_profiles",
-            providerId: bp.source_provider_id || bp.id,
-            imageUrl: bp.image_url || null,
-          });
-        }
-      }
-
-      // Add olera-providers results (skip if already have BP with same source_provider_id)
-      for (const op of opResults || []) {
-        const slug = op.slug || op.provider_id;
-        // Skip if we already have a business_profile linked to this provider
-        const alreadyHasBp = (bpResults || []).some(
-          (bp) => bp.source_provider_id === op.provider_id
-        );
-        if (!alreadyHasBp && !seenIds.has(op.provider_id)) {
-          seenIds.add(op.provider_id);
-          // Get first image from pipe-separated list
-          const firstImage = op.provider_images?.split("|")[0]?.trim() || null;
-          merged.push({
-            id: op.provider_id,
-            name: op.provider_name,
-            slug,
-            city: op.city,
-            state: op.state,
-            email: op.email,
-            claimState: (claimStatesMap[op.provider_id] as SelectedOrg["claimState"]) || null,
-            source: "olera-providers",
-            providerId: op.provider_id,
-            imageUrl: op.hero_image_url || firstImage,
-          });
-        }
-      }
-
-      setResults(merged);
+      const data = await res.json();
+      setResults(data.results || []);
     } catch (err) {
       console.error("[OrganizationSearch] Search error:", err);
       setResults([]);

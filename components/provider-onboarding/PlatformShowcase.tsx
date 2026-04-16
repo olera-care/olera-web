@@ -191,19 +191,19 @@ export default function PlatformShowcase({
 }: PlatformShowcaseProps) {
   return (
     <div className="space-y-4 mt-2">
-      {/* Section label — subtle, not competing */}
+      {/* Section label — ownership framing, not a menu */}
       <p
         className="text-xs font-medium text-gray-300 tracking-widest uppercase"
         style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "100ms" }}
       >
-        What you can do
+        Your Olera toolkit
       </p>
 
-      {/* Value cards — 2-column, balanced */}
+      {/* Value cards — 2-column, outcome-oriented */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ValueCard
           headline="Get more reviews"
-          subtext="Request reviews from clients"
+          subtext="Send one link. Your client leaves a Google review in seconds."
           icon={<ReviewsIcon />}
           delay={150}
           onClick={onReviewsClick}
@@ -211,7 +211,7 @@ export default function PlatformShowcase({
 
         <ValueCard
           headline="Hire staff"
-          subtext="Browse pre-screened healthcare students"
+          subtext="Pre-screened caregivers, ready to interview this week."
           badge="New"
           icon={<StaffIcon />}
           delay={210}

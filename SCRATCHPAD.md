@@ -86,22 +86,28 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-**Ship day (2026-04-14 morning):**
-1. **Visual QA** — open 5-8 random non-TX state pages (`next dev`, click through from `/senior-benefits/{state}`) to confirm rendering edges on v3 content
-2. **CTA end-to-end smoke test on staging** — walk the caregiver flow, verify program matches land on good pages
-3. **Merge `vigilant-zhukovsky` → staging → main**
-4. **Ship the SBF CTA**
+**Benefits scaling roadmap (13 tickets on Notion board, Session 80):**
+1. **Partition `pipeline-drafts.ts` per state** (P1, unblocks route expansion — 114K-line monolith → `data/pipeline/{state}.ts`)
+2. **Append state to program names** (P1, "SNAP Food Benefits in Texas" across H1/meta/breadcrumbs)
+3. **Noindex legacy `/senior-benefits/*`** (P1, kill dual-canonical risk)
+4. **Add pipeline-only states to sitemap** (P1)
+5. **Category pages per state** (P1, 4 categories × 50 states = 200 new pages)
+6. **Split program pages into /eligibility + /apply** (P2, ~1,100 new indexed pages)
+7. **Rename hub label to "Senior Benefit Programs"** (P2, 720/mo keyword)
+8. **Automate Texas redirect rules** (P2)
+9. **Add ISR** (P2)
+10. **Wire draft_reviews table into admin** (P2)
+11. **Monthly factcheck cron** (P3)
 
-**Post-launch queue:**
-5. **Chantel audit pass** on the 98 high-severity factcheck flags — triage report at `data/pipeline/FACTCHECK_TRIAGE_2026-04-14.md`
-6. **Phase C** — admin review queue wiring for factcheck flags (medium effort — admin dashboard already has review/approve UI, just needs factcheck.json integration)
-7. **Fix outlier case**: `>50x ratio` on asset comparisons should downgrade to info (caught AZ ALTCS 2000 vs 162660 home-equity-cap misread)
-8. **Monthly factcheck sweep** for content freshness (~$3, ~13 min, now trivial)
-9. **Review draft quality with Chantel** — sample v3 content across states she hasn't reviewed
-10. **Merge PR #536 to staging** — benefits module + welcome page, separate from this QA work
-11. **Fix profile completeness for intake users** (deferred bug, ~24% completeness — checks don't count `state`, `income_range`, `medicaid_status`)
-12. **Add `plainLabel` to pipeline prompt** — auto-generate 4-5 word plain-English label per program so provider page descriptions are human-first
-13. **Daily digest includes benefits completions** (Layer 3 deferred from session 77)
+**Provider front door (2 tickets on Notion board, Session 80):**
+12. **Refine post-question onboard landing** (P1, TJ — visual polish + copy tightening, 80/20 focus)
+13. **Reviews value-prop messaging: "why Olera vs Google?"** (P1, copy + integrated suite framing)
+
+**Still pending from prior sessions:**
+14. Merge `vigilant-zhukovsky` → staging → main (SBF CTA ship)
+15. Reprocess 11 thin/empty cities from Session 79 with `--force`
+16. Chantel audit pass on 98 high factcheck flags (`FACTCHECK_TRIAGE_2026-04-14.md`)
+17. Fix profile completeness for intake users (deferred bug, ~24%)
 
 ### Other active work (different branches)
 - Provider page benefits module (`fond-hypatia`, PR #536) — in testing on Vercel
@@ -254,6 +260,60 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-15 → 2026-04-16 (Session 80) — Benefits scaling audit + roadmap planning (no code)
+
+**Branch:** `humble-brahe` (clean — research + Notion ticket creation only)
+
+Pure planning/strategy session. No code changes. Produced 13 roadmap tickets on the "Web App Action Items/Roadmap" Notion board based on two architectural reviews + one marketing doc + one product meeting.
+
+**What was done:**
+
+1. **Thorough senior-benefits architectural review.** Audited structure (routes, data flow through `waiver-library.ts` → `pipeline-drafts.ts` → `lib/program-data.ts` → V3 components), content types (StatePageV3/ProgramPageV3 + V3 schema fields + layoutIntent-driven components), URLs + redirects, SEO (generateMetadata, structured data, sitemap, canonicals, Texas 301s), and scaling best practices. Flagged 10 real weaknesses with file paths + line numbers. Architectural maturity assessment: 3/5 — content model is scalable, operational/SEO hygiene is weak.
+
+2. **Reviewed marketer's "Breadcrumb Structure" doc** (`docs/Breadcrumb Structure.pdf`, 11 pages). Proposed `/benefits-hub/[state]/[category]/[program]/[subpage]` with 4 subpages per program (Overview/Eligibility/How to Apply/Resources), hub rename, and keyword research table (Senior Benefit Programs = 720/mo medium difficulty vs Senior Benefits = 2.4K difficult). Verdict: structural instinct right (category layer + split subpages), but three refinements: (a) don't use `/benefits-hub/` URL slug (longer, not searched), (b) don't create an `/overview` subpage (the program URL IS the overview), (c) skip `/resources` subpage (thin content, doorway-page risk). Resulted in 3 subpages per program instead of 4 → ~1,650 real subpages instead of 2,200.
+
+3. **Product dev meeting review (2026-04-15) + Esther's PRs #547 + #548.** Summarized the "questions → front door → integrated suite" pivot. Questions are the front door for providers; the onboard landing page (`/provider/[slug]/onboard?action=question`) pitches reviews + staffing + family matching as an integrated toolkit. Reviews are the easy first sell even though team acknowledged they aren't Olera's strongest value prop. Key meeting action item: TJ to refine the onboard landing with 80/20 design focus (front door vs downstream flows).
+
+4. **Code-read the front door + reviews landing** (`app/provider/[slug]/onboard/page.tsx`, `components/provider-onboarding/PlatformShowcase.tsx`, `app/provider/reviews/page.tsx` `LandingView`) to surface specific messaging gaps before writing the value-prop ticket. Found 6 concrete issues: (1) no "why Olera vs Google?" answer, (2) "3x more inquiries" stat is on the reviews page instead of at the decision point, (3) "What you can do" label reads as a menu not a value offer, (4) card subtext is descriptive not persuasive, (5) reviews landing is a dead-end with no cross-links to staffing/family matching, (6) no "how it works" mental model for the magic-link flow.
+
+**Notion tickets created (13 total, all TJ-owned, all To Do):**
+
+Batch 1 — benefits scaling (11 tickets):
+- **P1 🔥** · Append state to program names across benefits pages (Frontend)
+- **P1 🔥** · Noindex legacy /senior-benefits/* pages (Frontend)
+- **P1 🔥** · Add pipeline-only states to sitemap (Backend)
+- **P1 🔥** · Category pages per state — Health, Financial, Food, Caregiver (Frontend)
+- **P1 🔥** · Partition pipeline-drafts.ts per state (Backend)
+- **P2** · Split program pages into real URLs /eligibility, /apply (Frontend)
+- **P2** · Rename hub label to "Senior Benefit Programs" (Frontend)
+- **P2** · Automate Texas redirect rules from pipeline data (Backend)
+- **P2** · Add ISR to benefits routes (Backend)
+- **P2** · Wire draft_reviews table into admin approval UI (Backend)
+- **P3** · Monthly factcheck sweep as scheduled job (Backend)
+
+Batch 2 — provider front door (2 tickets):
+- **P1 🔥** · Refine post-question onboard landing (provider front door) — visual polish + copy tightening on PlatformShowcase
+- **P1 🔥** · Reviews value-prop messaging: answer "why Olera vs. Google?" + integrated suite framing — success criterion locked: a first-time provider should be able to answer why Olera vs Google, what happens on click, and what else Olera does
+
+**Execution order recommended for benefits scaling batch:** #7 partition pipeline-drafts → #1 #2 #3 quick wins → #4 categories → #9 ISR → #5 subpages → rest as capacity allows. The partition job is the unblocker for route expansion.
+
+**Decisions made this session:**
+
+| Date | Decision | Rationale |
+| 2026-04-15 | 3 program subpages not 4 (Overview is the program URL, skip /resources) | Overview-as-subpage is the usa.gov mistake the marketer doc itself flagged (URL/breadcrumb gap). /resources is thin content with doorway-page risk. ~1,650 subpages is still a massive surface expansion without the quality dilution. |
+| 2026-04-15 | Keep URL slug short, only rename the visible label | "Senior Benefit Programs" is a 720/mo keyword worth ranking for in H1s and nav, but putting `/benefits-hub/` in URLs adds a word nobody searches and bloats paths. Branding label and URL slug don't have to match. |
+| 2026-04-15 | Data-layer cleanup (partition, ISR, TX redirect automation) must land BEFORE route expansion | Adding ~1,900 new routes on top of an already-114K-line drafts file + hand-maintained redirects + full-static rebuilds lands us with 20-min builds and unreviewable diffs. Operational hygiene is a prerequisite, not a follow-up. |
+| 2026-04-16 | Drop "Free Resources" category from the 5 proposed, ship 4 | 5 categories (Health, Financial, Food, Caregiver, Free Resources) → 4. Free Resources is the weakest — thin content, overlap with other categories, high risk of sub-2-program states getting thin-content penalty. |
+| 2026-04-16 | Hide category pages when state has <2 programs matching | Low-density states would ship empty category pages and tank quality score across the whole category cluster. Quality gate beats volume. |
+| 2026-04-16 | Front door refinement and reviews messaging are separate tickets | Different kinds of work — visual polish vs copy/differentiation. Cleanly separable, separate owners possible. Bundling them into one ticket would hide the messaging work behind layout iteration. |
+| 2026-04-16 | Reviews page messaging must answer "why Olera vs Google?" explicitly | The meeting identified this gap but assigned no owner. After reading the code, the gap is real and quantifiable: the title literally says "Get more Google reviews" and the CTA routes reviews to Google — Olera looks like a middleman. Every differentiator (magic-link delivery, tracked engagement, Place-ID fallback, integrated suite) is absent from the copy. |
+| 2026-04-16 | "Chantel factcheck audit pass" dropped from eng roadmap | It's human research work, not engineering. Belongs in a content tracker, not the Web App Action Items board. |
+
+**Next up:**
+1. Execute the benefits scaling roadmap starting with pipeline-drafts.ts partition (P1, unblocks route expansion)
+2. TJ to refine onboard front door (P1, meeting action item)
+3. Return to previously pending: vigilant-zhukovsky ship queue (SBF CTA merge, factcheck triage), 11 thin/empty cities reprocess from Session 79
 
 ### 2026-04-15 (Session 79) — 154-city pipeline batch
 

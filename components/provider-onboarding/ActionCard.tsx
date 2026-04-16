@@ -446,10 +446,9 @@ function InlineQuestionResponse({
 
       let res = await doFetch();
 
-      // Retry once on 401 — background auto-sign-in may still be
-      // setting cookies when a fast typer submits within seconds
-      if (res.status === 401) {
-        await new Promise((r) => setTimeout(r, 2000));
+      // Retry once on 401 (auth cookies not set yet) or 429 (rate limit)
+      if (res.status === 401 || res.status === 429) {
+        await new Promise((r) => setTimeout(r, res.status === 429 ? 3000 : 2000));
         res = await doFetch();
       }
 

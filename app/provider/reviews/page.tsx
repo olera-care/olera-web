@@ -304,17 +304,13 @@ function LandingView({
         Get more Google reviews
       </h2>
 
-      {/* Hero image with gradient blend */}
-      <div className="relative rounded-xl overflow-hidden mb-8">
-        <div className="aspect-[2/1] sm:aspect-[5/2] relative">
-          <img
-            src="/Reviews-image.png"
-            alt="Caregiver helping senior"
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
-          {/* Soft gradient to blend into content */}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/80 to-transparent" />
-        </div>
+      {/* Hero image - centered and fully visible */}
+      <div className="flex justify-center mb-6">
+        <img
+          src="/Reviews-image.png"
+          alt="Caregiver helping senior"
+          className="w-full max-w-md h-auto object-contain"
+        />
       </div>
 
       {/* Content - vertically stacked, centered */}

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { markReviewAsRead } from "@/hooks/useUnreadReviewsCount";
 import type { OrganizationMetadata } from "@/lib/types";
 
 // ── Types ──
@@ -1319,6 +1320,7 @@ export default function ProviderReviewsPage() {
 
   // Fetch highlighted review if ?id= param is present
   const reviewIdParam = searchParams.get("id");
+  const profileId = profile?.id;
   useEffect(() => {
     if (!reviewIdParam) return;
 
@@ -1339,6 +1341,10 @@ export default function ProviderReviewsPage() {
               comment: data.review.comment || data.review.review_text || "",
               createdAt: data.review.created_at,
             });
+            // Mark review as read when viewed
+            if (profileId) {
+              markReviewAsRead(data.review.id, profileId);
+            }
             return;
           }
         }
@@ -1356,6 +1362,10 @@ export default function ProviderReviewsPage() {
               comment: data.review.review_text || "",
               createdAt: data.review.created_at,
             });
+            // Mark review as read when viewed
+            if (profileId) {
+              markReviewAsRead(data.review.id, profileId);
+            }
           }
         }
       } catch (err) {
@@ -1370,7 +1380,7 @@ export default function ProviderReviewsPage() {
     return () => {
       cancelled = true;
     };
-  }, [reviewIdParam]);
+  }, [reviewIdParam, profileId]);
 
   // Dismiss the highlighted review and clear URL param
   const handleDismissHighlight = useCallback(() => {

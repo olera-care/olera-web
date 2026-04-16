@@ -57,7 +57,7 @@ export default function OrganizationSearch({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/organization-search?q=${encodeURIComponent(query)}&limit=100`);
+      const res = await fetch(`/api/organization-search?q=${encodeURIComponent(query)}&limit=200`);
       if (!res.ok) {
         throw new Error("Search failed");
       }

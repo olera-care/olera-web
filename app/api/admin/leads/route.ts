@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const needsEmail = searchParams.get("needs_email") === "true";
     const showArchived = searchParams.get("archived") === "true";
+    const dateFrom = searchParams.get("date_from");
+    const dateTo = searchParams.get("date_to");
 
     // If searching, find matching profile IDs first (fast indexed lookup)
     let searchProfileIds: string[] | null = null;
@@ -62,6 +64,8 @@ export async function GET(request: NextRequest) {
         // If needed, we can revisit with a raw SQL filter.
         q = q.not("metadata", "cs", JSON.stringify({ archived: true }));
       }
+      if (dateFrom) q = q.gte("created_at", dateFrom);
+      if (dateTo) q = q.lte("created_at", dateTo);
       if (searchProfileIds) {
         q = q.or(
           `from_profile_id.in.(${searchProfileIds.join(",")}),to_profile_id.in.(${searchProfileIds.join(",")})`

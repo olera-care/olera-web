@@ -57,6 +57,29 @@ async function checkVerifiedProvider(): Promise<boolean> {
   }
 }
 
+/** Check if current user owns this profile (caregiver viewing own profile) */
+async function checkIsOwnProfile(profileSlug: string): Promise<boolean> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    // Check if user has a student/caregiver profile with this slug
+    const { data: profile } = await supabase
+      .from("business_profiles")
+      .select("id")
+      .eq("account_id", user.id)
+      .in("type", ["student", "caregiver"])
+      .eq("slug", profileSlug)
+      .limit(1)
+      .maybeSingle();
+
+    return !!profile;
+  } catch {
+    return false;
+  }
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -105,6 +128,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
   // Check if current user is a verified provider
   const isVerifiedProvider = await checkVerifiedProvider();
 
+  // Check if caregiver is viewing their own profile
+  const isOwnProfile = await checkIsOwnProfile(slug);
+
   const supabase = getSupabase();
   const { data: profile } = await supabase
     .from("business_profiles")
@@ -122,6 +148,10 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const durationLabel = formatDuration(meta);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
+  // Show full name if viewing own profile, otherwise just first name
+  const displayName = isOwnProfile
+    ? (profile.display_name || "This candidate")
+    : (profile.display_name?.split(" ")[0] || "This candidate");
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
@@ -200,7 +230,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                      {firstName}
+                      {displayName}
                     </h1>
                     {meta.seeking_status === "actively_looking" && (
                       <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">

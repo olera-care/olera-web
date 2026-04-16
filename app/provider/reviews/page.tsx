@@ -535,9 +535,10 @@ function SendRequestForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successName, setSuccessName] = useState("");
-  const [successMethod, setSuccessMethod] = useState<"email" | "shared" | "copied">("email");
+  const [successMethod, setSuccessMethod] = useState<"email" | "shared" | "copied" | "link">("email");
   const [successLink, setSuccessLink] = useState<string | null>(null); // For fallback manual copy
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false); // Track if user copied from success screen
   const isAtLimit = remainingRequests <= 0;
 
   // Auto-dismiss success after 4 seconds (only if Google is already connected)
@@ -599,7 +600,7 @@ function SendRequestForm({
     }
   };
 
-  // Link share handler - logs request and triggers share/copy
+  // Link share handler - logs request and generates link (no copy during generation)
   const handleShareLink = async () => {
     if (!providerSlug || isSubmitting || isAtLimit) return;
 
@@ -633,61 +634,10 @@ function SendRequestForm({
         throw new Error(data.error || "Failed to create request");
       }
 
-      // Store link for success state (in case copy fails, user can manually copy)
+      // Store link for success state - user will copy/share from success screen
       setSuccessLink(reviewLink);
-
-      // Try native share API first (mobile)
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: "Leave us a review",
-            text: "We'd love to hear about your experience!",
-            url: reviewLink,
-          });
-          setSuccessName(name);
-          setSuccessMethod("shared");
-          setShowSuccess(true);
-          setLinkClientName("");
-          onSuccess?.();
-          return;
-        } catch (shareErr) {
-          // User cancelled or share failed - fall back to copy
-          if ((shareErr as Error).name === "AbortError") {
-            // User cancelled - show success with link so they can share manually
-            setSuccessName(name);
-            setSuccessMethod("copied"); // Show as "copied" with manual link
-            setShowSuccess(true);
-            setLinkClientName("");
-            onSuccess?.();
-            return;
-          }
-          // Other errors: fall through to clipboard copy
-        }
-      }
-
-      // Fallback: copy to clipboard
-      let copySucceeded = false;
-      try {
-        await navigator.clipboard.writeText(reviewLink);
-        copySucceeded = true;
-      } catch {
-        try {
-          const textArea = document.createElement("textarea");
-          textArea.value = reviewLink;
-          textArea.style.position = "fixed";
-          textArea.style.opacity = "0";
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand("copy");
-          document.body.removeChild(textArea);
-          copySucceeded = true;
-        } catch {
-          // Both copy methods failed - we'll show the link for manual copy
-        }
-      }
-
       setSuccessName(name);
-      setSuccessMethod(copySucceeded ? "copied" : "shared"); // "shared" shows manual link option
+      setSuccessMethod("link"); // New method: link ready but not yet copied
       setShowSuccess(true);
       setLinkClientName("");
       onSuccess?.();
@@ -703,6 +653,8 @@ function SendRequestForm({
   if (showSuccess) {
     const handleCopySuccessLink = async () => {
       if (!successLink) return;
+
+      // Copy to clipboard first
       try {
         await navigator.clipboard.writeText(successLink);
       } catch {
@@ -714,6 +666,22 @@ function SendRequestForm({
         textArea.select();
         document.execCommand("copy");
         document.body.removeChild(textArea);
+      }
+
+      // Show copied feedback
+      setLinkCopied(true);
+
+      // Try native share API (will show share sheet on supported devices)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Leave us a review",
+            text: "We'd love to hear about your experience!",
+            url: successLink,
+          });
+        } catch {
+          // User cancelled or share failed - that's fine, link is already copied
+        }
       }
     };
 
@@ -728,13 +696,12 @@ function SendRequestForm({
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-1">
           {successMethod === "email" && "Request sent!"}
-          {successMethod === "shared" && "Link ready!"}
+          {(successMethod === "link" || successMethod === "shared") && "Link ready!"}
           {successMethod === "copied" && "Link copied!"}
         </h3>
         <p className="text-sm text-gray-500 mb-5">
           {successMethod === "email" && `${successName} will receive your review request shortly.`}
-          {successMethod === "shared" && `Share the link with ${successName} via WhatsApp, text, or in person.`}
-          {successMethod === "copied" && `Share it with ${successName} via WhatsApp, text, or in person.`}
+          {(successMethod === "link" || successMethod === "shared" || successMethod === "copied") && `Share the link with ${successName} via WhatsApp, text, or in person.`}
         </p>
 
         {/* Show link for manual copy (for shared/copied methods) */}
@@ -750,9 +717,13 @@ function SendRequestForm({
               <button
                 type="button"
                 onClick={handleCopySuccessLink}
-                className="px-3 py-2 text-xs font-medium text-primary-600 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
+                className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 ${
+                  linkCopied
+                    ? "text-emerald-600 bg-emerald-50 border border-emerald-200"
+                    : "text-primary-600 bg-primary-50 border border-primary-200 hover:bg-primary-100"
+                }`}
               >
-                Copy
+                {linkCopied ? "Copied ✓" : "Copy"}
               </button>
             </div>
           </div>
@@ -781,6 +752,7 @@ function SendRequestForm({
                 onClick={() => {
                   setShowSuccess(false);
                   setSuccessLink(null);
+                  setLinkCopied(false);
                 }}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
               >
@@ -798,6 +770,7 @@ function SendRequestForm({
           onClick={() => {
             setShowSuccess(false);
             setSuccessLink(null);
+            setLinkCopied(false);
           }}
           className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
         >

@@ -27,9 +27,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Current Focus
 
-**Provider Page Benefits Module** (branch: `fond-hypatia`, PR #536) — bridging provider discovery and benefits discovery.
+**Provider onboard front door** (branch: `humble-brahe`) — question-first flow: inline Q&A response → profile preview → reviews conversion.
 
-**Benefits Pipeline v3** (branch: `eager-ride`, merged) — discovery platform state pages + tabbed program pages + Chantel-depth content.
+**Benefits scaling roadmap** — 15 Notion tickets created, partition + category pages + subpages as P1s.
 
 ### What's shipped (v3 — Session 72, Apr 10)
 - **StatePageV3** (`components/waiver-library/StatePageV3.tsx`): Full redesign from editorial article to discovery platform
@@ -261,11 +261,86 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
-### 2026-04-15 → 2026-04-16 (Session 80) — Benefits scaling audit + roadmap planning (no code)
+### 2026-04-16 (Session 80, continued) — Provider onboard: inline Q&A response + profile preview
 
-**Branch:** `humble-brahe` (clean — research + Notion ticket creation only)
+**Branch:** `humble-brahe` | **Merged:** PRs #568, #569, #570 → staging
 
-Pure planning/strategy session. No code changes. Produced 13 roadmap tickets on the "Web App Action Items/Roadmap" Notion board based on two architectural reviews + one marketing doc + one product meeting.
+**What shipped:**
+
+1. **Inline Q&A response on onboard page** (PR #568). Providers arriving from a question email can respond directly in the notification card — no redirect to `/provider/qna`. Textarea + "Send Response" button calling `PATCH /api/provider/questions`. Includes retry-on-401 for the race condition where background auto-sign-in hasn't set cookies yet. Pre-test caught and fixed this race before TJ tested.
+
+2. **PlatformShowcase copy update** (PR #568). "What you can do" → "Your Olera toolkit". Card subtext rewritten to outcome-oriented: "Send one link. Your client leaves a Google review in seconds." and "Pre-screened caregivers, ready to interview this week."
+
+3. **Single-card post-response CTA** (PR #569). After responding, the success state flows directly into a reviews CTA inside the same notification card — no visual gap, no "browse the toolkit" section to scroll past. Primary: "Get your first review" button with star icon. Secondary: quiet text link "or browse caregiver candidates →". Key insight: momentum dies in the gap between card and toolkit; collapsing into one card preserves the post-action momentum.
+
+4. **Tailwind class fix** (PR #570). `w-4.5` is not a valid Tailwind class — silently ignored, star icon rendered at wrong size. Fixed to `w-5`.
+
+**Bug found during testing:** `PATCH /api/provider/questions` returns "No provider profile found" when the account has multiple `type: organization` profiles — API uses `.single()` which crashes on >1 result. Root cause: TJ's test account had 3 org profiles (Aggie + 2 archived). Fixed by detaching archived profiles from the account (`account_id → null`). Pre-existing API bug, not caused by our changes.
+
+**Notion tickets created this session (15 total):**
+- 11 benefits scaling tickets (P1-P3)
+- 2 provider front door tickets (P1)
+- 1 flag suspicious one-click sign-ins (P1)
+- 1 reviews value-prop messaging (P1)
+
+**What's next (building now): Profile preview in post-response state**
+
+After responding to a question, the success state will show a focused preview of what families see on the provider's public profile — specifically the Q&A section (with their answer now visible) and the Reviews section (empty, with CTA to fill the gap).
+
+**Design:**
+```
+┌─────────────────────────────────────────────────┐
+│  ✓ Response sent to Sarah                       │
+│    Visible on your profile...                   │
+│                                                 │
+│  ── What families see on your profile ───────── │
+│                                                 │
+│  Questions & Answers                            │
+│  "Can residents bring their own furniture?"     │
+│  ✓ You answered · just now                      │
+│  "They are welcome, residents are also..."      │
+│                                                 │
+│  Reviews                                        │
+│  ☆☆☆☆☆ No reviews yet                          │
+│  Families are 3x more likely to contact         │
+│  providers who have reviews.                    │
+│  [⭐ Get your first review]                     │
+│                                                 │
+│  View your full profile →                       │
+└─────────────────────────────────────────────────┘
+```
+
+**Why this approach:**
+- The Q&A section is the **reward** — the provider sees their answer rendered as families will see it. Validates the action, makes Olera tangible.
+- The Reviews section is the **gap** — empty stars next to populated Q&A creates visual imbalance. The provider sees the hole themselves without being told. The CTA becomes a "fill the gap" action, not an upsell.
+- "View your full profile →" is the escape hatch to deeper ownership — they see their full page, maybe notice missing photos/description, and have reasons to come back.
+- The key insight: showing a **mirror** of their public presence creates ownership. Once the provider thinks "that's MY page and families are seeing it," every subsequent action (reviews, profile completeness) has intrinsic motivation.
+
+**Implementation plan:**
+- Expand `InlineQuestionResponse` success state to include the profile preview
+- Use the PATCH API return value (returns updated question with answer text) to render Q&A preview without a second fetch
+- Reviews count defaults to zero for first-time providers (almost always correct)
+- The preview renders with the same visual language as the public profile Q&A/reviews sections
+- PlatformShowcase stays below as secondary context
+- The listing card ("25% complete") becomes less prominent or gets replaced by the preview
+
+**Decisions made this session:**
+
+| Date | Decision | Rationale |
+| 2026-04-16 | Inline Q&A response replaces "View and answer" redirect | The provider came to answer a question. Let them do it where they land. Removes the context switch to /provider/qna and the auth gate that preceded it. Same API endpoint, just called from the onboard page instead. |
+| 2026-04-16 | Retry-on-401 instead of blocking on auth completion | Background auto-sign-in takes 2-5s. A fast typer could submit before cookies are set. Blocking on auth would add a visible spinner. Retry is invisible — "Sending..." stays a beat longer. |
+| 2026-04-16 | Don't show activity stats (page views, question counts) in post-response state | 65K+ providers have <10 views/month. Most have zero questions. Showing small numbers or zeros destroys trust on the first interaction. Anchor to the specific moment instead. |
+| 2026-04-16 | Single-card CTA, not separate toolkit section | Momentum dies in visual gaps. Two equal cards = decision paralysis = neither clicked. One primary CTA inside the card preserves the post-action energy. Hire staff demoted to text link since empty state isn't ready for traffic. |
+| 2026-04-16 | "Get your first review" not "Get more reviews" | "More" assumes they have some. "First" meets them where they are and lowers the bar. |
+| 2026-04-16 | Profile preview as the conversion bridge | The provider has no mental model of what their Olera presence looks like to families. Showing a mirror creates ownership. The empty reviews section next to the populated Q&A creates visual tension that's more motivating than any copy. Like Airbnb showing hosts what guests see. |
+| 2026-04-16 | Full preview, not a light summary card | "1 answer • 0 reviews" is data. The actual rendered preview is an experience. Data gets noted and forgotten. A mirror creates emotional ownership. |
+| 2026-04-16 | Detach archived profiles from accounts instead of fixing .single() in API | The `.single()` bug in PATCH /api/provider/questions is pre-existing — fixing the API query (to filter by active profiles or use `.limit(1)`) is the right long-term fix but would require a separate PR touching a different file. Detaching orphan data is safe and immediate. |
+
+### 2026-04-15 → 2026-04-16 (Session 80) — Benefits scaling audit + roadmap planning
+
+**Branch:** `humble-brahe` (research + Notion ticket creation, then code)
+
+Planning session that transitioned to implementation. Produced 15 roadmap tickets on the "Web App Action Items/Roadmap" Notion board based on two architectural reviews + one marketing doc + one product meeting, then built the inline Q&A response flow.
 
 **What was done:**
 

@@ -407,13 +407,17 @@ function maskEmail(email: string): string {
 function InlineQuestionResponse({
   questionId,
   askerName,
+  questionText,
   providerCity,
   providerState,
+  providerSlug,
 }: {
   questionId: string;
   askerName: string;
+  questionText: string;
   providerCity?: string | null;
   providerState?: string | null;
+  providerSlug?: string | null;
 }) {
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -468,7 +472,12 @@ function InlineQuestionResponse({
     ? ` in ${providerCity}`
     : "";
 
-  // Success state — response sent, single-card flow into reviews CTA
+  // Truncate answer for preview display
+  const answerPreview = answer.length > 120
+    ? answer.substring(0, 117).trimEnd() + "..."
+    : answer;
+
+  // Success state — profile preview with Q&A + Reviews gap
   if (submitted) {
     return (
       <div className="py-1" style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -490,35 +499,81 @@ function InlineQuestionResponse({
           </div>
         </div>
 
-        {/* Pivot — single CTA, no gap, no browsing */}
+        {/* Profile preview — what families see */}
         <div className="border-t border-gray-100 pt-5">
-          <p className="text-sm text-gray-600 leading-relaxed mb-4">
-            Families trust providers who respond to questions <em>and</em> have
-            reviews. You just did one.
+          <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
+            What families see on your profile
           </p>
 
-          {/* Primary CTA — reviews */}
-          <button
-            type="button"
-            onClick={() => { window.location.href = "/provider/reviews"; }}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            Get your first review
-          </button>
+          {/* Q&A section preview */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Questions &amp; Answers
+            </p>
+            <div className="flex items-start gap-2.5">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
+                {getInitials(askerName)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-gray-700 leading-snug">
+                  &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
+                </p>
+                <div className="mt-2 flex items-start gap-2">
+                  <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-sm text-gray-500 leading-snug">
+                    {answerPreview}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          {/* Secondary — quiet text link */}
-          <p className="text-center mt-3">
+          {/* Reviews section preview — the gap */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Reviews
+            </p>
+            <div className="flex items-center gap-1 mb-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <svg key={i} className="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <p className="text-sm text-gray-400 mb-3">No reviews yet</p>
+            <p className="text-sm text-gray-500 leading-relaxed mb-4">
+              Families are 3x more likely to contact providers who have reviews.
+            </p>
+
+            {/* Reviews CTA — inside the gap */}
             <button
               type="button"
-              onClick={() => { window.location.href = "/provider/medjobs/candidates"; }}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={() => { window.location.href = "/provider/reviews"; }}
+              className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
             >
-              or browse caregiver candidates →
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Get your first review
             </button>
-          </p>
+          </div>
+
+          {/* View full profile link */}
+          {providerSlug && (
+            <a
+              href={`/provider/${providerSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group"
+            >
+              View your full profile
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
     );
@@ -776,8 +831,10 @@ export default function ActionCard({
           <InlineQuestionResponse
             questionId={notificationData.id}
             askerName={personName}
+            questionText={question}
             providerCity={provider.city}
             providerState={provider.state}
+            providerSlug={provider.slug || provider.provider_id}
           />
         ) : (
           <>

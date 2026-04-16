@@ -468,12 +468,12 @@ function InlineQuestionResponse({
     ? ` in ${providerCity}`
     : "";
 
-  // Success state — response sent, anchored to the moment
+  // Success state — response sent, single-card flow into reviews CTA
   if (submitted) {
     return (
       <div className="py-1" style={{ animation: "card-enter 0.25s ease-out both" }}>
         {/* Confirmation */}
-        <div className="flex items-start gap-3 mb-4">
+        <div className="flex items-start gap-3 mb-5">
           <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
             <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -490,14 +490,34 @@ function InlineQuestionResponse({
           </div>
         </div>
 
-        {/* Pivot — earned context */}
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-0.5">
-            Want more families to find you?
+        {/* Pivot — single CTA, no gap, no browsing */}
+        <div className="border-t border-gray-100 pt-5">
+          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            Families trust providers who respond to questions <em>and</em> have
+            reviews. You just did one.
           </p>
-          <p className="text-sm text-gray-500">
-            Reviews and Q&amp;A answers are the two biggest signals families use
-            when choosing a provider. You just did one — explore the other below.
+
+          {/* Primary CTA — reviews */}
+          <button
+            type="button"
+            onClick={() => { window.location.href = "/provider/reviews"; }}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+          >
+            <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            Get your first review
+          </button>
+
+          {/* Secondary — quiet text link */}
+          <p className="text-center mt-3">
+            <button
+              type="button"
+              onClick={() => { window.location.href = "/provider/medjobs/candidates"; }}
+              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              or browse caregiver candidates →
+            </button>
           </p>
         </div>
       </div>

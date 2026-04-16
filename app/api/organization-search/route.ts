@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
     }
 
     const db = getServiceClient();
-    const searchPattern = `%${query}%`;
+    // Use * for wildcards in PostgREST .or() string syntax (not % which is literal)
+    const searchPattern = `*${query}*`;
 
     // Search both tables in parallel
     const [bpResult, opResult] = await Promise.all([

@@ -138,6 +138,43 @@ export default function EditVerificationModal({
     }
   }, [videoUrl, videoSubmitted, meta.video_intro_url, profile.slug]);
 
+  // Delete video and deactivate profile
+  const deleteVideo = useCallback(async () => {
+    setVideoSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/medjobs/submit-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: profile.slug, videoUrl: "" }), // Empty URL triggers deletion
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        if (isMountedRef.current) {
+          setError(data.error || "Failed to remove video");
+        }
+        return false;
+      }
+
+      if (isMountedRef.current) {
+        setVideoUrl("");
+        setVideoSubmitted(false);
+      }
+      return true;
+    } catch {
+      if (isMountedRef.current) {
+        setError("Network error");
+      }
+      return false;
+    } finally {
+      if (isMountedRef.current) {
+        setVideoSubmitting(false);
+      }
+    }
+  }, [profile.slug]);
+
   // Save video on blur (matches immediate-save behavior of documents)
   const handleVideoBlur = useCallback(async () => {
     if (hasNewVideo) {
@@ -396,14 +433,28 @@ export default function EditVerificationModal({
                     <p className="text-sm font-medium text-primary-700">Video saved</p>
                     <p className="text-xs text-primary-600/70 truncate">{videoUrl || meta.video_intro_url}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { setVideoSubmitted(false); setVideoUrl(meta.video_intro_url || ""); }}
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
-                  >
-                    Change
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => { setVideoSubmitted(false); setVideoUrl(meta.video_intro_url || ""); }}
+                      disabled={videoSubmitting}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-50"
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deleteVideo}
+                      disabled={videoSubmitting}
+                      className="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                    >
+                      {videoSubmitting ? "..." : "Remove"}
+                    </button>
+                  </div>
                 </div>
+                <p className="text-xs text-amber-600 mt-3 text-center">
+                  Removing your video will take your profile offline
+                </p>
               </div>
             ) : (
               <div className="max-w-sm mx-auto">

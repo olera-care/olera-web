@@ -195,6 +195,26 @@ export default async function StudentProfilePage({ params }: PageProps) {
           <BackLink studentSlug={profile.slug} />
         </div>
 
+        {/* Own profile preview banner */}
+        {isOwnProfile && (
+          <div className="mb-6 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-primary-900">Preview Mode</p>
+                <p className="text-sm text-primary-700 mt-0.5">
+                  This is how care providers see your profile. Your full name ({profile.display_name}) and contact info are only shared after you accept an interview request.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ═══════════════════════════════════════════════════════════════════
             TWO-COLUMN LAYOUT: Content (left) + Sticky CTA (right)
             ═══════════════════════════════════════════════════════════════════ */}

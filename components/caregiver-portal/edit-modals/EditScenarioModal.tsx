@@ -1,11 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import { SCENARIO_QUESTIONS } from "@/lib/medjobs-completeness";
 import { saveStudentProfile } from "./save-profile";
-import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
+
+type Step = 1 | 2 | 3;
+
+// Icons and context for each question
+const STEP_CONFIG: Record<Step, { icon: React.ReactNode; context: string; shortLabel: string }> = {
+  1: {
+    shortLabel: "Reliability",
+    context: "Providers need to know you can balance school and work.",
+    icon: (
+      <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  2: {
+    shortLabel: "Judgement",
+    context: "This tests your ability to handle difficult situations.",
+    icon: (
+      <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  },
+  3: {
+    shortLabel: "Commitment",
+    context: "Show providers you're serious about caregiving.",
+    icon: (
+      <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    ),
+  },
+};
 
 export default function EditScenarioModal({
   profile,
@@ -19,6 +51,21 @@ export default function EditScenarioModal({
   const meta = profile.metadata;
   const responses = meta.scenario_responses || [];
 
+  // Track mounted state
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Form state - one answer per question
   const [answers, setAnswers] = useState<string[]>(() =>
     SCENARIO_QUESTIONS.map((q) => {
       const existing = responses.find((r) => r.question === q.question);
@@ -34,16 +81,31 @@ export default function EditScenarioModal({
   });
 
   const hasChanges = JSON.stringify(answers) !== JSON.stringify(originalAnswers);
-  const allValid = answers.every((a) => a.length >= 50);
+
+  // Navigate with animation
+  const navigateToStep = useCallback((step: Step) => {
+    if (step === currentStep || isTransitioning) return;
+    setSlideDirection(step > currentStep ? "right" : "left");
+    setIsTransitioning(true);
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        setCurrentStep(step);
+        setIsTransitioning(false);
+      }
+    }, 150);
+  }, [currentStep, isTransitioning]);
+
+  const updateAnswer = (index: number, value: string) => {
+    const next = [...answers];
+    next[index] = value;
+    setAnswers(next);
+  };
 
   async function handleSave() {
-    if (!hasChanges && !guidedMode) {
-      onClose();
-      return;
-    }
-
+    // Validate all answers
+    const allValid = answers.every((a) => a.length >= 50);
     if (!allValid) {
-      setError("All questions require at least 50 characters");
+      setError("Each answer needs at least 50 characters");
       return;
     }
 
@@ -64,60 +126,256 @@ export default function EditScenarioModal({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setSaving(false);
+      if (isMountedRef.current) {
+        setSaving(false);
+      }
     }
   }
 
-  const updateAnswer = (index: number, value: string) => {
-    const next = [...answers];
-    next[index] = value;
-    setAnswers(next);
+  function handleContinue() {
+    setError(null);
+
+    // Check current answer length
+    const currentAnswer = answers[currentStep - 1];
+    if (currentAnswer.length > 0 && currentAnswer.length < 50) {
+      setError("Please write at least 50 characters");
+      return;
+    }
+
+    if (currentStep < 3) {
+      navigateToStep((currentStep + 1) as Step);
+    } else {
+      handleSave();
+    }
+  }
+
+  function handleBack() {
+    if (currentStep === 1) {
+      if (guidedMode && onGuidedBack) {
+        onGuidedBack();
+      } else {
+        onClose();
+      }
+    } else {
+      navigateToStep((currentStep - 1) as Step);
+    }
+  }
+
+  // Check if current step has valid answer
+  const currentAnswer = answers[currentStep - 1];
+  const isCurrentStepComplete = currentAnswer.length >= 50;
+
+  const getButtonText = () => {
+    if (currentStep === 3) {
+      return saving ? "Saving..." : guidedMode ? "Save & Next" : "Done";
+    }
+    if (isCurrentStepComplete) {
+      return "Continue";
+    }
+    if (currentAnswer.length > 0) {
+      return "Continue"; // Will show error if < 50
+    }
+    return "Skip for now";
   };
+
+  const getBackButtonText = () => {
+    if (currentStep === 1) {
+      return guidedMode && onGuidedBack ? "Back" : "Cancel";
+    }
+    return "Back";
+  };
+
+  // Progress dots
+  const ProgressDots = () => (
+    <div className="flex justify-center gap-2 mb-8">
+      {([1, 2, 3] as Step[]).map((step) => {
+        const isCurrent = step === currentStep;
+        const isComplete = answers[step - 1].length >= 50;
+        const config = STEP_CONFIG[step];
+        return (
+          <button
+            key={step}
+            type="button"
+            onClick={() => navigateToStep(step)}
+            disabled={isTransitioning}
+            className="group flex flex-col items-center gap-2"
+          >
+            <div
+              className={`h-2 rounded-full transition-all duration-300 ${
+                isCurrent
+                  ? "w-8 bg-primary-600"
+                  : isComplete
+                  ? "w-2 bg-primary-600"
+                  : "w-2 bg-gray-200 group-hover:bg-gray-300"
+              }`}
+            />
+            <span className={`text-xs font-medium transition-colors ${
+              isCurrent ? "text-primary-600" : "text-gray-400"
+            }`}>
+              {config.shortLabel}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // Render step content
+  const renderStepContent = () => {
+    const transitionClass = isTransitioning
+      ? slideDirection === "right"
+        ? "opacity-0 translate-x-4"
+        : "opacity-0 -translate-x-4"
+      : "opacity-100 translate-x-0";
+
+    const config = STEP_CONFIG[currentStep];
+    const question = SCENARIO_QUESTIONS[currentStep - 1];
+    const answer = answers[currentStep - 1];
+    const charCount = answer.length;
+
+    return (
+      <div className={`transition-all duration-150 ease-out ${transitionClass}`}>
+        <div className="text-center">
+          {/* Icon */}
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
+            {config.icon}
+          </div>
+
+          {/* Context */}
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+            {config.context}
+          </p>
+
+          {/* Question */}
+          <div className="max-w-md mx-auto mb-6">
+            <p className="text-base font-medium text-gray-900 leading-relaxed">
+              "{question.question}"
+            </p>
+          </div>
+
+          {/* Answer textarea */}
+          <div className="max-w-md mx-auto">
+            <textarea
+              value={answer}
+              onChange={(e) => updateAnswer(currentStep - 1, e.target.value)}
+              placeholder="Share your thoughtful response..."
+              rows={4}
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-2xl px-5 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-none"
+              autoFocus
+            />
+            <div className="flex items-center justify-between mt-3 px-1">
+              <span className={`text-xs ${
+                charCount === 0
+                  ? "text-gray-400"
+                  : charCount < 50
+                  ? "text-amber-600"
+                  : "text-primary-600"
+              }`}>
+                {charCount === 0
+                  ? "Minimum 50 characters"
+                  : charCount < 50
+                  ? `${50 - charCount} more characters needed`
+                  : `${charCount} characters`
+                }
+              </span>
+              {charCount >= 50 && (
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+
+          {/* Tip */}
+          <p className="text-xs text-gray-400 mt-6 max-w-sm mx-auto">
+            Be specific and honest. Providers may ask follow-up questions in interviews.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // Footer component
+  const footerContent = (
+    <div className="pt-4 border-t border-gray-100">
+      {/* Guided mode progress bar */}
+      {guidedMode && guidedStep && guidedTotal && (
+        <div className="flex gap-0.5 px-1 mb-4">
+          {Array.from({ length: guidedTotal }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${
+                i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleBack}
+          disabled={isTransitioning || saving}
+          className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+        >
+          {getBackButtonText()}
+        </button>
+
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          {guidedMode && guidedStep && guidedTotal ? (
+            <span>Step {guidedStep} of {guidedTotal}</span>
+          ) : (
+            <span>Question {currentStep} of 3</span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleContinue}
+          disabled={saving || isTransitioning}
+          className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            isCurrentStepComplete
+              ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          {saving ? (
+            <span className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Saving...
+            </span>
+          ) : (
+            getButtonText()
+          )}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <Modal
       isOpen
       onClose={onClose}
-      title="Screening Questions"
+      title=""
       size="2xl"
-      footer={
-        <ModalFooter
-          saving={saving}
-          hasChanges={hasChanges}
-          onClose={onClose}
-          onSave={handleSave}
-          guidedMode={guidedMode}
-          guidedStep={guidedStep}
-          guidedTotal={guidedTotal}
-          onGuidedBack={onGuidedBack}
-        />
-      }
+      footer={footerContent}
     >
-      <div className="space-y-6 pt-4">
-        <p className="text-sm text-gray-500">
-          Providers use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
-        </p>
-        <p className="text-xs text-gray-400 italic">
-          You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. Providers may ask follow-up questions in interviews.
-        </p>
+      <div className="px-2">
+        {/* Progress Indicator */}
+        <ProgressDots />
 
-        {SCENARIO_QUESTIONS.map((q, i) => (
-          <div key={q.key}>
-            <p className="text-sm font-medium text-gray-900 mb-2">{q.question}</p>
-            <textarea
-              value={answers[i]}
-              onChange={(e) => updateAnswer(i, e.target.value)}
-              placeholder="Your answer (minimum 50 characters)..."
-              rows={3}
-              className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
-            />
-            <span className={`text-xs ${answers[i].length < 50 ? "text-amber-500" : "text-gray-400"}`}>
-              {answers[i].length}/50 min
-            </span>
+        {/* Step Content */}
+        <div className="min-h-[380px] flex items-start justify-center">
+          {renderStepContent()}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mx-auto max-w-md mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
+            <p className="text-sm text-red-600 text-center" role="alert">{error}</p>
           </div>
-        ))}
-
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        )}
       </div>
     </Modal>
   );

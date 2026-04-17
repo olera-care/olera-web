@@ -40,11 +40,20 @@ async function checkIsPaidProvider(): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // Get the account ID (business_profiles.account_id references accounts.id, not auth.users.id)
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) return false;
+
     // Check if user has an organization profile with active subscription
     const { data: profile } = await supabase
       .from("business_profiles")
       .select("id, metadata")
-      .eq("account_id", user.id)
+      .eq("account_id", account.id)
       .eq("type", "organization")
       .eq("is_active", true)
       .limit(1)
@@ -67,11 +76,20 @@ async function checkIsOwnProfile(profileSlug: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // Get the account ID (business_profiles.account_id references accounts.id, not auth.users.id)
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) return false;
+
     // Check if user has a student/caregiver profile with this slug
     const { data: profile } = await supabase
       .from("business_profiles")
       .select("id")
-      .eq("account_id", user.id)
+      .eq("account_id", account.id)
       .in("type", ["student", "caregiver"])
       .eq("slug", profileSlug)
       .limit(1)

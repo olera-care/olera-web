@@ -411,6 +411,9 @@ function InlineQuestionResponse({
   providerCity,
   providerState,
   providerSlug,
+  googleRating,
+  googleReviewCount,
+  onSubmitted,
 }: {
   questionId: string;
   askerName: string;
@@ -418,6 +421,9 @@ function InlineQuestionResponse({
   providerCity?: string | null;
   providerState?: string | null;
   providerSlug?: string | null;
+  googleRating?: number | null;
+  googleReviewCount?: number | null;
+  onSubmitted?: () => void;
 }) {
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -459,6 +465,7 @@ function InlineQuestionResponse({
       }
 
       setSubmitted(true);
+      onSubmitted?.();
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -476,104 +483,137 @@ function InlineQuestionResponse({
     ? answer.substring(0, 117).trimEnd() + "..."
     : answer;
 
-  // Success state — profile preview with Q&A + Reviews gap
+  // Google reviews state
+  const hasGoogleReviews = !!(googleRating && googleRating > 0 && googleReviewCount && googleReviewCount > 0);
+  const roundedRating = googleRating ? Math.round(googleRating * 10) / 10 : 0;
+
+  // Star SVG path (reused)
+  const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
+
+  // Success state — profile preview with Q&A + Reviews
   if (submitted) {
     return (
-      <div className="py-1" style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Confirmation */}
-        <div className="flex items-start gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-            <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <div className="py-1" style={{ animation: "card-enter 0.3s ease-out both" }}>
+        {/* Confirmation — compact */}
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div>
-            <p className="text-[15px] font-semibold text-gray-900">
-              Response sent to {askerName}
-            </p>
-            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-              Your answer is now visible on your public profile. Families
-              researching senior care{locationStr} will see it.
-            </p>
-          </div>
+          <p className="text-[15px] font-semibold text-gray-900">
+            Response sent to {askerName}
+          </p>
         </div>
 
         {/* Profile preview — what families see */}
-        <div className="border-t border-gray-100 pt-5">
-          <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
-            What families see on your profile
+        <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
+          What families see on your profile
+        </p>
+
+        {/* Q&A section preview */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Questions &amp; Answers
+          </p>
+          <div className="flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
+              {getInitials(askerName)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-700 leading-snug">
+                &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
+              </p>
+              <div className="mt-2 flex items-start gap-2">
+                <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-gray-500 leading-snug">
+                  {answerPreview}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews section — adapts to Google reviews state */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Reviews
           </p>
 
-          {/* Q&A section preview */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Questions &amp; Answers
-            </p>
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
-                {getInitials(askerName)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700 leading-snug">
-                  &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
-                </p>
-                <div className="mt-2 flex items-start gap-2">
-                  <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-sm text-gray-500 leading-snug">
-                    {answerPreview}
-                  </p>
+          {hasGoogleReviews ? (
+            <>
+              {/* Has Google reviews — show real data */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <svg key={i} className={`w-5 h-5 ${i <= Math.round(roundedRating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d={starPath} />
+                    </svg>
+                  ))}
                 </div>
+                <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Reviews section preview — the gap */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Reviews
-            </p>
-            <div className="flex items-center gap-1 mb-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <svg key={i} className="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              <p className="text-sm text-gray-500 mb-3">
+                {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google
+              </p>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                More reviews means more visibility. Keep the momentum going.
+              </p>
+              <button
+                type="button"
+                onClick={() => { window.location.href = "/provider/reviews"; }}
+                className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d={starPath} />
                 </svg>
-              ))}
-            </div>
-            <p className="text-sm text-gray-400 mb-3">No reviews yet</p>
-            <p className="text-sm text-gray-500 leading-relaxed mb-4">
-              Families are 3x more likely to contact providers who have reviews.
-            </p>
-
-            {/* Reviews CTA — inside the gap */}
-            <button
-              type="button"
-              onClick={() => { window.location.href = "/provider/reviews"; }}
-              className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Get your first review
-            </button>
-          </div>
-
-          {/* View full profile link */}
-          {providerSlug && (
-            <a
-              href={`/provider/${providerSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group"
-            >
-              View your full profile
-              <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
+                Get more reviews
+              </button>
+            </>
+          ) : (
+            <>
+              {/* No Google reviews — show the gap */}
+              <div className="flex items-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <svg key={i} className="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d={starPath} />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-sm text-gray-400 mb-3">No reviews yet</p>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                Families are 3x more likely to contact providers who have reviews.
+              </p>
+              <button
+                type="button"
+                onClick={() => { window.location.href = "/provider/reviews"; }}
+                className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d={starPath} />
+                </svg>
+                Get your first review
+              </button>
+            </>
           )}
         </div>
+
+        {/* View full profile link */}
+        {providerSlug && (
+          <a
+            href={`/provider/${providerSlug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group"
+          >
+            View your full profile
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+        )}
       </div>
     );
   }
@@ -631,6 +671,9 @@ export default function ActionCard({
 }: ActionCardProps) {
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
+
+  // Track when inline question response is submitted (for dissolve effect)
+  const [questionAnswered, setQuestionAnswered] = useState(false);
 
   // Form state
   const [error, setError] = useState("");
@@ -799,31 +842,34 @@ export default function ActionCard({
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Mascot + Header */}
-        <div className="flex items-start gap-4 mb-6">
-          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
-          <div>
-            <h3 className="text-lg font-display font-bold text-gray-900">
-              Someone has a question about your services
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
-          </div>
-        </div>
-
-        {/* Question info — flat */}
-        <div className="border-t border-gray-100 pt-5 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
-              {getInitials(personName)}
+        {/* Mascot + Header + Question — dissolves after response */}
+        {!questionAnswered && (
+          <div style={{ animation: questionAnswered ? "none" : undefined }}>
+            <div className="flex items-start gap-4 mb-6">
+              <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+              <div>
+                <h3 className="text-lg font-display font-bold text-gray-900">
+                  Someone has a question about your services
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+              </div>
             </div>
-            <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+
+            <div className="border-t border-gray-100 pt-5 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+                  {getInitials(personName)}
+                </div>
+                <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+              </div>
+              {question && (
+                <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+                  &ldquo;{question}&rdquo;
+                </p>
+              )}
+            </div>
           </div>
-          {question && (
-            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
-              &ldquo;{question}&rdquo;
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Inline response or CTA */}
         {(isSignedIn || preVerifiedEmail) ? (
@@ -834,6 +880,9 @@ export default function ActionCard({
             providerCity={provider.city}
             providerState={provider.state}
             providerSlug={provider.slug || provider.provider_id}
+            googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
+            googleReviewCount={provider.google_reviews_data?.review_count}
+            onSubmitted={() => setQuestionAnswered(true)}
           />
         ) : (
           <>

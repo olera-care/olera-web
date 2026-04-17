@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
+import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
 
 // ============================================================
@@ -401,6 +402,161 @@ function maskEmail(email: string): string {
 }
 
 // ============================================================
+// Profile Preview — shows provider what families see
+// ============================================================
+
+function ProfilePreviewCard({
+  provider,
+  googleRating,
+  googleReviewCount,
+  unansweredCount,
+  // Post-response state
+  answered,
+  askerName,
+  questionText,
+  answerPreview,
+}: {
+  provider: Provider;
+  googleRating?: number | null;
+  googleReviewCount?: number | null;
+  unansweredCount?: number;
+  answered?: boolean;
+  askerName?: string;
+  questionText?: string;
+  answerPreview?: string;
+}) {
+  const primaryImage = getPrimaryImage(provider);
+  const slug = provider.slug || provider.provider_id;
+  const hasGoogleReviews = !!(googleRating && googleRating > 0 && googleReviewCount && googleReviewCount > 0);
+  const roundedRating = googleRating ? Math.round(googleRating * 10) / 10 : 0;
+  const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
+  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+
+  return (
+    <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: answered ? "0ms" : "200ms" }}>
+      <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
+        Your page on Olera
+      </p>
+
+      {/* Provider identity */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-3">
+        <div className="flex items-center gap-4 mb-4">
+          {primaryImage ? (
+            <Image src={primaryImage} alt={provider.provider_name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+          ) : (
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 border border-primary-100/60">
+              <span className="text-sm font-display font-bold text-primary-700">
+                {getInitials(provider.provider_name)}
+              </span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[15px] font-display font-semibold text-gray-900 truncate">{provider.provider_name}</h3>
+            {location && <p className="text-sm text-gray-500 truncate">{provider.provider_category ? `${provider.provider_category} · ${location}` : location}</p>}
+          </div>
+        </div>
+
+        {/* Stats line */}
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          {answered ? (
+            <span className="text-primary-600 font-medium">1 question answered</span>
+          ) : unansweredCount ? (
+            <span className="text-amber-600 font-medium">{unansweredCount} unanswered question{unansweredCount !== 1 ? "s" : ""}</span>
+          ) : null}
+          <span>·</span>
+          {hasGoogleReviews ? (
+            <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+          ) : (
+            <span>0 reviews</span>
+          )}
+        </div>
+      </div>
+
+      {/* Q&A preview — only after answering */}
+      {answered && askerName && questionText && answerPreview && (
+        <div className="bg-gray-50 rounded-xl p-4 mb-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Questions &amp; Answers
+          </p>
+          <div className="flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
+              {getInitials(askerName)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-700 leading-snug">
+                &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
+              </p>
+              <div className="mt-2 flex items-start gap-2">
+                <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-gray-500 leading-snug">{answerPreview}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reviews section — the gap or real data */}
+      <div className="bg-gray-50 rounded-xl p-4 mb-4">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          Reviews
+        </p>
+        {hasGoogleReviews ? (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <svg key={i} className={`w-5 h-5 ${i <= Math.round(roundedRating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                    <path d={starPath} />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">{googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google</p>
+            <p className="text-sm text-gray-500 leading-relaxed mb-4">More reviews means more visibility. Keep the momentum going.</p>
+            <button type="button" onClick={() => { window.location.href = "/provider/reviews"; }} className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+              Get more reviews
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-1 mb-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <svg key={i} className="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+              ))}
+            </div>
+            <p className="text-sm text-gray-400 mb-3">No reviews yet</p>
+            <p className="text-sm text-gray-500 leading-relaxed mb-4">Families are 3x more likely to contact providers who have reviews.</p>
+            <button type="button" onClick={() => { window.location.href = "/provider/reviews"; }} className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+              Get your first review
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* View full profile */}
+      <a href={`/provider/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group">
+        View your full profile
+        <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+
+      {/* Pre-response: quiet note about visibility */}
+      {!answered && location && (
+        <p className="text-center text-sm text-gray-400 mt-1">
+          Families searching for senior care in {provider.city} can find this page.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
 // Inline Question Response (respond without leaving the page)
 // ============================================================
 
@@ -423,7 +579,7 @@ function InlineQuestionResponse({
   providerSlug?: string | null;
   googleRating?: number | null;
   googleReviewCount?: number | null;
-  onSubmitted?: () => void;
+  onSubmitted?: (answerText: string) => void;
 }) {
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -465,7 +621,7 @@ function InlineQuestionResponse({
       }
 
       setSubmitted(true);
-      onSubmitted?.();
+      onSubmitted?.(trimmed);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -473,147 +629,23 @@ function InlineQuestionResponse({
     }
   };
 
-  // Location string for the success state
-  const locationStr = providerCity && providerState
-    ? ` in ${providerCity}`
-    : "";
-
-  // Truncate answer for preview display
+  // Truncate answer for preview (used by parent via getAnswerPreview)
   const answerPreview = answer.length > 120
     ? answer.substring(0, 117).trimEnd() + "..."
     : answer;
 
-  // Google reviews state
-  const hasGoogleReviews = !!(googleRating && googleRating > 0 && googleReviewCount && googleReviewCount > 0);
-  const roundedRating = googleRating ? Math.round(googleRating * 10) / 10 : 0;
-
-  // Star SVG path (reused)
-  const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
-
-  // Success state — profile preview with Q&A + Reviews
+  // Success state — compact confirmation only (profile preview is rendered by parent)
   if (submitted) {
     return (
-      <div className="py-1" style={{ animation: "card-enter 0.3s ease-out both" }}>
-        {/* Confirmation — compact */}
-        <div className="flex items-center gap-2.5 mb-5">
-          <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <p className="text-[15px] font-semibold text-gray-900">
-            Response sent to {askerName}
-          </p>
+      <div className="flex items-center gap-2.5 pb-2" style={{ animation: "card-enter 0.25s ease-out both" }}>
+        <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
-
-        {/* Profile preview — what families see */}
-        <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
-          What families see on your profile
+        <p className="text-[15px] font-semibold text-gray-900">
+          Response sent to {askerName}
         </p>
-
-        {/* Q&A section preview */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Questions &amp; Answers
-          </p>
-          <div className="flex items-start gap-2.5">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
-              {getInitials(askerName)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-700 leading-snug">
-                &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
-              </p>
-              <div className="mt-2 flex items-start gap-2">
-                <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-sm text-gray-500 leading-snug">
-                  {answerPreview}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Reviews section — adapts to Google reviews state */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Reviews
-          </p>
-
-          {hasGoogleReviews ? (
-            <>
-              {/* Has Google reviews — show real data */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <svg key={i} className={`w-5 h-5 ${i <= Math.round(roundedRating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
-                      <path d={starPath} />
-                    </svg>
-                  ))}
-                </div>
-                <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
-              </div>
-              <p className="text-sm text-gray-500 mb-3">
-                {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google
-              </p>
-              <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                More reviews means more visibility. Keep the momentum going.
-              </p>
-              <button
-                type="button"
-                onClick={() => { window.location.href = "/provider/reviews"; }}
-                className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d={starPath} />
-                </svg>
-                Get more reviews
-              </button>
-            </>
-          ) : (
-            <>
-              {/* No Google reviews — show the gap */}
-              <div className="flex items-center gap-1 mb-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <svg key={i} className="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
-                    <path d={starPath} />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-sm text-gray-400 mb-3">No reviews yet</p>
-              <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                Families are 3x more likely to contact providers who have reviews.
-              </p>
-              <button
-                type="button"
-                onClick={() => { window.location.href = "/provider/reviews"; }}
-                className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d={starPath} />
-                </svg>
-                Get your first review
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* View full profile link */}
-        {providerSlug && (
-          <a
-            href={`/provider/${providerSlug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group"
-          >
-            View your full profile
-            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </a>
-        )}
       </div>
     );
   }
@@ -672,8 +704,9 @@ export default function ActionCard({
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
 
-  // Track when inline question response is submitted (for dissolve effect)
+  // Track when inline question response is submitted (for dissolve + profile preview)
   const [questionAnswered, setQuestionAnswered] = useState(false);
+  const [submittedAnswer, setSubmittedAnswer] = useState("");
 
   // Form state
   const [error, setError] = useState("");
@@ -840,64 +873,85 @@ export default function ActionCard({
     const personName = rawName;
     const question = rawQuestion;
 
+    const answerPreview = submittedAnswer.length > 120
+      ? submittedAnswer.substring(0, 117).trimEnd() + "..."
+      : submittedAnswer;
+
     return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Mascot + Header + Question — dissolves after response */}
-        {!questionAnswered && (
-          <div style={{ animation: questionAnswered ? "none" : undefined }}>
-            <div className="flex items-start gap-4 mb-6">
-              <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
-              <div>
-                <h3 className="text-lg font-display font-bold text-gray-900">
-                  Someone has a question about your services
-                </h3>
-                <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100 pt-5 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
-                  {getInitials(personName)}
+      <>
+        {/* Question card — dissolves header after response */}
+        <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+          {/* Mascot + Header + Question — dissolves after response */}
+          {!questionAnswered && (
+            <div>
+              <div className="flex items-start gap-4 mb-6">
+                <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+                <div>
+                  <h3 className="text-lg font-display font-bold text-gray-900">
+                    Someone has a question about your services
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
                 </div>
-                <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
               </div>
-              {question && (
-                <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
-                  &ldquo;{question}&rdquo;
-                </p>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Inline response or CTA */}
-        {(isSignedIn || preVerifiedEmail) ? (
-          <InlineQuestionResponse
-            questionId={notificationData.id}
-            askerName={personName}
-            questionText={question}
-            providerCity={provider.city}
-            providerState={provider.state}
-            providerSlug={provider.slug || provider.provider_id}
+              <div className="border-t border-gray-100 pt-5 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+                    {getInitials(personName)}
+                  </div>
+                  <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+                </div>
+                {question && (
+                  <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+                    &ldquo;{question}&rdquo;
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Inline response or CTA */}
+          {(isSignedIn || preVerifiedEmail) ? (
+            <InlineQuestionResponse
+              questionId={notificationData.id}
+              askerName={personName}
+              questionText={question}
+              providerCity={provider.city}
+              providerState={provider.state}
+              providerSlug={provider.slug || provider.provider_id}
+              googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
+              googleReviewCount={provider.google_reviews_data?.review_count}
+              onSubmitted={(text) => { setQuestionAnswered(true); setSubmittedAnswer(text); }}
+            />
+          ) : (
+            <>
+              <button
+                onClick={onClaimClick}
+                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+              >
+                Sign in to answer
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                Olera connects families with quality senior care providers.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Profile preview — always visible, adapts to pre/post response state */}
+        <div className="mt-6">
+          <ProfilePreviewCard
+            provider={provider}
             googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
             googleReviewCount={provider.google_reviews_data?.review_count}
-            onSubmitted={() => setQuestionAnswered(true)}
+            unansweredCount={questionAnswered ? 0 : 1}
+            answered={questionAnswered}
+            askerName={questionAnswered ? personName : undefined}
+            questionText={questionAnswered ? question : undefined}
+            answerPreview={questionAnswered ? answerPreview : undefined}
           />
-        ) : (
-          <>
-            <button
-              onClick={onClaimClick}
-              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-            >
-              Sign in to answer
-            </button>
-            <p className="text-xs text-gray-400 mt-3 text-center">
-              Olera connects families with quality senior care providers.
-            </p>
-          </>
-        )}
-      </div>
+        </div>
+      </>
     );
   }
 

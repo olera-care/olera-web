@@ -409,6 +409,7 @@ function ProfilePreviewCard({
   provider,
   googleRating,
   googleReviewCount,
+  googleReviewSnippet,
   unansweredCount,
   // Post-response state
   answered,
@@ -419,6 +420,7 @@ function ProfilePreviewCard({
   provider: Provider;
   googleRating?: number | null;
   googleReviewCount?: number | null;
+  googleReviewSnippet?: { author_name: string; rating: number; text: string } | null;
   unansweredCount?: number;
   answered?: boolean;
   askerName?: string;
@@ -456,7 +458,14 @@ function ProfilePreviewCard({
     </button>
   );
 
-  // Shared reviews content (stars + copy)
+  // Truncate review snippet text
+  const snippetText = googleReviewSnippet?.text
+    ? (googleReviewSnippet.text.length > 100
+        ? googleReviewSnippet.text.substring(0, 97).trimEnd() + "..."
+        : googleReviewSnippet.text)
+    : null;
+
+  // Shared reviews content (stars + copy + optional snippet)
   const reviewsContent = hasGoogleReviews ? (
     <>
       <div className="flex items-center gap-2 mb-2">
@@ -466,9 +475,21 @@ function ProfilePreviewCard({
           ))}
         </div>
         <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
-        <span className="text-sm text-gray-400">· {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+        <span className="text-sm text-gray-400">· {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google</span>
       </div>
-      <p className="text-sm text-gray-500 leading-relaxed mb-4">More reviews means more visibility.</p>
+      {/* Review snippet — one real review to prove legitimacy */}
+      {snippetText && googleReviewSnippet && (
+        <div className="flex items-start gap-2 mt-3 mb-4">
+          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-[9px] font-semibold text-gray-500">{getInitials(googleReviewSnippet.author_name)}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-600">{googleReviewSnippet.author_name}</p>
+            <p className="text-xs text-gray-400 leading-relaxed mt-0.5">&ldquo;{snippetText}&rdquo;</p>
+          </div>
+        </div>
+      )}
+      {!snippetText && <p className="text-sm text-gray-500 leading-relaxed mb-4">More reviews means more visibility.</p>}
     </>
   ) : (
     <>
@@ -998,6 +1019,7 @@ export default function ActionCard({
             provider={provider}
             googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
             googleReviewCount={provider.google_reviews_data?.review_count}
+            googleReviewSnippet={provider.google_reviews_data?.reviews?.[0] || null}
             unansweredCount={questionAnswered ? 0 : 1}
             answered={questionAnswered}
             askerName={questionAnswered ? personName : undefined}

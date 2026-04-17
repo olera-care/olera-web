@@ -185,41 +185,6 @@ export default function EditScenarioModal({
     return "Back";
   };
 
-  // Progress dots
-  const ProgressDots = () => (
-    <div className="flex justify-center gap-2 mb-8">
-      {([1, 2, 3] as Step[]).map((step) => {
-        const isCurrent = step === currentStep;
-        const isComplete = answers[step - 1].length >= 50;
-        const config = STEP_CONFIG[step];
-        return (
-          <button
-            key={step}
-            type="button"
-            onClick={() => navigateToStep(step)}
-            disabled={isTransitioning}
-            className="group flex flex-col items-center gap-2"
-          >
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                isCurrent
-                  ? "w-8 bg-primary-600"
-                  : isComplete
-                  ? "w-2 bg-primary-600"
-                  : "w-2 bg-gray-200 group-hover:bg-gray-300"
-              }`}
-            />
-            <span className={`text-xs font-medium transition-colors ${
-              isCurrent ? "text-primary-600" : "text-gray-400"
-            }`}>
-              {config.shortLabel}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   // Render step content
   const renderStepContent = () => {
     const transitionClass = isTransitioning
@@ -322,11 +287,15 @@ export default function EditScenarioModal({
           {getBackButtonText()}
         </button>
 
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-1.5 text-xs text-gray-400">
           {guidedMode && guidedStep && guidedTotal ? (
             <span>Step {guidedStep} of {guidedTotal}</span>
           ) : (
-            <span>Question {currentStep} of 3</span>
+            <>
+              <span className="text-gray-500 font-medium">{STEP_CONFIG[currentStep].shortLabel}</span>
+              <span>·</span>
+              <span>Question {currentStep} of 3</span>
+            </>
           )}
         </div>
 
@@ -362,11 +331,8 @@ export default function EditScenarioModal({
       footer={footerContent}
     >
       <div className="px-2">
-        {/* Progress Indicator */}
-        <ProgressDots />
-
         {/* Step Content */}
-        <div className="min-h-[380px] flex items-start justify-center">
+        <div className="min-h-[380px] flex items-start justify-center pt-4">
           {renderStepContent()}
         </div>
 

@@ -176,43 +176,6 @@ export default function EditBackgroundModal({
     return "Back";
   };
 
-  // Progress dots
-  const ProgressDots = () => (
-    <div className="flex justify-center gap-2 mb-8">
-      {([1, 2, 3, 4] as Step[]).map((step) => {
-        const isCurrent = step === currentStep;
-        const isComplete = step === 1 ? !!yearsExperience
-          : step === 2 ? certifications.length > 0
-          : step === 3 ? careTypes.length > 0
-          : languages.length > 0;
-        return (
-          <button
-            key={step}
-            type="button"
-            onClick={() => navigateToStep(step)}
-            disabled={isTransitioning}
-            className="group flex flex-col items-center gap-2"
-          >
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                isCurrent
-                  ? "w-8 bg-primary-600"
-                  : isComplete
-                  ? "w-2 bg-primary-600"
-                  : "w-2 bg-gray-200 group-hover:bg-gray-300"
-              }`}
-            />
-            <span className={`text-xs font-medium transition-colors ${
-              isCurrent ? "text-primary-600" : "text-gray-400"
-            }`}>
-              {stepLabels[step]}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   // Render step content
   const renderStepContent = () => {
     const transitionClass = isTransitioning
@@ -412,11 +375,15 @@ export default function EditBackgroundModal({
           {getBackButtonText()}
         </button>
 
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-1.5 text-xs text-gray-400">
           {guidedMode && guidedStep && guidedTotal ? (
             <span>Step {guidedStep} of {guidedTotal}</span>
           ) : (
-            <span>Step {currentStep} of 4</span>
+            <>
+              <span className="text-gray-500 font-medium">{stepLabels[currentStep]}</span>
+              <span>·</span>
+              <span>Step {currentStep} of 4</span>
+            </>
           )}
         </div>
 
@@ -452,11 +419,8 @@ export default function EditBackgroundModal({
       footer={footerContent}
     >
       <div className="px-2">
-        {/* Progress Indicator */}
-        <ProgressDots />
-
         {/* Step Content */}
-        <div className="min-h-[360px] flex items-start justify-center">
+        <div className="min-h-[360px] flex items-start justify-center pt-4">
           {renderStepContent()}
         </div>
 

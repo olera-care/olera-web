@@ -185,8 +185,8 @@ export default function Modal({
             : [
                 // Mobile: bottom sheet - use dvh for proper mobile Safari support
                 "rounded-t-2xl max-h-[92dvh] animate-sheet-up",
-                // Desktop: centered modal
-                "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
+                // Desktop: centered modal (explicitly set bottom corners to override mobile styles)
+                "sm:rounded-b-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
               ].join(" "),
           sizeClasses[size],
         ].join(" ")}

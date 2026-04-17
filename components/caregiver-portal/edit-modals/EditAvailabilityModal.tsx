@@ -202,7 +202,7 @@ export default function EditAvailabilityModal({
               This is the #1 thing providers look at.
             </p>
 
-            <div className="max-w-lg mx-auto">
+            <div className="w-full max-w-xl mx-auto">
               {!commitmentStatement && (
                 <div className="mb-4 space-y-2">
                   <p className="text-xs text-gray-400 font-medium text-left">Quick start templates:</p>
@@ -375,7 +375,7 @@ export default function EditAvailabilityModal({
               Optional: Finals, spring break, planned travel, etc.
             </p>
 
-            <div className="max-w-lg mx-auto">
+            <div className="w-full max-w-xl mx-auto">
               <textarea
                 value={availabilityNotes}
                 onChange={(e) => setAvailabilityNotes(e.target.value)}

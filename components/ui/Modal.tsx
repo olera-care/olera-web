@@ -10,7 +10,7 @@ interface ModalProps {
   title?: ReactNode;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "fullscreen";
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
   /** Sticky footer content (pinned below scrollable body). */
@@ -25,6 +25,7 @@ const sizeClasses: Record<string, string> = {
   lg: "max-w-lg",
   xl: "max-w-xl",
   "2xl": "max-w-[640px]",
+  "3xl": "max-w-3xl",  // 768px - for modals with more content
   fullscreen: "max-w-none",
 };
 
@@ -184,8 +185,8 @@ export default function Modal({
             : [
                 // Mobile: bottom sheet - use dvh for proper mobile Safari support
                 "rounded-t-2xl max-h-[92dvh] animate-sheet-up",
-                // Desktop: centered modal
-                "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
+                // Desktop: centered modal (explicitly set bottom corners to override mobile styles)
+                "sm:rounded-b-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
               ].join(" "),
           sizeClasses[size],
         ].join(" ")}
@@ -256,14 +257,14 @@ export default function Modal({
         {/* Scrollable body */}
         <div
           data-modal-scroll
-          className={`px-5 sm:px-7 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}
+          className={`px-5 sm:px-7 flex-1 min-h-0 overflow-y-auto overscroll-contain relative z-10 ${footer ? "" : "pb-5 sm:pb-7"}`}
         >
           {children}
         </div>
 
         {/* Sticky footer — pinned bottom */}
         {footer && (
-          <div className="px-5 sm:px-7 pb-5 sm:pb-7 shrink-0">{footer}</div>
+          <div className="px-5 sm:px-7 pb-5 sm:pb-7 shrink-0 relative z-0 bg-white">{footer}</div>
         )}
       </div>
     </div>

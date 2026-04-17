@@ -145,8 +145,9 @@ export default function EditResumeModal({
         return;
       }
 
-      // Update local state with new URL and file info
-      if (data.url) {
+      // Update local state with file path from API
+      // Note: API returns filePath (storage path), not a URL
+      if (data.filePath) {
         // Show success state briefly
         setUploadSuccess(true);
 
@@ -154,14 +155,14 @@ export default function EditResumeModal({
         await saveStudentProfile({
           profileId: profile.id,
           metadataFields: {
-            resume_url: data.url,
+            resume_url: data.filePath,
           },
         });
 
         // After a brief delay, transition to the uploaded view
         setTimeout(() => {
           setUploadSuccess(false);
-          setResumeUrl(data.url);
+          setResumeUrl(data.filePath);
           setResumeFile({ name: file.name, size: file.size });
           // Show "Saved!" confirmation
           setResumeJustSaved(true);
@@ -198,7 +199,7 @@ export default function EditResumeModal({
       isOpen
       onClose={onClose}
       title="Resume & LinkedIn"
-      size="lg"
+      size="2xl"
       footer={
         <ModalFooter
           saving={saving || uploading}
@@ -216,7 +217,7 @@ export default function EditResumeModal({
         {/* Section 1: Resume Upload */}
         <div className="bg-gray-50 rounded-2xl p-5">
           <div className="flex items-start gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-[#199087] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -232,35 +233,35 @@ export default function EditResumeModal({
           {/* Uploaded state */}
           {resumeUrl ? (
             <div className="mb-4">
-              <div className="flex items-center gap-3 p-4 bg-[#199087]/5 border border-[#199087]/20 rounded-xl">
-                <div className="w-12 h-12 rounded-xl bg-[#199087]/10 flex items-center justify-center shrink-0">
-                  <svg className="w-6 h-6 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-xl">
+                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-[#199087]">
+                    <p className="text-sm font-medium text-primary-600">
                       {resumeFile ? resumeFile.name : "Resume uploaded"}
                     </p>
                     {resumeJustSaved && (
-                      <span className="px-2 py-0.5 bg-[#199087] text-white text-[10px] font-medium rounded-full animate-pulse">
+                      <span className="px-2 py-0.5 bg-primary-600 text-white text-[10px] font-medium rounded-full animate-pulse">
                         Saved!
                       </span>
                     )}
                   </div>
                   {resumeFile && (
-                    <p className="text-xs text-[#199087]/70">{formatFileSize(resumeFile.size)}</p>
+                    <p className="text-xs text-primary-600/70">{formatFileSize(resumeFile.size)}</p>
                   )}
                   {!resumeFile && hadResumeOnOpen && (
-                    <p className="text-xs text-[#199087]/70">Previously uploaded</p>
+                    <p className="text-xs text-primary-600/70">Previously uploaded</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
                   disabled={uploading}
-                  className="text-sm font-medium text-[#199087] hover:text-[#157a72] px-3 py-1.5 rounded-lg hover:bg-[#199087]/10 transition-colors"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
                 >
                   Replace
                 </button>
@@ -276,26 +277,26 @@ export default function EditResumeModal({
               onClick={() => inputRef.current?.click()}
               className={`relative flex flex-col items-center justify-center py-10 px-6 bg-white border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
                 dragActive
-                  ? "border-[#199087] bg-[#199087]/5 scale-[1.01]"
+                  ? "border-primary-600 bg-primary-50 scale-[1.01]"
                   : uploading
                   ? "border-gray-200 bg-gray-50"
-                  : "border-gray-200 hover:border-[#199087]/50 hover:bg-gray-50"
+                  : "border-gray-200 hover:border-primary-300 hover:bg-gray-50"
               }`}
             >
               {uploading ? (
                 <div className="py-4">
-                  <div className="w-12 h-12 border-[3px] border-[#199087]/20 border-t-[#199087] rounded-full animate-spin mb-4 mx-auto" />
-                  <p className="text-base font-semibold text-[#199087]">Uploading your resume...</p>
+                  <div className="w-12 h-12 border-[3px] border-primary-100 border-t-primary-600 rounded-full animate-spin mb-4 mx-auto" />
+                  <p className="text-base font-semibold text-primary-600">Uploading your resume...</p>
                   <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
                 </div>
               ) : uploadSuccess ? (
                 <div className="py-4">
-                  <div className="w-12 h-12 rounded-full bg-[#199087] flex items-center justify-center mb-4 mx-auto animate-pulse">
+                  <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center mb-4 mx-auto animate-pulse">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-base font-semibold text-[#199087]">Upload complete!</p>
+                  <p className="text-base font-semibold text-primary-600">Upload complete!</p>
                   <p className="text-sm text-gray-500 mt-1">Saving to your profile...</p>
                 </div>
               ) : (
@@ -319,15 +320,15 @@ export default function EditResumeModal({
             <p className="text-xs font-medium text-gray-500 mb-2">A strong caregiver resume includes:</p>
             <ul className="text-xs text-gray-400 space-y-1">
               <li className="flex items-start gap-2">
-                <span className="text-[#199087] mt-0.5">•</span>
+                <span className="text-primary-600 mt-0.5">•</span>
                 Caregiving, volunteer, or clinical experience
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#199087] mt-0.5">•</span>
+                <span className="text-primary-600 mt-0.5">•</span>
                 Certifications (CNA, BLS, CPR)
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#199087] mt-0.5">•</span>
+                <span className="text-primary-600 mt-0.5">•</span>
                 Soft skills: communication, empathy, reliability
               </li>
             </ul>
@@ -370,12 +371,12 @@ export default function EditResumeModal({
               className={`w-full bg-white border rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all outline-none ${
                 linkedinUrl && !isValidLinkedIn(linkedinUrl)
                   ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                  : "border-gray-200 focus:border-[#199087] focus:ring-2 focus:ring-[#199087]/20"
+                  : "border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100"
               }`}
             />
             {linkedinUrl && isValidLinkedIn(linkedinUrl) && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <svg className="w-5 h-5 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>

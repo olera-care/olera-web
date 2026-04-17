@@ -459,11 +459,11 @@
 
 ### 2026-04-16 (Session 80) — Provider onboard front door: question → profile preview → reviews
 
-**Branch:** `humble-brahe` | **Merged:** PRs #568-575 → staging
+**Branch:** `humble-brahe` | **Merged:** PRs #568-580 → staging (13 PRs total)
 
 **The big idea:** Questions are the front door for providers. A provider who responds to a question on the onboard page should immediately see what their public profile looks like — creating ownership and revealing the reviews gap naturally.
 
-**What shipped (8 PRs merged to staging):**
+**What shipped (13 PRs merged to staging):**
 
 1. **PR #568 — Inline Q&A response.** Providers respond to questions directly on the onboard page without navigating to /provider/qna. Textarea + "Send Response" in the notification card. Retry-on-401 for the background auth race condition.
 
@@ -476,6 +476,16 @@
 5. **PR #574 — Dissolve + Google reviews.** After responding, mascot header + question text dissolve. Reviews section shows real Google stars + count when available, falls back to empty stars for providers without reviews.
 
 6. **PR #575 — Profile preview always visible.** The profile preview (provider identity + Q&A + reviews gap) now renders in BOTH pre- and post-response states. Before answering: shows "1 unanswered question · 0 reviews" + provider identity + "Families searching for senior care in {city} can find this page." After answering: dissolves header, shows Q&A preview + reviews CTA. PlatformShowcase toolkit hidden for notification entries.
+
+7. **PR #576 — Fix image + reviews for BP-only providers.** Images: read `metadata.images` array when `image_url` is null. Reviews: fetch from `reviews` table when `google_reviews_data` is missing.
+
+8. **PR #577 — Consolidated single card.** After responding, all sections (confirmation, provider identity, Q&A, reviews) collapse into one white card with thin border dividers. Eliminates vertical gaps that pushed reviews CTA below the fold.
+
+9. **PR #578 — Reviews CTA tracking + Slack.** `reviews_cta_clicked` event in `provider_activity` + Slack alert "⭐ Provider Clicked Reviews CTA." Tracks source (pre_response vs post_response). Migration 040 for CHECK constraint.
+
+10. **PR #579 — Enrich BP-only providers with olera-providers data.** When a BP has `source_provider_id`, fetch the full olera-providers record for Google reviews, images, place_id. Fixes providers like Aggie Independent Living where BP slug differs from OP slug.
+
+11. **PR #580 — Google review snippet.** Shows one real review (author name + truncated text) below star rating in the profile preview. Makes reviews feel live and legitimate.
 
 **Also in this session (planning, no code):**
 - Thorough senior benefits architectural review (structure, SEO, scaling risks)
@@ -506,9 +516,10 @@
 | 2026-04-16 | Show real Google reviews when available | Static "No reviews yet" is dishonest for providers with Google reviews. Two states: has reviews → amber stars + count + "Get more reviews"; no reviews → gray stars + gap + "Get your first review." |
 
 **What's next:**
-1. Test the full flow on staging (VPN off) — pre-response profile preview + response + post-response dissolve + reviews CTA
+1. Test the full flow on staging — pre-response profile preview (with Google review snippet + image) + response + post-response consolidated card + reviews CTA click tracking
 2. Reviews landing page messaging (Notion ticket): answer "why Olera vs Google?", 3-step how-it-works, integrated suite framing
 3. Benefits scaling roadmap: partition pipeline-drafts.ts → state-suffixed names → noindex legacy → category pages
+4. Fix suspicious one-click sign-ins flagging (Notion ticket, P1)
 
 ### 2026-04-03 (Session 66) — Browse Card Image Fallback Fix + R2 Migration Plan
 

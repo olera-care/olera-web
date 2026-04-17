@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Badge from "@/components/ui/Badge";
 
 type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email" | "archived";
 
@@ -230,6 +229,57 @@ function InlineEmailInput({
 
 const PAGE_SIZE = 25;
 
+type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d";
+
+const DATE_PRESETS: { label: string; value: DatePreset }[] = [
+  { label: "All time", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "Yesterday", value: "yesterday" },
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 30 days", value: "30d" },
+];
+
+function getDateRange(
+  preset: DatePreset,
+  customFrom: string,
+  customTo: string,
+): { from: string | null; to: string | null } {
+  if (customFrom) {
+    const start = new Date(customFrom + "T00:00:00");
+    const endBase = customTo || customFrom;
+    const end = new Date(endBase + "T00:00:00");
+    end.setDate(end.getDate() + 1);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }
+
+  if (preset === "all") return { from: null, to: null };
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (preset === "today") {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { from: today.toISOString(), to: tomorrow.toISOString() };
+  }
+  if (preset === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return { from: yesterday.toISOString(), to: today.toISOString() };
+  }
+  if (preset === "7d") {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return { from: weekAgo.toISOString(), to: null };
+  }
+  if (preset === "30d") {
+    const monthAgo = new Date(today);
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    return { from: monthAgo.toISOString(), to: null };
+  }
+  return { from: null, to: null };
+}
+
 export default function AdminLeadsPage() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as TypeFilter) || "all";
@@ -244,6 +294,11 @@ export default function AdminLeadsPage() {
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Date filter
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
 
   // Engagement data
   const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});
@@ -387,6 +442,9 @@ export default function AdminLeadsPage() {
         if (filter !== "all" && filter !== "needs_email") params.set("type", filter);
         if (filter === "needs_email") params.set("needs_email", "true");
       }
+      const { from, to } = getDateRange(datePreset, customFrom, customTo);
+      if (from) params.set("date_from", from);
+      if (to) params.set("date_to", to);
       if (debouncedSearch) params.set("search", debouncedSearch);
 
       const res = await fetch(`/api/admin/leads?${params}`);
@@ -404,7 +462,7 @@ export default function AdminLeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, debouncedSearch]);
+  }, [filter, page, debouncedSearch, datePreset, customFrom, customTo]);
 
   // Debounce search input (300ms)
   const handleSearchChange = (value: string) => {
@@ -420,7 +478,7 @@ export default function AdminLeadsPage() {
   useEffect(() => {
     setPage(0);
     setSelectedIds(new Set());
-  }, [filter, debouncedSearch]);
+  }, [filter, debouncedSearch, datePreset, customFrom, customTo]);
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -436,24 +494,23 @@ export default function AdminLeadsPage() {
     { label: "Archived", value: "archived" },
   ];
 
+  function formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
   return (
     <div>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
-            <p className="text-lg text-gray-600 mt-1">
-              View all connections and inquiries across the platform.
-            </p>
-          </div>
-          <div className="text-sm text-gray-500">
-            {total} total
-          </div>
-        </div>
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Leads</h1>
+        <p className="text-sm text-gray-400 mt-1">
+          View all connections and inquiries across the platform.
+        </p>
       </div>
 
       {/* Search bar */}
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="relative">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
@@ -472,7 +529,7 @@ export default function AdminLeadsPage() {
             placeholder="Search by name..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
           {search && (
             <button
@@ -487,27 +544,84 @@ export default function AdminLeadsPage() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6">
+      {error && (
+        <div className="mb-5 px-4 py-3 bg-red-50 rounded-xl text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-8 border-b border-gray-100">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setFilter(tab.value)}
-            className={[
-              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               filter === tab.value
-                ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-            ].join(" ")}
+                ? "border-gray-900 text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Bulk delete bar */}
+      {/* Date filter */}
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
+        {DATE_PRESETS.map((preset) => (
+          <button
+            key={preset.value}
+            onClick={() => { setDatePreset(preset.value); setCustomFrom(""); setCustomTo(""); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              datePreset === preset.value && !customFrom
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {preset.label}
+          </button>
+        ))}
+        <input
+          type="date"
+          value={customFrom}
+          onChange={(e) => setCustomFrom(e.target.value)}
+          className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+            customFrom
+              ? "bg-gray-900 text-white border-gray-900"
+              : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
+          }`}
+        />
+        {customFrom && (
+          <>
+            <span className="text-xs text-gray-400">–</span>
+            <input
+              type="date"
+              value={customTo}
+              min={customFrom}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                customTo
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
+              }`}
+            />
+            <button
+              onClick={() => { setCustomFrom(""); setCustomTo(""); }}
+              className="ml-1 text-gray-400 hover:text-gray-700 transition-colors"
+              aria-label="Clear custom date range"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-4 mb-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-4 mb-4 px-4 py-3 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium text-gray-800">
             {selectedIds.size} selected
           </span>
@@ -541,126 +655,116 @@ export default function AdminLeadsPage() {
         </div>
       )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
+      {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-lg text-gray-500">Loading...</div>
+        <div className="flex items-center justify-center py-24">
+          <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
         </div>
       ) : leads.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">No leads found.</p>
+        <div className="text-center py-24">
+          <p className="text-sm text-gray-400">
+            No {filter === "needs_email" ? "leads needing email" : filter === "archived" ? "archived leads" : filter === "inquiry" ? "inquiries" : filter !== "all" ? filter + "s" : "leads"} found
+          </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="w-10 px-3 py-3">
+        <div className="space-y-1">
+          {leads.map((lead) => {
+            const needsEmail = lead.metadata?.needs_provider_email === true;
+            const providerEditorId = lead.to_profile?.source_provider_id;
+            const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
+            const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
+            const isArchived = !!lead.metadata?.archived;
+
+            // Resolve care type and urgency
+            let careTypeDisplay: string | null = null;
+            let urgencyDisplay: string | null = null;
+
+            const fromMeta = lead.from_profile?.metadata as Record<string, unknown> | undefined;
+            const fromCareTypes = lead.from_profile?.care_types as string[] | undefined;
+
+            if (fromCareTypes && fromCareTypes.length > 0) {
+              careTypeDisplay = fromCareTypes[0];
+            }
+            if (fromMeta?.timeline) {
+              urgencyDisplay = TIMELINE_LABELS[fromMeta.timeline as string] || (fromMeta.timeline as string);
+            }
+
+            if ((!careTypeDisplay || !urgencyDisplay) && lead.message) {
+              try {
+                const msg = JSON.parse(lead.message);
+                if (!careTypeDisplay && msg.care_type) {
+                  careTypeDisplay = CARE_TYPE_LABELS[msg.care_type] || msg.care_type;
+                }
+                if (!urgencyDisplay && msg.urgency) {
+                  urgencyDisplay = URGENCY_LABELS[msg.urgency] || msg.urgency;
+                }
+              } catch { /* ignore */ }
+            }
+
+            const isFromFamily = lead.from_profile?.type === "family";
+
+            const fromName = lead.from_profile?.display_name ?? "Unknown";
+            const toName = lead.to_profile?.display_name ?? "Unknown";
+
+            return (
+              <div
+                key={lead.id}
+                className={`group rounded-lg px-5 py-4 transition-colors ${
+                  isArchived ? "opacity-40" : "hover:bg-gray-50"
+                } ${selectedIds.has(lead.id) ? "bg-blue-50/50" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
-                      checked={leads.length > 0 && selectedIds.size === leads.length}
-                      onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={selectedIds.has(lead.id)}
+                      onChange={() => toggleSelect(lead.id)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">From</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">To</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Care Type</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Urgency</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {leads.map((lead) => {
-                  const needsEmail = lead.metadata?.needs_provider_email === true;
-                  const providerEditorId = lead.to_profile?.source_provider_id;
-                  const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
-                  const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
+                    <div className="flex-1 min-w-0">
+                      {/* Primary line: from → to */}
+                      <div className="flex items-center gap-1.5 text-[15px] leading-snug">
+                        {isFromFamily ? (
+                          <Link href={`/admin/care-seekers/${lead.from_profile?.id}`} className="font-medium text-gray-900 hover:text-primary-600 transition-colors">
+                            {fromName}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-gray-900">{fromName}</span>
+                        )}
+                        <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        {providerEditorId ? (
+                          <Link href={`/admin/directory/${providerEditorId}`} className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate">
+                            {toName}
+                          </Link>
+                        ) : providerSlug ? (
+                          <Link href={`/provider/${providerSlug}`} className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate" target="_blank">
+                            {toName}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-gray-900 truncate">{toName}</span>
+                        )}
+                      </div>
 
-                  // Resolve care type and urgency — prefer profile metadata, fall back to connection message
-                  let careTypeDisplay: string | null = null;
-                  let urgencyDisplay: string | null = null;
-
-                  const fromMeta = lead.from_profile?.metadata as Record<string, unknown> | undefined;
-                  const fromCareTypes = lead.from_profile?.care_types as string[] | undefined;
-
-                  if (fromCareTypes && fromCareTypes.length > 0) {
-                    careTypeDisplay = fromCareTypes[0];
-                  }
-                  if (fromMeta?.timeline) {
-                    urgencyDisplay = TIMELINE_LABELS[fromMeta.timeline as string] || (fromMeta.timeline as string);
-                  }
-
-                  // Fallback: parse connections.message JSON
-                  if ((!careTypeDisplay || !urgencyDisplay) && lead.message) {
-                    try {
-                      const msg = JSON.parse(lead.message);
-                      if (!careTypeDisplay && msg.care_type) {
-                        careTypeDisplay = CARE_TYPE_LABELS[msg.care_type] || msg.care_type;
-                      }
-                      if (!urgencyDisplay && msg.urgency) {
-                        urgencyDisplay = URGENCY_LABELS[msg.urgency] || msg.urgency;
-                      }
-                    } catch { /* ignore */ }
-                  }
-
-                  const isFromFamily = lead.from_profile?.type === "family";
-
-                  return (
-                  <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""} ${selectedIds.has(lead.id) ? "bg-blue-50" : ""}`}>
-                    <td className="w-10 px-3 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(lead.id)}
-                        onChange={() => toggleSelect(lead.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      {isFromFamily ? (
-                        <Link href={`/admin/care-seekers/${lead.from_profile?.id}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
-                          {lead.from_profile?.display_name ?? "Unknown"}
-                        </Link>
-                      ) : (
-                        <p className="text-sm font-medium text-gray-900">
-                          {lead.from_profile?.display_name ?? "Unknown"}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500">
-                        {lead.from_profile?.type ?? "—"}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      {providerEditorId ? (
-                        <Link href={`/admin/directory/${providerEditorId}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
-                          {lead.to_profile?.display_name ?? "Unknown"}
-                        </Link>
-                      ) : providerSlug ? (
-                        <Link href={`/provider/${providerSlug}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline" target="_blank">
-                          {lead.to_profile?.display_name ?? "Unknown"}
-                        </Link>
-                      ) : (
-                        <p className="text-sm font-medium text-gray-900">
-                          {lead.to_profile?.display_name ?? "Unknown"}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs text-gray-500">
-                          {lead.to_profile?.type ?? "—"}
-                        </p>
+                      {/* Meta line */}
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+                        <span className={`px-2 py-0.5 text-[11px] font-medium rounded ${
+                          lead.type === "inquiry" ? "bg-gray-50 text-gray-500" :
+                          lead.type === "application" ? "bg-primary-50 text-primary-600" :
+                          lead.type === "invitation" ? "bg-blue-50 text-blue-600" :
+                          "bg-gray-50 text-gray-400"
+                        }`}>
+                          {lead.type}
+                        </span>
+                        {careTypeDisplay && (
+                          <span>{careTypeDisplay}</span>
+                        )}
+                        {urgencyDisplay && (
+                          <span>{urgencyDisplay}</span>
+                        )}
                         {needsEmail && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                            No email
-                          </span>
+                          <span className="font-medium text-gray-900">Needs email</span>
                         )}
                         {providerEngagement && (
                           <div className="flex items-center gap-1" title={
@@ -673,102 +777,76 @@ export default function AdminLeadsPage() {
                             <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.contact_revealed ? "bg-green-500" : "bg-gray-200"}`} />
                           </div>
                         )}
+                        <span>{formatDate(lead.created_at)}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {careTypeDisplay ? (
-                        <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                          {careTypeDisplay}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {urgencyDisplay ? (
-                        <span className="text-xs text-gray-600">{urgencyDisplay}</span>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="default">{lead.type}</Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={getStatusVariant(lead.status)}>
-                        {lead.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {needsEmail && (
-                          <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
-                        )}
-                        {lead.metadata?.archived ? (
-                          <button
-                            onClick={() => executeUnarchive([lead.id])}
-                            title="Unarchive lead"
-                            className="px-2.5 py-1 rounded-md text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
-                          >
-                            Unarchive
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => requestArchiveSingle(lead)}
-                            title="Archive lead"
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-                              <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isArchived ? (
+                      <button
+                        onClick={() => executeUnarchive([lead.id])}
+                        className="text-xs text-gray-400 hover:text-gray-900 transition-colors"
+                      >
+                        Unarchive
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => requestArchiveSingle(lead)}
+                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all"
+                        >
+                          Archive
+                        </button>
                         <button
                           onClick={() => requestDeleteSingle(lead)}
-                          title="Delete lead"
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
+                          Delete
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {needsEmail && !isArchived && (
+                  <div className="mt-3 ml-7">
+                    <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Pagination */}
-      {total > PAGE_SIZE && (
-        <div className="flex items-center justify-between mt-4 px-2">
+      {!loading && leads.length > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
           <p className="text-sm text-gray-500">
-            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+            {total <= PAGE_SIZE
+              ? `${total} ${filter === "needs_email" ? "needing email" : filter === "archived" ? "archived" : filter === "inquiry" ? "inquiries" : filter !== "all" ? filter + "s" : "total"}`
+              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`
+            }
           </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={(page + 1) * PAGE_SIZE >= total}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
+          {total > PAGE_SIZE && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={(page + 1) * PAGE_SIZE >= total}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -796,15 +874,3 @@ export default function AdminLeadsPage() {
   );
 }
 
-function getStatusVariant(status: string): "pending" | "verified" | "rejected" | "default" {
-  switch (status) {
-    case "pending":
-      return "pending";
-    case "accepted":
-      return "verified";
-    case "declined":
-      return "rejected";
-    default:
-      return "default";
-  }
-}

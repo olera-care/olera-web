@@ -231,31 +231,31 @@ export default function SmartDashboardShell({
           </div>
         )}
 
-        {/* ── Platform Showcase (static cards, no navigation) ── */}
-        <PlatformShowcase
-          provider={provider}
-          completenessPercent={completeness.overall}
-          onReviewsClick={() => {
-            if (isSignedIn) {
-              // Already signed in via magic link - redirect directly
-              window.location.href = "/provider/reviews";
-            } else {
-              // Need to auth first - store destination for after claim
-              sessionStorage.setItem("olera_post_claim_redirect", "/provider/reviews");
-              onClaimClick();
-            }
-          }}
-          onHireStaffClick={() => {
-            if (isSignedIn) {
-              // Already signed in via magic link - redirect directly
-              window.location.href = "/provider/medjobs/candidates";
-            } else {
-              // Need to auth first - store destination for after claim
-              sessionStorage.setItem("olera_post_claim_redirect", "/provider/medjobs/candidates");
-              onClaimClick();
-            }
-          }}
-        />
+        {/* ── Platform Showcase (only for organic visits, not notification entries) ── */}
+        {/* Notification entries (question/lead/review from email) get ProfilePreviewCard
+            rendered inside ActionCard instead — the toolkit is redundant there */}
+        {!isNotificationEntry && (
+          <PlatformShowcase
+            provider={provider}
+            completenessPercent={completeness.overall}
+            onReviewsClick={() => {
+              if (isSignedIn) {
+                window.location.href = "/provider/reviews";
+              } else {
+                sessionStorage.setItem("olera_post_claim_redirect", "/provider/reviews");
+                onClaimClick();
+              }
+            }}
+            onHireStaffClick={() => {
+              if (isSignedIn) {
+                window.location.href = "/provider/medjobs/candidates";
+              } else {
+                sessionStorage.setItem("olera_post_claim_redirect", "/provider/medjobs/candidates");
+                onClaimClick();
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );

@@ -143,8 +143,8 @@ export function useUnreadLeadsCount(profileId: string | null): number {
  * Mark a lead as read. Updates both localStorage and dispatches event.
  * Note: The actual database update should happen via /api/connections/mark-read
  */
-export function markLeadAsRead(connectionId: string, profileId: string): void {
-  // Update localStorage for backwards compatibility
+export async function markLeadAsRead(connectionId: string, profileId: string): Promise<void> {
+  // Update localStorage for backwards compatibility (optimistic)
   const readKey = `olera_leads_read_${profileId}`;
   try {
     const stored = localStorage.getItem(readKey);
@@ -155,15 +155,18 @@ export function markLeadAsRead(connectionId: string, profileId: string): void {
     }
   } catch { /* localStorage unavailable */ }
 
-  // Persist to database (fire-and-forget)
-  fetch("/api/connections/mark-read", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ connectionId, profileId }),
-  }).catch((err) => {
-    console.error("[markLeadAsRead] Failed to persist:", err);
-  });
-
-  // Notify badge hook to re-count
+  // Notify badge hook to re-count (immediate UI feedback)
   window.dispatchEvent(new CustomEvent("olera:leads-read"));
+
+  // Persist to database
+  try {
+    await fetch("/api/connections/mark-read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ connectionId, profileId }),
+    });
+  } catch (err) {
+    console.error("[markLeadAsRead] Failed to persist to database:", err);
+    // localStorage fallback already in place
+  }
 }

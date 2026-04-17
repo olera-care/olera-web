@@ -167,29 +167,49 @@ export default function ProviderOnboardPage() {
             return;
           }
 
-          // For other cases (not owned or unclaimed), create a Provider-like object
-          // to continue with the onboard flow
-          foundProvider = {
-            provider_id: bp.source_provider_id || bp.id,
-            provider_name: bp.display_name || "Provider",
-            slug: bp.slug,
-            email: bp.email,
-            phone: bp.phone,
-            address: bp.address,
-            city: bp.city,
-            state: bp.state,
-            zipcode: bp.zip ? parseInt(bp.zip, 10) : null,
-            provider_description: bp.description,
-            provider_images: bp.image_url ? JSON.stringify([bp.image_url]) : null,
-            provider_category: bp.category || "",
-            main_category: bp.care_types?.[0] || null,
-            lat: null,
-            lon: null,
-            website: null,
-            lower_price: null,
-            upper_price: null,
-            deleted: false,
-          } as Provider;
+          // If BP has a source_provider_id, try to get the rich olera-providers record
+          // (has Google reviews, images, ratings that the BP doesn't)
+          if (bp.source_provider_id) {
+            const { data: opData } = await supabase
+              .from("olera-providers")
+              .select("*")
+              .eq("provider_id", bp.source_provider_id)
+              .not("deleted", "is", true)
+              .single<Provider>();
+            if (opData) {
+              // Use the rich record but keep the BP slug (which is the URL slug)
+              foundProvider = { ...opData, slug: bp.slug };
+            }
+          }
+
+          // Fallback: create a Provider-like object from the BP data
+          if (!foundProvider) {
+            foundProvider = {
+              provider_id: bp.source_provider_id || bp.id,
+              provider_name: bp.display_name || "Provider",
+              slug: bp.slug,
+              email: bp.email,
+              phone: bp.phone,
+              address: bp.address,
+              city: bp.city,
+              state: bp.state,
+              zipcode: bp.zip ? parseInt(bp.zip, 10) : null,
+              provider_description: bp.description,
+              provider_images: bp.image_url
+                ? bp.image_url
+                : (bp.metadata as Record<string, unknown>)?.images
+                  ? ((bp.metadata as Record<string, unknown>).images as string[]).join(" | ")
+                  : null,
+              provider_category: bp.category || "",
+              main_category: bp.care_types?.[0] || null,
+              lat: null,
+              lon: null,
+              website: null,
+              lower_price: null,
+              upper_price: null,
+              deleted: false,
+            } as Provider;
+          }
         }
       }
 
@@ -197,6 +217,28 @@ export default function ProviderOnboardPage() {
         setErrorMsg("Provider not found.");
         setStep("error");
         return;
+      }
+
+      // For providers without google_reviews_data, fetch review stats from reviews table
+      if (!foundProvider.google_reviews_data && !foundProvider.google_rating) {
+        const providerSlug = foundProvider.slug || foundProvider.provider_id;
+        const { data: reviewRows } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("provider_id", providerSlug);
+        if (reviewRows && reviewRows.length > 0) {
+          const avg = reviewRows.reduce((sum, r) => sum + r.rating, 0) / reviewRows.length;
+          foundProvider = {
+            ...foundProvider,
+            google_rating: Math.round(avg * 10) / 10,
+            google_reviews_data: {
+              rating: Math.round(avg * 10) / 10,
+              review_count: reviewRows.length,
+              reviews: [],
+              last_synced: new Date().toISOString(),
+            },
+          };
+        }
       }
 
       setProvider(foundProvider);

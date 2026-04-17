@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
+import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
 
 // ============================================================
@@ -401,6 +402,368 @@ function maskEmail(email: string): string {
 }
 
 // ============================================================
+// Profile Preview — shows provider what families see
+// ============================================================
+
+function ProfilePreviewCard({
+  provider,
+  googleRating,
+  googleReviewCount,
+  googleReviewSnippet,
+  unansweredCount,
+  // Post-response state
+  answered,
+  askerName,
+  questionText,
+  answerPreview,
+}: {
+  provider: Provider;
+  googleRating?: number | null;
+  googleReviewCount?: number | null;
+  googleReviewSnippet?: { author_name: string; rating: number; text: string } | null;
+  unansweredCount?: number;
+  answered?: boolean;
+  askerName?: string;
+  questionText?: string;
+  answerPreview?: string;
+}) {
+  const primaryImage = getPrimaryImage(provider);
+  const slug = provider.slug || provider.provider_id;
+  const hasGoogleReviews = !!(googleRating && googleRating > 0 && googleReviewCount && googleReviewCount > 0);
+  const roundedRating = googleRating ? Math.round(googleRating * 10) / 10 : 0;
+  const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
+  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+
+  // Shared reviews CTA button — tracks click then navigates
+  const handleReviewsCtaClick = () => {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider_id: provider.slug || provider.provider_id,
+        event_type: "reviews_cta_clicked",
+        metadata: {
+          provider_name: provider.provider_name,
+          source: answered ? "post_response" : "pre_response",
+        },
+      }),
+    }).catch(() => {});
+    window.location.href = "/provider/reviews";
+  };
+
+  const reviewsCta = (
+    <button type="button" onClick={handleReviewsCtaClick} className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]">
+      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+      {hasGoogleReviews ? "Get more reviews" : "Get your first review"}
+    </button>
+  );
+
+  // Truncate review snippet text
+  const snippetText = googleReviewSnippet?.text
+    ? (googleReviewSnippet.text.length > 100
+        ? googleReviewSnippet.text.substring(0, 97).trimEnd() + "..."
+        : googleReviewSnippet.text)
+    : null;
+
+  // Shared reviews content (stars + copy + optional snippet)
+  const reviewsContent = hasGoogleReviews ? (
+    <>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <svg key={i} className={`w-4 h-4 ${i <= Math.round(roundedRating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+          ))}
+        </div>
+        <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
+        <span className="text-sm text-gray-400">· {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google</span>
+      </div>
+      {/* Review snippet — one real review to prove legitimacy */}
+      {snippetText && googleReviewSnippet && (
+        <div className="flex items-start gap-2 mt-3 mb-4">
+          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-[9px] font-semibold text-gray-500">{getInitials(googleReviewSnippet.author_name)}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-600">{googleReviewSnippet.author_name}</p>
+            <p className="text-xs text-gray-400 leading-relaxed mt-0.5">&ldquo;{snippetText}&rdquo;</p>
+          </div>
+        </div>
+      )}
+      {!snippetText && <p className="text-sm text-gray-500 leading-relaxed mb-4">More reviews means more visibility.</p>}
+    </>
+  ) : (
+    <>
+      <div className="flex items-center gap-1 mb-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <svg key={i} className="w-4 h-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
+        ))}
+        <span className="text-sm text-gray-400 ml-1">No reviews yet</span>
+      </div>
+      <p className="text-sm text-gray-500 leading-relaxed mb-4">Families are 3x more likely to contact providers who have reviews.</p>
+    </>
+  );
+
+  // Provider identity row (shared between both states)
+  const providerIdentity = (
+    <div className="flex items-center gap-4">
+      {primaryImage ? (
+        <Image src={primaryImage} alt={provider.provider_name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+      ) : (
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 border border-primary-100/60">
+          <span className="text-sm font-display font-bold text-primary-700">
+            {getInitials(provider.provider_name)}
+          </span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <h3 className="text-[15px] font-display font-semibold text-gray-900 truncate">{provider.provider_name}</h3>
+        {location && <p className="text-sm text-gray-500 truncate">{provider.provider_category ? `${provider.provider_category} · ${location}` : location}</p>}
+      </div>
+    </div>
+  );
+
+  // ── POST-RESPONSE: one consolidated card ──
+  if (answered) {
+    return (
+      <div style={{ animation: "card-enter 0.3s ease-out both" }}>
+        <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
+          Your page on Olera
+        </p>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          {/* Provider identity */}
+          {providerIdentity}
+
+          {/* Stats line */}
+          <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
+            <span className="text-primary-600 font-medium">1 question answered</span>
+            <span>·</span>
+            {hasGoogleReviews ? (
+              <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+            ) : (
+              <span>0 reviews</span>
+            )}
+          </div>
+
+          {/* Q&A — thin divider, not a separate card */}
+          {askerName && questionText && answerPreview && (
+            <div className="border-t border-gray-100 mt-4 pt-4">
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
+                  {getInitials(askerName)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-700 leading-snug">
+                    &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
+                  </p>
+                  <div className="mt-1.5 flex items-start gap-2">
+                    <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-sm text-gray-500 leading-snug">{answerPreview}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reviews — thin divider, same card */}
+          <div className="border-t border-gray-100 mt-4 pt-4">
+            {reviewsContent}
+            {reviewsCta}
+          </div>
+
+          {/* View full profile — inside the card */}
+          <a href={`/provider/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors pt-4 group">
+            View your full profile
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // ── PRE-RESPONSE: separate cards (no Q&A to show yet) ──
+  return (
+    <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
+      <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
+        Your page on Olera
+      </p>
+
+      {/* Provider identity card */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-3">
+        {providerIdentity}
+        <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
+          {unansweredCount ? (
+            <span className="text-amber-600 font-medium">{unansweredCount} unanswered question{unansweredCount !== 1 ? "s" : ""}</span>
+          ) : null}
+          <span>·</span>
+          {hasGoogleReviews ? (
+            <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+          ) : (
+            <span>0 reviews</span>
+          )}
+        </div>
+      </div>
+
+      {/* Reviews card */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+        {reviewsContent}
+        {reviewsCta}
+      </div>
+
+      {/* View full profile */}
+      <a href={`/provider/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group">
+        View your full profile
+        <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+
+      {location && (
+        <p className="text-center text-sm text-gray-400 mt-1">
+          Families searching for senior care in {provider.city} can find this page.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Inline Question Response (respond without leaving the page)
+// ============================================================
+
+function InlineQuestionResponse({
+  questionId,
+  askerName,
+  questionText,
+  providerCity,
+  providerState,
+  providerSlug,
+  googleRating,
+  googleReviewCount,
+  onSubmitted,
+}: {
+  questionId: string;
+  askerName: string;
+  questionText: string;
+  providerCity?: string | null;
+  providerState?: string | null;
+  providerSlug?: string | null;
+  googleRating?: number | null;
+  googleReviewCount?: number | null;
+  onSubmitted?: (answerText: string) => void;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = async () => {
+    const trimmed = answer.trim();
+    if (!trimmed || isSubmitting) return;
+    if (trimmed.length > 2000) {
+      setError("Response must be under 2,000 characters.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const doFetch = () =>
+        fetch("/api/provider/questions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: questionId, answer: trimmed }),
+        });
+
+      let res = await doFetch();
+
+      // Retry once on 401 (auth cookies not set yet) or 429 (rate limit)
+      if (res.status === 401 || res.status === 429) {
+        await new Promise((r) => setTimeout(r, res.status === 429 ? 3000 : 2000));
+        res = await doFetch();
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Failed to send response. Please try again.");
+        return;
+      }
+
+      setSubmitted(true);
+      onSubmitted?.(trimmed);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Truncate answer for preview (used by parent via getAnswerPreview)
+  const answerPreview = answer.length > 120
+    ? answer.substring(0, 117).trimEnd() + "..."
+    : answer;
+
+  // Success state — compact confirmation only (profile preview is rendered by parent)
+  if (submitted) {
+    return (
+      <div className="flex items-center gap-2.5 pb-2" style={{ animation: "card-enter 0.25s ease-out both" }}>
+        <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <p className="text-[15px] font-semibold text-gray-900">
+          Response sent to {askerName}
+        </p>
+      </div>
+    );
+  }
+
+  // Response form
+  return (
+    <div>
+      <textarea
+        ref={textareaRef}
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Type your response..."
+        rows={3}
+        maxLength={2000}
+        className="w-full px-4 py-3 text-[15px] text-gray-900 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-gray-400 transition-all"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+      />
+      {error && (
+        <p className="text-sm text-red-600 mt-2">{error}</p>
+      )}
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-xs text-gray-400">
+          {answer.length > 0 ? `${answer.length}/2,000` : ""}
+        </span>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!answer.trim() || isSubmitting}
+          className="px-6 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]"
+        >
+          {isSubmitting ? "Sending..." : "Send Response"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // Main Component
 // ============================================================
 
@@ -415,6 +778,10 @@ export default function ActionCard({
 }: ActionCardProps) {
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
+
+  // Track when inline question response is submitted (for dissolve + profile preview)
+  const [questionAnswered, setQuestionAnswered] = useState(false);
+  const [submittedAnswer, setSubmittedAnswer] = useState("");
 
   // Form state
   const [error, setError] = useState("");
@@ -581,56 +948,86 @@ export default function ActionCard({
     const personName = rawName;
     const question = rawQuestion;
 
-    return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Mascot + Header */}
-        <div className="flex items-start gap-4 mb-6">
-          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
-          <div>
-            <h3 className="text-lg font-display font-bold text-gray-900">
-              Someone has a question about your services
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
-          </div>
-        </div>
+    const answerPreview = submittedAnswer.length > 120
+      ? submittedAnswer.substring(0, 117).trimEnd() + "..."
+      : submittedAnswer;
 
-        {/* Question info — flat */}
-        <div className="border-t border-gray-100 pt-5 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
-              {getInitials(personName)}
+    return (
+      <>
+        {/* Question card — dissolves header after response */}
+        <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+          {/* Mascot + Header + Question — dissolves after response */}
+          {!questionAnswered && (
+            <div>
+              <div className="flex items-start gap-4 mb-6">
+                <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+                <div>
+                  <h3 className="text-lg font-display font-bold text-gray-900">
+                    Someone has a question about your services
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-5 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+                    {getInitials(personName)}
+                  </div>
+                  <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+                </div>
+                {question && (
+                  <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+                    &ldquo;{question}&rdquo;
+                  </p>
+                )}
+              </div>
             </div>
-            <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
-          </div>
-          {question && (
-            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
-              &ldquo;{question}&rdquo;
-            </p>
+          )}
+
+          {/* Inline response or CTA */}
+          {(isSignedIn || preVerifiedEmail) ? (
+            <InlineQuestionResponse
+              questionId={notificationData.id}
+              askerName={personName}
+              questionText={question}
+              providerCity={provider.city}
+              providerState={provider.state}
+              providerSlug={provider.slug || provider.provider_id}
+              googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
+              googleReviewCount={provider.google_reviews_data?.review_count}
+              onSubmitted={(text) => { setQuestionAnswered(true); setSubmittedAnswer(text); }}
+            />
+          ) : (
+            <>
+              <button
+                onClick={onClaimClick}
+                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+              >
+                Sign in to answer
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                Olera connects families with quality senior care providers.
+              </p>
+            </>
           )}
         </div>
 
-        {/* CTA */}
-        {(isSignedIn || preVerifiedEmail) ? (
-          <Link
-            href={`/provider/qna?id=${notificationData.id}`}
-            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
-          >
-            View and answer
-          </Link>
-        ) : (
-          <>
-            <button
-              onClick={onClaimClick}
-              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-            >
-              Sign in to answer
-            </button>
-            <p className="text-xs text-gray-400 mt-3 text-center">
-              Olera connects families with quality senior care providers.
-            </p>
-          </>
-        )}
-      </div>
+        {/* Profile preview — always visible, adapts to pre/post response state */}
+        <div className="mt-6">
+          <ProfilePreviewCard
+            provider={provider}
+            googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
+            googleReviewCount={provider.google_reviews_data?.review_count}
+            googleReviewSnippet={provider.google_reviews_data?.reviews?.[0] || null}
+            unansweredCount={questionAnswered ? 0 : 1}
+            answered={questionAnswered}
+            askerName={questionAnswered ? personName : undefined}
+            questionText={questionAnswered ? question : undefined}
+            answerPreview={questionAnswered ? answerPreview : undefined}
+          />
+        </div>
+      </>
     );
   }
 

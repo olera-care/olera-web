@@ -199,7 +199,7 @@ export default function EditResumeModal({
       isOpen
       onClose={onClose}
       title="Resume & LinkedIn"
-      size="3xl"
+      size="2xl"
       footer={
         <ModalFooter
           saving={saving || uploading}

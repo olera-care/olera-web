@@ -116,7 +116,7 @@ export default function EditOverviewModal({
       isOpen
       onClose={onClose}
       title="Edit Profile Overview"
-      size="3xl"
+      size="2xl"
       footer={
         <ModalFooter
           saving={saving || uploading}

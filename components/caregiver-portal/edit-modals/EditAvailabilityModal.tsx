@@ -483,7 +483,7 @@ export default function EditAvailabilityModal({
       isOpen
       onClose={onClose}
       title=""
-      size="xl"
+      size="2xl"
       footer={footerContent}
     >
       <div className="px-2">

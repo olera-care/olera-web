@@ -707,7 +707,7 @@ export default function EditVerificationModal({
       isOpen
       onClose={onClose}
       title=""
-      size="xl"
+      size="2xl"
       footer={footerContent}
     >
       <div className="px-2">

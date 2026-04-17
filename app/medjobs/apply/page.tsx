@@ -151,7 +151,7 @@ export default function MedJobsApplyPage() {
   const [university, setUniversity] = useState("");
   const [universityId, setUniversityId] = useState("");
   const [universitySearch, setUniversitySearch] = useState("");
-  const [universityOptions, setUniversityOptions] = useState<{ id: string; name: string }[]>([]);
+  const [universityOptions, setUniversityOptions] = useState<{ id: string; name: string; city: string; state: string }[]>([]);
   const [universityOther, setUniversityOther] = useState(false);
   const [major, setMajor] = useState("");
   const [majorOther, setMajorOther] = useState("");
@@ -172,17 +172,19 @@ export default function MedJobsApplyPage() {
   // Confirm — individual attestation checkboxes
   const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false]);
   const allAcknowledged = attestations.every(Boolean);
+  // Step 1 requires: hours per week, duration commitment, and all attestations
+  const canSubmitStep1 = allAcknowledged && !!hoursPerWeekRange && !!durationCommitment;
   const [honeypot, setHoneypot] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch universities
+  // Fetch universities (includes city/state for filtering)
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-    supabase.from("medjobs_universities").select("id, name").eq("is_active", true).order("name")
+    supabase.from("medjobs_universities").select("id, name, city, state").eq("is_active", true).order("name")
       .then(({ data }) => { if (data) setUniversityOptions(data); });
   }, []);
 
@@ -431,6 +433,7 @@ export default function MedJobsApplyPage() {
       return () => document.removeEventListener("mousedown", handler);
     }, []);
 
+    // Filter universities by search term only (no state filtering)
     const filtered = search.trim()
       ? universityOptions.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()))
       : universityOptions;
@@ -459,22 +462,38 @@ export default function MedJobsApplyPage() {
           </span>
         </button>
         {open && (
-          <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto animate-in">
-            <div className="p-2 border-b border-gray-100">
+          <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 flex flex-col animate-in">
+            {/* Search input - sticky top */}
+            <div className="p-2 border-b border-gray-100 shrink-0">
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..." autoFocus className="w-full px-3 py-2 text-sm outline-none bg-gray-50 rounded" />
             </div>
-            {(search.trim() ? filtered : universityOptions).map((u) => (
-              <button key={u.id} type="button"
-                onClick={() => { setUniversity(u.name); setUniversityId(u.id); setOpen(false); }}
-                className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${
-                  university === u.name ? "border-l-2 border-gray-900 font-medium text-gray-900 bg-gray-50" : "text-gray-700"
-                }`}>
-                {u.name}
-              </button>
-            ))}
+            {/* University list - scrollable */}
+            <div className="overflow-y-auto flex-1">
+              {filtered.length > 0 ? filtered.map((u) => (
+                <button key={u.id} type="button"
+                  onClick={() => {
+                    setUniversity(u.name);
+                    setUniversityId(u.id);
+                    // Auto-fill city/state from university data
+                    setCity(u.city);
+                    setState(u.state);
+                    setOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${
+                    university === u.name ? "border-l-2 border-gray-900 font-medium text-gray-900 bg-gray-50" : "text-gray-700"
+                  }`}>
+                  {u.name} <span className="text-gray-400">({u.city}, {u.state})</span>
+                </button>
+              )) : (
+                <p className="px-4 py-3 text-sm text-gray-400">
+                  No universities found
+                </p>
+              )}
+            </div>
+            {/* My school isn't listed - sticky bottom */}
             <button type="button" onClick={() => { setUniversityOther(true); setOpen(false); }}
-              className="w-full text-left px-4 py-3 text-sm text-gray-500 font-medium hover:bg-gray-50 border-t border-gray-100">
+              className="w-full text-left px-4 py-3 text-sm text-gray-500 font-medium hover:bg-gray-50 border-t border-gray-100 shrink-0">
               My school isn&apos;t listed
             </button>
           </div>
@@ -524,7 +543,14 @@ export default function MedJobsApplyPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">City &amp; State</label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">University *</label>
+                <UniDropdown />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
+                  School Location {city && state && <span className="text-gray-300 font-normal normal-case">(auto-filled)</span>}
+                </label>
                 <div ref={cityRef} className="relative">
                   <div className="w-full flex items-center gap-3 border-0 border-b-2 border-gray-200 focus-within:border-gray-900 py-2 transition-colors">
                     <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -540,7 +566,7 @@ export default function MedJobsApplyPage() {
                         setCityDropdownOpen(true);
                       }}
                       onFocus={() => { preloadCities(); setCityDropdownOpen(true); }}
-                      placeholder="Search your city"
+                      placeholder="Search city to override"
                       className="w-full text-lg text-gray-900 placeholder:text-gray-300 bg-transparent outline-none"
                     />
                     {city && (
@@ -566,11 +592,6 @@ export default function MedJobsApplyPage() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div className="border-t border-gray-100 pt-7">
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">University</label>
-                <UniDropdown />
               </div>
 
               <div className="grid grid-cols-2 gap-6">
@@ -624,27 +645,29 @@ export default function MedJobsApplyPage() {
                   These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
               </p>
 
-              {[
-                "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
-                "I understand caregiving duties include personal care, meals, mobility, and companionship",
-                "I have reliable transportation and accept responsibility for my transport costs",
-                "I consent to a background check and drug test upon hire",
-                "I\u2019ll respond to interview requests within 48 hours",
-                "All information in this application is accurate and Olera is not the employer of record",
-              ].map((item, i) => (
-                <button key={i} type="button"
-                  onClick={() => setAttestations((prev) => { const next = [...prev]; next[i] = !next[i]; return next; })}
-                  className={`w-full flex items-start gap-3 px-4 py-3.5 rounded-lg text-left transition-all ${
-                    attestations[i] ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
-                  }`}>
-                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
-                    attestations[i] ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
-                  }`}>
-                    {attestations[i] && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                  </span>
-                  <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
-                </button>
-              ))}
+              <div className="space-y-3">
+                {[
+                  "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
+                  "I understand caregiving duties include personal care, meals, mobility, and companionship",
+                  "I have reliable transportation and accept responsibility for my transport costs",
+                  "I consent to a background check and drug test upon hire",
+                  "I\u2019ll respond to interview requests within 48 hours",
+                  "All information in this application is accurate and Olera is not the employer of record",
+                ].map((item, i) => (
+                  <button key={i} type="button"
+                    onClick={() => setAttestations((prev) => { const next = [...prev]; next[i] = !next[i]; return next; })}
+                    className={`w-full flex items-start gap-3 px-4 py-3.5 rounded-lg text-left transition-all ${
+                      attestations[i] ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+                    }`}>
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+                      attestations[i] ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+                    }`}>
+                      {attestations[i] && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                    </span>
+                    <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                  </button>
+                ))}
+              </div>
 
               <ReactiveHint show={allAcknowledged}>
                 You&apos;re ready. Students who meet these standards are highly sought after by providers and gain clinical experience that strengthens professional school applications.
@@ -663,7 +686,7 @@ export default function MedJobsApplyPage() {
 
             {step === 1 ? (
               <button type="button" onClick={handleSubmit}
-                disabled={loading || !allAcknowledged}
+                disabled={loading || !canSubmitStep1}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors">
                 {loading ? "Submitting..." : "Submit application"}
               </button>

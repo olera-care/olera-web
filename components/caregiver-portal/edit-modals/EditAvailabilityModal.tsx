@@ -223,8 +223,8 @@ export default function EditAvailabilityModal({
                 value={commitmentStatement}
                 onChange={(e) => setCommitmentStatement(e.target.value)}
                 placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
-                rows={4}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-none"
+                rows={6}
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[120px]"
                 autoFocus
               />
               <div className="flex items-center justify-between mt-2">
@@ -380,11 +380,11 @@ export default function EditAvailabilityModal({
                 value={availabilityNotes}
                 onChange={(e) => setAvailabilityNotes(e.target.value)}
                 placeholder="Any specific dates or circumstances providers should know about..."
-                rows={4}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-none"
+                rows={5}
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[100px]"
                 autoFocus
               />
-              <p className="text-xs text-gray-400 mt-2 text-left">
+              <p className="text-xs text-gray-400 mt-2 text-center">
                 This field is optional
               </p>
             </div>

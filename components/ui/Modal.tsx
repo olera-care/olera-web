@@ -257,14 +257,14 @@ export default function Modal({
         {/* Scrollable body */}
         <div
           data-modal-scroll
-          className={`px-5 sm:px-7 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}
+          className={`px-5 sm:px-7 flex-1 min-h-0 overflow-y-auto overscroll-contain relative z-10 ${footer ? "" : "pb-5 sm:pb-7"}`}
         >
           {children}
         </div>
 
         {/* Sticky footer — pinned bottom */}
         {footer && (
-          <div className="px-5 sm:px-7 pb-5 sm:pb-7 shrink-0">{footer}</div>
+          <div className="px-5 sm:px-7 pb-5 sm:pb-7 shrink-0 relative z-0 bg-white">{footer}</div>
         )}
       </div>
     </div>

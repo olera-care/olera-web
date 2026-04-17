@@ -437,7 +437,7 @@ export default function EditOverviewModal({
             {showUniversityDropdown && (
               <div
                 ref={dropdownRef}
-                className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                className="absolute z-30 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto"
               >
                 {filteredUniversities.length > 0 ? (
                   filteredUniversities.map((uni) => (

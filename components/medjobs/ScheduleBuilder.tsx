@@ -35,7 +35,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
   return (
     <div>
       {!readOnly && (
-        <p className="text-xs text-gray-400 mb-3">Tap to mark your class times. Everything else = you&apos;re available.</p>
+        <p className="text-xs text-gray-400 mb-4 text-center">Tap to mark your class times. Everything else = you&apos;re available.</p>
       )}
       <div className="overflow-x-auto">
         <div className="min-w-[460px]">
@@ -78,7 +78,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
         </div>
       </div>
       {hasAnyClass && !readOnly && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-400 mt-4 text-center">
           Dark = class time. Light = available for shifts.
         </p>
       )}

@@ -695,6 +695,8 @@ export interface DirectoryListItem {
   hero_image_url: string | null;
   has_images: boolean;
   image_count: number;
+  source: "olera-providers" | "business_profiles";
+  slug: string | null;
 }
 
 export const PROVIDER_CATEGORIES = [

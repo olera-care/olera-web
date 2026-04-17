@@ -424,56 +424,87 @@ export default function AdminDirectoryPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {providers.map((provider) => (
-                    <tr
-                      key={provider.provider_id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => router.push(`/admin/directory/${provider.provider_id}`)}
-                    >
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-900 truncate max-w-[250px]">
-                          {provider.provider_name}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                        {provider.provider_category}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                        {[provider.city, provider.state].filter(Boolean).join(", ") || "\u2014"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {provider.google_rating != null ? provider.google_rating.toFixed(1) : "\u2014"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {provider.image_count > 0 ? (
-                          <span className="text-green-600">{provider.image_count}</span>
-                        ) : (
-                          <span className="text-gray-400">0</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant={provider.deleted ? "rejected" : "verified"}>
-                          {provider.deleted ? "Deleted" : "Published"}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            requestToggleDelete(provider.provider_id, provider.provider_name, provider.deleted);
-                          }}
-                          className={[
-                            "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
-                            provider.deleted
-                              ? "text-green-700 bg-green-50 hover:bg-green-100"
-                              : "text-red-700 bg-red-50 hover:bg-red-100",
-                          ].join(" ")}
-                        >
-                          {provider.deleted ? "Restore" : "Delete"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {providers.map((provider) => {
+                    const isBpOnly = provider.source === "business_profiles";
+                    const handleRowClick = () => {
+                      if (isBpOnly) {
+                        if (provider.slug) {
+                          window.open(`/provider/${provider.slug}`, "_blank", "noopener,noreferrer");
+                        }
+                      } else {
+                        router.push(`/admin/directory/${provider.provider_id}`);
+                      }
+                    };
+                    return (
+                      <tr
+                        key={provider.provider_id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={handleRowClick}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-gray-900 truncate max-w-[250px]">
+                              {provider.provider_name}
+                            </p>
+                            {isBpOnly && (
+                              <span
+                                className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
+                                title="Lives in business_profiles only — edit via /admin/providers or wait for structural unification"
+                              >
+                                BP-only
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                          {provider.provider_category || "\u2014"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                          {[provider.city, provider.state].filter(Boolean).join(", ") || "\u2014"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {provider.google_rating != null ? provider.google_rating.toFixed(1) : "\u2014"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {provider.image_count > 0 ? (
+                            <span className="text-green-600">{provider.image_count}</span>
+                          ) : (
+                            <span className="text-gray-400">0</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant={provider.deleted ? "rejected" : "verified"}>
+                            {provider.deleted ? "Deleted" : "Published"}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          {isBpOnly ? (
+                            <span
+                              className="text-xs text-gray-400"
+                              title="Use /admin/providers for BP claim review actions"
+                            >
+                              —
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                requestToggleDelete(provider.provider_id, provider.provider_name, provider.deleted);
+                              }}
+                              className={[
+                                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                                provider.deleted
+                                  ? "text-green-700 bg-green-50 hover:bg-green-100"
+                                  : "text-red-700 bg-red-50 hover:bg-red-100",
+                              ].join(" ")}
+                            >
+                              {provider.deleted ? "Restore" : "Delete"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

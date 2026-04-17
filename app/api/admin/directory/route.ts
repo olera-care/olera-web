@@ -37,6 +37,28 @@ interface BpListRow {
   slug: string | null;
 }
 
+// business_profiles uses snake_case enums ("assisted_living") while olera-providers
+// uses human-readable strings ("Assisted Living"). Map both directions so admin
+// category filtering works across the union and BP rows display consistently.
+const BP_TO_OP_CATEGORY: Record<string, string> = {
+  assisted_living: "Assisted Living",
+  home_care_agency: "Home Care (Non-medical)",
+  home_health_agency: "Home Health Care",
+  independent_living: "Independent Living",
+  memory_care: "Memory Care",
+  hospice_agency: "Hospice",
+  rehab_facility: "Rehab Facility",
+};
+
+const OP_TO_BP_CATEGORY: Record<string, string> = Object.fromEntries(
+  Object.entries(BP_TO_OP_CATEGORY).map(([bp, op]) => [op, bp])
+);
+
+function displayBpCategory(category: string | null): string {
+  if (!category) return "";
+  return BP_TO_OP_CATEGORY[category] ?? category;
+}
+
 function mapOpToItem(row: OpListRow): DirectoryListItem {
   const images = row.provider_images
     ? (row.provider_images as string).split(" | ").filter(Boolean)
@@ -61,7 +83,7 @@ function mapBpToItem(row: BpListRow): DirectoryListItem {
   return {
     provider_id: row.id,
     provider_name: row.display_name,
-    provider_category: row.category ?? "",
+    provider_category: displayBpCategory(row.category),
     city: row.city,
     state: row.state,
     google_rating: null,
@@ -132,7 +154,12 @@ export async function GET(request: NextRequest) {
 
         if (tab === "no_city") bpCountQuery = bpCountQuery.is("city", null);
         bpCountQuery = bpCountQuery.ilike("display_name", `%${search}%`);
-        if (category) bpCountQuery = bpCountQuery.eq("category", category);
+        if (category) {
+          const bpCategory = OP_TO_BP_CATEGORY[category];
+          // If no mapping exists, filter will match nothing — that's correct
+          // (the OP category has no BP equivalent).
+          bpCountQuery = bpCountQuery.eq("category", bpCategory ?? "__no_match__");
+        }
         if (stateFilter) bpCountQuery = bpCountQuery.eq("state", stateFilter);
 
         const bpCountResult = await bpCountQuery;
@@ -223,7 +250,10 @@ export async function GET(request: NextRequest) {
 
     if (tab === "no_city") bpQuery = bpQuery.is("city", null);
     bpQuery = bpQuery.ilike("display_name", `%${search}%`);
-    if (category) bpQuery = bpQuery.eq("category", category);
+    if (category) {
+      const bpCategory = OP_TO_BP_CATEGORY[category];
+      bpQuery = bpQuery.eq("category", bpCategory ?? "__no_match__");
+    }
     if (stateFilter) bpQuery = bpQuery.eq("state", stateFilter);
     bpQuery = bpQuery.order("display_name", { ascending: true }).limit(BP_SAFETY_CAP);
 

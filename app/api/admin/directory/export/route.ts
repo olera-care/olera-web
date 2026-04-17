@@ -8,6 +8,25 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  * Supports the same filters as the directory list endpoint, including the
  * OP + orphan-BP union when a search query is present.
  */
+const BP_TO_OP_CATEGORY: Record<string, string> = {
+  assisted_living: "Assisted Living",
+  home_care_agency: "Home Care (Non-medical)",
+  home_health_agency: "Home Health Care",
+  independent_living: "Independent Living",
+  memory_care: "Memory Care",
+  hospice_agency: "Hospice",
+  rehab_facility: "Rehab Facility",
+};
+
+const OP_TO_BP_CATEGORY: Record<string, string> = Object.fromEntries(
+  Object.entries(BP_TO_OP_CATEGORY).map(([bp, op]) => [op, bp])
+);
+
+function displayBpCategory(category: string | null): string {
+  if (!category) return "";
+  return BP_TO_OP_CATEGORY[category] ?? category;
+}
+
 interface OpRow {
   provider_name: string | null;
   provider_category: string | null;
@@ -111,7 +130,10 @@ export async function GET(request: NextRequest) {
 
       if (tab === "no_city") bpQuery = bpQuery.is("city", null);
       bpQuery = bpQuery.ilike("display_name", `%${search}%`);
-      if (category) bpQuery = bpQuery.eq("category", category);
+      if (category) {
+        const bpCategory = OP_TO_BP_CATEGORY[category];
+        bpQuery = bpQuery.eq("category", bpCategory ?? "__no_match__");
+      }
       if (stateFilter) bpQuery = bpQuery.eq("state", stateFilter);
       bpQuery = bpQuery.order("display_name", { ascending: true });
 
@@ -139,7 +161,7 @@ export async function GET(request: NextRequest) {
       })),
       ...allBpRows.map<CsvRow>((row) => ({
         name: row.display_name ?? "",
-        category: row.category ?? "",
+        category: displayBpCategory(row.category),
         city: row.city ?? "",
         state: row.state ?? "",
         phone: row.phone ?? "",

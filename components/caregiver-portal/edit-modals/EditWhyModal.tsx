@@ -203,20 +203,9 @@ export default function EditWhyModal({
           </div>
         </div>
 
-        {/* Tips - compact inline style */}
-        <div className="w-full max-w-lg mt-6">
-          <p className="text-xs text-gray-400 mb-2">Strong answers mention:</p>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs text-gray-600">
-              What draws you to caregiving
-            </span>
-            <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs text-gray-600">
-              Your career path connection
-            </span>
-            <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs text-gray-600">
-              A motivating experience
-            </span>
-          </div>
+        {/* Tips - simple text, clearly not clickable */}
+        <div className="w-full max-w-lg mt-6 text-xs text-gray-400">
+          <span className="font-medium">Tip:</span> Strong answers mention what draws you to caregiving, how it connects to your career, or a specific experience that motivated you.
         </div>
 
         {/* Error Message */}

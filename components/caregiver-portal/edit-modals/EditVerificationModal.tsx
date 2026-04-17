@@ -324,47 +324,38 @@ export default function EditVerificationModal({
     return "Back";
   };
 
-  // Progress dot component
-  const ProgressDot = ({ step, isComplete, isCurrent }: { step: Step; isComplete: boolean; isCurrent: boolean }) => (
-    <button
-      type="button"
-      onClick={() => navigateToStep(step)}
-      className="flex flex-col items-center group relative z-10"
-      disabled={isTransitioning}
-    >
-      <div className={`
-        w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-white
-        ${isCurrent
-          ? "ring-4 ring-[#199087]/20 scale-110"
-          : ""
-        }
-      `}>
-        <div className={`
-          w-full h-full rounded-full flex items-center justify-center transition-all duration-300
-          ${isCurrent
-            ? "bg-[#199087]"
-            : isComplete
-              ? "bg-[#199087] group-hover:scale-105"
-              : "bg-gray-200 group-hover:bg-gray-300"
-          }
-        `}>
-          {isComplete && !isCurrent ? (
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <span className={`text-sm font-semibold ${isCurrent || isComplete ? "text-white" : "text-gray-500"}`}>
-              {step}
+  // Simple progress dots - minimal design
+  const ProgressDots = () => (
+    <div className="flex justify-center gap-2 mb-8">
+      {([1, 2, 3] as Step[]).map((step) => {
+        const isComplete = step === 1 ? hasVideo : step === 2 ? hasLicense : hasInsurance;
+        const isCurrent = step === currentStep;
+        return (
+          <button
+            key={step}
+            type="button"
+            onClick={() => navigateToStep(step)}
+            disabled={isTransitioning}
+            className="group flex flex-col items-center gap-2"
+          >
+            <div
+              className={`h-2 rounded-full transition-all duration-300 ${
+                isCurrent
+                  ? "w-8 bg-primary-600"
+                  : isComplete
+                  ? "w-2 bg-primary-600"
+                  : "w-2 bg-gray-200 group-hover:bg-gray-300"
+              }`}
+            />
+            <span className={`text-xs font-medium transition-colors ${
+              isCurrent ? "text-primary-600" : "text-gray-400"
+            }`}>
+              {stepLabels[step]}
             </span>
-          )}
-        </div>
-      </div>
-      <span className={`mt-2 text-xs font-medium transition-colors ${
-        isCurrent ? "text-[#199087]" : "text-gray-400"
-      }`}>
-        {stepLabels[step]}
-      </span>
-    </button>
+          </button>
+        );
+      })}
+    </div>
   );
 
   // Render step content
@@ -380,8 +371,8 @@ export default function EditVerificationModal({
         {currentStep === 1 && (
           <div className="text-center">
             {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#199087]/10 to-[#199087]/5 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[#199087]" fill="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-10 h-10 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
@@ -395,20 +386,20 @@ export default function EditVerificationModal({
             {/* Input or Success State */}
             {videoSubmitted ? (
               <div className="max-w-sm mx-auto">
-                <div className="flex items-center gap-3 p-4 bg-[#199087]/5 border border-[#199087]/20 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#199087]/10 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#199087]" fill="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
+                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-[#199087]">Video saved</p>
-                    <p className="text-xs text-[#199087]/70 truncate">{videoUrl || meta.video_intro_url}</p>
+                    <p className="text-sm font-medium text-primary-700">Video saved</p>
+                    <p className="text-xs text-primary-600/70 truncate">{videoUrl || meta.video_intro_url}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setVideoSubmitted(false); setVideoUrl(meta.video_intro_url || ""); }}
-                    className="text-sm font-medium text-[#199087] hover:text-[#157a72] px-3 py-1.5 rounded-lg hover:bg-[#199087]/10 transition-colors"
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
                   >
                     Change
                   </button>
@@ -423,12 +414,12 @@ export default function EditVerificationModal({
                     onChange={(e) => setVideoUrl(e.target.value)}
                     onBlur={handleVideoBlur}
                     placeholder="https://youtube.com/watch?v=..."
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-center focus:border-[#199087] focus:ring-2 focus:ring-[#199087]/20 focus:bg-white outline-none transition-all placeholder:text-gray-400"
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-center focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all placeholder:text-gray-400"
                     autoFocus
                   />
                   {videoSubmitting && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-gray-200 border-t-[#199087] rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
@@ -443,8 +434,8 @@ export default function EditVerificationModal({
         {currentStep === 2 && (
           <div className="text-center">
             {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#199087]/10 to-[#199087]/5 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
               </svg>
             </div>
@@ -458,25 +449,25 @@ export default function EditVerificationModal({
             {/* Upload Area or Success State */}
             {licenseUploaded ? (
               <div className="max-w-sm mx-auto space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-[#199087]/5 border border-[#199087]/20 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#199087]/10 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
+                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-[#199087]">
+                    <p className="text-sm font-medium text-primary-700">
                       {licenseFile ? licenseFile.name : "Document uploaded"}
                     </p>
                     {licenseFile && (
-                      <p className="text-xs text-[#199087]/70">{formatFileSize(licenseFile.size)}</p>
+                      <p className="text-xs text-primary-600/70">{formatFileSize(licenseFile.size)}</p>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={() => licenseInputRef.current?.click()}
                     disabled={licenseUploading}
-                    className="text-sm font-medium text-[#199087] hover:text-[#157a72] px-3 py-1.5 rounded-lg hover:bg-[#199087]/10 transition-colors"
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
                   >
                     Replace
                   </button>
@@ -490,7 +481,7 @@ export default function EditVerificationModal({
                     type="date"
                     value={licenseExpiration}
                     onChange={(e) => handleExpirationChange("drivers_license", e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-[#199087] focus:ring-2 focus:ring-[#199087]/20 focus:bg-white outline-none transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all"
                   />
                 </div>
               </div>
@@ -504,15 +495,15 @@ export default function EditVerificationModal({
                   onClick={() => licenseInputRef.current?.click()}
                   className={`relative flex flex-col items-center justify-center py-12 px-8 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
                     licenseDragActive
-                      ? "border-[#199087] bg-[#199087]/5 scale-[1.02]"
+                      ? "border-primary-600 bg-primary-50 scale-[1.02]"
                       : licenseUploading
                       ? "border-gray-200 bg-gray-100"
-                      : "border-gray-200 hover:border-[#199087]/50 hover:bg-gray-100"
+                      : "border-gray-200 hover:border-primary-400 hover:bg-gray-100"
                   }`}
                 >
                   {licenseUploading ? (
                     <>
-                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-[#199087] rounded-full animate-spin mb-3" />
+                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary-600 rounded-full animate-spin mb-3" />
                       <p className="text-sm font-medium text-gray-600">Uploading...</p>
                     </>
                   ) : (
@@ -548,8 +539,8 @@ export default function EditVerificationModal({
         {currentStep === 3 && (
           <div className="text-center">
             {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#199087]/10 to-[#199087]/5 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
@@ -563,25 +554,25 @@ export default function EditVerificationModal({
             {/* Upload Area or Success State */}
             {insuranceUploaded ? (
               <div className="max-w-sm mx-auto space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-[#199087]/5 border border-[#199087]/20 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-[#199087]/10 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#199087]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
+                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-[#199087]">
+                    <p className="text-sm font-medium text-primary-700">
                       {insuranceFile ? insuranceFile.name : "Document uploaded"}
                     </p>
                     {insuranceFile && (
-                      <p className="text-xs text-[#199087]/70">{formatFileSize(insuranceFile.size)}</p>
+                      <p className="text-xs text-primary-600/70">{formatFileSize(insuranceFile.size)}</p>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={() => insuranceInputRef.current?.click()}
                     disabled={insuranceUploading}
-                    className="text-sm font-medium text-[#199087] hover:text-[#157a72] px-3 py-1.5 rounded-lg hover:bg-[#199087]/10 transition-colors"
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
                   >
                     Replace
                   </button>
@@ -595,7 +586,7 @@ export default function EditVerificationModal({
                     type="date"
                     value={insuranceExpiration}
                     onChange={(e) => handleExpirationChange("car_insurance", e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-[#199087] focus:ring-2 focus:ring-[#199087]/20 focus:bg-white outline-none transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all"
                   />
                 </div>
               </div>
@@ -609,15 +600,15 @@ export default function EditVerificationModal({
                   onClick={() => insuranceInputRef.current?.click()}
                   className={`relative flex flex-col items-center justify-center py-12 px-8 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
                     insuranceDragActive
-                      ? "border-[#199087] bg-[#199087]/5 scale-[1.02]"
+                      ? "border-primary-600 bg-primary-50 scale-[1.02]"
                       : insuranceUploading
                       ? "border-gray-200 bg-gray-100"
-                      : "border-gray-200 hover:border-[#199087]/50 hover:bg-gray-100"
+                      : "border-gray-200 hover:border-primary-400 hover:bg-gray-100"
                   }`}
                 >
                   {insuranceUploading ? (
                     <>
-                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-[#199087] rounded-full animate-spin mb-3" />
+                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary-600 rounded-full animate-spin mb-3" />
                       <p className="text-sm font-medium text-gray-600">Uploading...</p>
                     </>
                   ) : (
@@ -658,27 +649,12 @@ export default function EditVerificationModal({
       isOpen
       onClose={onClose}
       title=""
-      size="md"
+      size="2xl"
     >
       <div className="px-2 pb-2">
-        {/* Progress Indicator */}
-        <div className="relative flex justify-center items-start pt-4 mb-8">
-          {/* Connecting lines - use flex with proper spacing */}
-          <div className="absolute top-[24px] inset-x-0 flex justify-center pointer-events-none">
-            <div className="flex items-center" style={{ width: "calc(2 * 2rem + 2 * 40px)" }}>
-              <div className="w-5" /> {/* Half dot width spacer */}
-              <div className={`flex-1 h-[2px] transition-colors duration-300 ${hasVideo ? "bg-[#199087]" : "bg-gray-200"}`} />
-              <div className="w-10" /> {/* Full dot width spacer */}
-              <div className={`flex-1 h-[2px] transition-colors duration-300 ${hasLicense ? "bg-[#199087]" : "bg-gray-200"}`} />
-              <div className="w-5" /> {/* Half dot width spacer */}
-            </div>
-          </div>
-
-          <div className="flex justify-center items-start gap-8">
-            <ProgressDot step={1} isComplete={hasVideo} isCurrent={currentStep === 1} />
-            <ProgressDot step={2} isComplete={hasLicense} isCurrent={currentStep === 2} />
-            <ProgressDot step={3} isComplete={hasInsurance} isCurrent={currentStep === 3} />
-          </div>
+        {/* Progress Indicator - Simple Dots */}
+        <div className="pt-4">
+          <ProgressDots />
         </div>
 
         {/* Step Content */}
@@ -702,7 +678,7 @@ export default function EditVerificationModal({
                 <div
                   key={i}
                   className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${
-                    i + 1 <= guidedStep ? "bg-[#199087]" : "bg-gray-100"
+                    i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"
                   }`}
                 />
               ))}
@@ -733,7 +709,7 @@ export default function EditVerificationModal({
               disabled={isUploading || saving || isTransitioning}
               className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 isCurrentStepComplete()
-                  ? "bg-[#199087] text-white hover:bg-[#157a72] shadow-sm hover:shadow"
+                  ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >

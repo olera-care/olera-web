@@ -180,7 +180,11 @@ export default function ProviderOnboardPage() {
             state: bp.state,
             zipcode: bp.zip ? parseInt(bp.zip, 10) : null,
             provider_description: bp.description,
-            provider_images: bp.image_url ? JSON.stringify([bp.image_url]) : null,
+            provider_images: bp.image_url
+              ? bp.image_url
+              : (bp.metadata as Record<string, unknown>)?.images
+                ? ((bp.metadata as Record<string, unknown>).images as string[]).join(" | ")
+                : null,
             provider_category: bp.category || "",
             main_category: bp.care_types?.[0] || null,
             lat: null,
@@ -197,6 +201,28 @@ export default function ProviderOnboardPage() {
         setErrorMsg("Provider not found.");
         setStep("error");
         return;
+      }
+
+      // For providers without google_reviews_data, fetch review stats from reviews table
+      if (!foundProvider.google_reviews_data && !foundProvider.google_rating) {
+        const providerSlug = foundProvider.slug || foundProvider.provider_id;
+        const { data: reviewRows } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("provider_id", providerSlug);
+        if (reviewRows && reviewRows.length > 0) {
+          const avg = reviewRows.reduce((sum, r) => sum + r.rating, 0) / reviewRows.length;
+          foundProvider = {
+            ...foundProvider,
+            google_rating: Math.round(avg * 10) / 10,
+            google_reviews_data: {
+              rating: Math.round(avg * 10) / 10,
+              review_count: reviewRows.length,
+              reviews: [],
+              last_synced: new Date().toISOString(),
+            },
+          };
+        }
       }
 
       setProvider(foundProvider);

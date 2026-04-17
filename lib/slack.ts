@@ -353,6 +353,31 @@ export function slackOneClickAccess(opts: {
   };
 }
 
+export function slackReviewsCtaClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  source: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Reviews CTA clicked: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "⭐ Provider Clicked Reviews CTA", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Source:*\n${opts.source}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── MedJobs alerts ────────────────────────────────────────────
 
 export function slackMedJobsNewStudent(opts: {

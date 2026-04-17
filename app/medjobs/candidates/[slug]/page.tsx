@@ -155,10 +155,11 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents - only for verified providers
+  // Generate signed URLs for private documents - for verified providers OR profile owner
+  const canViewFullProfile = isVerifiedProvider || isOwnProfile;
   const adminSb = getAdminSupabase();
   async function getSignedUrl(path: string | undefined): Promise<string | null> {
-    if (!isVerifiedProvider) return null; // Don't expose documents to non-verified users
+    if (!canViewFullProfile) return null; // Don't expose documents to non-verified users
     if (!path || path.startsWith("http")) return path || null;
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;
@@ -195,20 +196,19 @@ export default async function StudentProfilePage({ params }: PageProps) {
           <BackLink studentSlug={profile.slug} />
         </div>
 
-        {/* Own profile preview banner */}
+        {/* Own profile banner */}
         {isOwnProfile && (
           <div className="mb-6 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-primary-900">Preview Mode</p>
+                <p className="text-sm font-semibold text-primary-900">Your Public Profile</p>
                 <p className="text-sm text-primary-700 mt-0.5">
-                  This is how care providers see your profile. Your full name ({profile.display_name}) and contact info are only shared after you accept an interview request.
+                  This is your complete profile as you&apos;ve set it up. Providers see your first name only until you accept an interview.
                 </p>
               </div>
             </div>
@@ -668,6 +668,64 @@ export default async function StudentProfilePage({ params }: PageProps) {
                       </a>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* ── Documents & Links Section (Profile Owner / Verified Providers Only) ── */}
+              {canViewFullProfile && (resumeUrl || meta.linkedin_url) && (
+                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
+                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                    Documents & Links
+                  </h2>
+                  <div className="space-y-3">
+                    {meta.linkedin_url && (
+                      <a
+                        href={meta.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-[#0A66C2] flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-[#0A66C2] transition-colors">LinkedIn Profile</p>
+                          <p className="text-xs text-gray-500 truncate">{meta.linkedin_url}</p>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                      </a>
+                    )}
+                    {resumeUrl && (
+                      <a
+                        href={resumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors">Resume</p>
+                          <p className="text-xs text-gray-500">View or download PDF</p>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
+                  {isOwnProfile && (
+                    <p className="mt-4 text-xs text-gray-400">
+                      Only you and verified providers can see this section.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

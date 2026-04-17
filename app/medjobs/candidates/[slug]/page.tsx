@@ -216,25 +216,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
           <BackLink studentSlug={profile.slug} />
         </div>
 
-        {/* Own profile banner */}
-        {isOwnProfile && (
-          <div className="mb-6 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-primary-900">Your Public Profile</p>
-                <p className="text-sm text-primary-700 mt-0.5">
-                  This is your complete profile as you&apos;ve set it up. Providers see your first name only until you accept an interview.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ═══════════════════════════════════════════════════════════════════
             TWO-COLUMN LAYOUT: Content (left) + Sticky CTA (right)
             ═══════════════════════════════════════════════════════════════════ */}
@@ -267,6 +248,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
                 {/* Identity Info */}
                 <div className="flex-1 min-w-0 text-center sm:text-left">
+                  {/* Own profile label - subtle indicator */}
+                  {isOwnProfile && (
+                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">
+                      Your Public Profile
+                    </p>
+                  )}
+
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">

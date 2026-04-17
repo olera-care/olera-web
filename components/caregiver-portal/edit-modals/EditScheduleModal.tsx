@@ -46,7 +46,7 @@ export default function EditScheduleModal({
   const hasChanges = JSON.stringify(grid) !== JSON.stringify(originalGrid);
 
   // Check if any slots are selected
-  const hasSchedule = grid.flat().some(Boolean);
+  const hasSchedule = Object.values(grid).some((v) => v === true);
 
   async function handleSave() {
     if (!hasChanges && !guidedMode) {

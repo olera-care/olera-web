@@ -449,9 +449,9 @@ export default function AdminDirectoryPage() {
                             {isBpOnly && (
                               <span
                                 className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
-                                title="Lives in business_profiles only — edit via /admin/providers or wait for structural unification"
+                                title="This provider created their own account rather than claiming a scraped listing. Click to view their public page. Edits aren't available here yet — use /admin/providers for claim review."
                               >
-                                BP-only
+                                User-created
                               </span>
                             )}
                           </div>
@@ -481,7 +481,7 @@ export default function AdminDirectoryPage() {
                           {isBpOnly ? (
                             <span
                               className="text-xs text-gray-400"
-                              title="Use /admin/providers for BP claim review actions"
+                              title="Actions not available for user-created accounts. Use /admin/providers for claim review."
                             >
                               —
                             </span>

@@ -145,8 +145,9 @@ export default function EditResumeModal({
         return;
       }
 
-      // Update local state with new URL and file info
-      if (data.url) {
+      // Update local state with file path from API
+      // Note: API returns filePath (storage path), not a URL
+      if (data.filePath) {
         // Show success state briefly
         setUploadSuccess(true);
 
@@ -154,14 +155,14 @@ export default function EditResumeModal({
         await saveStudentProfile({
           profileId: profile.id,
           metadataFields: {
-            resume_url: data.url,
+            resume_url: data.filePath,
           },
         });
 
         // After a brief delay, transition to the uploaded view
         setTimeout(() => {
           setUploadSuccess(false);
-          setResumeUrl(data.url);
+          setResumeUrl(data.filePath);
           setResumeFile({ name: file.name, size: file.size });
           // Show "Saved!" confirmation
           setResumeJustSaved(true);
@@ -198,7 +199,7 @@ export default function EditResumeModal({
       isOpen
       onClose={onClose}
       title="Resume & LinkedIn"
-      size="lg"
+      size="2xl"
       footer={
         <ModalFooter
           saving={saving || uploading}

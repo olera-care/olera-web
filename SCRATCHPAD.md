@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **Organization Search Union Rewrite** (branch: `clever-mirzakhani`) — PLAN READY, PENDING APPROVAL
+  - Plan: `plans/organization-search-union-rewrite-plan.md`
+  - Notion: [Fix provider onboarding search dropping unclaimed franchise locations](https://www.notion.so/Fix-provider-onboarding-search-dropping-unclaimed-franchise-locations-MedJobs-partial-results-3445903a0ffe8168a144d0cdd164be2c)
+  - Reproduces: MedJobs "Your organization" search for "Home Instead Houston" → zero results; admin directory for "Aggie Assisted Living" → zero results (both live on olera.care)
+  - Root cause: current `/api/organization-search` silently drops OP results via fragile merge/limit/`.or()`-concat; mirroring admin pattern (Option A from ticket) would regress BP-orphan visibility (Aggie case)
+  - Approach: TRUE UNION across olera-providers + business_profiles, dedup by `bp.source_provider_id === op.provider_id`, claim state precedence, partial-failure tolerance
+  - Companion Notion ticket filed for admin directory (same bug, opposite direction): P2
+  - **Next**: Await TJ approval on plan, then start task 1 (extract helpers to `lib/organization-search.ts`)
+
 - **Aging in America — Framer → Olera Web Migration** (branch: `thirsty-hugle`) — IN PROGRESS
   - Migrating aginginamerica.co (Framer) into olera.care/aging-in-america
   - Dark cinematic landing page with season accordion + episode detail pages

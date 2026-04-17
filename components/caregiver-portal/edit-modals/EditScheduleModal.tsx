@@ -164,17 +164,19 @@ export default function EditScheduleModal({
       footer={footerContent}
     >
       <div className="pt-4">
-        {/* Semester badge - inline with stale warning if needed */}
-        <div className="flex items-center justify-center gap-3 mb-6">
+        {/* Semester badge with update reminder */}
+        <div className="flex flex-col items-center gap-1.5 mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
             <div className={`w-2 h-2 rounded-full ${stale ? "bg-amber-500" : "bg-primary-600"}`} />
             <span className="text-xs font-medium text-gray-700">{currentSemester}</span>
           </div>
-          {stale && (
-            <span className="text-xs text-amber-600">
-              Last saved: {meta.course_schedule_semester}
-            </span>
-          )}
+          <p className="text-[11px] text-gray-400">
+            {stale ? (
+              <>Last saved for {meta.course_schedule_semester} · <span className="text-amber-600">Please update</span></>
+            ) : (
+              "Update this each semester"
+            )}
+          </p>
         </div>
 
         {/* Schedule Builder */}

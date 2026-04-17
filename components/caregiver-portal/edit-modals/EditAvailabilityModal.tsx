@@ -202,7 +202,7 @@ export default function EditAvailabilityModal({
               This is the #1 thing providers look at.
             </p>
 
-            <div className="max-w-md mx-auto">
+            <div className="max-w-lg mx-auto">
               {!commitmentStatement && (
                 <div className="mb-4 space-y-2">
                   <p className="text-xs text-gray-400 font-medium text-left">Quick start templates:</p>
@@ -223,8 +223,8 @@ export default function EditAvailabilityModal({
                 value={commitmentStatement}
                 onChange={(e) => setCommitmentStatement(e.target.value)}
                 placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
-                rows={6}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[120px]"
+                rows={7}
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
                 autoFocus
               />
               <div className="flex items-center justify-between mt-2">
@@ -375,16 +375,16 @@ export default function EditAvailabilityModal({
               Optional: Finals, spring break, planned travel, etc.
             </p>
 
-            <div className="max-w-md mx-auto">
+            <div className="max-w-lg mx-auto">
               <textarea
                 value={availabilityNotes}
                 onChange={(e) => setAvailabilityNotes(e.target.value)}
                 placeholder="Any specific dates or circumstances providers should know about..."
-                rows={5}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[100px]"
+                rows={7}
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
                 autoFocus
               />
-              <p className="text-xs text-gray-400 mt-2 text-center">
+              <p className="text-xs text-gray-400 mt-3 text-center">
                 This field is optional
               </p>
             </div>

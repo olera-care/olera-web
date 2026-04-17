@@ -170,37 +170,11 @@ export default function EditAvailabilityModal({
     return "Back";
   };
 
-  // Simple progress dots
-  const ProgressDots = () => (
-    <div className="flex justify-center gap-2 mb-8">
-      {([1, 2, 3, 4] as Step[]).map((step) => {
-        const isCurrent = step === currentStep;
-        const isPast = step < currentStep;
-        return (
-          <button
-            key={step}
-            type="button"
-            onClick={() => navigateToStep(step)}
-            disabled={isTransitioning}
-            className="group flex flex-col items-center gap-2"
-          >
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                isCurrent
-                  ? "w-8 bg-primary-600"
-                  : isPast
-                  ? "w-2 bg-primary-600"
-                  : "w-2 bg-gray-200 group-hover:bg-gray-300"
-              }`}
-            />
-            <span className={`text-xs font-medium transition-colors ${
-              isCurrent ? "text-primary-600" : "text-gray-400"
-            }`}>
-              {stepLabels[step]}
-            </span>
-          </button>
-        );
-      })}
+  // Custom header with title and subtitle
+  const headerContent = (
+    <div>
+      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Availability & Commitment</h2>
+      <p className="text-sm text-gray-500 mt-0.5">Tell providers about your schedule</p>
     </div>
   );
 
@@ -217,15 +191,15 @@ export default function EditAvailabilityModal({
         {/* Step 1: Commitment Statement */}
         {currentStep === 1 && (
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Your commitment to caregiving</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              This is the #1 thing providers look at. Be specific about your availability.
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Your commitment to caregiving</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              This is the #1 thing providers look at.
             </p>
 
             <div className="max-w-md mx-auto">
@@ -239,7 +213,7 @@ export default function EditAvailabilityModal({
                       onClick={() => setCommitmentStatement(s)}
                       className="w-full text-left px-4 py-3 bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 rounded-xl text-sm text-gray-600 transition-all leading-relaxed"
                     >
-                      {s.slice(0, 90)}...
+                      {s.slice(0, 80)}...
                     </button>
                   ))}
                 </div>
@@ -273,15 +247,15 @@ export default function EditAvailabilityModal({
         {/* Step 2: Additional Pledges */}
         {currentStep === 2 && (
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Additional commitments</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              These show providers you understand the responsibility.
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Additional commitments</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              Show providers you understand the responsibility.
             </p>
 
             <div className="max-w-md mx-auto space-y-3">
@@ -337,18 +311,18 @@ export default function EditAvailabilityModal({
         {/* Step 3: Seasonal Availability */}
         {currentStep === 3 && (
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Year-round availability</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Year-round availability</h3>
+            <p className="text-gray-500 text-sm mb-5 max-w-sm mx-auto">
               Let providers know your plans for each season.
             </p>
 
-            <div className="max-w-lg mx-auto space-y-5 text-left">
+            <div className="max-w-lg mx-auto space-y-4 text-left">
               {SEASONS.map((season) => {
                 const data = yearRoundAvailability[season] as { status?: string; year?: number } | undefined;
                 const isCurrent = season === currentSeason;
@@ -390,14 +364,14 @@ export default function EditAvailabilityModal({
         {/* Step 4: Additional Notes */}
         {currentStep === 4 && (
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Anything else?</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Anything else?</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
               Optional: Finals, spring break, planned travel, etc.
             </p>
 
@@ -447,11 +421,15 @@ export default function EditAvailabilityModal({
           {getBackButtonText()}
         </button>
 
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-1.5 text-xs text-gray-400">
           {guidedMode && guidedStep && guidedTotal ? (
             <span>Step {guidedStep} of {guidedTotal}</span>
           ) : (
-            <span>Step {currentStep} of 4</span>
+            <>
+              <span className="text-gray-500 font-medium">{stepLabels[currentStep]}</span>
+              <span>·</span>
+              <span>{currentStep} of 4</span>
+            </>
           )}
         </div>
 
@@ -482,16 +460,13 @@ export default function EditAvailabilityModal({
     <Modal
       isOpen
       onClose={onClose}
-      title=""
+      title={headerContent}
       size="2xl"
       footer={footerContent}
     >
-      <div className="px-2">
-        {/* Progress Indicator - Simple Dots */}
-        <ProgressDots />
-
-        {/* Step Content */}
-        <div className="min-h-[360px] flex items-start justify-center">
+      <div className="pt-4">
+        {/* Step Content - now centered without progress dots taking space */}
+        <div className="min-h-[340px] flex items-start justify-center">
           {renderStepContent()}
         </div>
 

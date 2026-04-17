@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import Modal from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
 import { saveStudentProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
@@ -115,7 +116,7 @@ export default function EditOverviewModal({
       isOpen
       onClose={onClose}
       title="Edit Profile Overview"
-      size="lg"
+      size="3xl"
       footer={
         <ModalFooter
           saving={saving || uploading}
@@ -179,50 +180,38 @@ export default function EditOverviewModal({
         </div>
 
         {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Your full name"
-            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all"
-          />
-        </div>
+        <Input
+          label="Full Name"
+          value={displayName}
+          onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)}
+          placeholder="Your full name"
+        />
 
         {/* University */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">University</label>
-          <input
-            type="text"
-            value={university}
-            onChange={(e) => setUniversity(e.target.value)}
-            placeholder="e.g., University of Texas at Austin"
-            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all"
-          />
-        </div>
+        <Input
+          label="University"
+          value={university}
+          onChange={(e) => setUniversity((e.target as HTMLInputElement).value)}
+          placeholder="e.g., University of Texas at Austin"
+        />
 
         {/* Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all"
-            />
-            <input
-              type="text"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              placeholder="State (e.g., TX)"
-              maxLength={2}
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none text-sm transition-all uppercase"
-            />
-          </div>
-          <p className="text-xs text-gray-400 mt-1.5">This helps providers find you in their area</p>
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="City"
+            value={city}
+            onChange={(e) => setCity((e.target as HTMLInputElement).value)}
+            placeholder="City"
+            helpText="This helps providers find you in their area"
+          />
+          <Input
+            label="State"
+            value={state}
+            onChange={(e) => setState((e.target as HTMLInputElement).value)}
+            placeholder="TX"
+            maxLength={2}
+            className="uppercase"
+          />
         </div>
 
         {error && (

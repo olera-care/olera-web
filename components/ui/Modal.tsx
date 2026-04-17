@@ -10,7 +10,7 @@ interface ModalProps {
   title?: ReactNode;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "fullscreen";
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
   /** Sticky footer content (pinned below scrollable body). */
@@ -25,6 +25,7 @@ const sizeClasses: Record<string, string> = {
   lg: "max-w-lg",
   xl: "max-w-xl",
   "2xl": "max-w-[640px]",
+  "3xl": "max-w-3xl",  // 768px - for modals with more content
   fullscreen: "max-w-none",
 };
 

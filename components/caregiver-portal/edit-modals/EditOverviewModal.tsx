@@ -393,7 +393,7 @@ export default function EditOverviewModal({
         </div>
 
         {/* Form Fields */}
-        <div className="max-w-md mx-auto space-y-5">
+        <div className="max-w-md mx-auto space-y-5 pb-48">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

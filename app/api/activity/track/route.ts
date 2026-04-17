@@ -10,6 +10,7 @@ const PROVIDER_EVENT_TYPES = [
   "review_viewed",
   "one_click_access",
   "contact_revealed",
+  "reviews_cta_clicked",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -140,6 +141,22 @@ export async function POST(request: NextRequest) {
           providerSlug: provider_id,
           action: meta.action || "unknown",
           actionId: meta.action_id,
+        });
+        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // Send Slack alert when a provider clicks the reviews CTA
+    if (event_type === "reviews_cta_clicked") {
+      try {
+        const { sendSlackAlert, slackReviewsCtaClicked } = await import("@/lib/slack");
+        const meta = metadata as Record<string, string> || {};
+        const alert = slackReviewsCtaClicked({
+          providerName: meta.provider_name || provider_id,
+          providerSlug: provider_id,
+          source: meta.source || "onboard",
         });
         sendSlackAlert(alert.text, alert.blocks).catch(() => {});
       } catch {

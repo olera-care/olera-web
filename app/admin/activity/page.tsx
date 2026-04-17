@@ -108,6 +108,7 @@ function providerEmailTypeLabel(type: string | null): string {
     email_click: "Email",
     contact_revealed: "Contact Copied",
     one_click_access: "Auto Sign-in",
+    reviews_cta_clicked: "Reviews CTA",
     lead_opened: "Lead Opened",
     page_view: "Page View",
   };

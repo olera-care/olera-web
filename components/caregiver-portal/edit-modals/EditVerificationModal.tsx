@@ -644,14 +644,73 @@ export default function EditVerificationModal({
     );
   };
 
+  // Footer component for sticky positioning
+  const footerContent = (
+    <div className="pt-4 border-t border-gray-100">
+      {/* Guided mode progress bar */}
+      {guidedMode && guidedStep && guidedTotal && (
+        <div className="flex gap-0.5 px-1 mb-4">
+          {Array.from({ length: guidedTotal }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${
+                i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleBack}
+          disabled={isTransitioning || saving}
+          className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+        >
+          {getBackButtonText()}
+        </button>
+
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          {guidedMode && guidedStep && guidedTotal ? (
+            <span>Step {guidedStep} of {guidedTotal}</span>
+          ) : (
+            <span>{completedCount}/3 complete</span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleContinue}
+          disabled={isUploading || saving || isTransitioning}
+          className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            isCurrentStepComplete()
+              ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          {isUploading ? (
+            <span className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            getButtonText()
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <Modal
       isOpen
       onClose={onClose}
       title=""
-      size="2xl"
+      size="xl"
+      footer={footerContent}
     >
-      <div className="px-2 pb-2">
+      <div className="px-2">
         {/* Progress Indicator - Simple Dots */}
         <div className="pt-4">
           <ProgressDots />
@@ -668,62 +727,6 @@ export default function EditVerificationModal({
             <p className="text-sm text-red-600 text-center" role="alert">{error}</p>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          {/* Guided mode progress bar */}
-          {guidedMode && guidedStep && guidedTotal && (
-            <div className="flex gap-0.5 px-1 mb-4">
-              {Array.from({ length: guidedTotal }, (_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${
-                    i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleBack}
-              disabled={isTransitioning || saving}
-              className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
-            >
-              {getBackButtonText()}
-            </button>
-
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              {guidedMode && guidedStep && guidedTotal ? (
-                <span>Step {guidedStep} of {guidedTotal}</span>
-              ) : (
-                <span>{completedCount}/3 complete</span>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleContinue}
-              disabled={isUploading || saving || isTransitioning}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                isCurrentStepComplete()
-                  ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              {isUploading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
-                </span>
-              ) : (
-                getButtonText()
-              )}
-            </button>
-          </div>
-        </div>
       </div>
     </Modal>
   );

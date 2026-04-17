@@ -5,13 +5,13 @@ import type { StudentMetadata } from "@/lib/types";
  *
  * Organized into 8 logical sections that match the portal page structure:
  * 1. Profile Overview (name, university, location, photo - from onboarding)
- * 2. Verification (intro video, driver's license, car insurance)
- * 3. Semester Schedule
- * 4. Availability & Commitment
- * 5. Why I Want to Be a Caregiver
- * 6. Screening Questions
- * 7. Background & Experience (experience level, care types, languages, certifications)
- * 8. Resume & LinkedIn
+ * 2. Semester Schedule
+ * 3. Availability & Commitment
+ * 4. Why I Want to Be a Caregiver
+ * 5. Screening Questions
+ * 6. Background & Experience (experience level, care types, languages, certifications)
+ * 7. Resume & LinkedIn
+ * 8. Verification (intro video, driver's license, car insurance) - the "go live" step
  */
 
 export const SCENARIO_QUESTIONS = [
@@ -140,13 +140,13 @@ export function getSectionCompleteness(
 
   return [
     { id: "overview", label: "Profile Overview", percent: overviewPercent, done: overviewPercent === 100, items: overviewItems },
-    { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
     { id: "schedule", label: "Semester Schedule", percent: schedulePercent, done: schedulePercent === 100, items: scheduleItems },
     { id: "availability", label: "Availability & Commitment", percent: availabilityPercent, done: availabilityPercent === 100, items: availabilityItems },
     { id: "why", label: "Why I Want to Be a Caregiver", percent: whyPercent, done: whyPercent === 100, items: whyItems },
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },
     { id: "background", label: "Background & Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
     { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
+    { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
   ];
 }
 

@@ -91,6 +91,14 @@ export default function EditScheduleModal({
     return guidedMode && onGuidedBack ? "Back" : "Cancel";
   };
 
+  // Custom header with title and subtitle
+  const headerContent = (
+    <div>
+      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Semester Schedule</h2>
+      <p className="text-sm text-gray-500 mt-0.5">Tap times when you have class</p>
+    </div>
+  );
+
   // Footer component
   const footerContent = (
     <div className="pt-4 border-t border-gray-100">
@@ -151,63 +159,28 @@ export default function EditScheduleModal({
     <Modal
       isOpen
       onClose={onClose}
-      title=""
+      title={headerContent}
       size="2xl"
       footer={footerContent}
     >
-      <div className="px-2">
-        {/* Header section */}
-        <div className="text-center mb-6">
-          {/* Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-            <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-
-          {/* Title & Description */}
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Your class schedule
-          </h3>
-          <p className="text-gray-500 text-sm max-w-md mx-auto">
-            Tap the times when you have class. Everything else shows as available for shifts.
-          </p>
-
-          {/* Semester badge */}
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-primary-600" />
+      <div className="pt-4">
+        {/* Semester badge - inline with stale warning if needed */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+            <div className={`w-2 h-2 rounded-full ${stale ? "bg-amber-500" : "bg-primary-600"}`} />
             <span className="text-xs font-medium text-gray-700">{currentSemester}</span>
           </div>
+          {stale && (
+            <span className="text-xs text-amber-600">
+              Last saved: {meta.course_schedule_semester}
+            </span>
+          )}
         </div>
-
-        {/* Stale warning */}
-        {stale && (
-          <div className="max-w-md mx-auto mb-6">
-            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-amber-800">Schedule needs update</p>
-                <p className="text-xs text-amber-600 mt-0.5">
-                  Last updated for {meta.course_schedule_semester}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Schedule Builder */}
         <div className="max-w-lg mx-auto">
           <ScheduleBuilder value={grid} onChange={setGrid} />
         </div>
-
-        {/* Tip */}
-        <p className="text-xs text-gray-400 text-center mt-6">
-          Remember to update this each semester
-        </p>
 
         {/* Error Message */}
         {error && (

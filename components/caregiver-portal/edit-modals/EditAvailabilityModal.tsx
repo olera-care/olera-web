@@ -344,24 +344,17 @@ export default function EditAvailabilityModal({
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Year-round availability</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
               Let providers know your plans for each season.
             </p>
 
-            <div className="max-w-md mx-auto grid grid-cols-2 gap-3">
+            <div className="max-w-lg mx-auto space-y-5 text-left">
               {SEASONS.map((season) => {
                 const data = yearRoundAvailability[season] as { status?: string; year?: number } | undefined;
                 const isCurrent = season === currentSeason;
                 return (
-                  <div
-                    key={season}
-                    className={`rounded-xl p-4 ${
-                      isCurrent
-                        ? "bg-primary-50 border border-primary-200"
-                        : "bg-white border border-gray-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
+                  <div key={season}>
+                    <div className="flex items-center gap-2 mb-2">
                       <span className="text-sm font-medium text-gray-900">
                         {SEASON_LABELS[season]}
                       </span>
@@ -377,9 +370,9 @@ export default function EditAvailabilityModal({
                           key={opt.value}
                           type="button"
                           onClick={() => handleSeasonChange(season, opt.value)}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                             data?.status === opt.value
-                              ? "bg-primary-600 text-white"
+                              ? "bg-gray-900 text-white"
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >

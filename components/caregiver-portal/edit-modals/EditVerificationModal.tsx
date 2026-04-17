@@ -763,12 +763,10 @@ export default function EditVerificationModal({
     >
       <div className="px-2">
         {/* Progress Indicator - Simple Dots */}
-        <div className="pt-4">
-          <ProgressDots />
-        </div>
+        <ProgressDots />
 
         {/* Step Content */}
-        <div className="min-h-[320px] flex items-start justify-center pt-4">
+        <div className="min-h-[320px] flex items-start justify-center">
           {renderStepContent()}
         </div>
 

@@ -1115,6 +1115,7 @@ function StudentPortalContent({
 }) {
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [pendingCelebration, setPendingCelebration] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1180,16 +1181,10 @@ function StudentPortalContent({
   const handleVerificationSaved = useCallback(() => {
     const wasLive = wasLiveOnModalOpen.current;
     refresh();
-    // After a short delay to allow refresh to complete, check if we just went live
-    // The profile.is_active will be updated after refresh
+    // Mark pending celebration if profile wasn't live when modal opened
+    // The effect below will show celebration when profile.is_active becomes true
     if (!wasLive) {
-      // We weren't live before - check if we are now (video submitted)
-      // Use a timeout to allow the refresh to complete
-      setTimeout(() => {
-        // The parent component will re-render with new profile data
-        // We set this flag and the effect below will show celebration
-        setShowCelebration(true);
-      }, 500);
+      setPendingCelebration(true);
     }
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
@@ -1204,10 +1199,18 @@ function StudentPortalContent({
     }
   }, [refresh, guided, editingSection]);
 
+  // Effect to show celebration when profile becomes active after verification save
+  useEffect(() => {
+    if (pendingCelebration && profile.is_active) {
+      setShowCelebration(true);
+      setPendingCelebration(false);
+    }
+  }, [pendingCelebration, profile.is_active]);
+
   // Update ref when verification modal opens
   const handleOpenVerificationModal = useCallback(() => {
     wasLiveOnModalOpen.current = profile.is_active;
-    handleOpenVerificationModal();
+    setEditingSection("verification");
   }, [profile.is_active]);
 
   const handleGuidedBack = useCallback(() => {

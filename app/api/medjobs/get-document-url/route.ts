@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         // Check for paid access
         const { data: access } = await admin
           .from("medjobs_provider_access")
-          .select("id")
+          .select("tier")
           .eq("provider_profile_id", providerProfile.id)
           .maybeSingle();
 

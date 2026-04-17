@@ -33,25 +33,28 @@ function getAdminSupabase() {
   );
 }
 
-/** Check if current user is a verified provider */
-async function checkVerifiedProvider(): Promise<boolean> {
+/** Check if current user is a paid provider (has active MedJobs subscription) */
+async function checkIsPaidProvider(): Promise<boolean> {
   try {
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    // Check if user has a verified organization profile
+    // Check if user has an organization profile with active subscription
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, verification_state")
+      .select("id, metadata")
       .eq("account_id", user.id)
       .eq("type", "organization")
       .eq("is_active", true)
-      .eq("verification_state", "verified")
       .limit(1)
       .maybeSingle();
 
-    return !!profile;
+    if (!profile) return false;
+
+    // Check for active subscription in metadata
+    const meta = (profile.metadata || {}) as Record<string, unknown>;
+    return !!(meta.medjobs_subscription_active as boolean);
   } catch {
     return false;
   }
@@ -125,8 +128,8 @@ function formatLastUpdated(dateStr: string): string {
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Check if current user is a verified provider
-  const isVerifiedProvider = await checkVerifiedProvider();
+  // Check if current user is a paid provider (has active subscription)
+  const isPaidProvider = await checkIsPaidProvider();
 
   // Check if caregiver is viewing their own profile
   const isOwnProfile = await checkIsOwnProfile(slug);
@@ -155,11 +158,11 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents - for verified providers OR profile owner
-  const canViewFullProfile = isVerifiedProvider || isOwnProfile;
+  // Generate signed URLs for private documents - for paid providers OR profile owner
+  const canViewFullProfile = isPaidProvider || isOwnProfile;
   const adminSb = getAdminSupabase();
   async function getSignedUrl(path: string | undefined): Promise<string | null> {
-    if (!canViewFullProfile) return null; // Don't expose documents to non-verified users
+    if (!canViewFullProfile) return null; // Only paid providers and profile owners can access
     if (!path || path.startsWith("http")) return path || null;
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;

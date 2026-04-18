@@ -66,15 +66,36 @@ export async function POST(request: Request) {
     const adminClient = getAdminClient();
     const db = adminClient || supabase;
 
-    // Get the user's account
-    const { data: account, error: accountErr } = await db
+    // Get or create the user's account
+    // (New users signing up via Flow B won't have an account yet)
+    let accountId: string;
+    const { data: existingAccount } = await db
       .from("accounts")
       .select("id")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (accountErr || !account) {
-      return NextResponse.json({ error: "Account not found" }, { status: 400 });
+    if (existingAccount) {
+      accountId = existingAccount.id;
+    } else {
+      // Create account for new user
+      const displayName = providerName || user.email?.split("@")[0] || "Provider";
+      const { data: newAccount, error: createAccountError } = await db
+        .from("accounts")
+        .insert({
+          user_id: user.id,
+          display_name: displayName,
+          onboarding_completed: true,
+        })
+        .select("id")
+        .single();
+
+      if (createAccountError || !newAccount) {
+        console.error("[claim-listing] account creation error:", createAccountError);
+        return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
+      }
+      accountId = newAccount.id;
+      console.log("[claim-listing] created account for new user:", accountId);
     }
 
     // Check if this listing is already claimed (business_profile with this source_provider_id exists)
@@ -85,7 +106,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existingClaim) {
-      if (existingClaim.account_id === account.id) {
+      if (existingClaim.account_id === accountId) {
         // Already claimed by this user - just return success
         return NextResponse.json({
           profileId: existingClaim.id,
@@ -106,7 +127,7 @@ export async function POST(request: Request) {
     const { data: anyExistingProfile } = await db
       .from("business_profiles")
       .select("id, type")
-      .eq("account_id", account.id)
+      .eq("account_id", accountId)
       .eq("is_active", true)
       .limit(1)
       .maybeSingle();
@@ -125,7 +146,7 @@ export async function POST(request: Request) {
     const { data: existingProfile } = await db
       .from("business_profiles")
       .select("id, source_provider_id, verification_state")
-      .eq("account_id", account.id)
+      .eq("account_id", accountId)
       .eq("type", "organization")
       .eq("is_active", true)
       .maybeSingle();
@@ -238,7 +259,7 @@ export async function POST(request: Request) {
     const { data: newProfile, error: insertErr } = await db
       .from("business_profiles")
       .insert({
-        account_id: account.id,
+        account_id: accountId,
         source_provider_id: providerId,
         slug,
         type: "organization",
@@ -267,12 +288,12 @@ export async function POST(request: Request) {
     const { data: existingMembership } = await db
       .from("memberships")
       .select("id")
-      .eq("account_id", account.id)
+      .eq("account_id", accountId)
       .limit(1);
 
     if (!existingMembership || existingMembership.length === 0) {
       await db.from("memberships").insert({
-        account_id: account.id,
+        account_id: accountId,
         plan: "free",
         status: "free",
       });
@@ -285,7 +306,7 @@ export async function POST(request: Request) {
         onboarding_completed: true,
         active_profile_id: newProfile.id,
       })
-      .eq("id", account.id);
+      .eq("id", accountId);
 
     return NextResponse.json({
       profileId: newProfile.id,

@@ -1152,6 +1152,51 @@ function ProviderOnboardingContent() {
     }
   };
 
+  // Handle Flow B: sign in to claim (for personal email users)
+  // Opens auth modal with deferred claim-listing action
+  const handleSignInToClaim = useCallback(() => {
+    if (!selectedResult) return;
+
+    // Extract provider data based on source type
+    const isOleraProvider = selectedResult._source === "olera-providers";
+
+    // Cache provider data for post-auth claim processing
+    const providerData = {
+      provider_id: isOleraProvider
+        ? selectedResult.provider_id
+        : selectedResult.source_provider_id || selectedResult.id,
+      provider_name: isOleraProvider
+        ? selectedResult.provider_name
+        : selectedResult.display_name,
+      slug: isOleraProvider
+        ? (selectedResult.slug || selectedResult.provider_id)
+        : selectedResult.slug,
+      email: selectedResult.email,
+      city: selectedResult.city || formData.city,
+      state: selectedResult.state || formData.state,
+      source_type: selectedResult._source,
+      // For business_profiles, include the actual ID (for updating vs creating)
+      business_profile_id: !isOleraProvider ? selectedResult.id : undefined,
+    };
+
+    try {
+      sessionStorage.setItem("olera_claim_provider_cache", JSON.stringify(providerData));
+    } catch {
+      console.warn("[handleSignInToClaim] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and claim-listing deferred action
+    // Pre-fill their email so they don't have to re-enter it
+    openAuth({
+      intent: "provider",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
+  }, [selectedResult, formData.city, formData.state, formData.email, openAuth]);
+
   // Handle instant claim for business emails (no email verification needed)
   const handleInstantClaim = async () => {
     if (!selectedResult) return;
@@ -2053,8 +2098,8 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
-          <div className="max-w-lg mx-auto animate-fade-in">
+        <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
+          <div className="max-w-lg w-full animate-fade-in">
             {/* Provider Card Preview */}
             <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 overflow-hidden">
               {/* Provider header */}
@@ -2089,23 +2134,29 @@ function ProviderOnboardingContent() {
               </div>
 
               {/* Claim confirmation */}
-              <div className="p-5 space-y-5">
+              <div className="p-5 space-y-4">
+                {/* Heading */}
                 <div className="text-center">
                   <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
-                  <p className="text-gray-500 mt-2">
-                    {canInstantClaim
-                      ? "You'll get instant access to your dashboard."
-                      : "We'll email you a link to access your dashboard."}
-                  </p>
+                  {!canInstantClaim && (
+                    <p className="text-gray-500 mt-1.5">
+                      Sign in or create an account to manage this listing on Olera.
+                    </p>
+                  )}
                 </div>
 
-                {/* Email confirmation display */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-primary-50 rounded-xl border border-primary-200">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-900 font-medium">{userEmail}</span>
-                </div>
+                {/* Flow A: Business email verified (subtle confirmation) */}
+                {canInstantClaim && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      <span className="text-gray-700 font-medium">{userEmail}</span>
+                      {" "}verified
+                    </span>
+                  </div>
+                )}
 
                 {/* Error */}
                 {actionError && (
@@ -2116,27 +2167,41 @@ function ProviderOnboardingContent() {
                     <p className="text-sm text-red-700">{actionError}</p>
                   </div>
                 )}
+
+                {/* Buttons */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={canInstantClaim ? handleInstantClaim : handleSignInToClaim}
+                    disabled={actionLoading === "confirm-claim"}
+                    className="w-full"
+                  >
+                    {actionLoading === "confirm-claim" ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </span>
+                    ) : canInstantClaim ? (
+                      "Claim this listing"
+                    ) : (
+                      "Sign in to claim"
+                    )}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionError("");
+                      // For pre-selected unclaimed orgs, go back to search (they skipped results)
+                      setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
+                    }}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
+                  >
+                    Back
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          back={{
-            label: "Back",
-            onClick: () => {
-              setActionError("");
-              // For pre-selected unclaimed orgs, go back to search (they skipped results)
-              setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
-            },
-          }}
-          primary={{
-            label: canInstantClaim ? "Claim this listing" : "Send Verification Email",
-            onClick: canInstantClaim ? handleInstantClaim : handleSendClaimEmail,
-            loading: actionLoading === "confirm-claim",
-          }}
-        />
       </div>
     );
   }

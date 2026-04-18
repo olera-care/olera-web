@@ -109,6 +109,7 @@ function providerEmailTypeLabel(type: string | null): string {
     contact_revealed: "Contact Copied",
     one_click_access: "Auto Sign-in",
     reviews_cta_clicked: "Reviews CTA",
+    suspicious_claim: "Suspicious Claim",
     lead_opened: "Lead Opened",
     page_view: "Page View",
   };
@@ -126,6 +127,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     email_click: "bg-gray-100 text-gray-600",
     contact_revealed: "bg-green-50 text-green-700",
     one_click_access: "bg-teal-50 text-teal-700",
+    suspicious_claim: "bg-red-50 text-red-700",
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
   };
@@ -350,7 +352,16 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                   {event.provider.city && ` \u00b7 ${event.provider.city}, ${event.provider.state}`}
                 </span>
               )}
-              {String((event.metadata as Record<string, string>)?.question_preview || "") !== "" && (
+              {event.event_type === "suspicious_claim" ? (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="font-medium text-red-700">
+                    {String((event.metadata as Record<string, string>)?.claimed_by_email || "unknown")}
+                  </span>
+                  {(event.metadata as Record<string, string>)?.trust_reason && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).trust_reason)}</span>
+                  )}
+                </p>
+              ) : String((event.metadata as Record<string, string>)?.question_preview || "") !== "" && (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
                   {event.event_type === "question_responded" ? (
                     <>&ldquo;{String((event.metadata as Record<string, string>).answer_preview || (event.metadata as Record<string, string>).question_preview)}&rdquo;</>
@@ -636,6 +647,7 @@ const PAGE_SIZE = 40;
 
 const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "", label: "All types" },
+  { value: "suspicious_claim", label: "Suspicious claims" },
   { value: "email_click", label: "Email clicks" },
   { value: "connection_request", label: "Leads" },
   { value: "question_received", label: "Questions" },

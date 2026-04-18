@@ -786,6 +786,51 @@ function ProviderOnboardingContent() {
     }
   }, [formData]);
 
+  // Handle Flow B: sign in to claim (for personal email users)
+  // Opens auth modal with deferred claim-listing action
+  const handleSignInToClaim = useCallback(() => {
+    if (!selectedResult) return;
+
+    // Extract provider data based on source type
+    const isOleraProvider = selectedResult._source === "olera-providers";
+
+    // Cache provider data for post-auth claim processing
+    const providerData = {
+      provider_id: isOleraProvider
+        ? selectedResult.provider_id
+        : selectedResult.source_provider_id || selectedResult.id,
+      provider_name: isOleraProvider
+        ? selectedResult.provider_name
+        : selectedResult.display_name,
+      slug: isOleraProvider
+        ? (selectedResult.slug || selectedResult.provider_id)
+        : selectedResult.slug,
+      email: selectedResult.email,
+      city: selectedResult.city || formData.city,
+      state: selectedResult.state || formData.state,
+      source_type: selectedResult._source,
+      // For business_profiles, include the actual ID (for updating vs creating)
+      business_profile_id: !isOleraProvider ? selectedResult.id : undefined,
+    };
+
+    try {
+      sessionStorage.setItem("olera_claim_provider_cache", JSON.stringify(providerData));
+    } catch {
+      console.warn("[handleSignInToClaim] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and claim-listing deferred action
+    // Pre-fill their email so they don't have to re-enter it
+    openAuth({
+      intent: "provider",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
+  }, [selectedResult, formData.city, formData.state, formData.email, openAuth]);
+
   // ──────────────────────────────────────────────────────────
   // Screen 1: Search Form
   // ──────────────────────────────────────────────────────────
@@ -1151,51 +1196,6 @@ function ProviderOnboardingContent() {
       setActionLoading(null);
     }
   };
-
-  // Handle Flow B: sign in to claim (for personal email users)
-  // Opens auth modal with deferred claim-listing action
-  const handleSignInToClaim = useCallback(() => {
-    if (!selectedResult) return;
-
-    // Extract provider data based on source type
-    const isOleraProvider = selectedResult._source === "olera-providers";
-
-    // Cache provider data for post-auth claim processing
-    const providerData = {
-      provider_id: isOleraProvider
-        ? selectedResult.provider_id
-        : selectedResult.source_provider_id || selectedResult.id,
-      provider_name: isOleraProvider
-        ? selectedResult.provider_name
-        : selectedResult.display_name,
-      slug: isOleraProvider
-        ? (selectedResult.slug || selectedResult.provider_id)
-        : selectedResult.slug,
-      email: selectedResult.email,
-      city: selectedResult.city || formData.city,
-      state: selectedResult.state || formData.state,
-      source_type: selectedResult._source,
-      // For business_profiles, include the actual ID (for updating vs creating)
-      business_profile_id: !isOleraProvider ? selectedResult.id : undefined,
-    };
-
-    try {
-      sessionStorage.setItem("olera_claim_provider_cache", JSON.stringify(providerData));
-    } catch {
-      console.warn("[handleSignInToClaim] sessionStorage not available");
-    }
-
-    // Open auth modal with provider intent and claim-listing deferred action
-    // Pre-fill their email so they don't have to re-enter it
-    openAuth({
-      intent: "provider",
-      initialEmail: formData.email.trim(),
-      deferred: {
-        action: "claim-listing",
-        returnUrl: "/provider",
-      },
-    });
-  }, [selectedResult, formData.city, formData.state, formData.email, openAuth]);
 
   // Handle instant claim for business emails (no email verification needed)
   const handleInstantClaim = async () => {

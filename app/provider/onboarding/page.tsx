@@ -85,6 +85,39 @@ function domainsMatch(userEmail: string, providerEmail: string | null | undefine
   return userDomain === providerDomain;
 }
 
+// Check if user's email domain matches the provider's business name or slug
+// Used as a fallback when no email is on file
+// Example: "Sunrise Senior Living" (slug: sunrise-senior-living) matches sunriseseniorliving.com
+function domainMatchesProviderIdentity(
+  userEmail: string,
+  providerName: string | null | undefined,
+  providerSlug: string | null | undefined
+): boolean {
+  const userDomain = getEmailDomain(userEmail);
+  if (!userDomain) return false;
+
+  // Extract base domain (remove TLD like .com, .org, .net, etc.)
+  const domainBase = userDomain.split(".")[0]?.toLowerCase();
+  if (!domainBase || domainBase.length < 3) return false; // Too short to match reliably
+
+  // Normalize provider name: "Sunrise Senior Living" → "sunriseseniorliving"
+  const normalizedName = providerName?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+
+  // Normalize slug: "sunrise-senior-living" → "sunriseseniorliving"
+  const normalizedSlug = providerSlug?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+
+  // Check for match (domain base should match or be contained in name/slug)
+  // We check both directions to handle cases like:
+  // - domainBase: "sunrise" matching name: "sunriseseniorliving" (partial)
+  // - domainBase: "sunriseseniorliving" matching name: "sunriseseniorliving" (exact)
+  const exactMatch = domainBase === normalizedName || domainBase === normalizedSlug;
+  const domainContainsName = normalizedName.length >= 5 && domainBase.includes(normalizedName);
+  const nameContainsDomain = domainBase.length >= 5 && normalizedName.includes(domainBase);
+  const slugContainsDomain = domainBase.length >= 5 && normalizedSlug.includes(domainBase);
+
+  return exactMatch || domainContainsName || nameContainsDomain || slugContainsDomain;
+}
+
 // Search result from olera-providers
 interface ProviderMatch extends Provider {
   _source: "olera-providers";
@@ -1984,12 +2017,18 @@ function ProviderOnboardingContent() {
 
     // Get provider's email on file (for domain matching)
     const providerEmailOnFile = selectedResult.email;
+    const providerSlug = selectedResult.slug;
 
     // Check if this qualifies for instant claim:
     // 1. User's email must be a business email (not gmail/yahoo/etc.)
-    // 2. User's email domain must match the provider's email domain on file
-    // This allows any employee from the same organization to claim the listing
-    const canInstantClaim = isBusinessEmail(userEmail) && domainsMatch(userEmail, providerEmailOnFile);
+    // 2. EITHER:
+    //    a) User's email domain matches the provider's email domain on file, OR
+    //    b) No email on file, but domain matches provider name/slug
+    // This allows employees from the same organization to claim the listing
+    const isBusinessDomain = isBusinessEmail(userEmail);
+    const emailDomainMatches = domainsMatch(userEmail, providerEmailOnFile);
+    const nameDomainMatches = !providerEmailOnFile && domainMatchesProviderIdentity(userEmail, providerName, providerSlug);
+    const canInstantClaim = isBusinessDomain && (emailDomainMatches || nameDomainMatches);
 
     return (
       <div className="min-h-screen flex flex-col bg-white">

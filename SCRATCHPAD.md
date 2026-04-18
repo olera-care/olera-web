@@ -60,6 +60,19 @@
   - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
   - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
 
+- **City Expansion Batch — 2026-04-17** — DONE ✅
+  - 185 cities processed end-to-end (small suburbs, pop 16K-19K)
+  - Discovery: 31,745 raw providers (1h46m, quick mode, 1 transient connection error auto-recovered)
+  - Pipeline: cleaned → uploaded → enriched, total runtime 2h52m
+  - **2,312 active providers across 179 cities** (main batch)
+  - Cost: discovery $187 + pipeline $231 = **$418 total** (vs $4,625 original estimate — ~$2.26/city)
+  - Enrichment: 1,016 trust-signals confirmed, 1,465 deleted as false positives (unified entity+trust check working well), 2,937 review snippets, 2,345 images
+  - Spot-check came back clean on all 6 dimensions (0 out-of-state coords, 0 null place_ids, 0 invalid categories, 0 LLC/Inc name suffixes, 0 slug collisions)
+  - **Diagnosed stale-checkout bug, not a code regression**: 6 pre-existing cities initially came back "empty" because the script I was running was from `~/Desktop/olera-web` on `fix/dedupe-tier3` (494 commits behind staging). That stale copy was missing the `.eq('deleted', false)` filter on phaseClean dedup and phaseLoad "already in DB" count. Staging already has the fix — running from a worktree off staging would've avoided the issue. Applied the same fix manually to the stale script, re-ran the 6 cities → salvaged 4 real providers in Round Lake IL (other 5 correctly re-classified as false positives). Memory added: always run pipeline-batch.js from a fresh worktree.
+  - 185 Notion pages created + flipped to Complete
+  - **Next**: monitor a few city pages on olera.care after ISR warm (1 hr)
+  - Expansion board: previous 476 Complete + 185 = **~661 Complete cities**
+
 - **City Expansion Batch — 2026-04-04** — DONE ✅
   - 193 new cities processed end-to-end via batch pipeline
   - Discovery: ~35,000 raw providers (53 min, quick mode)

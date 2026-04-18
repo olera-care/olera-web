@@ -359,45 +359,63 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 6b-ii. Low-trust claim: flag in Activity Center + dedicated Slack alert
+    // 6b-ii. Low-trust claim: flag in Activity Center + dedicated Slack alert.
+    // Dedup with auto-sign-in hook: both paths can fire for the same claim, so
+    // suppress when a suspicious_claim row for this provider+email already exists
+    // within 24h.
     if (trustResult.level === "low") {
-      try {
-        const { error: activityInsertErr } = await db
-          .from("provider_activity")
-          .insert({
-            provider_id: profileSlug,
-            profile_id: profileId,
-            event_type: "suspicious_claim",
-            metadata: {
-              claimed_by_email: user.email || "unknown",
-              trust_level: trustResult.level,
-              trust_reason: trustResult.reason,
-            },
-          });
-        if (activityInsertErr) {
+      const claimantEmail = user.email || "unknown";
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: existingFlag } = await db
+        .from("provider_activity")
+        .select("id")
+        .eq("provider_id", profileSlug)
+        .eq("event_type", "suspicious_claim")
+        .gte("created_at", oneDayAgo)
+        .contains("metadata", { claimed_by_email: claimantEmail })
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingFlag) {
+        try {
+          const { error: activityInsertErr } = await db
+            .from("provider_activity")
+            .insert({
+              provider_id: profileSlug,
+              profile_id: profileId,
+              event_type: "suspicious_claim",
+              metadata: {
+                claimed_by_email: claimantEmail,
+                trust_level: trustResult.level,
+                trust_reason: trustResult.reason,
+                source: "claim_finalize",
+              },
+            });
+          if (activityInsertErr) {
+            console.error(
+              "[claim/finalize] suspicious_claim activity insert failed:",
+              activityInsertErr
+            );
+          }
+        } catch (activityErr) {
           console.error(
             "[claim/finalize] suspicious_claim activity insert failed:",
-            activityInsertErr
+            activityErr
           );
         }
-      } catch (activityErr) {
-        console.error(
-          "[claim/finalize] suspicious_claim activity insert failed:",
-          activityErr
-        );
-      }
 
-      try {
-        const alert = slackSuspiciousClaim({
-          providerName: providerDisplayName,
-          providerSlug: profileSlug,
-          claimedByEmail: user.email || "unknown",
-          trustLevel: trustResult.level,
-          trustReason: trustResult.reason,
-        });
-        await sendSlackAlert(alert.text, alert.blocks);
-      } catch {
-        // Non-blocking
+        try {
+          const alert = slackSuspiciousClaim({
+            providerName: providerDisplayName,
+            providerSlug: profileSlug,
+            claimedByEmail: claimantEmail,
+            trustLevel: trustResult.level,
+            trustReason: trustResult.reason,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch {
+          // Non-blocking
+        }
       }
     }
 

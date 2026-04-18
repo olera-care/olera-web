@@ -49,6 +49,26 @@ const DISPUTE_ROLE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
+// Consumer email domains (personal emails) - these require magic link verification
+// Business emails (not in this list) get instant access
+const CONSUMER_EMAIL_DOMAINS = new Set([
+  "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+  "icloud.com", "aol.com", "protonmail.com", "live.com",
+  "msn.com", "me.com", "mail.com", "ymail.com", "googlemail.com",
+  "comcast.net", "att.net", "verizon.net", "sbcglobal.net",
+  "cox.net", "earthlink.net", "juno.com", "netzero.com",
+  "zoho.com", "fastmail.com", "tutanota.com", "hey.com",
+  "pm.me", "proton.me", "yahoo.co.uk", "hotmail.co.uk",
+  "outlook.co.uk", "btinternet.com", "virginmedia.com",
+]);
+
+// Check if email is a business email (not a consumer/personal email)
+function isBusinessEmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (!domain) return false;
+  return !CONSUMER_EMAIL_DOMAINS.has(domain);
+}
+
 // Search result from olera-providers
 interface ProviderMatch extends Provider {
   _source: "olera-providers";
@@ -884,7 +904,7 @@ function ProviderOnboardingContent() {
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification link to this email</p>
+                <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
                 {/* Warning: logged-in user with family/caregiver account using same email */}
                 {user &&
                  formData.email.trim().toLowerCase() === user.email?.toLowerCase() &&
@@ -1074,6 +1094,96 @@ function ProviderOnboardingContent() {
     } catch (err) {
       console.error("[handleSendClaimEmail] Error:", err);
       setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle instant claim for business emails (no email verification needed)
+  const handleInstantClaim = async () => {
+    if (!selectedResult) return;
+
+    // Extract the right IDs based on source type
+    const isOleraProvider = selectedResult._source === "olera-providers";
+    const providerId = isOleraProvider
+      ? selectedResult.provider_id
+      : selectedResult.id;
+    const providerSlug = isOleraProvider
+      ? (selectedResult.slug || selectedResult.provider_id)
+      : selectedResult.slug;
+    const providerName = isOleraProvider
+      ? selectedResult.provider_name
+      : selectedResult.display_name;
+
+    // For business_profiles, also pass the linked source_provider_id if it exists
+    const sourceProviderId = !isOleraProvider
+      ? selectedResult.source_provider_id
+      : undefined;
+
+    setActionLoading("confirm-claim");
+    setActionError("");
+
+    try {
+      const res = await fetch("/api/provider/instant-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          email: formData.email.trim().toLowerCase(),
+          city: selectedResult.city || formData.city,
+          state: selectedResult.state || formData.state,
+          sourceType: selectedResult._source,
+          sourceProviderId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setActionError("Too many claim attempts. Please try again later.");
+          setActionLoading(null);
+          return;
+        }
+        if (res.status === 409) {
+          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
+            setActionError("This email is already used for a personal account. Please use a different business email.");
+          } else if (data.code === "PROFILE_EXISTS") {
+            setActionError("You already have a business profile. Please sign in to manage your listing.");
+          } else if (data.code === "PENDING_CLAIM") {
+            setActionError("This listing has a pending claim. Please try again later.");
+          } else {
+            setActionError("This listing has already been claimed. Please sign in instead.");
+          }
+          setActionLoading(null);
+          return;
+        }
+        throw new Error(data.error || "Failed to claim listing");
+      }
+
+      // Auto-sign-in with the token
+      if (data.tokenHash) {
+        const supabase = createClient();
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: data.tokenHash,
+          type: "magiclink",
+        });
+
+        if (otpError) {
+          console.error("[handleInstantClaim] auto-sign-in error:", otpError);
+          // Still redirect - they can sign in manually
+        }
+      }
+
+      // Clear loading state before redirect
+      setActionLoading(null);
+
+      // Redirect to provider dashboard
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleInstantClaim] Error:", err);
+      setActionError(err instanceof Error ? err.message : "Failed to claim listing. Please try again.");
       setActionLoading(null);
     }
   };
@@ -1856,6 +1966,9 @@ function ProviderOnboardingContent() {
     // Simple confirmation: always send to the email the user entered in the search form
     const userEmail = formData.email;
 
+    // Check if this is a business email (instant claim) vs personal email (magic link)
+    const canInstantClaim = isBusinessEmail(userEmail);
+
     return (
       <div className="min-h-screen flex flex-col bg-white">
         {/* Minimal sticky nav */}
@@ -1914,7 +2027,9 @@ function ProviderOnboardingContent() {
                 <div className="text-center">
                   <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
                   <p className="text-gray-500 mt-2">
-                    We&apos;ll email you a link to access your dashboard.
+                    {canInstantClaim
+                      ? "You'll get instant access to your dashboard."
+                      : "We'll email you a link to access your dashboard."}
                   </p>
                 </div>
 
@@ -1951,8 +2066,8 @@ function ProviderOnboardingContent() {
             },
           }}
           primary={{
-            label: "Send Verification Email",
-            onClick: handleSendClaimEmail,
+            label: canInstantClaim ? "Claim this listing" : "Send Verification Email",
+            onClick: canInstantClaim ? handleInstantClaim : handleSendClaimEmail,
             loading: actionLoading === "confirm-claim",
           }}
         />

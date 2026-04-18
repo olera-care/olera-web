@@ -69,6 +69,22 @@ function isBusinessEmail(email: string): boolean {
   return !CONSUMER_EMAIL_DOMAINS.has(domain);
 }
 
+// Extract domain from email
+function getEmailDomain(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const domain = email.split("@")[1]?.toLowerCase();
+  return domain || null;
+}
+
+// Check if user's email domain matches the provider's email domain on file
+// This allows any employee from the same organization to claim the listing
+function domainsMatch(userEmail: string, providerEmail: string | null | undefined): boolean {
+  const userDomain = getEmailDomain(userEmail);
+  const providerDomain = getEmailDomain(providerEmail);
+  if (!userDomain || !providerDomain) return false;
+  return userDomain === providerDomain;
+}
+
 // Search result from olera-providers
 interface ProviderMatch extends Provider {
   _source: "olera-providers";
@@ -1966,8 +1982,14 @@ function ProviderOnboardingContent() {
     // Simple confirmation: always send to the email the user entered in the search form
     const userEmail = formData.email;
 
-    // Check if this is a business email (instant claim) vs personal email (magic link)
-    const canInstantClaim = isBusinessEmail(userEmail);
+    // Get provider's email on file (for domain matching)
+    const providerEmailOnFile = selectedResult.email;
+
+    // Check if this qualifies for instant claim:
+    // 1. User's email must be a business email (not gmail/yahoo/etc.)
+    // 2. User's email domain must match the provider's email domain on file
+    // This allows any employee from the same organization to claim the listing
+    const canInstantClaim = isBusinessEmail(userEmail) && domainsMatch(userEmail, providerEmailOnFile);
 
     return (
       <div className="min-h-screen flex flex-col bg-white">

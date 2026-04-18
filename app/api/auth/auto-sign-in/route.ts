@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import {
   scoreClaimTrust,
@@ -103,18 +102,22 @@ export async function POST(request: Request) {
     }
 
     // Score this sign-in for trust + flag if suspicious.
-    // Runs post-response via `after()` so sign-in latency is unaffected.
-    after(async () => {
-      try {
-        await flagSuspiciousAutoSignIn({
-          db: supabaseAdmin,
-          email: normalizedEmail,
-          claimSession,
-        });
-      } catch (err) {
-        console.error("[auto-sign-in] trust flag failed:", err);
-      }
-    });
+    // Blocking (was `after()`, moved inline because Vercel preview was killing
+    // the post-response work before it completed). ~800ms added latency.
+    try {
+      console.log("[auto-sign-in] trust flag: starting", {
+        email: normalizedEmail,
+        claimSession,
+      });
+      await flagSuspiciousAutoSignIn({
+        db: supabaseAdmin,
+        email: normalizedEmail,
+        claimSession,
+      });
+      console.log("[auto-sign-in] trust flag: complete");
+    } catch (err) {
+      console.error("[auto-sign-in] trust flag failed:", err);
+    }
 
     return NextResponse.json({
       tokenHash: signInLink.properties.hashed_token,
@@ -142,7 +145,10 @@ async function flagSuspiciousAutoSignIn(params: {
 }) {
   const { db, email, claimSession } = params;
 
-  if (!UUID_RE.test(claimSession)) return;
+  if (!UUID_RE.test(claimSession)) {
+    console.log("[auto-sign-in] skip: claimSession not uuid");
+    return;
+  }
 
   const { data: verif } = await db
     .from("claim_verification_codes")
@@ -152,7 +158,11 @@ async function flagSuspiciousAutoSignIn(params: {
     .maybeSingle();
 
   const providerId: string | undefined = verif?.provider_id;
-  if (!providerId) return;
+  if (!providerId) {
+    console.log("[auto-sign-in] skip: no provider_id for claim_session");
+    return;
+  }
+  console.log("[auto-sign-in] resolved provider_id:", providerId);
 
   // Resolve provider context — prefer business_profiles, fall back to olera-providers.
   let providerName: string | null = null;
@@ -214,7 +224,10 @@ async function flagSuspiciousAutoSignIn(params: {
       .select("provider_name, city, state, website, slug")
       .eq("provider_id", providerId)
       .maybeSingle();
-    if (!op) return;
+    if (!op) {
+      console.log("[auto-sign-in] skip: no BP or olera-providers row for", providerId);
+      return;
+    }
     providerName = op.provider_name;
     providerCity = op.city;
     providerState = op.state;
@@ -222,8 +235,12 @@ async function flagSuspiciousAutoSignIn(params: {
     providerSlug = op.slug || providerId;
   }
 
-  if (!providerName) return;
+  if (!providerName) {
+    console.log("[auto-sign-in] skip: providerName empty");
+    return;
+  }
 
+  console.log("[auto-sign-in] scoring:", { email, providerName });
   const result = await scoreClaimTrust({
     email,
     providerName,
@@ -231,8 +248,12 @@ async function flagSuspiciousAutoSignIn(params: {
     providerState,
     providerDomain: extractDomainFromWebsite(providerWebsite),
   });
+  console.log("[auto-sign-in] scored:", result);
 
-  if (result.level !== "low") return;
+  if (result.level !== "low") {
+    console.log("[auto-sign-in] skip: not low trust");
+    return;
+  }
 
   // Dedup: skip if we already flagged this provider+email in the last 24h.
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -246,7 +267,10 @@ async function flagSuspiciousAutoSignIn(params: {
     .limit(1)
     .maybeSingle();
 
-  if (existing) return;
+  if (existing) {
+    console.log("[auto-sign-in] skip: dedup match within 24h");
+    return;
+  }
 
   const { error: insertErr } = await db.from("provider_activity").insert({
     provider_id: providerSlug,
@@ -266,6 +290,7 @@ async function flagSuspiciousAutoSignIn(params: {
     );
     return;
   }
+  console.log("[auto-sign-in] activity row inserted");
 
   try {
     const alert = slackSuspiciousClaim({
@@ -275,8 +300,9 @@ async function flagSuspiciousAutoSignIn(params: {
       trustLevel: result.level,
       trustReason: result.reason,
     });
-    await sendSlackAlert(alert.text, alert.blocks);
-  } catch {
-    // Non-blocking
+    const slackResult = await sendSlackAlert(alert.text, alert.blocks);
+    console.log("[auto-sign-in] slack alert:", slackResult);
+  } catch (slackErr) {
+    console.error("[auto-sign-in] slack alert failed:", slackErr);
   }
 }

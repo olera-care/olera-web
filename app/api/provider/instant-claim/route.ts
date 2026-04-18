@@ -179,7 +179,6 @@ export async function POST(request: Request) {
     // ─── Create or get auth user ───
     // Instead of listUsers(), we try to create and handle the "already exists" error
     let authUserId: string;
-    let isNewUser = false;
 
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
@@ -208,7 +207,6 @@ export async function POST(request: Request) {
       }
     } else {
       authUserId = newUser.user.id;
-      isNewUser = true;
       console.log("[instant-claim] new auth user created:", authUserId);
     }
 

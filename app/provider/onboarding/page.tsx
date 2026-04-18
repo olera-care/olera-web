@@ -96,8 +96,14 @@ function domainMatchesProviderIdentity(
   const userDomain = getEmailDomain(userEmail);
   if (!userDomain) return false;
 
-  // Extract base domain (remove TLD like .com, .org, .net, etc.)
-  const domainBase = userDomain.split(".")[0]?.toLowerCase();
+  // Extract second-level domain (handles subdomains correctly)
+  // mail.sunriseseniorliving.com → sunriseseniorliving
+  // sunriseseniorliving.com → sunriseseniorliving
+  // sunriseseniorliving.co.uk → co (edge case, but rare for business emails)
+  const parts = userDomain.split(".");
+  const domainBase = parts.length >= 2
+    ? parts[parts.length - 2]?.toLowerCase()  // Second-to-last part (before TLD)
+    : parts[0]?.toLowerCase();
   if (!domainBase || domainBase.length < 3) return false; // Too short to match reliably
 
   // Normalize provider name: "Sunrise Senior Living" → "sunriseseniorliving"
@@ -106,16 +112,15 @@ function domainMatchesProviderIdentity(
   // Normalize slug: "sunrise-senior-living" → "sunriseseniorliving"
   const normalizedSlug = providerSlug?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
 
-  // Check for match (domain base should match or be contained in name/slug)
-  // We check both directions to handle cases like:
-  // - domainBase: "sunrise" matching name: "sunriseseniorliving" (partial)
-  // - domainBase: "sunriseseniorliving" matching name: "sunriseseniorliving" (exact)
+  // Check for match:
+  // 1. Exact match: domain equals name or slug
+  // 2. Name/slug contains domain: "sunriseseniorliving" contains "sunrise"
+  // Note: We do NOT check if domain contains name (too loose, causes false positives)
   const exactMatch = domainBase === normalizedName || domainBase === normalizedSlug;
-  const domainContainsName = normalizedName.length >= 5 && domainBase.includes(normalizedName);
   const nameContainsDomain = domainBase.length >= 5 && normalizedName.includes(domainBase);
   const slugContainsDomain = domainBase.length >= 5 && normalizedSlug.includes(domainBase);
 
-  return exactMatch || domainContainsName || nameContainsDomain || slugContainsDomain;
+  return exactMatch || nameContainsDomain || slugContainsDomain;
 }
 
 // Search result from olera-providers

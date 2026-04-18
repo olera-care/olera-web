@@ -10,19 +10,13 @@ import {
   slackSuspiciousClaim,
 } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
-import { scoreClaimTrust, type ClaimTrustResult } from "@/lib/claim-trust";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
 
 export const maxDuration = 30;
-
-function extractDomain(website: string | null | undefined): string | null {
-  if (!website) return null;
-  try {
-    const normalized = website.startsWith("http") ? website : `https://${website}`;
-    return new URL(normalized).hostname.replace(/^www\./, "").toLowerCase();
-  } catch {
-    return null;
-  }
-}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -214,7 +208,7 @@ export async function POST(request: Request) {
         providerName: providerDisplayName,
         providerCity: existingProfile.city,
         providerState: existingProfile.state,
-        providerDomain: extractDomain(existingProfile.website),
+        providerDomain: extractDomainFromWebsite(existingProfile.website),
       });
 
       // Update existing unclaimed profile
@@ -257,7 +251,7 @@ export async function POST(request: Request) {
         providerCity: provider.city,
         providerState: provider.state,
         providerCategory: provider.category || provider.provider_category,
-        providerDomain: extractDomain(provider.website),
+        providerDomain: extractDomainFromWebsite(provider.website),
       });
 
       // Store Google metadata separately (read-only, external data)

@@ -58,6 +58,18 @@ function extractDomain(email: string): string | null {
   return email.slice(at + 1).toLowerCase().trim();
 }
 
+export function extractDomainFromWebsite(
+  website: string | null | undefined
+): string | null {
+  if (!website) return null;
+  try {
+    const normalized = website.startsWith("http") ? website : `https://${website}`;
+    return new URL(normalized).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
 function isInstitutionalDomain(domain: string): boolean {
   return INSTITUTIONAL_TLDS.some((tld) => domain.endsWith(tld));
 }

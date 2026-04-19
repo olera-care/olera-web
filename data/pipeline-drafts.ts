@@ -6,7 +6,7 @@
  * from the directory listing of data/pipeline/*\/drafts.ts. To re-render:
  *   node scripts/benefits-pipeline.js --regen-index
  *
- * Last updated: 2026-04-18T23:18:37.468Z
+ * Last updated: 2026-04-19T10:13:23.936Z
  */
 export type {
   PipelineDraft,
@@ -17,111 +17,111 @@ export type {
 import type { PipelineStateDrafts } from "./pipeline-drafts-types";
 
 // AUTO-GENERATED IMPORTS — BEGIN
-import { drafts as AK } from "./pipeline/AK/drafts";
-import { drafts as AL } from "./pipeline/AL/drafts";
-import { drafts as AR } from "./pipeline/AR/drafts";
-import { drafts as AZ } from "./pipeline/AZ/drafts";
-import { drafts as CA } from "./pipeline/CA/drafts";
-import { drafts as CO } from "./pipeline/CO/drafts";
-import { drafts as CT } from "./pipeline/CT/drafts";
-import { drafts as DC } from "./pipeline/DC/drafts";
-import { drafts as DE } from "./pipeline/DE/drafts";
-import { drafts as FL } from "./pipeline/FL/drafts";
-import { drafts as GA } from "./pipeline/GA/drafts";
-import { drafts as HI } from "./pipeline/HI/drafts";
-import { drafts as IA } from "./pipeline/IA/drafts";
-import { drafts as ID } from "./pipeline/ID/drafts";
-import { drafts as IL } from "./pipeline/IL/drafts";
-import { drafts as IN } from "./pipeline/IN/drafts";
-import { drafts as KS } from "./pipeline/KS/drafts";
-import { drafts as KY } from "./pipeline/KY/drafts";
-import { drafts as LA } from "./pipeline/LA/drafts";
-import { drafts as MA } from "./pipeline/MA/drafts";
-import { drafts as MD } from "./pipeline/MD/drafts";
-import { drafts as ME } from "./pipeline/ME/drafts";
-import { drafts as MI } from "./pipeline/MI/drafts";
-import { drafts as MN } from "./pipeline/MN/drafts";
-import { drafts as MO } from "./pipeline/MO/drafts";
-import { drafts as MS } from "./pipeline/MS/drafts";
-import { drafts as MT } from "./pipeline/MT/drafts";
-import { drafts as NC } from "./pipeline/NC/drafts";
-import { drafts as ND } from "./pipeline/ND/drafts";
-import { drafts as NE } from "./pipeline/NE/drafts";
-import { drafts as NH } from "./pipeline/NH/drafts";
-import { drafts as NJ } from "./pipeline/NJ/drafts";
-import { drafts as NM } from "./pipeline/NM/drafts";
-import { drafts as NV } from "./pipeline/NV/drafts";
-import { drafts as NY } from "./pipeline/NY/drafts";
-import { drafts as OH } from "./pipeline/OH/drafts";
-import { drafts as OK } from "./pipeline/OK/drafts";
-import { drafts as OR } from "./pipeline/OR/drafts";
-import { drafts as PA } from "./pipeline/PA/drafts";
-import { drafts as RI } from "./pipeline/RI/drafts";
-import { drafts as SC } from "./pipeline/SC/drafts";
-import { drafts as SD } from "./pipeline/SD/drafts";
-import { drafts as TN } from "./pipeline/TN/drafts";
-import { drafts as TX } from "./pipeline/TX/drafts";
-import { drafts as UT } from "./pipeline/UT/drafts";
-import { drafts as VA } from "./pipeline/VA/drafts";
-import { drafts as VT } from "./pipeline/VT/drafts";
-import { drafts as WA } from "./pipeline/WA/drafts";
-import { drafts as WI } from "./pipeline/WI/drafts";
-import { drafts as WV } from "./pipeline/WV/drafts";
-import { drafts as WY } from "./pipeline/WY/drafts";
+import { drafts as _AK } from "./pipeline/AK/drafts";
+import { drafts as _AL } from "./pipeline/AL/drafts";
+import { drafts as _AR } from "./pipeline/AR/drafts";
+import { drafts as _AZ } from "./pipeline/AZ/drafts";
+import { drafts as _CA } from "./pipeline/CA/drafts";
+import { drafts as _CO } from "./pipeline/CO/drafts";
+import { drafts as _CT } from "./pipeline/CT/drafts";
+import { drafts as _DC } from "./pipeline/DC/drafts";
+import { drafts as _DE } from "./pipeline/DE/drafts";
+import { drafts as _FL } from "./pipeline/FL/drafts";
+import { drafts as _GA } from "./pipeline/GA/drafts";
+import { drafts as _HI } from "./pipeline/HI/drafts";
+import { drafts as _IA } from "./pipeline/IA/drafts";
+import { drafts as _ID } from "./pipeline/ID/drafts";
+import { drafts as _IL } from "./pipeline/IL/drafts";
+import { drafts as _IN } from "./pipeline/IN/drafts";
+import { drafts as _KS } from "./pipeline/KS/drafts";
+import { drafts as _KY } from "./pipeline/KY/drafts";
+import { drafts as _LA } from "./pipeline/LA/drafts";
+import { drafts as _MA } from "./pipeline/MA/drafts";
+import { drafts as _MD } from "./pipeline/MD/drafts";
+import { drafts as _ME } from "./pipeline/ME/drafts";
+import { drafts as _MI } from "./pipeline/MI/drafts";
+import { drafts as _MN } from "./pipeline/MN/drafts";
+import { drafts as _MO } from "./pipeline/MO/drafts";
+import { drafts as _MS } from "./pipeline/MS/drafts";
+import { drafts as _MT } from "./pipeline/MT/drafts";
+import { drafts as _NC } from "./pipeline/NC/drafts";
+import { drafts as _ND } from "./pipeline/ND/drafts";
+import { drafts as _NE } from "./pipeline/NE/drafts";
+import { drafts as _NH } from "./pipeline/NH/drafts";
+import { drafts as _NJ } from "./pipeline/NJ/drafts";
+import { drafts as _NM } from "./pipeline/NM/drafts";
+import { drafts as _NV } from "./pipeline/NV/drafts";
+import { drafts as _NY } from "./pipeline/NY/drafts";
+import { drafts as _OH } from "./pipeline/OH/drafts";
+import { drafts as _OK } from "./pipeline/OK/drafts";
+import { drafts as _OR } from "./pipeline/OR/drafts";
+import { drafts as _PA } from "./pipeline/PA/drafts";
+import { drafts as _RI } from "./pipeline/RI/drafts";
+import { drafts as _SC } from "./pipeline/SC/drafts";
+import { drafts as _SD } from "./pipeline/SD/drafts";
+import { drafts as _TN } from "./pipeline/TN/drafts";
+import { drafts as _TX } from "./pipeline/TX/drafts";
+import { drafts as _UT } from "./pipeline/UT/drafts";
+import { drafts as _VA } from "./pipeline/VA/drafts";
+import { drafts as _VT } from "./pipeline/VT/drafts";
+import { drafts as _WA } from "./pipeline/WA/drafts";
+import { drafts as _WI } from "./pipeline/WI/drafts";
+import { drafts as _WV } from "./pipeline/WV/drafts";
+import { drafts as _WY } from "./pipeline/WY/drafts";
 // AUTO-GENERATED IMPORTS — END
 
 // AUTO-GENERATED MAP — BEGIN
 export const pipelineDrafts: Record<string, PipelineStateDrafts> = {
-  "AK": AK,
-  "AL": AL,
-  "AR": AR,
-  "AZ": AZ,
-  "CA": CA,
-  "CO": CO,
-  "CT": CT,
-  "DC": DC,
-  "DE": DE,
-  "FL": FL,
-  "GA": GA,
-  "HI": HI,
-  "IA": IA,
-  "ID": ID,
-  "IL": IL,
-  "IN": IN,
-  "KS": KS,
-  "KY": KY,
-  "LA": LA,
-  "MA": MA,
-  "MD": MD,
-  "ME": ME,
-  "MI": MI,
-  "MN": MN,
-  "MO": MO,
-  "MS": MS,
-  "MT": MT,
-  "NC": NC,
-  "ND": ND,
-  "NE": NE,
-  "NH": NH,
-  "NJ": NJ,
-  "NM": NM,
-  "NV": NV,
-  "NY": NY,
-  "OH": OH,
-  "OK": OK,
-  "OR": OR,
-  "PA": PA,
-  "RI": RI,
-  "SC": SC,
-  "SD": SD,
-  "TN": TN,
-  "TX": TX,
-  "UT": UT,
-  "VA": VA,
-  "VT": VT,
-  "WA": WA,
-  "WI": WI,
-  "WV": WV,
-  "WY": WY,
+  "AK": _AK,
+  "AL": _AL,
+  "AR": _AR,
+  "AZ": _AZ,
+  "CA": _CA,
+  "CO": _CO,
+  "CT": _CT,
+  "DC": _DC,
+  "DE": _DE,
+  "FL": _FL,
+  "GA": _GA,
+  "HI": _HI,
+  "IA": _IA,
+  "ID": _ID,
+  "IL": _IL,
+  "IN": _IN,
+  "KS": _KS,
+  "KY": _KY,
+  "LA": _LA,
+  "MA": _MA,
+  "MD": _MD,
+  "ME": _ME,
+  "MI": _MI,
+  "MN": _MN,
+  "MO": _MO,
+  "MS": _MS,
+  "MT": _MT,
+  "NC": _NC,
+  "ND": _ND,
+  "NE": _NE,
+  "NH": _NH,
+  "NJ": _NJ,
+  "NM": _NM,
+  "NV": _NV,
+  "NY": _NY,
+  "OH": _OH,
+  "OK": _OK,
+  "OR": _OR,
+  "PA": _PA,
+  "RI": _RI,
+  "SC": _SC,
+  "SD": _SD,
+  "TN": _TN,
+  "TX": _TX,
+  "UT": _UT,
+  "VA": _VA,
+  "VT": _VT,
+  "WA": _WA,
+  "WI": _WI,
+  "WV": _WV,
+  "WY": _WY,
 };
 // AUTO-GENERATED MAP — END

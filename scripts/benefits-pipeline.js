@@ -2430,10 +2430,14 @@ function cleanStateEntry(dirName, pipelineRoot) {
 
 /**
  * Convert a directory name into a safe JS identifier for import aliases.
- * "AK" → "AK", "miami-dade-county-fl" → "miami_dade_county_fl".
+ * Always prefixed with `_` so leading digits ("90210-zip") and reserved
+ * words ("class", "import") can't produce a syntactically invalid binding.
+ *   "AK" → "_AK"
+ *   "miami-dade-county-fl" → "_miami_dade_county_fl"
+ *   "90210-zip" → "_90210_zip"
  */
 function identSafe(dirName) {
-  return dirName.replace(/[^A-Za-z0-9_]/g, "_");
+  return "_" + dirName.replace(/[^A-Za-z0-9_]/g, "_");
 }
 
 /**

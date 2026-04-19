@@ -6,12 +6,32 @@ import {
   cityToSlug,
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
+import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 import { allEpisodes } from "@/lib/aging-in-america-data";
 
 export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://olera.care";
+
+// State slug <-> 2-letter postal abbreviation. Mirrors STATE_ABBREVS in
+// lib/program-data.ts (not exported there). Static; changes once a decade.
+const SLUG_TO_ABBREV: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
+  colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA",
+  hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA",
+  kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO",
+  montana: "MT", nebraska: "NE", nevada: "NV", "new-hampshire": "NH", "new-jersey": "NJ",
+  "new-mexico": "NM", "new-york": "NY", "north-carolina": "NC", "north-dakota": "ND",
+  ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode-island": "RI",
+  "south-carolina": "SC", "south-dakota": "SD", tennessee: "TN", texas: "TX",
+  utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west-virginia": "WV",
+  wisconsin: "WI", wyoming: "WY", "district-of-columbia": "DC",
+};
+const ABBREV_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(SLUG_TO_ABBREV).map(([slug, abbrev]) => [abbrev, slug])
+);
 
 function getSupabaseClient() {
   if (
@@ -122,6 +142,28 @@ export async function GET(request: Request) {
           if (program.forms?.length > 0) {
             entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
           }
+        }
+      }
+
+      // Pipeline-only states (e.g. DC today): states that exist in pipelineDrafts but NOT in
+      // waiver-library. Emit state URL + program URLs. No forms URL — the forms page reads
+      // waiver-library data these states lack.
+      // Skipping pipeline-only *programs* inside waiver-library states (a separate ticket):
+      // Texas pipeline drafts use v3 IDs (e.g. "star-plus-medicaid-hcbs") while waiver-library
+      // uses legacy IDs ("star-plus-home-and-community-based-services"). A naive dedup wouldn't
+      // catch these collisions and would emit duplicate redirect-only URLs.
+      const wlSlugs = new Set(allStates.map((s) => s.id));
+      for (const [abbrev, drafts] of Object.entries(pipelineDrafts)) {
+        if (drafts?.isRegion === true) continue;
+        const slug = ABBREV_TO_SLUG[abbrev];
+        if (!slug) {
+          console.warn(`[api/sitemap] pipeline abbrev "${abbrev}" has no slug mapping; skipping`);
+          continue;
+        }
+        if (wlSlugs.has(slug)) continue;
+        entries.push(xmlEntry(`${SITE_URL}${buildStateUrl(slug)}`, 0.5, "monthly"));
+        for (const draft of drafts.programs ?? []) {
+          entries.push(xmlEntry(`${SITE_URL}${buildProgramUrl(slug, draft.id)}`, 0.4, "monthly"));
         }
       }
 

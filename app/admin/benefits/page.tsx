@@ -1167,6 +1167,14 @@ export default function AdminBenefitsPage() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stateParam = params.get("state");
+    if (stateParam && allStates.some((s) => s.abbreviation === stateParam.toUpperCase())) {
+      setSelectedState(stateParam.toUpperCase());
+    }
+  }, []);
+
   const globalStats = useMemo(() => {
     const allPrograms = allStates.flatMap((s) => s.programs);
     const totalPrograms = allPrograms.length;

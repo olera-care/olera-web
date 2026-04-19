@@ -6,12 +6,32 @@ import {
   cityToSlug,
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
+import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 import { allEpisodes } from "@/lib/aging-in-america-data";
 
 export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://olera.care";
+
+// State slug <-> 2-letter postal abbreviation. Mirrors STATE_ABBREVS in
+// lib/program-data.ts (not exported there). Static; changes once a decade.
+const SLUG_TO_ABBREV: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
+  colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA",
+  hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA",
+  kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO",
+  montana: "MT", nebraska: "NE", nevada: "NV", "new-hampshire": "NH", "new-jersey": "NJ",
+  "new-mexico": "NM", "new-york": "NY", "north-carolina": "NC", "north-dakota": "ND",
+  ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode-island": "RI",
+  "south-carolina": "SC", "south-dakota": "SD", tennessee: "TN", texas: "TX",
+  utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west-virginia": "WV",
+  wisconsin: "WI", wyoming: "WY", "district-of-columbia": "DC",
+};
+const ABBREV_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(SLUG_TO_ABBREV).map(([slug, abbrev]) => [abbrev, slug])
+);
 
 function getSupabaseClient() {
   if (
@@ -108,20 +128,60 @@ export async function GET(request: Request) {
         entries.push(xmlEntry(`${SITE_URL}/aging-in-america/${ep.slug}`, 0.6, "monthly"));
       }
 
-      // Waiver library
-      for (const state of allStates) {
-        const stateUrl = buildStateUrl(state.id);
-        entries.push(xmlEntry(`${SITE_URL}${stateUrl}`, 0.5, "monthly"));
-        if (state.id !== "texas") {
-          entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
+      // Waiver library + pipeline-only states/programs
+      const emitted = new Set<string>();
+      const push = (path: string, priority: number, freq: string) => {
+        const url = `${SITE_URL}${path}`;
+        if (emitted.has(url)) return;
+        emitted.add(url);
+        entries.push(xmlEntry(url, priority, freq));
+      };
+
+      // Identify pipeline-only state slugs (in pipelineDrafts, not in waiver-library, not regions)
+      const wlSlugs = new Set(allStates.map((s) => s.id));
+      const pipelineOnlySlugs: string[] = [];
+      for (const [abbrev, drafts] of Object.entries(pipelineDrafts)) {
+        if (drafts?.isRegion === true) continue;
+        const slug = ABBREV_TO_SLUG[abbrev];
+        if (!slug) {
+          console.warn(`[api/sitemap] pipeline abbrev "${abbrev}" has no slug mapping; skipping`);
+          continue;
         }
+        if (!wlSlugs.has(slug)) pipelineOnlySlugs.push(slug);
+      }
+
+      // Waiver-library states: state URL + forms URL + waiver programs + pipeline-orphan programs
+      for (const state of allStates) {
+        push(buildStateUrl(state.id), 0.5, "monthly");
+        if (state.id !== "texas") {
+          push(`/senior-benefits/forms/${state.id}`, 0.4, "monthly");
+        }
+        const wlProgramIds = new Set<string>();
         for (const program of state.programs ?? []) {
+          wlProgramIds.add(program.id);
           const programUrl = buildProgramUrl(state.id, program.id);
-          entries.push(xmlEntry(`${SITE_URL}${programUrl}`, 0.5, "monthly"));
-          entries.push(xmlEntry(`${SITE_URL}${programUrl}/checklist`, 0.4, "monthly"));
+          push(programUrl, 0.5, "monthly");
+          push(`${programUrl}/checklist`, 0.4, "monthly");
           if (program.forms?.length > 0) {
-            entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
+            push(`${programUrl}/forms`, 0.4, "monthly");
           }
+        }
+        // Pipeline-only programs inside a waiver-library state (e.g. TX v3 drafts not in waiver-library)
+        const stateAbbrev = SLUG_TO_ABBREV[state.id];
+        const pipelinePrograms = stateAbbrev ? pipelineDrafts[stateAbbrev]?.programs ?? [] : [];
+        for (const draft of pipelinePrograms) {
+          if (wlProgramIds.has(draft.id)) continue;
+          push(`/senior-benefits/${state.id}/${draft.id}`, 0.4, "monthly");
+        }
+      }
+
+      // Pipeline-only states (e.g. DC): state URL + program URLs. No forms URL — forms page reads waiver-library data.
+      for (const slug of pipelineOnlySlugs) {
+        push(buildStateUrl(slug), 0.5, "monthly");
+        const abbrev = SLUG_TO_ABBREV[slug];
+        const programs = abbrev ? pipelineDrafts[abbrev]?.programs ?? [] : [];
+        for (const draft of programs) {
+          push(buildProgramUrl(slug, draft.id), 0.4, "monthly");
         }
       }
 

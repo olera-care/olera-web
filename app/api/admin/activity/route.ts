@@ -118,6 +118,11 @@ async function handleFeedView(db: any, opts: {
       query = query.or(
         "email_type.eq.question_received,event_type.eq.question_received,event_type.eq.question_responded"
       );
+    } else if (emailType === "suspicious_claim") {
+      // Trust is now carried on one_click_access events via metadata.trust_level.
+      // Legacy standalone suspicious_claim rows are also surfaced.
+      query = query
+        .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
     } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view", "email_click"].includes(emailType)) {
       // These are event_type values, not email_type
       query = query.eq("event_type", emailType);
@@ -234,6 +239,9 @@ async function handleProvidersView(db: any, opts: {
       query = query.or(
         "email_type.eq.question_received,event_type.eq.question_received,event_type.eq.question_responded"
       );
+    } else if (emailType === "suspicious_claim") {
+      query = query
+        .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
     } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view"].includes(emailType)) {
       query = query.eq("event_type", emailType);
     } else {
@@ -286,6 +294,17 @@ async function handleProvidersView(db: any, opts: {
     if (typeKey) {
       providerStats[pid].email_types[typeKey] =
         (providerStats[pid].email_types[typeKey] || 0) + 1;
+    }
+
+    // Trust signal aggregation: low-trust one_click_access events also count as
+    // "suspicious_claim" for the People-view badge, since the trust check now
+    // lives on the one_click_access event instead of a standalone row.
+    if (
+      event.event_type === "one_click_access" &&
+      (event.metadata as Record<string, string> | null)?.trust_level === "low"
+    ) {
+      providerStats[pid].email_types["suspicious_claim"] =
+        (providerStats[pid].email_types["suspicious_claim"] || 0) + 1;
     }
 
     if (new Date(event.created_at) > sevenDaysAgo) {

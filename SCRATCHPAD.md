@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+- **Flag Suspicious One-Click Sign-Ins** — PLAN READY, NOT STARTED (2026-04-18)
+  - Notion: [Flag suspicious one-click sign-ins for manual review](https://www.notion.so/Flag-suspicious-one-click-sign-ins-for-manual-review-3445903a0ffe81c6b6e6d3c91ec0ccae) (P1 🔥, Backend, ~1 day)
+  - Plan: `plans/suspicious-claim-flagging-plan.md`
+  - Score email↔provider at claim/finalize into `high`/`medium`/`low`, persist on `business_profiles.claim_trust_level`, surface `low` via Activity Center filter + Slack alert. Don't block provider.
+  - Hook point: `app/api/claim/finalize/route.ts` (single binding point)
+  - New files: migration + `lib/claim-trust.ts` (scorer) + `slackSuspiciousClaim` helper
+  - Admin UI: reuse Activity Center, add `suspicious_claim` event_type + filter option
+  - **Next**: TJ approval on plan → branch from `staging` → Phase 1 migrations
+
+- **Admin Directory Union** (branch: `admin-directory-union`) — PR #583 OPEN, READY FOR QA
+  - PR: https://github.com/olera-care/olera-web/pull/583 → staging
+  - Notion: [Fix admin directory search hiding orphan business_profiles](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe)
+  - Problem: admin directory queried `olera-providers` only — missed 172 orphan BPs like Aggie Assisted Living (live, claimed, active but invisible to admin)
+  - Fix scope (Option A, band-aid): search-triggered union with orphan BPs (`source_provider_id IS NULL, type IN (organization, caregiver)`). No changes to browse-without-search path, detail page, PATCH, or POST — defer to structural unification
+  - Added BP↔OP category mapping (snake_case `assisted_living` ↔ title-case `Assisted Living`) — pre-test caught that without this, Aggie would be dropped when admin filters by category
+  - UI: "User-created" badge on BP rows (renamed from "BP-only" — jargon), click-through opens public page in new tab, Delete action hidden on BP rows
+  - Also bundled `/slack-notes` slash command in the same PR (untracked meta)
+  - **Next**: TJ UI test on Vercel preview (search "Aggie Assisted Living" + Category=Assisted Living), then merge to staging
+
+- **Organization Search Union Rewrite** — MERGED ✅ (PR #582, 2026-04-17)
+  - Fixed MedJobs "Your organization" search for franchise locations (Home Instead Houston)
+  - True union across olera-providers + business_profiles via canonical identity dedup
+  - Actual root cause: `hero_image_url` column doesn't exist in olera-providers — all OP queries were erroring silently. Two prior fix attempts never touched the column
+  - Helper module: `lib/organization-search.ts`
+  - Plan: `plans/organization-search-union-rewrite-plan.md`
+
 - **Aging in America — Framer → Olera Web Migration** (branch: `thirsty-hugle`) — IN PROGRESS
   - Migrating aginginamerica.co (Framer) into olera.care/aging-in-america
   - Dark cinematic landing page with season accordion + episode detail pages
@@ -42,6 +68,19 @@
   - Email-only form, post-submit enrichment with localized pricing, care report email
   - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
   - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
+
+- **City Expansion Batch — 2026-04-17** — DONE ✅
+  - 185 cities processed end-to-end (small suburbs, pop 16K-19K)
+  - Discovery: 31,745 raw providers (1h46m, quick mode, 1 transient connection error auto-recovered)
+  - Pipeline: cleaned → uploaded → enriched, total runtime 2h52m
+  - **2,312 active providers across 179 cities** (main batch)
+  - Cost: discovery $187 + pipeline $231 = **$418 total** (vs $4,625 original estimate — ~$2.26/city)
+  - Enrichment: 1,016 trust-signals confirmed, 1,465 deleted as false positives (unified entity+trust check working well), 2,937 review snippets, 2,345 images
+  - Spot-check came back clean on all 6 dimensions (0 out-of-state coords, 0 null place_ids, 0 invalid categories, 0 LLC/Inc name suffixes, 0 slug collisions)
+  - **Diagnosed stale-checkout bug, not a code regression**: 6 pre-existing cities initially came back "empty" because the script I was running was from `~/Desktop/olera-web` on `fix/dedupe-tier3` (494 commits behind staging). That stale copy was missing the `.eq('deleted', false)` filter on phaseClean dedup and phaseLoad "already in DB" count. Staging already has the fix — running from a worktree off staging would've avoided the issue. Applied the same fix manually to the stale script, re-ran the 6 cities → salvaged 4 real providers in Round Lake IL (other 5 correctly re-classified as false positives). Memory added: always run pipeline-batch.js from a fresh worktree.
+  - 185 Notion pages created + flipped to Complete
+  - **Next**: monitor a few city pages on olera.care after ISR warm (1 hr)
+  - Expansion board: previous 476 Complete + 185 = **~661 Complete cities**
 
 - **City Expansion Batch — 2026-04-04** — DONE ✅
   - 193 new cities processed end-to-end via batch pipeline
@@ -456,6 +495,52 @@
 ---
 
 ## Session Log
+
+### 2026-04-17 (Session 81) — Two-table problem band-aids: org search + admin directory
+
+**Branches:** `clever-mirzakhani` (merged as PR #582), `admin-directory-union` (PR #583 open)
+
+**The big idea:** Follow up on the two-table diagnosis (TJ's 2026-04-16 Slack). Ship the first two band-aids so providers and admins can find each other while the structural unification P1 ramps up.
+
+**What shipped:**
+
+1. **PR #582 — Organization search union** (merged to staging, promoted path)
+   - Rewrote `/api/organization-search` as a true union across `olera-providers` + `business_profiles`, dedup by `source_provider_id`, claim state precedence, `Promise.allSettled` partial-failure tolerance
+   - Fixes MedJobs "Your organization" search for franchise locations (Home Instead Houston) + orphan BPs (Aggie Assisted Living)
+   - New helper: `lib/organization-search.ts`
+   - Real root cause (caught by pre-test review): `hero_image_url` column doesn't exist in `olera-providers` — every OP query was erroring silently. Effy's two prior fixes (aba9f23a, 28aefbbd) tweaked merge logic without touching the broken select
+
+2. **PR #583 — Admin directory union** (open, ready for QA)
+   - Surfaces orphan BPs in admin directory search so admins can find user-created providers (172 orphan BPs total, more than Esther's ~110 estimate)
+   - Scope locked to Option A: search-triggered union only. Browse-without-search stays OP-only. Detail/PATCH/POST unchanged (defer to unification)
+   - BP↔OP category mapping for filter + display (pre-test caught that `assisted_living` vs "Assisted Living" vocabulary mismatch would have silently broken the fix under category filter)
+   - UI: "User-created" badge (renamed from "BP-only" — internal jargon), click-through to `/provider/{slug}` new tab, Delete hidden on BP rows
+   - Bundled `/slack-notes` slash command for team updates in TJ's voice
+
+**Process improvements:**
+- `/slack-notes` slash command created and refined. First draft was too verbose (bulleted outcomes, root-cause paragraph, sign-off emoji). TJ's actual shipped Slack note was 3 sentences: name the problem, what shipped, ask for bug reports. Slash command rewritten with ✅/❌ examples from the actual PR #582 announcements.
+- Pre-test reviews caught 2 critical bugs across both PRs — both would have silently hidden the fix: hero_image_url in #582, snake_case categories in #583. Lesson: when a query returns empty, check for silently-swallowed column errors OR vocabulary mismatches before tweaking merge logic.
+- Memory `feedback_select_star_admin.md` flagged the `hero_image_url` issue months ago — reading memory at the start of #582 would have caught it before the first implementation attempt.
+
+**Design decisions (both PRs):**
+
+| Date | Decision | Rationale |
+| 2026-04-17 | Don't "mirror admin pattern" for org search (ticket's Option A) | Admin has the OPPOSITE bug (misses BP-only orphans). Mirroring would have regressed Aggie visibility. True union is the real fix. |
+| 2026-04-17 | Always set `source` field on merged results, even when collapsed | Consumer code in `/provider/onboarding/page.tsx` branches 10+ times on `source`. Preserve the enum even when BP is layered onto OP (set to "olera-providers" when OP is the display source). |
+| 2026-04-17 | Admin directory union: search-triggered only, not browse-mode | Admins always use search for specific providers. Browse mode without search is rare. Search-triggered keeps pagination simple and preserves existing fast path. |
+| 2026-04-17 | Admin directory: read-only for BP rows (no Delete/edit actions) | Full CRUD parity for BPs requires changes to PATCH endpoint, detail page UI, and navigation. Defer to structural unification P1. "User-created" badge + public-page click-through solves the "can't find" problem. |
+| 2026-04-17 | Badge label "User-created" not "BP-only" | "BP-only" is internal DB jargon. "User-created" tells the admin what's actually true — this provider signed up themselves instead of claiming a scraped listing. |
+| 2026-04-17 | Slack ship notes: problem-focused, not task- or detail-technical | TJ's voice frames ships by user problem, not code paths. 2-4 sentences, no bullets, no root-cause paragraphs. Captured in `/slack-notes` slash command. |
+
+**Companion Notion work:**
+- Filed [admin directory fix ticket](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe) when exploring #582, then shipped it as #583 same day
+- PR #582 merge report logged to Product Development > PR Merge Reports
+
+**What's next:**
+1. TJ UI-tests PR #583 on Vercel preview (Aggie + Category=Assisted Living, Home Instead Houston regression)
+2. Merge #583 to staging → promote staging → main with #582 + #583 together
+3. Backfill ~110-172 orphan BPs with `source_provider_id` (separate P2 task per Esther's analysis)
+4. Structural unification of `olera-providers` + `business_profiles` (separate P1 — multi-week strangler-fig migration)
 
 ### 2026-04-16 (Session 80) — Provider onboard front door: question → profile preview → reviews
 

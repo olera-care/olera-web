@@ -31,6 +31,7 @@ import {
   BackgroundCard,
   ResumeCard,
 } from "@/components/caregiver-portal/cards";
+import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -1113,6 +1114,10 @@ function StudentPortalContent({
   refresh: () => void;
 }) {
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [pendingCelebration, setPendingCelebration] = useState(false);
+  // Track if profile was live when verification modal opened (to detect first-time going live)
+  const wasLiveOnModalOpen = useRef(profile.is_active);
 
   const meta = profile.metadata || {} as StudentMetadata;
   const hasPhoto = !!profile.image_url;
@@ -1172,6 +1177,42 @@ function StudentPortalContent({
     }
   }, [refresh, guided, editingSection]);
 
+  // Special handler for verification modal that checks if profile just went live
+  const handleVerificationSaved = useCallback(() => {
+    const wasLive = wasLiveOnModalOpen.current;
+    refresh();
+    // Mark pending celebration if profile wasn't live when modal opened
+    // The effect below will show celebration when profile.is_active becomes true
+    if (!wasLive) {
+      setPendingCelebration(true);
+    }
+    if (guided.isGuidedActive && editingSection) {
+      const next = guided.getNextSection(editingSection);
+      if (next) {
+        setEditingSection(next);
+      } else {
+        setEditingSection(null);
+        guided.stopGuided();
+      }
+    } else {
+      setEditingSection(null);
+    }
+  }, [refresh, guided, editingSection]);
+
+  // Effect to show celebration when profile becomes active after verification save
+  useEffect(() => {
+    if (pendingCelebration && profile.is_active) {
+      setShowCelebration(true);
+      setPendingCelebration(false);
+    }
+  }, [pendingCelebration, profile.is_active]);
+
+  // Update ref when verification modal opens
+  const handleOpenVerificationModal = useCallback(() => {
+    wasLiveOnModalOpen.current = profile.is_active;
+    setEditingSection("verification");
+  }, [profile.is_active]);
+
   const handleGuidedBack = useCallback(() => {
     if (editingSection) {
       const prev = guided.getPrevSection(editingSection);
@@ -1192,6 +1233,12 @@ function StudentPortalContent({
     onGuidedBack: editingSection && guided.getPrevSection(editingSection)
       ? handleGuidedBack
       : undefined,
+  };
+
+  // Verification modal uses special save handler to detect going live
+  const verificationModalProps = {
+    ...modalProps,
+    onSaved: handleVerificationSaved,
   };
   const trackLabel = getTrackLabel(meta);
   const currentSemester = getCurrentSemester();
@@ -1304,174 +1351,6 @@ function StudentPortalContent({
               </div>
             </div>
 
-            {/* Verification Card — Compact, Premium Design */}
-              <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
-                    {verificationDone ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        Complete
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">
-                        {verificationItems.filter((v) => v.done).length} of {verificationItems.length}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditingSection("verification")}
-                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
-                    aria-label="Edit verification"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Empty State - No verifications yet */}
-                {verificationItems.every((v) => !v.done) ? (
-                  <button
-                    type="button"
-                    onClick={() => setEditingSection("verification")}
-                    className="w-full group"
-                  >
-                    <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all">
-                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium text-gray-900">Get verified to go live</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Add intro video, license, and insurance</p>
-                      </div>
-                      <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Video row - compact thumbnail when available */}
-                    {videoAvailable && (
-                      <div className="flex items-center gap-3">
-                        {/* Compact video thumbnail */}
-                        <a
-                          href={meta.video_intro_url || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="relative w-20 h-14 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 group"
-                        >
-                          {youtubeId ? (
-                            <img
-                              src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
-                              alt="Video thumbnail"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary-600 to-primary-800" />
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                            <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center">
-                              <svg className="w-3 h-3 text-gray-900 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </a>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">Intro video</p>
-                          <p className="text-xs text-primary-600">Uploaded</p>
-                        </div>
-                        <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-
-                    {/* Document verification items - compact horizontal rows */}
-                    {verificationItems.filter(item => item.key !== "video").map((item) => {
-                      const isDone = item.done;
-                      const expiration = item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration;
-
-                      return (
-                        <button
-                          key={item.key}
-                          type="button"
-                          onClick={() => setEditingSection("verification")}
-                          className="w-full flex items-center gap-3 text-left group"
-                        >
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                            isDone ? "bg-primary-50" : "bg-gray-100 group-hover:bg-gray-200"
-                          }`}>
-                            {item.key === "drivers_license" ? (
-                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
-                              </svg>
-                            ) : (
-                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                              </svg>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                            <p className={`text-xs ${isDone ? "text-primary-600" : "text-gray-400"}`}>
-                              {isDone ? (expiration ? `Expires ${expiration}` : "Uploaded") : "Not uploaded"}
-                            </p>
-                          </div>
-                          {isDone ? (
-                            <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
-                          )}
-                        </button>
-                      );
-                    })}
-
-                    {/* Show video row if not available (need to add it) */}
-                    {!videoAvailable && (
-                      <button
-                        type="button"
-                        onClick={() => setEditingSection("verification")}
-                        className="w-full flex items-center gap-3 text-left group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">Intro video</p>
-                          <p className="text-xs text-gray-400">Not uploaded</p>
-                        </div>
-                        <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
-                      </button>
-                    )}
-
-                    {/* CTA if not complete */}
-                    {!verificationDone && (
-                      <button
-                        type="button"
-                        onClick={() => setEditingSection("verification")}
-                        className="w-full mt-2 py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
-                      >
-                        Continue verification
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
             {/* Individual Profile Section Cards */}
             <ScheduleCard meta={meta} onEdit={() => setEditingSection("schedule")} />
             <AvailabilityCard meta={meta} onEdit={() => setEditingSection("availability")} />
@@ -1479,10 +1358,198 @@ function StudentPortalContent({
             <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
             <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
             <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
+
+            {/* Verification Card — Final step to go live */}
+            <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
+                  {verificationDone ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Complete
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">
+                      {verificationItems.filter((v) => v.done).length} of {verificationItems.length}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenVerificationModal}
+                  className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+                  aria-label="Edit verification"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Empty State - No verifications yet */}
+              {verificationItems.every((v) => !v.done) ? (
+                <button
+                  type="button"
+                  onClick={handleOpenVerificationModal}
+                  className="w-full group"
+                >
+                  <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-medium text-gray-900">Get verified to go live</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Add intro video, license, and insurance</p>
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  {/* Video row - compact thumbnail when available */}
+                  {videoAvailable && (
+                    <div className="flex items-center gap-3">
+                      {/* Compact video thumbnail */}
+                      <a
+                        href={meta.video_intro_url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative w-20 h-14 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 group"
+                      >
+                        {youtubeId ? (
+                          <img
+                            src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
+                            alt="Video thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary-600 to-primary-800" />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                          <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-gray-900 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </a>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Intro video</p>
+                        <p className="text-xs text-primary-600">Uploaded</p>
+                      </div>
+                      <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Document verification items - compact horizontal rows */}
+                  {verificationItems.filter(item => item.key !== "video").map((item) => {
+                    const isDone = item.done;
+                    const expiration = item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration;
+
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={handleOpenVerificationModal}
+                        className="w-full flex items-center gap-3 text-left group"
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isDone ? "bg-primary-50" : "bg-gray-100 group-hover:bg-gray-200"
+                        }`}>
+                          {item.key === "drivers_license" ? (
+                            <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                            </svg>
+                          ) : (
+                            <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                          <p className={`text-xs ${isDone ? "text-primary-600" : "text-gray-400"}`}>
+                            {isDone ? (expiration ? `Expires ${expiration}` : "Uploaded") : "Not uploaded"}
+                          </p>
+                        </div>
+                        {isDone ? (
+                          <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Show video row if not available (need to add it) */}
+                  {!videoAvailable && (
+                    <button
+                      type="button"
+                      onClick={handleOpenVerificationModal}
+                      className="w-full flex items-center gap-3 text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Intro video</p>
+                        <p className="text-xs text-gray-400">Not uploaded</p>
+                      </div>
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
+                    </button>
+                  )}
+
+                  {/* CTA if not complete */}
+                  {!verificationDone && (
+                    <button
+                      type="button"
+                      onClick={handleOpenVerificationModal}
+                      className="w-full mt-2 py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
+                    >
+                      Continue verification
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── Sidebar (1/3) ── */}
           <div className="lg:col-span-1 space-y-6">
+            {/* Not Live CTA - only shows when profile is inactive */}
+            {!profile.is_active && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="text-sm font-medium text-gray-900">Not live yet</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Complete verification to make your profile visible to care providers.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenVerificationModal}
+                  className="w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors"
+                >
+                  Go Live
+                </button>
+              </div>
+            )}
+
             {/* Completeness */}
             <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm p-6">
               <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Profile completeness</h3>
@@ -1553,13 +1620,20 @@ function StudentPortalContent({
 
       {/* Edit Modals */}
       {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
-      {editingSection === "verification" && <EditVerificationModal {...modalProps} />}
+      {editingSection === "verification" && <EditVerificationModal {...verificationModalProps} />}
       {editingSection === "schedule" && <EditScheduleModal {...modalProps} />}
       {editingSection === "availability" && <EditAvailabilityModal {...modalProps} />}
       {editingSection === "why" && <EditWhyModal {...modalProps} />}
       {editingSection === "scenarios" && <EditScenarioModal {...modalProps} />}
       {editingSection === "background" && <EditBackgroundModal {...modalProps} />}
       {editingSection === "resume" && <EditResumeModal {...modalProps} />}
+
+      {/* Celebration Modal - shown when profile goes live */}
+      <GoLiveCelebrationModal
+        isOpen={showCelebration && profile.is_active}
+        onClose={() => setShowCelebration(false)}
+        profileSlug={profile.slug}
+      />
     </main>
   );
 }

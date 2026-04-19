@@ -109,10 +109,25 @@ function providerEmailTypeLabel(type: string | null): string {
     contact_revealed: "Contact Copied",
     one_click_access: "Auto Sign-in",
     reviews_cta_clicked: "Reviews CTA",
+    suspicious_claim: "Suspicious Claim",
     lead_opened: "Lead Opened",
     page_view: "Page View",
   };
   return map[type] || type;
+}
+
+function trustBadgeLabel(level: string | null | undefined): string {
+  if (level === "high") return "Trust: High";
+  if (level === "medium") return "Trust: Medium";
+  if (level === "low") return "🚩 Suspicious";
+  return "";
+}
+
+function trustBadgeColor(level: string | null | undefined): string {
+  if (level === "high") return "bg-emerald-50 text-emerald-700";
+  if (level === "medium") return "bg-amber-50 text-amber-700";
+  if (level === "low") return "bg-red-50 text-red-700";
+  return "bg-gray-100 text-gray-500";
 }
 
 function providerEmailTypeBadgeColor(type: string | null): string {
@@ -126,6 +141,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     email_click: "bg-gray-100 text-gray-600",
     contact_revealed: "bg-green-50 text-green-700",
     one_click_access: "bg-teal-50 text-teal-700",
+    suspicious_claim: "bg-red-50 text-red-700",
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
   };
@@ -350,7 +366,25 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                   {event.provider.city && ` \u00b7 ${event.provider.city}, ${event.provider.state}`}
                 </span>
               )}
-              {String((event.metadata as Record<string, string>)?.question_preview || "") !== "" && (
+              {event.event_type === "suspicious_claim" ? (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="font-medium text-red-700">
+                    {String((event.metadata as Record<string, string>)?.claimed_by_email || "unknown")}
+                  </span>
+                  {(event.metadata as Record<string, string>)?.trust_reason && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).trust_reason)}</span>
+                  )}
+                </p>
+              ) : event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level ? (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="text-gray-600">
+                    {String((event.metadata as Record<string, string>).email || "unknown")}
+                  </span>
+                  {(event.metadata as Record<string, string>).trust_reason && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).trust_reason)}</span>
+                  )}
+                </p>
+              ) : String((event.metadata as Record<string, string>)?.question_preview || "") !== "" && (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
                   {event.event_type === "question_responded" ? (
                     <>&ldquo;{String((event.metadata as Record<string, string>).answer_preview || (event.metadata as Record<string, string>).question_preview)}&rdquo;</>
@@ -368,6 +402,11 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${providerEmailTypeBadgeColor(event.email_type || event.event_type)}`}>
               {providerEmailTypeLabel(event.email_type || event.event_type)}
             </span>
+            {event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level && (
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${trustBadgeColor((event.metadata as Record<string, string>).trust_level)}`}>
+                {trustBadgeLabel((event.metadata as Record<string, string>).trust_level)}
+              </span>
+            )}
             <TrashButton onClick={() => onDeleteOne(event.id, event.provider?.name || event.provider_id)} />
             <span className="text-xs text-gray-400 shrink-0 w-20 text-right">{relativeTime(event.created_at)}</span>
           </div>
@@ -636,6 +675,7 @@ const PAGE_SIZE = 40;
 
 const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "", label: "All types" },
+  { value: "suspicious_claim", label: "Suspicious claims" },
   { value: "email_click", label: "Email clicks" },
   { value: "connection_request", label: "Leads" },
   { value: "question_received", label: "Questions" },

@@ -36,12 +36,6 @@ export async function POST(req: NextRequest) {
     if (!slug?.trim()) {
       return NextResponse.json({ error: "Profile slug is required" }, { status: 400 });
     }
-    if (!videoUrl?.trim()) {
-      return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
-    }
-    if (!isValidVideoUrl(videoUrl.trim())) {
-      return NextResponse.json({ error: "Please provide a valid YouTube or Loom URL" }, { status: 400 });
-    }
 
     // Find profile by slug
     const { data: profile, error: fetchError } = await getSupabaseAdmin()
@@ -55,9 +49,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
+    const existingMetadata = profile.metadata as Record<string, unknown>;
+
+    // Handle video deletion (empty/null videoUrl)
+    if (!videoUrl?.trim()) {
+      const updatedMetadata = {
+        ...existingMetadata,
+        video_intro_url: null,
+      };
+
+      const { error: updateError } = await getSupabaseAdmin()
+        .from("business_profiles")
+        .update({
+          metadata: updatedMetadata,
+          is_active: false, // Profile goes offline when video is removed
+        })
+        .eq("id", profile.id);
+
+      if (updateError) {
+        console.error("[medjobs/submit-video] delete error:", updateError);
+        return NextResponse.json({ error: "Failed to remove video" }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, deleted: true });
+    }
+
+    // Handle video submission (non-empty videoUrl)
+    if (!isValidVideoUrl(videoUrl.trim())) {
+      return NextResponse.json({ error: "Please provide a valid YouTube or Loom URL" }, { status: 400 });
+    }
+
     // Update metadata with video URL and activate profile
     const updatedMetadata = {
-      ...(profile.metadata as Record<string, unknown>),
+      ...existingMetadata,
       video_intro_url: videoUrl.trim(),
     };
 

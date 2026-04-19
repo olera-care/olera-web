@@ -11,12 +11,12 @@ export function stateCodeToSlug(code: string): string | null {
   return codeToSlug[code.toUpperCase()] ?? null;
 }
 
-/** Build the waiver library URL for a specific program. */
+/** Build the benefits URL for a specific program. */
 export function buildWaiverLibraryUrl(
   stateCode: string,
   programId: string
 ): string | null {
   const slug = stateCodeToSlug(stateCode);
   if (!slug) return null;
-  return `/senior-benefits/${slug}/${programId}`;
+  return `/benefits/${slug}/${programId}`;
 }

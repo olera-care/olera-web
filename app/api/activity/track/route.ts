@@ -134,13 +134,18 @@ export async function POST(request: NextRequest) {
     if (event_type === "one_click_access") {
       try {
         const { sendSlackAlert, slackOneClickAccess } = await import("@/lib/slack");
-        const meta = metadata as Record<string, string> || {};
+        const meta = (metadata as Record<string, string>) || {};
+        const trustLevel = ["high", "medium", "low"].includes(meta.trust_level)
+          ? (meta.trust_level as "high" | "medium" | "low")
+          : null;
         const alert = slackOneClickAccess({
           providerName: meta.provider_name || provider_id,
           providerEmail: meta.email || "unknown",
           providerSlug: provider_id,
           action: meta.action || "unknown",
           actionId: meta.action_id,
+          trustLevel,
+          trustReason: meta.trust_reason || null,
         });
         sendSlackAlert(alert.text, alert.blocks).catch(() => {});
       } catch {

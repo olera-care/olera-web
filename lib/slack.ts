@@ -101,6 +101,43 @@ export function slackProviderClaimed(opts: {
   };
 }
 
+export function slackSuspiciousClaim(opts: {
+  providerName: string;
+  providerSlug: string;
+  claimedByEmail: string;
+  trustLevel: "high" | "medium" | "low";
+  trustReason: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Suspicious claim: ${opts.providerName} by ${opts.claimedByEmail} (${opts.trustLevel})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚩 Suspicious Claim — Review", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Claimed by:*\n${opts.claimedByEmail}` },
+          { type: "mrkdwn", text: `*Trust level:*\n${opts.trustLevel}` },
+          { type: "mrkdwn", text: `*Reason:*\n${opts.trustReason}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?tab=providers&filter=suspicious_claim|Admin queue>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export function slackDispute(opts: {
   providerName: string;
   reportedBy: string;
@@ -325,6 +362,8 @@ export function slackOneClickAccess(opts: {
   providerSlug: string;
   action: string;
   actionId?: string;
+  trustLevel?: "high" | "medium" | "low" | null;
+  trustReason?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const actionLabels: Record<string, string> = {
@@ -333,8 +372,28 @@ export function slackOneClickAccess(opts: {
     review: "Viewed review",
     campaign: "Campaign click",
   };
+  const trustIcon =
+    opts.trustLevel === "high"
+      ? "🟢"
+      : opts.trustLevel === "medium"
+        ? "🟡"
+        : opts.trustLevel === "low"
+          ? "🔴"
+          : "";
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Email:*\n${opts.providerEmail}` },
+    { type: "mrkdwn", text: `*Action:*\n${actionLabels[opts.action] || opts.action}` },
+    { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+  ];
+  if (opts.trustLevel) {
+    fields.push({
+      type: "mrkdwn",
+      text: `*Trust:*\n${trustIcon} ${opts.trustLevel}${opts.trustReason ? `\n_${opts.trustReason}_` : ""}`,
+    });
+  }
   return {
-    text: `One-click access: ${opts.providerName} (${opts.action})`,
+    text: `One-click access: ${opts.providerName} (${opts.action})${opts.trustLevel ? ` — trust: ${opts.trustLevel}` : ""}`,
     blocks: [
       {
         type: "header",
@@ -342,12 +401,7 @@ export function slackOneClickAccess(opts: {
       },
       {
         type: "section",
-        fields: [
-          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
-          { type: "mrkdwn", text: `*Email:*\n${opts.providerEmail}` },
-          { type: "mrkdwn", text: `*Action:*\n${actionLabels[opts.action] || opts.action}` },
-          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
-        ],
+        fields,
       },
     ],
   };

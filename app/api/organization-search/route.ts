@@ -1,203 +1,268 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  buildStrategies,
+  firstImageFromPipeList,
+  pickStrongestClaimState,
+  type SearchResult,
+  type SearchStrategies,
+} from "@/lib/organization-search";
 
 /**
  * GET /api/organization-search
  *
- * Search organizations across business_profiles and olera-providers tables.
- * Used by OrganizationSearch component for provider onboarding, claiming, etc.
+ * Union search across `olera-providers` (scraped/seeded) and `business_profiles`
+ * (user accounts/claims), deduplicated by canonical identity (source_provider_id).
  *
  * Query params:
  *   - q: search query (required, min 2 chars)
- *   - limit: max results per table (default 200, max 500)
- *
- * Search logic:
- *   - Single word: matches name OR city containing that word
- *   - Multi-word (e.g., "Home Instead Houston"): matches name containing first words
- *     AND city containing last word (for franchise + city searches)
+ *   - limit: max final results (default 100, max 200)
  */
+const PER_STRATEGY_LIMIT = 500;
+
+interface OpRow {
+  provider_id: string;
+  provider_name: string;
+  slug: string | null;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+  provider_images: string | null;
+}
+
+interface BpRow {
+  id: string;
+  display_name: string;
+  slug: string | null;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+  claim_state: string | null;
+  source_provider_id: string | null;
+  image_url: string | null;
+}
+
+// PostgREST `.or()` uses commas to separate filter clauses, so commas in the
+// user's query would corrupt the string. Strip commas and parens defensively.
+function sanitizeForOr(s: string): string {
+  return s.replace(/[,()]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+async function queryOleraProviders(
+  db: SupabaseClient,
+  strategies: SearchStrategies
+): Promise<OpRow[]> {
+  const safeFull = sanitizeForOr(strategies.fullPhrase);
+  const fullPattern = `*${safeFull}*`;
+  const columns =
+    "provider_id, provider_name, slug, city, state, email, provider_images";
+
+  const fullPhraseQuery = db
+    .from("olera-providers")
+    .select(columns)
+    .not("deleted", "is", true)
+    .or(`provider_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
+    .order("provider_name", { ascending: true })
+    .limit(PER_STRATEGY_LIMIT);
+
+  const multiWordQuery =
+    strategies.isMultiWord && strategies.nameWords && strategies.lastWord
+      ? db
+          .from("olera-providers")
+          .select(columns)
+          .not("deleted", "is", true)
+          .ilike("provider_name", `%${strategies.nameWords}%`)
+          .ilike("city", `%${strategies.lastWord}%`)
+          .order("provider_name", { ascending: true })
+          .limit(PER_STRATEGY_LIMIT)
+      : Promise.resolve({ data: [] as OpRow[], error: null });
+
+  const [fullResult, multiResult] = await Promise.all([fullPhraseQuery, multiWordQuery]);
+
+  if (fullResult.error) {
+    console.error("[organization-search] op full-phrase error:", fullResult.error);
+  }
+  if ("error" in multiResult && multiResult.error) {
+    console.error("[organization-search] op multi-word error:", multiResult.error);
+  }
+
+  const combined: OpRow[] = [
+    ...((fullResult.data as OpRow[] | null) || []),
+    ...((multiResult.data as OpRow[] | null) || []),
+  ];
+  const seen = new Set<string>();
+  const deduped: OpRow[] = [];
+  for (const row of combined) {
+    if (seen.has(row.provider_id)) continue;
+    seen.add(row.provider_id);
+    deduped.push(row);
+  }
+  return deduped;
+}
+
+async function queryBusinessProfiles(
+  db: SupabaseClient,
+  strategies: SearchStrategies
+): Promise<BpRow[]> {
+  const safeFull = sanitizeForOr(strategies.fullPhrase);
+  const fullPattern = `*${safeFull}*`;
+  const columns =
+    "id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url";
+
+  const fullPhraseQuery = db
+    .from("business_profiles")
+    .select(columns)
+    .in("type", ["organization", "caregiver"])
+    .or(`display_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
+    .order("display_name", { ascending: true })
+    .limit(PER_STRATEGY_LIMIT);
+
+  const multiWordQuery =
+    strategies.isMultiWord && strategies.nameWords && strategies.lastWord
+      ? db
+          .from("business_profiles")
+          .select(columns)
+          .in("type", ["organization", "caregiver"])
+          .ilike("display_name", `%${strategies.nameWords}%`)
+          .ilike("city", `%${strategies.lastWord}%`)
+          .order("display_name", { ascending: true })
+          .limit(PER_STRATEGY_LIMIT)
+      : Promise.resolve({ data: [] as BpRow[], error: null });
+
+  const [fullResult, multiResult] = await Promise.all([fullPhraseQuery, multiWordQuery]);
+
+  if (fullResult.error) {
+    console.error("[organization-search] bp full-phrase error:", fullResult.error);
+  }
+  if ("error" in multiResult && multiResult.error) {
+    console.error("[organization-search] bp multi-word error:", multiResult.error);
+  }
+
+  const combined: BpRow[] = [
+    ...((fullResult.data as BpRow[] | null) || []),
+    ...((multiResult.data as BpRow[] | null) || []),
+  ];
+  const seen = new Set<string>();
+  const deduped: BpRow[] = [];
+  for (const row of combined) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    deduped.push(row);
+  }
+  return deduped;
+}
+
+function mergeByCanonicalIdentity(
+  ops: OpRow[],
+  bps: BpRow[]
+): SearchResult[] {
+  // Index BPs by their source_provider_id (only for linked BPs)
+  const bpsByOpId = new Map<string, BpRow[]>();
+  for (const bp of bps) {
+    if (!bp.source_provider_id) continue;
+    const bucket = bpsByOpId.get(bp.source_provider_id) ?? [];
+    bucket.push(bp);
+    bpsByOpId.set(bp.source_provider_id, bucket);
+  }
+
+  const merged: SearchResult[] = [];
+  const emittedOpIds = new Set<string>();
+
+  // Pass 1: OPs are the canonical display source. Layer BP claim data where linked.
+  for (const op of ops) {
+    const linkedBps = bpsByOpId.get(op.provider_id) ?? [];
+    const claimState = pickStrongestClaimState(linkedBps.map((b) => b.claim_state));
+    // Prefer the claimed BP's email (provider-owned inbox). Fall back to OP's scraped email.
+    const claimedBpWithEmail = linkedBps.find(
+      (b) => b.claim_state === "claimed" && b.email
+    );
+    const email = claimedBpWithEmail?.email ?? op.email ?? null;
+
+    merged.push({
+      id: op.provider_id,
+      name: op.provider_name,
+      slug: op.slug || op.provider_id,
+      city: op.city,
+      state: op.state,
+      email,
+      claimState,
+      source: "olera-providers",
+      providerId: op.provider_id,
+      imageUrl: firstImageFromPipeList(op.provider_images),
+    });
+    emittedOpIds.add(op.provider_id);
+  }
+
+  // Pass 2: BP-only orphans and BPs linked to OPs that didn't match the query.
+  const seenBpIds = new Set<string>();
+  for (const bp of bps) {
+    if (seenBpIds.has(bp.id)) continue;
+    // If this BP is linked to an OP we already emitted, skip (already merged in pass 1)
+    if (bp.source_provider_id && emittedOpIds.has(bp.source_provider_id)) continue;
+    seenBpIds.add(bp.id);
+
+    merged.push({
+      id: bp.id,
+      name: bp.display_name,
+      slug: bp.slug || bp.id,
+      city: bp.city,
+      state: bp.state,
+      email: bp.email,
+      claimState: (bp.claim_state as SearchResult["claimState"]) || null,
+      source: "business_profiles",
+      providerId: bp.source_provider_id || bp.id,
+      imageUrl: bp.image_url,
+    });
+  }
+
+  return merged;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q")?.trim() || "";
-    const limit = Math.min(500, Math.max(1, parseInt(searchParams.get("limit") || "200", 10)));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "100", 10)));
 
     if (query.length < 2) {
       return NextResponse.json({ results: [], total: 0 });
     }
 
     const db = getServiceClient();
+    const strategies = buildStrategies(query);
 
-    // Split query into words for smarter matching
-    const words = query.split(/\s+/).filter(w => w.length > 0);
-
-    // Build search patterns
-    // For multi-word queries like "Home Instead Houston":
-    // - Try to match name containing the business name portion
-    // - AND city containing the location portion (last word)
-    const isMultiWord = words.length > 1;
-    const lastWord = words[words.length - 1];
-    const nameWords = isMultiWord ? words.slice(0, -1).join(" ") : query;
-
-    // Use * for wildcards in PostgREST .or() string syntax
-    const fullPattern = `*${query}*`;
-    const namePattern = `*${nameWords}*`;
-    const cityPattern = `*${lastWord}*`;
-
-    // Search both tables in parallel
-    const [bpResult, opResult, bpCityResult, opCityResult] = await Promise.all([
-      // Search 1: Full phrase match in name OR city (original behavior)
-      db
-        .from("business_profiles")
-        .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
-        .in("type", ["organization", "caregiver"])
-        .or(`display_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
-        .order("display_name", { ascending: true })
-        .limit(limit),
-
-      db
-        .from("olera-providers")
-        .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
-        .not("deleted", "is", true)
-        .or(`provider_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
-        .order("provider_name", { ascending: true })
-        .limit(limit),
-
-      // Search 2: For multi-word queries, also try name + city combination
-      // e.g., "Home Instead Houston" → name LIKE '%Home Instead%' AND city LIKE '%Houston%'
-      isMultiWord
-        ? db
-            .from("business_profiles")
-            .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
-            .in("type", ["organization", "caregiver"])
-            .ilike("display_name", `%${nameWords}%`)
-            .ilike("city", `%${lastWord}%`)
-            .order("display_name", { ascending: true })
-            .limit(limit)
-        : Promise.resolve({ data: [], error: null }),
-
-      isMultiWord
-        ? db
-            .from("olera-providers")
-            .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
-            .not("deleted", "is", true)
-            .ilike("provider_name", `%${nameWords}%`)
-            .ilike("city", `%${lastWord}%`)
-            .order("provider_name", { ascending: true })
-            .limit(limit)
-        : Promise.resolve({ data: [], error: null }),
+    // Run both source queries independently — partial failures degrade gracefully.
+    const [opSettled, bpSettled] = await Promise.allSettled([
+      queryOleraProviders(db, strategies),
+      queryBusinessProfiles(db, strategies),
     ]);
 
-    if (bpResult.error) {
-      console.error("[organization-search] business_profiles error:", bpResult.error);
+    const ops = opSettled.status === "fulfilled" ? opSettled.value : [];
+    const bps = bpSettled.status === "fulfilled" ? bpSettled.value : [];
+
+    if (opSettled.status === "rejected") {
+      console.error("[organization-search] op query rejected:", opSettled.reason);
     }
-    if (opResult.error) {
-      console.error("[organization-search] olera-providers error:", opResult.error);
+    if (bpSettled.status === "rejected") {
+      console.error("[organization-search] bp query rejected:", bpSettled.reason);
     }
-    if (bpCityResult.error) {
-      console.error("[organization-search] business_profiles city error:", bpCityResult.error);
-    }
-    if (opCityResult.error) {
-      console.error("[organization-search] olera-providers city error:", opCityResult.error);
-    }
-
-    // Combine results from both search strategies
-    const bpResults = [...(bpResult.data || []), ...(bpCityResult.data || [])];
-    const opResults = [...(opResult.data || []), ...(opCityResult.data || [])];
-
-    // Get claim states for olera-providers by checking linked business_profiles
-    const opProviderIds = opResults.map((op) => op.provider_id);
-    let claimStatesMap: Record<string, string | null> = {};
-
-    if (opProviderIds.length > 0) {
-      const { data: linkedBps } = await db
-        .from("business_profiles")
-        .select("source_provider_id, claim_state")
-        .in("source_provider_id", opProviderIds);
-
-      if (linkedBps) {
-        claimStatesMap = linkedBps.reduce(
-          (acc, bp) => {
-            if (bp.source_provider_id) {
-              acc[bp.source_provider_id] = bp.claim_state;
-            }
-            return acc;
-          },
-          {} as Record<string, string | null>
-        );
-      }
-    }
-
-    // Merge and deduplicate results
-    interface SearchResult {
-      id: string;
-      name: string;
-      slug: string;
-      city: string | null;
-      state: string | null;
-      email: string | null;
-      claimState: "unclaimed" | "pending" | "claimed" | null;
-      source: "business_profiles" | "olera-providers";
-      providerId: string;
-      imageUrl: string | null;
-    }
-
-    const merged: SearchResult[] = [];
-    const seenIds = new Set<string>();
-
-    // Add business_profiles results first (they may be more authoritative)
-    for (const bp of bpResults) {
-      const slug = bp.slug || bp.id;
-      if (!seenIds.has(bp.id)) {
-        seenIds.add(bp.id);
-        merged.push({
-          id: bp.id,
-          name: bp.display_name,
-          slug,
-          city: bp.city,
-          state: bp.state,
-          email: bp.email,
-          claimState: bp.claim_state as SearchResult["claimState"],
-          source: "business_profiles",
-          providerId: bp.source_provider_id || bp.id,
-          imageUrl: bp.image_url || null,
-        });
-      }
-    }
-
-    // Add olera-providers results (skip if already have BP with same source_provider_id)
-    for (const op of opResults) {
-      const slug = op.slug || op.provider_id;
-      // Skip if we already have a business_profile linked to this provider
-      const alreadyHasBp = bpResults.some(
-        (bp) => bp.source_provider_id === op.provider_id
+    if (opSettled.status === "rejected" && bpSettled.status === "rejected") {
+      return NextResponse.json(
+        { error: "Failed to search organizations" },
+        { status: 500 }
       );
-      if (!alreadyHasBp && !seenIds.has(op.provider_id)) {
-        seenIds.add(op.provider_id);
-        // Get first image from pipe-separated list
-        const firstImage = op.provider_images?.split("|")[0]?.trim() || null;
-        merged.push({
-          id: op.provider_id,
-          name: op.provider_name,
-          slug,
-          city: op.city,
-          state: op.state,
-          email: op.email,
-          claimState: (claimStatesMap[op.provider_id] as SearchResult["claimState"]) || null,
-          source: "olera-providers",
-          providerId: op.provider_id,
-          imageUrl: op.hero_image_url || firstImage,
-        });
-      }
     }
 
-    // Sort merged results alphabetically by name
+    const merged = mergeByCanonicalIdentity(ops, bps);
     merged.sort((a, b) => a.name.localeCompare(b.name));
+    const capped = merged.slice(0, limit);
 
-    return NextResponse.json({
-      results: merged,
-      total: merged.length,
-    });
+    console.log(
+      `[organization-search] op=${ops.length} bp=${bps.length} merged=${merged.length} capped=${capped.length} query=${JSON.stringify(query)}`
+    );
+
+    return NextResponse.json({ results: capped, total: merged.length });
   } catch (err) {
     console.error("[organization-search] Error:", err);
     return NextResponse.json(

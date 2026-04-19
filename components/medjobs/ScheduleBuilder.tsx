@@ -4,13 +4,13 @@ import { useState } from "react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const SLOTS = [
-  { key: "8am", label: "8–10a" },
-  { key: "10am", label: "10–12p" },
-  { key: "12pm", label: "12–2p" },
-  { key: "2pm", label: "2–4p" },
-  { key: "4pm", label: "4–6p" },
-  { key: "6pm", label: "6–8p" },
-  { key: "8pm", label: "8p+" },
+  { key: "8am", label: "8–10am" },
+  { key: "10am", label: "10am–12pm" },
+  { key: "12pm", label: "12–2pm" },
+  { key: "2pm", label: "2–4pm" },
+  { key: "4pm", label: "4–6pm" },
+  { key: "6pm", label: "6–8pm" },
+  { key: "8pm", label: "8pm+" },
 ] as const;
 
 type DayKey = (typeof DAYS)[number];
@@ -35,12 +35,12 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
   return (
     <div>
       {!readOnly && (
-        <p className="text-xs text-gray-400 mb-3">Tap to mark your class times. Everything else = you&apos;re available.</p>
+        <p className="text-xs text-gray-400 mb-4 text-center">Tap to mark your class times. Everything else = you&apos;re available.</p>
       )}
       <div className="overflow-x-auto">
-        <div className="min-w-[420px]">
+        <div className="min-w-[460px]">
           {/* Header row */}
-          <div className="grid grid-cols-[60px_repeat(5,1fr)] gap-0.5 mb-0.5">
+          <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-0.5 mb-0.5">
             <div />
             {DAYS.map((day) => (
               <div key={day} className="text-center text-[11px] font-medium text-gray-500 py-1">{day}</div>
@@ -48,9 +48,9 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
           </div>
           {/* Time slots */}
           {SLOTS.map((slot) => (
-            <div key={slot.key} className="grid grid-cols-[60px_repeat(5,1fr)] gap-0.5 mb-0.5">
+            <div key={slot.key} className="grid grid-cols-[80px_repeat(5,1fr)] gap-0.5 mb-0.5">
               <div className="flex items-center justify-end pr-2">
-                <span className="text-[11px] text-gray-500">{slot.label}</span>
+                <span className="text-[11px] text-gray-500 whitespace-nowrap">{slot.label}</span>
               </div>
               {DAYS.map((day) => {
                 const key = `${day}-${slot.key}`;
@@ -78,7 +78,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
         </div>
       </div>
       {hasAnyClass && !readOnly && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-400 mt-4 text-center">
           Dark = class time. Light = available for shifts.
         </p>
       )}

@@ -33,16 +33,31 @@ export function getTexasOldId(newSlug: string): string | undefined {
   return TX_NEW_TO_OLD[newSlug];
 }
 
-/** Build the URL for a state listing page. */
+/**
+ * Build the URL for a state listing page.
+ *
+ * Non-Texas states canonical at /benefits/:state (the v2 route). Texas
+ * remains on its parallel /texas/benefits URL for now; migrating Texas to
+ * /benefits/texas would require reconciling TX_OLD_TO_NEW slug mappings
+ * with the /benefits/[slug]/[program] resolver — separate ticket.
+ */
 export function buildStateUrl(stateId: string): string {
-  return stateId === "texas" ? "/texas/benefits" : `/senior-benefits/${stateId}`;
+  return stateId === "texas" ? "/texas/benefits" : `/benefits/${stateId}`;
 }
 
-/** Build the URL for a program detail page. */
+/**
+ * Build the URL for a program detail page.
+ *
+ * Non-Texas states canonical at /benefits/:state/:program. The
+ * /benefits/[slug]/[program] page resolves waiver-library IDs directly
+ * and pipeline-only IDs via fuzzy matching in lib/program-data.ts.
+ * Texas uses its slug-mapped parallel URL (/texas/benefits/:newSlug) for
+ * known program IDs; unknown Texas IDs fall through to /benefits/texas/:id.
+ */
 export function buildProgramUrl(stateId: string, programId: string): string {
   if (stateId === "texas") {
     const newSlug = TX_OLD_TO_NEW[programId];
     if (newSlug) return `/texas/benefits/${newSlug}`;
   }
-  return `/senior-benefits/${stateId}/${programId}`;
+  return `/benefits/${stateId}/${programId}`;
 }

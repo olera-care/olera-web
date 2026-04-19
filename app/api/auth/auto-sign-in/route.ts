@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
+import { sendSlackAlert, slackSuspiciousClaim } from "@/lib/slack";
+
+export const maxDuration = 30;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * POST /api/auth/auto-sign-in
@@ -7,11 +17,9 @@ import { createClient } from "@supabase/supabase-js";
  * Creates or resolves an auth user for an already-verified email and returns
  * a magic-link token hash for client-side session establishment.
  *
- * Used by the provider onboarding flow after OTP verification so the provider
- * doesn't have to sign in a second time through the auth modal.
- *
- * Request body: { email: string, claimSession: string }
- * Returns: { tokenHash: string } or error
+ * Also scores the email↔provider trust and returns the level/reason so the
+ * client can propagate it to the subsequent /api/activity/track call (the
+ * admin feed renders a trust badge from that metadata).
  */
 export async function POST(request: Request) {
   try {
@@ -50,7 +58,6 @@ export async function POST(request: Request) {
         createError.message?.includes("already been registered") ||
         createError.message?.includes("already exists")
       ) {
-        // User exists — resolve via generateLink
         const { data: linkData } =
           await supabaseAdmin.auth.admin.generateLink({
             type: "magiclink",
@@ -92,9 +99,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // Score the sign-in. Returns trust result; fire-and-forget 🚩 Slack on low.
+    let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+    try {
+      console.log("[auto-sign-in] scoring trust:", {
+        email: normalizedEmail,
+        claimSession,
+      });
+      trustResult = await scoreAndMaybeAlert({
+        db: supabaseAdmin,
+        email: normalizedEmail,
+        claimSession,
+      });
+      console.log("[auto-sign-in] scored:", trustResult);
+    } catch (err) {
+      console.error("[auto-sign-in] trust scoring failed:", err);
+    }
+
     return NextResponse.json({
       tokenHash: signInLink.properties.hashed_token,
       userId,
+      trustLevel: trustResult.level,
+      trustReason: trustResult.reason,
     });
   } catch (err) {
     console.error("Auto-sign-in error:", err);
@@ -103,4 +129,144 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Score the trust and fire a 🚩 Suspicious Claim Slack alert on low
+ * (with 24h dedup against prior one_click_access events for the same
+ * provider+email so repeat sign-ins don't spam). Returns the trust result
+ * so the caller can surface it in the sign-in response.
+ */
+async function scoreAndMaybeAlert(params: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any;
+  email: string;
+  claimSession: string;
+}): Promise<ClaimTrustResult> {
+  const { db, email, claimSession } = params;
+  const neutral: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+
+  if (!UUID_RE.test(claimSession)) return neutral;
+
+  const { data: verif } = await db
+    .from("claim_verification_codes")
+    .select("provider_id")
+    .eq("claim_session", claimSession)
+    .limit(1)
+    .maybeSingle();
+
+  const providerId: string | undefined = verif?.provider_id;
+  if (!providerId) return neutral;
+
+  let providerName: string | null = null;
+  let providerCity: string | null = null;
+  let providerState: string | null = null;
+  let providerWebsite: string | null = null;
+  let providerSlug: string = providerId;
+
+  let bp = await db
+    .from("business_profiles")
+    .select("id, slug, display_name, city, state, website")
+    .eq("source_provider_id", providerId)
+    .maybeSingle()
+    .then(
+      (r: {
+        data: {
+          id: string;
+          slug: string;
+          display_name: string | null;
+          city: string | null;
+          state: string | null;
+          website: string | null;
+        } | null;
+      }) => r.data
+    );
+
+  if (!bp && UUID_RE.test(providerId)) {
+    bp = await db
+      .from("business_profiles")
+      .select("id, slug, display_name, city, state, website")
+      .eq("id", providerId)
+      .in("type", ["organization", "caregiver"])
+      .maybeSingle()
+      .then(
+        (r: {
+          data: {
+            id: string;
+            slug: string;
+            display_name: string | null;
+            city: string | null;
+            state: string | null;
+            website: string | null;
+          } | null;
+        }) => r.data
+      );
+  }
+
+  if (bp) {
+    providerName = bp.display_name;
+    providerCity = bp.city;
+    providerState = bp.state;
+    providerWebsite = bp.website;
+    providerSlug = bp.slug;
+  } else {
+    const { data: op } = await db
+      .from("olera-providers")
+      .select("provider_name, city, state, website, slug")
+      .eq("provider_id", providerId)
+      .maybeSingle();
+    if (!op) return neutral;
+    providerName = op.provider_name;
+    providerCity = op.city;
+    providerState = op.state;
+    providerWebsite = op.website;
+    providerSlug = op.slug || providerId;
+  }
+
+  if (!providerName) return neutral;
+
+  const result = await scoreClaimTrust({
+    email,
+    providerName,
+    providerCity,
+    providerState,
+    providerDomain: extractDomainFromWebsite(providerWebsite),
+  });
+
+  if (result.level !== "low") return result;
+
+  // 🚩 escalation: separate Slack alert for low trust, deduped per provider+email per 24h.
+  // Dedup only matches PRIOR low-trust one_click_access rows — so a provider who
+  // signed in legitimately before can still trigger a fresh alert if a bad actor
+  // uses the same email today with a low-trust outcome.
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: existing } = await db
+    .from("provider_activity")
+    .select("id")
+    .eq("provider_id", providerSlug)
+    .eq("event_type", "one_click_access")
+    .gte("created_at", oneDayAgo)
+    .contains("metadata", { email, trust_level: "low" })
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    console.log("[auto-sign-in] skip low-trust Slack: prior low-trust event within 24h");
+    return result;
+  }
+
+  try {
+    const alert = slackSuspiciousClaim({
+      providerName,
+      providerSlug,
+      claimedByEmail: email,
+      trustLevel: result.level,
+      trustReason: result.reason,
+    });
+    const slackResult = await sendSlackAlert(alert.text, alert.blocks);
+    console.log("[auto-sign-in] suspicious_claim Slack:", slackResult);
+  } catch (slackErr) {
+    console.error("[auto-sign-in] suspicious_claim Slack failed:", slackErr);
+  }
+
+  return result;
 }

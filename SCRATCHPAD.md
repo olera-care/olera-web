@@ -7,16 +7,24 @@
 
 ## Current Focus
 
-- **Flag Suspicious One-Click Sign-Ins** — PLAN READY, NOT STARTED (2026-04-18)
-  - Notion: [Flag suspicious one-click sign-ins for manual review](https://www.notion.so/Flag-suspicious-one-click-sign-ins-for-manual-review-3445903a0ffe81c6b6e6d3c91ec0ccae) (P1 🔥, Backend, ~1 day)
+- **Flag Suspicious One-Click Sign-Ins** — MERGED ✅ & LIVE ON STAGING (2026-04-19, 4 PRs)
+  - Notion ticket: [Flag suspicious one-click sign-ins for manual review](https://www.notion.so/Flag-suspicious-one-click-sign-ins-for-manual-review-3445903a0ffe81c6b6e6d3c91ec0ccae) (P1 🔥, Backend)
+  - PRs: [#586 initial](https://github.com/olera-care/olera-web/pull/586) + [#588 badge UX](https://github.com/olera-care/olera-web/pull/588) + [#589 sanitize errors](https://github.com/olera-care/olera-web/pull/589) + [#591 tighten dedup](https://github.com/olera-care/olera-web/pull/591)
   - Plan: `plans/suspicious-claim-flagging-plan.md`
-  - Score email↔provider at claim/finalize into `high`/`medium`/`low`, persist on `business_profiles.claim_trust_level`, surface `low` via Activity Center filter + Slack alert. Don't block provider.
-  - Hook point: `app/api/claim/finalize/route.ts` (single binding point)
-  - New files: migration + `lib/claim-trust.ts` (scorer) + `slackSuspiciousClaim` helper
-  - Admin UI: reuse Activity Center, add `suspicious_claim` event_type + filter option
-  - **Next**: TJ approval on plan → branch from `staging` → Phase 1 migrations
+  - **What shipped**:
+    - LLM scorer (`lib/claim-trust.ts`) using Claude Haiku 4.5. `.gov`/`.edu`/`.mil` fast-path; charitable prompt distinguishes national chains from small local biz
+    - Two hook points: `/api/auth/auto-sign-in` (every one-click access, blocking scoring, returns trust in response) + `/api/claim/finalize` (persists `claim_trust_level` column only — no activity write to avoid duplicate with auto-sign-in)
+    - Trust flows: auto-sign-in scores → returns `trustLevel`+`trustReason` → client forwards to `/api/activity/track` → written into `one_click_access` event metadata (single source of truth)
+    - Augmented existing "🔓 One-Click Provider Access" Slack message with 🟢/🟡/🔴 Trust field on every sign-in
+    - Separate "🚩 Suspicious Claim" Slack alert on `low` only, deduped 24h against prior LOW-TRUST one_click_access rows for same provider+email
+    - Admin Activity Center Feed: trust pill next to Auto Sign-in badge + inline claimant email/reason. "Suspicious claims" filter OR's legacy `suspicious_claim` event + `one_click_access with metadata.trust_level='low'`. People view aggregates low-trust one_click_access under `suspicious_claim` pseudo-key
+    - Sanitized error reasons — raw SDK errors no longer leak to Slack/admin
+  - Migration `041_claim_trust_level.sql` applied to Supabase; `ANTHROPIC_API_KEY` set in Vercel (Production/Preview/Development)
+  - Verified live: Slack + admin feed show real LLM-scored trust on every sign-in
+  - **Lessons captured in merge-report Notion pages + below in Notes**: email flows test staging not preview (merge first); Vercel preview kills `after()` work (switched to blocking); dedup keys must match the ACTION, not just the IDENTITY
+  - **Followup candidates**: OTP-flow claim trust coverage (no auto-sign-in → no current event), potential backfill of `claim_trust_level` for already-claimed rows
 
-- **Admin Directory Union** (branch: `admin-directory-union`) — PR #583 OPEN, READY FOR QA
+- **Admin Directory Union** — MERGED ✅ (PR #583, 2026-04-18)
   - PR: https://github.com/olera-care/olera-web/pull/583 → staging
   - Notion: [Fix admin directory search hiding orphan business_profiles](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe)
   - Problem: admin directory queried `olera-providers` only — missed 172 orphan BPs like Aggie Assisted Living (live, claimed, active but invisible to admin)

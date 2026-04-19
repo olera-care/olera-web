@@ -152,12 +152,20 @@ export async function scoreClaimTrust(
     const parsed = parseResponse(raw);
     if (!parsed) {
       console.error("[claim-trust] unparseable LLM response:", raw);
-      return { level: "medium", reason: "llm_unparseable_response" };
+      return {
+        level: "medium",
+        reason: "Trust check unavailable — defaulted to medium.",
+      };
     }
     return parsed;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    // Log the full internal error for debugging, but surface a clean, short
+    // reason to admins (Slack + Activity Center). Raw API errors leak internals.
     console.error("[claim-trust] LLM call failed:", message);
-    return { level: "medium", reason: `llm_error: ${message}` };
+    return {
+      level: "medium",
+      reason: "Trust check unavailable — defaulted to medium.",
+    };
   }
 }

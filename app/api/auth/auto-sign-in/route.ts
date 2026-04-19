@@ -236,6 +236,9 @@ async function scoreAndMaybeAlert(params: {
   if (result.level !== "low") return result;
 
   // 🚩 escalation: separate Slack alert for low trust, deduped per provider+email per 24h.
+  // Dedup only matches PRIOR low-trust one_click_access rows — so a provider who
+  // signed in legitimately before can still trigger a fresh alert if a bad actor
+  // uses the same email today with a low-trust outcome.
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: existing } = await db
     .from("provider_activity")
@@ -243,11 +246,11 @@ async function scoreAndMaybeAlert(params: {
     .eq("provider_id", providerSlug)
     .eq("event_type", "one_click_access")
     .gte("created_at", oneDayAgo)
-    .contains("metadata", { email })
+    .contains("metadata", { email, trust_level: "low" })
     .limit(1)
     .maybeSingle();
   if (existing) {
-    console.log("[auto-sign-in] skip low-trust Slack: dedup match within 24h");
+    console.log("[auto-sign-in] skip low-trust Slack: prior low-trust event within 24h");
     return result;
   }
 

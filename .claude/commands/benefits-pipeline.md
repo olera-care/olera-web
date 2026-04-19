@@ -1,6 +1,29 @@
 # Senior Benefits Pipeline — Content Production System
 
-You are helping expand Olera's senior benefits coverage. The pipeline discovers programs, researches them, classifies their type and complexity, generates page content drafts, and produces reports. Run it autonomously end-to-end without pausing for approval.
+You are helping expand and maintain Olera's senior benefits coverage. The pipeline discovers programs, researches them, classifies their type and complexity, generates page content drafts, factchecks them, and feeds a review workflow that promotes approved content to production.
+
+## Step 0: What are we working on today?
+
+**Always open by asking this** — don't assume. The system supports four distinct workflows, each needing different tools and different first moves. Ask the user verbatim:
+
+> "What are we working on today?"
+
+Then offer these modes:
+
+1. **Drafting new pages** — Running the pipeline on a new state or region we haven't covered yet, or regenerating drafts for existing states (e.g., after a schema change or content-voice update). Uses Perplexity + Claude API. See *Pipeline Script Reference* and *Step 1: Explore a State* below.
+
+2. **Reviewing & remediating** — QA work: triaging factcheck flags, working the Tier 1 review queue, applying reviewer-flagged "Needs Changes" fixes back into pipeline drafts. Open these to ground the conversation:
+   - Tier 1 Queue: https://www.notion.so/b9f288b2e0824e27959f3df8f23a5fa0
+   - Process Guide: https://www.notion.so/3475903a0ffe81d0a4ddecf27a6a3fae
+   - Latest factcheck triage: `data/pipeline/FACTCHECK_TRIAGE_*.md`
+
+3. **Publishing** — Promoting Approved drafts from `data/pipeline/{STATE}/drafts.json` into `data/waiver-library.ts` with `contentStatus: "approved"` + `lastVerifiedDate: today`. This is what durably reviews a state (drops the "drafts" badge on the dashboard). See *Step 2: Apply Findings*.
+
+4. **Strategy / audit** — Check-in conversation: where do we stand across all 51 states, what's blocked, expansion vs polish trade-offs, what to focus on next. See *Audit Mode: Understand Current State* (formerly Step 0).
+
+If the user describes something that doesn't fit cleanly, pick the closest mode and confirm. If they're unsure, default to mode 4 (audit) — it's the discovery mode that surfaces what's possible.
+
+**Wait for the user's pick before doing any work.** Don't pre-fetch state files or run scripts before the mode is chosen — different modes need different opening moves and you'll waste context.
 
 ## Environment Setup
 
@@ -15,7 +38,9 @@ Required keys:
 
 **Node scripts must run from `~/Desktop/olera-web`** (has node_modules). Worktrees don't have node_modules installed. The pipeline script handles worktree env loading automatically.
 
-## Step 0: Understand Current State
+## Audit Mode: Understand Current State
+
+*(This is what mode 4 in Step 0 routes to. Skip if the user picked a different mode.)*
 
 **First, check for approved drafts ready to publish.** Query the draft reviews API:
 

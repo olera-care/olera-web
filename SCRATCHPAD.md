@@ -42,11 +42,32 @@ Four PRs in sequence, each unblocking the next. Entire benefits-SEO quadrant of 
   - Out of scope (follow-up): `data/pipeline-summary.ts` (368 KB sibling, same pattern)
   - Notion report: https://www.notion.so/3475903a0ffe8130ad1ff70833c836be
 
+### 2026-04-19 (evening) — Strategic pivot: Category Pages P1 retired
+
+Pulled the top P1 🔥 ("Category pages per state") for exploration and, on critical review, retired it. The UX job is already solved by the inline category pills on `StatePageV3.tsx:722-810` + `getCategory()` in `lib/waiver-category.ts` — pills with live counts, one-click filter. The only unshipped piece was crawlable URLs at state × category grain, i.e. pure SEO bet.
+
+Killed it because:
+- **Same structural bet as city pages, which already failed.** Per `zen-perlman` analysis, city × care-type pages sit at position 35-60 with near-zero CTR due to DA ~5 vs competitors DA 60-75. No mechanism by which state × category ranks better on the same domain.
+- **Reinforces a content group already flagged dead in the SEO Running Thread.** `/state/` at CTR 0.08% position 48.9; adding 200 pages below that hub compounds the problem instead of fixing it.
+- **Hidden content cost** — 200 pages need per-category intro copy to avoid thin-content doorway classification. Pipeline drafts are program-level, not category-level. Editorial workstream wasn't in the 1-2 day estimate.
+- **Algorithm tailwind against us** — Google HCU + 2024 core updates specifically target programmatic SEO at scale.
+
+Actions taken:
+- Demoted the Notion ticket to Backlog priority + page-level comment pointing to reasoning: https://www.notion.so/3445903a0ffe81c3b622f42960e0b3c5
+- Full reasoning logged as mid-week addendum in SEO Running Thread: https://www.notion.so/3455903a0ffe81888526d1f4bdf7e1f4
+- Meta-note in the Running Thread: **first time a prior-documented Pattern (content-group ROI ranking) directly retired an incoming P1** — exactly what that doc was built to do.
+
+Spun off a follow-up task instead — the same reasoning discipline applied to the BCBS/VA caregiver-page question TJ raised:
+- **Freshness audit across /caregiver-support/ (83 articles)** — P2, Olera Action Items board (not Web App — see new memory `feedback_notion_board_split.md`): https://www.notion.so/3475903a0ffe81349dbee7ba16082370
+- Data job, not editorial. Run `diagnose_editorial_decay.py` across all 83 URLs → ranked decay list → feeds Logan's refresh queue data-driven, not vibes-driven.
+- Doesn't block on VA refresh; the decision to *act* on the audit list depends on whether VA refresh lifts position after ship.
+
+Prereq PRs shipped earlier today (#587 partition, #590 sitemap, #592 canonicalization, #595 state-in-program-name) stand on their own merits — no sunk cost.
+
 ### Next up (P1 🔥 queue)
 
-- **Category pages per state — Health / Financial / Food / Caregiver** — NOT STARTED
-  - ~1,900-route expansion. The epic that today's partition + sitemap + canonicalization + naming stack was all prereq for.
-  - Multi-day scope. Deserves a fresh session.
+- (Category Pages per state — **RETIRED → Backlog, 2026-04-19**. See above. If revisited, pilot shape only: one category × 10-15 strong states, 60-90 day measurement before scaling.)
+- **Make sure we have a thoughtful data/code/system backup system in place** (P2) — now the highest-priority outstanding item on the Web App board.
 
 ### Standalone follow-ups (low priority)
 

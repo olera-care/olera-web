@@ -502,14 +502,23 @@ export default function ProviderOnboardPage() {
 
                   console.log("[OneClick] Background sign-in complete");
 
-                  // Log for observability
+                  // Log for observability. Include the trust level/reason from
+                  // auto-sign-in so the admin feed renders a trust badge and the
+                  // Slack message surfaces the assessment alongside the access event.
                   fetch("/api/activity/track", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       provider_id: slug,
                       event_type: "one_click_access",
-                      metadata: { action: actionParam, action_id: actionIdParam, email: verifiedEmail, source: "email_token" },
+                      metadata: {
+                        action: actionParam,
+                        action_id: actionIdParam,
+                        email: verifiedEmail,
+                        source: "email_token",
+                        trust_level: signInData.trustLevel ?? null,
+                        trust_reason: signInData.trustReason ?? null,
+                      },
                     }),
                   }).catch(() => {});
                 } catch (err) {

@@ -360,23 +360,37 @@ export async function POST(request: Request) {
     }
 
     // 6b-ii. Low-trust claim: flag in Activity Center + dedicated Slack alert.
-    // Dedup with auto-sign-in hook: both paths can fire for the same claim, so
-    // suppress when a suspicious_claim row for this provider+email already exists
-    // within 24h.
+    // Dedup against recent one_click_access (augmented with trust metadata by the
+    // auto-sign-in hook) AND prior suspicious_claim rows — so the one-click flow
+    // doesn't double-alert when both auto-sign-in and finalize run for the same
+    // claim. OTP-only claims (no auto-sign-in) still write a standalone row.
     if (trustResult.level === "low") {
       const claimantEmail = user.email || "unknown";
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: existingFlag } = await db
-        .from("provider_activity")
-        .select("id")
-        .eq("provider_id", profileSlug)
-        .eq("event_type", "suspicious_claim")
-        .gte("created_at", oneDayAgo)
-        .contains("metadata", { claimed_by_email: claimantEmail })
-        .limit(1)
-        .maybeSingle();
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-      if (!existingFlag) {
+      const [{ data: recentOneClick }, { data: existingFlag }] = await Promise.all([
+        db
+          .from("provider_activity")
+          .select("id")
+          .eq("provider_id", profileSlug)
+          .eq("event_type", "one_click_access")
+          .gte("created_at", fiveMinAgo)
+          .contains("metadata", { email: claimantEmail, trust_level: "low" })
+          .limit(1)
+          .maybeSingle(),
+        db
+          .from("provider_activity")
+          .select("id")
+          .eq("provider_id", profileSlug)
+          .eq("event_type", "suspicious_claim")
+          .gte("created_at", oneDayAgo)
+          .contains("metadata", { claimed_by_email: claimantEmail })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      if (!recentOneClick && !existingFlag) {
         try {
           const { error: activityInsertErr } = await db
             .from("provider_activity")

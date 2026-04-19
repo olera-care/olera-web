@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   scoreClaimTrust,
   extractDomainFromWebsite,
+  type ClaimTrustResult,
 } from "@/lib/claim-trust";
 import { sendSlackAlert, slackSuspiciousClaim } from "@/lib/slack";
 
@@ -16,11 +17,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * Creates or resolves an auth user for an already-verified email and returns
  * a magic-link token hash for client-side session establishment.
  *
- * Used by the provider onboarding flow after OTP verification so the provider
- * doesn't have to sign in a second time through the auth modal.
- *
- * Request body: { email: string, claimSession: string }
- * Returns: { tokenHash: string } or error
+ * Also scores the email↔provider trust and returns the level/reason so the
+ * client can propagate it to the subsequent /api/activity/track call (the
+ * admin feed renders a trust badge from that metadata).
  */
 export async function POST(request: Request) {
   try {
@@ -59,7 +58,6 @@ export async function POST(request: Request) {
         createError.message?.includes("already been registered") ||
         createError.message?.includes("already exists")
       ) {
-        // User exists — resolve via generateLink
         const { data: linkData } =
           await supabaseAdmin.auth.admin.generateLink({
             type: "magiclink",
@@ -101,27 +99,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // Score this sign-in for trust + flag if suspicious.
-    // Blocking (was `after()`, moved inline because Vercel preview was killing
-    // the post-response work before it completed). ~800ms added latency.
+    // Score the sign-in. Returns trust result; fire-and-forget 🚩 Slack on low.
+    let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
     try {
-      console.log("[auto-sign-in] trust flag: starting", {
+      console.log("[auto-sign-in] scoring trust:", {
         email: normalizedEmail,
         claimSession,
       });
-      await flagSuspiciousAutoSignIn({
+      trustResult = await scoreAndMaybeAlert({
         db: supabaseAdmin,
         email: normalizedEmail,
         claimSession,
       });
-      console.log("[auto-sign-in] trust flag: complete");
+      console.log("[auto-sign-in] scored:", trustResult);
     } catch (err) {
-      console.error("[auto-sign-in] trust flag failed:", err);
+      console.error("[auto-sign-in] trust scoring failed:", err);
     }
 
     return NextResponse.json({
       tokenHash: signInLink.properties.hashed_token,
       userId,
+      trustLevel: trustResult.level,
+      trustReason: trustResult.reason,
     });
   } catch (err) {
     console.error("Auto-sign-in error:", err);
@@ -133,22 +132,21 @@ export async function POST(request: Request) {
 }
 
 /**
- * Score the email↔provider match for this one-click sign-in. If low-trust,
- * write a provider_activity row and send a Slack alert (deduped per
- * provider+email per 24h so repeated sign-ins don't spam).
+ * Score the trust and fire a 🚩 Suspicious Claim Slack alert on low
+ * (with 24h dedup against prior one_click_access events for the same
+ * provider+email so repeat sign-ins don't spam). Returns the trust result
+ * so the caller can surface it in the sign-in response.
  */
-async function flagSuspiciousAutoSignIn(params: {
+async function scoreAndMaybeAlert(params: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   db: any;
   email: string;
   claimSession: string;
-}) {
+}): Promise<ClaimTrustResult> {
   const { db, email, claimSession } = params;
+  const neutral: ClaimTrustResult = { level: "medium", reason: "not_scored" };
 
-  if (!UUID_RE.test(claimSession)) {
-    console.log("[auto-sign-in] skip: claimSession not uuid");
-    return;
-  }
+  if (!UUID_RE.test(claimSession)) return neutral;
 
   const { data: verif } = await db
     .from("claim_verification_codes")
@@ -158,19 +156,13 @@ async function flagSuspiciousAutoSignIn(params: {
     .maybeSingle();
 
   const providerId: string | undefined = verif?.provider_id;
-  if (!providerId) {
-    console.log("[auto-sign-in] skip: no provider_id for claim_session");
-    return;
-  }
-  console.log("[auto-sign-in] resolved provider_id:", providerId);
+  if (!providerId) return neutral;
 
-  // Resolve provider context — prefer business_profiles, fall back to olera-providers.
   let providerName: string | null = null;
   let providerCity: string | null = null;
   let providerState: string | null = null;
   let providerWebsite: string | null = null;
   let providerSlug: string = providerId;
-  let profileId: string | null = null;
 
   let bp = await db
     .from("business_profiles")
@@ -217,17 +209,13 @@ async function flagSuspiciousAutoSignIn(params: {
     providerState = bp.state;
     providerWebsite = bp.website;
     providerSlug = bp.slug;
-    profileId = bp.id;
   } else {
     const { data: op } = await db
       .from("olera-providers")
       .select("provider_name, city, state, website, slug")
       .eq("provider_id", providerId)
       .maybeSingle();
-    if (!op) {
-      console.log("[auto-sign-in] skip: no BP or olera-providers row for", providerId);
-      return;
-    }
+    if (!op) return neutral;
     providerName = op.provider_name;
     providerCity = op.city;
     providerState = op.state;
@@ -235,12 +223,8 @@ async function flagSuspiciousAutoSignIn(params: {
     providerSlug = op.slug || providerId;
   }
 
-  if (!providerName) {
-    console.log("[auto-sign-in] skip: providerName empty");
-    return;
-  }
+  if (!providerName) return neutral;
 
-  console.log("[auto-sign-in] scoring:", { email, providerName });
   const result = await scoreClaimTrust({
     email,
     providerName,
@@ -248,49 +232,24 @@ async function flagSuspiciousAutoSignIn(params: {
     providerState,
     providerDomain: extractDomainFromWebsite(providerWebsite),
   });
-  console.log("[auto-sign-in] scored:", result);
 
-  if (result.level !== "low") {
-    console.log("[auto-sign-in] skip: not low trust");
-    return;
-  }
+  if (result.level !== "low") return result;
 
-  // Dedup: skip if we already flagged this provider+email in the last 24h.
+  // 🚩 escalation: separate Slack alert for low trust, deduped per provider+email per 24h.
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: existing } = await db
     .from("provider_activity")
     .select("id")
     .eq("provider_id", providerSlug)
-    .eq("event_type", "suspicious_claim")
+    .eq("event_type", "one_click_access")
     .gte("created_at", oneDayAgo)
-    .contains("metadata", { claimed_by_email: email })
+    .contains("metadata", { email })
     .limit(1)
     .maybeSingle();
-
   if (existing) {
-    console.log("[auto-sign-in] skip: dedup match within 24h");
-    return;
+    console.log("[auto-sign-in] skip low-trust Slack: dedup match within 24h");
+    return result;
   }
-
-  const { error: insertErr } = await db.from("provider_activity").insert({
-    provider_id: providerSlug,
-    profile_id: profileId,
-    event_type: "suspicious_claim",
-    metadata: {
-      claimed_by_email: email,
-      trust_level: result.level,
-      trust_reason: result.reason,
-      source: "auto_sign_in",
-    },
-  });
-  if (insertErr) {
-    console.error(
-      "[auto-sign-in] suspicious_claim activity insert failed:",
-      insertErr
-    );
-    return;
-  }
-  console.log("[auto-sign-in] activity row inserted");
 
   try {
     const alert = slackSuspiciousClaim({
@@ -301,8 +260,10 @@ async function flagSuspiciousAutoSignIn(params: {
       trustReason: result.reason,
     });
     const slackResult = await sendSlackAlert(alert.text, alert.blocks);
-    console.log("[auto-sign-in] slack alert:", slackResult);
+    console.log("[auto-sign-in] suspicious_claim Slack:", slackResult);
   } catch (slackErr) {
-    console.error("[auto-sign-in] slack alert failed:", slackErr);
+    console.error("[auto-sign-in] suspicious_claim Slack failed:", slackErr);
   }
+
+  return result;
 }

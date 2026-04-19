@@ -128,18 +128,31 @@ export async function GET(request: Request) {
         entries.push(xmlEntry(`${SITE_URL}/aging-in-america/${ep.slug}`, 0.6, "monthly"));
       }
 
-      // Waiver library + pipeline-only states/programs
-      const emitted = new Set<string>();
-      const push = (path: string, priority: number, freq: string) => {
-        const url = `${SITE_URL}${path}`;
-        if (emitted.has(url)) return;
-        emitted.add(url);
-        entries.push(xmlEntry(url, priority, freq));
-      };
+      // Waiver library
+      for (const state of allStates) {
+        const stateUrl = buildStateUrl(state.id);
+        entries.push(xmlEntry(`${SITE_URL}${stateUrl}`, 0.5, "monthly"));
+        if (state.id !== "texas") {
+          entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
+        }
+        for (const program of state.programs ?? []) {
+          const programUrl = buildProgramUrl(state.id, program.id);
+          entries.push(xmlEntry(`${SITE_URL}${programUrl}`, 0.5, "monthly"));
+          entries.push(xmlEntry(`${SITE_URL}${programUrl}/checklist`, 0.4, "monthly"));
+          if (program.forms?.length > 0) {
+            entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
+          }
+        }
+      }
 
-      // Identify pipeline-only state slugs (in pipelineDrafts, not in waiver-library, not regions)
+      // Pipeline-only states (e.g. DC today): states that exist in pipelineDrafts but NOT in
+      // waiver-library. Emit state URL + program URLs. No forms URL — the forms page reads
+      // waiver-library data these states lack.
+      // Skipping pipeline-only *programs* inside waiver-library states (a separate ticket):
+      // Texas pipeline drafts use v3 IDs (e.g. "star-plus-medicaid-hcbs") while waiver-library
+      // uses legacy IDs ("star-plus-home-and-community-based-services"). A naive dedup wouldn't
+      // catch these collisions and would emit duplicate redirect-only URLs.
       const wlSlugs = new Set(allStates.map((s) => s.id));
-      const pipelineOnlySlugs: string[] = [];
       for (const [abbrev, drafts] of Object.entries(pipelineDrafts)) {
         if (drafts?.isRegion === true) continue;
         const slug = ABBREV_TO_SLUG[abbrev];
@@ -147,41 +160,10 @@ export async function GET(request: Request) {
           console.warn(`[api/sitemap] pipeline abbrev "${abbrev}" has no slug mapping; skipping`);
           continue;
         }
-        if (!wlSlugs.has(slug)) pipelineOnlySlugs.push(slug);
-      }
-
-      // Waiver-library states: state URL + forms URL + waiver programs + pipeline-orphan programs
-      for (const state of allStates) {
-        push(buildStateUrl(state.id), 0.5, "monthly");
-        if (state.id !== "texas") {
-          push(`/senior-benefits/forms/${state.id}`, 0.4, "monthly");
-        }
-        const wlProgramIds = new Set<string>();
-        for (const program of state.programs ?? []) {
-          wlProgramIds.add(program.id);
-          const programUrl = buildProgramUrl(state.id, program.id);
-          push(programUrl, 0.5, "monthly");
-          push(`${programUrl}/checklist`, 0.4, "monthly");
-          if (program.forms?.length > 0) {
-            push(`${programUrl}/forms`, 0.4, "monthly");
-          }
-        }
-        // Pipeline-only programs inside a waiver-library state (e.g. TX v3 drafts not in waiver-library)
-        const stateAbbrev = SLUG_TO_ABBREV[state.id];
-        const pipelinePrograms = stateAbbrev ? pipelineDrafts[stateAbbrev]?.programs ?? [] : [];
-        for (const draft of pipelinePrograms) {
-          if (wlProgramIds.has(draft.id)) continue;
-          push(`/senior-benefits/${state.id}/${draft.id}`, 0.4, "monthly");
-        }
-      }
-
-      // Pipeline-only states (e.g. DC): state URL + program URLs. No forms URL — forms page reads waiver-library data.
-      for (const slug of pipelineOnlySlugs) {
-        push(buildStateUrl(slug), 0.5, "monthly");
-        const abbrev = SLUG_TO_ABBREV[slug];
-        const programs = abbrev ? pipelineDrafts[abbrev]?.programs ?? [] : [];
-        for (const draft of programs) {
-          push(buildProgramUrl(slug, draft.id), 0.4, "monthly");
+        if (wlSlugs.has(slug)) continue;
+        entries.push(xmlEntry(`${SITE_URL}${buildStateUrl(slug)}`, 0.5, "monthly"));
+        for (const draft of drafts.programs ?? []) {
+          entries.push(xmlEntry(`${SITE_URL}${buildProgramUrl(slug, draft.id)}`, 0.4, "monthly"));
         }
       }
 

@@ -4,11 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { generateProviderSlug } from "@/lib/slugify";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
-import {
-  sendSlackAlert,
-  slackProviderClaimed,
-  slackSuspiciousClaim,
-} from "@/lib/slack";
+import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 import {
   scoreClaimTrust,
@@ -359,79 +355,13 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 6b-ii. Low-trust claim: flag in Activity Center + dedicated Slack alert.
-    // Dedup against recent one_click_access (augmented with trust metadata by the
-    // auto-sign-in hook) AND prior suspicious_claim rows — so the one-click flow
-    // doesn't double-alert when both auto-sign-in and finalize run for the same
-    // claim. OTP-only claims (no auto-sign-in) still write a standalone row.
-    if (trustResult.level === "low") {
-      const claimantEmail = user.email || "unknown";
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-
-      const [{ data: recentOneClick }, { data: existingFlag }] = await Promise.all([
-        db
-          .from("provider_activity")
-          .select("id")
-          .eq("provider_id", profileSlug)
-          .eq("event_type", "one_click_access")
-          .gte("created_at", fiveMinAgo)
-          .contains("metadata", { email: claimantEmail, trust_level: "low" })
-          .limit(1)
-          .maybeSingle(),
-        db
-          .from("provider_activity")
-          .select("id")
-          .eq("provider_id", profileSlug)
-          .eq("event_type", "suspicious_claim")
-          .gte("created_at", oneDayAgo)
-          .contains("metadata", { claimed_by_email: claimantEmail })
-          .limit(1)
-          .maybeSingle(),
-      ]);
-
-      if (!recentOneClick && !existingFlag) {
-        try {
-          const { error: activityInsertErr } = await db
-            .from("provider_activity")
-            .insert({
-              provider_id: profileSlug,
-              profile_id: profileId,
-              event_type: "suspicious_claim",
-              metadata: {
-                claimed_by_email: claimantEmail,
-                trust_level: trustResult.level,
-                trust_reason: trustResult.reason,
-                source: "claim_finalize",
-              },
-            });
-          if (activityInsertErr) {
-            console.error(
-              "[claim/finalize] suspicious_claim activity insert failed:",
-              activityInsertErr
-            );
-          }
-        } catch (activityErr) {
-          console.error(
-            "[claim/finalize] suspicious_claim activity insert failed:",
-            activityErr
-          );
-        }
-
-        try {
-          const alert = slackSuspiciousClaim({
-            providerName: providerDisplayName,
-            providerSlug: profileSlug,
-            claimedByEmail: claimantEmail,
-            trustLevel: trustResult.level,
-            trustReason: trustResult.reason,
-          });
-          await sendSlackAlert(alert.text, alert.blocks);
-        } catch {
-          // Non-blocking
-        }
-      }
-    }
+    // 6b-ii. Trust signal for one-click claims is now carried by the
+    // one_click_access event (written client-side by /api/activity/track)
+    // and the 🚩 Suspicious Claim Slack alert is fired by /api/auth/auto-sign-in.
+    // finalize only persists `claim_trust_level` on business_profiles; it
+    // intentionally does NOT write a separate activity row or Slack alert to
+    // avoid duplicates in the one-click flow. OTP-only claims are covered as a
+    // followup.
 
     // 6c. Loops: provider claimed (fire-and-forget)
     try {

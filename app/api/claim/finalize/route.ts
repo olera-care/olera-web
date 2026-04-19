@@ -4,8 +4,19 @@ import { createClient } from "@supabase/supabase-js";
 import { generateProviderSlug } from "@/lib/slugify";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
-import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
+import {
+  sendSlackAlert,
+  slackProviderClaimed,
+  slackSuspiciousClaim,
+} from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
+
+export const maxDuration = 30;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -146,26 +157,41 @@ export async function POST(request: Request) {
 
     // 3. Check if business_profile already exists for this provider
     // First try by source_provider_id (olera-providers linked profiles)
+    type ExistingProfile = {
+      id: string;
+      claim_state: string | null;
+      account_id: string | null;
+      slug: string;
+      display_name: string | null;
+      city: string | null;
+      state: string | null;
+      website: string | null;
+    };
+    const existingProfileColumns =
+      "id, claim_state, account_id, slug, display_name, city, state, website";
+
     let existingProfile = await db
       .from("business_profiles")
-      .select("id, claim_state, account_id, slug")
+      .select(existingProfileColumns)
       .eq("source_provider_id", providerId)
       .maybeSingle()
-      .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+      .then((r: { data: ExistingProfile | null }) => r.data);
 
     // Fallback: try by BP id directly (MedJobs ghost profiles and other BP-only providers)
     if (!existingProfile && UUID_RE.test(providerId)) {
       existingProfile = await db
         .from("business_profiles")
-        .select("id, claim_state, account_id, slug")
+        .select(existingProfileColumns)
         .eq("id", providerId)
         .in("type", ["organization", "caregiver"])
         .maybeSingle()
-        .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+        .then((r: { data: ExistingProfile | null }) => r.data);
     }
 
     let profileSlug: string;
     let profileId: string;
+    let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+    let providerDisplayName: string = providerId;
 
     if (existingProfile) {
       if (existingProfile.claim_state === "claimed" && existingProfile.account_id) {
@@ -174,6 +200,17 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
+
+      providerDisplayName = existingProfile.display_name || providerId;
+
+      trustResult = await scoreClaimTrust({
+        email: user.email || "",
+        providerName: providerDisplayName,
+        providerCity: existingProfile.city,
+        providerState: existingProfile.state,
+        providerDomain: extractDomainFromWebsite(existingProfile.website),
+      });
+
       // Update existing unclaimed profile
       // Everyone who completes email verification gets full access
       const { error: updateErr } = await db
@@ -182,6 +219,7 @@ export async function POST(request: Request) {
           account_id: accountId,
           claim_state: claimState,
           verification_state: "verified",
+          claim_trust_level: trustResult.level,
         })
         .eq("id", existingProfile.id);
 
@@ -205,6 +243,16 @@ export async function POST(request: Request) {
 
       profileSlug =
         provider.slug || generateProviderSlug(provider.provider_name, provider.state);
+      providerDisplayName = provider.provider_name;
+
+      trustResult = await scoreClaimTrust({
+        email: user.email || "",
+        providerName: provider.provider_name,
+        providerCity: provider.city,
+        providerState: provider.state,
+        providerCategory: provider.category || provider.provider_category,
+        providerDomain: extractDomainFromWebsite(provider.website),
+      });
 
       // Store Google metadata separately (read-only, external data)
       // Real reviews will come from the reviews table, not metadata
@@ -236,6 +284,7 @@ export async function POST(request: Request) {
           zip: provider.zipcode?.toString() || null,
           claim_state: claimState,
           verification_state: "verified",
+          claim_trust_level: trustResult.level,
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,
@@ -308,6 +357,66 @@ export async function POST(request: Request) {
       await sendSlackAlert(alert.text, alert.blocks);
     } catch {
       // Non-blocking
+    }
+
+    // 6b-ii. Low-trust claim: flag in Activity Center + dedicated Slack alert.
+    // Dedup with auto-sign-in hook: both paths can fire for the same claim, so
+    // suppress when a suspicious_claim row for this provider+email already exists
+    // within 24h.
+    if (trustResult.level === "low") {
+      const claimantEmail = user.email || "unknown";
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: existingFlag } = await db
+        .from("provider_activity")
+        .select("id")
+        .eq("provider_id", profileSlug)
+        .eq("event_type", "suspicious_claim")
+        .gte("created_at", oneDayAgo)
+        .contains("metadata", { claimed_by_email: claimantEmail })
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingFlag) {
+        try {
+          const { error: activityInsertErr } = await db
+            .from("provider_activity")
+            .insert({
+              provider_id: profileSlug,
+              profile_id: profileId,
+              event_type: "suspicious_claim",
+              metadata: {
+                claimed_by_email: claimantEmail,
+                trust_level: trustResult.level,
+                trust_reason: trustResult.reason,
+                source: "claim_finalize",
+              },
+            });
+          if (activityInsertErr) {
+            console.error(
+              "[claim/finalize] suspicious_claim activity insert failed:",
+              activityInsertErr
+            );
+          }
+        } catch (activityErr) {
+          console.error(
+            "[claim/finalize] suspicious_claim activity insert failed:",
+            activityErr
+          );
+        }
+
+        try {
+          const alert = slackSuspiciousClaim({
+            providerName: providerDisplayName,
+            providerSlug: profileSlug,
+            claimedByEmail: claimantEmail,
+            trustLevel: trustResult.level,
+            trustReason: trustResult.reason,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch {
+          // Non-blocking
+        }
+      }
     }
 
     // 6c. Loops: provider claimed (fire-and-forget)

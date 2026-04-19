@@ -101,6 +101,43 @@ export function slackProviderClaimed(opts: {
   };
 }
 
+export function slackSuspiciousClaim(opts: {
+  providerName: string;
+  providerSlug: string;
+  claimedByEmail: string;
+  trustLevel: "high" | "medium" | "low";
+  trustReason: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Suspicious claim: ${opts.providerName} by ${opts.claimedByEmail} (${opts.trustLevel})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚩 Suspicious Claim — Review", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Claimed by:*\n${opts.claimedByEmail}` },
+          { type: "mrkdwn", text: `*Trust level:*\n${opts.trustLevel}` },
+          { type: "mrkdwn", text: `*Reason:*\n${opts.trustReason}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?tab=providers&filter=suspicious_claim|Admin queue>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export function slackDispute(opts: {
   providerName: string;
   reportedBy: string;

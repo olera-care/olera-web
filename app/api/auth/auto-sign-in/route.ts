@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+} from "@/lib/claim-trust";
+import { sendSlackAlert, slackSuspiciousClaim } from "@/lib/slack";
+
+export const maxDuration = 30;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * POST /api/auth/auto-sign-in
@@ -92,6 +101,24 @@ export async function POST(request: Request) {
       );
     }
 
+    // Score this sign-in for trust + flag if suspicious.
+    // Blocking (was `after()`, moved inline because Vercel preview was killing
+    // the post-response work before it completed). ~800ms added latency.
+    try {
+      console.log("[auto-sign-in] trust flag: starting", {
+        email: normalizedEmail,
+        claimSession,
+      });
+      await flagSuspiciousAutoSignIn({
+        db: supabaseAdmin,
+        email: normalizedEmail,
+        claimSession,
+      });
+      console.log("[auto-sign-in] trust flag: complete");
+    } catch (err) {
+      console.error("[auto-sign-in] trust flag failed:", err);
+    }
+
     return NextResponse.json({
       tokenHash: signInLink.properties.hashed_token,
       userId,
@@ -102,5 +129,180 @@ export async function POST(request: Request) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Score the email↔provider match for this one-click sign-in. If low-trust,
+ * write a provider_activity row and send a Slack alert (deduped per
+ * provider+email per 24h so repeated sign-ins don't spam).
+ */
+async function flagSuspiciousAutoSignIn(params: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any;
+  email: string;
+  claimSession: string;
+}) {
+  const { db, email, claimSession } = params;
+
+  if (!UUID_RE.test(claimSession)) {
+    console.log("[auto-sign-in] skip: claimSession not uuid");
+    return;
+  }
+
+  const { data: verif } = await db
+    .from("claim_verification_codes")
+    .select("provider_id")
+    .eq("claim_session", claimSession)
+    .limit(1)
+    .maybeSingle();
+
+  const providerId: string | undefined = verif?.provider_id;
+  if (!providerId) {
+    console.log("[auto-sign-in] skip: no provider_id for claim_session");
+    return;
+  }
+  console.log("[auto-sign-in] resolved provider_id:", providerId);
+
+  // Resolve provider context — prefer business_profiles, fall back to olera-providers.
+  let providerName: string | null = null;
+  let providerCity: string | null = null;
+  let providerState: string | null = null;
+  let providerWebsite: string | null = null;
+  let providerSlug: string = providerId;
+  let profileId: string | null = null;
+
+  let bp = await db
+    .from("business_profiles")
+    .select("id, slug, display_name, city, state, website")
+    .eq("source_provider_id", providerId)
+    .maybeSingle()
+    .then(
+      (r: {
+        data: {
+          id: string;
+          slug: string;
+          display_name: string | null;
+          city: string | null;
+          state: string | null;
+          website: string | null;
+        } | null;
+      }) => r.data
+    );
+
+  if (!bp && UUID_RE.test(providerId)) {
+    bp = await db
+      .from("business_profiles")
+      .select("id, slug, display_name, city, state, website")
+      .eq("id", providerId)
+      .in("type", ["organization", "caregiver"])
+      .maybeSingle()
+      .then(
+        (r: {
+          data: {
+            id: string;
+            slug: string;
+            display_name: string | null;
+            city: string | null;
+            state: string | null;
+            website: string | null;
+          } | null;
+        }) => r.data
+      );
+  }
+
+  if (bp) {
+    providerName = bp.display_name;
+    providerCity = bp.city;
+    providerState = bp.state;
+    providerWebsite = bp.website;
+    providerSlug = bp.slug;
+    profileId = bp.id;
+  } else {
+    const { data: op } = await db
+      .from("olera-providers")
+      .select("provider_name, city, state, website, slug")
+      .eq("provider_id", providerId)
+      .maybeSingle();
+    if (!op) {
+      console.log("[auto-sign-in] skip: no BP or olera-providers row for", providerId);
+      return;
+    }
+    providerName = op.provider_name;
+    providerCity = op.city;
+    providerState = op.state;
+    providerWebsite = op.website;
+    providerSlug = op.slug || providerId;
+  }
+
+  if (!providerName) {
+    console.log("[auto-sign-in] skip: providerName empty");
+    return;
+  }
+
+  console.log("[auto-sign-in] scoring:", { email, providerName });
+  const result = await scoreClaimTrust({
+    email,
+    providerName,
+    providerCity,
+    providerState,
+    providerDomain: extractDomainFromWebsite(providerWebsite),
+  });
+  console.log("[auto-sign-in] scored:", result);
+
+  if (result.level !== "low") {
+    console.log("[auto-sign-in] skip: not low trust");
+    return;
+  }
+
+  // Dedup: skip if we already flagged this provider+email in the last 24h.
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: existing } = await db
+    .from("provider_activity")
+    .select("id")
+    .eq("provider_id", providerSlug)
+    .eq("event_type", "suspicious_claim")
+    .gte("created_at", oneDayAgo)
+    .contains("metadata", { claimed_by_email: email })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    console.log("[auto-sign-in] skip: dedup match within 24h");
+    return;
+  }
+
+  const { error: insertErr } = await db.from("provider_activity").insert({
+    provider_id: providerSlug,
+    profile_id: profileId,
+    event_type: "suspicious_claim",
+    metadata: {
+      claimed_by_email: email,
+      trust_level: result.level,
+      trust_reason: result.reason,
+      source: "auto_sign_in",
+    },
+  });
+  if (insertErr) {
+    console.error(
+      "[auto-sign-in] suspicious_claim activity insert failed:",
+      insertErr
+    );
+    return;
+  }
+  console.log("[auto-sign-in] activity row inserted");
+
+  try {
+    const alert = slackSuspiciousClaim({
+      providerName,
+      providerSlug,
+      claimedByEmail: email,
+      trustLevel: result.level,
+      trustReason: result.reason,
+    });
+    const slackResult = await sendSlackAlert(alert.text, alert.blocks);
+    console.log("[auto-sign-in] slack alert:", slackResult);
+  } catch (slackErr) {
+    console.error("[auto-sign-in] slack alert failed:", slackErr);
   }
 }

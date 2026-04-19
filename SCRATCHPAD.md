@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **Flag Suspicious One-Click Sign-Ins** — PLAN READY, NOT STARTED (2026-04-18)
+  - Notion: [Flag suspicious one-click sign-ins for manual review](https://www.notion.so/Flag-suspicious-one-click-sign-ins-for-manual-review-3445903a0ffe81c6b6e6d3c91ec0ccae) (P1 🔥, Backend, ~1 day)
+  - Plan: `plans/suspicious-claim-flagging-plan.md`
+  - Score email↔provider at claim/finalize into `high`/`medium`/`low`, persist on `business_profiles.claim_trust_level`, surface `low` via Activity Center filter + Slack alert. Don't block provider.
+  - Hook point: `app/api/claim/finalize/route.ts` (single binding point)
+  - New files: migration + `lib/claim-trust.ts` (scorer) + `slackSuspiciousClaim` helper
+  - Admin UI: reuse Activity Center, add `suspicious_claim` event_type + filter option
+  - **Next**: TJ approval on plan → branch from `staging` → Phase 1 migrations
+
 - **Admin Directory Union** (branch: `admin-directory-union`) — PR #583 OPEN, READY FOR QA
   - PR: https://github.com/olera-care/olera-web/pull/583 → staging
   - Notion: [Fix admin directory search hiding orphan business_profiles](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe)

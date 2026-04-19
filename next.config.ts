@@ -121,20 +121,22 @@ const nextConfig: NextConfig = {
 
       // Tier 7: URL migration — /senior-benefits → /benefits (v1→v2 consolidation, 2026-04-14)
       // The pipeline is now the source of truth for state + program content, served at
-      // /benefits/:state/:program. Old /senior-benefits state URLs redirect 1:1. Old
-      // program URLs graceful-degrade to the state page because waiver-library IDs
-      // don't 1:1 match new pipeline IDs (ID normalization would require a lookup map
-      // — TJ explicitly chose no middleware).
+      // /benefits/:state/:program. State and program URLs redirect 1:1 so Google preserves
+      // program-level ranking signals instead of collapsing everything to the state page.
+      // The /benefits/[slug]/[program] page uses lib/program-data.ts::getEnrichedProgram which
+      // handles both waiver-library IDs and pipeline-only IDs via a fuzzy match — so existing
+      // /senior-benefits/:state/:benefit URLs (waiver-library IDs) resolve on the new page.
+      // /checklist and /forms sub-paths collapse to the parent (no sub-routes on new /benefits page).
       // NOTE: /senior-benefits root stays alive as the Benefits Hub landing page for
       // now. A follow-up will move it under /benefits.
       { source: "/senior-benefits/forms", destination: "/benefits", permanent: true },
       { source: "/senior-benefits/forms/:state", destination: "/benefits/:state", permanent: true },
       { source: "/senior-benefits/:state", destination: "/benefits/:state", permanent: true },
       { source: "/senior-benefits/:state/current", destination: "/benefits/:state", permanent: true },
-      { source: "/senior-benefits/:state/:benefit", destination: "/benefits/:state", permanent: true },
-      { source: "/senior-benefits/:state/:benefit/current", destination: "/benefits/:state", permanent: true },
-      { source: "/senior-benefits/:state/:benefit/checklist", destination: "/benefits/:state", permanent: true },
-      { source: "/senior-benefits/:state/:benefit/forms", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/:benefit", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
       // Texas shadow routes → /benefits/texas (state-level 1:1; program-level to state)
       { source: "/texas/benefits", destination: "/benefits/texas", permanent: true },
       { source: "/texas/benefits/:slug", destination: "/benefits/texas", permanent: true },

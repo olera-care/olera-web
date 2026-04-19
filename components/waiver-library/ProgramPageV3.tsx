@@ -15,6 +15,7 @@ import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
+import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -921,14 +922,14 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             <span>›</span>
             <Link href={`/benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>›</span>
-            <span className="text-gray-600">{program.shortName}</span>
+            <span className="text-gray-600">{getDisplayName(program, state)}</span>
           </nav>
 
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-tight">
                 <span className="relative inline">
-                  {program.shortName || program.name}
+                  {getDisplayName(program, state)}
                   <HandDrawnUnderline />
                 </span>
               </h1>

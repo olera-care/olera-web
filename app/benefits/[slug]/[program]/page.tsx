@@ -4,6 +4,7 @@ import { getStateById, allStates, type WaiverProgram, type StateData } from "@/d
 import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
 import { getRelatedArticles } from "@/lib/content";
+import { getDisplayName } from "@/lib/program-name";
 
 interface Props {
   params: Promise<{ slug: string; program: string }>;
@@ -126,7 +127,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!resolved) return {};
 
   const { state, program } = resolved;
-  const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
+  const displayName = getDisplayName(program, state);
+  const title = `${displayName} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;
 
   return {
@@ -162,5 +164,20 @@ export default async function BenefitsProgramPage({ params }: Props) {
     })))
     .catch(() => []);
 
-  return <ProgramPageV3 program={program} state={state} relatedArticles={articles} />;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/benefits" },
+      { "@type": "ListItem", position: 2, name: state.name, item: `https://olera.care/benefits/${slug}` },
+      { "@type": "ListItem", position: 3, name: getDisplayName(program, state), item: `https://olera.care/benefits/${slug}/${programId}` },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <ProgramPageV3 program={program} state={state} relatedArticles={articles} />
+    </>
+  );
 }

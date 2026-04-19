@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStateById, getProgramById } from "@/data/waiver-library";
 import { getEnrichedProgram } from "@/lib/program-data";
+import { getDisplayName } from "@/lib/program-name";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { ExpandableText } from "@/components/waiver-library/ExpandableText";
@@ -28,7 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById("texas");
   const program = getEnrichedProgram("texas", oldId);
   if (!state || !program) return {};
-  const title = `${program.name} | Texas | Benefits Hub | Olera`;
+  const displayName = getDisplayName(program, state);
+  const title = `${displayName} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in Texas.`;
   return {
     title,
@@ -69,7 +71,22 @@ export default async function TexasBenefitPage({ params }: Props) {
       })))
       .catch(() => []);
 
-    return <ProgramPageV3 program={program} state={state} relatedArticles={articles} />;
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/benefits" },
+        { "@type": "ListItem", position: 2, name: state.name, item: `https://olera.care/benefits/texas` },
+        { "@type": "ListItem", position: 3, name: getDisplayName(program, state), item: `https://olera.care/texas/benefits/${slug}` },
+      ],
+    };
+
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        <ProgramPageV3 program={program} state={state} relatedArticles={articles} />
+      </>
+    );
   }
 
   const FEDERAL_KEYWORDS = [

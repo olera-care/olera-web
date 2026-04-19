@@ -566,7 +566,7 @@ async function main() {
     mergeRetryResults(results, retry.metadata, retry.existingByState);
     console.log(`\n  Regenerating pipeline-summary.ts + pipeline-drafts.ts...`);
     pipeline.generatePipelineSummary();
-    pipeline.generatePipelineDrafts();
+    pipeline.generatePipelineDrafts({ regenAll: true });
     console.log(`\n  Done.`);
     return;
   }
@@ -621,7 +621,7 @@ async function main() {
   // Regenerate summary + drafts TS
   console.log(`\n  Regenerating pipeline-summary.ts + pipeline-drafts.ts...`);
   pipeline.generatePipelineSummary();
-  pipeline.generatePipelineDrafts();
+  pipeline.generatePipelineDrafts({ regenAll: true });
 
   console.log(`\n  Done.`);
 }

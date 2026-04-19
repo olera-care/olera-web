@@ -47,7 +47,7 @@ const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { state: null, region: null, parentState: null, phase: "all", run: false };
+  const opts = { state: null, region: null, parentState: null, phase: "all", run: false, regenAll: false };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -56,6 +56,8 @@ function parseArgs() {
       case "--parent-state": opts.parentState = args[++i]?.toUpperCase(); break;
       case "--phase": opts.phase = args[++i]; break;
       case "--run":   opts.run = true; break;
+      case "--regen-index":
+      case "--regen-all": opts.regenAll = true; break;
       case "--help": case "-h": printUsage(); process.exit(0);
       default:
         if (!args[i].startsWith("-")) opts.state = opts.state || args[i].toUpperCase();
@@ -123,6 +125,8 @@ function printUsage() {
     node scripts/benefits-pipeline.js --region "Miami-Dade County, FL" --parent-state FL --run
     node scripts/benefits-pipeline.js --region "Greater Houston" --parent-state TX --run
     node scripts/benefits-pipeline.js --region "DMV" --run
+
+    node scripts/benefits-pipeline.js --regen-index     # Rebuild all per-state drafts.ts + barrel from drafts.json
 
   Phases:
     explore   Survey the landscape: what programs exist?
@@ -2072,6 +2076,13 @@ async function phaseFactcheck(entity, draftData) {
 
 async function main() {
   const opts = parseArgs();
+
+  if (opts.regenAll) {
+    generatePipelineDrafts({ regenAll: true });
+    console.log(`\n  Done (regen-index only).\n`);
+    return;
+  }
+
   const entity = resolveEntity(opts);
 
   if (!entity) {
@@ -2226,7 +2237,7 @@ async function main() {
   }
 
   // Auto-generate pipeline-summary.ts for the admin dashboard
-  generatePipelineSummary();
+  generatePipelineSummary(dirName);
 
   console.log(`\n  Done. ${cost.summary()}\n`);
 }
@@ -2235,7 +2246,7 @@ async function main() {
 // Auto-generate data/pipeline-summary.ts from all pipeline compare.json files
 // ═══════════════════════════════════════════════════════════════════════════
 
-function generatePipelineSummary() {
+function generatePipelineSummary(activeDirName = null) {
   const pipelineRoot = path.resolve(__dirname, "..", "data", "pipeline");
   if (!fs.existsSync(pipelineRoot)) return;
 
@@ -2353,162 +2364,213 @@ export const pipelineData: Record<string, PipelineStateSummary> = ${JSON.stringi
   fs.writeFileSync(outPath, tsContent);
   console.log(`\n  → Updated ${outPath} (${states.length} state${states.length > 1 ? "s" : ""})`);
 
-  // Also generate pipeline-drafts.ts for admin dashboard draft previews
-  generatePipelineDrafts();
+  // Also generate pipeline-drafts.ts barrel + the current state's per-state file
+  generatePipelineDrafts({ dirName: activeDirName });
 }
 
-function generatePipelineDrafts() {
-  const pipelineRoot = path.resolve(__dirname, "..", "data", "pipeline");
-  if (!fs.existsSync(pipelineRoot)) return;
+// ═══════════════════════════════════════════════════════════════════════════
+// Pipeline drafts generator — partitioned per state
+// ═══════════════════════════════════════════════════════════════════════════
 
-  const dirs = fs.readdirSync(pipelineRoot).filter((d) => {
-    return fs.statSync(path.join(pipelineRoot, d)).isDirectory() &&
-      fs.existsSync(path.join(pipelineRoot, d, "drafts.json"));
-  });
+/**
+ * Read a per-state drafts.json and produce a cleaned entry suitable for the
+ * runtime map. Returns null when the state has no valid drafts.
+ *
+ * Cleaning:
+ *   - drop programs with `_error` / `_parseError`
+ *   - strip the `_raw` field
+ *   - repair incomeTable: require numeric householdSize + monthlyLimit; drop
+ *     empty tables
+ *
+ * Preserves: `/^[A-Z]{2}$/` state vs. region keying (regions use entitySlug).
+ */
+function cleanStateEntry(dirName, pipelineRoot) {
+  const draftsPath = path.join(pipelineRoot, dirName, "drafts.json");
+  if (!fs.existsSync(draftsPath)) return null;
 
-  if (!dirs.length) return;
-
-  const entries = {};
-  for (const dirName of dirs) {
-    const drafts = JSON.parse(
-      fs.readFileSync(path.join(pipelineRoot, dirName, "drafts.json"), "utf-8")
-    );
-
-    const programs = (drafts.programs || [])
-      .filter((p) => !p._error && !p._parseError)
-      .map((p) => {
-        // Strip _raw and keep the structured draft content
-        const { _raw, ...clean } = p;
-        // Clean income table rows — LLM sometimes adds extra fields or non-numeric values
-        if (clean.structuredEligibility?.incomeTable) {
-          clean.structuredEligibility.incomeTable = clean.structuredEligibility.incomeTable
-            .filter((row) => typeof row.householdSize === "number" && typeof row.monthlyLimit === "number")
-            .map((row) => ({
-              householdSize: row.householdSize,
-              monthlyLimit: row.monthlyLimit,
-              ...(row.annualLimit && typeof row.annualLimit === "number" ? { annualLimit: row.annualLimit } : {}),
-            }));
-          // Drop empty tables
-          if (clean.structuredEligibility.incomeTable.length === 0) {
-            clean.structuredEligibility.incomeTable = null;
-          }
+  const drafts = JSON.parse(fs.readFileSync(draftsPath, "utf-8"));
+  const programs = (drafts.programs || [])
+    .filter((p) => !p._error && !p._parseError)
+    .map((p) => {
+      const { _raw, ...clean } = p;
+      if (clean.structuredEligibility?.incomeTable) {
+        clean.structuredEligibility.incomeTable = clean.structuredEligibility.incomeTable
+          .filter((row) => typeof row.householdSize === "number" && typeof row.monthlyLimit === "number")
+          .map((row) => ({
+            householdSize: row.householdSize,
+            monthlyLimit: row.monthlyLimit,
+            ...(row.annualLimit && typeof row.annualLimit === "number" ? { annualLimit: row.annualLimit } : {}),
+          }));
+        if (clean.structuredEligibility.incomeTable.length === 0) {
+          clean.structuredEligibility.incomeTable = null;
         }
-        return clean;
-      });
+      }
+      return clean;
+    });
 
-    if (programs.length > 0) {
-      // Key: state code for states (backwards compat), slug for regions
-      const isState = /^[A-Z]{2}$/.test(dirName);
-      const key = isState ? dirName : (drafts.entitySlug || dirName);
+  if (!programs.length) return null;
 
-      entries[key] = {
-        draftedAt: (drafts.draftedAt || "").split("T")[0],
-        programs,
-        stateOverview: drafts.stateOverview || null,
-        // Region metadata (null for states)
-        ...(isState ? {} : {
-          regionName: drafts.entity || dirName,
-          parentState: drafts.state || null,
-          slug: drafts.entitySlug || dirName,
-          isRegion: true,
-        }),
-      };
-    }
-  }
+  const isState = /^[A-Z]{2}$/.test(dirName);
+  const key = isState ? dirName : (drafts.entitySlug || dirName);
 
-  if (!Object.keys(entries).length) return;
+  const entry = {
+    draftedAt: (drafts.draftedAt || "").split("T")[0],
+    programs,
+    stateOverview: drafts.stateOverview || null,
+    ...(isState ? {} : {
+      regionName: drafts.entity || dirName,
+      parentState: drafts.state || null,
+      slug: drafts.entitySlug || dirName,
+      isRegion: true,
+    }),
+  };
 
-  const tsContent = `/**
- * Pipeline draft content — AUTO-GENERATED by benefits-pipeline.js
- * Do not edit manually. Regenerated after each pipeline draft run.
+  return { dirName, key, entry };
+}
+
+/**
+ * Convert a directory name into a safe JS identifier for import aliases.
+ * Always prefixed with `_` so leading digits ("90210-zip") and reserved
+ * words ("class", "import") can't produce a syntactically invalid binding.
+ *   "AK" → "_AK"
+ *   "miami-dade-county-fl" → "_miami_dade_county_fl"
+ *   "90210-zip" → "_90210_zip"
+ */
+function identSafe(dirName) {
+  return "_" + dirName.replace(/[^A-Za-z0-9_]/g, "_");
+}
+
+/**
+ * Write a single per-state file at data/pipeline/{dirName}/drafts.ts.
+ * Atomic: writes to a .tmp file then renames, so partial writes can't corrupt
+ * a previously-good file.
+ */
+function writePerStateDraftFile(record) {
+  const body = `/**
+ * Pipeline drafts for ${record.dirName} — AUTO-GENERATED by scripts/benefits-pipeline.js.
+ * Do not edit manually. Regenerated from data/pipeline/${record.dirName}/drafts.json
+ * after each pipeline run for this state, or via --regen-index.
  *
  * Last updated: ${new Date().toISOString()}
  */
+import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
-export interface PipelineDraft {
-  id: string;
-  name: string;
-  shortName: string;
-  tagline: string;
-  programType: string;
-  complexity: string;
-  intro: string;
-  savingsRange: string;
-  savingsSource: string;
-  savingsVerified: boolean;
-  structuredEligibility?: {
-    summary: string[];
-    ageRequirement?: string | null;
-    incomeTable?: { householdSize: number; monthlyLimit: number }[] | null;
-    assetLimits?: {
-      individual?: number | null;
-      couple?: number | null;
-      countedAssets?: string[] | null;
-      exemptAssets?: string[] | null;
-      homeEquityCap?: number | null;
-    } | null;
-    functionalRequirement?: string | null;
-    otherRequirements?: string[];
-    povertyLevelReference?: string | null;
-  };
-  applicationGuide?: {
-    method: string;
-    summary: string;
-    steps?: { step: number; title: string; description: string }[];
-    processingTime?: string | null;
-    waitlist?: string | null;
-    tip?: string | null;
-    urls?: { label: string; url: string }[];
-  };
-  contentSections?: { type: string; [key: string]: unknown }[];
-  faqs?: { question: string; answer: string }[];
-  phone?: string | null;
-  sourceUrl?: string | null;
-  // v3 fields
-  documentsNeeded?: string[] | null;
-  contacts?: { label: string; description?: string | null; phone?: string | null; hours?: string | null }[] | null;
-  applicationNotes?: string[] | null;
-  relatedPrograms?: string[] | null;
-  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
-  layoutIntent?: {
-    aboutHighlight?: string | null;
-    eligibilityDisplay?: string | null;
-    applyDisplay?: string | null;
-    hasLocationFinder?: boolean;
-    hasDocumentChecklist?: boolean;
-    visualTone?: string | null;
-  } | null;
-  icon?: string | null;
-  contentStatus: string;
-  draftedAt: string;
-  geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
+export const drafts: PipelineStateDrafts = ${JSON.stringify(record.entry, null, 2)};
+`;
+
+  const outDir = path.resolve(__dirname, "..", "data", "pipeline", record.dirName);
+  const outPath = path.join(outDir, "drafts.ts");
+  const tmpPath = outPath + ".tmp";
+  fs.writeFileSync(tmpPath, body);
+  fs.renameSync(tmpPath, outPath);
 }
 
-export interface PipelineStateOverview {
-  intro: string;
-  startHere: { name: string; programId: string; why: string }[];
-  byNeed: { need: string; programs: string[]; description: string }[];
-  quickFacts: string[];
-  resourcesVsBenefits: string;
-}
+/**
+ * Write the data/pipeline-drafts.ts barrel. Always rewrites from the full
+ * current set of records (cheap, order-stable, picks up added/removed dirs
+ * automatically).
+ */
+function writeDraftsBarrel(records) {
+  const sorted = [...records].sort((a, b) => a.dirName.localeCompare(b.dirName));
 
-export interface PipelineStateDrafts {
-  draftedAt: string;
-  programs: PipelineDraft[];
-  stateOverview?: PipelineStateOverview | null;
-  // Region metadata (present for non-state entities)
-  regionName?: string;
-  parentState?: string | null;
-  slug?: string;
-  isRegion?: boolean;
-}
+  // Assert no import-identifier collisions
+  const seenIdent = new Map();
+  for (const r of sorted) {
+    const ident = identSafe(r.dirName);
+    if (seenIdent.has(ident)) {
+      throw new Error(
+        `Barrel generation aborted: dir names '${seenIdent.get(ident)}' and '${r.dirName}' both sanitize to '${ident}'. Rename one.`
+      );
+    }
+    seenIdent.set(ident, r.dirName);
+  }
 
-export const pipelineDrafts: Record<string, PipelineStateDrafts> = ${JSON.stringify(entries, null, 2)};
+  const imports = sorted
+    .map((r) => `import { drafts as ${identSafe(r.dirName)} } from "./pipeline/${r.dirName}/drafts";`)
+    .join("\n");
+  const mapEntries = sorted
+    .map((r) => `  ${JSON.stringify(r.key)}: ${identSafe(r.dirName)},`)
+    .join("\n");
+
+  const body = `/**
+ * Pipeline draft content — barrel over per-state draft modules.
+ *
+ * The type re-export block below is hand-maintained. The import block and
+ * \`pipelineDrafts\` const are AUTO-GENERATED by scripts/benefits-pipeline.js
+ * from the directory listing of data/pipeline/*\\/drafts.ts. To re-render:
+ *   node scripts/benefits-pipeline.js --regen-index
+ *
+ * Last updated: ${new Date().toISOString()}
+ */
+export type {
+  PipelineDraft,
+  PipelineStateOverview,
+  PipelineStateDrafts,
+} from "./pipeline-drafts-types";
+
+import type { PipelineStateDrafts } from "./pipeline-drafts-types";
+
+// AUTO-GENERATED IMPORTS — BEGIN
+${imports}
+// AUTO-GENERATED IMPORTS — END
+
+// AUTO-GENERATED MAP — BEGIN
+export const pipelineDrafts: Record<string, PipelineStateDrafts> = {
+${mapEntries}
+};
+// AUTO-GENERATED MAP — END
 `;
 
   const outPath = path.resolve(__dirname, "..", "data", "pipeline-drafts.ts");
-  fs.writeFileSync(outPath, tsContent);
-  console.log(`  → Updated ${outPath} (${Object.keys(entries).length} state${Object.keys(entries).length > 1 ? "s" : ""} with drafts)`);
+  const tmpPath = outPath + ".tmp";
+  fs.writeFileSync(tmpPath, body);
+  fs.renameSync(tmpPath, outPath);
+}
+
+/**
+ * Main entry point for drafts generation.
+ *
+ *   generatePipelineDrafts({ dirName: "AL" })   → writes only AL/drafts.ts + barrel
+ *   generatePipelineDrafts({ regenAll: true })  → writes every state's drafts.ts + barrel
+ *   generatePipelineDrafts()                    → writes only the barrel
+ *
+ * The barrel is always rewritten: it's cheap, order-stable, and picks up
+ * directory additions/removals automatically.
+ */
+function generatePipelineDrafts({ dirName = null, regenAll = false } = {}) {
+  const pipelineRoot = path.resolve(__dirname, "..", "data", "pipeline");
+  if (!fs.existsSync(pipelineRoot)) return;
+
+  const allDirs = fs.readdirSync(pipelineRoot)
+    .filter((d) => {
+      const full = path.join(pipelineRoot, d);
+      return fs.statSync(full).isDirectory() && fs.existsSync(path.join(full, "drafts.json"));
+    })
+    .sort();
+
+  const allRecords = allDirs
+    .map((d) => cleanStateEntry(d, pipelineRoot))
+    .filter(Boolean);
+
+  if (!allRecords.length) return;
+
+  if (regenAll) {
+    for (const r of allRecords) writePerStateDraftFile(r);
+    writeDraftsBarrel(allRecords);
+    console.log(`  → Regenerated ${allRecords.length} per-state drafts.ts + barrel`);
+    return;
+  }
+
+  if (dirName) {
+    const record = allRecords.find((r) => r.dirName === dirName);
+    if (record) {
+      writePerStateDraftFile(record);
+      console.log(`  → Updated data/pipeline/${dirName}/drafts.ts`);
+    }
+  }
+
+  writeDraftsBarrel(allRecords);
+  console.log(`  → Updated data/pipeline-drafts.ts (${allRecords.length} entries)`);
 }
 
 module.exports = {

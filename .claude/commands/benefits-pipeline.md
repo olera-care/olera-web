@@ -104,7 +104,7 @@ node scripts/benefits-pipeline.js --region "DMV" --run
 3. `compare` — cross-references against `waiver-library.ts` (uses parent state data for regions)
 4. `classify` — determines program type, geographic scope, complexity ($0, local processing)
 5. `draft` — generates structured page content via Claude API (1 call per program)
-6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts` and `data/pipeline-drafts.ts`
+6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts`, writes `data/pipeline/{STATE}/drafts.ts`, and rewrites the `data/pipeline-drafts.ts` barrel. For a full refresh across every state (e.g. after an interface schema change), run `node scripts/benefits-pipeline.js --regen-index`.
 7. `factcheck` — **adversarially verifies drafted facts against fresh sources** (1 Perplexity query per program, ~$0.06/state). Writes `factcheck.json` with mismatches flagged by severity. This is the QA gate — every state run ends here.
 
 **Output:** State data goes to `data/pipeline/{STATE_CODE}/`, region data to `data/pipeline/{slug}/` (e.g., `data/pipeline/miami-dade-county-fl/`).

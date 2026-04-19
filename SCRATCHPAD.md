@@ -7,24 +7,60 @@
 
 ## Current Focus
 
-- **Flag Suspicious One-Click Sign-Ins** — PLAN READY, NOT STARTED (2026-04-18)
-  - Notion: [Flag suspicious one-click sign-ins for manual review](https://www.notion.so/Flag-suspicious-one-click-sign-ins-for-manual-review-3445903a0ffe81c6b6e6d3c91ec0ccae) (P1 🔥, Backend, ~1 day)
-  - Plan: `plans/suspicious-claim-flagging-plan.md`
-  - Score email↔provider at claim/finalize into `high`/`medium`/`low`, persist on `business_profiles.claim_trust_level`, surface `low` via Activity Center filter + Slack alert. Don't block provider.
-  - Hook point: `app/api/claim/finalize/route.ts` (single binding point)
-  - New files: migration + `lib/claim-trust.ts` (scorer) + `slackSuspiciousClaim` helper
-  - Admin UI: reuse Activity Center, add `suspicious_claim` event_type + filter option
-  - **Next**: TJ approval on plan → branch from `staging` → Phase 1 migrations
+### 2026-04-19 — Benefits SEO day (all 4 P1s shipped)
 
-- **Admin Directory Union** (branch: `admin-directory-union`) — PR #583 OPEN, READY FOR QA
-  - PR: https://github.com/olera-care/olera-web/pull/583 → staging
+Four PRs in sequence, each unblocking the next. Entire benefits-SEO quadrant of the P1 roadmap closed.
+
+- **Append state to program names** — MERGED ✅ (PR #595, 2026-04-19, staging @ `6791af5d`)
+  - New pure helper `lib/program-name.ts::getDisplayName(program, state)` with skip-suffix detection (state name OR 2-letter abbreviation as standalone word)
+  - Zero runtime deps — client-component-safe (doesn't pull waiver-library / pipeline-drafts into client bundle)
+  - Updates: `generateMetadata` title/OG on program pages (main + Texas parallel), `ProgramPageV3` H1 + breadcrumb last-crumb, `StatePageV3` program list rows (×2)
+  - New 3-item BreadcrumbList JSON-LD on both program routes (Hub → State → Program)
+  - /pre-test pivot: initially put helper in `lib/program-data.ts` but that would have bundle-bloated the client. Moved to pure-deps file. Lesson: audit helper's source file imports before importing into client components.
+  - Notion report: https://www.notion.so/3475903a0ffe81dd803dfa8ac160c87e
+
+- **Benefits URL Canonicalization** — MERGED ✅ (PR #592, 2026-04-19, staging @ `99556606`)
+  - Notion ticket literally asked for `robots: noindex`, but /explore revealed the Tier 7 redirects already made that a no-op. Real issue: `/senior-benefits/:state/:benefit` redirect dropped `:benefit`, sending Google to the state page. Plus sitemap emitted non-canonical `/senior-benefits/*` URLs.
+  - Fix: `next.config.ts` redirects preserve `:benefit`; `buildStateUrl/buildProgramUrl` emit canonical `/benefits/...` for non-Texas; `buildWaiverLibraryUrl` aligned
+  - Texas stays on parallel URL — TX_OLD_TO_NEW reconciliation is a separate ticket
+  - Notion report: https://www.notion.so/3475903a0ffe81ecac7ddf63709d7b9d
+
+- **Sitemap: Pipeline-Only States** — MERGED ✅ (PR #590, 2026-04-19, staging @ `ea4a541f`)
+  - Problem: `app/api/sitemap/route.ts` iterated waiver-library states only → DC (only pipeline-only state today) was invisible to Google
+  - Fix: added `pipelineDrafts` loop after waiver-library loop with `isRegion` filter; `SLUG_TO_ABBREV` / `ABBREV_TO_SLUG` maps mirrored from `lib/program-data.ts`
+  - /pre-test caught: orphan-programs block (ported from the dead shadow `app/sitemap.ts`) would have emitted ~12 redirect-only duplicate URLs for Texas because pipeline v3 IDs don't match waiver-library legacy IDs. Scoped down to pipeline-only STATES only.
+  - Notion report: https://www.notion.so/3475903a0ffe812ea201fa0a27411994
+
+- **Pipeline Drafts Partition** — MERGED ✅ (PR #587, 2026-04-19, staging @ `ce1ff9df`)
+  - 114,388 lines → 127-line barrel + 51 per-state `data/pipeline/{STATE}/drafts.ts` files
+  - New `data/pipeline-drafts-types.ts` (hand-maintained) breaks the circular import
+  - New `--regen-index` CLI flag on `scripts/benefits-pipeline.js` re-renders all per-state files
+  - Default pipeline runs now write only active state's drafts.ts + barrel
+  - Atomic tmp+rename writes; identSafe prefixes `_` to handle digit-leading/reserved-word region slugs
+  - Deep-equal of all 51 states against pre-partition monolith confirmed byte-identical
+  - Unblocks ~1,900 new benefits routes (category pages + program subpages)
+  - Out of scope (follow-up): `data/pipeline-summary.ts` (368 KB sibling, same pattern)
+  - Notion report: https://www.notion.so/3475903a0ffe8130ad1ff70833c836be
+
+### Next up (P1 🔥 queue)
+
+- **Category pages per state — Health / Financial / Food / Caregiver** — NOT STARTED
+  - ~1,900-route expansion. The epic that today's partition + sitemap + canonicalization + naming stack was all prereq for.
+  - Multi-day scope. Deserves a fresh session.
+
+### Standalone follow-ups (low priority)
+
+- `data/pipeline-summary.ts` (368 KB sibling monolith) — same partition pattern as PR #587. Not blocking anything.
+- Texas `/texas/benefits/:slug` URL reconciliation — requires TX_OLD_TO_NEW slug mapping awareness in `/benefits/[slug]/[program]` resolver.
+- Dead `/senior-benefits/*` route handlers in `app/senior-benefits/` — redirects make them unreachable; cleanup not urgent.
+- Dead `app/sitemap.ts` — shadowed by rewrite to `/api/sitemap`. Cleanup ticket.
+- `navigator.share` title in `ProgramPageV3` still uses `program.name` (not `getDisplayName`). Minor UX inconsistency.
+
+- **Admin Directory Union** (branch: `admin-directory-union`) — MERGED ✅ (PR #583, 2026-04-17)
   - Notion: [Fix admin directory search hiding orphan business_profiles](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe)
-  - Problem: admin directory queried `olera-providers` only — missed 172 orphan BPs like Aggie Assisted Living (live, claimed, active but invisible to admin)
-  - Fix scope (Option A, band-aid): search-triggered union with orphan BPs (`source_provider_id IS NULL, type IN (organization, caregiver)`). No changes to browse-without-search path, detail page, PATCH, or POST — defer to structural unification
-  - Added BP↔OP category mapping (snake_case `assisted_living` ↔ title-case `Assisted Living`) — pre-test caught that without this, Aggie would be dropped when admin filters by category
-  - UI: "User-created" badge on BP rows (renamed from "BP-only" — jargon), click-through opens public page in new tab, Delete action hidden on BP rows
-  - Also bundled `/slack-notes` slash command in the same PR (untracked meta)
-  - **Next**: TJ UI test on Vercel preview (search "Aggie Assisted Living" + Category=Assisted Living), then merge to staging
+  - Fix: search-triggered union with orphan BPs (`source_provider_id IS NULL, type IN (organization, caregiver)`); BP↔OP category mapping (snake_case ↔ title-case); "User-created" badge on BP rows, click-through opens public page, Delete hidden on BP rows
+  - Confirmed working in admin Activity Center (orphan BPs like `aggie-assisted-living-college-station-tx-166r` now visible with `suspicious_claim` flag)
+  - Also bundled `/slack-notes` slash command in same PR
 
 - **Organization Search Union Rewrite** — MERGED ✅ (PR #582, 2026-04-17)
   - Fixed MedJobs "Your organization" search for franchise locations (Home Instead Houston)

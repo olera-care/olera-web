@@ -1973,12 +1973,12 @@ function ProviderOnboardingContent() {
               </div>
 
               {/* Care Types (multi-select) */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <label className="block text-base font-semibold text-gray-900">
                   What services do you provide? <span className="text-red-500">*</span>
                 </label>
-                <p className="text-sm text-gray-500 -mt-1">Select all that apply</p>
-                <div className="grid grid-cols-2 gap-3">
+                <p className="text-sm text-gray-500 -mt-0.5">Select all that apply</p>
+                <div className="flex flex-wrap gap-2">
                   {CARE_TYPE_OPTIONS.map((type) => {
                     const isSelected = formData.careTypes.includes(type.id);
                     return (
@@ -1986,24 +1986,13 @@ function ProviderOnboardingContent() {
                         key={type.id}
                         type="button"
                         onClick={() => toggleCareType(type.id)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                        className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                           isSelected
-                            ? "border-primary-500 bg-primary-50 text-primary-700"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                            ? "bg-primary-50 border-primary-300 text-primary-700"
+                            : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
                         }`}
                       >
-                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? "border-primary-500 bg-primary-500"
-                            : "border-gray-300 bg-white"
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm font-medium">{type.label}</span>
+                        {type.label}
                       </button>
                     );
                   })}

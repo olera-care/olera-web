@@ -10,7 +10,8 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
-import type { Provider } from "@/lib/types/provider";
+// Note: We don't import the full Provider type - search only selects specific columns
+// to avoid JSONB fields that can cause React rendering errors
 import { useAuth } from "@/components/auth/AuthProvider";
 
 // ============================================================
@@ -123,8 +124,15 @@ function domainMatchesProviderIdentity(
   return exactMatch || nameContainsDomain || slugContainsDomain;
 }
 
-// Search result from olera-providers
-interface ProviderMatch extends Provider {
+// Search result from olera-providers (only includes columns we select in search query)
+interface ProviderMatch {
+  provider_id: string;
+  provider_name: string;
+  slug: string | null;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+  provider_images: string | null;
   _source: "olera-providers";
   _claimed: boolean;
   _emailMatch: boolean;
@@ -626,29 +634,41 @@ function ProviderOnboardingContent() {
       // ═══════════════════════════════════════════════════════
       // Query 1: olera-providers (scraped listings)
       // Run two separate queries and merge (safer than OR with special chars)
+      // Note: Only select columns we need - avoid JSONB columns (google_reviews_data, cms_data, ai_trust_signals)
+      // which can cause React rendering errors if accidentally spread into JSX
       // ═══════════════════════════════════════════════════════
+      const providerColumns = "provider_id, provider_name, slug, city, state, email, provider_images";
       const [nameMatchResult, emailMatchResult] = await Promise.all([
         // Name match
         supabase
           .from("olera-providers")
-          .select("*")
+          .select(providerColumns)
           .not("deleted", "is", true)
           .ilike("provider_name", `%${escapedName}%`)
           .limit(15),
         // Email match
         supabase
           .from("olera-providers")
-          .select("*")
+          .select(providerColumns)
           .not("deleted", "is", true)
           .eq("email", normalizedEmail)
           .limit(5),
       ]);
 
       // Merge and dedupe providers
-      const providerMap = new Map<string, Provider>();
+      type PartialProvider = {
+        provider_id: string;
+        provider_name: string;
+        slug: string | null;
+        city: string | null;
+        state: string | null;
+        email: string | null;
+        provider_images: string | null;
+      };
+      const providerMap = new Map<string, PartialProvider>();
       for (const p of [...(emailMatchResult.data || []), ...(nameMatchResult.data || [])]) {
         if (!providerMap.has(p.provider_id)) {
-          providerMap.set(p.provider_id, p as Provider);
+          providerMap.set(p.provider_id, p as PartialProvider);
         }
       }
       const providers = Array.from(providerMap.values());

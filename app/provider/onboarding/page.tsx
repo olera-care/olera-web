@@ -1096,14 +1096,13 @@ function ProviderOnboardingContent() {
                   value={formData.orgName}
                   onChange={(value) => {
                     setFormData(prev => ({ ...prev, orgName: value }));
-                    // Clear selected org and "create new" flag when user types (they're searching again)
+                    // Clear selected org when user types something different
                     if (selectedOrg && value !== selectedOrg.name) {
                       setSelectedOrg(null);
                     }
-                    // If they're changing the name after clicking "Create new", clear that flag too
-                    if (createNewSelected) {
-                      setCreateNewSelected(false);
-                    }
+                    // Note: We do NOT clear createNewSelected here.
+                    // User may be editing their org name, still intending to create new.
+                    // createNewSelected is only cleared when they SELECT an existing org from dropdown.
                   }}
                   onSelect={handleOrgSelect}
                   placeholder="e.g., Sunrise Senior Living"

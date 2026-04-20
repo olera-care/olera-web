@@ -138,6 +138,14 @@ export default function MedJobsApplyPage() {
   const [resultProfileId, setResultProfileId] = useState("");
   const [isExisting, setIsExisting] = useState(false);
 
+  // Returning user detection
+  const [returningUser, setReturningUser] = useState<{
+    displayName: string;
+    slug: string;
+  } | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const emailCheckRef = useRef<string>("");
+
   // About You
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -193,6 +201,42 @@ export default function MedJobsApplyPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Check for returning user when email changes (debounced)
+  useEffect(() => {
+    const trimmed = email.trim().toLowerCase();
+
+    // Skip if email is invalid or same as last check
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setReturningUser(null);
+      return;
+    }
+    if (trimmed === emailCheckRef.current) return;
+
+    const timer = setTimeout(async () => {
+      emailCheckRef.current = trimmed;
+      setCheckingEmail(true);
+      try {
+        const res = await fetch("/api/medjobs/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmed }),
+        });
+        const data = await res.json();
+        if (data.exists && data.completed) {
+          setReturningUser({ displayName: data.displayName, slug: data.slug });
+        } else {
+          setReturningUser(null);
+        }
+      } catch {
+        setReturningUser(null);
+      } finally {
+        setCheckingEmail(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [email]);
 
   /* ─── Navigation ─────────────────────────────────────────── */
 
@@ -530,6 +574,26 @@ export default function MedJobsApplyPage() {
               <div>
                 <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Email *</label>
                 <BottomLine value={email} onChange={setEmail} placeholder="sarah@university.edu" type="email" />
+                {/* Returning user detection */}
+                {returningUser && (
+                  <div className="mt-3 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <p className="text-sm text-emerald-800 mb-2">
+                      Welcome back, <span className="font-medium">{returningUser.displayName}</span>! You already have a profile with us.
+                    </p>
+                    <Link
+                      href="/portal/medjobs"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors"
+                    >
+                      Go to your dashboard
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                )}
+                {checkingEmail && (
+                  <p className="mt-2 text-xs text-gray-400">Checking...</p>
+                )}
               </div>
               <div>
                 <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Phone *</label>

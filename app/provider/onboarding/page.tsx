@@ -7,9 +7,12 @@ import Image from "next/image";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createAuthClient } from "@/lib/supabase/auth-client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
+import OtpInput from "@/components/auth/OtpInput";
+import { ReactiveHint } from "@/components/medjobs/Tooltip";
 // Note: We don't import the full Provider type - search only selects specific columns
 // to avoid JSONB fields that can cause React rendering errors
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -293,6 +296,24 @@ function ProviderOnboardingContent() {
     listingName: string;
   } | null>(null);
 
+  // OTP verification state
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const otpSentForScreen = useRef<string | null>(null); // Track which screen OTP was sent for
+
+  // Helper to reset all OTP state
+  const resetOtpState = useCallback(() => {
+    setOtpCode("");
+    setOtpSent(false);
+    setOtpSending(false);
+    setOtpError("");
+    setOtpVerifying(false);
+    otpSentForScreen.current = null;
+  }, []);
+
   // Exit URL - store referrer on initial load so Exit takes user back to where they came from
   const [exitUrl, setExitUrl] = useState("/");
 
@@ -353,6 +374,199 @@ function ProviderOnboardingContent() {
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
+
+  // Auto-send OTP when entering confirm-claim screen
+  useEffect(() => {
+    // Prevent double-send: only send if we haven't sent for this screen yet
+    if (screen === "confirm-claim" && otpSentForScreen.current !== "confirm-claim" && !otpSending && formData.email) {
+      otpSentForScreen.current = "confirm-claim";
+      handleSendOtp();
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Send OTP verification code
+  const handleSendOtp = async () => {
+    const email = formData.email.trim().toLowerCase();
+    if (!email) return;
+
+    if (!isSupabaseConfigured()) {
+      setOtpError("Authentication is not configured. Please contact support.");
+      return;
+    }
+
+    setOtpSending(true);
+    setOtpError("");
+
+    try {
+      const authClient = createAuthClient();
+      const { error } = await authClient.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+
+      if (error) {
+        // Provide user-friendly error messages
+        if (error.message.includes("rate limit") || error.message.includes("too many")) {
+          setOtpError("Too many attempts. Please wait a few minutes and try again.");
+        } else if (error.message.includes("not allowed") || error.message.includes("disabled")) {
+          setOtpError("Email verification is temporarily unavailable. Please try again later.");
+        } else if (error.message.includes("invalid") && error.message.includes("email")) {
+          setOtpError("Please enter a valid email address.");
+        } else {
+          setOtpError(error.message);
+        }
+        setOtpSending(false);
+        return;
+      }
+
+      setOtpSent(true);
+      setOtpSending(false);
+      setResendCooldown(60);
+    } catch (err) {
+      console.error("[handleSendOtp] Error:", err);
+      setOtpError("Failed to send verification code. Please check your connection and try again.");
+      setOtpSending(false);
+    }
+  };
+
+  // Verify OTP and claim existing listing
+  const handleVerifyAndClaim = async () => {
+    if (otpCode.length !== 8) return;
+    if (!selectedResult) return;
+
+    const email = formData.email.trim().toLowerCase();
+    const isOleraProvider = selectedResult._source === "olera-providers";
+    const providerId = isOleraProvider
+      ? selectedResult.provider_id
+      : selectedResult.source_provider_id || selectedResult.id;
+    const providerName = isOleraProvider
+      ? selectedResult.provider_name
+      : selectedResult.display_name;
+    const providerSlug = isOleraProvider
+      ? (selectedResult.slug || selectedResult.provider_id)
+      : selectedResult.slug;
+
+    setOtpVerifying(true);
+    setOtpError("");
+
+    try {
+      // 1. Verify OTP with Supabase
+      const authClient = createAuthClient();
+      const { error: verifyError } = await authClient.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: "email",
+      });
+
+      if (verifyError) {
+        if (verifyError.message.includes("expired")) {
+          setOtpError("This code has expired. Please request a new one.");
+        } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
+          setOtpError("Invalid code. Please check and try again.");
+        } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
+          setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
+        } else {
+          setOtpError(verifyError.message);
+        }
+        setOtpVerifying(false);
+        return;
+      }
+
+      // 2. Call claim-listing API
+      const res = await fetch("/api/provider/claim-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          providerEmail: selectedResult.email,
+          city: selectedResult.city || formData.city,
+          state: selectedResult.state || formData.state,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setOtpError(result.error || "Failed to claim listing. Please try again.");
+        setOtpVerifying(false);
+        return;
+      }
+
+      // 3. Redirect to provider dashboard
+      setOtpVerifying(false);
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleVerifyAndClaim] Error:", err);
+      setOtpError("Something went wrong. Please try again.");
+      setOtpVerifying(false);
+    }
+  };
+
+  // Verify OTP and create new listing
+  const handleVerifyAndCreate = async () => {
+    if (otpCode.length !== 8) return;
+
+    const email = formData.email.trim().toLowerCase();
+
+    setOtpVerifying(true);
+    setOtpError("");
+
+    try {
+      // 1. Verify OTP with Supabase
+      const authClient = createAuthClient();
+      const { error: verifyError } = await authClient.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: "email",
+      });
+
+      if (verifyError) {
+        if (verifyError.message.includes("expired")) {
+          setOtpError("This code has expired. Please request a new one.");
+        } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
+          setOtpError("Invalid code. Please check and try again.");
+        } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
+          setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
+        } else {
+          setOtpError(verifyError.message);
+        }
+        setOtpVerifying(false);
+        return;
+      }
+
+      // 2. Call create-listing API
+      const res = await fetch("/api/provider/create-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          orgName: formData.orgName.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          phone: formData.phone.trim() || null,
+          careTypes: formData.careTypes,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setOtpError(result.error || "Failed to create listing. Please try again.");
+        setOtpVerifying(false);
+        return;
+      }
+
+      // 3. Redirect to provider dashboard
+      setOtpVerifying(false);
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleVerifyAndCreate] Error:", err);
+      setOtpError("Something went wrong. Please try again.");
+      setOtpVerifying(false);
+    }
+  };
 
   // Handle "Sign in" click on a claimed listing
   // Store listing context and open auth with return URL
@@ -1565,43 +1779,9 @@ function ProviderOnboardingContent() {
       }
     }
 
-    try {
-      const res = await fetch("/api/provider/send-claim-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: "new",
-          email: formData.email,
-          orgName: formData.orgName,
-          city: formData.city,
-          state: formData.state,
-          phone: formData.phone || undefined,
-          careTypes: formData.careTypes,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          setActionError("Too many emails sent. Please wait a few minutes and try again.");
-          setActionLoading(null);
-          return;
-        }
-        throw new Error(data.error || "Failed to send verification email");
-      }
-
-      // Success - show check email screen
-      setActionLoading(null);
-      setActionError("");
-      setResendCooldown(60);
-      setResendError("");
-      setScreen("check-email");
-    } catch (err) {
-      console.error("[handlePreviewSubmit] Signup email error:", err);
-      setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
-      setActionLoading(null);
-    }
+    // Send OTP for verification
+    setActionLoading(null);
+    await handleSendOtp();
   };
 
   // Handle instant claim for NEW organization (business email - no verification needed)
@@ -2361,36 +2541,92 @@ function ProviderOnboardingContent() {
                         required
                       />
                     </div>
-                    <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
+                    <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification code to this email</p>
+                    <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
+                      Using your business email (e.g., you@yourcompany.com) speeds up verification.
+                    </ReactiveHint>
                   </>
                 )}
               </div>
 
-              {/* Care Types (multi-select) */}
-              <div className="space-y-2">
-                <label className="block text-base font-semibold text-gray-900">
-                  Services <span className="text-gray-400 font-normal">(select all that apply)</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {CARE_TYPE_OPTIONS.map((type) => {
-                    const isSelected = formData.careTypes.includes(type.id);
-                    return (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => toggleCareType(type.id)}
-                        className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                          isSelected
-                            ? "bg-primary-50 border-primary-300 text-primary-700"
-                            : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
-                        }`}
-                      >
-                        {type.label}
-                      </button>
-                    );
-                  })}
+              {/* Care Types (multi-select) - hide when OTP sent */}
+              {!otpSent && (
+                <div className="space-y-2">
+                  <label className="block text-base font-semibold text-gray-900">
+                    Services <span className="text-gray-400 font-normal">(select all that apply)</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {CARE_TYPE_OPTIONS.map((type) => {
+                      const isSelected = formData.careTypes.includes(type.id);
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => toggleCareType(type.id)}
+                          className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                            isSelected
+                              ? "bg-primary-50 border-primary-300 text-primary-700"
+                              : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
+                          }`}
+                        >
+                          {type.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* OTP Verification Section */}
+              {otpSent && (
+                <div className="space-y-4 pt-2">
+                  <div className="text-center">
+                    <p className="text-gray-500">
+                      We sent an 8-digit code to{" "}
+                      <span className="font-semibold text-gray-700">
+                        {(() => {
+                          const [local, domain] = formData.email.split("@");
+                          if (!domain) return "***@***.com";
+                          if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
+                          return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
+                        })()}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="py-2">
+                    <OtpInput
+                      length={8}
+                      value={otpCode}
+                      onChange={setOtpCode}
+                      disabled={otpVerifying}
+                      error={!!otpError}
+                    />
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                      Didn&apos;t get the code?{" "}
+                      {resendCooldown > 0 ? (
+                        <span className="text-gray-400">Resend in {resendCooldown}s</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpCode("");
+                            setOtpError("");
+                            handleSendOtp();
+                          }}
+                          disabled={otpSending}
+                          className="text-primary-600 hover:text-primary-700 font-medium underline hover:no-underline"
+                        >
+                          Resend code
+                        </button>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Error */}
               {actionError && (
@@ -2415,29 +2651,46 @@ function ProviderOnboardingContent() {
                   type="button"
                   onClick={() => {
                     setActionError("");
+                    resetOtpState();
                     setScreen(createNewSelected ? "search" : "results");
                   }}
                   className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
                 >
                   ← Back
                 </button>
-                <button
-                  type="button"
-                  onClick={isBusinessEmail(formData.email)
-                    ? handleInstantClaimNewOrg
-                    : handleSignInToCreateNewOrg}
-                  disabled={actionLoading === "preview-submit"}
-                  className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  {actionLoading === "preview-submit" ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
-                  )}
-                </button>
+                {otpSent ? (
+                  <button
+                    type="button"
+                    onClick={handleVerifyAndCreate}
+                    disabled={otpCode.length !== 8 || otpVerifying}
+                    className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {otpVerifying ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create listing"
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit()}
+                    disabled={actionLoading === "preview-submit" || otpSending}
+                    className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {(actionLoading === "preview-submit" || otpSending) ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {otpSending ? "Sending code..." : "Processing..."}
+                      </>
+                    ) : (
+                      "Create listing"
+                    )}
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -2450,29 +2703,46 @@ function ProviderOnboardingContent() {
               type="button"
               onClick={() => {
                 setActionError("");
+                resetOtpState();
                 setScreen(createNewSelected ? "search" : "results");
               }}
               className="px-4 py-3 text-base font-medium text-gray-600 border border-gray-300 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Back
             </button>
-            <button
-              type="button"
-              onClick={isBusinessEmail(formData.email)
-                ? handleInstantClaimNewOrg
-                : handleSignInToCreateNewOrg}
-              disabled={actionLoading === "preview-submit"}
-              className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {actionLoading === "preview-submit" ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
-              )}
-            </button>
+            {otpSent ? (
+              <button
+                type="button"
+                onClick={handleVerifyAndCreate}
+                disabled={otpCode.length !== 8 || otpVerifying}
+                className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {otpVerifying ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create listing"
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit()}
+                disabled={actionLoading === "preview-submit" || otpSending}
+                className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {(actionLoading === "preview-submit" || otpSending) ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {otpSending ? "Sending code..." : "Processing..."}
+                  </>
+                ) : (
+                  "Create listing"
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -2564,63 +2834,101 @@ function ProviderOnboardingContent() {
                 </div>
               </div>
 
-              {/* Claim confirmation */}
+              {/* Claim verification */}
               <div className="p-5 space-y-4">
                 {/* Heading */}
                 <div className="text-center">
                   <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
-                  {!canInstantClaim && (
+                  {otpSending ? (
+                    <p className="text-gray-500 mt-1.5">Sending verification code...</p>
+                  ) : otpSent ? (
                     <p className="text-gray-500 mt-1.5">
-                      Sign in or create an account to manage this listing on Olera.
+                      We sent an 8-digit code to{" "}
+                      <span className="font-semibold text-gray-700">
+                        {(() => {
+                          const [local, domain] = userEmail.split("@");
+                          if (!domain) return "***@***.com";
+                          if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
+                          return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
+                        })()}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 mt-1.5">
+                      We&apos;ll send a verification code to your email.
                     </p>
                   )}
                 </div>
 
-                {/* Flow A: Business email verified (subtle confirmation) */}
-                {canInstantClaim && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                    <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>
-                      <span className="text-gray-700 font-medium">{userEmail}</span>
-                      {" "}verified
-                    </span>
+                {/* OTP Input */}
+                {otpSent && (
+                  <div className="py-2">
+                    <OtpInput
+                      length={8}
+                      value={otpCode}
+                      onChange={setOtpCode}
+                      disabled={otpVerifying}
+                      error={!!otpError}
+                    />
                   </div>
                 )}
 
                 {/* Error */}
-                {actionError && (
+                {(otpError || actionError) && (
                   <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
                     <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                     </svg>
-                    <p className="text-sm text-red-700">{actionError}</p>
+                    <p className="text-sm text-red-700">{otpError || actionError}</p>
+                  </div>
+                )}
+
+                {/* Resend link */}
+                {otpSent && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                      Didn&apos;t get the code?{" "}
+                      {resendCooldown > 0 ? (
+                        <span className="text-gray-400">Resend in {resendCooldown}s</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpCode("");
+                            setOtpError("");
+                            handleSendOtp();
+                          }}
+                          disabled={otpSending}
+                          className="text-primary-600 hover:text-primary-700 font-medium underline hover:no-underline"
+                        >
+                          Resend code
+                        </button>
+                      )}
+                    </p>
                   </div>
                 )}
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-3">
                   <Button
-                    onClick={canInstantClaim ? handleInstantClaim : handleSignInToClaim}
-                    disabled={actionLoading === "confirm-claim"}
+                    onClick={handleVerifyAndClaim}
+                    disabled={otpCode.length !== 8 || !otpSent || otpVerifying}
                     className="w-full"
                   >
-                    {actionLoading === "confirm-claim" ? (
+                    {otpVerifying ? (
                       <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Processing...
+                        Claiming...
                       </span>
-                    ) : canInstantClaim ? (
-                      "Claim this listing"
                     ) : (
-                      "Sign in to claim"
+                      "Claim this listing"
                     )}
                   </Button>
                   <button
                     type="button"
                     onClick={() => {
                       setActionError("");
+                      resetOtpState();
                       // For pre-selected unclaimed orgs, go back to search (they skipped results)
                       setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
                     }}

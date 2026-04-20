@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.083Z
+ * Last updated: 2026-04-20T22:49:44.092Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -21,23 +21,32 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, Florida's SMMC-LTC waivers provide comprehensive home and community-based services through Medicaid. This includes adult day health care, attendant care, respite care, and case management — all designed to prevent nursing home placement.\n\nYour loved one must qualify medically (need help with daily activities like bathing, dressing, or medication management) and financially (income under $2,543/month, assets under $2,000). Because this program consolidates several former waivers including the Alzheimer's Disease Waiver and Consumer Directed Care Plus Waiver, there is a statewide waitlist.\n\nUnlike nursing home Medicaid which cannot have a waitlist, eligible applicants for home care can be placed on a waiting list. Those with greatest need may receive priority, but families should apply early even if immediate services aren't needed.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, Florida's SMMC-LTC waivers provide comprehensive home and community-based services through Medicaid. This includes adult day health care, attendant care, respite care, and case management, all designed to prevent nursing home placement.\n\nYour loved one must qualify medically (a CARES assessment confirming Nursing Facility Level of Care) and financially (income under $2,982/month for a single applicant, countable assets under $2,000 in 2026). Because this program consolidates several former waivers (Alzheimer's Disease, Nursing Home Diversion, Assisted Living for the Elderly, and Consumer Directed Care Plus), there is a statewide waitlist with a priority score from 1 to 7.\n\nUnlike nursing home Medicaid, which cannot have a waitlist, eligible applicants for home care are placed on a waiting list and prioritized by frailty. Families should apply early, even if immediate services aren't needed. If income exceeds the limit, a Qualified Income Trust (Miller Trust) is a standard legal workaround used by thousands of Floridians.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 65+, or 18+ with disability",
-          "Income under $2,543/month",
-          "Assets under $2,000",
-          "Need nursing home-level care",
+          "Age 65+ and Medicaid-eligible (or 18+ with disability)",
+          "Monthly income under $2,982 for a single applicant (2026)",
+          "Countable assets under $2,000",
+          "CARES assessment confirms Nursing Facility Level of Care",
           "Florida resident"
         ],
         "ageRequirement": "65+",
-        "incomeTable": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5964
+          }
+        ],
         "assetLimits": {
           "individual": 2000,
-          "couple": null,
+          "couple": 3000,
           "countedAssets": [
             "Bank accounts",
             "Stocks and bonds",
@@ -45,58 +54,67 @@ export const drafts: PipelineStateDrafts = {
             "Cash value life insurance"
           ],
           "exemptAssets": [
-            "Primary home (if equity under $752,000)",
+            "Primary home (equity cap $752,000 for single applicant; no cap if a spouse or dependent lives in the home)",
             "One vehicle",
             "Personal belongings",
             "Pre-need burial contracts"
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must require Nursing Facility Level of Care — determined by ability to complete daily activities like bathing, dressing, eating, toileting, plus cognitive or behavioral issues",
+        "functionalRequirement": "Must require Nursing Facility Level of Care (NFLOC), confirmed via an in-home CARES assessment. The assessment assigns a priority score from 1 to 7; only those scoring 4 or higher (or flagged 'imminent risk' at 7) are typically released from the waitlist.",
         "otherRequirements": [
           "Florida resident",
           "U.S. citizen or legal resident",
-          "Cannot have given away assets in past 5 years"
+          "60-month look-back: asset transfers at less than fair market value within 5 years trigger a penalty period (2026 penalty divisor: $10,645/month)",
+          "Community Spouse Resource Allowance: if one spouse applies and the other stays at home, the community spouse can keep up to $162,660 in assets (2026)"
         ],
-        "povertyLevelReference": "300% SSI"
+        "povertyLevelReference": "300% of the Federal Benefit Rate (FBR) — $2,982/month for a single applicant in 2026"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Department of Elder Affairs for clinical assessment and AHCA for financial eligibility — processing time not specified due to waitlist.",
+        "summary": "Three agencies, one journey. Start with your local Aging and Disability Resource Center (ADRC) for a waitlist screening; DOEA runs the medical CARES assessment; DCF handles the financial side; AHCA oversees the health plan you choose once you're enrolled.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact Department of Elder Affairs",
-            "description": "DOEA determines medical eligibility through clinical assessment. They handle the Nursing Facility Level of Care determination."
+            "title": "Call your local ADRC for a waitlist screening",
+            "description": "Call the statewide Elder Helpline at 1-800-96-ELDER (1-800-963-5337). They route you to the Aging and Disability Resource Center (ADRC) for your county. The ADRC does a telephonic screening that assigns a priority score from 1 to 7 based on frailty. Scores of 4 or higher (or 'imminent risk' at 7) are released from the waitlist faster."
           },
           {
             "step": 2,
-            "title": "Complete medical certification",
-            "description": "Submit AHCA Form 5000-3008 ('Medical Certification for Medicaid Long-Term Care Services and Patient Transfer Form')."
+            "title": "Complete the CARES assessment",
+            "description": "Once released from the waitlist, the Department of Elder Affairs (DOEA) sends a CARES nurse or social worker to your loved one's home for an in-person clinical evaluation. This confirms Nursing Facility Level of Care (NFLOC) eligibility."
           },
           {
             "step": 3,
-            "title": "Apply for Medicaid financial eligibility",
-            "description": "Contact AHCA for financial screening. Income exceeding $2,543/month may still qualify with an income trust."
+            "title": "Get AHCA Form 5000-3008 signed by the primary care physician",
+            "description": "This medical certification is a gatekeeper document: the application cannot proceed without a signed Form 3008 from your loved one's doctor."
           },
           {
             "step": 4,
-            "title": "Complete CARES assessment",
-            "description": "Comprehensive Assessment and Review for Long-Term Care Services Program determines final NFLOC eligibility."
+            "title": "Apply for financial eligibility through DCF",
+            "description": "Apply through the Department of Children and Families (DCF) via the ACCESS Florida portal. The 2026 income limit is $2,982/month for a single applicant. If income exceeds the limit, a Qualified Income Trust (Miller Trust) must be in place before DCF can approve."
           },
           {
             "step": 5,
-            "title": "Join waitlist if eligible",
-            "description": "Unlike nursing home placement, eligible applicants are placed on a waiting list. Priority given to those with greatest need."
+            "title": "Select a managed care plan",
+            "description": "Once medical and financial approvals are final, Florida Medicaid Choice Counseling will send a letter asking you to select a health plan (Sunshine Health, Humana, UnitedHealthcare, or similar). The plan is what actually delivers the home health aides, respite care, and adult day services."
           }
         ],
-        "processingTime": null,
-        "waitlist": "Yes — there is a waitlist for this program. Those with greatest need may receive priority.",
-        "tip": "Apply early even if you don't need services immediately — there is a waitlist and you can't predict when care needs will become urgent.",
+        "processingTime": "Highly variable, depending on waitlist position and priority score. Higher-scoring applicants move through faster.",
+        "waitlist": "Yes. Priority score from 1 to 7 determines release order; 4+ or 'imminent risk' 7 are typically enrolled first.",
+        "tip": "Apply early even if services aren't needed immediately. The waitlist uses a priority score system, so being in the queue matters even before urgent need hits.",
         "urls": [
           {
-            "label": "Official SMMC-LTC Program Page",
-            "url": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+            "label": "FL Elder Affairs — SMMC-LTC Program",
+            "url": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/"
+          },
+          {
+            "label": "Florida Medicaid Choice Counseling (plan selection)",
+            "url": "https://www.flmedicaidmanagedcare.com"
+          },
+          {
+            "label": "DCF ACCESS Florida (financial application)",
+            "url": "https://www.myflfamilies.com/services/access"
           }
         ]
       },
@@ -119,16 +137,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "AHCA SMMC-LTC Program",
-          "phone": null,
-          "description": "Official program information and financial eligibility",
-          "hours": "Contact via website"
+          "label": "Elder Helpline (start here)",
+          "phone": "1-800-963-5337",
+          "description": "Statewide entry point (1-800-96-ELDER). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
+          "hours": "Business hours"
         },
         {
-          "label": "Department of Elder Affairs",
-          "phone": null,
-          "description": "Medical eligibility and level of care determination",
-          "hours": "Contact for clinical assessment"
+          "label": "DCF ACCESS Florida (financial side)",
+          "phone": "1-866-762-2237",
+          "description": "Department of Children and Families — handles the income and asset review. Use this for Miller Trust questions or ACCESS Florida portal help.",
+          "hours": "Mon–Fri"
         },
         {
           "label": "Florida 2-1-1",
@@ -139,9 +157,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Multiple former HCBS waivers (Alzheimer's Disease Waiver, Nursing Home Diversion Waiver, Assisted Living for the Elderly Waiver, Consumer Directed Care Plus Waiver) have been consolidated into this single program",
-        "The 60-month Look-Back Period is strictly enforced — any asset transfers at less than fair market value within 5 years prior to application will result in denial and penalty period",
-        "Income exceeding $2,543/month may still qualify if applicant establishes an income trust — this workaround is not widely known",
-        "Home equity limit of $752,000 applies only if applicant lives in home or has intent to return home — this is separate from the $2,000 asset limit"
+        "60-month look-back: any asset transfers at less than fair market value within 5 years prior to application will result in a penalty period. 2026 penalty divisor is $10,645/month, meaning every $10,645 given away equals one month of ineligibility.",
+        "Income over $2,982/month may still qualify through a Qualified Income Trust (Miller Trust). This legal workaround is standard in Florida and is used by thousands of applicants; without it, being even $1 over results in denial.",
+        "Home equity cap of $752,000 applies only if the applicant is single and lives in the home (or has intent to return). If a spouse or dependent child lives there, the equity cap is waived entirely.",
+        "Community Spouse Resource Allowance: if one spouse applies while the other stays at home, the at-home spouse can keep up to $162,660 in assets in 2026 without affecting eligibility."
       ],
       "relatedPrograms": [
         "Florida Medicaid",
@@ -149,39 +168,108 @@ export const drafts: PipelineStateDrafts = {
         "Alzheimer's Disease Initiative",
         "Home Care for the Elderly"
       ],
-      "contentSections": [],
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "info",
+          "text": "How the waitlist works: your local ADRC screens applicants by phone and assigns a priority score from 1 (lowest need) to 7 (imminent risk). Scores of 4 or higher are released from the waitlist first. Applying early matters because the score-based queue rewards being in line before urgent need hits."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Over the income limit? A Qualified Income Trust (Miller Trust) is a standard Florida workaround. If gross income exceeds $2,982/month, the excess can be legally funneled through the trust so your loved one still qualifies. Without a Miller Trust in place, being even $1 over the limit results in denial."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Community Spouse Protection: if one spouse applies while the other stays at home, the at-home spouse can keep up to $162,660 in assets in 2026 (the Community Spouse Resource Allowance). This is a major relief for families worried about depleting all savings to qualify one spouse."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "60-month look-back is strictly enforced. Any assets gifted or sold for less than fair market value in the 5 years before applying trigger a penalty period. 2026 penalty divisor is $10,645: every $10,645 given away equals one month of Medicaid ineligibility. Plan early with an elder-law attorney if gifting is being considered."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional ADRC direct lines (skip the 800-number)",
+          "offices": [
+            {
+              "name": "Miami-Dade / Monroe (Alliance for Aging)",
+              "type": "adrc",
+              "phone": "(305) 670-6500",
+              "url": "https://www.allianceforaging.org"
+            },
+            {
+              "name": "Orlando / Central FL (Senior Resource Alliance)",
+              "type": "adrc",
+              "phone": "(407) 514-0019",
+              "url": "https://www.seniorresourcealliance.org"
+            },
+            {
+              "name": "Tampa / Hillsborough (Senior Connection Center)",
+              "type": "adrc",
+              "phone": "(800) 336-2226",
+              "url": "https://seniorconnectioncenter.org"
+            },
+            {
+              "name": "Jacksonville / NE FL (ElderSource)",
+              "type": "adrc",
+              "phone": "(888) 242-4464",
+              "url": "https://myeldersource.org"
+            },
+            {
+              "name": "Broward County",
+              "type": "adrc",
+              "phone": "(954) 745-9567",
+              "url": "https://www.adrcbroward.org"
+            },
+            {
+              "name": "Palm Beach / Treasure Coast",
+              "type": "adrc",
+              "phone": "(866) 684-5885",
+              "url": "https://www.aaapbtc.org"
+            },
+            {
+              "name": "St. Pete / Pinellas / Pasco",
+              "type": "adrc",
+              "phone": "(727) 570-9696",
+              "url": "https://www.agingcarefl.org"
+            }
+          ]
+        }
+      ],
       "faqs": [
         {
           "question": "Can my loved one keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your loved one lives there or intends to return home. However, home equity cannot exceed $752,000 in 2026. Home equity is calculated as current home value minus outstanding mortgage."
+          "answer": "Yes. The primary home is exempt from the $2,000 asset limit if your loved one lives there or has intent to return. Home equity cap is $752,000 in 2026 for a single applicant; if a spouse or dependent child lives in the home, the equity cap is waived entirely."
         },
         {
-          "question": "What if my loved one's income is $2,600/month — just over the limit?",
-          "answer": "Your loved one may still qualify by establishing an income trust. This allows applicants whose income exceeds $2,543/month to become eligible. Contact AHCA to discuss setting up an income trust during the application process."
+          "question": "What if my loved one's income is $3,200/month, just over the limit?",
+          "answer": "They can still qualify. Florida's income cap is $2,982/month in 2026, but a Qualified Income Trust (Miller Trust) is a standard legal tool that lets applicants over the limit funnel excess income through the trust and still qualify. Without it, even being $1 over results in denial. An elder-law attorney can set one up quickly."
         },
         {
-          "question": "How long is the waitlist really?",
-          "answer": "The research doesn't specify current wait times, but eligible individuals who meet clinical and financial requirements can be placed on a waiting list. Those with greatest need may receive priority. Unlike nursing home placement which cannot have a waitlist, this program does maintain one."
+          "question": "How long is the waitlist?",
+          "answer": "It varies by region and priority score. The ADRC screening assigns a score from 1 to 7 based on frailty, and those at 'imminent risk' (7) or with the highest care needs (4+) are released from the waitlist first. Apply early: the ranking rewards being in line before urgent need hits."
         },
         {
-          "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "Yes, but the research doesn't specify the exact process for representative applications. You'll need legal documents showing your authority to apply on their behalf. Contact AHCA to clarify what documentation is required."
+          "question": "Can I apply on behalf of my loved one?",
+          "answer": "Yes. You'll need a Durable Power of Attorney (DPOA), a Legal Guardianship order, or to be designated as an Authorized Representative on the DCF ACCESS Florida portal. Without one of these, the agencies can't share information or take direction from you."
         },
         {
           "question": "What happens if my loved one gave away money to qualify for Medicaid?",
-          "answer": "Asset transfers at less than fair market value within the 60 months prior to application will result in denial and a penalty period of ineligibility. This Look-Back Period is strictly enforced — there are very few exceptions."
+          "answer": "Florida strictly enforces a 60-month look-back. Any gifts or below-fair-market-value transfers in the 5 years before applying trigger a penalty period. The 2026 penalty divisor is $10,645: every $10,645 given away equals one month of ineligibility. Plan with an elder-law attorney before gifting if Medicaid is on the horizon."
         },
         {
           "question": "Can my loved one get both this program and nursing home Medicaid?",
-          "answer": "No, these are alternative programs. SMMC-LTC waivers are designed to provide home and community-based care as an alternative to nursing home placement. The goal is to help people avoid institutional care."
+          "answer": "No. SMMC-LTC (home and community services) and ICP (nursing home Medicaid) are alternatives, not both-at-once. The financial eligibility rules are the same, but a person is enrolled in one or the other based on whether they're living at home or in a facility."
         },
         {
-          "question": "What's the difference between DOEA and AHCA in this process?",
-          "answer": "Department of Elder Affairs (DOEA) handles medical eligibility and determines if your loved one needs nursing facility level of care. AHCA handles financial eligibility and overall program administration. You'll work with both agencies during the application process."
+          "question": "What do DOEA, DCF, and AHCA actually do in this process?",
+          "answer": "Three different agencies, three different jobs. DOEA (Department of Elder Affairs) runs the CARES assessment that confirms your loved one needs nursing-home level care. DCF (Department of Children and Families) handles the financial eligibility review through ACCESS Florida. AHCA (Agency for Health Care Administration) oversees the managed care health plans once your loved one is enrolled. Most caregivers start at the ADRC, which coordinates the first handoff."
         },
         {
           "question": "What if my loved one's care needs change after they're enrolled?",
-          "answer": "The program includes case management services that monitor changing needs. The research doesn't specify reassessment timelines, but managed care plans must adjust services based on individual need. Contact your assigned case manager when needs change."
+          "answer": "Reassessments happen annually (every 12 months) and any time there's a significant change in condition. The assigned managed care plan is required to adjust services based on reassessment results. Call your plan's case manager as soon as needs shift."
         }
       ],
       "layoutIntent": {
@@ -193,10 +281,13 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
-      "sourceUrl": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/",
+      "contentStatus": "under-review",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "TJ",
+      "reviewedAt": "2026-04-20",
+      "lastVerifiedDate": "2026-04-20"
     },
     {
       "id": "pace-comprehensive-care",

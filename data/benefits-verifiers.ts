@@ -24,6 +24,7 @@ interface VerifierOverride {
 export const PROGRAM_VERIFIERS: Record<string, VerifierOverride> = {
   "fl:weatherization-assistance-program": { slug: "tj-falohun", reviewedAt: "2026-04-20" },
   "fl:snap-food-benefits": { slug: "tj-falohun", reviewedAt: "2026-04-20" },
+  "fl:smmc-ltc-hcbs-waivers": { slug: "tj-falohun", reviewedAt: "2026-04-20" },
 };
 
 /** Per-state overrides for the state hub page, keyed by lowercase abbrev. */

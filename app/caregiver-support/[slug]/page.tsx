@@ -153,7 +153,6 @@ export default async function ResourceArticlePage({
   const knownReviewer = getAuthorByName(reviewerName);
   const reviewerSlug = knownReviewer?.slug;
   const reviewerAvatar = knownReviewer?.avatar ?? null;
-  const updatedAt = article?.updated_at ?? null;
   const authorSlug = knownAuthor?.slug;
   // Fall back to static author avatar when DB value is missing
   if (!authorAvatar && knownAuthor?.avatar) {

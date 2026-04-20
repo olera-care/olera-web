@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.097Z
+ * Last updated: 2026-04-20T23:39:07.866Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -21,7 +21,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 65+ and owns their New Jersey home, they can get 50% of their property taxes back — up to $6,500 per year. This means if they pay $10,000 in property taxes, they'll receive $5,000 back.\n\nStay NJ is designed for older homeowners with annual income below $500,000 who have lived in their home for the full previous year. Because one application (PAS-1) covers multiple New Jersey tax relief programs, the state automatically determines which benefits your loved one qualifies for — they may receive Stay NJ plus additional programs like ANCHOR or Senior Freeze for even more savings.",
+      "intro": "If your loved one is 65+ and owns their New Jersey home, they can get 50% of their property taxes back, up to $6,500 per year. This means if they pay $10,000 in property taxes, they'll receive $5,000 back.\n\nStay NJ is designed for older homeowners with annual income below $500,000 who have lived in their home for the full previous year. Because one application (PAS-1) covers multiple New Jersey tax relief programs, the state automatically determines which benefits your loved one qualifies for, they may receive Stay NJ plus additional programs like ANCHOR or Senior Freeze for even more savings.",
       "savingsRange": "$1,000 – $6,500/year in 2026",
       "savingsSource": "50% reimbursement of property taxes up to maximum $6,500 benefit",
       "savingsVerified": true,
@@ -47,7 +47,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply online at propertytaxreliefapp.nj.gov with ID verification — deadline is October 31.",
+        "summary": "Apply online at propertytaxreliefapp.nj.gov with ID verification, deadline is October 31.",
         "steps": [
           {
             "step": 1,
@@ -57,7 +57,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Apply online",
-            "description": "Go to propertytaxreliefapp.nj.gov and complete the PAS-1 form. This covers Stay NJ, ANCHOR, and Senior Freeze — the state determines which programs you qualify for."
+            "description": "Go to propertytaxreliefapp.nj.gov and complete the PAS-1 form. This covers Stay NJ, ANCHOR, and Senior Freeze, the state determines which programs you qualify for."
           },
           {
             "step": 3,
@@ -72,7 +72,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified in official sources",
         "waitlist": null,
-        "tip": "Apply online rather than by mail if you want direct deposit — it's faster and more secure than waiting for a check.",
+        "tip": "Apply online rather than by mail if you want direct deposit, it's faster and more secure than waiting for a check.",
         "urls": [
           {
             "label": "Online Application Portal",
@@ -107,9 +107,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The October 31 deadline is firm — late applications are not accepted for the tax year",
-        "One PAS-1 application automatically checks you for Stay NJ, ANCHOR, and Senior Freeze — you may qualify for multiple programs",
-        "Social Security disability alone does not qualify for Stay NJ (unlike some other relief programs) — you must meet the age requirement",
+        "The October 31 deadline is firm, late applications are not accepted for the tax year",
+        "One PAS-1 application automatically checks you for Stay NJ, ANCHOR, and Senior Freeze, you may qualify for multiple programs",
+        "Social Security disability alone does not qualify for Stay NJ (unlike some other relief programs), you must meet the age requirement",
         "Mobile homeowners are specifically excluded even if they pay property taxes or P.I.L.O.T. payments"
       ],
       "relatedPrograms": [
@@ -137,11 +137,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get Stay NJ and ANCHOR benefits at the same time?",
-          "answer": "The state determines which combination of benefits your loved one receives based on their PAS-1 application. Many people qualify for multiple programs simultaneously — Stay NJ, ANCHOR, and Senior Freeze can often be combined for maximum tax relief."
+          "answer": "The state determines which combination of benefits your loved one receives based on their PAS-1 application. Many people qualify for multiple programs simultaneously, Stay NJ, ANCHOR, and Senior Freeze can often be combined for maximum tax relief."
         },
         {
           "question": "What happens if my loved one's income is close to the $500,000 limit?",
-          "answer": "The income limit is based on the prior year's state tax return, so use that year's actual income. If your loved one's income fluctuates around the limit, apply anyway — the state will make the determination based on the specific tax year's income."
+          "answer": "The income limit is based on the prior year's state tax return, so use that year's actual income. If your loved one's income fluctuates around the limit, apply anyway, the state will make the determination based on the specific tax year's income."
         }
       ],
       "layoutIntent": {
@@ -175,7 +175,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and has lived in their New Jersey home since at least 2016, they may get reimbursed for property tax increases above what they paid in their first qualifying year. Income limit: $99,735 or less for 2025 applications (combined for married couples).\n\nThis isn't a tax freeze — it's a reimbursement program. Your loved one still pays the full property tax bill, but the state reimburses them for increases above their \"base year\" amount. Because New Jersey administers this through one combined application (PAS-1), your loved one can apply for Senior Freeze, ANCHOR, and Stay NJ benefits all at once.",
+      "intro": "If your loved one is 65+ and has lived in their New Jersey home since at least 2016, they may get reimbursed for property tax increases above what they paid in their first qualifying year. Income limit: $99,735 or less for 2025 applications (combined for married couples).\n\nThis isn't a tax freeze, it's a reimbursement program. Your loved one still pays the full property tax bill, but the state reimburses them for increases above their \"base year\" amount. Because New Jersey administers this through one combined application (PAS-1), your loved one can apply for Senior Freeze, ANCHOR, and Stay NJ benefits all at once.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -200,7 +200,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through the combined PAS-1 application at nj.gov/treasury/taxation/ptr/ — covers Senior Freeze, ANCHOR, and Stay NJ in one form.",
+        "summary": "Apply online through the combined PAS-1 application at nj.gov/treasury/taxation/ptr/, covers Senior Freeze, ANCHOR, and Stay NJ in one form.",
         "steps": [
           {
             "step": 1,
@@ -220,7 +220,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "The application deadline is strict — 2025 applications must be submitted by November 2, 2026. Don't wait until the last minute.",
+        "tip": "The application deadline is strict, 2025 applications must be submitted by November 2, 2026. Don't wait until the last minute.",
         "urls": [
           {
             "label": "NJ Property Tax Relief Application",
@@ -266,7 +266,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one apply for Senior Freeze and ANCHOR at the same time?",
-          "answer": "Yes — the PAS-1 application covers Senior Freeze, ANCHOR, and Stay NJ all in one form. The state will determine which programs your loved one qualifies for and send a letter explaining their benefits."
+          "answer": "Yes, the PAS-1 application covers Senior Freeze, ANCHOR, and Stay NJ all in one form. The state will determine which programs your loved one qualifies for and send a letter explaining their benefits."
         },
         {
           "question": "What if my loved one moved within New Jersey since 2016?",
@@ -274,7 +274,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does the income limit include both spouses?",
-          "answer": "Yes — if your loved ones are married or in a civil union and living together, their combined income cannot exceed $99,735 for 2025 applications. The limit applies to their total household income."
+          "answer": "Yes, if your loved ones are married or in a civil union and living together, their combined income cannot exceed $99,735 for 2025 applications. The limit applies to their total household income."
         },
         {
           "question": "What happens if my loved one missed the eligibility requirements for one year?",
@@ -502,7 +502,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ or disabled and lives in New Jersey, PAAD can dramatically reduce their prescription costs. Instead of paying full price for medications, they'll pay just $5 per generic drug and $7 per brand-name drug — PAAD covers the rest. This applies to all FDA-approved prescription medications, insulin, and insulin supplies.\n\nIncome limit for 2026: $54,943 or less if single, $62,390 or less if married. Because there are no asset limits, your loved one can qualify even if they own their home or have savings. The catch: if they're Medicare-eligible, they must enroll in a Medicare Part D prescription drug plan, and PAAD will pay the premium for qualifying low-cost plans.\n\nBecause PAAD works alongside Medicare Part D rather than replacing it, your loved one gets the broad coverage of Medicare's formulary with the low copays of a state assistance program. One team at the state level manages both the prescription benefits and Part D premium payments.",
+      "intro": "If your loved one is 65+ or disabled and lives in New Jersey, PAAD can dramatically reduce their prescription costs. Instead of paying full price for medications, they'll pay just $5 per generic drug and $7 per brand-name drug, PAAD covers the rest. This applies to all FDA-approved prescription medications, insulin, and insulin supplies.\n\nIncome limit for 2026: $54,943 or less if single, $62,390 or less if married. Because there are no asset limits, your loved one can qualify even if they own their home or have savings. The catch: if they're Medicare-eligible, they must enroll in a Medicare Part D prescription drug plan, and PAAD will pay the premium for qualifying low-cost plans.\n\nBecause PAAD works alongside Medicare Part D rather than replacing it, your loved one gets the broad coverage of Medicare's formulary with the low copays of a state assistance program. One team at the state level manages both the prescription benefits and Part D premium payments.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Estimated based on $5-7 copays versus typical Medicare Part D copays of $15-50+ per prescription for common medications",
       "savingsVerified": false,
@@ -537,7 +537,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at NJSaves.org or call 866-657-2835 for assistance — processing time not specified by the state.",
+        "summary": "Apply online at NJSaves.org or call 866-657-2835 for assistance, processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
@@ -562,7 +562,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your loved one is Medicare-eligible, don't skip the Part D enrollment step — PAAD won't cover medications without it, and the state can help you choose a qualifying low-premium plan.",
+        "tip": "If your loved one is Medicare-eligible, don't skip the Part D enrollment step, PAAD won't cover medications without it, and the state can help you choose a qualifying low-premium plan.",
         "urls": [
           {
             "label": "NJSaves Online Application",
@@ -607,10 +607,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PAAD only pays Medicare Part D premiums for specific low-cost plans at or near the regional benchmark — enrolling in a higher-premium plan on your own may disqualify you from premium assistance",
+        "PAAD only pays Medicare Part D premiums for specific low-cost plans at or near the regional benchmark, enrolling in a higher-premium plan on your own may disqualify you from premium assistance",
         "Income limits are updated annually based on federal guidelines, so use the current year's figures when applying",
-        "If your loved one's medication isn't covered by their Medicare Part D plan's formulary, you'll need to get an exception through Part D first — PAAD can't override formulary restrictions",
-        "PAAD is often confused with Senior Gold, which has higher income limits but different copay amounts — make sure you're applying for the right program"
+        "If your loved one's medication isn't covered by their Medicare Part D plan's formulary, you'll need to get an exception through Part D first, PAAD can't override formulary restrictions",
+        "PAAD is often confused with Senior Gold, which has higher income limits but different copay amounts, make sure you're applying for the right program"
       ],
       "relatedPrograms": [
         "Senior Gold (higher income limits, different copays)",
@@ -642,7 +642,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will owning a house or having savings disqualify my loved one?",
-          "answer": "No, PAAD has no asset limits. Your loved one can own their home, have bank accounts, investments, or other assets and still qualify. Only income matters for eligibility — $54,943 or less for singles, $62,390 or less for married couples in 2026."
+          "answer": "No, PAAD has no asset limits. Your loved one can own their home, have bank accounts, investments, or other assets and still qualify. Only income matters for eligibility, $54,943 or less for singles, $62,390 or less for married couples in 2026."
         },
         {
           "question": "What happens if my loved one moves from New Jersey to another state?",
@@ -650,7 +650,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get PAAD if they have Medicaid or are applying for it?",
-          "answer": "No, PAAD eligibility specifically excludes people who have Medicaid. If your loved one is considering both programs, compare the prescription benefits — Medicaid typically has very low copays already. If they lose Medicaid eligibility later, they can then apply for PAAD."
+          "answer": "No, PAAD eligibility specifically excludes people who have Medicaid. If your loved one is considering both programs, compare the prescription benefits, Medicaid typically has very low copays already. If they lose Medicaid eligibility later, they can then apply for PAAD."
         }
       ],
       "layoutIntent": {
@@ -678,7 +678,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 65+ and already gets New Jersey's prescription assistance (PAAD) or receives SSI, they qualify for up to $225/year off their electric and natural gas bills. The Lifeline Credit appears automatically on their utility bill — no monthly paperwork or vouchers to manage.\n\nFor 2026, your loved one qualifies if their annual gross income is below $54,943 (single) or $62,390 (married). They must be a residential electric or gas customer — the program doesn't cover oil, propane, or other heating sources. Only one person per household can receive the credit.\n\nSSI recipients get this benefit automatically in their monthly check and don't need to apply separately. Everyone else applies through the same NJSave application used for prescription assistance, making it a simple add-on to programs your loved one may already use.",
+      "intro": "If your loved one is 65+ and already gets New Jersey's prescription assistance (PAAD) or receives SSI, they qualify for up to $225/year off their electric and natural gas bills. The Lifeline Credit appears automatically on their utility bill, no monthly paperwork or vouchers to manage.\n\nFor 2026, your loved one qualifies if their annual gross income is below $54,943 (single) or $62,390 (married). They must be a residential electric or gas customer, the program doesn't cover oil, propane, or other heating sources. Only one person per household can receive the credit.\n\nSSI recipients get this benefit automatically in their monthly check and don't need to apply separately. Everyone else applies through the same NJSave application used for prescription assistance, making it a simple add-on to programs your loved one may already use.",
       "savingsRange": "Up to $225/year in 2026",
       "savingsSource": "Annual bill credit for eligible residential electric and/or natural gas customers",
       "savingsVerified": true,
@@ -710,7 +710,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Check if you need to apply",
-            "description": "SSI recipients get Lifeline Credit automatically in their monthly check — no application needed. If you receive MAA, MAO, or New Jersey Care, applications are mailed automatically each August."
+            "description": "SSI recipients get Lifeline Credit automatically in their monthly check, no application needed. If you receive MAA, MAO, or New Jersey Care, applications are mailed automatically each August."
           },
           {
             "step": 2,
@@ -768,10 +768,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "SSI recipients do not apply separately — the benefit is automatically included in their monthly SSI payment",
+        "SSI recipients do not apply separately, the benefit is automatically included in their monthly SSI payment",
         "Applications are automatically mailed each August to current MAA, MAO, and New Jersey Care beneficiaries",
         "Eligibility is checked as of July 1st or within the next 6 months of application",
-        "Only natural gas and electric utilities are covered — oil, propane, wood, and coal heating systems don't qualify"
+        "Only natural gas and electric utilities are covered, oil, propane, wood, and coal heating systems don't qualify"
       ],
       "relatedPrograms": [
         "Pharmaceutical Assistance to the Aged and Disabled (PAAD)",
@@ -786,11 +786,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No. Lifeline Credit only applies to residential electric and natural gas customers. Homes heated with oil, propane, wood, or coal don't qualify for this program. Look into LIHEAP energy assistance instead, which covers all heating sources."
         },
         {
-          "question": "What if both my loved ones live together — can they both apply?",
+          "question": "What if both my loved ones live together, can they both apply?",
           "answer": "No. Only one person per household can receive Lifeline Credit, even if both parents meet the age and income requirements. The application must be in the name of the person who pays the utility bills or their spouse."
         },
         {
-          "question": "My loved one gets SSI — do they still need to apply for Lifeline Credit?",
+          "question": "My loved one gets SSI, do they still need to apply for Lifeline Credit?",
           "answer": "No. SSI recipients get the Lifeline Credit automatically as part of their monthly SSI payment. They should not submit a separate application for this program."
         },
         {
@@ -799,14 +799,14 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How does the credit appear on the utility bill?",
-          "answer": "The annual credit of up to $225 appears directly on your loved one's electric and/or natural gas bill. There are no vouchers to redeem or separate payments to manage — the utility company applies the credit automatically."
+          "answer": "The annual credit of up to $225 appears directly on your loved one's electric and/or natural gas bill. There are no vouchers to redeem or separate payments to manage, the utility company applies the credit automatically."
         },
         {
           "question": "What happens if my loved one's income goes up after they're approved?",
           "answer": "Eligibility is typically checked annually as of July 1st. If your loved one's income rises above the limits ($54,943 for single, $62,390 for married), they'll need to report the change and may lose eligibility for the following year."
         },
         {
-          "question": "My loved one already gets the automatic application in the mail — do they still need to reapply each year?",
+          "question": "My loved one already gets the automatic application in the mail, do they still need to reapply each year?",
           "answer": "Yes. Even though MAA, MAO, and New Jersey Care beneficiaries receive applications automatically each August, they must complete and return the form annually to continue receiving the Lifeline Credit."
         },
         {
@@ -839,7 +839,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If you're providing daily care for a loved one with a chronic disability or illness in New Jersey, you may qualify for companion care, overnight help, adult day services, or even short-term facility placement to give you respite. Because this program covers in-home care, nursing services, and temporary placement options, your loved one can get the supervision they need while you take a break or handle other responsibilities.\n\nYour loved one must receive daily care from you (unpaid) and have functional impairments certified by their doctor. Income limit: $2,982/month for a single person, $5,964/month for married couples in 2026. Asset limit: $40,000 for single, $60,000 for couples. You'll pay a sliding scale co-pay of 0-25% based on income — families at the lowest income levels pay nothing.",
+      "intro": "If you're providing daily care for a loved one with a chronic disability or illness in New Jersey, you may qualify for companion care, overnight help, adult day services, or even short-term facility placement to give you respite. Because this program covers in-home care, nursing services, and temporary placement options, your loved one can get the supervision they need while you take a break or handle other responsibilities.\n\nYour loved one must receive daily care from you (unpaid) and have functional impairments certified by their doctor. Income limit: $2,982/month for a single person, $5,964/month for married couples in 2026. Asset limit: $40,000 for single, $60,000 for couples. You'll pay a sliding scale co-pay of 0-25% based on income, families at the lowest income levels pay nothing.",
       "savingsRange": "",
       "savingsSource": "Sliding scale service with 0-25% co-pay based on income",
       "savingsVerified": false,
@@ -889,7 +889,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Aging and Disability Resource Connection at 1-877-222-3737 to apply — no forms needed to start.",
+        "summary": "Call the Aging and Disability Resource Connection at 1-877-222-3737 to apply, no forms needed to start.",
         "steps": [
           {
             "step": 1,
@@ -914,7 +914,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Priority goes to families where the disabled person is at risk of nursing home placement due to caregiver burnout — mention this if it applies to your situation.",
+        "tip": "Priority goes to families where the disabled person is at risk of nursing home placement due to caregiver burnout, mention this if it applies to your situation.",
         "urls": [
           {
             "label": "Official Program Information",
@@ -949,9 +949,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county has its own sponsor agency that administers the program locally — service availability and wait times may vary by county",
+        "Each county has its own sponsor agency that administers the program locally, service availability and wait times may vary by county",
         "You can switch from JACC or the Alzheimer's Adult Day Services Program to Statewide Respite, but you cannot participate in both simultaneously",
-        "The Caregiver Directed Option allows reimbursement for services or items that make caregiving easier — ask about this flexibility",
+        "The Caregiver Directed Option allows reimbursement for services or items that make caregiving easier, ask about this flexibility",
         "Emergency or planned respite is available once per year after enrollment, which can be valuable for urgent situations"
       ],
       "relatedPrograms": [
@@ -1050,7 +1050,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Find a participating center near you and contact them directly — they'll handle the subsidy application and income verification.",
+        "summary": "Find a participating center near you and contact them directly, they'll handle the subsidy application and income verification.",
         "steps": [
           {
             "step": 1,
@@ -1075,7 +1075,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Contact multiple centers since availability and copay amounts may vary — some may have immediate openings while others have waiting lists.",
+        "tip": "Contact multiple centers since availability and copay amounts may vary, some may have immediate openings while others have waiting lists.",
         "urls": [
           {
             "label": "Find Participating Centers",
@@ -1111,9 +1111,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income and asset limits aren't published in program brochures — contact the Division of Aging Services or participating centers for current financial thresholds",
-        "You must use centers that specifically participate in this program and specialize in dementia care — not all adult day centers qualify",
-        "Even with subsidies, you'll still pay an income-based copay — ask centers for specific amounts during your initial contact",
+        "Income and asset limits aren't published in program brochures, contact the Division of Aging Services or participating centers for current financial thresholds",
+        "You must use centers that specifically participate in this program and specialize in dementia care, not all adult day centers qualify",
+        "Even with subsidies, you'll still pay an income-based copay, ask centers for specific amounts during your initial contact",
         "The program has been operating since 1987 specifically to provide family caregiver relief through affordable specialized care"
       ],
       "relatedPrograms": [
@@ -1184,7 +1184,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and drives on New Jersey toll roads, this discount can cut their toll costs by 10% during off-peak hours on the NJ Turnpike and Garden State Parkway. Because there are no income or asset limits, any senior with a valid driver's license and vehicle registration can qualify — regardless of how much money they have.\n\nThe catch: your loved one must be actively driving the vehicle (not just a passenger), must have a New Jersey E-ZPass account specifically, and the discount only applies during off-peak hours (weekdays off-peak and weekends). There's also a separate program for four Delaware River bridges that provides an $18 credit if your loved one makes 18+ trips in a month.\n\nBecause the program requires annual renewal tied to vehicle registration dates, some enrollment periods may be less than 12 months. Your loved one can only have one discounted E-ZPass tag, and if anyone else uses it, they'll lose the discount permanently.",
+      "intro": "If your loved one is 65+ and drives on New Jersey toll roads, this discount can cut their toll costs by 10% during off-peak hours on the NJ Turnpike and Garden State Parkway. Because there are no income or asset limits, any senior with a valid driver's license and vehicle registration can qualify, regardless of how much money they have.\n\nThe catch: your loved one must be actively driving the vehicle (not just a passenger), must have a New Jersey E-ZPass account specifically, and the discount only applies during off-peak hours (weekdays off-peak and weekends). There's also a separate program for four Delaware River bridges that provides an $18 credit if your loved one makes 18+ trips in a month.\n\nBecause the program requires annual renewal tied to vehicle registration dates, some enrollment periods may be less than 12 months. Your loved one can only have one discounted E-ZPass tag, and if anyone else uses it, they'll lose the discount permanently.",
       "savingsRange": "",
       "savingsSource": "10% discount on off-peak tolls",
       "savingsVerified": false,
@@ -1216,7 +1216,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Get a New Jersey E-ZPass account",
-            "description": "If you don't have one, apply at www.ezpassnj.com or call 1-888-288-6865. You need a NJ account specifically — out-of-state E-ZPass won't work."
+            "description": "If you don't have one, apply at www.ezpassnj.com or call 1-888-288-6865. You need a NJ account specifically, out-of-state E-ZPass won't work."
           },
           {
             "step": 2,
@@ -1236,7 +1236,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified in official sources",
         "waitlist": null,
-        "tip": "You need separate applications for the Turnpike/Parkway discount and the bridge discount — they're run by different authorities.",
+        "tip": "You need separate applications for the Turnpike/Parkway discount and the bridge discount, they're run by different authorities.",
         "urls": [
           {
             "label": "NJTA Senior Discount Application",
@@ -1249,7 +1249,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Copy of valid driver's license (to prove age 65+ — no other ID accepted)",
+        "Copy of valid driver's license (to prove age 65+, no other ID accepted)",
         "Copy of passenger vehicle registration in your name or spouse's name",
         "NJ E-ZPass account number (13 digits)",
         "E-ZPass tag/transponder number (11 digits)",
@@ -1276,10 +1276,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must have a New Jersey E-ZPass account — accounts from other states won't work for this discount",
+        "You must have a New Jersey E-ZPass account, accounts from other states won't work for this discount",
         "Annual renewal is required and timed to your vehicle registration renewal date, which may be less than 12 months from enrollment",
-        "Only one discounted tag per senior — if family members use your tag, you'll permanently lose discount privileges",
-        "The discount only applies during off-peak hours — no savings during rush hour periods"
+        "Only one discounted tag per senior, if family members use your tag, you'll permanently lose discount privileges",
+        "The discount only applies during off-peak hours, no savings during rush hour periods"
       ],
       "relatedPrograms": [
         "NJ PAAD Prescription Assistance",
@@ -1298,7 +1298,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does this work during rush hour when tolls are highest?",
-          "answer": "No, the discount only applies during off-peak hours — weekdays off-peak and weekends. You won't save money during peak rush hour periods when tolls are most expensive."
+          "answer": "No, the discount only applies during off-peak hours, weekdays off-peak and weekends. You won't save money during peak rush hour periods when tolls are most expensive."
         },
         {
           "question": "Can my loved one get both the Turnpike discount and the bridge discount?",
@@ -1329,12 +1329,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "New Jersey offers 8 senior programs that could save your loved one hundreds to thousands of dollars annually. These range from property tax relief (up to $6,500 back through Stay NJ) to prescription drug assistance ($5-7 copays instead of full prices) to respite care while you work. Most programs target specific needs — housing costs, medical expenses, or caregiver support — rather than general financial assistance.\n\nStart by checking if your loved one qualifies for property tax relief or prescription assistance, as these typically offer the largest savings. Then look into caregiver support programs if you're providing daily care. Each program has different income limits and requirements, so your loved one may qualify for some but not others.",
+    "intro": "New Jersey offers 8 senior programs that could save your loved one hundreds to thousands of dollars annually. These range from property tax relief (up to $6,500 back through Stay NJ) to prescription drug assistance ($5-7 copays instead of full prices) to respite care while you work. Most programs target specific needs, housing costs, medical expenses, or caregiver support, rather than general financial assistance.\n\nStart by checking if your loved one qualifies for property tax relief or prescription assistance, as these typically offer the largest savings. Then look into caregiver support programs if you're providing daily care. Each program has different income limits and requirements, so your loved one may qualify for some but not others.",
     "startHere": [
       {
         "name": "Stay NJ",
         "programId": "stay-nj",
-        "why": "Up to $6,500 back on property taxes — the largest potential benefit in New Jersey."
+        "why": "Up to $6,500 back on property taxes, the largest potential benefit in New Jersey."
       },
       {
         "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
@@ -1395,7 +1395,7 @@ export const drafts: PipelineStateDrafts = {
     "quickFacts": [
       "New Jersey's property tax programs (Stay NJ and Senior Freeze) offer the largest potential savings but require homeownership and residency history.",
       "PAAD prescription assistance has an income limit of $54,943/year for a single person and requires New Jersey residency.",
-      "Several programs are linked — if your loved one qualifies for PAAD, they automatically qualify for Lifeline Credit utility assistance."
+      "Several programs are linked, if your loved one qualifies for PAAD, they automatically qualify for Lifeline Credit utility assistance."
     ],
     "resourcesVsBenefits": "Most New Jersey senior programs are qualification-based benefits requiring specific income limits, age requirements, or care needs. For example, PAAD requires income under $54,943/year, while JACC requires nursing-level care assessment. Only one program (Senior Freeze) functions as a general resource with broader eligibility. Unlike some states that offer universal information services, New Jersey focuses on targeted financial assistance for those who meet specific criteria."
   }

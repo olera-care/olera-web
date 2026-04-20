@@ -26,7 +26,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ on New Mexico Medicaid and needs help with bathing, dressing, or other daily activities, this program provides home care services to help them avoid nursing home placement. Services include personal care, adult day health, emergency response systems, home modifications, and skilled nursing — all delivered through your loved one's Medicaid managed care plan.\n\nYour loved one must already have full Medicaid coverage and be enrolled in a Centennial Care MCO. The program requires a clinical assessment proving they need nursing facility-level care (help with 2 or more daily activities like bathing, dressing, eating, toileting, or mobility). This isn't 24-hour care — it supplements family support to help your loved one stay home safely.\n\nIf your loved one doesn't qualify for full Medicaid yet, they can join a Central Registry waitlist and receive services when funding becomes available based on their priority level.",
+      "intro": "If your loved one is 65+ on New Mexico Medicaid and needs help with bathing, dressing, or other daily activities, this program provides home care services to help them avoid nursing home placement. Services include personal care, adult day health, emergency response systems, home modifications, and skilled nursing, all delivered through your loved one's Medicaid managed care plan.\n\nYour loved one must already have full Medicaid coverage and be enrolled in a Centennial Care MCO. The program requires a clinical assessment proving they need nursing facility-level care (help with 2 or more daily activities like bathing, dressing, eating, toileting, or mobility). This isn't 24-hour care, it supplements family support to help your loved one stay home safely.\n\nIf your loved one doesn't qualify for full Medicaid yet, they can join a Central Registry waitlist and receive services when funding becomes available based on their priority level.",
       "savingsRange": "",
       "savingsSource": "Free service through Medicaid",
       "savingsVerified": false,
@@ -40,7 +40,7 @@
         "ageRequirement": "65+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must need nursing facility level of care — clinical assessment showing your loved one needs assistance with 2 or more Activities of Daily Living (bathing, dressing, eating, toileting, mobility, or transitioning between positions)",
+        "functionalRequirement": "Must need nursing facility level of care, clinical assessment showing your loved one needs assistance with 2 or more Activities of Daily Living (bathing, dressing, eating, toileting, mobility, or transitioning between positions)",
         "otherRequirements": [
           "New Mexico resident",
           "Full Medicaid coverage or waiver category",
@@ -50,7 +50,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your loved one's MCO care coordinator if already enrolled, or call 1-800-283-4465 for MCO enrollment — functional assessment required.",
+        "summary": "Contact your loved one's MCO care coordinator if already enrolled, or call 1-800-283-4465 for MCO enrollment, functional assessment required.",
         "steps": [
           {
             "step": 1,
@@ -74,8 +74,8 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Central Registry waitlist available for those not qualifying for full Medicaid — slots allocated based on priority level",
-        "tip": "Start with Agency-Based services first — you can switch to Self-Directed model after 120 days if you want more control over care decisions.",
+        "waitlist": "Central Registry waitlist available for those not qualifying for full Medicaid, slots allocated based on priority level",
+        "tip": "Start with Agency-Based services first, you can switch to Self-Directed model after 120 days if you want more control over care decisions.",
         "urls": [
           {
             "label": "New Mexico HCA Community Benefit Program",
@@ -110,10 +110,10 @@
         }
       ],
       "applicationNotes": [
-        "You must have full Medicaid coverage first — this is not a standalone program",
+        "You must have full Medicaid coverage first, this is not a standalone program",
         "Self-direction option (managing your own care services) only becomes available after 120 days in agency-based services",
-        "Program does not cover room and board or 24-hour supervision — it supplements natural family supports",
-        "Limited provider networks for some services like personal care — ask about availability in your area when applying"
+        "Program does not cover room and board or 24-hour supervision, it supplements natural family supports",
+        "Limited provider networks for some services like personal care, ask about availability in your area when applying"
       ],
       "relatedPrograms": [
         "New Mexico Medicaid",
@@ -140,7 +140,7 @@
         },
         {
           "question": "What's the difference between this and regular Medicaid home health?",
-          "answer": "Community Benefit provides broader services beyond medical care — personal care, adult day programs, home modifications, emergency response systems, and respite care. Regular Medicaid home health is limited to skilled nursing and therapy visits prescribed by a doctor."
+          "answer": "Community Benefit provides broader services beyond medical care, personal care, adult day programs, home modifications, emergency response systems, and respite care. Regular Medicaid home health is limited to skilled nursing and therapy visits prescribed by a doctor."
         },
         {
           "question": "How long does the functional assessment take and what does it involve?",
@@ -160,7 +160,7 @@
         },
         {
           "question": "Can my loved one use these services while living in assisted living?",
-          "answer": "Yes, the program includes assisted living services and can supplement care in assisted living facilities. However, the program doesn't pay for room and board costs — only the additional care services your loved one needs beyond what the facility provides."
+          "answer": "Yes, the program includes assisted living services and can supplement care in assisted living facilities. However, the program doesn't pay for room and board costs, only the additional care services your loved one needs beyond what the facility provides."
         },
         {
           "question": "What if we're not satisfied with the MCO's service coordination?",
@@ -222,7 +222,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call InnovAge directly at (844) 945-0467 for assessment and enrollment — processing time not specified.",
+        "summary": "Call InnovAge directly at (844) 945-0467 for assessment and enrollment, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -247,7 +247,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "You can withdraw from PACE at any time if it's not working for your family — there's no lock-in period.",
+        "tip": "You can withdraw from PACE at any time if it's not working for your family, there's no lock-in period.",
         "urls": []
       },
       "documentsNeeded": [
@@ -289,8 +289,8 @@
         }
       ],
       "applicationNotes": [
-        "PACE becomes your loved one's sole healthcare provider — they cannot use other doctors or hospitals for covered services while enrolled",
-        "Geographic restriction is strict — only Albuquerque residents can access the program, with no other locations in New Mexico",
+        "PACE becomes your loved one's sole healthcare provider, they cannot use other doctors or hospitals for covered services while enrolled",
+        "Geographic restriction is strict, only Albuquerque residents can access the program, with no other locations in New Mexico",
         "State certification for nursing home level of care is required before enrollment and involves a separate clinical assessment process",
         "Medicaid recipients pay no monthly premium, but Medicare-only recipients may have monthly costs for additional coverage"
       ],
@@ -312,7 +312,7 @@
         },
         {
           "question": "How do I get the state certification for nursing home level of care?",
-          "answer": "Contact the New Mexico Aging & Disability Services Department at 1-800-432-2080 to request a clinical assessment. This evaluation determines if your loved one needs daily assistance with activities like bathing, dressing, or medication management — the same level of care provided in nursing homes."
+          "answer": "Contact the New Mexico Aging & Disability Services Department at 1-800-432-2080 to request a clinical assessment. This evaluation determines if your loved one needs daily assistance with activities like bathing, dressing, or medication management, the same level of care provided in nursing homes."
         },
         {
           "question": "Will my loved one have to pay anything out of pocket with PACE?",
@@ -324,7 +324,7 @@
         },
         {
           "question": "What happens if my loved one's needs change after enrollment?",
-          "answer": "PACE teams regularly reassess participants and adjust services as needs change. The program is designed to adapt — providing more intensive home care or adult day services as your loved one requires more support, with the goal of avoiding nursing home placement."
+          "answer": "PACE teams regularly reassess participants and adjust services as needs change. The program is designed to adapt, providing more intensive home care or adult day services as your loved one requires more support, with the goal of avoiding nursing home placement."
         },
         {
           "question": "How quickly can PACE services start after enrollment?",
@@ -366,7 +366,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication but wants to stay home, New Mexico's Community Benefit Program provides home care services to keep them out of nursing homes. Your loved one must qualify for full Medicaid first — income below $1,000/month for a single person and assets under $2,000.\n\nThe program covers personal care, home health services, adult day programs, and assisted living based on your loved one's individual care plan. Because everything goes through your loved one's Medicaid Managed Care Organization (MCO), one team coordinates all services instead of juggling multiple providers.\n\nIf your loved one doesn't qualify for Medicaid, limited slots are available through a Central Registry waitlist, but these fill quickly and have long wait times.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication but wants to stay home, New Mexico's Community Benefit Program provides home care services to keep them out of nursing homes. Your loved one must qualify for full Medicaid first, income below $1,000/month for a single person and assets under $2,000.\n\nThe program covers personal care, home health services, adult day programs, and assisted living based on your loved one's individual care plan. Because everything goes through your loved one's Medicaid Managed Care Organization (MCO), one team coordinates all services instead of juggling multiple providers.\n\nIf your loved one doesn't qualify for Medicaid, limited slots are available through a Central Registry waitlist, but these fill quickly and have long wait times.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -405,7 +405,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must need daily assistance with 2+ activities of daily living (bathing, dressing, eating, toileting, transferring, or medication management) — assessed through Nursing Facility Level of Care evaluation",
+        "functionalRequirement": "Must need daily assistance with 2+ activities of daily living (bathing, dressing, eating, toileting, transferring, or medication management), assessed through Nursing Facility Level of Care evaluation",
         "otherRequirements": [
           "New Mexico resident",
           "U.S. citizen or legal alien",
@@ -416,7 +416,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "If your loved one has Medicaid, contact their MCO care coordinator for assessment — processing time varies by MCO.",
+        "summary": "If your loved one has Medicaid, contact their MCO care coordinator for assessment, processing time varies by MCO.",
         "steps": [
           {
             "step": 1,
@@ -444,8 +444,8 @@
             "description": "New participants must use Agency-Based Community Benefit (ABCB) for 120 days before switching to Self-Directed option."
           }
         ],
-        "processingTime": "Not specified — varies by MCO assessment schedule",
-        "waitlist": "Limited slots available through Central Registry for non-Medicaid eligible applicants — contact 1-800-432-2080 for waitlist status",
+        "processingTime": "Not specified, varies by MCO assessment schedule",
+        "waitlist": "Limited slots available through Central Registry for non-Medicaid eligible applicants, contact 1-800-432-2080 for waitlist status",
         "tip": "If your loved one is in the hospital, ask the discharge planner to help initiate the MCO assessment process before they come home.",
         "urls": [
           {
@@ -496,8 +496,8 @@
         }
       ],
       "applicationNotes": [
-        "Some MCOs have immediate openings while others maintain waitlists — ask about current capacity when choosing your MCO",
-        "Certain members approved before 2019 may have continuous eligibility without annual reassessments — verify your loved one's status",
+        "Some MCOs have immediate openings while others maintain waitlists, ask about current capacity when choosing your MCO",
+        "Certain members approved before 2019 may have continuous eligibility without annual reassessments, verify your loved one's status",
         "If your loved one doesn't qualify for full Medicaid, the Central Registry has very limited slots with long wait times",
         "You must start with Agency-Based services for 120 days before switching to Self-Directed Community Benefit option"
       ],
@@ -573,7 +573,7 @@
           }
         ]
       },
-      "intro": "If your loved one is struggling to afford fresh fruits and vegetables on a fixed income, New Mexico's Senior Farmers' Market Nutrition Program provides up to $100 per year (2024) on an electronic card to shop at local farmers markets and roadside stands. The program targets seniors with household income at or below 185% of federal poverty level — $2,739/month for a single person in 2024.\n\nBecause this program operates on a first-come, first-served basis and typically opens applications in mid-February, timing matters. Your loved one must be 60+ (or 55+ if Native American) and reapply annually even if they participated before. The electronic card works only for locally grown fresh fruits, vegetables, herbs, and honey at authorized New Mexico farmers and markets.\n\nBecause funding is limited each year, the program may close once allocations are exhausted. Benefits are distributed in July to approved applicants, so early application in February-March gives your loved one the best chance of receiving assistance.",
+      "intro": "If your loved one is struggling to afford fresh fruits and vegetables on a fixed income, New Mexico's Senior Farmers' Market Nutrition Program provides up to $100 per year (2024) on an electronic card to shop at local farmers markets and roadside stands. The program targets seniors with household income at or below 185% of federal poverty level, $2,739/month for a single person in 2024.\n\nBecause this program operates on a first-come, first-served basis and typically opens applications in mid-February, timing matters. Your loved one must be 60+ (or 55+ if Native American) and reapply annually even if they participated before. The electronic card works only for locally grown fresh fruits, vegetables, herbs, and honey at authorized New Mexico farmers and markets.\n\nBecause funding is limited each year, the program may close once allocations are exhausted. Benefits are distributed in July to approved applicants, so early application in February-March gives your loved one the best chance of receiving assistance.",
       "savingsRange": "Up to $100/year in 2024",
       "savingsSource": "Annual electronic benefit card for fresh produce at farmers markets",
       "savingsVerified": true,
@@ -614,7 +614,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online starting mid-February or call (505) 469-0548 — benefits issued in July on first-come, first-served basis.",
+        "summary": "Apply online starting mid-February or call (505) 469-0548, benefits issued in July on first-come, first-served basis.",
         "steps": [
           {
             "step": 1,
@@ -638,7 +638,7 @@
           }
         ],
         "processingTime": "Benefits issued within July for approved applicants",
-        "waitlist": "First-come, first-served — no formal waitlist, program closes when funding exhausted",
+        "waitlist": "First-come, first-served, no formal waitlist, program closes when funding exhausted",
         "tip": "If your loved one already receives SNAP, TEFAP, or CSFP benefits, they may qualify automatically without separate income verification.",
         "urls": [
           {
@@ -680,10 +680,10 @@
         }
       ],
       "applicationNotes": [
-        "Native American applicants qualify at age 55 instead of 60 — make sure to specify tribal membership when applying",
-        "Applications open mid-February and close when funding runs out — don't wait until summer to apply",
+        "Native American applicants qualify at age 55 instead of 60, make sure to specify tribal membership when applying",
+        "Applications open mid-February and close when funding runs out, don't wait until summer to apply",
         "Even if your loved one participated last year, they must reapply annually to maintain eligibility",
-        "Electronic cards work only at authorized New Mexico farmers and stands — verify vendor participation before shopping"
+        "Electronic cards work only at authorized New Mexico farmers and stands, verify vendor participation before shopping"
       ],
       "relatedPrograms": [
         "New Mexico SNAP Food Benefits",
@@ -793,12 +793,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional SCSEP provider directly — enrollment depends on funding availability and may have waitlists.",
+        "summary": "Contact your regional SCSEP provider directly, enrollment depends on funding availability and may have waitlists.",
         "steps": [
           {
             "step": 1,
             "title": "Identify your regional provider",
-            "description": "ALTSD serves most areas via https://www.aging.nm.gov/aging-network/senior-employment-programs/. NICOA covers eligible areas with American Indian focus at https://www.nicoa.org/programs/scsep/. Goodwill NM serves select locations — call (505) 881-6401 or visit 1030 18th Street NW."
+            "description": "ALTSD serves most areas via https://www.aging.nm.gov/aging-network/senior-employment-programs/. NICOA covers eligible areas with American Indian focus at https://www.nicoa.org/programs/scsep/. Goodwill NM serves select locations, call (505) 881-6401 or visit 1030 18th Street NW."
           },
           {
             "step": 2,
@@ -817,7 +817,7 @@
           }
         ],
         "processingTime": "Enrollment if eligible and no waitlist",
-        "waitlist": "Possible depending on location and funding cycles — varies by regional availability",
+        "waitlist": "Possible depending on location and funding cycles, varies by regional availability",
         "tip": "Priority groups get preference, so mention if your loved one is 65+, a veteran, has limited English, lives in a rural area, or has a disability.",
         "urls": [
           {
@@ -872,10 +872,10 @@
         }
       ],
       "applicationNotes": [
-        "Funding fluctuations can cause temporary enrollment pauses — call to confirm current availability before gathering documents",
+        "Funding fluctuations can cause temporary enrollment pauses, call to confirm current availability before gathering documents",
         "Multiple providers serve different areas of New Mexico, so you may need to contact 2-3 organizations to find the right one for your location",
         "Priority groups (veterans, 65+, rural residents, disabled, limited English) get preference when positions are limited",
-        "This is a training program with the goal of transitioning to unsubsidized employment — not a permanent job placement"
+        "This is a training program with the goal of transitioning to unsubsidized employment, not a permanent job placement"
       ],
       "relatedPrograms": [
         "New Mexico Senior Employment Program (SEP)",
@@ -890,7 +890,7 @@
           "answer": "Yes, but Social Security retirement benefits may be reduced if your loved one is under full retirement age and earns over the annual limit ($23,400 in 2026). Contact Social Security at (800) 772-1213 to understand how SCSEP wages might affect benefits."
         },
         {
-          "question": "What if there's a waitlist in our area — how long will my loved one have to wait?",
+          "question": "What if there's a waitlist in our area, how long will my loved one have to wait?",
           "answer": "Wait times vary significantly by region and funding cycles. Some areas had enrollment pauses in 2025. Rural areas may have shorter waits due to priority status, while urban areas may have longer lists. Call your local provider monthly to check status."
         },
         {
@@ -910,7 +910,7 @@
           "answer": "The 125% federal poverty level applies to total household income, not just your loved one's income. For 2026, contact your local provider for exact dollar amounts based on household size, as these change annually."
         },
         {
-          "question": "What if my loved one hasn't worked in several years — will that disqualify them?",
+          "question": "What if my loved one hasn't worked in several years, will that disqualify them?",
           "answer": "No, being out of the workforce actually supports eligibility. SCSEP specifically serves people who are unemployed and may have been out of work for extended periods. The program provides refresher training and job skills."
         },
         {
@@ -934,7 +934,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "If your loved one lives in New Mexico and needs help with daily care, food costs, or employment, 5 state and federal programs could provide direct support. These range from comprehensive medical care and home services (PACE) to $100/year for fresh produce (Senior Farmers' Market program) to part-time paid training positions for parents 55+ earning under $25,500 annually (SCSEP). Most programs target parents with limited incomes or specific care needs — like requiring daily help with bathing, dressing, or medication management.\n\nStart by identifying your loved one's most pressing need: staying home safely with care support, reducing food costs, or finding employment. Each program has different income limits and eligibility requirements, but you can apply for multiple programs simultaneously.",
+    "intro": "If your loved one lives in New Mexico and needs help with daily care, food costs, or employment, 5 state and federal programs could provide direct support. These range from comprehensive medical care and home services (PACE) to $100/year for fresh produce (Senior Farmers' Market program) to part-time paid training positions for parents 55+ earning under $25,500 annually (SCSEP). Most programs target parents with limited incomes or specific care needs, like requiring daily help with bathing, dressing, or medication management.\n\nStart by identifying your loved one's most pressing need: staying home safely with care support, reducing food costs, or finding employment. Each program has different income limits and eligibility requirements, but you can apply for multiple programs simultaneously.",
     "startHere": [
       {
         "name": "Program of All-Inclusive Care for the Elderly (PACE)",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.093Z
+ * Last updated: 2026-04-20T23:39:07.862Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -31,7 +31,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ (or disabled and 21+) and needs daily help with bathing, dressing, or medication management, Mississippi Medicaid's Elderly and Disabled waiver pays for home care services to avoid nursing home placement. The program covers case management, personal care services, adult day programs, home-delivered meals, and respite care.\n\nYour loved one must qualify for nursing home level of care through an in-person assessment and meet Medicaid income limits (roughly $2,400/month for 2026, based on 300% of the federal SSI rate). Because this is a waiver program with limited slots, waitlists are possible depending on your region.\n\nThe 60-month look-back rule applies — any assets transferred for less than fair market value in the past 5 years create penalty periods. If your loved one receives SSI, they automatically qualify for Medicaid income limits.",
+      "intro": "If your loved one is 65+ (or disabled and 21+) and needs daily help with bathing, dressing, or medication management, Mississippi Medicaid's Elderly and Disabled waiver pays for home care services to avoid nursing home placement. The program covers case management, personal care services, adult day programs, home-delivered meals, and respite care.\n\nYour loved one must qualify for nursing home level of care through an in-person assessment and meet Medicaid income limits (roughly $2,400/month for 2026, based on 300% of the federal SSI rate). Because this is a waiver program with limited slots, waitlists are possible depending on your region.\n\nThe 60-month look-back rule applies, any assets transferred for less than fair market value in the past 5 years create penalty periods. If your loved one receives SSI, they automatically qualify for Medicaid income limits.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -97,8 +97,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, services are sized to meet nursing home level care needs for 31+ consecutive days. Due to waiver slots being limited, you may be placed on a waitlist."
           }
         ],
-        "processingTime": "Not specified — assessment must verify nursing home level care needs for 31+ consecutive days",
-        "waitlist": "Possible due to limited waiver slots — varies by region",
+        "processingTime": "Not specified, assessment must verify nursing home level care needs for 31+ consecutive days",
+        "waitlist": "Possible due to limited waiver slots, varies by region",
         "tip": "Apply while still gathering documents. The in-person assessment is required regardless, so starting early helps secure your place in line.",
         "urls": [
           {
@@ -139,10 +139,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your loved one receives SSI, they automatically qualify for Medicaid income limits — no separate income verification needed",
-        "The 60-month look-back rule creates penalty periods for any assets transferred below fair market value — consult an elder law attorney before transferring property",
-        "Dementia diagnosis alone is not sufficient — your loved one must have functional limitations in 2+ activities of daily living verified through assessment",
-        "Because waiver slots are limited, some regions may have longer waitlists than others — ask about current availability when applying"
+        "If your loved one receives SSI, they automatically qualify for Medicaid income limits, no separate income verification needed",
+        "The 60-month look-back rule creates penalty periods for any assets transferred below fair market value, consult an elder law attorney before transferring property",
+        "Dementia diagnosis alone is not sufficient, your loved one must have functional limitations in 2+ activities of daily living verified through assessment",
+        "Because waiver slots are limited, some regions may have longer waitlists than others, ask about current availability when applying"
       ],
       "relatedPrograms": [
         "Mississippi SNAP (Food Benefits)",
@@ -216,7 +216,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Mississippi's E&D Waiver can provide free home care services instead of nursing home placement. The program covers personal care, home-delivered meals, adult day health care, respite care, and expanded home health services — but only if your loved one meets nursing facility level of care requirements through a clinical assessment.\n\nTo qualify, your loved one must be eligible for Medicaid and have income up to 300% of the federal SSI rate. If income exceeds this limit, the excess amount must be paid monthly to Medicaid through an income trust. Because this waiver serves as an alternative to nursing home care, your loved one will need physician certification and an in-person assessment by a registered nurse and social worker to demonstrate they need institutional-level care.",
+      "intro": "If your loved one is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Mississippi's E&D Waiver can provide free home care services instead of nursing home placement. The program covers personal care, home-delivered meals, adult day health care, respite care, and expanded home health services, but only if your loved one meets nursing facility level of care requirements through a clinical assessment.\n\nTo qualify, your loved one must be eligible for Medicaid and have income up to 300% of the federal SSI rate. If income exceeds this limit, the excess amount must be paid monthly to Medicaid through an income trust. Because this waiver serves as an alternative to nursing home care, your loved one will need physician certification and an in-person assessment by a registered nurse and social worker to demonstrate they need institutional-level care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -249,7 +249,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional Planning and Development District for case management screening and assessment — processing time not specified.",
+        "summary": "Contact your regional Planning and Development District for case management screening and assessment, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -323,10 +323,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must be assessed in person — remote or phone assessments are not accepted for nursing facility level of care determination",
-        "Having dementia or other diagnoses alone doesn't automatically qualify — you must demonstrate need for daily assistance with activities of daily living",
+        "You must be assessed in person, remote or phone assessments are not accepted for nursing facility level of care determination",
+        "Having dementia or other diagnoses alone doesn't automatically qualify, you must demonstrate need for daily assistance with activities of daily living",
         "If income exceeds 300% of SSI rate, the excess must be paid monthly to Medicaid through a qualified income trust before approval",
-        "Services are only provided after regular Medicaid state plan benefits are exhausted — this extends beyond basic coverage"
+        "Services are only provided after regular Medicaid state plan benefits are exhausted, this extends beyond basic coverage"
       ],
       "relatedPrograms": [
         "Mississippi Independent Living Waiver",
@@ -346,7 +346,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How is nursing facility level of care different from just needing some help?",
-          "answer": "Nursing facility level of care requires needing daily assistance with activities like bathing, dressing, medication management, or having significant cognitive impairments. A registered nurse and social worker assess this in person using standardized tools — it's more than occasional help with errands or housework."
+          "answer": "Nursing facility level of care requires needing daily assistance with activities like bathing, dressing, medication management, or having significant cognitive impairments. A registered nurse and social worker assess this in person using standardized tools, it's more than occasional help with errands or housework."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -400,7 +400,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is struggling with Medicare costs on a fixed income, Mississippi's Medicare Savings Programs can eliminate their Medicare Part B premium ($185/month in 2026) and potentially cover all Medicare deductibles and copays. The state offers three tiers based on income — QMB provides the most comprehensive coverage, while SLMB and QI cover premiums only.\n\nUnlike most states, Mississippi has no asset test for these programs. Because resources don't matter, your loved one could own their home, have savings, and still qualify based on income alone. Income limits range from $1,350/month for the most comprehensive tier up to $1,816/month for premium-only coverage (single person, 2026).\n\nThe catch: QI (the highest income tier) has federal funding caps, so even income-eligible applicants may face waitlists. QMB provides immediate comprehensive coverage but has the strictest income limits. All tiers require Medicare Part A eligibility and Mississippi residency.",
+      "intro": "If your loved one is struggling with Medicare costs on a fixed income, Mississippi's Medicare Savings Programs can eliminate their Medicare Part B premium ($185/month in 2026) and potentially cover all Medicare deductibles and copays. The state offers three tiers based on income, QMB provides the most comprehensive coverage, while SLMB and QI cover premiums only.\n\nUnlike most states, Mississippi has no asset test for these programs. Because resources don't matter, your loved one could own their home, have savings, and still qualify based on income alone. Income limits range from $1,350/month for the most comprehensive tier up to $1,816/month for premium-only coverage (single person, 2026).\n\nThe catch: QI (the highest income tier) has federal funding caps, so even income-eligible applicants may face waitlists. QMB provides immediate comprehensive coverage but has the strictest income limits. All tiers require Medicare Part A eligibility and Mississippi residency.",
       "savingsRange": "$2,220 – $6,000/year in 2026",
       "savingsSource": "Medicare Part B premiums ($185/month) plus potential deductibles and copays coverage",
       "savingsVerified": true,
@@ -433,7 +433,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at medicaid.ms.gov or call 1-800-421-2408 — processing typically takes 30-45 days.",
+        "summary": "Apply online at medicaid.ms.gov or call 1-800-421-2408, processing typically takes 30-45 days.",
         "steps": [
           {
             "step": 1,
@@ -457,7 +457,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "30-45 days for eligibility determination",
-        "waitlist": "QI tier may have waitlists due to federal funding caps — not guaranteed even if income-eligible",
+        "waitlist": "QI tier may have waitlists due to federal funding caps, not guaranteed even if income-eligible",
         "tip": "Apply for the highest tier you qualify for first. If denied due to income, the state will often consider you for lower tiers automatically.",
         "urls": [
           {
@@ -504,8 +504,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "SLMB provides up to 3 months retroactive coverage, but QMB only starts the month after approval — apply as soon as you think your loved one qualifies",
-        "QI tier has federal funding caps and may close to new applicants even if income-eligible — consider applying for SLMB as backup",
+        "SLMB provides up to 3 months retroactive coverage, but QMB only starts the month after approval, apply as soon as you think your loved one qualifies",
+        "QI tier has federal funding caps and may close to new applicants even if income-eligible, consider applying for SLMB as backup",
         "Income disregards apply: first $20/month from any source, plus $65 in wages and half of remaining wages don't count toward limits",
         "Spousal impoverishment rules only apply if one spouse needs long-term care services, not for standard MSP applications"
       ],
@@ -546,10 +546,10 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will this affect my loved one's other Medicare benefits or Medigap?",
-          "answer": "MSPs complement Medicare — they don't change coverage, just help pay costs. However, QMB recipients cannot be charged more than Medicaid pays, which may conflict with some Medigap policies."
+          "answer": "MSPs complement Medicare, they don't change coverage, just help pay costs. However, QMB recipients cannot be charged more than Medicaid pays, which may conflict with some Medigap policies."
         },
         {
-          "question": "What if my loved one lives in assisted living — does their housing cost count as income?",
+          "question": "What if my loved one lives in assisted living, does their housing cost count as income?",
           "answer": "Shelter costs don't count as income, but room and board payments they make are considered when determining available income. The facility's assistance with applications doesn't affect eligibility."
         },
         {
@@ -586,7 +586,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one is struggling to afford groceries on a fixed income, SNAP provides monthly benefits to help cover food costs. In Mississippi, seniors age 60 and older get special advantages — no gross income limits and higher asset allowances, plus a simplified application process if they have no earned income.\n\nBecause Mississippi offers the Elderly Simplified Application Project (ESAP), eligible seniors can skip much of the paperwork that makes regular SNAP applications complex. Your loved one's primary home and one vehicle don't count toward asset limits, and if they're 60 or older, only their net income (after deductions) matters for qualification.\n\nThe monthly benefit amount varies based on household size and income, but many seniors qualify for $100-300 per month. About half of eligible seniors don't apply despite qualifying — often because they don't know the program exists or assume their income is too high.",
+      "intro": "If your loved one is struggling to afford groceries on a fixed income, SNAP provides monthly benefits to help cover food costs. In Mississippi, seniors age 60 and older get special advantages, no gross income limits and higher asset allowances, plus a simplified application process if they have no earned income.\n\nBecause Mississippi offers the Elderly Simplified Application Project (ESAP), eligible seniors can skip much of the paperwork that makes regular SNAP applications complex. Your loved one's primary home and one vehicle don't count toward asset limits, and if they're 60 or older, only their net income (after deductions) matters for qualification.\n\nThe monthly benefit amount varies based on household size and income, but many seniors qualify for $100-300 per month. About half of eligible seniors don't apply despite qualifying, often because they don't know the program exists or assume their income is too high.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Estimated based on typical SNAP benefit amounts for seniors",
       "savingsVerified": false,
@@ -646,7 +646,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online, by phone, or at local Mississippi Department of Human Services office — seniors with no earned income use simplified ESAP application.",
+        "summary": "Apply online, by phone, or at local Mississippi Department of Human Services office, seniors with no earned income use simplified ESAP application.",
         "steps": [
           {
             "step": 1,
@@ -706,10 +706,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "ESAP is mandatory for eligible seniors — if all household members are 60+ with no earned income and not MSCAP-eligible, you cannot use regular SNAP",
+        "ESAP is mandatory for eligible seniors, if all household members are 60+ with no earned income and not MSCAP-eligible, you cannot use regular SNAP",
         "Even one dollar of earned income disqualifies a household from using the simplified ESAP application",
-        "SSI recipients may be required to use MSCAP instead of SNAP — this is determined automatically based on your benefits",
-        "Seniors only need to meet the net income test, not gross income limits — this makes qualification easier than for younger applicants"
+        "SSI recipients may be required to use MSCAP instead of SNAP, this is determined automatically based on your benefits",
+        "Seniors only need to meet the net income test, not gross income limits, this makes qualification easier than for younger applicants"
       ],
       "relatedPrograms": [
         "LIHEAP (Energy Assistance)",
@@ -725,7 +725,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one has both Social Security and a small part-time job?",
-          "answer": "Any earned income disqualifies them from the simplified ESAP application, so they'd need to use regular SNAP. However, as someone 60+, they still get advantages — no gross income limit and higher asset limits."
+          "answer": "Any earned income disqualifies them from the simplified ESAP application, so they'd need to use regular SNAP. However, as someone 60+, they still get advantages, no gross income limit and higher asset limits."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -775,7 +775,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with seasonal components for heating assistance (October–April) and cooling assistance (May–September). Vulnerable households — including elderly adults, people with disabilities, and families with children age 5 or younger — get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
+      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with seasonal components for heating assistance (October–April) and cooling assistance (May–September). Vulnerable households, including elderly adults, people with disabilities, and families with children age 5 or younger, get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
       "savingsRange": "",
       "savingsSource": "Payment assistance varies by energy bill amount and available funds",
       "savingsVerified": false,
@@ -799,7 +799,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through MDHS or contact your county's Community Action Agency — approval within 30 days for regular benefits, 48 hours for emergency cases.",
+        "summary": "Apply online through MDHS or contact your county's Community Action Agency, approval within 30 days for regular benefits, 48 hours for emergency cases.",
         "steps": [
           {
             "step": 1,
@@ -829,7 +829,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to 30 days for regular benefits; 48 hours for emergency cases with disconnection notices",
         "waitlist": "No formal waitlist, but funding is limited and distributed first-come, first-served",
-        "tip": "If your loved one is elderly, disabled, or you have young children in the household, mention this in your application — vulnerable households get priority processing.",
+        "tip": "If your loved one is elderly, disabled, or you have young children in the household, mention this in your application, vulnerable households get priority processing.",
         "urls": [
           {
             "label": "MDHS LIHEAP Application",
@@ -862,10 +862,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Crisis cases with active disconnection notices get expedited processing within 48 hours — call your local Community Action Agency immediately",
+        "Crisis cases with active disconnection notices get expedited processing within 48 hours, call your local Community Action Agency immediately",
         "Continue paying your energy bills while waiting for approval to avoid service disconnection",
         "Each county's Community Action Agency may have different availability based on local demand and funding",
-        "Vulnerable households (elderly, disabled, families with children 5 and under) receive priority — be sure to highlight this status"
+        "Vulnerable households (elderly, disabled, families with children 5 and under) receive priority, be sure to highlight this status"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -933,7 +933,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles with high heating and cooling bills, Mississippi's Weatherization Assistance Program provides free home improvements that reduce energy costs by an average of $372 or more per year. The program serves homeowners, renters, and mobile home owners with household income at or below 200% of the Federal Poverty Guidelines—a higher threshold than many other programs.\n\nServices include professional energy audits, insulation installation, air sealing, heating and cooling system improvements, and safety upgrades like carbon monoxide detectors. Because the program focuses on permanent home improvements rather than bill payment assistance, these savings continue year after year. Priority goes to households with seniors 60+, people with disabilities, families with children under 5, and high energy users, but all income-eligible households can apply.\n\nThe program operates through regional Community Action Agencies across Mississippi. After submitting an online pre-application, you'll work directly with your local agency to complete the process and schedule the home energy audit that determines which improvements your loved one's home needs.",
+      "intro": "If your loved one struggles with high heating and cooling bills, Mississippi's Weatherization Assistance Program provides free home improvements that reduce energy costs by an average of $372 or more per year. The program serves homeowners, renters, and mobile home owners with household income at or below 200% of the Federal Poverty Guidelines, a higher threshold than many other programs.\n\nServices include professional energy audits, insulation installation, air sealing, heating and cooling system improvements, and safety upgrades like carbon monoxide detectors. Because the program focuses on permanent home improvements rather than bill payment assistance, these savings continue year after year. Priority goes to households with seniors 60+, people with disabilities, families with children under 5, and high energy users, but all income-eligible households can apply.\n\nThe program operates through regional Community Action Agencies across Mississippi. After submitting an online pre-application, you'll work directly with your local agency to complete the process and schedule the home energy audit that determines which improvements your loved one's home needs.",
       "savingsRange": "$372+ per year",
       "savingsSource": "National average household savings from weatherization improvements",
       "savingsVerified": true,
@@ -980,7 +980,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, the CAA will arrange for a professional energy audit to determine what improvements your loved one's home needs."
           }
         ],
-        "processingTime": "Processing times vary by regional Community Action Agency—contact your local CAA for current timelines",
+        "processingTime": "Processing times vary by regional Community Action Agency, contact your local CAA for current timelines",
         "waitlist": "Applicants on waiting lists must update eligibility documentation annually",
         "tip": "Have all documentation ready before your in-person appointment to avoid delays.",
         "urls": [
@@ -1028,10 +1028,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You cannot complete the entire application online—the process requires an in-person meeting with your local Community Action Agency after the pre-application",
+        "You cannot complete the entire application online, the process requires an in-person meeting with your local Community Action Agency after the pre-application",
         "If your loved one is on a waiting list, their eligibility documentation must be updated at least annually or they may lose their place",
-        "Income limits are based on 200% of Federal Poverty Guidelines, which is higher than many other assistance programs—don't assume your loved one makes too much without checking",
-        "This program provides home improvements, not help paying current bills—for bill payment assistance, ask about the Low Income Home Energy Assistance Program (LIHEAP)"
+        "Income limits are based on 200% of Federal Poverty Guidelines, which is higher than many other assistance programs, don't assume your loved one makes too much without checking",
+        "This program provides home improvements, not help paying current bills, for bill payment assistance, ask about the Low Income Home Energy Assistance Program (LIHEAP)"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1045,7 +1045,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, renters are eligible for weatherization services, but the landlord must provide written permission for the improvements. The Community Action Agency will work with you to obtain the necessary landlord consent forms. The improvements belong to the property, not the tenant."
         },
         {
-          "question": "What if my loved one's income is slightly above the poverty guidelines—should they still apply?",
+          "question": "What if my loved one's income is slightly above the poverty guidelines, should they still apply?",
           "answer": "Yes, they should apply if they're close to the limit. Mississippi uses 200% of the Federal Poverty Guidelines, which is higher than many other programs. The exact income limits change annually and vary by household size, so contact your local Community Action Agency to check current thresholds."
         },
         {
@@ -1126,7 +1126,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-844-822-4622 to schedule a free counseling appointment — no application needed.",
+        "summary": "Call 1-844-822-4622 to schedule a free counseling appointment, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1144,9 +1144,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Have your Medicare card, current insurance details, and list of prescription medications ready for the appointment."
           }
         ],
-        "processingTime": "No formal processing — services provided via appointment scheduling upon contact",
+        "processingTime": "No formal processing, services provided via appointment scheduling upon contact",
         "waitlist": null,
-        "tip": "During Medicare Open Enrollment (October 15 - December 7), appointment availability may be limited due to high demand — call early.",
+        "tip": "During Medicare Open Enrollment (October 15 - December 7), appointment availability may be limited due to high demand, call early.",
         "urls": [
           {
             "label": "Mississippi Department of Human Services SHIP page",
@@ -1190,10 +1190,10 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will the counselor help my loved one apply for programs that reduce Medicare costs?",
-          "answer": "Yes, SHIP counselors help with applications for Medicare Savings Programs and Extra Help, which can reduce or eliminate Medicare premiums and prescription costs. They'll determine if your loved one qualifies and assist with the paperwork. However, they cannot guarantee approval — that depends on meeting the program's income and asset requirements."
+          "answer": "Yes, SHIP counselors help with applications for Medicare Savings Programs and Extra Help, which can reduce or eliminate Medicare premiums and prescription costs. They'll determine if your loved one qualifies and assist with the paperwork. However, they cannot guarantee approval, that depends on meeting the program's income and asset requirements."
         },
         {
-          "question": "What if my loved one missed Medicare Open Enrollment — can SHIP still help?",
+          "question": "What if my loved one missed Medicare Open Enrollment, can SHIP still help?",
           "answer": "SHIP can help year-round with Medicare questions, but plan changes are generally only allowed during Open Enrollment (October 15 - December 7) unless your loved one qualifies for a Special Enrollment Period. Counselors can explain if your loved one's situation qualifies for immediate plan changes or help prepare for the next enrollment period."
         }
       ],
@@ -1232,7 +1232,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and homebound — unable to leave the house to shop for groceries or safely prepare meals — they may qualify for free daily meal delivery through Home Delivered Meals (Meals on Wheels). Because this program has no income limits, your loved one can qualify even if they have savings or receive Social Security benefits.\n\nEach meal provides at least one-third of daily nutritional requirements and meets federal dietary standards. Because the program prioritizes homebound seniors, your loved one must demonstrate they cannot safely leave home or prepare meals due to age, disability, or health conditions. The service area is limited to specific delivery zones — your loved one must live within the local provider's coverage area.",
+      "intro": "If your loved one is 60 or older and homebound, unable to leave the house to shop for groceries or safely prepare meals, they may qualify for free daily meal delivery through Home Delivered Meals (Meals on Wheels). Because this program has no income limits, your loved one can qualify even if they have savings or receive Social Security benefits.\n\nEach meal provides at least one-third of daily nutritional requirements and meets federal dietary standards. Because the program prioritizes homebound seniors, your loved one must demonstrate they cannot safely leave home or prepare meals due to age, disability, or health conditions. The service area is limited to specific delivery zones, your loved one must live within the local provider's coverage area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1255,7 +1255,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for assessment — processing varies from one week to several months depending on waitlists.",
+        "summary": "Contact your local Area Agency on Aging for assessment, processing varies from one week to several months depending on waitlists.",
         "steps": [
           {
             "step": 1,
@@ -1278,7 +1278,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved and no waitlist exists, meals typically begin within a week. If there's a waitlist, you'll be contacted when delivery slots become available."
           }
         ],
-        "processingTime": "Varies by region — some areas within one week, others have waitlists of several months",
+        "processingTime": "Varies by region, some areas within one week, others have waitlists of several months",
         "waitlist": "Yes, many areas maintain waitlists. Priority given to those already on congregate meals waiting lists.",
         "tip": "Ask specifically about emergency or shelf-stable meal options if your loved one needs immediate food assistance while waiting for regular delivery to begin.",
         "urls": []
@@ -1301,13 +1301,13 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Union Nutrition Site (Example)",
           "phone": "Contact local Area Agency",
-          "description": "Local provider example — call 2-1-1 to find your specific county provider",
+          "description": "Local provider example, call 2-1-1 to find your specific county provider",
           "hours": "Varies by provider"
         }
       ],
       "applicationNotes": [
         "Even if your loved one can occasionally leave home, they may still qualify if they cannot safely shop for groceries or prepare nutritious meals independently",
-        "Car ownership doesn't automatically disqualify — the assessment focuses on actual ability to shop and cook safely",
+        "Car ownership doesn't automatically disqualify, the assessment focuses on actual ability to shop and cook safely",
         "Some providers offer emergency shelf-stable meals for immediate need while waiting for regular delivery slots"
       ],
       "relatedPrograms": [
@@ -1323,7 +1323,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. The program focuses on your loved one's actual ability to shop and prepare meals safely, not just vehicle ownership. If health conditions, vision problems, or mobility issues prevent safe driving or meal preparation, they may still qualify even if they technically own a car."
         },
         {
-          "question": "What if our area has a waitlist — are there other options?",
+          "question": "What if our area has a waitlist, are there other options?",
           "answer": "Ask about emergency meals or shelf-stable food packages while waiting. Also inquire about congregate meal sites your loved one might be able to access occasionally, as this can provide some nutrition support during the wait."
         },
         {
@@ -1332,7 +1332,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's health improves and they can cook again?",
-          "answer": "Contact your local provider to discuss your loved one's changing needs. The program is designed to be flexible — if your loved one regains ability to prepare meals, they can transition off the program, and the delivery slot opens for someone on the waitlist."
+          "answer": "Contact your local provider to discuss your loved one's changing needs. The program is designed to be flexible, if your loved one regains ability to prepare meals, they can transition off the program, and the delivery slot opens for someone on the waitlist."
         },
         {
           "question": "Do meals cost anything, or are there suggested donations?",
@@ -1374,7 +1374,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging loved one in Mississippi, you may qualify for free respite care, counseling, and support services through the National Family Caregiver Support Program. This program provides five core services: information about available services, help accessing care, individual counseling and support groups, temporary respite care to give you a break, and limited supplemental services to support your caregiving.\n\nYou qualify if you're caring for a family member age 60 or older, or if you're 60 or older caring for a child under 18. The program also serves grandparents and relatives age 60 or older caring for children 18 and under, and adults 55 or older caring for adults 18 or older with developmental disabilities. Because there are no income or asset limits, eligibility focuses solely on your age and caregiving role.\n\nMississippi delivers this program statewide through 10 Area Agencies on Aging (AAAs). Because services are coordinated locally, what's available may vary by region — some areas may have more respite providers or support groups than others.",
+      "intro": "If you're caring for an aging loved one in Mississippi, you may qualify for free respite care, counseling, and support services through the National Family Caregiver Support Program. This program provides five core services: information about available services, help accessing care, individual counseling and support groups, temporary respite care to give you a break, and limited supplemental services to support your caregiving.\n\nYou qualify if you're caring for a family member age 60 or older, or if you're 60 or older caring for a child under 18. The program also serves grandparents and relatives age 60 or older caring for children 18 and under, and adults 55 or older caring for adults 18 or older with developmental disabilities. Because there are no income or asset limits, eligibility focuses solely on your age and caregiving role.\n\nMississippi delivers this program statewide through 10 Area Agencies on Aging (AAAs). Because services are coordinated locally, what's available may vary by region, some areas may have more respite providers or support groups than others.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1422,8 +1422,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Assessment typically completed within one week of initial contact",
-        "waitlist": "No information available on waitlists — varies by local provider availability",
-        "tip": "Be prepared to describe your current caregiving responsibilities and what type of support would be most helpful — respite care, emotional support, or information about other services.",
+        "waitlist": "No information available on waitlists, varies by local provider availability",
+        "tip": "Be prepared to describe your current caregiving responsibilities and what type of support would be most helpful, respite care, emotional support, or information about other services.",
         "urls": [
           {
             "label": "Mississippi Department of Human Services Caregiver Page",
@@ -1461,9 +1461,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Services are delivered through 10 different Area Agencies on Aging, so availability of specific services like respite care providers may vary significantly by your county",
-        "This program provides support services but not direct cash payments — if you need financial assistance, ask your AAA about other programs like Medicaid self-direction options",
-        "The program is separate from Mississippi's Lifespan Respite Program (which provides vouchers) and Dementia Care Program (which provides 27 hours of respite monthly) — you may qualify for multiple programs",
-        "If you're caring for someone under 60 with disabilities, different eligibility rules apply — you must be 55 or older and the care recipient must be 18 or older with developmental disabilities"
+        "This program provides support services but not direct cash payments, if you need financial assistance, ask your AAA about other programs like Medicaid self-direction options",
+        "The program is separate from Mississippi's Lifespan Respite Program (which provides vouchers) and Dementia Care Program (which provides 27 hours of respite monthly), you may qualify for multiple programs",
+        "If you're caring for someone under 60 with disabilities, different eligibility rules apply, you must be 55 or older and the care recipient must be 18 or older with developmental disabilities"
       ],
       "relatedPrograms": [
         "Mississippi Lifespan Respite Program",
@@ -1478,7 +1478,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, these are separate programs with different funding sources. The Lifespan Respite Program provides vouchers ($300 initial/repeat, $400 emergency) while this program provides ongoing support services and respite care. Contact the MAC Center at 844-822-4622 to apply for both."
         },
         {
-          "question": "What if I'm caring for my spouse who has dementia — do we both need to be 60 or older?",
+          "question": "What if I'm caring for my spouse who has dementia, do we both need to be 60 or older?",
           "answer": "No, only your spouse (the care recipient) needs to be 60 or older. As the spouse providing care, you qualify regardless of your age as long as your spouse is 60+ and needs constant care due to dementia or other conditions."
         },
         {
@@ -1494,7 +1494,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, the program serves family caregivers regardless of where the care recipient lives. If you're providing significant ongoing care and support even while your loved one is in assisted living, you may still qualify for counseling, support groups, and information services."
         },
         {
-          "question": "What if I work full-time — are there evening or weekend support groups?",
+          "question": "What if I work full-time, are there evening or weekend support groups?",
           "answer": "Support group schedules vary by your local Area Agency on Aging and community providers. Some areas offer evening or weekend groups specifically for working caregivers. Ask your local AAA about scheduling options when you call 844-822-4622."
         },
         {
@@ -1553,7 +1553,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work at community organizations while they build job skills for permanent employment. Your loved one would earn minimum wage (currently $7.25/hour in Mississippi) for about 20 hours per week at nonprofit sites like schools, hospitals, or senior centers — potentially $600–800/month while gaining work experience and training.\n\nBecause SCSEP combines immediate income with job placement services, participants get both financial support and career development. Veterans, people over 65, and those with disabilities get enrollment priority. The program operates through regional partners across Mississippi, so availability depends on your loved one's county and local funding levels.\n\nThis isn't permanent employment — it's designed as a bridge to unsubsidized jobs in the community. Participants receive on-the-job training and employment assistance through American Job Centers to help them transition to regular employment.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work at community organizations while they build job skills for permanent employment. Your loved one would earn minimum wage (currently $7.25/hour in Mississippi) for about 20 hours per week at nonprofit sites like schools, hospitals, or senior centers, potentially $600–800/month while gaining work experience and training.\n\nBecause SCSEP combines immediate income with job placement services, participants get both financial support and career development. Veterans, people over 65, and those with disabilities get enrollment priority. The program operates through regional partners across Mississippi, so availability depends on your loved one's county and local funding levels.\n\nThis isn't permanent employment, it's designed as a bridge to unsubsidized jobs in the community. Participants receive on-the-job training and employment assistance through American Job Centers to help them transition to regular employment.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1577,7 +1577,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's SCSEP provider directly by phone — no statewide online application available.",
+        "summary": "Contact your county's SCSEP provider directly by phone, no statewide online application available.",
         "steps": [
           {
             "step": 1,
@@ -1600,7 +1600,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "If accepted, you'll be matched with a host site (like a school, hospital, or community organization) based on your skills and local availability."
           }
         ],
-        "processingTime": "Not specified — varies by region and funding availability",
+        "processingTime": "Not specified, varies by region and funding availability",
         "waitlist": "May vary by region depending on local funding and demand",
         "tip": "Veterans get priority enrollment, so bring military service documentation if applicable.",
         "urls": []
@@ -1641,7 +1641,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Not all Mississippi counties have SCSEP coverage — if your county isn't listed, contact CWI Works for information about other employment programs",
+        "Not all Mississippi counties have SCSEP coverage, if your county isn't listed, contact CWI Works for information about other employment programs",
         "Veterans and their qualified spouses get first priority, followed by people over 65 and those with disabilities",
         "This is part-time work (typically 20 hours/week) designed as a stepping stone to regular employment, not permanent income",
         "Each regional provider may have different wait times and host site availability based on local funding and partnerships"
@@ -1722,7 +1722,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one faces legal issues like housing disputes, healthcare denials, or family problems, they may qualify for free attorney services through Mississippi's legal aid programs. These nonprofit law firms provide full legal representation at no cost — including court appearances, document preparation, and legal advice — for low-income seniors.\n\nTo qualify, your loved one's household income must be at or below 125% of federal poverty guidelines (approximately $1,575/month for a single person in 2026). Seniors get priority for services, and exceptions may be possible for those with high medical expenses or debts. The program covers civil legal matters like elder care, housing, consumer protection, domestic violence, and foreclosure prevention.",
+      "intro": "If your loved one faces legal issues like housing disputes, healthcare denials, or family problems, they may qualify for free attorney services through Mississippi's legal aid programs. These nonprofit law firms provide full legal representation at no cost, including court appearances, document preparation, and legal advice, for low-income seniors.\n\nTo qualify, your loved one's household income must be at or below 125% of federal poverty guidelines (approximately $1,575/month for a single person in 2026). Seniors get priority for services, and exceptions may be possible for those with high medical expenses or debts. The program covers civil legal matters like elder care, housing, consumer protection, domestic violence, and foreclosure prevention.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1746,7 +1746,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional intake hotline — most cases can be screened over the phone the same day.",
+        "summary": "Call your regional intake hotline, most cases can be screened over the phone the same day.",
         "steps": [
           {
             "step": 1,
@@ -1766,7 +1766,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Gather all household income information before calling — this includes Social Security, pensions, and any other regular income for all household members.",
+        "tip": "Gather all household income information before calling, this includes Social Security, pensions, and any other regular income for all household members.",
         "urls": [
           {
             "label": "Mississippi Center for Legal Services",
@@ -1858,7 +1858,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or personal care home in Mississippi, the State Long Term Care Ombudsman Program provides free advocacy when problems arise. Because ombudsmen investigate complaints independently, your loved one gets an advocate who knows resident rights and can push for solutions — 71% of complaints were resolved or partially resolved to resident satisfaction in 2023.\n\nThe program covers all 82 counties through 19 local ombudsmen who made 151,094 facility visits in 2023. You don't need to prove income or fill out applications — any resident, family member, or representative can call directly about concerns ranging from poor care to billing disputes to choosing between facilities.\n\nThe service is completely confidential unless your loved one authorizes the ombudsman to share information. The program only helps people in licensed long-term care facilities, not those receiving care at home.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or personal care home in Mississippi, the State Long Term Care Ombudsman Program provides free advocacy when problems arise. Because ombudsmen investigate complaints independently, your loved one gets an advocate who knows resident rights and can push for solutions, 71% of complaints were resolved or partially resolved to resident satisfaction in 2023.\n\nThe program covers all 82 counties through 19 local ombudsmen who made 151,094 facility visits in 2023. You don't need to prove income or fill out applications, any resident, family member, or representative can call directly about concerns ranging from poor care to billing disputes to choosing between facilities.\n\nThe service is completely confidential unless your loved one authorizes the ombudsman to share information. The program only helps people in licensed long-term care facilities, not those receiving care at home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1880,7 +1880,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free hotline at 1-888-844-0041 — no forms required and assistance begins immediately.",
+        "summary": "Call the toll-free hotline at 1-888-844-0041, no forms required and assistance begins immediately.",
         "steps": [
           {
             "step": 1,
@@ -1890,7 +1890,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Explain the concern",
-            "description": "Describe the resident, facility name, and specific problem. No documentation needed to start — the ombudsman will investigate and determine next steps."
+            "description": "Describe the resident, facility name, and specific problem. No documentation needed to start, the ombudsman will investigate and determine next steps."
           },
           {
             "step": 3,
@@ -1900,7 +1900,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate assistance for complaints; no formal processing time specified as services are responsive rather than application-based",
         "waitlist": null,
-        "tip": "Keep notes about specific incidents (dates, staff involved, what happened) — this helps ombudsmen investigate more effectively.",
+        "tip": "Keep notes about specific incidents (dates, staff involved, what happened), this helps ombudsmen investigate more effectively.",
         "urls": [
           {
             "label": "Mississippi Ombudsman Program",
@@ -1939,7 +1939,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I call even if I'm not sure whether the problem is serious enough?",
-          "answer": "Yes — ombudsmen help with any concern about care quality, resident rights, or facility problems. They provided information and assistance to 973 individuals in 2023, ranging from minor questions to serious abuse cases. It's better to call and have them assess the situation than to wait."
+          "answer": "Yes, ombudsmen help with any concern about care quality, resident rights, or facility problems. They provided information and assistance to 973 individuals in 2023, ranging from minor questions to serious abuse cases. It's better to call and have them assess the situation than to wait."
         },
         {
           "question": "Will the facility know I complained and retaliate against my loved one?",
@@ -1947,11 +1947,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one lives in assisted living rather than a nursing home?",
-          "answer": "The program covers all licensed long-term care facilities including assisted living facilities, personal care homes, extended care homes, and boarding homes — not just nursing homes. All 19 regional ombudsmen are trained to handle issues in any type of licensed facility."
+          "answer": "The program covers all licensed long-term care facilities including assisted living facilities, personal care homes, extended care homes, and boarding homes, not just nursing homes. All 19 regional ombudsmen are trained to handle issues in any type of licensed facility."
         },
         {
           "question": "Can an ombudsman help us choose between different facilities?",
-          "answer": "Yes — ombudsmen provide information to help families choose facilities, including insights about care quality and resident satisfaction. They know the facilities in their regions and can share general guidance, though they maintain neutrality and won't recommend specific facilities over others."
+          "answer": "Yes, ombudsmen provide information to help families choose facilities, including insights about care quality and resident satisfaction. They know the facilities in their regions and can share general guidance, though they maintain neutrality and won't recommend specific facilities over others."
         }
       ],
       "layoutIntent": {
@@ -1985,7 +1985,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a loved one or family member with a significant disability or chronic illness requiring 24-hour care, Mississippi's Respite Voucher Program can help pay for temporary replacement care. You'll get a $300 voucher to hire an in-home care agency, use an adult day center, or pay a private caregiver while you take time for yourself.\n\nThis program has no income or asset limits — if you're providing unpaid care for someone needing round-the-clock assistance, you qualify. After using your initial $300 voucher, you can reapply for additional $290 vouchers approximately every six months. Emergency respite is also available for crisis situations.",
+      "intro": "If you're caring for a loved one or family member with a significant disability or chronic illness requiring 24-hour care, Mississippi's Respite Voucher Program can help pay for temporary replacement care. You'll get a $300 voucher to hire an in-home care agency, use an adult day center, or pay a private caregiver while you take time for yourself.\n\nThis program has no income or asset limits, if you're providing unpaid care for someone needing round-the-clock assistance, you qualify. After using your initial $300 voucher, you can reapply for additional $290 vouchers approximately every six months. Emergency respite is also available for crisis situations.",
       "savingsRange": "$300 – $590/year",
       "savingsSource": "Initial $300 voucher plus $290 repeat voucher available after 6 months",
       "savingsVerified": true,
@@ -2033,7 +2033,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Be specific about your preferred type of respite care when you apply — this helps match you with the right providers in your area.",
+        "tip": "Be specific about your preferred type of respite care when you apply, this helps match you with the right providers in your area.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2060,8 +2060,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "This program is separate from Medicaid waivers and has no income, asset, or age restrictions",
-        "Vouchers are per household, not per caregiver — if multiple family members share caregiving, you share one voucher",
-        "Emergency respite may be available for crisis situations — ask the resource specialist about expedited assistance",
+        "Vouchers are per household, not per caregiver, if multiple family members share caregiving, you share one voucher",
+        "Emergency respite may be available for crisis situations, ask the resource specialist about expedited assistance",
         "You can reapply for additional vouchers after approximately six months from your initial approval"
       ],
       "relatedPrograms": [
@@ -2081,7 +2081,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long can I use the respite care with each voucher?",
-          "answer": "The program provides vouchers for short-term respite breaks only, not ongoing care. The $300 can be used however works best for your situation — a few hours weekly over several months or several full days at once."
+          "answer": "The program provides vouchers for short-term respite breaks only, not ongoing care. The $300 can be used however works best for your situation, a few hours weekly over several months or several full days at once."
         },
         {
           "question": "Can I apply for both the initial $300 and repeat $290 vouchers if I've never used this program?",
@@ -2127,7 +2127,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives alone and you worry about their daily safety, this program provides regular phone check-ins from trained staff. The Central Mississippi Area Agency on Aging calls your loved one on a schedule you choose — daily, weekly, or as needed — to ensure they're safe and well.\n\nThe calls also serve as a social connection and can help identify emerging health or safety concerns before they become emergencies. If your loved one doesn't answer or indicates they need help, the agency follows up with you and emergency contacts. The service is free and available to older adults in Copiah, Hinds, Madison, Rankin, Simpson, Warren, and Yazoo counties.\n\nBecause this is phone-based reassurance rather than in-home care, your loved one maintains their independence while you gain peace of mind. The only requirement is that your loved one must be available to receive the scheduled calls.",
+      "intro": "If your loved one lives alone and you worry about their daily safety, this program provides regular phone check-ins from trained staff. The Central Mississippi Area Agency on Aging calls your loved one on a schedule you choose, daily, weekly, or as needed, to ensure they're safe and well.\n\nThe calls also serve as a social connection and can help identify emerging health or safety concerns before they become emergencies. If your loved one doesn't answer or indicates they need help, the agency follows up with you and emergency contacts. The service is free and available to older adults in Copiah, Hinds, Madison, Rankin, Simpson, Warren, and Yazoo counties.\n\nBecause this is phone-based reassurance rather than in-home care, your loved one maintains their independence while you gain peace of mind. The only requirement is that your loved one must be available to receive the scheduled calls.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2150,7 +2150,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 844-822-4622 between 8am and 4:30pm — no lengthy application process required.",
+        "summary": "Call 844-822-4622 between 8am and 4:30pm, no lengthy application process required.",
         "steps": [
           {
             "step": 1,
@@ -2165,7 +2165,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Set up call schedule",
-            "description": "Work with staff to determine the best calling schedule for your loved one — daily, weekly, or as needed based on their situation."
+            "description": "Work with staff to determine the best calling schedule for your loved one, daily, weekly, or as needed based on their situation."
           }
         ],
         "processingTime": null,
@@ -2230,7 +2230,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Mississippi offers 13 programs that can help reduce your caregiving costs and stress. Nine provide direct financial benefits — from $300/month in grocery assistance through SNAP to free home care services through the E&D Waiver that can replace thousands in nursing home costs. Four additional programs offer free resources like legal aid and Medicare counseling, regardless of your loved one's income. Most benefit programs require income below $1,816-$2,152/month for a single person, but several valuable services are available to all Mississippi seniors. Start by checking if your loved one qualifies for Medicaid home care services and Medicare assistance — these typically offer the largest financial impact.",
+    "intro": "Mississippi offers 13 programs that can help reduce your caregiving costs and stress. Nine provide direct financial benefits, from $300/month in grocery assistance through SNAP to free home care services through the E&D Waiver that can replace thousands in nursing home costs. Four additional programs offer free resources like legal aid and Medicare counseling, regardless of your loved one's income. Most benefit programs require income below $1,816-$2,152/month for a single person, but several valuable services are available to all Mississippi seniors. Start by checking if your loved one qualifies for Medicaid home care services and Medicare assistance, these typically offer the largest financial impact.",
     "startHere": [
       {
         "name": "Mississippi Elderly and Disabled (E&D) Waiver",
@@ -2309,6 +2309,6 @@ export const drafts: PipelineStateDrafts = {
       "Home care through the E&D Waiver requires meeting Nursing Facility Level of Care but lets your loved one stay home",
       "Four programs provide free resources (legal aid, Medicare counseling, ombudsman services, wellness calls) regardless of income"
     ],
-    "resourcesVsBenefits": "Mississippi programs fall into two categories: income-qualified benefits and free resources. Benefits like SNAP, LIHEAP, and Medicaid home care require your loved one to meet specific income limits (typically $1,816-$2,152/month). Free resources like Mississippi Legal Services, SHIP Medicare counseling, and the Long Term Care Ombudsman are available to all Mississippi seniors regardless of income or assets — use these even if your loved one doesn't qualify for financial benefits."
+    "resourcesVsBenefits": "Mississippi programs fall into two categories: income-qualified benefits and free resources. Benefits like SNAP, LIHEAP, and Medicaid home care require your loved one to meet specific income limits (typically $1,816-$2,152/month). Free resources like Mississippi Legal Services, SHIP Medicare counseling, and the Long Term Care Ombudsman are available to all Mississippi seniors regardless of income or assets, use these even if your loved one doesn't qualify for financial benefits."
   }
 };

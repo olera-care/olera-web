@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and paying high prescription costs, Wisconsin SeniorCare can reduce their drug bills to $5 for generics and $15 for brand-name medications. The program covers most FDA-approved drugs and coordinates with Medicare Part D to fill coverage gaps.\n\nSeniorCare works on income tiers — parents earning up to $25,536/year (single) or $34,624/year (couple) pay no deductible and get immediate $5/$15 copays. Higher income levels have deductibles from $500-$850 but still get the same low copays once met. The program has no asset limits and costs just $30/year to enroll.\n\nMost Wisconsin pharmacies accept the SeniorCare card, and coverage includes vaccines at no cost. Because SeniorCare coordinates as secondary insurance with Medicare, your loved one can often save significantly compared to Medicare Part D alone.",
+      "intro": "If your loved one is 65+ and paying high prescription costs, Wisconsin SeniorCare can reduce their drug bills to $5 for generics and $15 for brand-name medications. The program covers most FDA-approved drugs and coordinates with Medicare Part D to fill coverage gaps.\n\nSeniorCare works on income tiers, parents earning up to $25,536/year (single) or $34,624/year (couple) pay no deductible and get immediate $5/$15 copays. Higher income levels have deductibles from $500-$850 but still get the same low copays once met. The program has no asset limits and costs just $30/year to enroll.\n\nMost Wisconsin pharmacies accept the SeniorCare card, and coverage includes vaccines at no cost. Because SeniorCare coordinates as secondary insurance with Medicare, your loved one can often save significantly compared to Medicare Part D alone.",
       "savingsRange": "$600 – $3,600/year",
       "savingsSource": "Estimated based on typical senior prescription usage with SeniorCare copay structure versus retail prices",
       "savingsVerified": false,
@@ -48,7 +48,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 800-657-2038 to request an application or download from the state website — processing takes 4-6 weeks.",
+        "summary": "Call 800-657-2038 to request an application or download from the state website, processing takes 4-6 weeks.",
         "steps": [
           {
             "step": 1,
@@ -73,7 +73,7 @@
         ],
         "processingTime": "4-6 weeks",
         "waitlist": null,
-        "tip": "You can apply starting the month of your loved one's 65th birthday — don't wait until they're already paying high prescription costs.",
+        "tip": "You can apply starting the month of your loved one's 65th birthday, don't wait until they're already paying high prescription costs.",
         "urls": [
           {
             "label": "SeniorCare Application Form",
@@ -110,7 +110,7 @@
       "applicationNotes": [
         "For married couples, both spouses' income counts even if only one person applies for SeniorCare",
         "Level 3 participants must meet a monthly spenddown equal to their income over 240% FPL before benefits kick in",
-        "Annual renewal is required every year with another $30 fee — missing renewal means losing coverage",
+        "Annual renewal is required every year with another $30 fee, missing renewal means losing coverage",
         "SeniorCare works as secondary insurance, so keep your Medicare Part D or other prescription coverage active"
       ],
       "relatedPrograms": [
@@ -222,7 +222,7 @@
           }
         ]
       },
-      "intro": "If your loved one is struggling with Social Security denials, Medicare confusion, or benefit applications, Wisconsin's Elder Benefit Specialists provide free one-on-one help. These trained advocates, supervised by elder law attorneys, can assist with appeals, compare insurance options, help with FoodShare applications, and protect against debt collection — all at no cost.\n\nBecause Elder Benefit Specialists work for you (not insurance companies or government agencies), they provide unbiased guidance on which programs make the most financial sense. Your loved one qualifies regardless of income or assets — the only requirement is living in Wisconsin and being 60 or older.",
+      "intro": "If your loved one is struggling with Social Security denials, Medicare confusion, or benefit applications, Wisconsin's Elder Benefit Specialists provide free one-on-one help. These trained advocates, supervised by elder law attorneys, can assist with appeals, compare insurance options, help with FoodShare applications, and protect against debt collection, all at no cost.\n\nBecause Elder Benefit Specialists work for you (not insurance companies or government agencies), they provide unbiased guidance on which programs make the most financial sense. Your loved one qualifies regardless of income or assets, the only requirement is living in Wisconsin and being 60 or older.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -244,7 +244,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 1-844-947-2372 — services begin immediately upon contact.",
+        "summary": "Call the statewide helpline at 1-844-947-2372, services begin immediately upon contact.",
         "steps": [
           {
             "step": 1,
@@ -259,12 +259,12 @@
           {
             "step": 3,
             "title": "Begin services immediately",
-            "description": "No formal application required — your Elder Benefit Specialist will start helping with your specific benefit questions right away."
+            "description": "No formal application required, your Elder Benefit Specialist will start helping with your specific benefit questions right away."
           }
         ],
         "processingTime": "Services provided immediately upon contact",
         "waitlist": null,
-        "tip": "Bring any benefit-related paperwork to your first meeting — denial letters, income statements, or insurance documents help specialists understand your situation faster.",
+        "tip": "Bring any benefit-related paperwork to your first meeting, denial letters, income statements, or insurance documents help specialists understand your situation faster.",
         "urls": [
           {
             "label": "Find Your Local ADRC",
@@ -360,7 +360,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, WISE provides paid part-time work (typically 20 hours per week) at minimum wage while building job skills for permanent employment. Your loved one earns a paycheck while receiving job training, work experience, and individual counseling to transition to unsubsidized employment.\n\nThe program places participants in community service positions at local nonprofits and government agencies. Because WISE pays at least minimum wage for all hours worked, your loved one receives steady income while developing marketable skills. Veterans and participants over 65 get priority enrollment — others may face waiting periods depending on local provider capacity.\n\nTo qualify, your family income must be at or below 125% of the federal poverty level (exact dollar amounts change annually). Your loved one must be a Wisconsin resident and actively seeking work. The program is administered by different regional providers across the state, so contact your local office directly to apply.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, WISE provides paid part-time work (typically 20 hours per week) at minimum wage while building job skills for permanent employment. Your loved one earns a paycheck while receiving job training, work experience, and individual counseling to transition to unsubsidized employment.\n\nThe program places participants in community service positions at local nonprofits and government agencies. Because WISE pays at least minimum wage for all hours worked, your loved one receives steady income while developing marketable skills. Veterans and participants over 65 get priority enrollment, others may face waiting periods depending on local provider capacity.\n\nTo qualify, your family income must be at or below 125% of the federal poverty level (exact dollar amounts change annually). Your loved one must be a Wisconsin resident and actively seeking work. The program is administered by different regional providers across the state, so contact your local office directly to apply.",
       "savingsRange": "",
       "savingsSource": "Paid employment program",
       "savingsVerified": true,
@@ -384,7 +384,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional workforce development provider — no standardized statewide application exists.",
+        "summary": "Call your regional workforce development provider, no standardized statewide application exists.",
         "steps": [
           {
             "step": 1,
@@ -407,9 +407,9 @@
             "description": "Once placed, you'll work 20 hours per week at a community service host site while receiving job coaching and skills development."
           }
         ],
-        "processingTime": "Not specified — varies by regional provider capacity",
-        "waitlist": "Veterans and participants over 65 get priority enrollment — others may face waiting periods",
-        "tip": "Call multiple regional providers if you live near county boundaries — availability varies significantly by area.",
+        "processingTime": "Not specified, varies by regional provider capacity",
+        "waitlist": "Veterans and participants over 65 get priority enrollment, others may face waiting periods",
+        "tip": "Call multiple regional providers if you live near county boundaries, availability varies significantly by area.",
         "urls": [
           {
             "label": "Wisconsin Job Center Directory",
@@ -458,9 +458,9 @@
       ],
       "applicationNotes": [
         "Veterans and qualified military spouses get first priority for enrollment, followed by participants age 65 and older",
-        "Each regional provider operates independently — program availability, wait times, and host agencies vary significantly by location",
+        "Each regional provider operates independently, program availability, wait times, and host agencies vary significantly by location",
         "Income limit applies to total family income, not just the applicant's individual income",
-        "This is temporary training employment with the goal of transitioning to permanent unsubsidized work — not a permanent job program"
+        "This is temporary training employment with the goal of transitioning to permanent unsubsidized work, not a permanent job program"
       ],
       "relatedPrograms": [
         "Wisconsin Works (W-2)",
@@ -475,7 +475,7 @@
           "answer": "Yes, but Social Security has earnings limits that could reduce benefits if your loved one earns too much. In 2026, retirees under full retirement age can earn $22,320 annually before Social Security reduces benefits. Contact Social Security at (800) 772-1213 to understand how WISE wages might affect payments."
         },
         {
-          "question": "What if my loved one has been unemployed for years — does that hurt their chances?",
+          "question": "What if my loved one has been unemployed for years, does that hurt their chances?",
           "answer": "No, long-term unemployment actually supports eligibility since WISE specifically targets people with poor employment prospects due to age or other barriers. The program is designed for exactly this situation."
         },
         {
@@ -567,7 +567,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Aging and Disability Resource Center (ADRC) to start the screening process — they handle both the functional assessment and Medicaid application assistance.",
+        "summary": "Contact your local Aging and Disability Resource Center (ADRC) to start the screening process, they handle both the functional assessment and Medicaid application assistance.",
         "steps": [
           {
             "step": 1,
@@ -592,7 +592,7 @@
         ],
         "processingTime": "Not specified",
         "waitlist": "No waitlists for program participation",
-        "tip": "Start with your ADRC — they're your single point of contact for both the functional assessment and Medicaid application, which saves time coordinating between multiple agencies.",
+        "tip": "Start with your ADRC, they're your single point of contact for both the functional assessment and Medicaid application, which saves time coordinating between multiple agencies.",
         "urls": [
           {
             "label": "Wisconsin DHS Family Care Application Info",
@@ -631,8 +631,8 @@
         }
       ],
       "applicationNotes": [
-        "Family Care is not available statewide — you must live in a participating county where managed care organizations offer the program",
-        "Both financial Medicaid eligibility AND functional screening are required — meeting income limits alone is not sufficient for enrollment",
+        "Family Care is not available statewide, you must live in a participating county where managed care organizations offer the program",
+        "Both financial Medicaid eligibility AND functional screening are required, meeting income limits alone is not sufficient for enrollment",
         "If your loved one is already on Medicaid but hasn't had a functional assessment, they still need the Long Term Care Functional Screen",
         "Medicare beneficiaries can still qualify for Family Care if they meet Medicaid financial rules and functional requirements"
       ],
@@ -711,7 +711,7 @@
           }
         ]
       },
-      "intro": "IRIS gives your loved one control over their long-term care budget instead of being assigned specific providers. Your loved one gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your loved one controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule.\n\nTo qualify, your loved one must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports — your loved one decides how to spend their allocated budget.",
+      "intro": "IRIS gives your loved one control over their long-term care budget instead of being assigned specific providers. Your loved one gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your loved one controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule.\n\nTo qualify, your loved one must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports, your loved one decides how to spend their allocated budget.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -814,8 +814,8 @@
         }
       ],
       "applicationNotes": [
-        "You must live in an eligible community setting — not in a nursing facility or certain residential care facilities",
-        "Self-direction means your loved one manages their budget, hires and fires providers, and follows program rules — the FEA handles payroll but not service decisions",
+        "You must live in an eligible community setting, not in a nursing facility or certain residential care facilities",
+        "Self-direction means your loved one manages their budget, hires and fires providers, and follows program rules, the FEA handles payroll but not service decisions",
         "All hired providers must enroll with Wisconsin's ForwardHealth Portal before they can be paid",
         "Having existing Medicaid coverage speeds up IRIS enrollment since financial eligibility is already established"
       ],
@@ -876,7 +876,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Wisconsin offers 5 key programs to help your aging loved one — 3 financial benefits, 1 employment program, and 1 free resource. Your loved one could save hundreds monthly on prescriptions through SeniorCare, get paid part-time work through WISE if they're under income limits, or receive home care services through Family Care to avoid nursing home placement. The Elder Benefit Specialist Program provides free expert help navigating all these options plus Medicare and Social Security. Start by calling an Elder Benefit Specialist at your local Aging and Disability Resource Center — they'll help you identify which programs your loved one qualifies for and handle applications.",
+    "intro": "Wisconsin offers 5 key programs to help your aging loved one, 3 financial benefits, 1 employment program, and 1 free resource. Your loved one could save hundreds monthly on prescriptions through SeniorCare, get paid part-time work through WISE if they're under income limits, or receive home care services through Family Care to avoid nursing home placement. The Elder Benefit Specialist Program provides free expert help navigating all these options plus Medicare and Social Security. Start by calling an Elder Benefit Specialist at your local Aging and Disability Resource Center, they'll help you identify which programs your loved one qualifies for and handle applications.",
     "startHere": [
       {
         "name": "Elder Benefit Specialist (EBS) Program",
@@ -930,6 +930,6 @@
       "SeniorCare is Wisconsin's state prescription drug program with lower costs than most Medicare Part D plans",
       "Family Care and IRIS both require Nursing Facility Level of Care assessment but let your loved one stay at home"
     ],
-    "resourcesVsBenefits": "The Elder Benefit Specialist Program is free to all Wisconsin seniors regardless of income — call your local Aging and Disability Resource Center anytime for help. The other four programs require qualification: SeniorCare has income limits, Family Care and IRIS require clinical assessments showing your loved one needs daily care assistance, and WISE requires unemployment and income under $31,200/year for a family of two."
+    "resourcesVsBenefits": "The Elder Benefit Specialist Program is free to all Wisconsin seniors regardless of income, call your local Aging and Disability Resource Center anytime for help. The other four programs require qualification: SeniorCare has income limits, Family Care and IRIS require clinical assessments showing your loved one needs daily care assistance, and WISE requires unemployment and income under $31,200/year for a family of two."
   }
 }

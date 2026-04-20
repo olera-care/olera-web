@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.092Z
+ * Last updated: 2026-04-20T23:39:07.861Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in Missouri with very limited income and savings, MO HealthNet (Missouri's Medicaid program) covers all their essential healthcare at no cost. This includes doctor visits, hospital stays, prescription medicines, mental health services, and long-term care — both nursing home care and home-based services through special waivers.\n\nFor seniors 65+, the income limits are strict: $860/month for a single person ($1,166 for couples) with assets under $3,000 ($6,000 for couples). However, if your loved one's medical expenses are high enough, they may qualify through \"spend-down\" — where their medical bills effectively reduce their income to the qualifying level. The program also includes Medicare Savings Programs that pay Medicare premiums and cost-sharing for those with slightly higher incomes.\n\nBecause MO HealthNet coordinates all care under one system, your loved one won't juggle multiple insurance plans or face surprise medical bills. Home and community-based waiver services help seniors stay in their homes instead of moving to nursing facilities, though these programs often have waitlists due to limited funding slots.",
+      "intro": "If your loved one lives in Missouri with very limited income and savings, MO HealthNet (Missouri's Medicaid program) covers all their essential healthcare at no cost. This includes doctor visits, hospital stays, prescription medicines, mental health services, and long-term care, both nursing home care and home-based services through special waivers.\n\nFor seniors 65+, the income limits are strict: $860/month for a single person ($1,166 for couples) with assets under $3,000 ($6,000 for couples). However, if your loved one's medical expenses are high enough, they may qualify through \"spend-down\", where their medical bills effectively reduce their income to the qualifying level. The program also includes Medicare Savings Programs that pay Medicare premiums and cost-sharing for those with slightly higher incomes.\n\nBecause MO HealthNet coordinates all care under one system, your loved one won't juggle multiple insurance plans or face surprise medical bills. Home and community-based waiver services help seniors stay in their homes instead of moving to nursing facilities, though these programs often have waitlists due to limited funding slots.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -71,7 +71,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mydss.mo.gov or call 855-373-9994 — processing typically takes 45 days, or up to 90 days if disability determination is needed.",
+        "summary": "Apply online at mydss.mo.gov or call 855-373-9994, processing typically takes 45 days, or up to 90 days if disability determination is needed.",
         "steps": [
           {
             "step": 1,
@@ -101,7 +101,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Typically 45 days for aged/blind/disabled applications; up to 90 days if disability determination is needed",
         "waitlist": "No waitlist for basic MO HealthNet coverage, but Home and Community Based Waiver services have waitlists due to limited funding slots",
-        "tip": "If your loved one has high medical expenses, ask about spend-down eligibility even if their income seems too high — medical bills can count toward meeting income requirements.",
+        "tip": "If your loved one has high medical expenses, ask about spend-down eligibility even if their income seems too high, medical bills can count toward meeting income requirements.",
         "urls": [
           {
             "label": "MO HealthNet Online Application",
@@ -146,14 +146,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Local FSD Resource Center",
           "phone": null,
-          "description": "144 offices statewide for in-person assistance — find your local office through mydss.mo.gov",
+          "description": "144 offices statewide for in-person assistance, find your local office through mydss.mo.gov",
           "hours": "Varies by location"
         }
       ],
       "applicationNotes": [
-        "Asset limits apply strictly to seniors — many miss exemptions like primary home equity limits and burial fund exclusions",
-        "Spend-down allows qualification even with higher income if medical expenses are substantial — keep all medical receipts",
-        "Different MO HealthNet programs have different rules — Medicare Savings Programs have higher asset limits ($7,560 single) but require separate applications",
+        "Asset limits apply strictly to seniors, many miss exemptions like primary home equity limits and burial fund exclusions",
+        "Spend-down allows qualification even with higher income if medical expenses are substantial, keep all medical receipts",
+        "Different MO HealthNet programs have different rules, Medicare Savings Programs have higher asset limits ($7,560 single) but require separate applications",
         "Home and community-based waiver services have waitlists, but nursing home coverage is available immediately once level-of-care is determined"
       ],
       "relatedPrograms": [
@@ -172,7 +172,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one keep their house if they qualify for MO HealthNet?",
-          "answer": "Yes, the primary home is typically exempt from asset limits, though there may be equity caps. However, Missouri may place a lien on the home to recover long-term care costs after your loved one passes away — this is called estate recovery."
+          "answer": "Yes, the primary home is typically exempt from asset limits, though there may be equity caps. However, Missouri may place a lien on the home to recover long-term care costs after your loved one passes away, this is called estate recovery."
         },
         {
           "question": "What's the difference between regular MO HealthNet and the waiver programs?",
@@ -234,7 +234,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Alzheimer's disease or related dementia and already lives full-time with a family caregiver, Missouri's Structured Family Caregiving Waiver can pay that caregiver for providing daily care. Because this waiver covers homemaker and attendant care services through an approved plan of care, your family caregiver receives payment for help with bathing, dressing, medication oversight, and escorting to medical appointments — services they may already be providing.\n\nYour loved one must be 21 or older, have a dementia diagnosis from a licensed healthcare professional, and meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs daily help with activities like bathing, dressing, or medication management). Income limit: $1,109/month for a single person, asset limit: $6,068.80 (2025 figures). Because services are tailored to each person's plan of care rather than fixed dollar amounts, payment varies based on assessed needs.\n\nThis waiver requires your loved one to already live with their primary caregiver — it pays existing live-in arrangements rather than creating new ones. You'll also need to establish a backup plan with a qualified substitute caregiver for times when the primary caregiver is unavailable.",
+      "intro": "If your loved one has Alzheimer's disease or related dementia and already lives full-time with a family caregiver, Missouri's Structured Family Caregiving Waiver can pay that caregiver for providing daily care. Because this waiver covers homemaker and attendant care services through an approved plan of care, your family caregiver receives payment for help with bathing, dressing, medication oversight, and escorting to medical appointments, services they may already be providing.\n\nYour loved one must be 21 or older, have a dementia diagnosis from a licensed healthcare professional, and meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs daily help with activities like bathing, dressing, or medication management). Income limit: $1,109/month for a single person, asset limit: $6,068.80 (2025 figures). Because services are tailored to each person's plan of care rather than fixed dollar amounts, payment varies based on assessed needs.\n\nThis waiver requires your loved one to already live with their primary caregiver, it pays existing live-in arrangements rather than creating new ones. You'll also need to establish a backup plan with a qualified substitute caregiver for times when the primary caregiver is unavailable.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -263,7 +263,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed via InterRAI HC tool covering activities of daily living, cognition, and care needs — essentially whether your loved one needs daily help with bathing, dressing, medication management, or similar care)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed via InterRAI HC tool covering activities of daily living, cognition, and care needs, essentially whether your loved one needs daily help with bathing, dressing, medication management, or similar care)",
         "otherRequirements": [
           "Diagnosed with Alzheimer's disease or related dementia by licensed healthcare professional",
           "Lives full-time in same household as primary caregiver",
@@ -276,7 +276,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Missouri DHSS for assessment after confirming Medicaid eligibility — processing time not specified in official sources.",
+        "summary": "Contact Missouri DHSS for assessment after confirming Medicaid eligibility, processing time not specified in official sources.",
         "steps": [
           {
             "step": 1,
@@ -301,7 +301,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Processing time not specified in official sources",
         "waitlist": null,
-        "tip": "Gather your loved one's dementia diagnosis documentation and proof of shared residence before starting — these are required and often cause delays if missing.",
+        "tip": "Gather your loved one's dementia diagnosis documentation and proof of shared residence before starting, these are required and often cause delays if missing.",
         "urls": [
           {
             "label": "MO DSS Structured Family Caregiving Info",
@@ -340,9 +340,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must already have a live-in caregiving arrangement — this program pays existing caregivers, not new placements",
+        "You must already have a live-in caregiving arrangement, this program pays existing caregivers, not new placements",
         "Blind Pension Medicaid recipients are specifically excluded from this waiver program",
-        "Cannot combine with other Missouri HCBS waiver services — choosing this waiver means giving up other waiver options",
+        "Cannot combine with other Missouri HCBS waiver services, choosing this waiver means giving up other waiver options",
         "The substitute caregiver must be employed by your approved provider agency, not just any family member or friend"
       ],
       "relatedPrograms": [
@@ -367,11 +367,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What exactly does 'Nursing Facility Level of Care' mean for dementia patients?",
-          "answer": "It's a clinical assessment using the InterRAI HC tool that evaluates whether your loved one needs daily help with activities like bathing, dressing, eating, toileting, medication management, or mobility. Having dementia alone doesn't automatically qualify — the assessment must show they need this level of daily care assistance."
+          "answer": "It's a clinical assessment using the InterRAI HC tool that evaluates whether your loved one needs daily help with activities like bathing, dressing, eating, toileting, medication management, or mobility. Having dementia alone doesn't automatically qualify, the assessment must show they need this level of daily care assistance."
         },
         {
           "question": "How much will the family caregiver actually get paid?",
-          "answer": "Payment amounts aren't specified in the program rules — compensation is based on your loved one's individual plan of care and assessed needs. The provider agency determines payment based on services required, which could include several hours of daily care for activities of daily living and health-related support."
+          "answer": "Payment amounts aren't specified in the program rules, compensation is based on your loved one's individual plan of care and assessed needs. The provider agency determines payment based on services required, which could include several hours of daily care for activities of daily living and health-related support."
         },
         {
           "question": "What happens if my loved one is currently in a nursing home but wants to move in with family?",
@@ -383,7 +383,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's income is slightly over the $1,109 monthly limit?",
-          "answer": "If income exceeds the limit, your loved one won't qualify for Missouri Medicaid and therefore cannot access this waiver. However, some medical expenses might be deductible — contact MO HealthNet Customer Service at (855) 373-4636 to discuss spend-down options."
+          "answer": "If income exceeds the limit, your loved one won't qualify for Missouri Medicaid and therefore cannot access this waiver. However, some medical expenses might be deductible, contact MO HealthNet Customer Service at (855) 373-4636 to discuss spend-down options."
         }
       ],
       "layoutIntent": {
@@ -425,7 +425,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay at home, Missouri PACE provides all their medical care, prescription drugs, therapies, personal care, and adult day programs under one coordinated team. Because PACE covers everything from primary care to specialized therapies to home care services, your loved one won't need to coordinate between separate providers — one team manages their complete care plan.\n\nMissouri PACE is only available in three regions: Kansas City/Jackson County (PACE KC), St. Louis (EverTrue PACE), and Southwest Missouri (Jordan Valley Senior Care). Your loved one must be certified as needing nursing home level of care but able to live safely at home with support. Most participants (90-99%) have both Medicare and Medicaid, which covers all costs, but private pay is available if income is too high for Medicaid.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay at home, Missouri PACE provides all their medical care, prescription drugs, therapies, personal care, and adult day programs under one coordinated team. Because PACE covers everything from primary care to specialized therapies to home care services, your loved one won't need to coordinate between separate providers, one team manages their complete care plan.\n\nMissouri PACE is only available in three regions: Kansas City/Jackson County (PACE KC), St. Louis (EverTrue PACE), and Southwest Missouri (Jordan Valley Senior Care). Your loved one must be certified as needing nursing home level of care but able to live safely at home with support. Most participants (90-99%) have both Medicare and Medicaid, which covers all costs, but private pay is available if income is too high for Medicaid.",
       "savingsRange": "",
       "savingsSource": "Free service with Medicare/Medicaid coverage",
       "savingsVerified": true,
@@ -465,7 +465,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional PACE provider directly for enrollment — processing time varies by provider and individual assessment needs.",
+        "summary": "Contact your regional PACE provider directly for enrollment, processing time varies by provider and individual assessment needs.",
         "steps": [
           {
             "step": 1,
@@ -488,9 +488,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Meet with PACE team to review care needs, develop individualized care plan, and determine if your loved one can live safely at home with PACE support."
           }
         ],
-        "processingTime": "Not specified — varies by provider and individual assessment complexity",
-        "waitlist": "Not specified — may vary by provider and region",
-        "tip": "If your loved one has income above Medicaid limits, ask about private pay options — PACE KC specifically offers this alternative.",
+        "processingTime": "Not specified, varies by provider and individual assessment complexity",
+        "waitlist": "Not specified, may vary by provider and region",
+        "tip": "If your loved one has income above Medicaid limits, ask about private pay options, PACE KC specifically offers this alternative.",
         "urls": [
           {
             "label": "Missouri PACE Information",
@@ -542,10 +542,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Only three PACE organizations serve Missouri — you must live in their specific service areas to enroll",
-        "Most participants need both Medicare and Medicaid for full coverage — private pay costs approximately $7,000+ per month",
+        "Only three PACE organizations serve Missouri, you must live in their specific service areas to enroll",
+        "Most participants need both Medicare and Medicaid for full coverage, private pay costs approximately $7,000+ per month",
         "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice while in PACE",
-        "Functional assessment determines if your loved one can live safely at home with PACE support — some may need facility care instead"
+        "Functional assessment determines if your loved one can live safely at home with PACE support, some may need facility care instead"
       ],
       "relatedPrograms": [
         "Missouri Medicaid",
@@ -584,7 +584,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does PACE provide transportation to medical appointments?",
-          "answer": "Yes, PACE typically includes transportation to the adult day health center and medical appointments as part of their comprehensive services. This is one advantage of the coordinated care model — transportation is built into the program rather than being a separate service you need to arrange."
+          "answer": "Yes, PACE typically includes transportation to the adult day health center and medical appointments as part of their comprehensive services. This is one advantage of the coordinated care model, transportation is built into the program rather than being a separate service you need to arrange."
         }
       ],
       "layoutIntent": {
@@ -748,9 +748,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI program has limited funding and is awarded first-come, first-served — apply early in the year for best chances",
+        "QI program has limited funding and is awarded first-come, first-served, apply early in the year for best chances",
         "SLMB2 cannot be active at the same time as MO HealthNet insurance, unlike other MSP tiers",
-        "Income limits change every April when federal poverty levels are announced — recheck eligibility annually",
+        "Income limits change every April when federal poverty levels are announced, recheck eligibility annually",
         "Verify that your loved one's healthcare providers accept MSP coverage before assuming all Medicare providers participate"
       ],
       "relatedPrograms": [
@@ -777,7 +777,7 @@ export const drafts: PipelineStateDrafts = {
             {
               "tier": "QI",
               "incomeLimit": "$1,781/month single",
-              "benefits": "Pays Part B premiums only ($202.90/month) — limited funding, first-come first-served"
+              "benefits": "Pays Part B premiums only ($202.90/month), limited funding, first-come first-served"
             }
           ]
         }
@@ -789,7 +789,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's income is just over the limit?",
-          "answer": "Missouri may have more generous income disregards than the federal minimums listed here. Call 1-855-373-4636 to verify actual limits. Also remember that employment income is counted more favorably — less than half counts toward the limit."
+          "answer": "Missouri may have more generous income disregards than the federal minimums listed here. Call 1-855-373-4636 to verify actual limits. Also remember that employment income is counted more favorably, less than half counts toward the limit."
         },
         {
           "question": "How quickly should we apply for the QI program?",
@@ -841,7 +841,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one is on a fixed income in Missouri, SNAP can provide monthly assistance with grocery bills. A typical 2-person elderly household with $1,200 monthly income receives $415/month in food benefits loaded onto an EBT card that works like a debit card at most grocery stores.\n\nElderly households (60+) have easier qualification rules than younger families. Because seniors bypass the gross income test and only need to meet net income limits, many qualify even if their total monthly income seems too high. They also get higher asset limits ($4,500 instead of $3,000) and longer certification periods — meaning less paperwork once approved.\n\nAbout half of eligible seniors don't apply for SNAP, often because they don't realize they qualify. Social Security, veterans' benefits, and disability payments all count as income, but retirement savings and home ownership typically don't disqualify applicants.",
+      "intro": "If your loved one is on a fixed income in Missouri, SNAP can provide monthly assistance with grocery bills. A typical 2-person elderly household with $1,200 monthly income receives $415/month in food benefits loaded onto an EBT card that works like a debit card at most grocery stores.\n\nElderly households (60+) have easier qualification rules than younger families. Because seniors bypass the gross income test and only need to meet net income limits, many qualify even if their total monthly income seems too high. They also get higher asset limits ($4,500 instead of $3,000) and longer certification periods, meaning less paperwork once approved.\n\nAbout half of eligible seniors don't apply for SNAP, often because they don't realize they qualify. Social Security, veterans' benefits, and disability payments all count as income, but retirement savings and home ownership typically don't disqualify applicants.",
       "savingsRange": "$100 – $415/month in 2025",
       "savingsSource": "Example benefit amounts for elderly households from Missouri DSS",
       "savingsVerified": true,
@@ -899,7 +899,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mydss.mo.gov or visit your local Missouri Department of Social Services office — processing time not specified by state",
+        "summary": "Apply online at mydss.mo.gov or visit your local Missouri Department of Social Services office, processing time not specified by state",
         "steps": [
           {
             "step": 1,
@@ -909,22 +909,22 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Submit application",
-            "description": "Apply online at mydss.mo.gov or visit your local DSS office in person — you can also call your local office for phone or mail options"
+            "description": "Apply online at mydss.mo.gov or visit your local DSS office in person, you can also call your local office for phone or mail options"
           },
           {
             "step": 3,
             "title": "Complete interview",
-            "description": "DSS will schedule an interview to review your application and verify information — this may be done by phone for elderly applicants"
+            "description": "DSS will schedule an interview to review your application and verify information, this may be done by phone for elderly applicants"
           },
           {
             "step": 4,
             "title": "Receive decision",
-            "description": "DSS will mail you a decision letter — if approved, your EBT card will arrive separately with instructions for activation"
+            "description": "DSS will mail you a decision letter, if approved, your EBT card will arrive separately with instructions for activation"
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Elderly households can claim medical expense deductions above $35/month to reduce countable income — gather receipts for prescription costs, Medicare premiums, and other medical bills",
+        "tip": "Elderly households can claim medical expense deductions above $35/month to reduce countable income, gather receipts for prescription costs, Medicare premiums, and other medical bills",
         "urls": [
           {
             "label": "Apply Online (Missouri DSS)",
@@ -960,9 +960,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Net income calculation includes complex deductions — use the online SNAP pre-screening tool at mydss.mo.gov to estimate eligibility before applying",
+        "Net income calculation includes complex deductions, use the online SNAP pre-screening tool at mydss.mo.gov to estimate eligibility before applying",
         "Households with elderly or disabled members may qualify for 24-month certification periods instead of annual renewals",
-        "Medical expense deductions only count if they exceed $35/month — save receipts for Medicare premiums, prescription costs, and other out-of-pocket medical bills"
+        "Medical expense deductions only count if they exceed $35/month, save receipts for Medicare premiums, prescription costs, and other out-of-pocket medical bills"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -977,7 +977,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, home ownership does not disqualify your loved one from SNAP regardless of the home's value. The home is completely exempt from asset limits, and property taxes or mortgage payments may actually help reduce countable income through shelter deductions."
         },
         {
-          "question": "What if my loved one receives Social Security and a small pension — do both count as income?",
+          "question": "What if my loved one receives Social Security and a small pension, do both count as income?",
           "answer": "Yes, both Social Security and pension payments count toward the income limit. However, elderly households only need to meet the net income test (not gross), and medical expenses above $35/month can be deducted. A household with $1,200 total monthly income might still qualify after deductions."
         },
         {
@@ -986,7 +986,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How often does my loved one need to recertify for SNAP benefits?",
-          "answer": "Elderly households may qualify for longer certification periods — up to 24 months instead of the standard 12 months. The exact period depends on your loved one's circumstances, and DSS will notify you before recertification is due."
+          "answer": "Elderly households may qualify for longer certification periods, up to 24 months instead of the standard 12 months. The exact period depends on your loved one's circumstances, and DSS will notify you before recertification is due."
         },
         {
           "question": "What happens if my loved one's income changes after they're approved?",
@@ -1287,7 +1287,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local weatherization agency to apply — there are 18 agencies statewide with processing times that vary by area.",
+        "summary": "Contact your local weatherization agency to apply, there are 18 agencies statewide with processing times that vary by area.",
         "steps": [
           {
             "step": 1,
@@ -1320,9 +1320,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Approved improvements are completed at no cost, including insulation, air sealing, HVAC work, and other energy-saving measures."
           }
         ],
-        "processingTime": "Not specified — involves eligibility check, waitlist placement, energy audit, contractor scheduling, and final inspection",
+        "processingTime": "Not specified, involves eligibility check, waitlist placement, energy audit, contractor scheduling, and final inspection",
         "waitlist": "Eligible applicants are placed on waiting list with priority for elderly (over 60), families with children, or people with disabilities",
-        "tip": "Gather income documentation for all household members before contacting your local agency — missing paperwork is the most common reason for delays.",
+        "tip": "Gather income documentation for all household members before contacting your local agency, missing paperwork is the most common reason for delays.",
         "urls": [
           {
             "label": "Find Local Weatherization Agency",
@@ -1355,7 +1355,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Even if you automatically qualify through SSI or TANF, you still must submit a full application with income documentation",
-        "Renters need written landlord permission before applying — in multi-unit buildings, property owners may be required to share some costs",
+        "Renters need written landlord permission before applying, in multi-unit buildings, property owners may be required to share some costs",
         "Zero-income forms must be notarized if anyone in the household claims no income",
         "Priority is given to households with seniors over 60, people with disabilities, or children, but all eligible applicants can apply and will eventually be served"
       ],
@@ -1380,7 +1380,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's income is slightly over the 200% poverty limit?",
-          "answer": "Income limits are firm — there's no exception process for being slightly over. However, if your loved one receives SSI or TANF, they automatically qualify regardless of other income. Consider applying for LIHEAP instead, which may have different income thresholds."
+          "answer": "Income limits are firm, there's no exception process for being slightly over. However, if your loved one receives SSI or TANF, they automatically qualify regardless of other income. Consider applying for LIHEAP instead, which may have different income thresholds."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one who has dementia?",
@@ -1388,7 +1388,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one needs immediate help with energy bills while waiting for weatherization?",
-          "answer": "Apply for Missouri's Low Income Home Energy Assistance Program (LIHEAP) for immediate help with heating and cooling bills. You can receive LIHEAP assistance while waiting for weatherization services — the programs complement each other."
+          "answer": "Apply for Missouri's Low Income Home Energy Assistance Program (LIHEAP) for immediate help with heating and cooling bills. You can receive LIHEAP assistance while waiting for weatherization services, the programs complement each other."
         },
         {
           "question": "Do mobile homes qualify for the same improvements as regular houses?",
@@ -1461,7 +1461,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-390-3330 to speak with a counselor immediately — no application needed.",
+        "summary": "Call 1-800-390-3330 to speak with a counselor immediately, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1560,7 +1560,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and earning less than $1,957/month, they may qualify for a monthly food package worth approximately $50. The Commodity Supplemental Food Program provides canned fruits, vegetables, and meat, plus cheese, cereal, and milk products — all USDA commodity foods delivered monthly through local sites across Missouri.\n\nBecause CSFP uses self-declared income verification, your loved one won't need to provide pay stubs or tax returns — just proof of age and Missouri residency. However, the program is limited by federal funding, so not all eligible seniors can be served. Many local sites maintain waitlists.\n\nUnlike SNAP, CSFP provides a fixed monthly food box rather than a debit card. Your loved one cannot participate in both CSFP and WIC simultaneously, but CSFP and SNAP can be used together.",
+      "intro": "If your loved one is 60+ and earning less than $1,957/month, they may qualify for a monthly food package worth approximately $50. The Commodity Supplemental Food Program provides canned fruits, vegetables, and meat, plus cheese, cereal, and milk products, all USDA commodity foods delivered monthly through local sites across Missouri.\n\nBecause CSFP uses self-declared income verification, your loved one won't need to provide pay stubs or tax returns, just proof of age and Missouri residency. However, the program is limited by federal funding, so not all eligible seniors can be served. Many local sites maintain waitlists.\n\nUnlike SNAP, CSFP provides a fixed monthly food box rather than a debit card. Your loved one cannot participate in both CSFP and WIC simultaneously, but CSFP and SNAP can be used together.",
       "savingsRange": "$600/year",
       "savingsSource": "Monthly food package worth approximately $50 according to Missouri DHSS",
       "savingsVerified": true,
@@ -1631,7 +1631,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Visit your local site for certification",
-            "description": "Complete certification at the local site. No separate application form — the site handles enrollment directly."
+            "description": "Complete certification at the local site. No separate application form, the site handles enrollment directly."
           },
           {
             "step": 4,
@@ -1640,7 +1640,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": null,
-        "waitlist": "Program limited by funding — many sites maintain waitlists as it serves only as many as funding allows",
+        "waitlist": "Program limited by funding, many sites maintain waitlists as it serves only as many as funding allows",
         "tip": "Call ahead to check waitlist status at your local site before making the trip for certification.",
         "urls": [
           {
@@ -1672,8 +1672,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Funding limitations mean not all eligible seniors can be served — check local availability before planning",
-        "Some sites offer home delivery for mobility-limited seniors — ask when you call",
+        "Funding limitations mean not all eligible seniors can be served, check local availability before planning",
+        "Some sites offer home delivery for mobility-limited seniors, ask when you call",
         "Income limits in Missouri are 150% of Federal Poverty Level, which is higher than the 130% limit in some other states"
       ],
       "relatedPrograms": [
@@ -1686,7 +1686,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one participate in both CSFP and SNAP at the same time?",
-          "answer": "Yes, your loved one can receive both CSFP food boxes and SNAP benefits simultaneously. However, they cannot participate in both CSFP and WIC at the same time — these two programs are mutually exclusive."
+          "answer": "Yes, your loved one can receive both CSFP food boxes and SNAP benefits simultaneously. However, they cannot participate in both CSFP and WIC at the same time, these two programs are mutually exclusive."
         },
         {
           "question": "What if there's a waitlist at our local site?",
@@ -1816,7 +1816,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Funding is limited and distributed first-come, first-served — apply as soon as you're eligible",
+        "Funding is limited and distributed first-come, first-served, apply as soon as you're eligible",
         "You must use reimbursement funds within 45 days of enrollment, so have a plan for services before you call",
         "The program is reimbursement-based, meaning you pay for services first then get money back with receipts"
       ],
@@ -1828,7 +1828,7 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my loved one lives in assisted living — are we still eligible?",
+          "question": "What if my loved one lives in assisted living, are we still eligible?",
           "answer": "No, your loved one must live at home, not in any long-term care facility including assisted living, nursing homes, or memory care facilities. The program specifically supports families keeping someone with dementia at home."
         },
         {
@@ -1845,7 +1845,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one have moderate dementia or does it need to be severe Alzheimer's?",
-          "answer": "The program accepts any probable diagnosis of Alzheimer's disease or related dementias at any stage. This includes vascular dementia, Lewy body dementia, frontotemporal dementia, and other types — not just Alzheimer's disease."
+          "answer": "The program accepts any probable diagnosis of Alzheimer's disease or related dementias at any stage. This includes vascular dementia, Lewy body dementia, frontotemporal dementia, and other types, not just Alzheimer's disease."
         },
         {
           "question": "What exactly counts as a qualified service for the $700 reimbursement?",
@@ -1936,7 +1936,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": "Availability varies by county and priority status",
-        "tip": "Priority is given to veterans, adults over 65, and those with disabilities — mention these qualifications upfront if they apply to your loved one.",
+        "tip": "Priority is given to veterans, adults over 65, and those with disabilities, mention these qualifications upfront if they apply to your loved one.",
         "urls": [
           {
             "label": "Missouri SCSEP Information",
@@ -1973,10 +1973,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income calculations exclude 25% of Social Security benefits, all SNAP benefits, housing assistance, and unemployment compensation — gather these statements to ensure accurate eligibility determination",
-        "Priority applicants (veterans, 65+, disabled, rural residents) may have shorter wait times — clearly identify priority status during initial contact",
-        "Program availability varies significantly by county — some areas may have no local provider or long waitlists",
-        "This is temporary training employment designed to lead to unsubsidized jobs — participants cannot stay in SCSEP indefinitely"
+        "Income calculations exclude 25% of Social Security benefits, all SNAP benefits, housing assistance, and unemployment compensation, gather these statements to ensure accurate eligibility determination",
+        "Priority applicants (veterans, 65+, disabled, rural residents) may have shorter wait times, clearly identify priority status during initial contact",
+        "Program availability varies significantly by county, some areas may have no local provider or long waitlists",
+        "This is temporary training employment designed to lead to unsubsidized jobs, participants cannot stay in SCSEP indefinitely"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -2058,7 +2058,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and has low income, they may qualify for free legal help through Legal Services of Eastern Missouri. This program provides civil legal assistance, advice, and representation for housing issues (eviction defense, disability accommodations), public benefits appeals (SNAP, Medicaid, Social Security), consumer problems (creditor issues, predatory lending), domestic abuse, estate planning, and immigration matters.\n\nThe program serves 21 counties in eastern Missouri only. Because this is civil legal aid, they cannot help with criminal cases or traffic citations. Financial eligibility is required, but specific income limits aren't published — you must apply to see if your loved one qualifies.\n\nAfter you apply by phone, someone will call back within 3-5 business days to complete intake screening. Phone applications are only available Monday, Wednesday, and Thursday from 9am-5pm.",
+      "intro": "If your loved one is 60+ and has low income, they may qualify for free legal help through Legal Services of Eastern Missouri. This program provides civil legal assistance, advice, and representation for housing issues (eviction defense, disability accommodations), public benefits appeals (SNAP, Medicaid, Social Security), consumer problems (creditor issues, predatory lending), domestic abuse, estate planning, and immigration matters.\n\nThe program serves 21 counties in eastern Missouri only. Because this is civil legal aid, they cannot help with criminal cases or traffic citations. Financial eligibility is required, but specific income limits aren't published, you must apply to see if your loved one qualifies.\n\nAfter you apply by phone, someone will call back within 3-5 business days to complete intake screening. Phone applications are only available Monday, Wednesday, and Thursday from 9am-5pm.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2075,14 +2075,14 @@ export const drafts: PipelineStateDrafts = {
         "functionalRequirement": null,
         "otherRequirements": [
           "Must have low income (specific thresholds not published)",
-          "Civil cases only — no criminal cases or traffic citations",
+          "Civil cases only, no criminal cases or traffic citations",
           "Must live in one of 21 eastern Missouri counties served by LSEM"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 800-444-0514 on Monday, Wednesday, or Thursday for phone screening — someone calls back within 3-5 days.",
+        "summary": "Call 800-444-0514 on Monday, Wednesday, or Thursday for phone screening, someone calls back within 3-5 days.",
         "steps": [
           {
             "step": 1,
@@ -2102,7 +2102,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "3-5 business days for intake callback after phone application",
         "waitlist": null,
-        "tip": "Have details about your loved one's legal issue ready when you call — housing problems, benefit denials, debt collection, etc.",
+        "tip": "Have details about your loved one's legal issue ready when you call, housing problems, benefit denials, debt collection, etc.",
         "urls": [
           {
             "label": "Apply online at LSEM",
@@ -2183,7 +2183,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living, or other long-term care facility in Missouri, they have a free advocate on their side. Missouri's Long-Term Care Ombudsman Program provides trained volunteers who visit facilities regularly, investigate complaints, and work directly with facility management to resolve problems involving health, safety, welfare, and residents' rights.\n\nBecause ombudsmen operate independently from facilities and state agencies, they can advocate solely for your loved one's interests without conflicts. The program serves all long-term care residents in Missouri regardless of age or financial status — no income or asset limits apply.\n\nOmbudsmen respond immediately when you contact them. Unlike financial benefit programs, there's no application process or waiting period. You simply call with details about your loved one's situation, and a trained advocate begins working on the issue right away.",
+      "intro": "If your loved one lives in a nursing home, assisted living, or other long-term care facility in Missouri, they have a free advocate on their side. Missouri's Long-Term Care Ombudsman Program provides trained volunteers who visit facilities regularly, investigate complaints, and work directly with facility management to resolve problems involving health, safety, welfare, and residents' rights.\n\nBecause ombudsmen operate independently from facilities and state agencies, they can advocate solely for your loved one's interests without conflicts. The program serves all long-term care residents in Missouri regardless of age or financial status, no income or asset limits apply.\n\nOmbudsmen respond immediately when you contact them. Unlike financial benefit programs, there's no application process or waiting period. You simply call with details about your loved one's situation, and a trained advocate begins working on the issue right away.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2205,7 +2205,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the state hotline at (800) 309-3282 for immediate assistance — no forms or application needed.",
+        "summary": "Call the state hotline at (800) 309-3282 for immediate assistance, no forms or application needed.",
         "steps": [
           {
             "step": 1,
@@ -2225,7 +2225,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate assistance upon contact",
         "waitlist": null,
-        "tip": "Keep notes about specific incidents, dates, and staff involved — this helps the ombudsman investigate more effectively.",
+        "tip": "Keep notes about specific incidents, dates, and staff involved, this helps the ombudsman investigate more effectively.",
         "urls": [
           {
             "label": "Missouri Department of Health Ombudsman Page",
@@ -2300,7 +2300,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Medicare Part D and qualifies for Missouri Medicaid (called MO HealthNet), MoRx pays 50% of their prescription costs — including deductibles, co-pays, and coverage gap expenses. This can save hundreds of dollars per year for seniors managing multiple medications.\n\nBecause MoRx works alongside Medicare Part D, your loved one keeps their current prescription coverage while getting additional help with out-of-pocket costs. The program also covers certain drugs that Medicare excludes, like specific vitamins and over-the-counter medications when medically necessary.\n\nYour loved one must be enrolled in both Medicare Part D and MO HealthNet to qualify. If they're already receiving both, enrollment in MoRx is automatic. If they only have Medicare, they'll need to apply for MO HealthNet first.",
+      "intro": "If your loved one has Medicare Part D and qualifies for Missouri Medicaid (called MO HealthNet), MoRx pays 50% of their prescription costs, including deductibles, co-pays, and coverage gap expenses. This can save hundreds of dollars per year for seniors managing multiple medications.\n\nBecause MoRx works alongside Medicare Part D, your loved one keeps their current prescription coverage while getting additional help with out-of-pocket costs. The program also covers certain drugs that Medicare excludes, like specific vitamins and over-the-counter medications when medically necessary.\n\nYour loved one must be enrolled in both Medicare Part D and MO HealthNet to qualify. If they're already receiving both, enrollment in MoRx is automatic. If they only have Medicare, they'll need to apply for MO HealthNet first.",
       "savingsRange": "",
       "savingsSource": "50% reduction in Medicare Part D out-of-pocket costs",
       "savingsVerified": false,
@@ -2347,7 +2347,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply online through mydss.mo.gov for MO HealthNet — MoRx enrollment happens automatically if you qualify for both programs.",
+        "summary": "Apply online through mydss.mo.gov for MO HealthNet, MoRx enrollment happens automatically if you qualify for both programs.",
         "steps": [
           {
             "step": 1,
@@ -2410,9 +2410,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Major change in 2017: You can no longer qualify for MoRx with Medicare Part D alone — you must also be eligible for MO HealthNet",
+        "Major change in 2017: You can no longer qualify for MoRx with Medicare Part D alone, you must also be eligible for MO HealthNet",
         "If your loved one has MO HealthNet with a spenddown, they must meet the spenddown at least once per year to activate MoRx prescription assistance",
-        "Automatic enrollment happens if your loved one is already receiving both Medicare and MO HealthNet — no separate MoRx application needed"
+        "Automatic enrollment happens if your loved one is already receiving both Medicare and MO HealthNet, no separate MoRx application needed"
       ],
       "relatedPrograms": [
         "Medicare Extra Help (Low Income Subsidy)",
@@ -2431,7 +2431,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will MoRx cover drugs that Medicare Part D doesn't cover?",
-          "answer": "Yes, if your loved one is eligible for MO HealthNet, MoRx can cover certain medications that Medicare excludes — such as specific over-the-counter drugs, vitamins, and minerals when prescribed by a doctor. However, the drug must also be approved by MO HealthNet."
+          "answer": "Yes, if your loved one is eligible for MO HealthNet, MoRx can cover certain medications that Medicare excludes, such as specific over-the-counter drugs, vitamins, and minerals when prescribed by a doctor. However, the drug must also be approved by MO HealthNet."
         },
         {
           "question": "Can I apply for MoRx separately from MO HealthNet?",
@@ -2477,7 +2477,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and struggles with property taxes or rent in Missouri, the Property Tax Credit (Circuit Breaker) provides up to $1,100 for homeowners or $750 for renters back on their taxes. Because this is a refundable credit, your loved one gets money back even if they don't owe taxes — the state sends a check.\n\nThe credit phases down as income increases, with the full amount only available to those earning $14,300 or less annually. Income limits are $30,000 for single homeowners and $27,200 for single renters (slightly higher for married couples). Income includes Social Security, pensions, wages, and most other sources.\n\nYour loved one applies by filing Form MO-PTC with the Missouri Department of Revenue or attaching Form MO-PTS to their regular tax return. No asset limits apply — only age, residency, and income matter.",
+      "intro": "If your loved one is 65+ and struggles with property taxes or rent in Missouri, the Property Tax Credit (Circuit Breaker) provides up to $1,100 for homeowners or $750 for renters back on their taxes. Because this is a refundable credit, your loved one gets money back even if they don't owe taxes, the state sends a check.\n\nThe credit phases down as income increases, with the full amount only available to those earning $14,300 or less annually. Income limits are $30,000 for single homeowners and $27,200 for single renters (slightly higher for married couples). Income includes Social Security, pensions, wages, and most other sources.\n\nYour loved one applies by filing Form MO-PTC with the Missouri Department of Revenue or attaching Form MO-PTS to their regular tax return. No asset limits apply, only age, residency, and income matter.",
       "savingsRange": "$750 – $1,100/year in 2026",
       "savingsSource": "Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners",
       "savingsVerified": true,
@@ -2503,7 +2503,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "mail",
-        "summary": "File Form MO-PTC by mail with required documents — processing follows standard tax return timelines.",
+        "summary": "File Form MO-PTC by mail with required documents, processing follows standard tax return timelines.",
         "steps": [
           {
             "step": 1,
@@ -2528,7 +2528,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Standard tax return processing times apply",
         "waitlist": null,
-        "tip": "If you need help completing the forms, Aging Ahead offers assistance at 800-243-6060 — they know this program well.",
+        "tip": "If you need help completing the forms, Aging Ahead offers assistance at 800-243-6060, they know this program well.",
         "urls": [
           {
             "label": "Missouri Department of Revenue Property Tax Credit",
@@ -2569,9 +2569,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Full maximum credit ($750 for renters, $1,100 for homeowners) only available if income is $14,300 or below — credits phase down above this amount",
+        "Full maximum credit ($750 for renters, $1,100 for homeowners) only available if income is $14,300 or below, credits phase down above this amount",
         "Income includes nontaxable sources like Social Security and SSI, which many families overlook when estimating eligibility",
-        "Renters in assisted living or other tax-exempt facilities are not eligible — the property must pay real estate taxes",
+        "Renters in assisted living or other tax-exempt facilities are not eligible, the property must pay real estate taxes",
         "Some cities like Eureka accept forms by April 15 for utility bill adjustments in addition to the state credit"
       ],
       "relatedPrograms": [
@@ -2819,7 +2819,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "silp-senior-independent-living",
       "name": "Senior Independent Living Program (SILP)",
       "shortName": "SILP",
-      "tagline": "Wraparound services to help your loved one age safely at home — but only available through 4 providers in select Missouri areas.",
+      "tagline": "Wraparound services to help your loved one age safely at home, but only available through 4 providers in select Missouri areas.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2844,7 +2844,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to maintain their independence at home, Missouri's Senior Independent Living Program provides wraparound services tailored to their specific needs. Because the program focuses on health and safety improvements, services might include home modifications, meal assistance, transportation, or care coordination — whatever helps them age in place safely.\n\nThe catch: SILP isn't statewide. Only four providers serve specific urban areas in Missouri, so your loved one must live in one of these service areas to qualify. Each provider customizes services based on local needs and available resources, meaning what's available varies significantly by location.",
+      "intro": "If your loved one is 60+ and struggling to maintain their independence at home, Missouri's Senior Independent Living Program provides wraparound services tailored to their specific needs. Because the program focuses on health and safety improvements, services might include home modifications, meal assistance, transportation, or care coordination, whatever helps them age in place safely.\n\nThe catch: SILP isn't statewide. Only four providers serve specific urban areas in Missouri, so your loved one must live in one of these service areas to qualify. Each provider customizes services based on local needs and available resources, meaning what's available varies significantly by location.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2868,7 +2868,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact the SILP provider in your loved one's area directly — no centralized application process.",
+        "summary": "Contact the SILP provider in your loved one's area directly, no centralized application process.",
         "steps": [
           {
             "step": 1,
@@ -2893,7 +2893,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Services vary significantly by provider and region — ask specifically what types of support are available in your loved one's area when you call.",
+        "tip": "Services vary significantly by provider and region, ask specifically what types of support are available in your loved one's area when you call.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2913,8 +2913,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Not available statewide — your loved one must live in a service area covered by one of the four SILP providers",
-        "This is not a Medicaid waiver program — it's state-funded and separate from other independent living programs",
+        "Not available statewide, your loved one must live in a service area covered by one of the four SILP providers",
+        "This is not a Medicaid waiver program, it's state-funded and separate from other independent living programs",
         "Services are completely customized, so what's available depends on your loved one's assessed needs and the provider's resources"
       ],
       "relatedPrograms": [
@@ -2934,7 +2934,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What specific services might my loved one receive?",
-          "answer": "Services are completely individualized based on assessment, but focus on health and safety improvements to help seniors remain at home. This could include home modifications, meal assistance, transportation, care coordination, or other supports — it varies by provider and your loved one's needs."
+          "answer": "Services are completely individualized based on assessment, but focus on health and safety improvements to help seniors remain at home. This could include home modifications, meal assistance, transportation, care coordination, or other supports, it varies by provider and your loved one's needs."
         },
         {
           "question": "Is there an income limit to qualify?",
@@ -2961,12 +2961,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Missouri offers 16 programs to help your aging loved one — from free health coverage and paid home care to monthly food assistance and utility savings. These range from qualification-based benefits (like MO HealthNet covering all medical costs for parents with income under $1,732/month) to free resources available to any Missouri family (like one-on-one Medicare help through Missouri SHIP). If your loved one needs nursing home-level care but wants to stay home, Missouri has multiple waiver programs that can pay for daily care — including paying family members directly through the Structured Family Caregiving Waiver. Start by checking the highest-value programs first: health coverage, home care support, and food assistance can save thousands per year.",
+    "intro": "Missouri offers 16 programs to help your aging loved one, from free health coverage and paid home care to monthly food assistance and utility savings. These range from qualification-based benefits (like MO HealthNet covering all medical costs for parents with income under $1,732/month) to free resources available to any Missouri family (like one-on-one Medicare help through Missouri SHIP). If your loved one needs nursing home-level care but wants to stay home, Missouri has multiple waiver programs that can pay for daily care, including paying family members directly through the Structured Family Caregiving Waiver. Start by checking the highest-value programs first: health coverage, home care support, and food assistance can save thousands per year.",
     "startHere": [
       {
         "name": "MO HealthNet (Medicaid)",
         "programId": "healthnet-medicaid",
-        "why": "Covers all medical costs including long-term care — the biggest expense most families face."
+        "why": "Covers all medical costs including long-term care, the biggest expense most families face."
       },
       {
         "name": "Medicare Savings Program (MSP)",
@@ -2981,7 +2981,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
         "programId": "missouri-state-health-insurance-assistance-program-missouri-ship",
-        "why": "Free expert help finding all Medicare savings your loved one qualifies for — no income limits."
+        "why": "Free expert help finding all Medicare savings your loved one qualifies for, no income limits."
       }
     ],
     "byNeed": [
@@ -3030,7 +3030,7 @@ export const drafts: PipelineStateDrafts = {
           "Legal Services of Eastern Missouri",
           "Long-Term Care Ombudsman Program"
         ],
-        "description": "Expert help with Medicare, legal issues, and nursing home problems — no income limits or fees."
+        "description": "Expert help with Medicare, legal issues, and nursing home problems, no income limits or fees."
       }
     ],
     "quickFacts": [

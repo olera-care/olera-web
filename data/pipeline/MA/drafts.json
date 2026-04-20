@@ -16,7 +16,7 @@
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one is on Medicare and earning less than $2,993/month (or $4,058 for a married couple), Massachusetts can pay their Medicare premiums, deductibles, and copays. This program saves eligible seniors up to $3,000 per year in out-of-pocket medical costs.\n\nThe program has three tiers based on income. At the lowest income level (QMB), Massachusetts pays all Medicare premiums plus every deductible, coinsurance, and copay — your loved one shows both their Medicare and MassHealth cards and pays nothing. At higher income levels, the state covers Medicare Part B premiums and provides prescription drug savings. Since March 2024, there's no asset test for basic eligibility, meaning your loved one's house and savings don't count against them.\n\nBecause this program automatically enrolls your loved one in Medicare Part D Extra Help for prescription savings and connects them to additional MassHealth benefits, one application can unlock multiple forms of financial assistance.",
+      "intro": "If your loved one is on Medicare and earning less than $2,993/month (or $4,058 for a married couple), Massachusetts can pay their Medicare premiums, deductibles, and copays. This program saves eligible seniors up to $3,000 per year in out-of-pocket medical costs.\n\nThe program has three tiers based on income. At the lowest income level (QMB), Massachusetts pays all Medicare premiums plus every deductible, coinsurance, and copay, your loved one shows both their Medicare and MassHealth cards and pays nothing. At higher income levels, the state covers Medicare Part B premiums and provides prescription drug savings. Since March 2024, there's no asset test for basic eligibility, meaning your loved one's house and savings don't count against them.\n\nBecause this program automatically enrolls your loved one in Medicare Part D Extra Help for prescription savings and connects them to additional MassHealth benefits, one application can unlock multiple forms of financial assistance.",
       "savingsRange": "$3,000/year",
       "savingsSource": "Medicare premiums, deductibles, and copays covered by MassHealth",
       "savingsVerified": true,
@@ -61,7 +61,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mass.gov, by phone at 1-800-841-2900, or by mail — decision within 30 days.",
+        "summary": "Apply online at mass.gov, by phone at 1-800-841-2900, or by mail, decision within 30 days.",
         "steps": [
           {
             "step": 1,
@@ -86,7 +86,7 @@
         ],
         "processingTime": "30 days",
         "waitlist": null,
-        "tip": "The application also screens you for SNAP food benefits — you can opt out if you don't want food assistance.",
+        "tip": "The application also screens you for SNAP food benefits, you can opt out if you don't want food assistance.",
         "urls": [
           {
             "label": "MassHealth online portal",
@@ -123,7 +123,7 @@
         }
       ],
       "applicationNotes": [
-        "No asset test applies for Medicare Savings Program only — your loved one's house, savings, and investments don't count",
+        "No asset test applies for Medicare Savings Program only, your loved one's house, savings, and investments don't count",
         "If your loved one's income is slightly above $2,993/month, they may still qualify for other MassHealth benefits if their assets are low",
         "People under 65 on MassHealth Standard face income limits but no asset test",
         "Income limits update every March 1st based on Federal Poverty Level changes"
@@ -138,7 +138,7 @@
         {
           "type": "tier-comparison",
           "title": "Three Levels of Coverage",
-          "content": "**QMB (Qualified Medicare Beneficiary)**: Covers all Medicare Part A and B premiums, deductibles, coinsurance, and copays. Your loved one pays nothing when they show both Medicare and MassHealth cards. Also includes Health Safety Net coverage and automatic Medicare Part D Extra Help.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**: Covers Medicare Part B premium only, plus Health Safety Net coverage and Medicare Part D Extra Help. Your loved one still pays deductibles and copays.\n\n**QI (Qualifying Individual)**: Same coverage as SLMB — Medicare Part B premium, Health Safety Net, and Part D Extra Help."
+          "content": "**QMB (Qualified Medicare Beneficiary)**: Covers all Medicare Part A and B premiums, deductibles, coinsurance, and copays. Your loved one pays nothing when they show both Medicare and MassHealth cards. Also includes Health Safety Net coverage and automatic Medicare Part D Extra Help.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**: Covers Medicare Part B premium only, plus Health Safety Net coverage and Medicare Part D Extra Help. Your loved one still pays deductibles and copays.\n\n**QI (Qualifying Individual)**: Same coverage as SLMB, Medicare Part B premium, Health Safety Net, and Part D Extra Help."
         }
       ],
       "faqs": [
@@ -148,7 +148,7 @@
         },
         {
           "question": "What's the difference between QMB and the other programs?",
-          "answer": "QMB covers everything — premiums, deductibles, coinsurance, and copays. With QMB, your loved one shows both their Medicare and MassHealth cards and pays nothing out-of-pocket. SLMB and QI only cover the Medicare Part B premium, so your loved one still pays deductibles and copays."
+          "answer": "QMB covers everything, premiums, deductibles, coinsurance, and copays. With QMB, your loved one shows both their Medicare and MassHealth cards and pays nothing out-of-pocket. SLMB and QI only cover the Medicare Part B premium, so your loved one still pays deductibles and copays."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -193,7 +193,7 @@
       "id": "frail-elder-waiver",
       "name": "Frail Elder Waiver (FEW)",
       "shortName": "Frail Elder Waiver",
-      "tagline": "Home care services for seniors who need nursing home-level care but want to stay home — up to thousands per month in covered services.",
+      "tagline": "Home care services for seniors who need nursing home-level care but want to stay home, up to thousands per month in covered services.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -246,7 +246,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Aging Services Access Point (ASAP) for clinical assessment — processing often takes 3 months or more.",
+        "summary": "Contact your local Aging Services Access Point (ASAP) for clinical assessment, processing often takes 3 months or more.",
         "steps": [
           {
             "step": 1,
@@ -271,7 +271,7 @@
         ],
         "processingTime": "Often 3 months or more",
         "waitlist": null,
-        "tip": "Start early — the clinical assessment and financial review process is lengthy, and your loved one must be enrolled in MassHealth before waiver services can begin.",
+        "tip": "Start early, the clinical assessment and financial review process is lengthy, and your loved one must be enrolled in MassHealth before waiver services can begin.",
         "urls": [
           {
             "label": "Frail Elder Waiver Information",
@@ -310,9 +310,9 @@
         }
       ],
       "applicationNotes": [
-        "Spousal income and assets are often waived to prevent impoverishment — ask specifically about spousal protections during the financial review",
+        "Spousal income and assets are often waived to prevent impoverishment, ask specifically about spousal protections during the financial review",
         "If your loved one is over the income limit, they may still qualify through medical spend-down if monthly medical costs are high enough",
-        "Your loved one cannot live in assisted living, group homes, or rest homes while on the waiver — congregate housing is acceptable",
+        "Your loved one cannot live in assisted living, group homes, or rest homes while on the waiver, congregate housing is acceptable",
         "Missing any required financial documentation from the past 60 months can significantly delay approval"
       ],
       "relatedPrograms": [
@@ -336,7 +336,7 @@
         },
         {
           "question": "What if my loved one stops using waiver services for a month?",
-          "answer": "Your loved one will lose FEW eligibility if they don't receive at least one waiver service per month. This is a strict requirement — even brief gaps can terminate enrollment and require reapplication through the full process."
+          "answer": "Your loved one will lose FEW eligibility if they don't receive at least one waiver service per month. This is a strict requirement, even brief gaps can terminate enrollment and require reapplication through the full process."
         },
         {
           "question": "Can I apply if my loved one is already in the hospital or nursing home?",
@@ -352,7 +352,7 @@
         },
         {
           "question": "Can my loved one get the waiver if they're already on PACE or One Care?",
-          "answer": "No, participation in other HCBS waivers, PACE, or One Care programs disqualifies someone from the Frail Elder Waiver. These programs cannot be combined — you'll need to choose one."
+          "answer": "No, participation in other HCBS waivers, PACE, or One Care programs disqualifies someone from the Frail Elder Waiver. These programs cannot be combined, you'll need to choose one."
         }
       ],
       "layoutIntent": {
@@ -402,7 +402,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs extensive daily care but wants to stay at home, PACE provides all medical services under one coordinated team. Instead of juggling multiple doctors, specialists, and home care agencies, one interdisciplinary team manages everything from primary care to adult day services to prescription drugs.\n\nPACE covers all Medicare and Medicaid services with no copays, plus additional services like transportation to appointments, nutritional counseling, and social work. Because PACE providers receive a fixed monthly payment per participant, they're incentivized to keep your loved one healthy and out of the hospital rather than maximize billable services.\n\nYour loved one must qualify for nursing home-level care (needing daily help with activities like bathing, dressing, or medication management) but be able to live safely in the community with PACE support. PACE is only available in 271 of Massachusetts' 351 cities and towns — you must live in a participating provider's service area.",
+      "intro": "If your loved one is 55+ and needs extensive daily care but wants to stay at home, PACE provides all medical services under one coordinated team. Instead of juggling multiple doctors, specialists, and home care agencies, one interdisciplinary team manages everything from primary care to adult day services to prescription drugs.\n\nPACE covers all Medicare and Medicaid services with no copays, plus additional services like transportation to appointments, nutritional counseling, and social work. Because PACE providers receive a fixed monthly payment per participant, they're incentivized to keep your loved one healthy and out of the hospital rather than maximize billable services.\n\nYour loved one must qualify for nursing home-level care (needing daily help with activities like bathing, dressing, or medication management) but be able to live safely in the community with PACE support. PACE is only available in 271 of Massachusetts' 351 cities and towns, you must live in a participating provider's service area.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive medical and social services",
       "savingsVerified": false,
@@ -441,7 +441,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE provider directly to start the enrollment process — no statewide application form.",
+        "summary": "Call your local PACE provider directly to start the enrollment process, no statewide application form.",
         "steps": [
           {
             "step": 1,
@@ -469,9 +469,9 @@
             "description": "Once enrolled, your loved one will receive all medical care through the PACE team. Emergency care is available 24/7, and all other services must be authorized by the PACE team."
           }
         ],
-        "processingTime": "Not specified — varies by provider and assessment complexity",
+        "processingTime": "Not specified, varies by provider and assessment complexity",
         "waitlist": "Possible waitlists vary by provider and region",
-        "tip": "Start the process early — the clinical assessment can take time, and some providers have waitlists for new participants.",
+        "tip": "Start the process early, the clinical assessment can take time, and some providers have waitlists for new participants.",
         "urls": [
           {
             "label": "Massachusetts PACE Program Information",
@@ -520,10 +520,10 @@
         }
       ],
       "applicationNotes": [
-        "PACE is not available statewide — only 271 of 351 Massachusetts cities and towns have participating providers",
-        "All medical care must go through the PACE team except emergencies — you cannot keep outside doctors",
+        "PACE is not available statewide, only 271 of 351 Massachusetts cities and towns have participating providers",
+        "All medical care must go through the PACE team except emergencies, you cannot keep outside doctors",
         "MassHealth may cover the monthly premium if your loved one qualifies, otherwise there may be a share-of-cost based on income",
-        "The nursing home level of care requirement is clinical, not financial — even wealthy individuals can qualify if they meet the medical criteria"
+        "The nursing home level of care requirement is clinical, not financial, even wealthy individuals can qualify if they meet the medical criteria"
       ],
       "relatedPrograms": [
         "MassHealth Community Care Waiver",
@@ -535,7 +535,7 @@
       "faqs": [
         {
           "question": "Can my loved one keep their current doctors if they join PACE?",
-          "answer": "No, except for emergencies. PACE provides all medical care through their interdisciplinary team. Your loved one will be assigned new primary care providers, specialists, and other healthcare professionals who work together under the PACE model. This coordination is actually a key benefit — one team manages all care decisions."
+          "answer": "No, except for emergencies. PACE provides all medical care through their interdisciplinary team. Your loved one will be assigned new primary care providers, specialists, and other healthcare professionals who work together under the PACE model. This coordination is actually a key benefit, one team manages all care decisions."
         },
         {
           "question": "What if my loved one lives in a city that doesn't have PACE?",
@@ -559,7 +559,7 @@
         },
         {
           "question": "What if my loved one needs emergency care while in PACE?",
-          "answer": "PACE covers emergency services 24/7. Your loved one can go to any emergency room, but you should notify the PACE team as soon as possible. For urgent but non-emergency situations, call the PACE center first — they have after-hours coverage and may be able to handle the situation without an ER visit."
+          "answer": "PACE covers emergency services 24/7. Your loved one can go to any emergency room, but you should notify the PACE team as soon as possible. For urgent but non-emergency situations, call the PACE center first, they have after-hours coverage and may be able to handle the situation without an ER visit."
         },
         {
           "question": "Can I apply for PACE while my loved one is in the hospital?",
@@ -584,7 +584,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Food Stamps)",
       "shortName": "SNAP",
-      "tagline": "Monthly grocery assistance for Massachusetts seniors on fixed incomes — typically $100-$300 per month.",
+      "tagline": "Monthly grocery assistance for Massachusetts seniors on fixed incomes, typically $100-$300 per month.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -597,7 +597,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Massachusetts seniors receive an average of $147 per month, though benefits can reach up to $546 monthly for two-person households depending on income and expenses. The program has special simplified rules for seniors — easier income limits, higher deductions for medical expenses, and streamlined applications.\n\nBecause seniors 60+ get enhanced deductions for medical costs and shelter expenses, your loved one may qualify even if their Social Security or pension seems too high at first glance. Massachusetts also offers a simplified application process (EDSAP) for seniors with no earned income, which requires less paperwork and allows 36-month benefit periods instead of frequent renewals.\n\nThe application can be completed online through Mass.gov, by phone, or with help from your local senior center. Processing typically takes 30 days, though expedited approval within 7 days is available for seniors facing immediate food insecurity.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Massachusetts seniors receive an average of $147 per month, though benefits can reach up to $546 monthly for two-person households depending on income and expenses. The program has special simplified rules for seniors, easier income limits, higher deductions for medical expenses, and streamlined applications.\n\nBecause seniors 60+ get enhanced deductions for medical costs and shelter expenses, your loved one may qualify even if their Social Security or pension seems too high at first glance. Massachusetts also offers a simplified application process (EDSAP) for seniors with no earned income, which requires less paperwork and allows 36-month benefit periods instead of frequent renewals.\n\nThe application can be completed online through Mass.gov, by phone, or with help from your local senior center. Processing typically takes 30 days, though expedited approval within 7 days is available for seniors facing immediate food insecurity.",
       "savingsRange": "$1,764 – $6,552/year in 2026",
       "savingsSource": "Based on average MA senior benefit of $147/month to maximum two-person household benefit of $546/month",
       "savingsVerified": true,
@@ -659,7 +659,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Mass.gov using the senior-specific form, or get help at your local senior center — processing takes 30 days.",
+        "summary": "Apply online at Mass.gov using the senior-specific form, or get help at your local senior center, processing takes 30 days.",
         "steps": [
           {
             "step": 1,
@@ -732,7 +732,7 @@
       ],
       "applicationNotes": [
         "Seniors 60+ can skip the gross income test if they meet net income and asset requirements, making qualification easier than for younger adults",
-        "Medical expense deductions are higher for seniors — keep all receipts for prescription costs, medical equipment, and health insurance premiums",
+        "Medical expense deductions are higher for seniors, keep all receipts for prescription costs, medical equipment, and health insurance premiums",
         "EDSAP simplified applications are only available if all adults in the household are 60+ with no wages or self-employment income",
         "Expedited processing within 7 days is available if your monthly income plus assets are less than your monthly housing costs"
       ],
@@ -750,7 +750,7 @@
         },
         {
           "question": "What if my loved one's Social Security is slightly over the income limit?",
-          "answer": "Seniors 60+ can still qualify through the net income test even if gross income is too high. Medical expenses, shelter costs, and utility allowances are deducted from gross income — these deductions are often substantial enough for seniors to qualify."
+          "answer": "Seniors 60+ can still qualify through the net income test even if gross income is too high. Medical expenses, shelter costs, and utility allowances are deducted from gross income, these deductions are often substantial enough for seniors to qualify."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -766,7 +766,7 @@
         },
         {
           "question": "Can my loved one apply for SNAP and LIHEAP at the same time?",
-          "answer": "Yes, and receiving LIHEAP heating assistance actually helps with SNAP — it provides an automatic utility deduction that can increase SNAP benefits. Many seniors qualify for both programs simultaneously."
+          "answer": "Yes, and receiving LIHEAP heating assistance actually helps with SNAP, it provides an automatic utility deduction that can increase SNAP benefits. Many seniors qualify for both programs simultaneously."
         },
         {
           "question": "What happens if my loved one's medical expenses increase after they're approved?",
@@ -808,7 +808,7 @@
           }
         ]
       },
-      "intro": "If your loved one is on a fixed income and struggling with high heating bills, Massachusetts Weatherization Assistance can provide free home improvements worth an average of $4,725. The program covers air sealing, insulation, heating system repairs, and weather-stripping at no cost to your loved one — and typically reduces heating bills by 25-35%.\n\nBecause this program coordinates with utility companies and uses trained contractors, your loved one gets professional-grade weatherization without the hassle of finding reliable workers or managing multiple estimates. Priority goes to households with elderly members, people with disabilities, or families with children under 6.\n\nThe catch: applications are only accepted October 1 through April 30 each year, and demand exceeds funding. Your loved one must qualify for the Low Income Home Energy Assistance Program (LIHEAP) income limits — generally 60% of state median income or 200% of federal poverty level.",
+      "intro": "If your loved one is on a fixed income and struggling with high heating bills, Massachusetts Weatherization Assistance can provide free home improvements worth an average of $4,725. The program covers air sealing, insulation, heating system repairs, and weather-stripping at no cost to your loved one, and typically reduces heating bills by 25-35%.\n\nBecause this program coordinates with utility companies and uses trained contractors, your loved one gets professional-grade weatherization without the hassle of finding reliable workers or managing multiple estimates. Priority goes to households with elderly members, people with disabilities, or families with children under 6.\n\nThe catch: applications are only accepted October 1 through April 30 each year, and demand exceeds funding. Your loved one must qualify for the Low Income Home Energy Assistance Program (LIHEAP) income limits, generally 60% of state median income or 200% of federal poverty level.",
       "savingsRange": "25-35% reduction in heating bills",
       "savingsSource": "Massachusetts Weatherization Assistance Program (Mass.gov)",
       "savingsVerified": true,
@@ -908,9 +908,9 @@
         }
       ],
       "applicationNotes": [
-        "Applications are only accepted October 1 through April 30 each program year — missing this window means waiting until the next year",
+        "Applications are only accepted October 1 through April 30 each program year, missing this window means waiting until the next year",
         "Tenants in buildings with more than 4 units (condos) are not eligible, but tenants in 1-4 unit buildings can qualify if they pay their own heating bills",
-        "Landlord requirements are strictly enforced — if the landlord won't sign agreements or isn't current on taxes and utilities, the application will be denied",
+        "Landlord requirements are strictly enforced, if the landlord won't sign agreements or isn't current on taxes and utilities, the application will be denied",
         "The program may coordinate with utility programs like MassSave but won't duplicate services already provided"
       ],
       "relatedPrograms": [
@@ -985,7 +985,7 @@
           }
         ]
       },
-      "intro": "If your loved one is approaching 65 or already on Medicare, SHINE provides free, unbiased counseling to help them understand their health insurance options. Trained counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and screen for cost-saving programs like Extra Help for prescription drugs.\n\nBecause Medicare decisions can save or cost thousands per year, SHINE counselors also help with enrollment in Medicare Savings Programs, MassHealth, and Prescription Advantage. No income limits apply — any Massachusetts resident eligible for or approaching Medicare can get help, along with their caregivers.\n\nDuring peak enrollment periods (October through March), demand is high and appointments may take longer to schedule. Cape Cod alone recorded over 3,600 appointments in the 2025 enrollment season.",
+      "intro": "If your loved one is approaching 65 or already on Medicare, SHINE provides free, unbiased counseling to help them understand their health insurance options. Trained counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and screen for cost-saving programs like Extra Help for prescription drugs.\n\nBecause Medicare decisions can save or cost thousands per year, SHINE counselors also help with enrollment in Medicare Savings Programs, MassHealth, and Prescription Advantage. No income limits apply, any Massachusetts resident eligible for or approaching Medicare can get help, along with their caregivers.\n\nDuring peak enrollment periods (October through March), demand is high and appointments may take longer to schedule. Cape Cod alone recorded over 3,600 appointments in the 2025 enrollment season.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1075,7 +1075,7 @@
         },
         {
           "question": "Can my loved one get help choosing between Medicare Advantage and traditional Medicare plus Medigap?",
-          "answer": "Yes, this is exactly what SHINE counselors do. They'll explain the differences, compare costs based on your loved one's specific medications and doctors, and help evaluate which option provides better coverage for their needs. The counseling is unbiased — counselors don't sell insurance."
+          "answer": "Yes, this is exactly what SHINE counselors do. They'll explain the differences, compare costs based on your loved one's specific medications and doctors, and help evaluate which option provides better coverage for their needs. The counseling is unbiased, counselors don't sell insurance."
         },
         {
           "question": "Does SHINE help with applications or just provide information?",
@@ -1113,7 +1113,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to shop or prepare nutritious meals, Meals on Wheels delivers hot lunches directly to their home Monday through Friday. Because the program serves homebound seniors regardless of income, your loved one likely qualifies if they can't safely get to the store or cook for themselves.\n\nEach meal meets one-third of daily nutritional requirements and is low in sodium, fat, and sugar. Special diets are available for diabetes and heart disease. Because drivers provide a daily safety check-in, you'll have peace of mind knowing someone sees your loved one every weekday.\n\nMassachusetts serves over 30,000 meals daily through local providers. Contact your local Area Agency on Aging to apply — no statewide income limits apply, though some providers may charge a small fee based on ability to pay.",
+      "intro": "If your loved one is 60+ and struggles to shop or prepare nutritious meals, Meals on Wheels delivers hot lunches directly to their home Monday through Friday. Because the program serves homebound seniors regardless of income, your loved one likely qualifies if they can't safely get to the store or cook for themselves.\n\nEach meal meets one-third of daily nutritional requirements and is low in sodium, fat, and sugar. Special diets are available for diabetes and heart disease. Because drivers provide a daily safety check-in, you'll have peace of mind knowing someone sees your loved one every weekday.\n\nMassachusetts serves over 30,000 meals daily through local providers. Contact your local Area Agency on Aging to apply, no statewide income limits apply, though some providers may charge a small fee based on ability to pay.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1137,7 +1137,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider for a needs assessment — no standard processing time given as it varies by area.",
+        "summary": "Call your local provider for a needs assessment, no standard processing time given as it varies by area.",
         "steps": [
           {
             "step": 1,
@@ -1147,7 +1147,7 @@
           {
             "step": 2,
             "title": "Contact your local provider",
-            "description": "Call your local provider directly. Examples: Greater Springfield Senior Services, Meals on Wheels Boston, or South Shore Elder Services — each covers specific cities and towns."
+            "description": "Call your local provider directly. Examples: Greater Springfield Senior Services, Meals on Wheels Boston, or South Shore Elder Services, each covers specific cities and towns."
           },
           {
             "step": 3,
@@ -1160,8 +1160,8 @@
             "description": "Submit proof of age, residency, and homebound status. If fees apply in your area, you may need income information for reduced-cost meals."
           }
         ],
-        "processingTime": "Varies by provider — contact your local office for assessment timeline",
-        "waitlist": "Varies by region — some areas have demand exceeding capacity",
+        "processingTime": "Varies by provider, contact your local office for assessment timeline",
+        "waitlist": "Varies by region, some areas have demand exceeding capacity",
         "tip": "If your loved one is being discharged from the hospital, some providers emphasize short-term post-hospital meal delivery needs.",
         "urls": [
           {
@@ -1193,27 +1193,27 @@
         {
           "label": "Greater Springfield Senior Services",
           "phone": null,
-          "description": "Serves Springfield area — check gsssi.org for contact",
+          "description": "Serves Springfield area, check gsssi.org for contact",
           "hours": "Contact via website"
         },
         {
           "label": "Meals on Wheels Boston",
           "phone": null,
-          "description": "Serves Boston city limits — visit mealsonwheelsboston.org",
+          "description": "Serves Boston city limits, visit mealsonwheelsboston.org",
           "hours": "Contact via website"
         },
         {
           "label": "South Shore Elder Services",
           "phone": null,
-          "description": "Serves South Shore region — visit sselder.org",
+          "description": "Serves South Shore region, visit sselder.org",
           "hours": "Contact via website"
         }
       ],
       "applicationNotes": [
-        "This is not a single centralized program — you must contact the specific local provider that serves your loved one's town or city",
-        "Homebound status is strictly required — drivers cannot leave meals unattended if no one is home to receive them",
+        "This is not a single centralized program, you must contact the specific local provider that serves your loved one's town or city",
+        "Homebound status is strictly required, drivers cannot leave meals unattended if no one is home to receive them",
         "Most providers offer free or low-cost meals, but some apply means-testing for reduced fees based on income",
-        "This program is separate from Medicaid Mom's Meals — your loved one doesn't need to be enrolled in Medicaid to qualify"
+        "This program is separate from Medicaid Mom's Meals, your loved one doesn't need to be enrolled in Medicaid to qualify"
       ],
       "relatedPrograms": [
         "SNAP (Food Benefits)",
@@ -1225,7 +1225,7 @@
       "faqs": [
         {
           "question": "Can my loved one get meals if they're not homebound all the time?",
-          "answer": "Your loved one must be chronically or temporarily homebound and unable to shop or prepare meals. Temporary homebound status — like recovery from surgery or a fall — may qualify. Contact your local provider to discuss your loved one's specific situation and mobility limitations."
+          "answer": "Your loved one must be chronically or temporarily homebound and unable to shop or prepare meals. Temporary homebound status, like recovery from surgery or a fall, may qualify. Contact your local provider to discuss your loved one's specific situation and mobility limitations."
         },
         {
           "question": "What if my loved one lives in an assisted living facility?",
@@ -1245,11 +1245,11 @@
         },
         {
           "question": "How long is the waitlist in my area?",
-          "answer": "Wait times vary significantly by region — some areas have immediate availability while others have waitlists due to high demand. Contact your local provider directly for current wait times in your loved one's service area. Priority may be given to those with the greatest need."
+          "answer": "Wait times vary significantly by region, some areas have immediate availability while others have waitlists due to high demand. Contact your local provider directly for current wait times in your loved one's service area. Priority may be given to those with the greatest need."
         },
         {
           "question": "Can my loved one get meals if they already receive SNAP benefits?",
-          "answer": "Yes, your loved one can receive both SNAP benefits and Meals on Wheels — these are separate programs that can complement each other. SNAP helps with groceries while Meals on Wheels provides prepared meals and daily check-ins for homebound seniors."
+          "answer": "Yes, your loved one can receive both SNAP benefits and Meals on Wheels, these are separate programs that can complement each other. SNAP helps with groceries while Meals on Wheels provides prepared meals and daily check-ins for homebound seniors."
         },
         {
           "question": "What if my loved one's needs change after enrollment?",
@@ -1311,7 +1311,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline to connect with your local ASAP for a clinical assessment — no forms required upfront.",
+        "summary": "Call the statewide helpline to connect with your local ASAP for a clinical assessment, no forms required upfront.",
         "steps": [
           {
             "step": 1,
@@ -1336,7 +1336,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Ask specifically about dementia-specialized providers when you call — not all respite workers have Alzheimer's training.",
+        "tip": "Ask specifically about dementia-specialized providers when you call, not all respite workers have Alzheimer's training.",
         "urls": [
           {
             "label": "Find Your Local ASAP",
@@ -1374,8 +1374,8 @@
         }
       ],
       "applicationNotes": [
-        "This is not a standalone program — respite services are provided through the broader Family Caregiver Support Program administered by local ASAPs",
-        "Provider availability varies significantly by region — ask your ASAP about current wait times for dementia-specialized respite workers",
+        "This is not a standalone program, respite services are provided through the broader Family Caregiver Support Program administered by local ASAPs",
+        "Provider availability varies significantly by region, ask your ASAP about current wait times for dementia-specialized respite workers",
         "You can request both in-home respite care and adult day programs if available in your area",
         "Assessment focuses on functional needs rather than income, but some ASAPs may have limited slots based on funding"
       ],
@@ -1396,7 +1396,7 @@
           "answer": "The program doesn't specify hour limits in available documentation. Your local ASAP determines service levels based on your family's needs and available funding. Some families receive a few hours weekly while others get daily assistance during crises."
         },
         {
-          "question": "What if my loved one lives in assisted living — can we still get respite services?",
+          "question": "What if my loved one lives in assisted living, can we still get respite services?",
           "answer": "No, this program only serves people living in their own homes or family homes. It cannot be used in nursing homes or certified assisted living facilities. If your loved one lives independently in a senior apartment or with family, they may qualify."
         },
         {
@@ -1483,7 +1483,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional provider directly — no statewide online application exists.",
+        "summary": "Contact your regional provider directly, no statewide online application exists.",
         "steps": [
           {
             "step": 1,
@@ -1508,7 +1508,7 @@
         ],
         "processingTime": null,
         "waitlist": "Possible based on priority criteria and available positions",
-        "tip": "Contact multiple providers if your county is served by more than one — they may have different wait times.",
+        "tip": "Contact multiple providers if your county is served by more than one, they may have different wait times.",
         "urls": [
           {
             "label": "U.S. Department of Labor SCSEP",
@@ -1551,10 +1551,10 @@
         }
       ],
       "applicationNotes": [
-        "Veterans and qualified spouses get first priority, followed by individuals over 65 — ask about your loved one's priority status",
-        "Each county has different providers and potentially different wait times — some may have immediate openings",
-        "Your loved one must be actively seeking unsubsidized employment, not just training — this is a work preparation program",
-        "Income limits are based on household size and updated annually — check current federal poverty guidelines with your provider"
+        "Veterans and qualified spouses get first priority, followed by individuals over 65, ask about your loved one's priority status",
+        "Each county has different providers and potentially different wait times, some may have immediate openings",
+        "Your loved one must be actively seeking unsubsidized employment, not just training, this is a work preparation program",
+        "Income limits are based on household size and updated annually, check current federal poverty guidelines with your provider"
       ],
       "relatedPrograms": [
         "SNAP (Food Assistance)",
@@ -1570,11 +1570,11 @@
         },
         {
           "question": "What if my loved one lives on the border between counties with different providers?",
-          "answer": "Your loved one should contact the provider for their residential county first. However, some providers serve multiple counties — for example, CFC Inc serves Bristol, Plymouth, AND Hampden Counties. If one provider has a long waitlist, ask if neighboring providers accept applications from your area."
+          "answer": "Your loved one should contact the provider for their residential county first. However, some providers serve multiple counties, for example, CFC Inc serves Bristol, Plymouth, AND Hampden Counties. If one provider has a long waitlist, ask if neighboring providers accept applications from your area."
         },
         {
           "question": "How long is the waitlist really, and what determines priority?",
-          "answer": "Wait times vary by provider and available positions. Veterans get first priority, then people over 65, with disabilities, limited English, homeless, or with poor employment prospects. Contact your regional provider directly for current wait times — some areas may have immediate openings while others have months-long waits."
+          "answer": "Wait times vary by provider and available positions. Veterans get first priority, then people over 65, with disabilities, limited English, homeless, or with poor employment prospects. Contact your regional provider directly for current wait times, some areas may have immediate openings while others have months-long waits."
         },
         {
           "question": "Can my loved one choose where they work during the training program?",
@@ -1651,7 +1651,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call during business hours for immediate consultation — no application or documents needed.",
+        "summary": "Call during business hours for immediate consultation, no application or documents needed.",
         "steps": [
           {
             "step": 1,
@@ -1661,7 +1661,7 @@
           {
             "step": 2,
             "title": "Describe your legal issue",
-            "description": "Explain the situation — whether it's Social Security, housing, benefits, or other civil legal matter."
+            "description": "Explain the situation, whether it's Social Security, housing, benefits, or other civil legal matter."
           },
           {
             "step": 3,
@@ -1771,7 +1771,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide line to be connected to your local ombudsman — no application or paperwork required.",
+        "summary": "Call the statewide line to be connected to your local ombudsman, no application or paperwork required.",
         "steps": [
           {
             "step": 1,
@@ -1781,7 +1781,7 @@
           {
             "step": 2,
             "title": "Describe the problem",
-            "description": "Explain the issue — whether it's care quality, safety concerns, billing disputes, or rights violations. The ombudsman will begin investigating immediately."
+            "description": "Explain the issue, whether it's care quality, safety concerns, billing disputes, or rights violations. The ombudsman will begin investigating immediately."
           },
           {
             "step": 3,
@@ -1832,7 +1832,7 @@
         },
         {
           "question": "Can the ombudsman force the facility to make changes?",
-          "answer": "No, ombudsmen are advocates, not regulators — they cannot enforce rules or impose penalties. However, they educate facilities about regulations, mediate conflicts, and can refer serious violations to regulatory agencies that do have enforcement power."
+          "answer": "No, ombudsmen are advocates, not regulators, they cannot enforce rules or impose penalties. However, they educate facilities about regulations, mediate conflicts, and can refer serious violations to regulatory agencies that do have enforcement power."
         },
         {
           "question": "Is my complaint confidential?",
@@ -1874,7 +1874,7 @@
           }
         ]
       },
-      "intro": "If your Massachusetts loved one is 65+ and paying high prescription costs, Prescription Advantage provides income-based drug coverage that reduces premiums, deductibles, and copayments. The program works alongside Medicare Part D or serves as primary coverage for those without Medicare, with assistance levels based on household income — lower-income members receive greater help.\n\nIncome limits range from $21,128/year for single people in the lowest tier up to $78,250/year for higher tiers (2026 rates). Because this program requires you to apply for federal programs like Medicare Extra Help first if your loved one qualifies, the application process involves multiple steps and coordination between different agencies.",
+      "intro": "If your Massachusetts loved one is 65+ and paying high prescription costs, Prescription Advantage provides income-based drug coverage that reduces premiums, deductibles, and copayments. The program works alongside Medicare Part D or serves as primary coverage for those without Medicare, with assistance levels based on household income, lower-income members receive greater help.\n\nIncome limits range from $21,128/year for single people in the lowest tier up to $78,250/year for higher tiers (2026 rates). Because this program requires you to apply for federal programs like Medicare Extra Help first if your loved one qualifies, the application process involves multiple steps and coordination between different agencies.",
       "savingsRange": "",
       "savingsSource": "Income-based assistance with premiums, deductibles, and copayments",
       "savingsVerified": false,
@@ -1958,7 +1958,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply by phone at 1-800-243-4636 or online at prescriptionadvantagema.org — benefits begin the first day of the month after processing.",
+        "summary": "Apply by phone at 1-800-243-4636 or online at prescriptionadvantagema.org, benefits begin the first day of the month after processing.",
         "steps": [
           {
             "step": 1,
@@ -1982,8 +1982,8 @@
           }
         ],
         "processingTime": "Benefits begin on the first day of the month following complete processing of application",
-        "waitlist": "Must apply during open enrollment periods — if missed, must wait for next enrollment period with limited exceptions",
-        "tip": "Apply for Medicare Extra Help and MassHealth Buy-In Program first if your loved one's income qualifies — this is required before Prescription Advantage will process your application.",
+        "waitlist": "Must apply during open enrollment periods, if missed, must wait for next enrollment period with limited exceptions",
+        "tip": "Apply for Medicare Extra Help and MassHealth Buy-In Program first if your loved one's income qualifies, this is required before Prescription Advantage will process your application.",
         "urls": [
           {
             "label": "Prescription Advantage Application",
@@ -2024,10 +2024,10 @@
         }
       ],
       "applicationNotes": [
-        "You must apply for Medicare Extra Help and MassHealth Buy-In Program first if your loved one's income qualifies — Prescription Advantage will not process applications until this requirement is met",
+        "You must apply for Medicare Extra Help and MassHealth Buy-In Program first if your loved one's income qualifies, Prescription Advantage will not process applications until this requirement is met",
         "Missing open enrollment means waiting for the next enrollment period unless you're 66+ and recently moved to Massachusetts, lost coverage, or became ineligible for Medicaid",
-        "Asset limits only apply if you're also applying for Medicare Extra Help or Medicare Savings Program — most Prescription Advantage applicants have no asset limits",
-        "The program has five income tiers (S0-S5) with different benefit levels — lower tiers receive more assistance with premiums and copayments"
+        "Asset limits only apply if you're also applying for Medicare Extra Help or Medicare Savings Program, most Prescription Advantage applicants have no asset limits",
+        "The program has five income tiers (S0-S5) with different benefit levels, lower tiers receive more assistance with premiums and copayments"
       ],
       "relatedPrograms": [
         "Medicare Extra Help (Low Income Subsidy)",
@@ -2049,7 +2049,7 @@
         },
         {
           "question": "What happens if my loved one's income qualifies for Medicare Extra Help but we don't apply for it first?",
-          "answer": "Prescription Advantage will not process the application until you apply for Medicare Extra Help first. This is a mandatory requirement — call 1-800-243-4636 to confirm which programs you must apply for before submitting your Prescription Advantage application."
+          "answer": "Prescription Advantage will not process the application until you apply for Medicare Extra Help first. This is a mandatory requirement, call 1-800-243-4636 to confirm which programs you must apply for before submitting your Prescription Advantage application."
         },
         {
           "question": "Can my loved one keep their house if it's worth more than the asset limits?",
@@ -2123,7 +2123,7 @@
           }
         ]
       },
-      "intro": "If your loved one owns their home and needs accessibility modifications like ramps, grab bars, or bathroom adaptations, Massachusetts offers 0% interest loans up to $50,000. Because these are deferred loans, your loved one makes no monthly payments — the loan is only repaid when the house is sold, refinanced, or transferred.\n\nThis program specifically covers accessibility modifications tied to documented disabilities or functional limitations. Your loved one must be 60+ or have a documented disability, own their home in Massachusetts, and have household income up to 200% of Area Median Income (varies by region, roughly $70,000-$120,000 annually depending on household size and location). Assets cannot exceed $75,000 (excluding their home, one car, and retirement accounts).\n\nThe loan covers ramps, lifts, bathroom modifications, kitchen adaptations, doorway widening, handrails, accessible flooring, and even accessory dwelling units. It does not cover general home repairs like roofing, windows, heating systems, or septic work.",
+      "intro": "If your loved one owns their home and needs accessibility modifications like ramps, grab bars, or bathroom adaptations, Massachusetts offers 0% interest loans up to $50,000. Because these are deferred loans, your loved one makes no monthly payments, the loan is only repaid when the house is sold, refinanced, or transferred.\n\nThis program specifically covers accessibility modifications tied to documented disabilities or functional limitations. Your loved one must be 60+ or have a documented disability, own their home in Massachusetts, and have household income up to 200% of Area Median Income (varies by region, roughly $70,000-$120,000 annually depending on household size and location). Assets cannot exceed $75,000 (excluding their home, one car, and retirement accounts).\n\nThe loan covers ramps, lifts, bathroom modifications, kitchen adaptations, doorway widening, handrails, accessible flooring, and even accessory dwelling units. It does not cover general home repairs like roofing, windows, heating systems, or septic work.",
       "savingsRange": "$50,000 maximum loan",
       "savingsSource": "0% interest deferred loan for accessibility modifications",
       "savingsVerified": true,
@@ -2166,7 +2166,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact one of six regional providers to start your application — processing time varies by provider and application completeness.",
+        "summary": "Contact one of six regional providers to start your application, processing time varies by provider and application completeness.",
         "steps": [
           {
             "step": 1,
@@ -2199,9 +2199,9 @@
             "description": "Regional provider reviews complete application, verifies eligibility, and approves loan amount and modification scope."
           }
         ],
-        "processingTime": "Not specified — varies by regional provider after complete submission",
+        "processingTime": "Not specified, varies by regional provider after complete submission",
         "waitlist": null,
-        "tip": "Have your contractor bids ready before submitting — the application cannot move forward without completed bid forms from licensed contractors.",
+        "tip": "Have your contractor bids ready before submitting, the application cannot move forward without completed bid forms from licensed contractors.",
         "urls": [
           {
             "label": "Official Program Page",
@@ -2251,9 +2251,9 @@
       ],
       "applicationNotes": [
         "Landlords with fewer than 10 units can apply for tenant modifications but receive 3% interest amortizing loans instead of 0% deferred loans",
-        "Income limits vary significantly by region based on HUD Area Median Income data — contact your regional provider for current dollar amounts in your area",
+        "Income limits vary significantly by region based on HUD Area Median Income data, contact your regional provider for current dollar amounts in your area",
         "The $75,000 asset limit counts cash, stocks, and secondary properties but excludes your primary home, one vehicle, and retirement accounts like IRAs and 401ks",
-        "All modifications must be tied to documented functional limitations — this is not a general home repair program and excludes structural work like roofing or heating systems"
+        "All modifications must be tied to documented functional limitations, this is not a general home repair program and excludes structural work like roofing or heating systems"
       ],
       "relatedPrograms": [
         "MassHealth Personal Care Attendant Program",
@@ -2361,7 +2361,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call MassAbility at 617-204-3853 or start online referral — expect 3–4 months processing time including in-home assessment.",
+        "summary": "Call MassAbility at 617-204-3853 or start online referral, expect 3–4 months processing time including in-home assessment.",
         "steps": [
           {
             "step": 1,
@@ -2391,7 +2391,7 @@
         ],
         "processingTime": "3–4 months from application to service start",
         "waitlist": "May have waitlist depending on funding availability or regional demand",
-        "tip": "Apply even if you're unsure about financial eligibility — MassHealth members often qualify automatically, and the functional assessment happens regardless of income.",
+        "tip": "Apply even if you're unsure about financial eligibility, MassHealth members often qualify automatically, and the functional assessment happens regardless of income.",
         "urls": [
           {
             "label": "Online HCAP Referral",
@@ -2438,7 +2438,7 @@
         "MassHealth members automatically meet financial eligibility requirements and face simpler approval processes",
         "Non-MassHealth members face stricter income limits but may still qualify if functionally eligible",
         "Processing can extend beyond 4 months if additional medical documentation or financial verification is required",
-        "Some regions may have immediate openings while others maintain waitlists — ask about current availability in your loved one's area"
+        "Some regions may have immediate openings while others maintain waitlists, ask about current availability in your loved one's area"
       ],
       "relatedPrograms": [
         "MassHealth (Medicaid)",
@@ -2483,7 +2483,7 @@
         },
         {
           "question": "What if my loved one makes slightly more than $2,982/month?",
-          "answer": "If your loved one isn't on MassHealth, they may not qualify based on income alone. However, encourage them to apply for MassHealth first — many people qualify for MassHealth who don't realize it, which would automatically make them eligible for Home Care Program with reduced co-payments."
+          "answer": "If your loved one isn't on MassHealth, they may not qualify based on income alone. However, encourage them to apply for MassHealth first, many people qualify for MassHealth who don't realize it, which would automatically make them eligible for Home Care Program with reduced co-payments."
         },
         {
           "question": "How many hours of help can my loved one actually get?",
@@ -2499,15 +2499,15 @@
         },
         {
           "question": "Can my loved one get Home Care Program and PACE at the same time?",
-          "answer": "No, PACE (Program of All-Inclusive Care for the Elderly) is a comprehensive alternative that replaces Home Care Program services. Your loved one would need to choose between the two programs — PACE provides more comprehensive medical care while Home Care Program focuses specifically on in-home assistance."
+          "answer": "No, PACE (Program of All-Inclusive Care for the Elderly) is a comprehensive alternative that replaces Home Care Program services. Your loved one would need to choose between the two programs, PACE provides more comprehensive medical care while Home Care Program focuses specifically on in-home assistance."
         },
         {
           "question": "What if there's a waitlist in our area?",
-          "answer": "Waitlists vary by region and funding availability. Some areas have immediate openings while others may have several-month waits. Apply anyway — your loved one's place on the list is secured, and urgent cases or those with greater functional needs may receive priority placement."
+          "answer": "Waitlists vary by region and funding availability. Some areas have immediate openings while others may have several-month waits. Apply anyway, your loved one's place on the list is secured, and urgent cases or those with greater functional needs may receive priority placement."
         },
         {
           "question": "Does my loved one lose services if their income changes?",
-          "answer": "Income changes affect co-payment amounts but don't automatically disqualify your loved one from services. Report income changes to the case manager — if income increases significantly and they lose MassHealth, they may face higher co-payments or potential disenrollment depending on new income level."
+          "answer": "Income changes affect co-payment amounts but don't automatically disqualify your loved one from services. Report income changes to the case manager, if income increases significantly and they lose MassHealth, they may face higher co-payments or potential disenrollment depending on new income level."
         }
       ],
       "layoutIntent": {
@@ -2541,7 +2541,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but has too many assets to qualify for MassHealth nursing home care, ECOP provides up to 7.5 hours per week of home care services. The program serves as a bridge for families spending down assets to eventually qualify for MassHealth waivers — it has less restrictive income and asset limits than traditional Medicaid programs.\n\nYour loved one gets personal care, homemaking, meal delivery, transportation, and emergency response systems through state-funded providers. Because ECOP requires the same clinical assessment as nursing home eligibility (you must prove your loved one needs daily assistance with activities like bathing or medication management), it's designed for frail elders who would otherwise need facility care.\n\nThe program is currently capped at 7,322 enrollees statewide. Once that limit is reached, new applicants join a waitlist that can last several months, creating risk of health decline while families wait for services.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but has too many assets to qualify for MassHealth nursing home care, ECOP provides up to 7.5 hours per week of home care services. The program serves as a bridge for families spending down assets to eventually qualify for MassHealth waivers, it has less restrictive income and asset limits than traditional Medicaid programs.\n\nYour loved one gets personal care, homemaking, meal delivery, transportation, and emergency response systems through state-funded providers. Because ECOP requires the same clinical assessment as nursing home eligibility (you must prove your loved one needs daily assistance with activities like bathing or medication management), it's designed for frail elders who would otherwise need facility care.\n\nThe program is currently capped at 7,322 enrollees statewide. Once that limit is reached, new applicants join a waitlist that can last several months, creating risk of health decline while families wait for services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2566,12 +2566,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local ASAP for an in-home assessment — processing time varies due to enrollment cap and waitlist.",
+        "summary": "Call your local ASAP for an in-home assessment, processing time varies due to enrollment cap and waitlist.",
         "steps": [
           {
             "step": 1,
             "title": "Contact your local ASAP",
-            "description": "Call your regional Aging Services Access Point — they are the single point of entry for ECOP. For example, Springwell serves certain regions at springwell.com/service/subsidized-home-care/."
+            "description": "Call your regional Aging Services Access Point, they are the single point of entry for ECOP. For example, Springwell serves certain regions at springwell.com/service/subsidized-home-care/."
           },
           {
             "step": 2,
@@ -2594,9 +2594,9 @@
             "description": "If your loved one qualifies but the program is at capacity (7,322 enrollees statewide), they will be placed on a waitlist until a slot opens."
           }
         ],
-        "processingTime": "Not specified — varies based on assessment scheduling and enrollment cap status",
+        "processingTime": "Not specified, varies based on assessment scheduling and enrollment cap status",
         "waitlist": "Statewide enrollment cap at 7,322 slots causes waitlists for new applicants once capacity is reached, leading to months-long delays",
-        "tip": "Ask the ASAP about current waitlist length in your region — capacity varies by local provider and some areas may have shorter waits than others.",
+        "tip": "Ask the ASAP about current waitlist length in your region, capacity varies by local provider and some areas may have shorter waits than others.",
         "urls": [
           {
             "label": "Mass.gov Aging Services",
@@ -2636,10 +2636,10 @@
         }
       ],
       "applicationNotes": [
-        "Recent tightening of eligibility requirements as of February 2026 may affect new enrollees — ask about current qualification standards",
-        "The 7.5 hours per week maximum is firm — if your loved one needs more intensive services, you may need to supplement with private pay or pursue MassHealth waivers",
-        "ECOP is specifically for those not yet eligible for MassHealth Standard, Basic, or HMO — it bridges to other programs during asset spend-down",
-        "Regional ASAPs have varying capacity and wait times due to the statewide enrollment cap — some areas may have immediate openings while others have longer waitlists"
+        "Recent tightening of eligibility requirements as of February 2026 may affect new enrollees, ask about current qualification standards",
+        "The 7.5 hours per week maximum is firm, if your loved one needs more intensive services, you may need to supplement with private pay or pursue MassHealth waivers",
+        "ECOP is specifically for those not yet eligible for MassHealth Standard, Basic, or HMO, it bridges to other programs during asset spend-down",
+        "Regional ASAPs have varying capacity and wait times due to the statewide enrollment cap, some areas may have immediate openings while others have longer waitlists"
       ],
       "relatedPrograms": [
         "MassHealth Frail Elder Waiver",
@@ -2729,7 +2729,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ with both Medicare and MassHealth Standard, Senior Care Options (SCO) combines all their health coverage into one coordinated plan. Instead of juggling separate Medicare, MassHealth, prescription, and supplement cards, your loved one gets one health plan card with no monthly premiums and no copays for most services.\n\nBecause SCO integrates all medical care under one program, your loved one gets a unified care team that manages everything — doctor visits, prescriptions, mental health services, transportation to appointments, and specialized geriatric support. Five SCO providers serve different regions across Massachusetts, but coverage is not statewide.\n\nYour loved one must have less than $2,000 in countable assets (excluding their home and car) and live in an area served by an SCO provider. Dukes and Nantucket Counties and parts of Hampshire County have no SCO coverage.",
+      "intro": "If your loved one is 65+ with both Medicare and MassHealth Standard, Senior Care Options (SCO) combines all their health coverage into one coordinated plan. Instead of juggling separate Medicare, MassHealth, prescription, and supplement cards, your loved one gets one health plan card with no monthly premiums and no copays for most services.\n\nBecause SCO integrates all medical care under one program, your loved one gets a unified care team that manages everything, doctor visits, prescriptions, mental health services, transportation to appointments, and specialized geriatric support. Five SCO providers serve different regions across Massachusetts, but coverage is not statewide.\n\nYour loved one must have less than $2,000 in countable assets (excluding their home and car) and live in an area served by an SCO provider. Dukes and Nantucket Counties and parts of Hampshire County have no SCO coverage.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2774,7 +2774,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Aging Service Access Point (ASAP) or call MassHealth at (800) 841-2900 — processing time not specified in official sources.",
+        "summary": "Contact your local Aging Service Access Point (ASAP) or call MassHealth at (800) 841-2900, processing time not specified in official sources.",
         "steps": [
           {
             "step": 1,
@@ -2797,9 +2797,9 @@
             "description": "If your loved one needs long-term care via Frail Elder Waiver, an ASAP or hospital must complete a functional needs assessment to verify assistance needed with Activities of Daily Living."
           }
         ],
-        "processingTime": "Not specified in available sources — contact SCO or ASAP for current timeline",
+        "processingTime": "Not specified in available sources, contact SCO or ASAP for current timeline",
         "waitlist": null,
-        "tip": "If your loved one needs long-term care, start with the functional assessment early — a dementia diagnosis alone doesn't automatically qualify.",
+        "tip": "If your loved one needs long-term care, start with the functional assessment early, a dementia diagnosis alone doesn't automatically qualify.",
         "urls": [
           {
             "label": "Official SCO Page",
@@ -2843,9 +2843,9 @@
         }
       ],
       "applicationNotes": [
-        "Geographic coverage is critical — verify your specific town is served before applying as substantial portions of Massachusetts have no SCO coverage",
-        "Medicaid Look-Back Period applies if entering via Frail Elder Waiver — 60 months of financial history will be reviewed for asset transfers",
-        "Multiple application routes exist but no centralized online portal — you must contact MassHealth, ASAP, or SCO directly",
+        "Geographic coverage is critical, verify your specific town is served before applying as substantial portions of Massachusetts have no SCO coverage",
+        "Medicaid Look-Back Period applies if entering via Frail Elder Waiver, 60 months of financial history will be reviewed for asset transfers",
+        "Multiple application routes exist but no centralized online portal, you must contact MassHealth, ASAP, or SCO directly",
         "Asset limits are strict at $2,000 for individuals, but married couples have different rules allowing the at-home spouse to retain up to $109,560"
       ],
       "relatedPrograms": [
@@ -2886,7 +2886,7 @@
         },
         {
           "question": "What if my loved one wants to leave SCO after enrolling?",
-          "answer": "Disenrollment is always possible — members can leave the program at any time and return to separate Medicare and MassHealth Standard coverage."
+          "answer": "Disenrollment is always possible, members can leave the program at any time and return to separate Medicare and MassHealth Standard coverage."
         }
       ],
       "layoutIntent": {
@@ -2905,7 +2905,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Massachusetts offers 14 major programs to help your aging loved one stay independent, covering everything from monthly grocery assistance ($100-$300) to thousands of dollars in home care services. Ten of these provide direct financial benefits or services, while four offer free guidance and advocacy available to all Massachusetts seniors regardless of income. If your loved one is struggling with daily tasks, medical costs, or basic expenses, multiple programs can work together — for example, SNAP for groceries, MassHealth Medicare Savings Program for medical costs, and Home Care Program for daily assistance. Start by checking the three highest-impact programs first, then explore additional options based on your loved one's specific needs.",
+    "intro": "Massachusetts offers 14 major programs to help your aging loved one stay independent, covering everything from monthly grocery assistance ($100-$300) to thousands of dollars in home care services. Ten of these provide direct financial benefits or services, while four offer free guidance and advocacy available to all Massachusetts seniors regardless of income. If your loved one is struggling with daily tasks, medical costs, or basic expenses, multiple programs can work together, for example, SNAP for groceries, MassHealth Medicare Savings Program for medical costs, and Home Care Program for daily assistance. Start by checking the three highest-impact programs first, then explore additional options based on your loved one's specific needs.",
     "startHere": [
       {
         "name": "MassHealth Medicare Savings Program",
@@ -2920,7 +2920,7 @@
       {
         "name": "SHINE (Serving Health Insurance Needs of Everyone)",
         "programId": "shine",
-        "why": "Free counseling helps navigate all Medicare and insurance options — no qualification needed."
+        "why": "Free counseling helps navigate all Medicare and insurance options, no qualification needed."
       },
       {
         "name": "Home Care Program (HCP)",
@@ -2982,7 +2982,7 @@
     ],
     "quickFacts": [
       "Most income-based programs use $2,152-$2,993/month as the limit for a single person in Massachusetts.",
-      "Many programs can stack together — your loved one may qualify for SNAP, Medicare Savings Program, and home care simultaneously.",
+      "Many programs can stack together, your loved one may qualify for SNAP, Medicare Savings Program, and home care simultaneously.",
       "Four programs provide free help regardless of income: SHINE, Legal Helpline, Ombudsman Program, and SCSEP employment assistance.",
       "Massachusetts combines Medicare and MassHealth into one card through Senior Care Options (SCO) if your loved one qualifies for both."
     ],

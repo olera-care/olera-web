@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.108Z
+ * Last updated: 2026-04-20T23:39:07.878Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in Washington and has limited income, Apple Health provides free comprehensive medical coverage including doctor visits, prescriptions, hospital care, and preventive services. For seniors 65 and older, income limits are $967/month for a single person — but even Medicare recipients may qualify for help with premiums or long-term care services.\n\nApple Health covers all Essential Health Benefits through Managed Care Organizations, which means your loved one gets coordinated care plus additional benefits like transportation to appointments. Because this is Washington's Medicaid program, there are no premiums, deductibles, or copays for covered services.",
+      "intro": "If your loved one lives in Washington and has limited income, Apple Health provides free comprehensive medical coverage including doctor visits, prescriptions, hospital care, and preventive services. For seniors 65 and older, income limits are $967/month for a single person, but even Medicare recipients may qualify for help with premiums or long-term care services.\n\nApple Health covers all Essential Health Benefits through Managed Care Organizations, which means your loved one gets coordinated care plus additional benefits like transportation to appointments. Because this is Washington's Medicaid program, there are no premiums, deductibles, or copays for covered services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -77,7 +77,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Washington Healthplanfinder or call 1-877-501-2233 for seniors 65+ — processing time varies but enrollment is open year-round.",
+        "summary": "Apply online through Washington Healthplanfinder or call 1-877-501-2233 for seniors 65+, processing time varies but enrollment is open year-round.",
         "steps": [
           {
             "step": 1,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "Once approved, choose from available MCOs in your area. Each offers the same core benefits plus additional services like transportation."
           }
         ],
-        "processingTime": "Processing time varies — you'll receive renewal notices 60 days before coverage expires",
+        "processingTime": "Processing time varies, you'll receive renewal notices 60 days before coverage expires",
         "waitlist": "No waitlist for eligible residents (undocumented adults face enrollment cap of 13,000)",
         "tip": "Income limits change every April, so verify current amounts when applying.",
         "urls": [
@@ -138,7 +138,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits change every April — always verify current amounts before applying",
+        "Income limits change every April, always verify current amounts before applying",
         "Medicare recipients may qualify for premium assistance or long-term services even if income seems too high"
       ],
       "relatedPrograms": [
@@ -391,7 +391,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, the MAC Waiver lets them receive Medicaid-funded care services at home instead of moving to a nursing facility. Because this waiver requires an unpaid family caregiver, it's designed for situations where a family member can provide hands-on care while the state covers additional support services.\n\nYour loved one must qualify financially (income under $2,982/month, assets under $2,000) and clinically (meet Nursing Facility Level of Care through a state assessment). The waiver is available statewide in Washington, but you cannot combine MAC with other long-term care waivers like COPES — families must choose one program.",
+      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, the MAC Waiver lets them receive Medicaid-funded care services at home instead of moving to a nursing facility. Because this waiver requires an unpaid family caregiver, it's designed for situations where a family member can provide hands-on care while the state covers additional support services.\n\nYour loved one must qualify financially (income under $2,982/month, assets under $2,000) and clinically (meet Nursing Facility Level of Care through a state assessment). The waiver is available statewide in Washington, but you cannot combine MAC with other long-term care waivers like COPES, families must choose one program.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -422,7 +422,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed using Washington's CARE tool — requires either daily nursing care OR substantial assistance with at least 2 activities of daily living like bathing, dressing, or eating)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed using Washington's CARE tool, requires either daily nursing care OR substantial assistance with at least 2 activities of daily living like bathing, dressing, or eating)",
         "otherRequirements": [
           "Must have eligible unpaid caregiver (age 18+)",
           "Must live at home, not in residential facility",
@@ -434,7 +434,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact Washington State DSHS to apply — processing time not specified in available sources.",
+        "summary": "Contact Washington State DSHS to apply, processing time not specified in available sources.",
         "steps": [
           {
             "step": 1,
@@ -459,12 +459,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Choose MAC over other programs",
-            "description": "Confirm you want MAC services instead of other long-term care options like COPES Waiver or Community First Choice — you cannot receive multiple waivers simultaneously."
+            "description": "Confirm you want MAC services instead of other long-term care options like COPES Waiver or Community First Choice, you cannot receive multiple waivers simultaneously."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start with Medicaid eligibility verification — many families waste time on MAC applications only to discover their loved one doesn't qualify for underlying Medicaid coverage.",
+        "tip": "Start with Medicaid eligibility verification, many families waste time on MAC applications only to discover their loved one doesn't qualify for underlying Medicaid coverage.",
         "urls": []
       },
       "documentsNeeded": [
@@ -498,10 +498,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The 60-month Look-Back Rule is strictly enforced — any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
-        "Your primary home is exempt only if your loved one lives in it, intends to return to it, or their spouse/dependent relative lives in it — otherwise it counts toward the $2,000 asset limit",
-        "The unpaid caregiver requirement is non-negotiable — without an eligible family member or friend willing to provide care, your loved one cannot qualify even if they meet all other criteria",
-        "MAC is mutually exclusive with other Washington long-term care programs — families often assume they can stack benefits, but you must choose one waiver program"
+        "The 60-month Look-Back Rule is strictly enforced, any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
+        "Your primary home is exempt only if your loved one lives in it, intends to return to it, or their spouse/dependent relative lives in it, otherwise it counts toward the $2,000 asset limit",
+        "The unpaid caregiver requirement is non-negotiable, without an eligible family member or friend willing to provide care, your loved one cannot qualify even if they meet all other criteria",
+        "MAC is mutually exclusive with other Washington long-term care programs, families often assume they can stack benefits, but you must choose one waiver program"
       ],
       "relatedPrograms": [
         "COPES Waiver",
@@ -521,18 +521,18 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can we apply for MAC and COPES Waiver at the same time?",
-          "answer": "No, you must choose one long-term care program. MAC, COPES, and Community First Choice are mutually exclusive. Families need to compare services and choose the best fit — you cannot receive benefits from multiple waivers simultaneously."
+          "answer": "No, you must choose one long-term care program. MAC, COPES, and Community First Choice are mutually exclusive. Families need to compare services and choose the best fit, you cannot receive benefits from multiple waivers simultaneously."
         },
         {
           "question": "Who qualifies as an unpaid caregiver for MAC?",
-          "answer": "The caregiver must be at least 18 years old but doesn't need to be a Washington resident or family member. They cannot be paid for caregiving services through other programs. This requirement is absolute — without an eligible unpaid caregiver, your loved one cannot qualify for MAC."
+          "answer": "The caregiver must be at least 18 years old but doesn't need to be a Washington resident or family member. They cannot be paid for caregiving services through other programs. This requirement is absolute, without an eligible unpaid caregiver, your loved one cannot qualify for MAC."
         },
         {
           "question": "How do we know if my loved one meets Nursing Facility Level of Care?",
-          "answer": "Washington uses the CARE assessment tool to evaluate whether your loved one needs either daily nursing care OR substantial help with at least 2 activities of daily living (bathing, dressing, eating, toileting, transferring, continence). A diagnosis alone doesn't qualify — it's about functional need for daily assistance."
+          "answer": "Washington uses the CARE assessment tool to evaluate whether your loved one needs either daily nursing care OR substantial help with at least 2 activities of daily living (bathing, dressing, eating, toileting, transferring, continence). A diagnosis alone doesn't qualify, it's about functional need for daily assistance."
         },
         {
-          "question": "What happens if my loved one's income is $3,000/month — just over the limit?",
+          "question": "What happens if my loved one's income is $3,000/month, just over the limit?",
           "answer": "They may still qualify if married, since only the applicant's income counts toward the $2,982 limit (spouse income is separate). If single, they would exceed the limit unless they can establish a qualified income trust or spend down medical expenses to reduce countable income below the threshold."
         }
       ],
@@ -567,7 +567,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, PACE provides all their medical care, prescriptions, transportation, meals, and home care under one coordinated program. Because PACE covers everything through one interdisciplinary team, your loved one won't need to coordinate between separate doctors, specialists, and home care agencies — and there are no co-pays or deductibles.\n\nYour loved one must be certified by Washington state as needing nursing home level of care but able to live safely at home with PACE services. In Washington, PACE is only available in King County through Providence PACE (Elderplace). The program replaces all Medicare and Medicaid services, so your loved one cannot be enrolled in Medicare Advantage or other supplemental plans.",
+      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, PACE provides all their medical care, prescriptions, transportation, meals, and home care under one coordinated program. Because PACE covers everything through one interdisciplinary team, your loved one won't need to coordinate between separate doctors, specialists, and home care agencies, and there are no co-pays or deductibles.\n\nYour loved one must be certified by Washington state as needing nursing home level of care but able to live safely at home with PACE services. In Washington, PACE is only available in King County through Providence PACE (Elderplace). The program replaces all Medicare and Medicaid services, so your loved one cannot be enrolled in Medicare Advantage or other supplemental plans.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care service",
       "savingsVerified": false,
@@ -595,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by Washington DSHS as needing nursing facility level of care — typically requires assistance with 2 or more activities of daily living like bathing, dressing, grooming, walking, transfers, or medication management",
+        "functionalRequirement": "Must be certified by Washington DSHS as needing nursing facility level of care, typically requires assistance with 2 or more activities of daily living like bathing, dressing, grooming, walking, transfers, or medication management",
         "otherRequirements": [
           "Lives in King County service area",
           "Able to live safely in community with PACE services",
@@ -605,7 +605,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Providence PACE for initial screening, then complete assessment with DSHS social worker — processing time varies.",
+        "summary": "Call Providence PACE for initial screening, then complete assessment with DSHS social worker, processing time varies.",
         "steps": [
           {
             "step": 1,
@@ -634,7 +634,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified in state sources",
-        "waitlist": "Possible due to capped financing — varies by program capacity",
+        "waitlist": "Possible due to capped financing, varies by program capacity",
         "tip": "If your loved one is already receiving CFC/COPES services, their participation levels will stay similar when transitioning to PACE.",
         "urls": [
           {
@@ -687,10 +687,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE becomes your loved one's sole source of Medicare and Medicaid services — they must disenroll from Medicare Advantage, prescription drug plans, and other supplemental coverage",
+        "PACE becomes your loved one's sole source of Medicare and Medicaid services, they must disenroll from Medicare Advantage, prescription drug plans, and other supplemental coverage",
         "Private pay option is available at the Medicaid rate if your loved one doesn't qualify for Medicaid but needs the comprehensive services",
-        "You must live in or be willing to relocate to the PACE service area — in Washington, this is limited to most of King County",
-        "The nursing home level of care certification is required but doesn't mean your loved one needs to move to a nursing home — PACE provides services to keep them at home"
+        "You must live in or be willing to relocate to the PACE service area, in Washington, this is limited to most of King County",
+        "The nursing home level of care certification is required but doesn't mean your loved one needs to move to a nursing home, PACE provides services to keep them at home"
       ],
       "relatedPrograms": [
         "Community First Choice (CFC)",
@@ -722,7 +722,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will my loved one need to pass a test to prove they need nursing home level care?",
-          "answer": "Yes, a DSHS social worker must assess and certify that your loved one needs nursing facility level of care — typically requiring help with 2 or more daily activities like bathing, dressing, or medication management. This assessment can be done in-person or by phone."
+          "answer": "Yes, a DSHS social worker must assess and certify that your loved one needs nursing facility level of care, typically requiring help with 2 or more daily activities like bathing, dressing, or medication management. This assessment can be done in-person or by phone."
         },
         {
           "question": "Can I apply for PACE on behalf of my elderly loved one?",
@@ -798,7 +798,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Washington Connection or call the Health Care Authority at 1-800-562-3022 — processing takes up to 45 days.",
+        "summary": "Apply online at Washington Connection or call the Health Care Authority at 1-800-562-3022, processing takes up to 45 days.",
         "steps": [
           {
             "step": 1,
@@ -813,7 +813,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete the application",
-            "description": "Request QMB, SLMB, or QI on your application — the state will determine which program your loved one qualifies for based on income. Don't apply directly to Medicare."
+            "description": "Request QMB, SLMB, or QI on your application, the state will determine which program your loved one qualifies for based on income. Don't apply directly to Medicare."
           },
           {
             "step": 4,
@@ -823,7 +823,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to 45 days for QMB, effective 1st of following month. SLMB/QI similar processing with up to 3 months retroactive coverage",
         "waitlist": "QI program only: first-come, first-served with limited federal funding may create waitlist. Priority given to prior-year recipients.",
-        "tip": "Income limits use 'countable income' after deductions like the $20 general disregard and $65 earned income disregard — don't assume gross income disqualifies your loved one.",
+        "tip": "Income limits use 'countable income' after deductions like the $20 general disregard and $65 earned income disregard, don't assume gross income disqualifies your loved one.",
         "urls": [
           {
             "label": "Washington Connection Online Application",
@@ -871,9 +871,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QMB recipients cannot be billed by providers for Medicare-covered services — make sure your loved one tells doctors and hospitals about their QMB status",
+        "QMB recipients cannot be billed by providers for Medicare-covered services, make sure your loved one tells doctors and hospitals about their QMB status",
         "Income calculations use countable income after deductions, so don't assume gross Social Security or pension income disqualifies your loved one",
-        "QI program has funding limits and operates first-come, first-served — apply early in the year for best chances",
+        "QI program has funding limits and operates first-come, first-served, apply early in the year for best chances",
         "You can be enrolled in other Medicaid programs along with QMB or SLMB, but not with QI"
       ],
       "relatedPrograms": [
@@ -907,13 +907,13 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "title": "Washington Advantage",
-          "content": "Washington eliminated asset limits in 2023 and uses higher income thresholds than federal minimums. Your loved one's home, car, and savings don't count against eligibility — only monthly income matters."
+          "content": "Washington eliminated asset limits in 2023 and uses higher income thresholds than federal minimums. Your loved one's home, car, and savings don't count against eligibility, only monthly income matters."
         }
       ],
       "faqs": [
         {
           "question": "Can my loved one keep their house and car if they qualify for these programs?",
-          "answer": "Yes. Washington eliminated asset limits for Medicare Savings Programs in 2023. Your loved one's home, car, savings accounts, and other assets don't count toward eligibility — only monthly income matters."
+          "answer": "Yes. Washington eliminated asset limits for Medicare Savings Programs in 2023. Your loved one's home, car, savings accounts, and other assets don't count toward eligibility, only monthly income matters."
         },
         {
           "question": "What if my loved one's Social Security is $1,500 but they qualify for the $1,463 QMB limit?",
@@ -929,7 +929,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one have Medicare Savings Programs and regular Medicaid at the same time?",
-          "answer": "Yes for QMB and SLMB — these can stack with other Medicaid programs. But QI recipients cannot have other Medicaid coverage. The state will automatically enroll your loved one in the highest program they qualify for."
+          "answer": "Yes for QMB and SLMB, these can stack with other Medicaid programs. But QI recipients cannot have other Medicaid coverage. The state will automatically enroll your loved one in the highest program they qualify for."
         },
         {
           "question": "What happens if my loved one's income changes after enrollment?",
@@ -937,11 +937,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Do doctors have to accept QMB patients, and will my loved one get billed?",
-          "answer": "Doctors who accept Medicare must accept QMB patients and cannot bill them for copays or deductibles on Medicare-covered services. However, your loved one must inform providers of their QMB status — many billing departments don't automatically check."
+          "answer": "Doctors who accept Medicare must accept QMB patients and cannot bill them for copays or deductibles on Medicare-covered services. However, your loved one must inform providers of their QMB status, many billing departments don't automatically check."
         },
         {
           "question": "Can my loved one apply for Medicare Savings Programs and Extra Help for prescriptions separately?",
-          "answer": "No need — all three Medicare Savings Programs automatically qualify your loved one for Extra Help (Low-Income Subsidy) for Part D prescription drugs. This caps medication copays at $12.65 per drug in 2026 and eliminates the coverage gap."
+          "answer": "No need, all three Medicare Savings Programs automatically qualify your loved one for Extra Help (Low-Income Subsidy) for Part D prescription drugs. This caps medication copays at $12.65 per drug in 2026 and eliminates the coverage gap."
         }
       ],
       "layoutIntent": {
@@ -969,7 +969,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one lives in Washington and earns less than $2,608 per month (or $3,525 for a two-person household), they may qualify for monthly food assistance through the Basic Food Program. This is Washington's version of SNAP that provides $292-$1,158 monthly on an EBT card to buy groceries at most stores.\n\nUnlike other benefit programs, your loved one's house, car, and savings don't count against eligibility — only monthly income matters. However, significant changes are coming: starting July 2025, adults aged 18-64 must work at least 80 hours per month to qualify unless they have children under 14 or qualify for other exemptions.\n\nThe program requires an in-person interview after you apply, but the application itself can be completed online at washingtonconnection.org. Benefits are calculated based on household size, income, and living expenses like rent and utilities.",
+      "intro": "If your loved one lives in Washington and earns less than $2,608 per month (or $3,525 for a two-person household), they may qualify for monthly food assistance through the Basic Food Program. This is Washington's version of SNAP that provides $292-$1,158 monthly on an EBT card to buy groceries at most stores.\n\nUnlike other benefit programs, your loved one's house, car, and savings don't count against eligibility, only monthly income matters. However, significant changes are coming: starting July 2025, adults aged 18-64 must work at least 80 hours per month to qualify unless they have children under 14 or qualify for other exemptions.\n\nThe program requires an in-person interview after you apply, but the application itself can be completed online at washingtonconnection.org. Benefits are calculated based on household size, income, and living expenses like rent and utilities.",
       "savingsRange": "$3,504 – $13,896/year in 2025",
       "savingsSource": "Maximum monthly benefits from Washington State Department of Social and Health Services",
       "savingsVerified": true,
@@ -1172,7 +1172,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating, cooling, or electric bills on a fixed income, LIHEAP provides grants to help cover energy costs. Because this federal program operates through local community agencies in Washington, your loved one must apply directly with their county provider — not through the state.\n\nEligibility requires household income below 150% of federal poverty level and Washington residency. Each household can receive one grant per program year (October through September). Because demand exceeds funding, many areas have waitlists or processing delays.\n\nLIHEAP also provides emergency assistance for households facing utility shutoffs. Grant amounts vary by local provider, household income, energy usage, and fuel type.",
+      "intro": "If your loved one struggles to pay heating, cooling, or electric bills on a fixed income, LIHEAP provides grants to help cover energy costs. Because this federal program operates through local community agencies in Washington, your loved one must apply directly with their county provider, not through the state.\n\nEligibility requires household income below 150% of federal poverty level and Washington residency. Each household can receive one grant per program year (October through September). Because demand exceeds funding, many areas have waitlists or processing delays.\n\nLIHEAP also provides emergency assistance for households facing utility shutoffs. Grant amounts vary by local provider, household income, energy usage, and fuel type.",
       "savingsRange": "",
       "savingsSource": "Grant amounts vary by provider and household circumstances",
       "savingsVerified": false,
@@ -1196,7 +1196,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's local LIHEAP provider to schedule an appointment — each agency has its own application process and timeline.",
+        "summary": "Contact your county's local LIHEAP provider to schedule an appointment, each agency has its own application process and timeline.",
         "steps": [
           {
             "step": 1,
@@ -1206,7 +1206,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact your local agency",
-            "description": "Call your local provider to schedule an appointment. Methods vary by agency — some offer phone applications, others require in-person visits. The state Department of Commerce does not schedule appointments."
+            "description": "Call your local provider to schedule an appointment. Methods vary by agency, some offer phone applications, others require in-person visits. The state Department of Commerce does not schedule appointments."
           },
           {
             "step": 3,
@@ -1226,7 +1226,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by provider; applicants notified as soon as possible, but high demand and limited staff cause delays",
         "waitlist": "High demand may create waitlists or delays, varying by region",
-        "tip": "If facing utility shutoff, contact your local provider immediately and arrange a payment plan with your utility company first — emergency cases may get priority processing.",
+        "tip": "If facing utility shutoff, contact your local provider immediately and arrange a payment plan with your utility company first, emergency cases may get priority processing.",
         "urls": [
           {
             "label": "Find Local LIHEAP Provider",
@@ -1267,10 +1267,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No central state application exists — you must contact and follow your specific local provider's process",
-        "Documentation requirements vary by provider — always call ahead to confirm what you need to avoid appointment delays",
-        "Program year runs October through September — you cannot reapply until the next program year even if circumstances change",
-        "Emergency cases facing utility disconnection may receive priority processing — contact your local provider immediately"
+        "No central state application exists, you must contact and follow your specific local provider's process",
+        "Documentation requirements vary by provider, always call ahead to confirm what you need to avoid appointment delays",
+        "Program year runs October through September, you cannot reapply until the next program year even if circumstances change",
+        "Emergency cases facing utility disconnection may receive priority processing, contact your local provider immediately"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1367,7 +1367,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's weatherization agency by phone — there's no statewide application form.",
+        "summary": "Contact your county's weatherization agency by phone, there's no statewide application form.",
         "steps": [
           {
             "step": 1,
@@ -1395,8 +1395,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "Approved improvements (insulation, air sealing, heating system repairs, etc.) will be completed at no cost. Timeline depends on contractor availability and scope of work."
           }
         ],
-        "processingTime": "Not specified — varies by county agency and funding availability",
-        "waitlist": "Likely waitlist due to funding limits — contact local agency for current wait times",
+        "processingTime": "Not specified, varies by county agency and funding availability",
+        "waitlist": "Likely waitlist due to funding limits, contact local agency for current wait times",
         "tip": "If your loved one is a renter, get landlord approval in writing before applying to avoid delays.",
         "urls": [
           {
@@ -1424,13 +1424,13 @@ export const drafts: PipelineStateDrafts = {
           "label": "Example: OIC of Washington (Adams County)",
           "phone": "(509) 452-7145",
           "description": "Local weatherization provider for Adams County",
-          "hours": "Contact for hours — each county agency has different schedules"
+          "hours": "Contact for hours, each county agency has different schedules"
         }
       ],
       "applicationNotes": [
-        "Each of Washington's 39 counties has a different local agency — you must contact your specific county provider, not a state office",
+        "Each of Washington's 39 counties has a different local agency, you must contact your specific county provider, not a state office",
         "Renters need written landlord approval before services can begin, which can significantly delay the process if landlords are unresponsive",
-        "Income eligibility uses the highest of three different thresholds (200% FPL, 60% state median, 80% area median) — you may qualify under one even if not the others",
+        "Income eligibility uses the highest of three different thresholds (200% FPL, 60% state median, 80% area median), you may qualify under one even if not the others",
         "Priority is given to households with elderly members, but this doesn't guarantee faster service due to funding constraints"
       ],
       "relatedPrograms": [
@@ -1504,7 +1504,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is approaching 65 or already on Medicare, they can get free, one-on-one counseling to understand their options and potentially save hundreds of dollars on premiums and prescriptions. Washington's SHIBA (Statewide Health Insurance Benefits Advisors) provides unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and low-income assistance programs like the Medicare Savings Program and Extra Help.\n\nBecause SHIBA counselors don't sell insurance, your loved one gets objective advice tailored to their specific health needs and budget. Counselors can also help apply for programs that could eliminate Medicare premiums entirely or reduce prescription costs to $4-$10 per month for qualifying individuals.\n\nThe service is available to anyone with Medicare questions — there are no income limits, though counselors prioritize people with limited incomes. Family members and caregivers can also get help understanding options for their loved ones.",
+      "intro": "If your loved one is approaching 65 or already on Medicare, they can get free, one-on-one counseling to understand their options and potentially save hundreds of dollars on premiums and prescriptions. Washington's SHIBA (Statewide Health Insurance Benefits Advisors) provides unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and low-income assistance programs like the Medicare Savings Program and Extra Help.\n\nBecause SHIBA counselors don't sell insurance, your loved one gets objective advice tailored to their specific health needs and budget. Counselors can also help apply for programs that could eliminate Medicare premiums entirely or reduce prescription costs to $4-$10 per month for qualifying individuals.\n\nThe service is available to anyone with Medicare questions, there are no income limits, though counselors prioritize people with limited incomes. Family members and caregivers can also get help understanding options for their loved ones.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1526,7 +1526,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-562-6900 for immediate counseling — no application required.",
+        "summary": "Call 1-800-562-6900 for immediate counseling, no application required.",
         "steps": [
           {
             "step": 1,
@@ -1638,7 +1638,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your loved one lives—some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Clallam, Grays Harbor, Jefferson, and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider—from income limits to clinical assessments of homebound status—the key first step is identifying which program serves your loved one's area.",
+      "intro": "If your loved one is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your loved one lives, some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Clallam, Grays Harbor, Jefferson, and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider, from income limits to clinical assessments of homebound status, the key first step is identifying which program serves your loved one's area.",
       "savingsRange": "$950 – $3,300/year in 2026",
       "savingsSource": "Based on $6.50 suggested donation per meal (Sound Generations) versus typical meal delivery costs",
       "savingsVerified": false,
@@ -1662,7 +1662,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local provider directly—application methods vary from online forms to phone intake, typically processed within 1-2 weeks.",
+        "summary": "Contact your local provider directly, application methods vary from online forms to phone intake, typically processed within 1-2 weeks.",
         "steps": [
           {
             "step": 1,
@@ -1685,9 +1685,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Some providers may conduct phone or in-person assessment to determine homebound status and meal needs. Medicaid version requires clinical assessment of inability to prepare meals."
           }
         ],
-        "processingTime": "Processing time not specified by providers—varies by region and current capacity",
-        "waitlist": "Waitlists not mentioned but likely vary by provider and region—ask about current availability when applying",
-        "tip": "If your loved one has Medicaid, start with their health plan or case manager—they may cover meals completely rather than requiring donations.",
+        "processingTime": "Processing time not specified by providers, varies by region and current capacity",
+        "waitlist": "Waitlists not mentioned but likely vary by provider and region, ask about current availability when applying",
+        "tip": "If your loved one has Medicaid, start with their health plan or case manager, they may cover meals completely rather than requiring donations.",
         "urls": [
           {
             "label": "Sound Generations Meals on Wheels Application",
@@ -1726,9 +1726,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Not available statewide—each county has different providers with different eligibility rules and costs",
+        "Not available statewide, each county has different providers with different eligibility rules and costs",
         "Medicaid version through Mom's Meals requires case manager referral and cannot be applied for directly",
-        "Even 'free' programs often request suggested donations—ask about financial assistance if cost is a concern",
+        "Even 'free' programs often request suggested donations, ask about financial assistance if cost is a concern",
         "Some providers exclude applicants if other meal programs like COPES are already available"
       ],
       "relatedPrograms": [
@@ -1753,7 +1753,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one already gets COPES or other state services?",
-          "answer": "For the Medicaid version, meals cannot be provided if other programs like COPES already provide meal services. However, Older Americans Act programs may still accept applicants receiving other services—eligibility rules differ between providers."
+          "answer": "For the Medicaid version, meals cannot be provided if other programs like COPES already provide meal services. However, Older Americans Act programs may still accept applicants receiving other services, eligibility rules differ between providers."
         },
         {
           "question": "Can I apply on behalf of my loved one?",
@@ -1765,11 +1765,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How often are meals delivered and what types of food?",
-          "answer": "Delivery frequency varies by provider—Sound Generations delivers weekly or twice monthly. Meals are typically frozen, shelf-stable, or fresh depending on the program, and are designed to meet nutritional requirements for older adults. Ask your local provider about their specific meal schedule and menu options."
+          "answer": "Delivery frequency varies by provider, Sound Generations delivers weekly or twice monthly. Meals are typically frozen, shelf-stable, or fresh depending on the program, and are designed to meet nutritional requirements for older adults. Ask your local provider about their specific meal schedule and menu options."
         },
         {
           "question": "What if there's a waiting list in my loved one's area?",
-          "answer": "Waitlists aren't officially mentioned but may exist due to funding limitations. Ask about priority criteria—some programs prioritize by age, income level, or severity of need. Also ask if your loved one qualifies for other meal programs in the meantime, such as congregate meal sites or food banks."
+          "answer": "Waitlists aren't officially mentioned but may exist due to funding limitations. Ask about priority criteria, some programs prioritize by age, income level, or severity of need. Also ask if your loved one qualifies for other meal programs in the meantime, such as congregate meal sites or food banks."
         }
       ],
       "layoutIntent": {
@@ -1803,7 +1803,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an adult child, parent, or spouse with disabilities or chronic conditions, Washington's Family Caregiver Support Program provides free services to help you manage the stress and demands of caregiving. The program offers caregiver support groups, counseling, hands-on training, respite care, and help finding local resources — all at no cost to you or the person you're caring for.\n\nUnlike paid caregiver programs that have strict income limits, this program focuses on supporting unpaid family caregivers regardless of income. Services vary by community and are delivered through your local Area Agency on Aging, which will conduct a screening and assessment to match you with the most helpful resources in your area.",
+      "intro": "If you're caring for an adult child, parent, or spouse with disabilities or chronic conditions, Washington's Family Caregiver Support Program provides free services to help you manage the stress and demands of caregiving. The program offers caregiver support groups, counseling, hands-on training, respite care, and help finding local resources, all at no cost to you or the person you're caring for.\n\nUnlike paid caregiver programs that have strict income limits, this program focuses on supporting unpaid family caregivers regardless of income. Services vary by community and are delivered through your local Area Agency on Aging, which will conduct a screening and assessment to match you with the most helpful resources in your area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1879,9 +1879,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This program supports unpaid caregivers only — it does not provide paid caregiving services or financial assistance",
+        "This program supports unpaid caregivers only, it does not provide paid caregiving services or financial assistance",
         "Don't confuse this with Medicaid Personal Care or VA caregiver programs, which have income limits and may pay family caregivers",
-        "Services available in your area may be limited — some communities have more resources than others",
+        "Services available in your area may be limited, some communities have more resources than others",
         "The screening and assessment process helps ensure you get connected with services that match your specific situation"
       ],
       "relatedPrograms": [
@@ -1897,7 +1897,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. The program serves caregivers of adults 18+ with any type of disability or chronic condition that creates caregiving stress, including developmental disabilities, mental health conditions, or physical disabilities."
         },
         {
-          "question": "What if my family makes too much money for other programs — can I still get help?",
+          "question": "What if my family makes too much money for other programs, can I still get help?",
           "answer": "Yes. This program has no income limits because it focuses on supporting unpaid caregivers regardless of financial situation. However, the services themselves are limited to support and training, not financial assistance."
         },
         {
@@ -1980,7 +1980,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional SCSEP provider by phone or in person — processing time varies by local funding availability.",
+        "summary": "Contact your regional SCSEP provider by phone or in person, processing time varies by local funding availability.",
         "steps": [
           {
             "step": 1,
@@ -2005,7 +2005,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by local provider and funding availability",
         "waitlist": "May vary by local provider and funding availability",
-        "tip": "Priority applicants (veterans, seniors 65+, disabled, rural residents) have better chances of quick placement — gather documentation for any priority factors your loved one qualifies for.",
+        "tip": "Priority applicants (veterans, seniors 65+, disabled, rural residents) have better chances of quick placement, gather documentation for any priority factors your loved one qualifies for.",
         "urls": [
           {
             "label": "DOL SCSEP National Directory",
@@ -2051,8 +2051,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority applicants (veterans, seniors 65+, disabled, rural residents, homeless) may have shorter wait times when positions are available",
-        "Program availability depends entirely on federal funding to local grantees — some regions may have no current openings",
-        "This is temporary training employment, not permanent work — the goal is placement in unsubsidized jobs",
+        "Program availability depends entirely on federal funding to local grantees, some regions may have no current openings",
+        "This is temporary training employment, not permanent work, the goal is placement in unsubsidized jobs",
         "Different regions have different providers (AARP Foundation, WorkSource, others) with varying application processes and wait times"
       ],
       "relatedPrograms": [
@@ -2143,7 +2143,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and dealing with a housing dispute, benefits denial, healthcare coverage problem, or needs help with powers of attorney, they can get free legal help regardless of income. Because Washington's Legal Aid for Seniors serves anyone 60+ without income screening in most counties, your loved one won't face financial barriers to getting attorney consultation and representation.\n\nThe program covers civil legal problems affecting basic needs — income maintenance, healthcare, housing protection, consumer issues, and advance directives like powers of attorney and healthcare directives. Because it's delivered statewide through the Northwest Justice Project and regional partners, you can access help whether your loved one lives in Seattle, rural counties, or anywhere in between.\n\nMost seniors get immediate phone advice through the CLEAR*Sr hotline at 1-888-387-7111, though high call volume may require patience. One attorney consultation is available in some programs, with ongoing representation possible for qualifying cases.",
+      "intro": "If your loved one is 60+ and dealing with a housing dispute, benefits denial, healthcare coverage problem, or needs help with powers of attorney, they can get free legal help regardless of income. Because Washington's Legal Aid for Seniors serves anyone 60+ without income screening in most counties, your loved one won't face financial barriers to getting attorney consultation and representation.\n\nThe program covers civil legal problems affecting basic needs, income maintenance, healthcare, housing protection, consumer issues, and advance directives like powers of attorney and healthcare directives. Because it's delivered statewide through the Northwest Justice Project and regional partners, you can access help whether your loved one lives in Seattle, rural counties, or anywhere in between.\n\nMost seniors get immediate phone advice through the CLEAR*Sr hotline at 1-888-387-7111, though high call volume may require patience. One attorney consultation is available in some programs, with ongoing representation possible for qualifying cases.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2187,7 +2187,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate advice if possible during call; in-depth interview to assess needs",
         "waitlist": null,
-        "tip": "High call volume may delay connection — be patient and try calling at different times if you can't get through immediately.",
+        "tip": "High call volume may delay connection, be patient and try calling at different times if you can't get through immediately.",
         "urls": [
           {
             "label": "Northwest Justice Project",
@@ -2266,7 +2266,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a Washington nursing home, assisted living facility, or adult family home, they automatically have access to a free advocate when problems arise. The Long-Term Care Ombudsman Program investigates complaints about quality of care, abuse, financial exploitation, improper transfers, and violations of resident rights.\n\nBecause ombudsmen are required by law to act only with your loved one's consent, they provide confidential advocacy that prioritizes the resident's wishes. You, your loved one, or facility staff can contact the ombudsman — no application or eligibility requirements beyond living in a licensed long-term care facility in Washington.\n\nOmbudsmen regularly visit facilities statewide and are required to post their contact information in every nursing home, assisted living facility, and adult family home. Response times vary by region based on staffing and volunteer availability.",
+      "intro": "If your loved one lives in a Washington nursing home, assisted living facility, or adult family home, they automatically have access to a free advocate when problems arise. The Long-Term Care Ombudsman Program investigates complaints about quality of care, abuse, financial exploitation, improper transfers, and violations of resident rights.\n\nBecause ombudsmen are required by law to act only with your loved one's consent, they provide confidential advocacy that prioritizes the resident's wishes. You, your loved one, or facility staff can contact the ombudsman, no application or eligibility requirements beyond living in a licensed long-term care facility in Washington.\n\nOmbudsmen regularly visit facilities statewide and are required to post their contact information in every nursing home, assisted living facility, and adult family home. Response times vary by region based on staffing and volunteer availability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2287,7 +2287,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional ombudsman office directly — no application needed, service begins immediately.",
+        "summary": "Call your regional ombudsman office directly, no application needed, service begins immediately.",
         "steps": [
           {
             "step": 1,
@@ -2305,9 +2305,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "The advocate will visit the facility, review the situation, and work toward resolution with facility staff and your loved one's consent."
           }
         ],
-        "processingTime": "Investigation begins immediately — resolution timing varies by case complexity",
+        "processingTime": "Investigation begins immediately, resolution timing varies by case complexity",
         "waitlist": null,
-        "tip": "Check that your loved one's facility has posted current ombudsman contact information in a visible location — facilities are legally required to display this.",
+        "tip": "Check that your loved one's facility has posted current ombudsman contact information in a visible location, facilities are legally required to display this.",
         "urls": [
           {
             "label": "Regional Contact Finder",
@@ -2426,7 +2426,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Remember this pass does NOT work at Department of Fish and Wildlife or Department of Natural Resources lands — only Washington State Parks.",
+        "tip": "Remember this pass does NOT work at Department of Fish and Wildlife or Department of Natural Resources lands, only Washington State Parks.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2453,7 +2453,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one use this pass at all state outdoor areas in Washington?",
-          "answer": "No. This pass only works at Washington State Parks — not at lands managed by the Department of Fish and Wildlife or Department of Natural Resources. It also does not replace the Discover Pass required for some other state lands."
+          "answer": "No. This pass only works at Washington State Parks, not at lands managed by the Department of Fish and Wildlife or Department of Natural Resources. It also does not replace the Discover Pass required for some other state lands."
         },
         {
           "question": "What's the difference between this pass and the Off-Season Senior Citizen Pass?",
@@ -2489,7 +2489,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is a veteran with a 30% or higher VA service-connected disability rating and lives in Washington, they qualify for free lifetime access to all Washington State Parks. This means no more paying $10-30 per visit for day-use parking and entry fees — savings that add up quickly for active families.\n\nThe pass covers vehicle parking and individual entry to over 120 Washington State Parks year-round. Because many county parks also honor this pass, your loved one may get free or reduced fees at local recreation sites too. The pass does not cover camping, boat launches, or special events — just the daily access fees that can cost $200-400 per year for regular park visitors.",
+      "intro": "If your loved one is a veteran with a 30% or higher VA service-connected disability rating and lives in Washington, they qualify for free lifetime access to all Washington State Parks. This means no more paying $10-30 per visit for day-use parking and entry fees, savings that add up quickly for active families.\n\nThe pass covers vehicle parking and individual entry to over 120 Washington State Parks year-round. Because many county parks also honor this pass, your loved one may get free or reduced fees at local recreation sites too. The pass does not cover camping, boat launches, or special events, just the daily access fees that can cost $200-400 per year for regular park visitors.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2513,7 +2513,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (360) 902-8844 to request an application or email the completed form to passes@parks.wa.gov — passes arrive in 3-4 weeks.",
+        "summary": "Call (360) 902-8844 to request an application or email the completed form to passes@parks.wa.gov, passes arrive in 3-4 weeks.",
         "steps": [
           {
             "step": 1,
@@ -2538,7 +2538,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "3-4 weeks after receipt of documentation",
         "waitlist": null,
-        "tip": "Make sure your VA award letter is dated within the last 2 years — older letters may be rejected and delay processing.",
+        "tip": "Make sure your VA award letter is dated within the last 2 years, older letters may be rejected and delay processing.",
         "urls": [
           {
             "label": "Washington State Parks",
@@ -2634,13 +2634,13 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Must have exhausted any third-party coverage (insurance, Medicaid, etc.) before qualifying",
           "Care must be medically necessary or emergent",
-          "No citizenship requirement—all patients regardless of status can qualify if otherwise eligible"
+          "No citizenship requirement, all patients regardless of status can qualify if otherwise eligible"
         ],
         "povertyLevelReference": "300% FPL for free care, 301-350% FPL for 75% discount"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply directly to the hospital where your loved one received care—no deadline, can apply during hospitalization or after discharge.",
+        "summary": "Apply directly to the hospital where your loved one received care, no deadline, can apply during hospitalization or after discharge.",
         "steps": [
           {
             "step": 1,
@@ -2665,7 +2665,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Apply as early as possible—during hospitalization or shortly after—to prevent debt collection activity.",
+        "tip": "Apply as early as possible, during hospitalization or shortly after, to prevent debt collection activity.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2691,7 +2691,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each hospital has different income thresholds and asset limits within state guidelines—check your specific hospital's policy for exact numbers",
+        "Each hospital has different income thresholds and asset limits within state guidelines, check your specific hospital's policy for exact numbers",
         "Charity Care does not cover independent contractors like radiologists or anesthesiologists who may bill separately, even if they work in the hospital"
       ],
       "relatedPrograms": [
@@ -2749,7 +2749,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is unable to work due to a disability or health condition and facing housing instability, Washington's HEN program may provide emergency rental assistance, utility help, and essential needs items like hygiene supplies. This program serves adults who don't qualify for other cash assistance programs but need temporary support while navigating their health challenges.\n\nYour loved one must first apply for and be denied regular cash assistance through DSHS, then receive a referral to local providers who deliver the actual services. Because funding is limited and managed county by county, some areas have waitlists or may not be accepting new clients for rental assistance.\n\nThe program is designed as temporary help — eligibility lasts up to 12 months from the referral date, even if your loved one's health condition continues.",
+      "intro": "If your loved one is unable to work due to a disability or health condition and facing housing instability, Washington's HEN program may provide emergency rental assistance, utility help, and essential needs items like hygiene supplies. This program serves adults who don't qualify for other cash assistance programs but need temporary support while navigating their health challenges.\n\nYour loved one must first apply for and be denied regular cash assistance through DSHS, then receive a referral to local providers who deliver the actual services. Because funding is limited and managed county by county, some areas have waitlists or may not be accepting new clients for rental assistance.\n\nThe program is designed as temporary help, eligibility lasts up to 12 months from the referral date, even if your loved one's health condition continues.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2790,12 +2790,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at washingtonconnection.org or call DSHS at 877-501-2233 — you must first apply for cash assistance to get a HEN referral.",
+        "summary": "Apply online at washingtonconnection.org or call DSHS at 877-501-2233, you must first apply for cash assistance to get a HEN referral.",
         "steps": [
           {
             "step": 1,
             "title": "Apply for cash assistance through DSHS",
-            "description": "Go to washingtonconnection.org or call 877-501-2233. You must apply for regular cash assistance first — this is required even though you'll likely be denied."
+            "description": "Go to washingtonconnection.org or call 877-501-2233. You must apply for regular cash assistance first, this is required even though you'll likely be denied."
           },
           {
             "step": 2,
@@ -2810,11 +2810,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Contact your county HEN provider",
-            "description": "Call the provider listed in your referral letter within the timeframe specified — referrals can expire if not acted on promptly. In King County, call 206-328-5755."
+            "description": "Call the provider listed in your referral letter within the timeframe specified, referrals can expire if not acted on promptly. In King County, call 206-328-5755."
           }
         ],
-        "processingTime": "Processing time varies — DSHS must first process the cash assistance application and interview before issuing HEN referral",
-        "waitlist": "Many counties use waitlists for rental assistance — some areas are not accepting new clients for rent help due to funding limits",
+        "processingTime": "Processing time varies, DSHS must first process the cash assistance application and interview before issuing HEN referral",
+        "waitlist": "Many counties use waitlists for rental assistance, some areas are not accepting new clients for rent help due to funding limits",
         "tip": "Start the application process as soon as possible since you must go through DSHS first, then get referred to county providers who may have their own waitlists.",
         "urls": [
           {
@@ -2857,9 +2857,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must apply for regular cash assistance first and be denied — this is not optional, even if you know you won't qualify",
+        "You must apply for regular cash assistance first and be denied, this is not optional, even if you know you won't qualify",
         "HEN referrals expire if not used promptly, so contact your county provider immediately after receiving the referral letter",
-        "Each county has different providers and funding levels — rental assistance availability varies significantly by location",
+        "Each county has different providers and funding levels, rental assistance availability varies significantly by location",
         "The 12-month eligibility limit applies from your referral date, regardless of whether you actually receive services during that time"
       ],
       "relatedPrograms": [
@@ -2891,7 +2891,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "They must report this change to DSHS immediately, as it would make them ineligible for HEN services. The program is specifically for people who cannot work due to health conditions."
         },
         {
-          "question": "My loved one was denied for HEN but I think they should qualify — what now?",
+          "question": "My loved one was denied for HEN but I think they should qualify, what now?",
           "answer": "You can request a fair hearing through DSHS if you disagree with their eligibility decision. Contact the DSHS office that made the decision and ask about the appeal process. You typically have 90 days from the denial notice to request a hearing."
         },
         {
@@ -2934,7 +2934,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+, blind, or disabled and waiting for SSI approval, Washington's ABD program provides monthly cash payments up to $450 for individuals or $570 for couples. This state-funded bridge program helps cover basic needs while federal benefits are being processed — because SSI applications can take months to approve.\n\nThe program requires repayment from future SSI benefits (averaging $4,545 total), but provides immediate financial relief for parents who cannot work due to age or disability. Your loved one will also automatically receive referrals to the Housing and Essential Needs program and get assigned an SSI application facilitator to help navigate the federal process.\n\nTo qualify, your loved one must have countable income below state limits and resources under $6,000. They cannot already be receiving SSI or TANF, and must sign an agreement to repay ABD benefits when SSI is approved.",
+      "intro": "If your loved one is 65+, blind, or disabled and waiting for SSI approval, Washington's ABD program provides monthly cash payments up to $450 for individuals or $570 for couples. This state-funded bridge program helps cover basic needs while federal benefits are being processed, because SSI applications can take months to approve.\n\nThe program requires repayment from future SSI benefits (averaging $4,545 total), but provides immediate financial relief for parents who cannot work due to age or disability. Your loved one will also automatically receive referrals to the Housing and Essential Needs program and get assigned an SSI application facilitator to help navigate the federal process.\n\nTo qualify, your loved one must have countable income below state limits and resources under $6,000. They cannot already be receiving SSI or TANF, and must sign an agreement to repay ABD benefits when SSI is approved.",
       "savingsRange": "$5,400 – $6,840/year in 2026",
       "savingsSource": "Monthly cash payments up to $450 (single) or $570 (couple)",
       "savingsVerified": false,
@@ -2972,7 +2972,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Washington Connection or contact your local DSHS Community Service Office — processing time not specified.",
+        "summary": "Apply online at Washington Connection or contact your local DSHS Community Service Office, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -3002,7 +3002,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Choose TANF over ABD if your loved one is eligible for both — TANF pays higher benefits and doesn't require repayment.",
+        "tip": "Choose TANF over ABD if your loved one is eligible for both, TANF pays higher benefits and doesn't require repayment.",
         "urls": [
           {
             "label": "Washington Connection Application",
@@ -3026,7 +3026,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "DSHS Community Service Offices",
           "phone": null,
-          "description": "Local offices handle ABD applications — find your regional office",
+          "description": "Local offices handle ABD applications, find your regional office",
           "hours": "Varies by location"
         },
         {
@@ -3037,10 +3037,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must repay ABD benefits from future SSI payments — average repayment is $4,545 when SSI is approved",
+        "You must repay ABD benefits from future SSI payments, average repayment is $4,545 when SSI is approved",
         "If your loved one is eligible for both ABD and TANF, choose TANF because it pays higher benefits and doesn't require repayment",
-        "Disability determination requires medical verification that the condition prevents work — substance abuse as primary cause disqualifies",
-        "Income and resource limits are strictly enforced and follow detailed state regulations — gather complete financial documentation"
+        "Disability determination requires medical verification that the condition prevents work, substance abuse as primary cause disqualifies",
+        "Income and resource limits are strictly enforced and follow detailed state regulations, gather complete financial documentation"
       ],
       "relatedPrograms": [
         "Supplemental Security Income (SSI)",
@@ -3072,7 +3072,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one receive ABD and SNAP benefits at the same time?",
-          "answer": "Yes. ABD is cash assistance and SNAP is food assistance — receiving one doesn't prevent the other. The ABD income will be counted when determining SNAP benefit amounts."
+          "answer": "Yes. ABD is cash assistance and SNAP is food assistance, receiving one doesn't prevent the other. The ABD income will be counted when determining SNAP benefit amounts."
         },
         {
           "question": "How long does ABD approval typically take?",
@@ -3108,7 +3108,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one worked in Washington and paid payroll taxes, they may qualify for WA Cares Fund benefits starting January 1, 2025. This program provides cash assistance for long-term care services like home care, adult day programs, or assisted living — with no income or asset limits.\n\nEligibility depends entirely on work history, not financial need. Your loved one needs at least 500 hours of work per year (about 10 hours per week) during qualifying periods. They can get full lifetime benefits if they worked 10 total years without a 5+ year break, or partial benefits if they worked 3 of the last 6 years before applying.\n\nUnlike Medicaid, your loved one keeps their house, savings, and investments. The benefit amount isn't specified in official sources yet, but payments go directly to your loved one or their care provider once they have qualifying long-term care needs.",
+      "intro": "If your loved one worked in Washington and paid payroll taxes, they may qualify for WA Cares Fund benefits starting January 1, 2025. This program provides cash assistance for long-term care services like home care, adult day programs, or assisted living, with no income or asset limits.\n\nEligibility depends entirely on work history, not financial need. Your loved one needs at least 500 hours of work per year (about 10 hours per week) during qualifying periods. They can get full lifetime benefits if they worked 10 total years without a 5+ year break, or partial benefits if they worked 3 of the last 6 years before applying.\n\nUnlike Medicaid, your loved one keeps their house, savings, and investments. The benefit amount isn't specified in official sources yet, but payments go directly to your loved one or their care provider once they have qualifying long-term care needs.",
       "savingsRange": "",
       "savingsSource": "Cash benefit for long-term care services",
       "savingsVerified": false,
@@ -3133,7 +3133,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply through Washington Employment Security Department online — processing time not specified in official sources.",
+        "summary": "Apply through Washington Employment Security Department online, processing time not specified in official sources.",
         "steps": [
           {
             "step": 1,
@@ -3158,7 +3158,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified in official sources",
         "waitlist": null,
-        "tip": "Benefits don't start automatically when you're eligible — you must have qualifying care needs and apply when you need services.",
+        "tip": "Benefits don't start automatically when you're eligible, you must have qualifying care needs and apply when you need services.",
         "urls": [
           {
             "label": "WA Cares Fund Application",
@@ -3185,7 +3185,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Near-retirees born before January 1, 1968 get only 10% of full benefits per qualifying year unless they meet other pathways",
         "You must notify your employer and ESD within 90 days if a conditional exemption ends due to moving to Washington or visa changes",
-        "Permanent exemptions make you completely ineligible for benefits — think carefully before claiming them"
+        "Permanent exemptions make you completely ineligible for benefits, think carefully before claiming them"
       ],
       "relatedPrograms": [
         "Washington Apple Health (Medicaid)",
@@ -3211,12 +3211,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The exact dollar amount isn't specified in current official sources. Benefits are described as 'up to full lifetime benefit amount' for fully vested individuals, with payments going directly to your loved one or their care provider."
         },
         {
-          "question": "What if my loved one took a long break from working — are they still eligible?",
+          "question": "What if my loved one took a long break from working, are they still eligible?",
           "answer": "Breaks longer than 5 consecutive years reset the 10-year contribution clock. Your loved one would need to start accumulating qualifying years again after returning to work, or they might qualify under the '3 of last 6 years' pathway instead."
         },
         {
           "question": "Can my loved one use these benefits for any type of care they want?",
-          "answer": "Benefits are for long-term services and supports, but your loved one must first qualify by showing they need assistance with activities of daily living. It's not automatic just because they're eligible based on work history — there's a separate assessment for care needs."
+          "answer": "Benefits are for long-term services and supports, but your loved one must first qualify by showing they need assistance with activities of daily living. It's not automatic just because they're eligible based on work history, there's a separate assessment for care needs."
         }
       ],
       "layoutIntent": {
@@ -3237,7 +3237,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "seattle-gold-card-discounts",
       "name": "Seattle Gold Card (Age-Friendly Discount Program)",
       "shortName": "Seattle Gold Card",
-      "tagline": "Your loved one can save money at over 110 Seattle-area businesses — no income limits required.",
+      "tagline": "Your loved one can save money at over 110 Seattle-area businesses, no income limits required.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -3250,7 +3250,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives anywhere in Washington state, they qualify for discounts at over 110 Seattle-area businesses including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, and Seattle Art Museum. Because there are no income or asset limits, any Washington resident 60+ can get this card — even if they live outside Seattle or King County.\n\nThe discounts vary by business, from 50% off pet adoption fees at Seattle Animal Shelter to various percentages at restaurants, fitness centers, and entertainment venues. Your loved one will need to confirm with each business that they accept the card, as participation is voluntary and the list updates regularly.",
+      "intro": "If your loved one is 60+ and lives anywhere in Washington state, they qualify for discounts at over 110 Seattle-area businesses including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, and Seattle Art Museum. Because there are no income or asset limits, any Washington resident 60+ can get this card, even if they live outside Seattle or King County.\n\nThe discounts vary by business, from 50% off pet adoption fees at Seattle Animal Shelter to various percentages at restaurants, fitness centers, and entertainment venues. Your loved one will need to confirm with each business that they accept the card, as participation is voluntary and the list updates regularly.",
       "savingsRange": "",
       "savingsSource": "Free discount card",
       "savingsVerified": false,
@@ -3272,7 +3272,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online in 10 minutes at seattle.gov/AgeFriendlyDiscounts — your card arrives in 1-2 weeks.",
+        "summary": "Apply online in 10 minutes at seattle.gov/AgeFriendlyDiscounts, your card arrives in 1-2 weeks.",
         "steps": [
           {
             "step": 1,
@@ -3297,7 +3297,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "1-2 weeks for mailed cards, immediate for in-person pickup",
         "waitlist": null,
-        "tip": "You can pick up a card immediately at any Seattle Public Library branch — no appointment needed.",
+        "tip": "You can pick up a card immediately at any Seattle Public Library branch, no appointment needed.",
         "urls": [
           {
             "label": "Online Application",
@@ -3326,8 +3326,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "The online application may prompt you about other Affordable Seattle programs, but the Gold Card itself has no income requirements",
-        "Don't assume all businesses accept the card — always confirm before making purchases as participation is voluntary",
-        "There's a separate FLASH Card program for people 18-59 with disabilities — make sure you're applying for the right program"
+        "Don't assume all businesses accept the card, always confirm before making purchases as participation is voluntary",
+        "There's a separate FLASH Card program for people 18-59 with disabilities, make sure you're applying for the right program"
       ],
       "relatedPrograms": [
         "FLASH Card (disability discounts)",
@@ -3377,7 +3377,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Washington offers 19 programs to help your aging loved one with everything from monthly grocery money to free home care services. These range from financial benefits like $292-1,158/month for food assistance to free resources like Medicare guidance and legal help — most with no income requirements. Several programs are specifically designed to keep your loved one living at home instead of moving to a nursing home, including waivers that pay family caregivers and coordinated care programs.\n\nStart by checking the highest-value programs first: health coverage, home care assistance, and food benefits. Most applications go through the Department of Social and Health Services, though some programs like Medicare help and legal aid have their own intake processes.",
+    "intro": "Washington offers 19 programs to help your aging loved one with everything from monthly grocery money to free home care services. These range from financial benefits like $292-1,158/month for food assistance to free resources like Medicare guidance and legal help, most with no income requirements. Several programs are specifically designed to keep your loved one living at home instead of moving to a nursing home, including waivers that pay family caregivers and coordinated care programs.\n\nStart by checking the highest-value programs first: health coverage, home care assistance, and food benefits. Most applications go through the Department of Social and Health Services, though some programs like Medicare help and legal aid have their own intake processes.",
     "startHere": [
       {
         "name": "Apple Health",
@@ -3462,6 +3462,6 @@ export const drafts: PipelineStateDrafts = {
       "The state offers both immediate emergency assistance (HEN) and longer-term disability support (ABD) while waiting for federal benefits",
       "Washington workers pay into WA Cares Fund through payroll deductions for future long-term care benefits"
     ],
-    "resourcesVsBenefits": "Benefits require qualifying based on income, assets, or medical need — like Basic Food Program requiring income verification or Medicaid Personal Care requiring a clinical assessment. Resources are available to everyone regardless of income — like free Medicare counseling through HICAP, free legal help for all seniors 60+, or Seattle's Gold Card discount program with no income limits. Start with free resources while you're applying for benefits, since they provide immediate help with no waiting period."
+    "resourcesVsBenefits": "Benefits require qualifying based on income, assets, or medical need, like Basic Food Program requiring income verification or Medicaid Personal Care requiring a clinical assessment. Resources are available to everyone regardless of income, like free Medicare counseling through HICAP, free legal help for all seniors 60+, or Seattle's Gold Card discount program with no income limits. Start with free resources while you're applying for benefits, since they provide immediate help with no waiting period."
   }
 };

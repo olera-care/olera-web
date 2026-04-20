@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.103Z
+ * Last updated: 2026-04-20T23:39:07.874Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -21,7 +21,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles to pay Medicare premiums and medical bills, Tennessee's Medicare Savings Programs can cover these costs. The three programs—QMB, SLMB, and QI—help with different combinations of Medicare premiums, deductibles, and copays based on your loved one's income level.\n\nQMB (Qualified Medicare Beneficiary) covers all Medicare premiums, deductibles, and copays for individuals with income up to $1,350/month. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums only for those earning up to 120% of the Federal Poverty Level. QI (Qualifying Individual) covers Part B premiums and provides prescription drug help for those earning between $1,350-$1,715/month, but operates on a first-come, first-served basis until funding runs out each year.",
+      "intro": "If your loved one struggles to pay Medicare premiums and medical bills, Tennessee's Medicare Savings Programs can cover these costs. The three programs, QMB, SLMB, and QI, help with different combinations of Medicare premiums, deductibles, and copays based on your loved one's income level.\n\nQMB (Qualified Medicare Beneficiary) covers all Medicare premiums, deductibles, and copays for individuals with income up to $1,350/month. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums only for those earning up to 120% of the Federal Poverty Level. QI (Qualifying Individual) covers Part B premiums and provides prescription drug help for those earning between $1,350-$1,715/month, but operates on a first-come, first-served basis until funding runs out each year.",
       "savingsRange": "$1,600 – $3,600/year in 2026",
       "savingsSource": "Medicare Part B premium savings plus deductible and copay coverage",
       "savingsVerified": false,
@@ -80,7 +80,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact TennCare directly by phone or apply online — processing begins the month after approval.",
+        "summary": "Contact TennCare directly by phone or apply online, processing begins the month after approval.",
         "steps": [
           {
             "step": 1,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "TennCare verifies Medicare enrollment",
-            "description": "TennCare will automatically verify Medicare Part A entitlement with Social Security Administration — you don't need to contact SSA separately."
+            "description": "TennCare will automatically verify Medicare Part A entitlement with Social Security Administration, you don't need to contact SSA separately."
           }
         ],
         "processingTime": "Benefits start the first day of the month after application approval",
@@ -141,9 +141,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited — applications may be denied once yearly funds are exhausted, even if you meet all other requirements",
+        "QI program funding is limited, applications may be denied once yearly funds are exhausted, even if you meet all other requirements",
         "If your loved one is already on TennCare Medicaid, they cannot get QI benefits but may qualify for QMB or SLMB instead",
-        "Income and asset limits increase every January — verify current-year thresholds before applying",
+        "Income and asset limits increase every January, verify current-year thresholds before applying",
         "QMB approval automatically establishes Medicare Part B coverage even if your loved one previously declined it"
       ],
       "relatedPrograms": [
@@ -172,11 +172,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will this affect my loved one's other TennCare benefits?",
-          "answer": "These programs work alongside Medicare, not TennCare Medicaid. If your loved one is already on TennCare Medicaid, they cannot receive QI benefits but may qualify for QMB or SLMB. These programs don't provide full Medicaid benefits—only help with Medicare costs."
+          "answer": "These programs work alongside Medicare, not TennCare Medicaid. If your loved one is already on TennCare Medicaid, they cannot receive QI benefits but may qualify for QMB or SLMB. These programs don't provide full Medicaid benefits, only help with Medicare costs."
         },
         {
           "question": "How often does my loved one need to reapply?",
-          "answer": "QMB and SLMB typically have annual renewals managed by TennCare. QI recipients must reapply every single year by submitting a new application—benefits don't automatically continue. Apply early in January for the best chance of securing QI funding."
+          "answer": "QMB and SLMB typically have annual renewals managed by TennCare. QI recipients must reapply every single year by submitting a new application, benefits don't automatically continue. Apply early in January for the best chance of securing QI funding."
         }
       ],
       "layoutIntent": {
@@ -197,7 +197,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "Tennessee SNAP",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery money for seniors 60+ on fixed incomes — up to $415/month with no asset limits.",
+      "tagline": "Monthly grocery money for seniors 60+ on fixed incomes, up to $415/month with no asset limits.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -210,7 +210,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries, Tennessee SNAP can provide monthly money loaded onto an EBT card for food purchases. Unlike younger adults, seniors face no asset limits and no work requirements — their house, car, and retirement accounts don't count against them.\n\nBenefit amounts depend on household size and net income after deductions. A typical 2-person elderly household receives around $415/month, but amounts vary based on medical expenses over $35/month, shelter costs, and other allowable deductions. Because Tennessee excludes sugary foods from SNAP purchases, the money goes toward nutritious groceries like meat, dairy, produce, and pantry staples.\n\nThe key advantage for seniors: Tennessee exempts households with anyone 60+ from the gross income test, focusing only on net income after deductions. Many seniors who think they earn \"too much\" actually qualify once medical expenses, utility costs, and the standard deduction are subtracted.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries, Tennessee SNAP can provide monthly money loaded onto an EBT card for food purchases. Unlike younger adults, seniors face no asset limits and no work requirements, their house, car, and retirement accounts don't count against them.\n\nBenefit amounts depend on household size and net income after deductions. A typical 2-person elderly household receives around $415/month, but amounts vary based on medical expenses over $35/month, shelter costs, and other allowable deductions. Because Tennessee excludes sugary foods from SNAP purchases, the money goes toward nutritious groceries like meat, dairy, produce, and pantry staples.\n\nThe key advantage for seniors: Tennessee exempts households with anyone 60+ from the gross income test, focusing only on net income after deductions. Many seniors who think they earn \"too much\" actually qualify once medical expenses, utility costs, and the standard deduction are subtracted.",
       "savingsRange": "$100 – $415/month in 2026",
       "savingsSource": "Example 2-person elderly household receiving $415/month after deductions",
       "savingsVerified": true,
@@ -255,7 +255,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at tn.gov/humanservices or call your local TDHS office — typically processed within 30 days.",
+        "summary": "Apply online at tn.gov/humanservices or call your local TDHS office, typically processed within 30 days.",
         "steps": [
           {
             "step": 1,
@@ -285,7 +285,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Typically 30 days, expedited processing available for urgent cases",
         "waitlist": null,
-        "tip": "Seniors often qualify for higher benefits than expected due to medical expense deductions — include all out-of-pocket costs over $35/month including Medicare premiums.",
+        "tip": "Seniors often qualify for higher benefits than expected due to medical expense deductions, include all out-of-pocket costs over $35/month including Medicare premiums.",
         "urls": [
           {
             "label": "Tennessee DHS Online Application",
@@ -322,9 +322,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Seniors 60+ have no gross income limits — focus on maximizing deductions like medical expenses over $35/month and shelter costs up to $744",
+        "Seniors 60+ have no gross income limits, focus on maximizing deductions like medical expenses over $35/month and shelter costs up to $744",
         "All income counts including Social Security, pensions, and VA benefits, but deductions often bring net income below limits",
-        "Household includes anyone who buys and prepares food together — married couples living together always count as one household",
+        "Household includes anyone who buys and prepares food together, married couples living together always count as one household",
         "Recent changes extended work requirements to adults under 65, but seniors 60+ and disabled individuals remain exempt"
       ],
       "relatedPrograms": [
@@ -340,7 +340,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. Tennessee doesn't count assets for households with anyone 60+ or disabled. Your loved one's home, one vehicle, retirement accounts, and reasonable burial funds are all exempt. Only net income after deductions matters for seniors."
         },
         {
-          "question": "My loved one gets $1,800/month Social Security — are they over the income limit?",
+          "question": "My loved one gets $1,800/month Social Security, are they over the income limit?",
           "answer": "Not necessarily. Seniors 60+ skip the gross income test and only need to pass the net income test. After the $209 standard deduction, 20% earned income deduction, medical expenses over $35, and shelter costs up to $744, your loved one may well qualify."
         },
         {
@@ -352,7 +352,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, but your loved one needs to designate you as their authorized representative. Contact your local TDHS office about the required forms. You can help with the application, but your loved one's income and household situation determine eligibility."
         },
         {
-          "question": "My loved one lives with me but we buy groceries separately — how does that affect SNAP?",
+          "question": "My loved one lives with me but we buy groceries separately, how does that affect SNAP?",
           "answer": "If you truly buy and prepare food separately, your loved one can apply as a 1-person household. But if you share meals or grocery shopping, Tennessee counts you as one household, which could help or hurt depending on combined income and family size."
         },
         {
@@ -365,7 +365,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's income or expenses change after approval?",
-          "answer": "Report major changes within 10 days — new income sources, moving, household changes. But small monthly variations in Social Security or medical expenses don't usually require immediate reporting. Changes might increase or decrease benefit amounts."
+          "answer": "Report major changes within 10 days, new income sources, moving, household changes. But small monthly variations in Social Security or medical expenses don't usually require immediate reporting. Changes might increase or decrease benefit amounts."
         }
       ],
       "layoutIntent": {
@@ -399,7 +399,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills, Tennessee LIHEAP provides one-time payments of $174-$1,000 sent directly to their utility company. Your loved one can receive help once per year from up to two different programs (regular assistance, crisis assistance, or summer cooling).\n\nYour loved one qualifies if their monthly gross income is below $2,671 (single person) or $3,492 (two people), or if they receive SNAP, SSI, TANF, or certain Veterans benefits. No asset limits apply — your loved one can own a home, car, or have savings and still qualify.\n\nBecause LIHEAP uses federal funding that isn't always guaranteed, eligible applicants are placed on a waitlist until funds become available. Crisis situations (like disconnection notices) get priority treatment.",
+      "intro": "If your loved one struggles to pay heating or cooling bills, Tennessee LIHEAP provides one-time payments of $174-$1,000 sent directly to their utility company. Your loved one can receive help once per year from up to two different programs (regular assistance, crisis assistance, or summer cooling).\n\nYour loved one qualifies if their monthly gross income is below $2,671 (single person) or $3,492 (two people), or if they receive SNAP, SSI, TANF, or certain Veterans benefits. No asset limits apply, your loved one can own a home, car, or have savings and still qualify.\n\nBecause LIHEAP uses federal funding that isn't always guaranteed, eligible applicants are placed on a waitlist until funds become available. Crisis situations (like disconnection notices) get priority treatment.",
       "savingsRange": "$174 – $1,000/year in 2026",
       "savingsSource": "One-time payment amounts from THDA LIHEAP program guidelines",
       "savingsVerified": true,
@@ -473,7 +473,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified; depends on federal funding availability",
         "waitlist": "Yes, eligible applicants waitlisted until federal funds released; crisis prioritized",
-        "tip": "If your loved one has a disconnection notice, apply for crisis assistance — these cases get priority treatment and may be processed within 48 hours.",
+        "tip": "If your loved one has a disconnection notice, apply for crisis assistance, these cases get priority treatment and may be processed within 48 hours.",
         "urls": [
           {
             "label": "THDA LIHEAP Information",
@@ -514,7 +514,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Crisis cases with active disconnection notices may get expedited processing within 48 hours while regular applications wait for federal funding",
         "Your loved one can receive help from up to two of the three programs (regular, crisis, summer cooling) in the same year, but only once per program",
-        "Each of Tennessee's 19 local agencies has different application processes and waitlist lengths — contact your specific county agency for current status",
+        "Each of Tennessee's 19 local agencies has different application processes and waitlist lengths, contact your specific county agency for current status",
         "Federal funding delays are common, so apply early in the season even if your loved one doesn't have an immediate emergency"
       ],
       "relatedPrograms": [
@@ -529,7 +529,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, your loved one can receive help from up to two of the three LIHEAP programs (regular, crisis, summer cooling) in the same year. However, they can only receive each type of assistance once per year. Crisis assistance requires a disconnection notice or emergency situation."
         },
         {
-          "question": "What if my loved one owns their home — does that disqualify them?",
+          "question": "What if my loved one owns their home, does that disqualify them?",
           "answer": "No, LIHEAP has no asset limits. Your loved one can own a home, car, have savings accounts, and still qualify as long as their monthly income meets the limits ($2,671 for single person, $3,492 for couple)."
         },
         {
@@ -541,7 +541,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, family members can apply on behalf of elderly loved ones, but you'll need proper documentation. Contact your local LIHEAP agency to ask about their specific requirements for authorized representatives or power of attorney documentation."
         },
         {
-          "question": "My loved one gets automatic SNAP benefits — do they still need to prove income for LIHEAP?",
+          "question": "My loved one gets automatic SNAP benefits, do they still need to prove income for LIHEAP?",
           "answer": "Your loved one has automatic income eligibility if they receive SNAP, SSI, TANF, or certain Veterans benefits, but they still need to submit a LIHEAP application and may need to provide their benefit award letters as proof of eligibility."
         },
         {
@@ -592,7 +592,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is overwhelmed by Medicare plan choices or struggling with premium costs, TN SHIP provides free, unbiased counseling to help them navigate their options. Because Medicare has dozens of plan variations and cost-saving programs that most people don't know about, having an expert review your loved one's specific situation can save hundreds of dollars per year.\n\nTN SHIP counselors help your loved one compare Medicare Part D prescription plans, Medicare Advantage options, and Medigap policies. More importantly, they help apply for programs that can dramatically reduce Medicare costs — like Medicare Savings Programs that cover premiums and Extra Help that reduces prescription costs. The service is completely free and available to anyone on Medicare, regardless of income.",
+      "intro": "If your loved one is overwhelmed by Medicare plan choices or struggling with premium costs, TN SHIP provides free, unbiased counseling to help them navigate their options. Because Medicare has dozens of plan variations and cost-saving programs that most people don't know about, having an expert review your loved one's specific situation can save hundreds of dollars per year.\n\nTN SHIP counselors help your loved one compare Medicare Part D prescription plans, Medicare Advantage options, and Medigap policies. More importantly, they help apply for programs that can dramatically reduce Medicare costs, like Medicare Savings Programs that cover premiums and Extra Help that reduces prescription costs. The service is completely free and available to anyone on Medicare, regardless of income.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -613,7 +613,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the statewide helpline at 1-877-801-0044 for immediate counseling — no application or forms required.",
+        "summary": "Call the statewide helpline at 1-877-801-0044 for immediate counseling, no application or forms required.",
         "steps": [
           {
             "step": 1,
@@ -729,7 +729,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to prepare nutritious meals due to illness, disability, or being homebound, Tennessee Meals on Wheels delivers a hot, balanced lunch to their door Monday through Friday. Each meal provides one-third of daily nutritional requirements, plus a friendly safety check from volunteers.\n\nThere are no income or asset limits — eligibility is based on need, not finances. Your loved one must be assessed by their local Area Agency on Aging and Disability to confirm they're homebound and need meal assistance. The program operates in all 95 Tennessee counties, but each region runs its own version with different providers and slight variations in rules.\n\nMost meals are free through suggested donations, though some areas offer paid meal options. Beyond home delivery, Tennessee also offers congregate meals at 150+ senior centers statewide for anyone 60+ who wants social interaction with their nutrition.",
+      "intro": "If your loved one is 60+ and struggling to prepare nutritious meals due to illness, disability, or being homebound, Tennessee Meals on Wheels delivers a hot, balanced lunch to their door Monday through Friday. Each meal provides one-third of daily nutritional requirements, plus a friendly safety check from volunteers.\n\nThere are no income or asset limits, eligibility is based on need, not finances. Your loved one must be assessed by their local Area Agency on Aging and Disability to confirm they're homebound and need meal assistance. The program operates in all 95 Tennessee counties, but each region runs its own version with different providers and slight variations in rules.\n\nMost meals are free through suggested donations, though some areas offer paid meal options. Beyond home delivery, Tennessee also offers congregate meals at 150+ senior centers statewide for anyone 60+ who wants social interaction with their nutrition.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -754,7 +754,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide number 1-866-836-6678 to connect with your local aging office — they'll schedule an assessment to determine if your loved one qualifies.",
+        "summary": "Call the statewide number 1-866-836-6678 to connect with your local aging office, they'll schedule an assessment to determine if your loved one qualifies.",
         "steps": [
           {
             "step": 1,
@@ -774,12 +774,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Consider congregate meal options",
-            "description": "If your loved one can leave home, ask about congregate meals at local senior centers — these provide social interaction along with nutrition."
+            "description": "If your loved one can leave home, ask about congregate meals at local senior centers, these provide social interaction along with nutrition."
           }
         ],
-        "processingTime": "Varies by region — Knox County starts service in 2-3 business days after approval, other areas depend on assessment scheduling",
+        "processingTime": "Varies by region, Knox County starts service in 2-3 business days after approval, other areas depend on assessment scheduling",
         "waitlist": null,
-        "tip": "If your loved one has specific dietary needs (diabetic, low-sodium, texture modifications), mention this during the initial call — most providers can accommodate special diets.",
+        "tip": "If your loved one has specific dietary needs (diabetic, low-sodium, texture modifications), mention this during the initial call, most providers can accommodate special diets.",
         "urls": [
           {
             "label": "Tennessee Pathfinder Screening Tool",
@@ -796,7 +796,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Statewide Meals on Wheels",
           "phone": "(866) 836-6678",
-          "description": "Main intake line — connects to your local Area Agency on Aging",
+          "description": "Main intake line, connects to your local Area Agency on Aging",
           "hours": "Business hours, varies by local office"
         },
         {
@@ -819,10 +819,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This isn't one unified program — Tennessee's 95 counties each work with different local providers, so rules and wait times vary by your loved one's address",
-        "The assessment is required and can't be skipped — case managers need to verify your loved one truly can't prepare safe, nutritious meals",
-        "Some areas offer both free donation-based meals and paid meal services — ask about all options during your call",
-        "Congregate meals have different, more relaxed eligibility than home delivery — if your loved one can get to a senior center, this might be faster to access"
+        "This isn't one unified program, Tennessee's 95 counties each work with different local providers, so rules and wait times vary by your loved one's address",
+        "The assessment is required and can't be skipped, case managers need to verify your loved one truly can't prepare safe, nutritious meals",
+        "Some areas offer both free donation-based meals and paid meal services, ask about all options during your call",
+        "Congregate meals have different, more relaxed eligibility than home delivery, if your loved one can get to a senior center, this might be faster to access"
       ],
       "relatedPrograms": [
         "Tennessee SNAP (Food Stamps)",
@@ -841,11 +841,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much do the meals actually cost if they're not truly free?",
-          "answer": "Most Tennessee Meals on Wheels programs operate on suggested donations with no required payment — truly free for those who can't contribute. Some areas like Knox County also offer paid services (contact CAC at 865-524-2786 for their rates). The intake worker will explain your local area's payment structure."
+          "answer": "Most Tennessee Meals on Wheels programs operate on suggested donations with no required payment, truly free for those who can't contribute. Some areas like Knox County also offer paid services (contact CAC at 865-524-2786 for their rates). The intake worker will explain your local area's payment structure."
         },
         {
           "question": "Can my loved one get weekend meals too, or just weekdays?",
-          "answer": "Standard Tennessee Meals on Wheels delivers Monday through Friday only. Some local providers may offer weekend or emergency meal programs separately — ask during your assessment about all available meal options in your area."
+          "answer": "Standard Tennessee Meals on Wheels delivers Monday through Friday only. Some local providers may offer weekend or emergency meal programs separately, ask during your assessment about all available meal options in your area."
         },
         {
           "question": "What happens if my loved one goes to the hospital or temporarily stays with family?",
@@ -943,7 +943,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Timeline varies by region and slot availability after initial phone screening",
         "waitlist": "Services may not be available immediately. Priority given to caregivers with greatest economic and social needs as defined by the Older Americans Act",
-        "tip": "Call even if you think there might be a waitlist — priority scoring can sometimes get you services faster than expected",
+        "tip": "Call even if you think there might be a waitlist, priority scoring can sometimes get you services faster than expected",
         "urls": [
           {
             "label": "Tennessee Caregiving Programs",
@@ -967,7 +967,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Even if eligible, services depend on slot availability in your specific region — some areas have immediate openings while others maintain waitlists",
+        "Even if eligible, services depend on slot availability in your specific region, some areas have immediate openings while others maintain waitlists",
         "The 6-hour weekly respite care is guaranteed if you're approved, but other services like counseling or adult daycare vary by what's available locally",
         "If your loved one's income is above 185% of poverty guidelines, you'll be asked to contribute but the amount depends on actual service costs, not a fixed fee"
       ],
@@ -984,7 +984,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if I'm under 55 but caring for my elderly loved one?",
-          "answer": "The standard age requirement is 55+, but there may be exceptions in certain circumstances. Call 1-866-836-6678 to discuss your situation — intake specialists can determine if any flexibility applies to your caregiving situation."
+          "answer": "The standard age requirement is 55+, but there may be exceptions in certain circumstances. Call 1-866-836-6678 to discuss your situation, intake specialists can determine if any flexibility applies to your caregiving situation."
         },
         {
           "question": "How long is the waitlist really in Tennessee?",
@@ -1042,7 +1042,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides part-time paid work experience in community service roles while helping them develop skills for permanent employment. Your loved one would work about 20 hours per week at minimum wage ($7.25/hour or higher locally) in positions like teacher's aide, library clerk, or maintenance assistant. Income limit: no more than 125% of federal poverty level (approximately $19,563/year for a single person in 2025).\n\nBecause the program focuses on skill-building and job placement, participants typically work for about 6 months before transitioning to unsubsidized employment. The program includes job counseling, skills assessments, and placement assistance. Priority goes to veterans, people 65+, those with low literacy, or facing homelessness risk — others may encounter waitlists.\n\nSCSEP is not available statewide. Your loved one must live in a county served by one of the local workforce providers, which cover parts of Tennessee including Memphis area, Northwest Tennessee, and East Tennessee counties.",
+      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides part-time paid work experience in community service roles while helping them develop skills for permanent employment. Your loved one would work about 20 hours per week at minimum wage ($7.25/hour or higher locally) in positions like teacher's aide, library clerk, or maintenance assistant. Income limit: no more than 125% of federal poverty level (approximately $19,563/year for a single person in 2025).\n\nBecause the program focuses on skill-building and job placement, participants typically work for about 6 months before transitioning to unsubsidized employment. The program includes job counseling, skills assessments, and placement assistance. Priority goes to veterans, people 65+, those with low literacy, or facing homelessness risk, others may encounter waitlists.\n\nSCSEP is not available statewide. Your loved one must live in a county served by one of the local workforce providers, which cover parts of Tennessee including Memphis area, Northwest Tennessee, and East Tennessee counties.",
       "savingsRange": "$290 – $580/month",
       "savingsSource": "20 hours/week at $7.25/hour minimum wage",
       "savingsVerified": true,
@@ -1076,7 +1076,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional coordinator to schedule an assessment appointment — processing time varies by availability.",
+        "summary": "Call your regional coordinator to schedule an assessment appointment, processing time varies by availability.",
         "steps": [
           {
             "step": 1,
@@ -1095,8 +1095,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Varies by availability and assessment completion",
-        "waitlist": "Possible waitlist in some areas — priority given to veterans, those 65+, low literacy, homelessness risk, or prior incarceration",
-        "tip": "Contact multiple regional providers if you're near county borders — availability varies by location.",
+        "waitlist": "Possible waitlist in some areas, priority given to veterans, those 65+, low literacy, homelessness risk, or prior incarceration",
+        "tip": "Contact multiple regional providers if you're near county borders, availability varies by location.",
         "urls": [
           {
             "label": "Tennessee SCSEP Information",
@@ -1147,10 +1147,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Veterans, qualified spouses, people 65+, those with low literacy, facing homelessness, or with prior incarceration get priority enrollment — others may face waitlists",
-        "Income limit applies to total family income, not just the applicant — verify current thresholds with your local provider as amounts change annually",
+        "Veterans, qualified spouses, people 65+, those with low literacy, facing homelessness, or with prior incarceration get priority enrollment, others may face waitlists",
+        "Income limit applies to total family income, not just the applicant, verify current thresholds with your local provider as amounts change annually",
         "Program is temporary (typically 6 months) and designed to transition participants to unsubsidized employment, not provide long-term work",
-        "Many counties are not served — confirm coverage before applying, especially in rural areas"
+        "Many counties are not served, confirm coverage before applying, especially in rural areas"
       ],
       "relatedPrograms": [
         "SNAP (Food Benefits)",
@@ -1203,7 +1203,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-law-alliance",
       "name": "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
       "shortName": "TSLA Legal Help",
-      "tagline": "Free legal help for Tennessee seniors 60+ — no income limits, covers everything from wills to benefit appeals.",
+      "tagline": "Free legal help for Tennessee seniors 60+, no income limits, covers everything from wills to benefit appeals.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1228,7 +1228,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives in Tennessee, they can get free legal help regardless of income or assets. The Tennessee Senior Law Alliance provides everything from drafting wills and powers of attorney to fighting wrongfully denied benefits — all at no cost.\n\nBecause TSLA operates through four regional providers covering all 95 Tennessee counties, your loved one can access attorneys who specialize in elder law issues. The program is funded by a $5.5 million court settlement, making these services completely free with no sliding scale or application fees.\n\nServices include estate planning documents (wills, advance directives, powers of attorney), appeals for denied Medicare or Social Security benefits, housing problems, elder abuse cases, and consumer protection. One statewide helpline connects your loved one to the right regional provider for their county.",
+      "intro": "If your loved one is 60+ and lives in Tennessee, they can get free legal help regardless of income or assets. The Tennessee Senior Law Alliance provides everything from drafting wills and powers of attorney to fighting wrongfully denied benefits, all at no cost.\n\nBecause TSLA operates through four regional providers covering all 95 Tennessee counties, your loved one can access attorneys who specialize in elder law issues. The program is funded by a $5.5 million court settlement, making these services completely free with no sliding scale or application fees.\n\nServices include estate planning documents (wills, advance directives, powers of attorney), appeals for denied Medicare or Social Security benefits, housing problems, elder abuse cases, and consumer protection. One statewide helpline connects your loved one to the right regional provider for their county.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1250,7 +1250,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 1-844-HELP4TN — no application needed.",
+        "summary": "Call the statewide helpline at 1-844-HELP4TN, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1270,7 +1270,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "The statewide helpline is the simplest entry point — they'll route you to the right regional provider automatically.",
+        "tip": "The statewide helpline is the simplest entry point, they'll route you to the right regional provider automatically.",
         "urls": [
           {
             "label": "Tennessee Alliance for Legal Services",
@@ -1287,7 +1287,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Statewide Helpline",
           "phone": "1-844-HELP4TN",
-          "description": "Primary number for all Tennessee seniors — routes to regional provider",
+          "description": "Primary number for all Tennessee seniors, routes to regional provider",
           "hours": "Business hours"
         },
         {
@@ -1299,7 +1299,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "East Tennessee",
           "phone": "(865) 691-2551 ext 4212",
-          "description": "Legal Assistance for the Elderly Program — call directly for in-person appointments",
+          "description": "Legal Assistance for the Elderly Program, call directly for in-person appointments",
           "hours": "Business hours"
         }
       ],
@@ -1321,7 +1321,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long does it take to get help with a denied Medicare appeal?",
-          "answer": "Processing times aren't specified, but Medicare appeals have strict deadlines — some as short as 60 days. Call 1-844-HELP4TN immediately if your loved one received a denial notice to avoid missing appeal windows."
+          "answer": "Processing times aren't specified, but Medicare appeals have strict deadlines, some as short as 60 days. Call 1-844-HELP4TN immediately if your loved one received a denial notice to avoid missing appeal windows."
         },
         {
           "question": "Can TSLA help if my loved one is being financially exploited?",
@@ -1359,7 +1359,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or adult care home in Tennessee and faces problems with care quality, billing disputes, or facility policies, the Long-Term Care Ombudsman Program provides free advocacy. These trained advocates investigate complaints, educate residents about their rights, and work with facilities to resolve issues — from wrongful discharge threats to medication errors to privacy violations.\n\nThe program serves residents in approximately 700 facilities across Tennessee's 95 counties through 9 district offices. No income limits apply, and family members can contact the ombudsman on behalf of their loved one. Because this is purely an advocacy service, ombudsmen don't provide direct healthcare or financial assistance — they focus on complaint resolution and ensuring your loved one receives proper treatment according to state and federal regulations.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or adult care home in Tennessee and faces problems with care quality, billing disputes, or facility policies, the Long-Term Care Ombudsman Program provides free advocacy. These trained advocates investigate complaints, educate residents about their rights, and work with facilities to resolve issues, from wrongful discharge threats to medication errors to privacy violations.\n\nThe program serves residents in approximately 700 facilities across Tennessee's 95 counties through 9 district offices. No income limits apply, and family members can contact the ombudsman on behalf of their loved one. Because this is purely an advocacy service, ombudsmen don't provide direct healthcare or financial assistance, they focus on complaint resolution and ensuring your loved one receives proper treatment according to state and federal regulations.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1381,7 +1381,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide toll-free number to be connected to your district ombudsman — no forms required.",
+        "summary": "Call the statewide toll-free number to be connected to your district ombudsman, no forms required.",
         "steps": [
           {
             "step": 1,
@@ -1391,7 +1391,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Explain the complaint or concern",
-            "description": "Describe the specific problem your loved one is experiencing — care quality, billing issues, facility policies, or rights violations. The ombudsman will determine next steps."
+            "description": "Describe the specific problem your loved one is experiencing, care quality, billing issues, facility policies, or rights violations. The ombudsman will determine next steps."
           },
           {
             "step": 3,
@@ -1401,7 +1401,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Document specific incidents with dates and names before calling — this helps the ombudsman investigate more effectively.",
+        "tip": "Document specific incidents with dates and names before calling, this helps the ombudsman investigate more effectively.",
         "urls": [
           {
             "label": "Find Your District Ombudsman",
@@ -1482,7 +1482,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your Tennessee loved one needs help with at least 3 daily activities like bathing, cooking, or light housekeeping, OPTIONS for Community Living provides in-home care services to help them stay safely at home. The program covers services like personal care assistance, home-delivered meals, and case management.\n\nUnlike Medicaid programs, OPTIONS has no income limit — but if your loved one's income exceeds federal poverty guidelines ($1,255/month for one person in 2024), they'll pay a portion of the service costs based on their income. Because this program is administered by regional agencies, availability and wait times vary by county, and many areas maintain waiting lists prioritized by income and physical need.",
+      "intro": "If your Tennessee loved one needs help with at least 3 daily activities like bathing, cooking, or light housekeeping, OPTIONS for Community Living provides in-home care services to help them stay safely at home. The program covers services like personal care assistance, home-delivered meals, and case management.\n\nUnlike Medicaid programs, OPTIONS has no income limit, but if your loved one's income exceeds federal poverty guidelines ($1,255/month for one person in 2024), they'll pay a portion of the service costs based on their income. Because this program is administered by regional agencies, availability and wait times vary by county, and many areas maintain waiting lists prioritized by income and physical need.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1530,9 +1530,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "When a slot opens, a case manager will conduct an in-home assessment to determine specific services and set up care providers."
           }
         ],
-        "processingTime": "Intake screening by phone initially, then in-home assessment when slot becomes available — exact timeline varies by region",
+        "processingTime": "Intake screening by phone initially, then in-home assessment when slot becomes available, exact timeline varies by region",
         "waitlist": "Waiting lists common in most areas; prioritized by income level and physical need, with exact wait times varying by region",
-        "tip": "Have your loved one's medical documentation ready before calling — this speeds up the screening process and prevents delays.",
+        "tip": "Have your loved one's medical documentation ready before calling, this speeds up the screening process and prevents delays.",
         "urls": [
           {
             "label": "FTAAAD Official Page",
@@ -1565,10 +1565,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This is NOT the same as TennCare CHOICES — OPTIONS has no asset limits but may require cost-sharing if income is above poverty level",
-        "Each regional Area Agency manages its own waiting list and providers — availability varies significantly by county",
+        "This is NOT the same as TennCare CHOICES, OPTIONS has no asset limits but may require cost-sharing if income is above poverty level",
+        "Each regional Area Agency manages its own waiting list and providers, availability varies significantly by county",
         "If your loved one's health has recently declined or they've been hospitalized, mention this during screening as it may affect priority placement",
-        "You can apply even if there's currently a waiting list — needs can change quickly and slots open unexpectedly"
+        "You can apply even if there's currently a waiting list, needs can change quickly and slots open unexpectedly"
       ],
       "relatedPrograms": [
         "TennCare CHOICES",
@@ -1596,7 +1596,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one needs more help than OPTIONS provides?",
-          "answer": "OPTIONS provides light housekeeping, personal care assistance, and meals — but not 24/7 care or nursing services. If your loved one needs more intensive care, the case manager can help you explore TennCare CHOICES, assisted living, or other options during the assessment process."
+          "answer": "OPTIONS provides light housekeeping, personal care assistance, and meals, but not 24/7 care or nursing services. If your loved one needs more intensive care, the case manager can help you explore TennCare CHOICES, assisted living, or other options during the assessment process."
         },
         {
           "question": "What happens if my loved one's income is too high for free services?",
@@ -1646,7 +1646,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and can't get help elsewhere — too much income for some programs, wrong age for others, or stuck in bureaucratic loops — Tennessee's Senior Advocate Program provides dedicated staff to navigate red tape and access resources. The program specifically targets economically disadvantaged older adults who fall into the gaps between other assistance programs, helping with food insecurity, safety issues, and home repairs.\n\nThis isn't a statewide program with uniform rules. Only three dedicated programs exist in Tennessee, operated by local Area Agencies on Aging. Because capacity is limited, programs maintain waitlists and prioritize urgent cases that could result in harm if not addressed promptly. The advocacy fills up to 25% of financial needs not covered by other programs and includes partnerships with housing authorities, VA, AARP, and Social Security.",
+      "intro": "If your loved one is 60+ and can't get help elsewhere, too much income for some programs, wrong age for others, or stuck in bureaucratic loops, Tennessee's Senior Advocate Program provides dedicated staff to navigate red tape and access resources. The program specifically targets economically disadvantaged older adults who fall into the gaps between other assistance programs, helping with food insecurity, safety issues, and home repairs.\n\nThis isn't a statewide program with uniform rules. Only three dedicated programs exist in Tennessee, operated by local Area Agencies on Aging. Because capacity is limited, programs maintain waitlists and prioritize urgent cases that could result in harm if not addressed promptly. The advocacy fills up to 25% of financial needs not covered by other programs and includes partnerships with housing authorities, VA, AARP, and Social Security.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1670,7 +1670,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional program directly — East Tennessee residents can call ETHRA at (865) 691-2551, with priority given to urgent cases.",
+        "summary": "Call your regional program directly, East Tennessee residents can call ETHRA at (865) 691-2551, with priority given to urgent cases.",
         "steps": [
           {
             "step": 1,
@@ -1690,7 +1690,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Priority cases given immediate attention; others handled first-come, first-served as capacity allows",
         "waitlist": "Yes, when caseload reaches maximum capacity",
-        "tip": "Emphasize any urgent safety or health concerns when you call — these cases get priority over routine requests.",
+        "tip": "Emphasize any urgent safety or health concerns when you call, these cases get priority over routine requests.",
         "urls": [
           {
             "label": "ETHRA Legal Assistance",
@@ -1738,7 +1738,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply if my loved one already gets some government benefits?",
-          "answer": "Yes — this program specifically helps people who fall through gaps in other assistance. They won't duplicate existing aid, but they can fill up to 25% of needs not covered elsewhere. The program targets people who don't fully qualify for other assistance due to income or age restrictions."
+          "answer": "Yes, this program specifically helps people who fall through gaps in other assistance. They won't duplicate existing aid, but they can fill up to 25% of needs not covered elsewhere. The program targets people who don't fully qualify for other assistance due to income or age restrictions."
         }
       ],
       "layoutIntent": {
@@ -1795,7 +1795,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline for immediate counseling — no paperwork required to get started.",
+        "summary": "Call the statewide hotline for immediate counseling, no paperwork required to get started.",
         "steps": [
           {
             "step": 1,
@@ -1805,7 +1805,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe your Medicare questions",
-            "description": "Tell the counselor what you need help with — plan comparisons, enrollment deadlines, coverage questions, or fraud concerns."
+            "description": "Tell the counselor what you need help with, plan comparisons, enrollment deadlines, coverage questions, or fraud concerns."
           },
           {
             "step": 3,
@@ -1849,8 +1849,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "During Open Enrollment (October 15 - December 7), high demand may delay detailed plan comparisons — call 1-800-MEDICARE for immediate enrollment needs",
-        "SHIP counselors cannot sell insurance or recommend specific companies — they provide unbiased comparisons only",
+        "During Open Enrollment (October 15 - December 7), high demand may delay detailed plan comparisons, call 1-800-MEDICARE for immediate enrollment needs",
+        "SHIP counselors cannot sell insurance or recommend specific companies, they provide unbiased comparisons only",
         "If your loved one is turning 65, call 3 months before their birthday to avoid late enrollment penalties"
       ],
       "relatedPrograms": [
@@ -1870,7 +1870,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "SHIP focuses on Medicare plan counseling, enrollment help, and benefits education. SMP specifically handles Medicare fraud prevention, suspicious billing investigations, and helps you report fraudulent charges. Both are free and often work together."
         },
         {
-          "question": "My loved one just got a Medicare Advantage plan — can SHIP still help them?",
+          "question": "My loved one just got a Medicare Advantage plan, can SHIP still help them?",
           "answer": "Yes, SHIP counselors help with all Medicare questions including Medicare Advantage plan reviews, coverage problems, and comparing options during the next Open Enrollment period. They can also help if your loved one wants to switch back to Original Medicare."
         },
         {
@@ -1902,17 +1902,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Tennessee offers 11 senior programs that can save your family thousands annually while reducing caregiving stress. Seven provide direct financial benefits — from $174-$1,000 toward utility bills to up to $415/month for groceries — while four offer free advocacy and legal help with no income limits. Most benefit programs require income below $2,671/month, but several have higher limits or no asset restrictions. Start by checking the three programs below — they cover the biggest expenses and have the fastest applications.",
+    "intro": "Tennessee offers 11 senior programs that can save your family thousands annually while reducing caregiving stress. Seven provide direct financial benefits, from $174-$1,000 toward utility bills to up to $415/month for groceries, while four offer free advocacy and legal help with no income limits. Most benefit programs require income below $2,671/month, but several have higher limits or no asset restrictions. Start by checking the three programs below, they cover the biggest expenses and have the fastest applications.",
     "startHere": [
       {
         "name": "Tennessee SNAP",
         "programId": "tennessee-snap",
-        "why": "Up to $415/month for groceries with no asset limits — often the quickest approval."
+        "why": "Up to $415/month for groceries with no asset limits, often the quickest approval."
       },
       {
         "name": "TennCare Medicare Savings Programs",
         "programId": "tenncare-medicare-savings-programs",
-        "why": "Covers Medicare premiums, deductibles, and copays — can save $2,000+ annually."
+        "why": "Covers Medicare premiums, deductibles, and copays, can save $2,000+ annually."
       },
       {
         "name": "Tennessee LIHEAP",
@@ -1971,9 +1971,9 @@ export const drafts: PipelineStateDrafts = {
     ],
     "quickFacts": [
       "Most Tennessee benefit programs use $2,671/month as the income limit for single seniors",
-      "Tennessee SNAP has no asset limits — your loved one can qualify regardless of savings or home ownership",
+      "Tennessee SNAP has no asset limits, your loved one can qualify regardless of savings or home ownership",
       "All advocacy and legal programs are free to Tennessee seniors with no income restrictions",
-      "Several programs like LIHEAP and Meals on Wheels have waiting lists — apply early"
+      "Several programs like LIHEAP and Meals on Wheels have waiting lists, apply early"
     ],
     "resourcesVsBenefits": "Tennessee separates programs into two categories: qualification-based benefits that require income verification (like SNAP's $415/month grocery assistance or LIHEAP's utility payments), and universal resources available to all seniors regardless of income (like the Tennessee Senior Legal Helpline's free legal advice or the Long-Term Care Ombudsman's nursing home advocacy). Check the universal resources first since they have no barriers, then apply for income-based benefits your loved one qualifies for."
   }

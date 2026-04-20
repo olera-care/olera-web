@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, CCSP provides home care services as an alternative to nursing home placement. The program covers personal care, meal preparation, light housekeeping, respite care, and home-delivered meals — all while your loved one stays in their own home.\n\nBecause CCSP is a Medicaid waiver program, it follows nursing home financial eligibility rules. Your loved one must qualify for intermediate nursing facility level of care (a clinical assessment of whether they need daily assistance with basic activities). Services are limited to the average annual cost of Medicaid nursing facility care in Georgia.\n\nThe program operates through 12 regional Area Agencies on Aging statewide, but waitlists are common because the program prioritizes those with the greatest need.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, CCSP provides home care services as an alternative to nursing home placement. The program covers personal care, meal preparation, light housekeeping, respite care, and home-delivered meals, all while your loved one stays in their own home.\n\nBecause CCSP is a Medicaid waiver program, it follows nursing home financial eligibility rules. Your loved one must qualify for intermediate nursing facility level of care (a clinical assessment of whether they need daily assistance with basic activities). Services are limited to the average annual cost of Medicaid nursing facility care in Georgia.\n\nThe program operates through 12 regional Area Agencies on Aging statewide, but waitlists are common because the program prioritizes those with the greatest need.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -51,7 +51,7 @@
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must require intermediate Nursing Facility Level of Care — assessed through functional evaluation of daily activities like mobility, eating, toileting, meal preparation, and money management",
+        "functionalRequirement": "Must require intermediate Nursing Facility Level of Care, assessed through functional evaluation of daily activities like mobility, eating, toileting, meal preparation, and money management",
         "otherRequirements": [
           "Georgia resident",
           "Choose community-based care over nursing home",
@@ -63,7 +63,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Area Agency on Aging for functional assessment — Medicaid application comes after CCSP evaluation.",
+        "summary": "Call your regional Area Agency on Aging for functional assessment, Medicaid application comes after CCSP evaluation.",
         "steps": [
           {
             "step": 1,
@@ -91,9 +91,9 @@
             "description": "If approved, you may be placed on a waitlist. The program prioritizes those with the greatest unmet care needs."
           }
         ],
-        "processingTime": "Not specified — depends on assessment scheduling and Medicaid processing",
-        "waitlist": "Possible — program prioritizes those most in need",
-        "tip": "Start with the functional assessment even if you're not sure about Medicaid eligibility — the evaluation determines if your loved one qualifies medically before financial review.",
+        "processingTime": "Not specified, depends on assessment scheduling and Medicaid processing",
+        "waitlist": "Possible, program prioritizes those most in need",
+        "tip": "Start with the functional assessment even if you're not sure about Medicaid eligibility, the evaluation determines if your loved one qualifies medically before financial review.",
         "urls": [
           {
             "label": "Georgia Division of Aging Services",
@@ -142,10 +142,10 @@
         }
       ],
       "applicationNotes": [
-        "You may be potentially Medicaid eligible only after CCSP admission — the functional assessment comes before financial eligibility",
+        "You may be potentially Medicaid eligible only after CCSP admission, the functional assessment comes before financial eligibility",
         "The home may be subject to Medicaid Estate Recovery after your loved one's death, even though it's exempt during benefits",
-        "Regional variations exist in providers and waitlist times — some Area Agencies have more immediate availability than others",
-        "Your loved one must choose between CCSP and other waiver programs — they cannot participate in multiple waivers simultaneously"
+        "Regional variations exist in providers and waitlist times, some Area Agencies have more immediate availability than others",
+        "Your loved one must choose between CCSP and other waiver programs, they cannot participate in multiple waivers simultaneously"
       ],
       "relatedPrograms": [
         "Georgia Medicaid",
@@ -400,7 +400,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare and limited income, Georgia's Medicare Savings Programs can pay their Medicare premiums and out-of-pocket costs. The three programs — QMB, SLMB, and QI — save between $2,435 and $6,000+ per year by covering Medicare Part B premiums ($202.90/month in 2026) and, for QMB enrollees, all Medicare deductibles and copayments.\n\nQMB (Qualified Medicare Beneficiary) provides the most help for parents earning up to $1,325/month ($1,783 for couples). SLMB and QI cover only the Part B premium for slightly higher incomes up to $1,660/month for individuals. Because QMB enrollees cannot be billed by providers for Medicare cost-sharing, it works like comprehensive Medigap coverage. All three programs automatically qualify your loved one for Extra Help with prescription drug costs.\n\nThese programs fill the gap for parents who earn too much for full Medicaid but struggle with Medicare costs. Apply early in the year for QI — funding is limited and eligible applicants can be denied once the federal allocation runs out.",
+      "intro": "If your loved one has Medicare and limited income, Georgia's Medicare Savings Programs can pay their Medicare premiums and out-of-pocket costs. The three programs, QMB, SLMB, and QI, save between $2,435 and $6,000+ per year by covering Medicare Part B premiums ($202.90/month in 2026) and, for QMB enrollees, all Medicare deductibles and copayments.\n\nQMB (Qualified Medicare Beneficiary) provides the most help for parents earning up to $1,325/month ($1,783 for couples). SLMB and QI cover only the Part B premium for slightly higher incomes up to $1,660/month for individuals. Because QMB enrollees cannot be billed by providers for Medicare cost-sharing, it works like comprehensive Medigap coverage. All three programs automatically qualify your loved one for Extra Help with prescription drug costs.\n\nThese programs fill the gap for parents who earn too much for full Medicaid but struggle with Medicare costs. Apply early in the year for QI, funding is limited and eligible applicants can be denied once the federal allocation runs out.",
       "savingsRange": "$2,435 – $6,000+/year in 2026",
       "savingsSource": "Part B premium savings ($2,435/year) plus Medicare cost-sharing for QMB enrollees",
       "savingsVerified": true,
@@ -475,7 +475,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Georgia Gateway online or call SHIP at 1-866-552-4464 — processing typically takes 45 days.",
+        "summary": "Apply through Georgia Gateway online or call SHIP at 1-866-552-4464, processing typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -504,8 +504,8 @@
           }
         ],
         "processingTime": "Up to 45 days from complete application",
-        "waitlist": "QI may have waitlist or reach funding cap during the year — apply early",
-        "tip": "Apply for QI early in the calendar year — it's funded by a limited federal block grant and eligible people can be denied once funds run out.",
+        "waitlist": "QI may have waitlist or reach funding cap during the year, apply early",
+        "tip": "Apply for QI early in the calendar year, it's funded by a limited federal block grant and eligible people can be denied once funds run out.",
         "urls": [
           {
             "label": "Georgia Gateway (Online Application)",
@@ -554,8 +554,8 @@
         }
       ],
       "applicationNotes": [
-        "QI funding is limited by federal block grant — eligible applicants may be denied if funds are exhausted for the year",
-        "Income and asset limits update every April 1 — confirm current figures at medicaid.georgia.gov before applying",
+        "QI funding is limited by federal block grant, eligible applicants may be denied if funds are exhausted for the year",
+        "Income and asset limits update every April 1, confirm current figures at medicaid.georgia.gov before applying",
         "QMB protects your loved one from provider billing for Medicare cost-sharing, but providers can still bill for non-Medicare covered services",
         "Asset limits include your loved one's spouse's assets even if the spouse is not applying for the program"
       ],
@@ -606,7 +606,7 @@
         },
         {
           "question": "How long is the QI waitlist really?",
-          "answer": "QI doesn't have a traditional waitlist — instead, eligible applicants are denied once the federal funding allocation runs out for the year. This typically happens later in the calendar year, so apply by March or April for the best chance."
+          "answer": "QI doesn't have a traditional waitlist, instead, eligible applicants are denied once the federal funding allocation runs out for the year. This typically happens later in the calendar year, so apply by March or April for the best chance."
         },
         {
           "question": "What if my loved one's income changes after they're approved?",
@@ -656,7 +656,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives only on fixed income like Social Security or retirement benefits, they may qualify for monthly grocery assistance through Senior SNAP. This streamlined version of food stamps provides benefits loaded onto an EBT card (works like a debit card at grocery stores) with simplified application requirements for seniors.\n\nBecause Senior SNAP is designed for seniors on fixed income, your loved one cannot have any earned income from work — only Social Security, SSI, retirement, VA benefits, or disability payments qualify. Income limits are $1,695/month for a single person or $2,291/month for a couple (130% of federal poverty level). The age requirement increases from 60+ to 66+ starting February 2, 2026.",
+      "intro": "If your loved one is 60+ and lives only on fixed income like Social Security or retirement benefits, they may qualify for monthly grocery assistance through Senior SNAP. This streamlined version of food stamps provides benefits loaded onto an EBT card (works like a debit card at grocery stores) with simplified application requirements for seniors.\n\nBecause Senior SNAP is designed for seniors on fixed income, your loved one cannot have any earned income from work, only Social Security, SSI, retirement, VA benefits, or disability payments qualify. Income limits are $1,695/month for a single person or $2,291/month for a couple (130% of federal poverty level). The age requirement increases from 60+ to 66+ starting February 2, 2026.",
       "savingsRange": "",
       "savingsSource": "Monthly grocery benefits based on household income",
       "savingsVerified": false,
@@ -724,7 +724,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call to request an application by mail — no office visits or face-to-face interviews required.",
+        "summary": "Call to request an application by mail, no office visits or face-to-face interviews required.",
         "steps": [
           {
             "step": 1,
@@ -739,12 +739,12 @@
           {
             "step": 3,
             "title": "Provide documents",
-            "description": "Submit required verification documents — fixed income is often auto-verified through computer matches, so minimal paperwork may be needed"
+            "description": "Submit required verification documents, fixed income is often auto-verified through computer matches, so minimal paperwork may be needed"
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Because this is for seniors on fixed income, the verification process is streamlined — Social Security and other benefits are often verified automatically without needing additional paperwork.",
+        "tip": "Because this is for seniors on fixed income, the verification process is streamlined, Social Security and other benefits are often verified automatically without needing additional paperwork.",
         "urls": []
       },
       "documentsNeeded": [
@@ -776,9 +776,9 @@
         }
       ],
       "applicationNotes": [
-        "Age requirement changes to 66+ effective February 2, 2026 — current 60+ seniors remain eligible",
+        "Age requirement changes to 66+ effective February 2, 2026, current 60+ seniors remain eligible",
         "If your loved one has any work earnings, they're not eligible for Senior SNAP but can apply for regular SNAP with medical expense deductions",
-        "Computer matches often auto-verify Social Security and other fixed income — you may not need to submit additional income proof",
+        "Computer matches often auto-verify Social Security and other fixed income, you may not need to submit additional income proof",
         "All household members must meet the age and no-work requirements and share food preparation"
       ],
       "relatedPrograms": [
@@ -845,7 +845,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating or cooling bills, LIHEAP can provide $350-400 paid directly to their energy company each year. Because the program prioritizes seniors age 60+, your loved one gets first access to appointment slots and receives the maximum $400 benefit amount.\n\nThe program covers one heating benefit and one cooling benefit per year, with payments going straight to the utility company — your loved one never handles the money directly. Because each county has its own Community Action Agency with separate budgets and waitlists, availability varies significantly by location.\n\nYour loved one's energy company must be a registered LIHEAP vendor, and household income must be at or below 60% of Georgia's median income for their household size. Applications require scheduled appointments and operate first-come, first-served until county funds run out.",
+      "intro": "If your loved one struggles with high heating or cooling bills, LIHEAP can provide $350-400 paid directly to their energy company each year. Because the program prioritizes seniors age 60+, your loved one gets first access to appointment slots and receives the maximum $400 benefit amount.\n\nThe program covers one heating benefit and one cooling benefit per year, with payments going straight to the utility company, your loved one never handles the money directly. Because each county has its own Community Action Agency with separate budgets and waitlists, availability varies significantly by location.\n\nYour loved one's energy company must be a registered LIHEAP vendor, and household income must be at or below 60% of Georgia's median income for their household size. Applications require scheduled appointments and operate first-come, first-served until county funds run out.",
       "savingsRange": "$350 – $400/year",
       "savingsSource": "Direct payments to energy suppliers, with seniors 60+ receiving maximum $400",
       "savingsVerified": true,
@@ -870,7 +870,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Schedule an appointment with your county's Community Action Agency — seniors 60+ get priority scheduling starting in January.",
+        "summary": "Schedule an appointment with your county's Community Action Agency, seniors 60+ get priority scheduling starting in January.",
         "steps": [
           {
             "step": 1,
@@ -890,7 +890,7 @@
           {
             "step": 4,
             "title": "Attend your appointment",
-            "description": "Meet with your local CAA representative. If you're homebound, ask about home visits — many agencies provide this service."
+            "description": "Meet with your local CAA representative. If you're homebound, ask about home visits, many agencies provide this service."
           },
           {
             "step": 5,
@@ -899,8 +899,8 @@
           }
         ],
         "processingTime": "First-come, first-served basis with no specific timeline provided",
-        "waitlist": "Yes — if appointment slots are full, you can join a waitlist or check back periodically. Wait times vary significantly by county funding.",
-        "tip": "Call early in the program year and ask specifically about senior priority dates — many counties open applications for 60+ or 65+ residents before general enrollment.",
+        "waitlist": "Yes, if appointment slots are full, you can join a waitlist or check back periodically. Wait times vary significantly by county funding.",
+        "tip": "Call early in the program year and ask specifically about senior priority dates, many counties open applications for 60+ or 65+ residents before general enrollment.",
         "urls": [
           {
             "label": "Georgia DFCS LIHEAP Information",
@@ -934,9 +934,9 @@
       ],
       "applicationNotes": [
         "Seniors 60+ receive priority scheduling and the maximum $400 benefit amount",
-        "You cannot switch counties if your local agency runs out of funds — you must apply where you live",
+        "You cannot switch counties if your local agency runs out of funds, you must apply where you live",
         "Energy suppliers must be registered LIHEAP vendors or you'll be ineligible, regardless of income",
-        "Bring copies of all documents to your appointment — originals may be required for verification"
+        "Bring copies of all documents to your appointment, originals may be required for verification"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program (WAP)",
@@ -955,7 +955,7 @@
         },
         {
           "question": "What happens if my loved one's county runs out of money before their appointment?",
-          "answer": "They cannot switch to another county's program — LIHEAP requires you to apply where you live. They'll need to join the waitlist or wait for the next program year when new federal funding becomes available."
+          "answer": "They cannot switch to another county's program, LIHEAP requires you to apply where you live. They'll need to join the waitlist or wait for the next program year when new federal funding becomes available."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1050,7 +1050,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's community action agency by phone — processing includes income verification, energy audit, then contractor installation.",
+        "summary": "Contact your county's community action agency by phone, processing includes income verification, energy audit, then contractor installation.",
         "steps": [
           {
             "step": 1,
@@ -1075,7 +1075,7 @@
           {
             "step": 5,
             "title": "Contractor installation",
-            "description": "Approved contractors install improvements at no cost based on audit results — may include air sealing, insulation, HVAC work, or energy-efficient lighting."
+            "description": "Approved contractors install improvements at no cost based on audit results, may include air sealing, insulation, HVAC work, or energy-efficient lighting."
           }
         ],
         "processingTime": "Processing time varies by local agency and waitlist length",
@@ -1123,9 +1123,9 @@
         }
       ],
       "applicationNotes": [
-        "Priority given to elderly households, families with children, and households with disabilities — mention these factors when applying",
-        "Renters must get landlord agreement before applying — some landlords are hesitant because they benefit from improvements at no cost",
-        "Program cannot fix pre-existing structural problems — if your loved one's home needs major roof, wall, or foundation repairs, address those separately",
+        "Priority given to elderly households, families with children, and households with disabilities, mention these factors when applying",
+        "Renters must get landlord agreement before applying, some landlords are hesitant because they benefit from improvements at no cost",
+        "Program cannot fix pre-existing structural problems, if your loved one's home needs major roof, wall, or foundation repairs, address those separately",
         "Each county uses different community action agencies, so you must contact the specific agency for your loved one's county"
       ],
       "relatedPrograms": [
@@ -1223,7 +1223,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 1-866-552-4464 (option 4) to schedule free counseling — no application needed.",
+        "summary": "Call the statewide helpline at 1-866-552-4464 (option 4) to schedule free counseling, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1243,7 +1243,7 @@
         ],
         "processingTime": "Services provided immediately upon contact during business hours",
         "waitlist": null,
-        "tip": "Have your loved one's Medicare number ready when you call — it helps counselors provide more specific guidance.",
+        "tip": "Have your loved one's Medicare number ready when you call, it helps counselors provide more specific guidance.",
         "urls": [
           {
             "label": "Georgia SHIP Website",
@@ -1327,7 +1327,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to shop for groceries or prepare meals safely, Georgia's Home-Delivered Meals program brings nutritious meals directly to their door. Most participants receive 5 meals per week (Monday through Friday) at no charge — each meal provides at least one-third of daily nutritional needs following USDA guidelines.\n\nThe program prioritizes homebound seniors with functional impairments (difficulty bathing, dressing, or managing medications), high nutrition risk, or food insecurity. Because this runs through 12 regional Area Agencies on Aging, meal providers and delivery schedules vary by county — some areas use Open Hand Atlanta, others use Mom's Meals or GA Foods through health plans.\n\nAfter 20 consecutive meals, your loved one will be reassessed and may be placed on a waiting list to make room for others in crisis. Voluntary contributions are welcomed but not required.",
+      "intro": "If your loved one is 60+ and struggles to shop for groceries or prepare meals safely, Georgia's Home-Delivered Meals program brings nutritious meals directly to their door. Most participants receive 5 meals per week (Monday through Friday) at no charge, each meal provides at least one-third of daily nutritional needs following USDA guidelines.\n\nThe program prioritizes homebound seniors with functional impairments (difficulty bathing, dressing, or managing medications), high nutrition risk, or food insecurity. Because this runs through 12 regional Area Agencies on Aging, meal providers and delivery schedules vary by county, some areas use Open Hand Atlanta, others use Mom's Meals or GA Foods through health plans.\n\nAfter 20 consecutive meals, your loved one will be reassessed and may be placed on a waiting list to make room for others in crisis. Voluntary contributions are welcomed but not required.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1351,7 +1351,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for a phone assessment — no forms needed upfront.",
+        "summary": "Call your local Area Agency on Aging for a phone assessment, no forms needed upfront.",
         "steps": [
           {
             "step": 1,
@@ -1381,7 +1381,7 @@
         ],
         "processingTime": "Not specified in program guidelines",
         "waitlist": "After 20 consecutive meals, reassessment required and may be placed on waiting list",
-        "tip": "If your loved one has Medicaid or Medicare Advantage, contact their case manager first — they may have faster access through existing care coordination.",
+        "tip": "If your loved one has Medicaid or Medicare Advantage, contact their case manager first, they may have faster access through existing care coordination.",
         "urls": [
           {
             "label": "Eldercare Locator",
@@ -1405,7 +1405,7 @@
         }
       ],
       "applicationNotes": [
-        "No formal application forms — assessment is conducted over the phone by your local Area Agency on Aging",
+        "No formal application forms, assessment is conducted over the phone by your local Area Agency on Aging",
         "Priority is given to those in greatest social and economic need, but no specific income limits apply",
         "If your loved one receives Community Care Services or SOURCE program benefits, they may already be connected to meal delivery",
         "Meals can extend to spouse or household members if it supports maintaining the eligible senior in their home"
@@ -1443,11 +1443,11 @@
         },
         {
           "question": "How much should my loved one contribute for the meals?",
-          "answer": "Meals are provided at no charge, but voluntary contributions are welcomed and help sustain the program. There's no required amount — contribute what you can afford or nothing at all."
+          "answer": "Meals are provided at no charge, but voluntary contributions are welcomed and help sustain the program. There's no required amount, contribute what you can afford or nothing at all."
         },
         {
           "question": "Can meals be customized for diabetes or other medical conditions?",
-          "answer": "Providers follow USDA dietary guidelines and may offer some accommodations for common conditions like diabetes. Discuss specific dietary needs during your assessment — some providers are better equipped for medical diets than others."
+          "answer": "Providers follow USDA dietary guidelines and may offer some accommodations for common conditions like diabetes. Discuss specific dietary needs during your assessment, some providers are better equipped for medical diets than others."
         }
       ],
       "layoutIntent": {
@@ -1489,7 +1489,7 @@
           }
         ]
       },
-      "intro": "If you're caring for an aging loved one with disabilities or chronic illness, Georgia's out-of-home respite programs can provide temporary care in licensed facilities while you take a break. Your loved one receives professional supervision, personal care assistance, and help with daily activities like bathing and dressing — giving you hours or overnight relief from caregiving responsibilities.\n\nMost out-of-home respite comes through Georgia's Medicaid Home and Community-Based Services (HCBS) waivers, including the Elderly and Disabled Waiver Program (EDWP) for aging adults. Services range from 4-hour blocks to up to 18 hours per week in special cases, delivered in licensed facilities or approved provider homes. Because this isn't a single program but rather a service delivered through multiple pathways, eligibility and benefits vary significantly by which program your loved one qualifies for.",
+      "intro": "If you're caring for an aging loved one with disabilities or chronic illness, Georgia's out-of-home respite programs can provide temporary care in licensed facilities while you take a break. Your loved one receives professional supervision, personal care assistance, and help with daily activities like bathing and dressing, giving you hours or overnight relief from caregiving responsibilities.\n\nMost out-of-home respite comes through Georgia's Medicaid Home and Community-Based Services (HCBS) waivers, including the Elderly and Disabled Waiver Program (EDWP) for aging adults. Services range from 4-hour blocks to up to 18 hours per week in special cases, delivered in licensed facilities or approved provider homes. Because this isn't a single program but rather a service delivered through multiple pathways, eligibility and benefits vary significantly by which program your loved one qualifies for.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1514,7 +1514,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your loved one's Medicaid waiver provider or contact specialized programs directly — processing varies by program type.",
+        "summary": "Apply through your loved one's Medicaid waiver provider or contact specialized programs directly, processing varies by program type.",
         "steps": [
           {
             "step": 1,
@@ -1586,10 +1586,10 @@
         }
       ],
       "applicationNotes": [
-        "Out-of-home respite specifically requires licensed facilities — not all respite programs offer this option, so confirm when calling",
-        "DFCS program is limited to adoptive children who are medically fragile and receive adoption assistance — very specific criteria",
+        "Out-of-home respite specifically requires licensed facilities, not all respite programs offer this option, so confirm when calling",
+        "DFCS program is limited to adoptive children who are medically fragile and receive adoption assistance, very specific criteria",
         "If your loved one isn't already on a Medicaid waiver, that process must be completed first, which can add months to the timeline",
-        "Priority placement often depends on caregiver stress levels and crisis situations — be honest about your caregiving burden during assessments"
+        "Priority placement often depends on caregiver stress levels and crisis situations, be honest about your caregiving burden during assessments"
       ],
       "relatedPrograms": [
         "Georgia Medicaid HCBS Waivers",
@@ -1601,7 +1601,7 @@
       "faqs": [
         {
           "question": "Can my loved one get out-of-home respite if they're not on a Medicaid waiver yet?",
-          "answer": "Generally no — most out-of-home respite requires enrollment in Georgia's Medicaid HCBS waivers first. Your loved one would need to apply for Medicaid, meet Nursing Facility Level of Care requirements, and get approved for waiver services. This process can take several months."
+          "answer": "Generally no, most out-of-home respite requires enrollment in Georgia's Medicaid HCBS waivers first. Your loved one would need to apply for Medicaid, meet Nursing Facility Level of Care requirements, and get approved for waiver services. This process can take several months."
         },
         {
           "question": "What's the difference between out-of-home and in-home respite?",
@@ -1675,7 +1675,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and struggling to find work, SCSEP provides part-time paid employment (average 20 hours per week) at nonprofits, schools, hospitals, and senior centers while they develop job skills. They earn at least minimum wage ($7.25/hour in most Georgia areas) for up to 1,300 hours per year while receiving job training, resume help, and placement assistance to transition to unsubsidized employment.\n\nTo qualify, your loved one's total household income must be at or below 125% of federal poverty level — $19,563/year for a single person or $26,519 for a couple in 2025. Because spots are limited (only 236 participants statewide in 2020), priority goes to veterans, those over 65, people with disabilities, and rural residents. Not available in all counties — coverage depends on which provider serves your area.",
+      "intro": "If your loved one is 55+ and struggling to find work, SCSEP provides part-time paid employment (average 20 hours per week) at nonprofits, schools, hospitals, and senior centers while they develop job skills. They earn at least minimum wage ($7.25/hour in most Georgia areas) for up to 1,300 hours per year while receiving job training, resume help, and placement assistance to transition to unsubsidized employment.\n\nTo qualify, your loved one's total household income must be at or below 125% of federal poverty level, $19,563/year for a single person or $26,519 for a couple in 2025. Because spots are limited (only 236 participants statewide in 2020), priority goes to veterans, those over 65, people with disabilities, and rural residents. Not available in all counties, coverage depends on which provider serves your area.",
       "savingsRange": "$7,540/year",
       "savingsSource": "20 hours/week at $7.25/hour minimum wage",
       "savingsVerified": true,
@@ -1716,7 +1716,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your regional provider directly — processing varies by area and current openings.",
+        "summary": "Call your regional provider directly, processing varies by area and current openings.",
         "steps": [
           {
             "step": 1,
@@ -1735,8 +1735,8 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Possible due to limited spots — varies by region and provider",
-        "tip": "Priority goes to veterans, those over 65, people with disabilities, and rural residents — mention these if they apply to your loved one.",
+        "waitlist": "Possible due to limited spots, varies by region and provider",
+        "tip": "Priority goes to veterans, those over 65, people with disabilities, and rural residents, mention these if they apply to your loved one.",
         "urls": [
           {
             "label": "AARP Foundation SCSEP Locator",
@@ -1774,9 +1774,9 @@
         }
       ],
       "applicationNotes": [
-        "Georgia stopped administering SCSEP directly as of July 1, 2025 — you must contact regional providers like AARP or ACC Aging, not state agencies",
-        "Each provider serves different counties — use the online locator to confirm your area is covered before applying",
-        "Limited enrollment means waitlists are common — ask about current availability and expected wait times when you call"
+        "Georgia stopped administering SCSEP directly as of July 1, 2025, you must contact regional providers like AARP or ACC Aging, not state agencies",
+        "Each provider serves different counties, use the online locator to confirm your area is covered before applying",
+        "Limited enrollment means waitlists are common, ask about current availability and expected wait times when you call"
       ],
       "relatedPrograms": [
         "Workforce Innovation and Opportunity Act (WIOA)",
@@ -1804,11 +1804,11 @@
         },
         {
           "question": "Can my loved one apply to multiple SCSEP providers to increase their chances?",
-          "answer": "No, you should only apply to the provider that serves your county. Each provider has exclusive service areas — for example, AARP Foundation only serves metro Atlanta counties while ACC Aging covers northwest Georgia counties."
+          "answer": "No, you should only apply to the provider that serves your county. Each provider has exclusive service areas, for example, AARP Foundation only serves metro Atlanta counties while ACC Aging covers northwest Georgia counties."
         },
         {
           "question": "What happens if my loved one gets a job offer while waiting for SCSEP?",
-          "answer": "Take the job — that's the ultimate goal. SCSEP is specifically for unemployed individuals seeking to re-enter the workforce. If the job doesn't work out later and they meet income requirements again, they can reapply to SCSEP."
+          "answer": "Take the job, that's the ultimate goal. SCSEP is specifically for unemployed individuals seeking to re-enter the workforce. If the job doesn't work out later and they meet income requirements again, they can reapply to SCSEP."
         }
       ],
       "layoutIntent": {
@@ -1854,7 +1854,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing a civil legal issue that threatens their well-being — like a SNAP denial, Medicare appeal, housing problem, or elder abuse — Georgia's Elderly Legal Assistance Program provides free legal representation through contracted law firms statewide. Because federal law prohibits income and asset testing for this program, any Georgia resident 60+ qualifies regardless of their financial situation.\n\nThe program prioritizes cases where circumstances put your loved one's life or well-being at risk, particularly targeting vulnerable populations including low-income seniors, rural residents, and those with limited English proficiency. Services include legal advice, community education, brief consultation, and full case representation in priority areas like public benefits, health care access, Social Security appeals, consumer fraud, advance directives, and guardianship defense.",
+      "intro": "If your loved one is 60+ and facing a civil legal issue that threatens their well-being, like a SNAP denial, Medicare appeal, housing problem, or elder abuse, Georgia's Elderly Legal Assistance Program provides free legal representation through contracted law firms statewide. Because federal law prohibits income and asset testing for this program, any Georgia resident 60+ qualifies regardless of their financial situation.\n\nThe program prioritizes cases where circumstances put your loved one's life or well-being at risk, particularly targeting vulnerable populations including low-income seniors, rural residents, and those with limited English proficiency. Services include legal advice, community education, brief consultation, and full case representation in priority areas like public benefits, health care access, Social Security appeals, consumer fraud, advance directives, and guardianship defense.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1879,7 +1879,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's ELAP law firm directly by phone — services are often provided the same day for urgent matters.",
+        "summary": "Contact your county's ELAP law firm directly by phone, services are often provided the same day for urgent matters.",
         "steps": [
           {
             "step": 1,
@@ -1953,7 +1953,7 @@
         },
         {
           "question": "What if my loved one's legal issue doesn't seem life-threatening but is causing stress?",
-          "answer": "ELAP prioritizes cases where circumstances put well-being at risk, which includes financial security and housing stability. Consumer fraud, debt collection, or benefit denials often qualify even if not immediately life-threatening. Call your county provider to discuss — they can determine if your loved one's situation meets priority criteria."
+          "answer": "ELAP prioritizes cases where circumstances put well-being at risk, which includes financial security and housing stability. Consumer fraud, debt collection, or benefit denials often qualify even if not immediately life-threatening. Call your county provider to discuss, they can determine if your loved one's situation meets priority criteria."
         },
         {
           "question": "Is there a difference between ELAP and the Georgia Senior Legal Hotline?",
@@ -1976,7 +1976,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Georgia offers 10 major programs to help your aging loved one — 7 financial benefits that require income qualification, 2 free resources available to everyone, and 1 employment program. These range from covering home care costs (Community Care Services Program can pay for personal care to avoid nursing home placement) to reducing monthly expenses (Medicare Savings Programs can cut Medicare premiums by $175+ per month). Most benefits require income below $2,000-3,000 per month for a single person, but qualification rules vary significantly by program. Start by checking the highest-impact benefits first — home care assistance and Medicare cost reduction — since these typically provide the largest monthly savings for Georgia families.",
+    "intro": "Georgia offers 10 major programs to help your aging loved one, 7 financial benefits that require income qualification, 2 free resources available to everyone, and 1 employment program. These range from covering home care costs (Community Care Services Program can pay for personal care to avoid nursing home placement) to reducing monthly expenses (Medicare Savings Programs can cut Medicare premiums by $175+ per month). Most benefits require income below $2,000-3,000 per month for a single person, but qualification rules vary significantly by program. Start by checking the highest-impact benefits first, home care assistance and Medicare cost reduction, since these typically provide the largest monthly savings for Georgia families.",
     "startHere": [
       {
         "name": "Community Care Services Program (CCSP)",
@@ -1991,7 +1991,7 @@
       {
         "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
         "programId": "ship",
-        "why": "Free Medicare counseling available to everyone — start here to avoid costly plan mistakes."
+        "why": "Free Medicare counseling available to everyone, start here to avoid costly plan mistakes."
       }
     ],
     "byNeed": [
@@ -2043,9 +2043,9 @@
     ],
     "quickFacts": [
       "Most Georgia benefit programs require income below $2,000-3,000/month for a single person, but limits vary by program",
-      "Georgia SHIP and legal assistance are free resources — no income limits or applications required",
+      "Georgia SHIP and legal assistance are free resources, no income limits or applications required",
       "Many programs have waiting lists, especially home care services, so apply early even if your loved one doesn't need help immediately"
     ],
-    "resourcesVsBenefits": "Georgia offers two types of help: qualification-based benefits that require income limits (like CCSP home care or SNAP grocery assistance) and free resources available to everyone regardless of income. Georgia SHIP provides free Medicare counseling to any senior, while the Elderly Legal Assistance Program offers free legal help to anyone 60+ facing benefit denials or elder abuse — no financial qualification needed."
+    "resourcesVsBenefits": "Georgia offers two types of help: qualification-based benefits that require income limits (like CCSP home care or SNAP grocery assistance) and free resources available to everyone regardless of income. Georgia SHIP provides free Medicare counseling to any senior, while the Elderly Legal Assistance Program offers free legal help to anyone 60+ facing benefit denials or elder abuse, no financial qualification needed."
   }
 }

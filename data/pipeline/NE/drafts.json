@@ -89,7 +89,7 @@
         ],
         "processingTime": "Level of Care assessment scheduled within 14 days of application submission",
         "waitlist": null,
-        "tip": "Gather all medical records showing your loved one's daily care needs before applying — the Level of Care assessment is the key requirement that determines eligibility.",
+        "tip": "Gather all medical records showing your loved one's daily care needs before applying, the Level of Care assessment is the key requirement that determines eligibility.",
         "urls": [
           {
             "label": "iServe Nebraska",
@@ -144,10 +144,10 @@
         }
       ],
       "applicationNotes": [
-        "You cannot apply for the AD Waiver until you are already enrolled in Nebraska Medicaid — this is a strict prerequisite, not something that happens automatically",
-        "The Nursing Facility Level of Care assessment uses specific clinical criteria — having a disability or being elderly alone does not guarantee qualification",
-        "Home equity limit of $752,000 is for 2026 and may change annually — verify current limits when applying",
-        "The waiver program expires 07/31/2026 and requires federal renewal — confirm current program status before applying"
+        "You cannot apply for the AD Waiver until you are already enrolled in Nebraska Medicaid, this is a strict prerequisite, not something that happens automatically",
+        "The Nursing Facility Level of Care assessment uses specific clinical criteria, having a disability or being elderly alone does not guarantee qualification",
+        "Home equity limit of $752,000 is for 2026 and may change annually, verify current limits when applying",
+        "The waiver program expires 07/31/2026 and requires federal renewal, confirm current program status before applying"
       ],
       "relatedPrograms": [
         "Nebraska Medicaid",
@@ -167,7 +167,7 @@
         },
         {
           "question": "How do I know if my loved one meets Nursing Facility Level of Care?",
-          "answer": "Your loved one needs limited functioning with at least 3 Activities of Daily Living (like bathing, dressing, toileting) plus a medical condition, OR limited functioning with at least 1 ADL plus both a risk factor and cognitive limitation. DHHS conducts this clinical assessment — you cannot self-determine eligibility."
+          "answer": "Your loved one needs limited functioning with at least 3 Activities of Daily Living (like bathing, dressing, toileting) plus a medical condition, OR limited functioning with at least 1 ADL plus both a risk factor and cognitive limitation. DHHS conducts this clinical assessment, you cannot self-determine eligibility."
         },
         {
           "question": "What happens if the safety assessment shows home care isn't safe?",
@@ -213,7 +213,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs significant daily help but wants to avoid a nursing home, PACE provides all their medical care, medications, transportation, and support services through one coordinated team. Because PACE covers everything from doctor visits to adult day care to home health under one program, your loved one won't need separate Medicare providers — the PACE team manages all care coordination.\n\nYour loved one must qualify for nursing home-level care (needing daily help with bathing, dressing, or medication management) but be able to live safely at home with PACE services. In Nebraska, PACE is only available through Immanuel Pathways in the Omaha metro area. If your loved one has Medicare and Medicaid, there are no co-pays or deductibles. Private pay is available but typically costs $7,000+ per month.",
+      "intro": "If your loved one is 55+ and needs significant daily help but wants to avoid a nursing home, PACE provides all their medical care, medications, transportation, and support services through one coordinated team. Because PACE covers everything from doctor visits to adult day care to home health under one program, your loved one won't need separate Medicare providers, the PACE team manages all care coordination.\n\nYour loved one must qualify for nursing home-level care (needing daily help with bathing, dressing, or medication management) but be able to live safely at home with PACE services. In Nebraska, PACE is only available through Immanuel Pathways in the Omaha metro area. If your loved one has Medicare and Medicaid, there are no co-pays or deductibles. Private pay is available but typically costs $7,000+ per month.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care coordination service",
       "savingsVerified": false,
@@ -251,7 +251,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Immanuel Pathways directly to start eligibility assessment — processing time varies by individual assessment needs.",
+        "summary": "Call Immanuel Pathways directly to start eligibility assessment, processing time varies by individual assessment needs.",
         "steps": [
           {
             "step": 1,
@@ -274,9 +274,9 @@
             "description": "Once approved, interdisciplinary team creates personalized care plan covering all medical, social, and support services."
           }
         ],
-        "processingTime": "Not specified — varies by individual assessment complexity",
-        "waitlist": "Potential wait times depending on capacity — ask about current availability when calling",
-        "tip": "If your loved one is enrolled in Medicare Advantage, they'll need to disenroll first — PACE cannot work alongside Medicare Advantage plans.",
+        "processingTime": "Not specified, varies by individual assessment complexity",
+        "waitlist": "Potential wait times depending on capacity, ask about current availability when calling",
+        "tip": "If your loved one is enrolled in Medicare Advantage, they'll need to disenroll first, PACE cannot work alongside Medicare Advantage plans.",
         "urls": [
           {
             "label": "Nebraska DHHS PACE Information",
@@ -315,8 +315,8 @@
         }
       ],
       "applicationNotes": [
-        "You cannot be enrolled in Medicare Advantage (Part C) and PACE at the same time — disenrollment from Medicare Advantage required first",
-        "PACE becomes your loved one's sole source of Medicare and Medicaid services — they cannot use other providers outside the PACE network",
+        "You cannot be enrolled in Medicare Advantage (Part C) and PACE at the same time, disenrollment from Medicare Advantage required first",
+        "PACE becomes your loved one's sole source of Medicare and Medicaid services, they cannot use other providers outside the PACE network",
         "Private pay costs typically exceed $7,000 per month if your loved one doesn't qualify for Medicaid coverage",
         "Your loved one can disenroll from PACE at any time and return to regular Medicare/Medicaid, but re-enrollment isn't guaranteed"
       ],
@@ -337,7 +337,7 @@
         },
         {
           "question": "Can my loved one still see their current doctor?",
-          "answer": "No, PACE provides all medical care through its own interdisciplinary team. Your loved one must receive all services through PACE providers — they cannot continue seeing outside doctors or specialists. The PACE team coordinates all care, which eliminates the need for separate providers but requires giving up existing doctor relationships."
+          "answer": "No, PACE provides all medical care through its own interdisciplinary team. Your loved one must receive all services through PACE providers, they cannot continue seeing outside doctors or specialists. The PACE team coordinates all care, which eliminates the need for separate providers but requires giving up existing doctor relationships."
         },
         {
           "question": "What happens if my loved one's condition worsens and they need a nursing home?",
@@ -353,7 +353,7 @@
         },
         {
           "question": "What if my loved one has Medicare Advantage?",
-          "answer": "Your loved one must disenroll from Medicare Advantage before joining PACE — the two programs cannot work together. You can disenroll from Medicare Advantage during open enrollment (October 15 - December 7) or within 12 months of first joining a Medicare Advantage plan. Call Medicare at (800) 633-4227 for disenrollment assistance."
+          "answer": "Your loved one must disenroll from Medicare Advantage before joining PACE, the two programs cannot work together. You can disenroll from Medicare Advantage during open enrollment (October 15 - December 7) or within 12 months of first joining a Medicare Advantage plan. Call Medicare at (800) 633-4227 for disenrollment assistance."
         },
         {
           "question": "Can my loved one leave PACE if they don't like it?",
@@ -391,7 +391,7 @@
           }
         ]
       },
-      "intro": "If your loved one is on Medicare and has limited income, Nebraska's Medicare Savings Program can eliminate their Medicare costs entirely. The program has three tiers: QMB (Qualified Medicare Beneficiary) pays all Medicare premiums, deductibles, and co-pays for those with incomes up to $1,350/month ($1,824 for couples). SLMB and QI programs pay Medicare Part B premiums only for slightly higher incomes up to $1,823/month for individuals.\n\nBecause this program also automatically qualifies your loved one for Extra Help with prescription drug costs, the combined savings can reach $3,000-5,000 per year. Your loved one can have higher assets than regular Medicaid allows — up to $9,950 for individuals ($14,910 for couples) — making this accessible to more families.\n\nNebraska administers this program statewide with no waiting list for QMB and SLMB, though QI funding may be limited. You apply through the same system used for Medicaid, and approval typically takes 45 days.",
+      "intro": "If your loved one is on Medicare and has limited income, Nebraska's Medicare Savings Program can eliminate their Medicare costs entirely. The program has three tiers: QMB (Qualified Medicare Beneficiary) pays all Medicare premiums, deductibles, and co-pays for those with incomes up to $1,350/month ($1,824 for couples). SLMB and QI programs pay Medicare Part B premiums only for slightly higher incomes up to $1,823/month for individuals.\n\nBecause this program also automatically qualifies your loved one for Extra Help with prescription drug costs, the combined savings can reach $3,000-5,000 per year. Your loved one can have higher assets than regular Medicaid allows, up to $9,950 for individuals ($14,910 for couples), making this accessible to more families.\n\nNebraska administers this program statewide with no waiting list for QMB and SLMB, though QI funding may be limited. You apply through the same system used for Medicaid, and approval typically takes 45 days.",
       "savingsRange": "$1,500 – $5,000/year in 2026",
       "savingsSource": "Medicare Part B premiums ($174.90/month in 2025) plus potential deductibles and co-pays, plus Extra Help prescription savings",
       "savingsVerified": true,
@@ -457,7 +457,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Nebraska's ACCESSNebraska online system or call 1-800-383-4278 — processing typically takes 45 days.",
+        "summary": "Apply through Nebraska's ACCESSNebraska online system or call 1-800-383-4278, processing typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -529,10 +529,10 @@
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited — apply early in the calendar year for best chance of approval",
+        "QI program funding is limited, apply early in the calendar year for best chance of approval",
         "You can apply for Medicare Savings Program even if you've been denied regular Medicaid due to higher asset limits",
         "Approval is retroactive to the month of application for QMB, potentially saving money on Medicare costs you've already paid",
-        "Annual income and asset reviews are required — Nebraska will send renewal notices by mail"
+        "Annual income and asset reviews are required, Nebraska will send renewal notices by mail"
       ],
       "relatedPrograms": [
         "Extra Help (Medicare Part D Low-Income Subsidy)",
@@ -559,7 +559,7 @@
         },
         {
           "question": "What happens if my loved one's income is right at the border between QMB and SLMB?",
-          "answer": "If your loved one qualifies for QMB (income up to $1,350/month), they get much more coverage — all Medicare costs paid vs. just premiums. Even $50/month over the QMB limit means thousands less in annual savings."
+          "answer": "If your loved one qualifies for QMB (income up to $1,350/month), they get much more coverage, all Medicare costs paid vs. just premiums. Even $50/month over the QMB limit means thousands less in annual savings."
         },
         {
           "question": "Does my loved one's house count toward the $9,950 asset limit?",
@@ -579,7 +579,7 @@
         },
         {
           "question": "Can my loved one have Medicare Savings Program and Extra Help at the same time?",
-          "answer": "Yes — in fact, Medicare Savings Program automatically qualifies your loved one for Extra Help with prescription drug costs. This combination can save $3,000-5,000 per year depending on their medication needs."
+          "answer": "Yes, in fact, Medicare Savings Program automatically qualifies your loved one for Extra Help with prescription drug costs. This combination can save $3,000-5,000 per year depending on their medication needs."
         },
         {
           "question": "What if my loved one gets QI program but then loses it due to funding limits?",
@@ -604,7 +604,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to $546/month for a couple",
+      "tagline": "Monthly grocery assistance for seniors on fixed incomes, up to $546/month for a couple",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -617,7 +617,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly food benefits loaded onto an EBT card. Because elderly households get special treatment under SNAP rules, your loved one may qualify even if their income seems too high for other programs — there's no gross income limit for seniors unless they're well above poverty level.\n\nBenefit amounts depend on household size and net income after deductions. A single person can receive up to $546/month, while a couple can get up to $546/month maximum. Because medical expenses over $35/month and high utility costs reduce your loved one's countable income, many seniors qualify for more than they expect.\n\nThe program covers groceries at most stores but not restaurant meals or hot prepared foods. Benefits last 12 months before recertification, and Nebraska processes applications within 30 days (7 days if income is very low).",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly food benefits loaded onto an EBT card. Because elderly households get special treatment under SNAP rules, your loved one may qualify even if their income seems too high for other programs, there's no gross income limit for seniors unless they're well above poverty level.\n\nBenefit amounts depend on household size and net income after deductions. A single person can receive up to $546/month, while a couple can get up to $546/month maximum. Because medical expenses over $35/month and high utility costs reduce your loved one's countable income, many seniors qualify for more than they expect.\n\nThe program covers groceries at most stores but not restaurant meals or hot prepared foods. Benefits last 12 months before recertification, and Nebraska processes applications within 30 days (7 days if income is very low).",
       "savingsRange": "$1,200 – $6,552/year in 2026",
       "savingsSource": "Monthly SNAP benefits range from $100-546 based on household size and income",
       "savingsVerified": true,
@@ -676,7 +676,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at AccessNebraska or call 1-800-383-4278 — decisions made within 30 days",
+        "summary": "Apply online at AccessNebraska or call 1-800-383-4278, decisions made within 30 days",
         "steps": [
           {
             "step": 1,
@@ -706,7 +706,7 @@
         ],
         "processingTime": "30 days for standard applications, 7 days for expedited cases with very low income",
         "waitlist": null,
-        "tip": "Gather medical expense receipts over $35/month — these reduce your countable income and can significantly increase your benefit amount",
+        "tip": "Gather medical expense receipts over $35/month, these reduce your countable income and can significantly increase your benefit amount",
         "urls": [
           {
             "label": "Apply Online - AccessNebraska",
@@ -745,7 +745,7 @@
       ],
       "applicationNotes": [
         "Expedited processing (7 days) available if your monthly income is less than $150 and you have less than $100 in cash/bank accounts",
-        "Medical expenses over $35/month provide significant deductions — include Medicare premiums, prescription costs, and unreimbursed medical bills",
+        "Medical expenses over $35/month provide significant deductions, include Medicare premiums, prescription costs, and unreimbursed medical bills",
         "If your gross income is over 165% of poverty level ($2,152/month for one person), you must also pass a net income test after deductions",
         "Elderly households get 12-month certification periods instead of shorter renewal cycles"
       ],
@@ -771,7 +771,7 @@
         },
         {
           "question": "Can my loved one use SNAP benefits for meal delivery or hot food?",
-          "answer": "No, SNAP only covers groceries you prepare at home. However, some elderly or disabled individuals may qualify for Restaurant Meals Program in certain areas — ask your caseworker about availability."
+          "answer": "No, SNAP only covers groceries you prepare at home. However, some elderly or disabled individuals may qualify for Restaurant Meals Program in certain areas, ask your caseworker about availability."
         },
         {
           "question": "What happens if my loved one's Social Security increases during the year?",
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides a one-time payment directly to the utility company each year. Your loved one may qualify if their household income is below $23,475 for one person or $31,725 for two people (2026 limits).\n\nThe program runs October through March for heating assistance and during summer months for cooling help. Because funding is limited, applications can close early once money runs out — so apply as soon as the season opens. Crisis assistance is available year-round for emergencies like shutoff notices or broken heating equipment.\n\nParents age 60 and older get priority processing, which can speed up approval. If your loved one already receives other Nebraska assistance like Economic Assistance, they're automatically eligible and don't need to apply separately.",
+      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides a one-time payment directly to the utility company each year. Your loved one may qualify if their household income is below $23,475 for one person or $31,725 for two people (2026 limits).\n\nThe program runs October through March for heating assistance and during summer months for cooling help. Because funding is limited, applications can close early once money runs out, so apply as soon as the season opens. Crisis assistance is available year-round for emergencies like shutoff notices or broken heating equipment.\n\nParents age 60 and older get priority processing, which can speed up approval. If your loved one already receives other Nebraska assistance like Economic Assistance, they're automatically eligible and don't need to apply separately.",
       "savingsRange": "",
       "savingsSource": "One-time utility payment amount varies by household circumstances",
       "savingsVerified": false,
@@ -870,7 +870,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at AccessNebraska or call for a paper application — decisions made within 30 days.",
+        "summary": "Apply online at AccessNebraska or call for a paper application, decisions made within 30 days.",
         "steps": [
           {
             "step": 1,
@@ -900,7 +900,7 @@
         ],
         "processingTime": "30 days from receipt of complete application",
         "waitlist": "No formal waitlist, but funding is limited and applications may close early if funds are exhausted",
-        "tip": "Apply early in the season since funding runs out — heating applications open October 1st, cooling applications open in summer.",
+        "tip": "Apply early in the season since funding runs out, heating applications open October 1st, cooling applications open in summer.",
         "urls": [
           {
             "label": "AccessNebraska Online Application",
@@ -937,7 +937,7 @@
         }
       ],
       "applicationNotes": [
-        "Crisis assistance is available year-round for emergencies like utility shutoff notices or broken heating equipment — these get faster processing",
+        "Crisis assistance is available year-round for emergencies like utility shutoff notices or broken heating equipment, these get faster processing",
         "Households with members age 60+, children under 6, or disabled individuals get priority processing",
         "Everyone living at your loved one's address counts as household members, even if they don't share expenses",
         "The program uses gross income for eligibility but applies a 20% disregard on earned income when calculating the benefit amount"
@@ -956,7 +956,7 @@
         },
         {
           "question": "What if my loved one's utility company isn't cooperating with LIHEAP payments?",
-          "answer": "LIHEAP payments go directly to utility companies, and they're required to accept them. If you encounter problems, contact your local DHHS office at dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx — they can work with the utility company to resolve issues."
+          "answer": "LIHEAP payments go directly to utility companies, and they're required to accept them. If you encounter problems, contact your local DHHS office at dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx, they can work with the utility company to resolve issues."
         },
         {
           "question": "Does my loved one's home value count against them for LIHEAP eligibility?",
@@ -972,7 +972,7 @@
         },
         {
           "question": "How much will LIHEAP actually pay toward my loved one's utility bill?",
-          "answer": "The payment amount varies based on household income, assets, size, fuel type, and housing type using a formula that disregards 20% of earned income. The exact amount isn't specified in program materials — you'll find out the payment amount when approved."
+          "answer": "The payment amount varies based on household income, assets, size, fuel type, and housing type using a formula that disregards 20% of earned income. The exact amount isn't specified in program materials, you'll find out the payment amount when approved."
         },
         {
           "question": "Can my loved one get LIHEAP and Weatherization assistance at the same time?",
@@ -1014,7 +1014,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating bills or drafty rooms, Nebraska's Weatherization Assistance Program provides free home energy improvements worth thousands of dollars. The program installs insulation, replaces furnaces, seals air leaks, and conducts safety testing at no cost to households earning below 200% of the federal poverty level — that's $3,825/month for a two-person household in 2026.\n\nBecause the program prioritizes households with adults age 60 and older, your loved one may move up the waitlist faster than younger applicants. Parents who already receive SSI, TANF, or LIHEAP automatically qualify regardless of income — no additional income verification needed.\n\nNebraska serves different regions through local providers, so where your loved one lives determines which agency handles their application. Douglas County residents apply through United Way of the Midlands, while 14 northeast counties work with NENCAP, and 27 south-central counties go through Community Action Partnership of Mid-Nebraska.",
+      "intro": "If your loved one struggles with high heating bills or drafty rooms, Nebraska's Weatherization Assistance Program provides free home energy improvements worth thousands of dollars. The program installs insulation, replaces furnaces, seals air leaks, and conducts safety testing at no cost to households earning below 200% of the federal poverty level, that's $3,825/month for a two-person household in 2026.\n\nBecause the program prioritizes households with adults age 60 and older, your loved one may move up the waitlist faster than younger applicants. Parents who already receive SSI, TANF, or LIHEAP automatically qualify regardless of income, no additional income verification needed.\n\nNebraska serves different regions through local providers, so where your loved one lives determines which agency handles their application. Douglas County residents apply through United Way of the Midlands, while 14 northeast counties work with NENCAP, and 27 south-central counties go through Community Action Partnership of Mid-Nebraska.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1071,7 +1071,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional provider by phone or online application — processing varies by region with waitlists common",
+        "summary": "Contact your regional provider by phone or online application, processing varies by region with waitlists common",
         "steps": [
           {
             "step": 1,
@@ -1100,7 +1100,7 @@
           }
         ],
         "processingTime": "Varies by region and waitlist length",
-        "waitlist": "Regional waitlists exist — Northeast Nebraska serves approximately 100 homes per year across 14 counties",
+        "waitlist": "Regional waitlists exist, Northeast Nebraska serves approximately 100 homes per year across 14 counties",
         "tip": "If your loved one's income changes or work doesn't start within 12 months, they'll need to re-verify eligibility",
         "urls": [
           {
@@ -1131,7 +1131,7 @@
         {
           "label": "United Way of the Midlands (Douglas County)",
           "phone": "(402) 444-6666",
-          "description": "Weatherization applications for Omaha and Douglas County — choose option 6",
+          "description": "Weatherization applications for Omaha and Douglas County, choose option 6",
           "hours": "Business hours"
         },
         {
@@ -1150,7 +1150,7 @@
       "applicationNotes": [
         "Parents age 60 and older receive priority in scheduling, potentially reducing wait times",
         "Households already receiving SSI, TANF, or LIHEAP automatically qualify without additional income verification",
-        "Renters must secure landlord permission before applying — this is a common delay point",
+        "Renters must secure landlord permission before applying, this is a common delay point",
         "Income must be re-verified if weatherization work doesn't begin within 12 months of application approval"
       ],
       "relatedPrograms": [
@@ -1250,7 +1250,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free number to arrange free counseling — no formal application needed.",
+        "summary": "Call the toll-free number to arrange free counseling, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -1307,7 +1307,7 @@
         },
         {
           "question": "Will counselors recommend specific insurance companies or policies?",
-          "answer": "No, SHIP counselors provide unbiased information only — they don't sell insurance, recommend specific companies, or endorse particular policies. This ensures you get objective guidance to help your loved one make informed decisions about their Medicare coverage."
+          "answer": "No, SHIP counselors provide unbiased information only, they don't sell insurance, recommend specific companies, or endorse particular policies. This ensures you get objective guidance to help your loved one make informed decisions about their Medicare coverage."
         },
         {
           "question": "Can SHIP help if my loved one needs financial assistance with Medicare costs?",
@@ -1349,7 +1349,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and homebound due to illness, disability, or isolation, they may qualify for free nutritionally balanced meals delivered to their home Monday through Friday. Each meal meets one-third of daily recommended dietary needs for older adults and is approved by a registered dietitian. Some locations also offer weekend meals for extreme needs.\n\nThe program prioritizes low-income older adults, but there are no specific income or asset limits — eligibility focuses on being homebound and unable to attend group meals at senior centers. Because each Area Agency on Aging defines \"homebound\" differently, you'll need to contact your local agency to confirm your loved one's eligibility.\n\nMeals are completely free, though agencies request voluntary contributions (these are suggestions, not bills or required fees). Spouses of eligible individuals and dependent adults with disabilities living in the home may also receive meals if it helps maintain the older adult at home.",
+      "intro": "If your loved one is 60+ and homebound due to illness, disability, or isolation, they may qualify for free nutritionally balanced meals delivered to their home Monday through Friday. Each meal meets one-third of daily recommended dietary needs for older adults and is approved by a registered dietitian. Some locations also offer weekend meals for extreme needs.\n\nThe program prioritizes low-income older adults, but there are no specific income or asset limits, eligibility focuses on being homebound and unable to attend group meals at senior centers. Because each Area Agency on Aging defines \"homebound\" differently, you'll need to contact your local agency to confirm your loved one's eligibility.\n\nMeals are completely free, though agencies request voluntary contributions (these are suggestions, not bills or required fees). Spouses of eligible individuals and dependent adults with disabilities living in the home may also receive meals if it helps maintain the older adult at home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1372,7 +1372,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging by phone for eligibility determination — meals can start immediately with written assessment within 2 weeks.",
+        "summary": "Contact your local Area Agency on Aging by phone for eligibility determination, meals can start immediately with written assessment within 2 weeks.",
         "steps": [
           {
             "step": 1,
@@ -1396,8 +1396,8 @@
           }
         ],
         "processingTime": "Meals can begin immediately after phone screening, with written assessment completed within 2 weeks of first meal",
-        "waitlist": "Waiting lists are established when providers cannot serve all eligible individuals — priority given to greatest economic and social need",
-        "tip": "Ask specifically about weekend meal availability if your loved one has extreme needs — not all locations offer this service.",
+        "waitlist": "Waiting lists are established when providers cannot serve all eligible individuals, priority given to greatest economic and social need",
+        "tip": "Ask specifically about weekend meal availability if your loved one has extreme needs, not all locations offer this service.",
         "urls": []
       },
       "documentsNeeded": null,
@@ -1416,9 +1416,9 @@
         }
       ],
       "applicationNotes": [
-        "Each Area Agency on Aging sets its own definition of 'homebound' — what qualifies in one region may differ in another",
+        "Each Area Agency on Aging sets its own definition of 'homebound', what qualifies in one region may differ in another",
         "Priority is given to those with greatest economic and social need, so mention any financial hardships or social isolation",
-        "Voluntary contribution requests are not bills — you cannot be denied meals for inability to pay"
+        "Voluntary contribution requests are not bills, you cannot be denied meals for inability to pay"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -1429,7 +1429,7 @@
       "faqs": [
         {
           "question": "What if my loved one can occasionally leave home but has trouble getting to meal sites?",
-          "answer": "Each Area Agency on Aging defines 'homebound' differently. Some focus strictly on medical inability to leave home, while others consider transportation barriers or social isolation. Call your local agency to discuss your loved one's specific situation — they make case-by-case determinations."
+          "answer": "Each Area Agency on Aging defines 'homebound' differently. Some focus strictly on medical inability to leave home, while others consider transportation barriers or social isolation. Call your local agency to discuss your loved one's specific situation, they make case-by-case determinations."
         },
         {
           "question": "Can I apply for my loved one if they have dementia or can't make phone calls?",
@@ -1449,7 +1449,7 @@
         },
         {
           "question": "What if we can't afford the suggested contribution?",
-          "answer": "Voluntary contributions are never required — they're suggestions, not bills. Your loved one cannot be denied meals or have service discontinued for inability to pay. The program specifically prohibits making contribution statements look like required fees."
+          "answer": "Voluntary contributions are never required, they're suggestions, not bills. Your loved one cannot be denied meals or have service discontinued for inability to pay. The program specifically prohibits making contribution statements look like required fees."
         }
       ],
       "layoutIntent": {
@@ -1546,7 +1546,7 @@
         ],
         "processingTime": "Processing time not specified; incomplete applications or missing income/asset verification may cause delays",
         "waitlist": "Priorities and waiting lists may be established based on care recipient's special needs",
-        "tip": "Apply even if you're unsure about financial eligibility — the state will verify your income and assets as needed, and high risk of out-of-home placement can increase your priority.",
+        "tip": "Apply even if you're unsure about financial eligibility, the state will verify your income and assets as needed, and high risk of out-of-home placement can increase your priority.",
         "urls": [
           {
             "label": "Nebraska DHHS Respite Services",
@@ -1592,7 +1592,7 @@
       "applicationNotes": [
         "Exceptional Circumstances funding (up to $2,000 for crisis respite) requires a completely separate application and approval process",
         "If your family has high risk of out-of-home placement for the care recipient, note this on your application as it may increase your priority",
-        "Asset and income verification may be requested at any time — gather financial documents upfront to avoid delays",
+        "Asset and income verification may be requested at any time, gather financial documents upfront to avoid delays",
         "You cannot receive this benefit if you're already getting respite services through another government program"
       ],
       "relatedPrograms": [
@@ -1679,7 +1679,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, they may qualify for part-time community service work that pays minimum wage while building job skills. SCSEP provides typically 20 hours per week at non-profits, with training in areas like childcare, customer service, computer skills, or healthcare that leads to permanent employment.\n\nParticipants earn minimum wage for their community service hours while receiving job training and placement assistance. Because the program focuses on skill development, your loved one will work with an Individual Employment Plan (IEP) tailored to their career goals and attend regular training sessions.\n\nAvailability depends on funding in your area — the program operates through specific organizations like National Able, Eastern Nebraska Office on Aging, and Aging Partners. Veterans, adults 65+, and rural residents get priority for available positions.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, they may qualify for part-time community service work that pays minimum wage while building job skills. SCSEP provides typically 20 hours per week at non-profits, with training in areas like childcare, customer service, computer skills, or healthcare that leads to permanent employment.\n\nParticipants earn minimum wage for their community service hours while receiving job training and placement assistance. Because the program focuses on skill development, your loved one will work with an Individual Employment Plan (IEP) tailored to their career goals and attend regular training sessions.\n\nAvailability depends on funding in your area, the program operates through specific organizations like National Able, Eastern Nebraska Office on Aging, and Aging Partners. Veterans, adults 65+, and rural residents get priority for available positions.",
       "savingsRange": "$8,320 – $10,400/year in 2026",
       "savingsSource": "20 hours/week at minimum wage ($8.00 – $10.00/hour estimated)",
       "savingsVerified": false,
@@ -1705,7 +1705,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local SCSEP provider directly — eligibility review after application, with orientation within 10 days if accepted.",
+        "summary": "Contact your local SCSEP provider directly, eligibility review after application, with orientation within 10 days if accepted.",
         "steps": [
           {
             "step": 1,
@@ -1729,7 +1729,7 @@
           }
         ],
         "processingTime": "Eligibility determination after application review, orientation within 10 days of enrollment",
-        "waitlist": "Possible waitlist if no funding available in your service area — priority given to veterans, adults 65+, disabled, rural residents",
+        "waitlist": "Possible waitlist if no funding available in your service area, priority given to veterans, adults 65+, disabled, rural residents",
         "tip": "Veterans and their qualifying spouses get priority placement, so mention military service when applying.",
         "urls": [
           {
@@ -1767,9 +1767,9 @@
         }
       ],
       "applicationNotes": [
-        "You must be unemployed at the time of application — even part-time work may disqualify you",
+        "You must be unemployed at the time of application, even part-time work may disqualify you",
         "Priority placement goes to veterans, adults 65+, people with disabilities, rural residents, and those with limited English or low literacy",
-        "Annual re-verification required to maintain eligibility — income and employment status checked yearly",
+        "Annual re-verification required to maintain eligibility, income and employment status checked yearly",
         "No guaranteed permanent job placement, but program provides training and job search assistance"
       ],
       "relatedPrograms": [
@@ -1801,7 +1801,7 @@
           "answer": "SCSEP wages may affect SSI and other income-based benefits. Contact Social Security Administration at (800) 772-1213 to understand how part-time employment income will impact their specific benefits."
         },
         {
-          "question": "What if my loved one has a disability — can they still participate?",
+          "question": "What if my loved one has a disability, can they still participate?",
           "answer": "Yes, people with disabilities actually get priority placement in SCSEP. The program can accommodate various disabilities, and disability benefits count toward income eligibility rather than disqualifying participation."
         }
       ],
@@ -1852,7 +1852,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs legal help they can't afford, Nebraska's Area Agencies on Aging provide free legal advice and brief services. This covers essential issues like simple wills, power of attorney documents, Medicaid applications, consumer protection, tenant problems, and bankruptcy guidance.\n\nThe program serves seniors with economic or social needs through eight regional offices statewide. You can get immediate phone advice from experienced attorneys through the ElderAccessLine (1-800-527-7249), and some regions offer expanded services including negotiation and limited representation. Because this focuses on \"brief services,\" it's designed for advice and document preparation — not full litigation support.",
+      "intro": "If your loved one is 60+ and needs legal help they can't afford, Nebraska's Area Agencies on Aging provide free legal advice and brief services. This covers essential issues like simple wills, power of attorney documents, Medicaid applications, consumer protection, tenant problems, and bankruptcy guidance.\n\nThe program serves seniors with economic or social needs through eight regional offices statewide. You can get immediate phone advice from experienced attorneys through the ElderAccessLine (1-800-527-7249), and some regions offer expanded services including negotiation and limited representation. Because this focuses on \"brief services,\" it's designed for advice and document preparation, not full litigation support.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1956,11 +1956,11 @@
         },
         {
           "question": "Can my loved one get full legal representation through this program?",
-          "answer": "This program provides \"brief services\" — advice, counseling, and limited representation for specific issues. It's not designed for full litigation or complex legal proceedings. Some regions like Lancaster County have contracted attorneys who can provide negotiation services, but availability varies by area."
+          "answer": "This program provides \"brief services\", advice, counseling, and limited representation for specific issues. It's not designed for full litigation or complex legal proceedings. Some regions like Lancaster County have contracted attorneys who can provide negotiation services, but availability varies by area."
         },
         {
           "question": "How do I know if my loved one meets the income and asset limits?",
-          "answer": "Income and asset limits aren't published statewide — only Lancaster County documents specific limits ($12,000 individual, $24,000 couple in assets). You must contact your regional Area Agency on Aging to learn the eligibility criteria for your area. The program serves seniors with \"economic or social needs,\" but each region defines this differently."
+          "answer": "Income and asset limits aren't published statewide, only Lancaster County documents specific limits ($12,000 individual, $24,000 couple in assets). You must contact your regional Area Agency on Aging to learn the eligibility criteria for your area. The program serves seniors with \"economic or social needs,\" but each region defines this differently."
         }
       ],
       "layoutIntent": {
@@ -1994,7 +1994,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care setting and has concerns about their care, treatment, or rights, Nebraska's Long-Term Care Ombudsman Program provides free advocacy services. The program investigates complaints, educates families about residents' rights, and works to resolve problems between residents and facilities.\n\nBecause ombudsmen are independent advocates (not employed by facilities or the state), they can objectively investigate concerns about health, safety, welfare, or rights violations. Services are completely confidential unless your loved one explicitly gives permission to share information. Anyone can contact the program — residents, family members, friends, or facility staff — and there are no age, income, or other eligibility restrictions.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care setting and has concerns about their care, treatment, or rights, Nebraska's Long-Term Care Ombudsman Program provides free advocacy services. The program investigates complaints, educates families about residents' rights, and works to resolve problems between residents and facilities.\n\nBecause ombudsmen are independent advocates (not employed by facilities or the state), they can objectively investigate concerns about health, safety, welfare, or rights violations. Services are completely confidential unless your loved one explicitly gives permission to share information. Anyone can contact the program, residents, family members, friends, or facility staff, and there are no age, income, or other eligibility restrictions.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2015,7 +2015,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline at (800) 942-7830 — no forms or documentation required.",
+        "summary": "Call the statewide hotline at (800) 942-7830, no forms or documentation required.",
         "steps": [
           {
             "step": 1,
@@ -2025,7 +2025,7 @@
           {
             "step": 2,
             "title": "Explain the concern",
-            "description": "Describe the issue your loved one is experiencing — whether it's about care quality, staff treatment, facility policies, or rights violations. The ombudsman will determine next steps."
+            "description": "Describe the issue your loved one is experiencing, whether it's about care quality, staff treatment, facility policies, or rights violations. The ombudsman will determine next steps."
           },
           {
             "step": 3,
@@ -2049,7 +2049,7 @@
           "label": "Nebraska LTC Ombudsman Hotline",
           "phone": "(800) 942-7830",
           "description": "Statewide number for all ombudsman services and complaints",
-          "hours": "Contact for hours — not specified in available sources"
+          "hours": "Contact for hours, not specified in available sources"
         },
         {
           "label": "Nebraska 2-1-1",
@@ -2111,7 +2111,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to avoid a nursing home, Nebraska's Aged and Disabled Waiver may cover the care they need at home or in assisted living. This Medicaid waiver pays for personal care services, home modifications, adult day health programs, and assisted living — services that regular Medicaid doesn't cover.\n\nYour loved one must be 65+ or disabled at any age, qualify for Nebraska Medicaid, and meet Nursing Facility Level of Care (a clinical assessment showing they need significant daily assistance with at least 3 activities like toileting, bathing, or mobility). Because this waiver allows people to receive care outside nursing facilities, it can help your loved one stay in familiar surroundings while getting professional support.\n\nHome equity cannot exceed $752,000 in 2026, though the family home is typically exempt if your loved one lives there or intends to return. The program covers a wide range of services through individualized care plans, but all services combined cannot cost more than what Medicaid would pay for nursing home care.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to avoid a nursing home, Nebraska's Aged and Disabled Waiver may cover the care they need at home or in assisted living. This Medicaid waiver pays for personal care services, home modifications, adult day health programs, and assisted living, services that regular Medicaid doesn't cover.\n\nYour loved one must be 65+ or disabled at any age, qualify for Nebraska Medicaid, and meet Nursing Facility Level of Care (a clinical assessment showing they need significant daily assistance with at least 3 activities like toileting, bathing, or mobility). Because this waiver allows people to receive care outside nursing facilities, it can help your loved one stay in familiar surroundings while getting professional support.\n\nHome equity cannot exceed $752,000 in 2026, though the family home is typically exempt if your loved one lives there or intends to return. The program covers a wide range of services through individualized care plans, but all services combined cannot cost more than what Medicaid would pay for nursing home care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2171,7 +2171,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Apply for Medicaid first if you haven't already — you cannot receive waiver services without active Medicaid coverage.",
+        "tip": "Apply for Medicaid first if you haven't already, you cannot receive waiver services without active Medicaid coverage.",
         "urls": [
           {
             "label": "Apply Online (iServe)",
@@ -2221,9 +2221,9 @@
         }
       ],
       "applicationNotes": [
-        "You must apply for Nebraska Medicaid and the AD Waiver at the same time — the waiver cannot be approved without active Medicaid coverage",
-        "The interRAI-HC functional assessment is required and determines whether you meet nursing facility level of care — prepare to demonstrate specific limitations in daily activities",
-        "Service availability varies by region — western Nebraska uses different coordinators (like Aging Office of Western Nebraska) than other areas",
+        "You must apply for Nebraska Medicaid and the AD Waiver at the same time, the waiver cannot be approved without active Medicaid coverage",
+        "The interRAI-HC functional assessment is required and determines whether you meet nursing facility level of care, prepare to demonstrate specific limitations in daily activities",
+        "Service availability varies by region, western Nebraska uses different coordinators (like Aging Office of Western Nebraska) than other areas",
         "Your total cost of waiver services cannot exceed what Medicaid would pay for nursing home care in your area"
       ],
       "relatedPrograms": [
@@ -2240,7 +2240,7 @@
         },
         {
           "question": "What if my loved one doesn't qualify for regular Medicaid due to income?",
-          "answer": "Your loved one might still qualify through Medicaid's special income rules for long-term care services. Call (877) 667-6266 to discuss your loved one's specific financial situation — there are different income limits for people who need nursing facility level of care."
+          "answer": "Your loved one might still qualify through Medicaid's special income rules for long-term care services. Call (877) 667-6266 to discuss your loved one's specific financial situation, there are different income limits for people who need nursing facility level of care."
         },
         {
           "question": "How long does the functional assessment take and what should we expect?",
@@ -2248,7 +2248,7 @@
         },
         {
           "question": "Can my loved one receive both AD Waiver services and live in assisted living?",
-          "answer": "Yes, assisted living is one of the covered services under the AD Waiver. Your loved one can use waiver funding to help pay for assisted living costs, but they cannot receive duplicate services — if assisted living provides personal care, the waiver won't pay separately for personal care services."
+          "answer": "Yes, assisted living is one of the covered services under the AD Waiver. Your loved one can use waiver funding to help pay for assisted living costs, but they cannot receive duplicate services, if assisted living provides personal care, the waiver won't pay separately for personal care services."
         },
         {
           "question": "What happens if my loved one's care needs increase after they're on the waiver?",
@@ -2306,7 +2306,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to manage daily tasks like cleaning, cooking, or getting to appointments, Nebraska's Community Aging Services Act provides homemaker services, meal delivery, transportation, and adult day care to help them stay in their home safely. Services include congregate activities at senior centers, home-delivered meals, and community-based support designed to promote independence.\n\nUnlike Medicaid, this program has no published statewide income limits — eligibility is determined individually by your local Area Agency on Aging based on your loved one's needs and available community resources. Priority goes to those in greatest need, but specific services and availability vary significantly by region. You'll need an assessment and service plan before any services can begin.",
+      "intro": "If your loved one is 60+ and struggling to manage daily tasks like cleaning, cooking, or getting to appointments, Nebraska's Community Aging Services Act provides homemaker services, meal delivery, transportation, and adult day care to help them stay in their home safely. Services include congregate activities at senior centers, home-delivered meals, and community-based support designed to promote independence.\n\nUnlike Medicaid, this program has no published statewide income limits, eligibility is determined individually by your local Area Agency on Aging based on your loved one's needs and available community resources. Priority goes to those in greatest need, but specific services and availability vary significantly by region. You'll need an assessment and service plan before any services can begin.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2331,7 +2331,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for an assessment — processing time varies by region and service type.",
+        "summary": "Contact your local Area Agency on Aging for an assessment, processing time varies by region and service type.",
         "steps": [
           {
             "step": 1,
@@ -2351,12 +2351,12 @@
           {
             "step": 4,
             "title": "Begin services",
-            "description": "Services start according to your plan and local resource availability. Not all services are guaranteed — funding is limited and prioritized by need level."
+            "description": "Services start according to your plan and local resource availability. Not all services are guaranteed, funding is limited and prioritized by need level."
           }
         ],
         "processingTime": "Processing time not specified and varies by Area Agency on Aging and service type",
-        "waitlist": "Services are not guaranteed and depend on local funding and resources — waitlist information varies by region",
-        "tip": "Ask specifically what services are currently available in your area when you call — availability changes based on funding and local priorities.",
+        "waitlist": "Services are not guaranteed and depend on local funding and resources, waitlist information varies by region",
+        "tip": "Ask specifically what services are currently available in your area when you call, availability changes based on funding and local priorities.",
         "urls": [
           {
             "label": "Nebraska DHHS Aging Services",
@@ -2378,7 +2378,7 @@
         {
           "label": "Nebraska DHHS State Unit on Aging",
           "phone": "(402) 471-4270",
-          "description": "State oversight office — can direct you to your local Area Agency on Aging",
+          "description": "State oversight office, can direct you to your local Area Agency on Aging",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -2389,9 +2389,9 @@
         }
       ],
       "applicationNotes": [
-        "Eligibility standards vary significantly between counties — two people with identical incomes may have different eligibility outcomes depending on their local Area Agency on Aging",
+        "Eligibility standards vary significantly between counties, two people with identical incomes may have different eligibility outcomes depending on their local Area Agency on Aging",
         "Services like congregate meals and transportation may have no financial requirements, while other services factor in income and resources",
-        "This is separate from Medicaid long-term care — if your loved one needs nursing home level care, you'll need to apply for Medicaid separately",
+        "This is separate from Medicaid long-term care, if your loved one needs nursing home level care, you'll need to apply for Medicaid separately",
         "Priority is given to those in greatest need, but 'greatest need' is defined differently by each Area Agency on Aging based on local resources and standards"
       ],
       "relatedPrograms": [
@@ -2408,7 +2408,7 @@
         },
         {
           "question": "What if my loved one lives in a rural area with limited services?",
-          "answer": "Service availability varies significantly by region and local Area Agency on Aging resources. Rural areas may have fewer options or longer wait times. Call your local Area Agency to learn what's actually available in your specific area — don't assume all services are offered everywhere."
+          "answer": "Service availability varies significantly by region and local Area Agency on Aging resources. Rural areas may have fewer options or longer wait times. Call your local Area Agency to learn what's actually available in your specific area, don't assume all services are offered everywhere."
         },
         {
           "question": "How long does the assessment process take?",
@@ -2490,7 +2490,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Area Agency on Aging to speak with an ADRC counselor — no forms needed to start.",
+        "summary": "Call your regional Area Agency on Aging to speak with an ADRC counselor, no forms needed to start.",
         "steps": [
           {
             "step": 1,
@@ -2510,7 +2510,7 @@
         ],
         "processingTime": "Immediate consultation; Medicaid waiver assessments completed within 14 days",
         "waitlist": null,
-        "tip": "ADRC counselors know local provider availability and waitlists — ask specifically about wait times in your area.",
+        "tip": "ADRC counselors know local provider availability and waitlists, ask specifically about wait times in your area.",
         "urls": [
           {
             "label": "Nebraska DHHS Long-Term Care",
@@ -2631,7 +2631,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Nebraska DHHS website, by phone, or at local offices — processing time not specified by state.",
+        "summary": "Apply online through Nebraska DHHS website, by phone, or at local offices, processing time not specified by state.",
         "steps": [
           {
             "step": 1,
@@ -2656,7 +2656,7 @@
         ],
         "processingTime": "Processing time not specified by Nebraska DHHS",
         "waitlist": null,
-        "tip": "If your loved one was denied federal SSI, keep that denial letter — it's key documentation for AABD eligibility.",
+        "tip": "If your loved one was denied federal SSI, keep that denial letter, it's key documentation for AABD eligibility.",
         "urls": [
           {
             "label": "Nebraska DHHS AABD Application",
@@ -2697,7 +2697,7 @@
         }
       ],
       "applicationNotes": [
-        "This program is specifically for people denied federal SSI because their disability is expected to last less than 12 months — it's not for long-term SSI-eligible individuals",
+        "This program is specifically for people denied federal SSI because their disability is expected to last less than 12 months, it's not for long-term SSI-eligible individuals",
         "You must have a disability determination from Social Security Administration or Nebraska's State Review Team before applying",
         "For the disability component, your loved one must be ineligible for Medicaid through other pathways"
       ],
@@ -2718,7 +2718,7 @@
         },
         {
           "question": "Can my loved one keep their house and still get AABD?",
-          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials — contact Nebraska DHHS at (402) 471-3121 for current limits."
+          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials, contact Nebraska DHHS at (402) 471-3121 for current limits."
         },
         {
           "question": "What happens if my loved one's disability lasts longer than initially expected?",
@@ -2778,7 +2778,7 @@
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must demonstrate need for assistance to remain independent in the community — assessed through evaluation of ability to perform requested services independently",
+        "functionalRequirement": "Must demonstrate need for assistance to remain independent in the community, assessed through evaluation of ability to perform requested services independently",
         "otherRequirements": [
           "Must be aged, blind, or disabled",
           "Typically serves those ineligible for Medicaid waivers or other assistance programs",
@@ -2788,7 +2788,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at iServe Nebraska, call your local DHHS office, or visit in person — processing time not specified but related programs process within 90 days.",
+        "summary": "Apply online at iServe Nebraska, call your local DHHS office, or visit in person, processing time not specified but related programs process within 90 days.",
         "steps": [
           {
             "step": 1,
@@ -2841,7 +2841,7 @@
           "label": "Nebraska DHHS Local Offices",
           "phone": null,
           "description": "Contact your local DHHS office for SSAD applications and information",
-          "hours": "Varies by location — search dhhs.ne.gov for local contacts"
+          "hours": "Varies by location, search dhhs.ne.gov for local contacts"
         },
         {
           "label": "Nebraska 2-1-1",
@@ -2851,7 +2851,7 @@
         }
       ],
       "applicationNotes": [
-        "SSAD is separate from the Medicaid Aged and Disabled (AD) Waiver — don't confuse the two programs",
+        "SSAD is separate from the Medicaid Aged and Disabled (AD) Waiver, don't confuse the two programs",
         "You may need to prove ineligibility for other programs before SSAD approval",
         "Services are authorized based on individual assessment rather than fixed hours or dollar amounts",
         "Eligibility requires both meeting income guidelines AND demonstrating specific service needs"
@@ -2870,7 +2870,7 @@
         },
         {
           "question": "What if my loved one was denied Medicaid but still needs help with daily tasks?",
-          "answer": "This is exactly what SSAD is designed for. Bring your Medicaid denial letter when you apply — it helps demonstrate that you need SSAD services because other programs aren't available to you."
+          "answer": "This is exactly what SSAD is designed for. Bring your Medicaid denial letter when you apply, it helps demonstrate that you need SSAD services because other programs aren't available to you."
         },
         {
           "question": "How many hours of service will my loved one receive?",
@@ -2886,7 +2886,7 @@
         },
         {
           "question": "Does my loved one have to choose between SSAD and other programs?",
-          "answer": "SSAD is specifically for people who don't qualify for other assistance programs. However, they may be able to receive SSAD alongside some programs that aren't considered \"assistance\" — discuss your specific situation with DHHS."
+          "answer": "SSAD is specifically for people who don't qualify for other assistance programs. However, they may be able to receive SSAD alongside some programs that aren't considered \"assistance\", discuss your specific situation with DHHS."
         },
         {
           "question": "What if the adult day care program requires more than 3 hours but my loved one can only handle less?",
@@ -2913,7 +2913,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Nebraska offers 17 programs to help your aging loved one stay independent and reduce your family's caregiving costs. These range from substantial financial benefits like SNAP food assistance (up to $546/month for couples) and Medicare premium coverage, to free resources like legal help and Medicare counseling available to all seniors. Most benefit programs have income limits, while resources like Nebraska SHIP counseling and Legal Services for Seniors are free regardless of income. Start by checking the highest-impact programs first — Medicare Savings Programs and SNAP can provide immediate monthly savings, while home care waivers can prevent or delay nursing home placement.",
+    "intro": "Nebraska offers 17 programs to help your aging loved one stay independent and reduce your family's caregiving costs. These range from substantial financial benefits like SNAP food assistance (up to $546/month for couples) and Medicare premium coverage, to free resources like legal help and Medicare counseling available to all seniors. Most benefit programs have income limits, while resources like Nebraska SHIP counseling and Legal Services for Seniors are free regardless of income. Start by checking the highest-impact programs first, Medicare Savings Programs and SNAP can provide immediate monthly savings, while home care waivers can prevent or delay nursing home placement.",
     "startHere": [
       {
         "name": "Medicare Savings Program (QMB, SLMB, QI)",
@@ -2989,7 +2989,7 @@
     ],
     "quickFacts": [
       "Nebraska processes Medicaid applications through ACCESSNebraska.ne.gov for most benefit programs",
-      "Area Agencies on Aging coordinate many senior services — find yours through the state aging network",
+      "Area Agencies on Aging coordinate many senior services, find yours through the state aging network",
       "Most benefit programs have income limits, but resources like SHIP counseling and legal services are free to all seniors 60+"
     ],
     "resourcesVsBenefits": "Nebraska's programs fall into two categories: benefits that require qualification (like SNAP food assistance or Medicaid home care waivers based on income and medical need) and free resources available to all seniors regardless of income (like Nebraska SHIP Medicare counseling, Legal Services for Seniors, and Long-Term Care Ombudsman advocacy). Start with free resources to get expert guidance, then apply for qualified benefits your loved one may be eligible for."

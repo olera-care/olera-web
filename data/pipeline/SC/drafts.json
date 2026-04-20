@@ -94,7 +94,7 @@
         ],
         "processingTime": null,
         "waitlist": "Waiver slots are limited and may involve waitlist as slots become available",
-        "tip": "Apply even if there's a waitlist — slots can open unexpectedly when other enrollees move to nursing facilities or pass away.",
+        "tip": "Apply even if there's a waitlist, slots can open unexpectedly when other enrollees move to nursing facilities or pass away.",
         "urls": [
           {
             "label": "SC Community Choices Waiver Application",
@@ -134,10 +134,10 @@
         }
       ],
       "applicationNotes": [
-        "You must already qualify for or be applying for South Carolina Medicaid — the waiver doesn't provide Medicaid eligibility itself",
-        "NFLOC assessment is not automatic with age or dementia diagnosis — specific functional limitations must be documented",
+        "You must already qualify for or be applying for South Carolina Medicaid, the waiver doesn't provide Medicaid eligibility itself",
+        "NFLOC assessment is not automatic with age or dementia diagnosis, specific functional limitations must be documented",
         "Home equity over $730,000 may disqualify unless spouse, disabled child, or child under 21 lives there",
-        "Regional differences exist in waitlist length and available providers — ask about current wait times in your specific area"
+        "Regional differences exist in waitlist length and available providers, ask about current wait times in your specific area"
       ],
       "relatedPrograms": [
         "South Carolina Medicaid (Healthy Connections)",
@@ -210,7 +210,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to afford Medicare premiums or copays, three programs can help. QMB (Qualified Medicare Beneficiary) covers your loved one's $202.90 monthly Medicare Part B premium plus all deductibles and copays. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover just the Part B premium.\n\nYour loved one qualifies based on income: QMB for incomes up to $1,350/month for singles, SLMB for $1,350-$1,620/month, and QI for $1,620-$1,823/month (2026 limits). Asset limits are $9,660 for individuals, $14,470 for couples. In South Carolina, QMB provides full Medicaid benefits, meaning providers cannot bill your loved one for any covered services.\n\nQI has limited federal funding and operates first-come, first-served — if your loved one might qualify, apply early in the calendar year before funds run out.",
+      "intro": "If your loved one struggles to afford Medicare premiums or copays, three programs can help. QMB (Qualified Medicare Beneficiary) covers your loved one's $202.90 monthly Medicare Part B premium plus all deductibles and copays. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover just the Part B premium.\n\nYour loved one qualifies based on income: QMB for incomes up to $1,350/month for singles, SLMB for $1,350-$1,620/month, and QI for $1,620-$1,823/month (2026 limits). Asset limits are $9,660 for individuals, $14,470 for couples. In South Carolina, QMB provides full Medicaid benefits, meaning providers cannot bill your loved one for any covered services.\n\nQI has limited federal funding and operates first-come, first-served, if your loved one might qualify, apply early in the calendar year before funds run out.",
       "savingsRange": "$2,435 – $4,870/year in 2026",
       "savingsSource": "Medicare Part B premium ($202.90/month = $2,435/year) plus deductibles and copays for QMB",
       "savingsVerified": true,
@@ -283,7 +283,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through South Carolina DHHS online, by phone at 1-888-549-0820, or at local offices — typically processed within 45 days.",
+        "summary": "Apply through South Carolina DHHS online, by phone at 1-888-549-0820, or at local offices, typically processed within 45 days.",
         "steps": [
           {
             "step": 1,
@@ -307,7 +307,7 @@
           }
         ],
         "processingTime": "Typically 45 days, but varies by county office workload",
-        "waitlist": "QI has limited federal funding and may have waitlists or denials if funds are exhausted — apply early in the calendar year",
+        "waitlist": "QI has limited federal funding and may have waitlists or denials if funds are exhausted, apply early in the calendar year",
         "tip": "Apply for the highest tier you think you might qualify for. If you don't qualify for QMB, they'll automatically consider you for SLMB and QI.",
         "urls": [
           {
@@ -350,7 +350,7 @@
         }
       ],
       "applicationNotes": [
-        "QI funding is limited nationally — apply early in the calendar year before funds run out",
+        "QI funding is limited nationally, apply early in the calendar year before funds run out",
         "Income limits include a $20 general disregard monthly, so your net countable income may be lower than your gross income",
         "In South Carolina, QMB provides full Medicaid benefits, meaning no copays for any covered services and providers cannot bill you",
         "If you're already on SSI or Medicaid, you may be automatically enrolled, but confirm your coverage level"
@@ -396,7 +396,7 @@
         },
         {
           "question": "What's the difference between these three programs if they all pay the Part B premium?",
-          "answer": "QMB covers everything — the Part B premium, deductibles, and all copays, plus provides full Medicaid benefits in South Carolina. SLMB and QI only cover the $202.90 monthly Part B premium. QMB saves the most money if your loved one uses healthcare regularly."
+          "answer": "QMB covers everything, the Part B premium, deductibles, and all copays, plus provides full Medicaid benefits in South Carolina. SLMB and QI only cover the $202.90 monthly Part B premium. QMB saves the most money if your loved one uses healthcare regularly."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -503,7 +503,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at dss.sc.gov or mail the ESAP form for simplified processing — benefits start from the date you apply if eligible.",
+        "summary": "Apply online at dss.sc.gov or mail the ESAP form for simplified processing, benefits start from the date you apply if eligible.",
         "steps": [
           {
             "step": 1,
@@ -526,7 +526,7 @@
             "description": "You'll receive written notification of eligibility. ESAP applications typically require no interview. Benefits begin from your application date if approved."
           }
         ],
-        "processingTime": "Benefits begin from application date if eligible — specific processing timeline varies",
+        "processingTime": "Benefits begin from application date if eligible, specific processing timeline varies",
         "waitlist": null,
         "tip": "Medical expenses over $35/month (prescriptions, Medicare premiums, doctor visits) can be deducted from your income calculation, potentially increasing your benefit amount.",
         "urls": [
@@ -642,7 +642,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,500 for energy crises like disconnection notices. Your loved one can receive up to two services per year, meaning a maximum of $1,500 in annual assistance.\n\nLIHEAP prioritizes vulnerable households — those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
+      "intro": "If your loved one struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,500 for energy crises like disconnection notices. Your loved one can receive up to two services per year, meaning a maximum of $1,500 in annual assistance.\n\nLIHEAP prioritizes vulnerable households, those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
       "savingsRange": "$200 – $1,500/year in 2026",
       "savingsSource": "Maximum benefit amounts from South Carolina Office of Economic Opportunity",
       "savingsVerified": true,
@@ -691,7 +691,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Community Action Agency directly — processing time varies by agency and available funds.",
+        "summary": "Call your county's Community Action Agency directly, processing time varies by agency and available funds.",
         "steps": [
           {
             "step": 1,
@@ -720,7 +720,7 @@
           }
         ],
         "processingTime": "Varies by agency and fund availability",
-        "waitlist": "Funds are limited and services continue until exhausted — priority processing given to vulnerable households",
+        "waitlist": "Funds are limited and services continue until exhausted, priority processing given to vulnerable households",
         "tip": "Apply early in the season (fall for heating, summer for cooling) as funds run out quickly. Crisis assistance is available year-round.",
         "urls": [
           {
@@ -765,9 +765,9 @@
         }
       ],
       "applicationNotes": [
-        "Heating assistance typically runs fall through winter, cooling assistance during summer months — crisis assistance is available year-round",
+        "Heating assistance typically runs fall through winter, cooling assistance during summer months, crisis assistance is available year-round",
         "Priority households (elderly 60+, disabled, young children) may receive additional benefit amounts beyond the standard maximums",
-        "Energy bills must be in a household member's name — if utilities are included in rent, you need an itemized breakdown from your landlord",
+        "Energy bills must be in a household member's name, if utilities are included in rent, you need an itemized breakdown from your landlord",
         "You can receive up to two different services per calendar year but total assistance cannot exceed $1,500 per service type"
       ],
       "relatedPrograms": [
@@ -825,7 +825,7 @@
       "faqs": [
         {
           "question": "Can my loved one get both heating and cooling assistance in the same year?",
-          "answer": "Yes, your loved one can receive up to two services per calendar year — one for heating (up to $850) and one for cooling (up to $775). However, the total for any single service cannot exceed $1,500, and crisis assistance counts as one of the two services."
+          "answer": "Yes, your loved one can receive up to two services per calendar year, one for heating (up to $850) and one for cooling (up to $775). However, the total for any single service cannot exceed $1,500, and crisis assistance counts as one of the two services."
         },
         {
           "question": "What if my loved one rents and utilities are included in the rent?",
@@ -833,7 +833,7 @@
         },
         {
           "question": "How quickly can LIHEAP help if my loved one receives a disconnection notice?",
-          "answer": "Crisis assistance is available year-round and may be processed faster than regular seasonal assistance. Contact your local Community Action Agency immediately when you receive a disconnection notice — crisis assistance can provide up to $1,500 and counts as one of your two annual services."
+          "answer": "Crisis assistance is available year-round and may be processed faster than regular seasonal assistance. Contact your local Community Action Agency immediately when you receive a disconnection notice, crisis assistance can provide up to $1,500 and counts as one of your two annual services."
         },
         {
           "question": "Does my loved one's house value or savings account affect LIHEAP eligibility?",
@@ -849,7 +849,7 @@
         },
         {
           "question": "How do I know which Community Action Agency serves my loved one's area?",
-          "answer": "Visit oeo.sc.gov and use their county map to find the specific agency, or call 803-734-0662 for a direct referral. Each county has its own agency, and you must apply through your county's designated agency — you cannot apply directly to the state."
+          "answer": "Visit oeo.sc.gov and use their county map to find the specific agency, or call 803-734-0662 for a direct referral. Each county has its own agency, and you must apply through your county's designated agency, you cannot apply directly to the state."
         },
         {
           "question": "Will getting LIHEAP assistance affect my loved one's other benefits?",
@@ -887,7 +887,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills and lives on a limited income, South Carolina's Weatherization Assistance Program provides free home improvements to permanently reduce heating and cooling costs. The program installs insulation, seals air leaks, and addresses safety issues like carbon monoxide risks — all at no cost to qualifying households.\n\nYour loved one qualifies if their household income is at or below 200% of the federal poverty level ($2,610/month for a single person in 2026). Priority goes to seniors 60+, disabled households, and families with children under 18. The home cannot have been weatherized in the last 15 years.\n\nBecause the program operates through 8 regional community action agencies across South Carolina's 46 counties, you'll work directly with your local agency for assessment and installation. Renters need written landlord permission, but homeowners simply need proof of ownership.",
+      "intro": "If your loved one struggles with high energy bills and lives on a limited income, South Carolina's Weatherization Assistance Program provides free home improvements to permanently reduce heating and cooling costs. The program installs insulation, seals air leaks, and addresses safety issues like carbon monoxide risks, all at no cost to qualifying households.\n\nYour loved one qualifies if their household income is at or below 200% of the federal poverty level ($2,610/month for a single person in 2026). Priority goes to seniors 60+, disabled households, and families with children under 18. The home cannot have been weatherized in the last 15 years.\n\nBecause the program operates through 8 regional community action agencies across South Carolina's 46 counties, you'll work directly with your local agency for assessment and installation. Renters need written landlord permission, but homeowners simply need proof of ownership.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -938,7 +938,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local community action agency by phone or in-person — each of the 8 agencies serves specific counties.",
+        "summary": "Contact your local community action agency by phone or in-person, each of the 8 agencies serves specific counties.",
         "steps": [
           {
             "step": 1,
@@ -961,9 +961,9 @@
             "description": "A professional will evaluate your loved one's home to determine what weatherization measures are needed, such as insulation, air sealing, or safety improvements."
           }
         ],
-        "processingTime": "Not specified — varies by agency and funding availability",
-        "waitlist": "May vary by region — priority given to elderly, disabled, and households with children",
-        "tip": "Gather all required documents before contacting your agency — missing paperwork is a common cause of delays.",
+        "processingTime": "Not specified, varies by agency and funding availability",
+        "waitlist": "May vary by region, priority given to elderly, disabled, and households with children",
+        "tip": "Gather all required documents before contacting your agency, missing paperwork is a common cause of delays.",
         "urls": [
           {
             "label": "SC Office of Economic Opportunity",
@@ -992,7 +992,7 @@
         {
           "label": "SC Office of Economic Opportunity",
           "phone": null,
-          "description": "State agency overseeing weatherization — visit website to find local agencies",
+          "description": "State agency overseeing weatherization, visit website to find local agencies",
           "hours": "Business hours"
         },
         {
@@ -1003,8 +1003,8 @@
         }
       ],
       "applicationNotes": [
-        "Each county is served by a specific community action agency — you cannot choose which agency to work with",
-        "Income documentation must be from the last 30 days or current year only — bank statements are not accepted",
+        "Each county is served by a specific community action agency, you cannot choose which agency to work with",
+        "Income documentation must be from the last 30 days or current year only, bank statements are not accepted",
         "All household members 18+ need valid SC ID with an address that matches the home being weatherized",
         "Priority households (elderly, disabled, families with children) may receive services before others, even if they apply later"
       ],
@@ -1022,7 +1022,7 @@
         },
         {
           "question": "Can my loved one apply if their home was weatherized 10 years ago?",
-          "answer": "No — homes that received weatherization services in the last 15 years are ineligible. Your loved one would need to wait until 15 years have passed since the previous weatherization before applying again."
+          "answer": "No, homes that received weatherization services in the last 15 years are ineligible. Your loved one would need to wait until 15 years have passed since the previous weatherization before applying again."
         },
         {
           "question": "What happens if my loved one's income is slightly above the limit?",
@@ -1042,7 +1042,7 @@
         },
         {
           "question": "Does my loved one's mobile home qualify for weatherization services?",
-          "answer": "The sources don't specify whether mobile homes are eligible. Contact your local community action agency directly to ask about mobile home weatherization — eligibility and available services may vary by agency and home type."
+          "answer": "The sources don't specify whether mobile homes are eligible. Contact your local community action agency directly to ask about mobile home weatherization, eligibility and available services may vary by agency and home type."
         },
         {
           "question": "What if my loved one owns their home but doesn't have the county tax receipt?",
@@ -1084,7 +1084,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare or is turning 65, SHIP / I-Care provides free, personalized counseling to help them navigate their insurance options. Because Medicare plans change every year and coverage can be confusing, trained counselors help compare plans, resolve billing problems, and find prescription assistance — with no income limits or eligibility tests.\n\nYour loved one gets one-on-one help understanding Medicare health plans, drug coverage, Medigap supplements, and Medicaid options. Because SHIP counselors are funded federally and independent of insurance companies, they provide unbiased advice focused on your loved one's specific needs and medications.\n\nThis service is available to all South Carolina residents with Medicare, their families, and caregivers. Counselors can meet in person, over the phone, or help you during Medicare Open Enrollment (October 15 - December 7) when plans change.",
+      "intro": "If your loved one has Medicare or is turning 65, SHIP / I-Care provides free, personalized counseling to help them navigate their insurance options. Because Medicare plans change every year and coverage can be confusing, trained counselors help compare plans, resolve billing problems, and find prescription assistance, with no income limits or eligibility tests.\n\nYour loved one gets one-on-one help understanding Medicare health plans, drug coverage, Medigap supplements, and Medicaid options. Because SHIP counselors are funded federally and independent of insurance companies, they provide unbiased advice focused on your loved one's specific needs and medications.\n\nThis service is available to all South Carolina residents with Medicare, their families, and caregivers. Counselors can meet in person, over the phone, or help you during Medicare Open Enrollment (October 15 - December 7) when plans change.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1107,7 +1107,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline — counseling starts immediately with no application needed.",
+        "summary": "Call the statewide hotline, counseling starts immediately with no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1127,7 +1127,7 @@
         ],
         "processingTime": "Immediate counseling upon contact",
         "waitlist": null,
-        "tip": "Call during Medicare Open Enrollment (October 15 - December 7) when plans change — counselors get busiest then but priority goes to people with urgent problems.",
+        "tip": "Call during Medicare Open Enrollment (October 15 - December 7) when plans change, counselors get busiest then but priority goes to people with urgent problems.",
         "urls": [
           {
             "label": "South Carolina SHIP",
@@ -1158,7 +1158,7 @@
         }
       ],
       "applicationNotes": [
-        "No formal application required — this is free counseling, not a benefit program that provides payments or services",
+        "No formal application required, this is free counseling, not a benefit program that provides payments or services",
         "Counselors can help family members calling on behalf of elderly loved ones"
       ],
       "relatedPrograms": [
@@ -1174,7 +1174,7 @@
           "answer": "Yes, family members and caregivers can get counseling about Medicare options for their loved ones. The counselor can explain plan options to you, but your loved one would need to sign any enrollment forms unless you have legal authority to act on their behalf."
         },
         {
-          "question": "My loved one already chose a Medicare plan — can SHIP still help?",
+          "question": "My loved one already chose a Medicare plan, can SHIP still help?",
           "answer": "Absolutely. SHIP counselors help resolve billing problems, find prescription assistance programs, and explain coverage throughout the year. They can also help you prepare for next year's Open Enrollment when your loved one can change plans again."
         },
         {
@@ -1217,7 +1217,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and has trouble shopping for groceries or preparing meals, South Carolina offers two meal programs that can help. Home-delivered meals provide 1-7 nutritious meals per day delivered to homebound seniors who can't leave home unassisted. Congregate meals offer hot, nutritious group dining at senior centers with optional social activities and outings.\n\nBoth programs provide meals tailored to medical conditions (diabetic, cardiac, renal diets) and meet one-third of daily nutritional requirements. Because there are two funding tracks — basic Older Americans Act programs (age 60+, no income test) and Medicaid programs (stricter eligibility) — your loved one may qualify even if their income seems too high for other benefits. Suggested donations help cover costs, but meals aren't denied if your loved one can't pay.",
+      "intro": "If your loved one is 60+ and has trouble shopping for groceries or preparing meals, South Carolina offers two meal programs that can help. Home-delivered meals provide 1-7 nutritious meals per day delivered to homebound seniors who can't leave home unassisted. Congregate meals offer hot, nutritious group dining at senior centers with optional social activities and outings.\n\nBoth programs provide meals tailored to medical conditions (diabetic, cardiac, renal diets) and meet one-third of daily nutritional requirements. Because there are two funding tracks, basic Older Americans Act programs (age 60+, no income test) and Medicaid programs (stricter eligibility), your loved one may qualify even if their income seems too high for other benefits. Suggested donations help cover costs, but meals aren't denied if your loved one can't pay.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1240,7 +1240,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging by phone — providers must accept or decline referrals within 2 working days for Medicaid track.",
+        "summary": "Contact your local Area Agency on Aging by phone, providers must accept or decline referrals within 2 working days for Medicaid track.",
         "steps": [
           {
             "step": 1,
@@ -1264,7 +1264,7 @@
           }
         ],
         "processingTime": "Providers must accept/decline referrals within 2 working days (Medicaid); approval process varies by local AAA",
-        "waitlist": "Waitlist times not specified — likely varies by region and demand",
+        "waitlist": "Waitlist times not specified, likely varies by region and demand",
         "tip": "If your loved one needs Medicaid-funded meals but isn't enrolled in Community Long Term Care, contact your local CLTC office first to establish Medicaid eligibility.",
         "urls": [
           {
@@ -1315,7 +1315,7 @@
       ],
       "applicationNotes": [
         "Two separate tracks exist: basic Older Americans Act program (age 60+, no income test) and Medicaid program (requires HCBS waiver or CLTC enrollment)",
-        "Home-delivered meals are strictly for homebound seniors — congregate meals require ability to attend group dining",
+        "Home-delivered meals are strictly for homebound seniors, congregate meals require ability to attend group dining",
         "Eligibility must be reconfirmed monthly for Medicaid track; service ends if your loved one is institutionalized or moves",
         "If ineligible for subsidized programs, some providers offer purchase options (Mom's Meals at $9.49/meal mentioned as alternative)"
       ],
@@ -1333,7 +1333,7 @@
         },
         {
           "question": "What happens if my loved one's income is too high for the Medicaid track?",
-          "answer": "They may still qualify for the basic Older Americans Act program, which has no income limits — only age 60+ is required. Contact your local Area Agency on Aging to discuss both options. If neither program has availability, some providers offer meals for purchase."
+          "answer": "They may still qualify for the basic Older Americans Act program, which has no income limits, only age 60+ is required. Contact your local Area Agency on Aging to discuss both options. If neither program has availability, some providers offer meals for purchase."
         },
         {
           "question": "How many meals can my loved one receive per day?",
@@ -1427,7 +1427,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Area Agency on Aging or call SC Legal Services at 1-888-346-5592 — you'll hear back within 5-7 business days.",
+        "summary": "Contact your local Area Agency on Aging or call SC Legal Services at 1-888-346-5592, you'll hear back within 5-7 business days.",
         "steps": [
           {
             "step": 1,
@@ -1447,7 +1447,7 @@
         ],
         "processingTime": "5-7 business days to hear from SC Legal Services; processing time varies by local provider",
         "waitlist": null,
-        "tip": "Have details about your legal problem ready when you call — the type of issue determines which provider can help you.",
+        "tip": "Have details about your legal problem ready when you call, the type of issue determines which provider can help you.",
         "urls": [
           {
             "label": "GetCareSC.com",
@@ -1501,7 +1501,7 @@
         },
         {
           "question": "Can I apply if my loved one has some income but is struggling financially?",
-          "answer": "Yes — there are no specific income cutoffs published. The program prioritizes seniors with the \"greatest economic need\" rather than using strict income limits. Your loved one's overall financial situation and the urgency of their legal problem will be considered during screening."
+          "answer": "Yes, there are no specific income cutoffs published. The program prioritizes seniors with the \"greatest economic need\" rather than using strict income limits. Your loved one's overall financial situation and the urgency of their legal problem will be considered during screening."
         },
         {
           "question": "How long does it take to get an attorney assigned?",
@@ -1547,7 +1547,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living, or other long-term care facility in South Carolina, the Ombudsman Program provides free advocacy when problems arise. Trained ombudsmen investigate complaints about quality of care, residents' rights violations, improper discharges, abuse or neglect, and help resolve conflicts with facility staff.\n\nThe program serves any resident in a long-term care facility — nursing homes, assisted living communities, community residential care facilities, or specialized DDSN/DMH facilities. Anyone can file a complaint on behalf of a resident: family members, friends, facility staff, or concerned community members. Because ombudsmen are independent advocates, they can mediate disputes and push for changes that families might struggle to achieve on their own.\n\nServices are completely free with no income or asset requirements. The program operates statewide through 10 regional offices, each covering specific counties with local ombudsmen who know the facilities in their area.",
+      "intro": "If your loved one lives in a nursing home, assisted living, or other long-term care facility in South Carolina, the Ombudsman Program provides free advocacy when problems arise. Trained ombudsmen investigate complaints about quality of care, residents' rights violations, improper discharges, abuse or neglect, and help resolve conflicts with facility staff.\n\nThe program serves any resident in a long-term care facility, nursing homes, assisted living communities, community residential care facilities, or specialized DDSN/DMH facilities. Anyone can file a complaint on behalf of a resident: family members, friends, facility staff, or concerned community members. Because ombudsmen are independent advocates, they can mediate disputes and push for changes that families might struggle to achieve on their own.\n\nServices are completely free with no income or asset requirements. The program operates statewide through 10 regional offices, each covering specific counties with local ombudsmen who know the facilities in their area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1569,7 +1569,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline at 1-800-868-9095 — no forms or documents required.",
+        "summary": "Call the statewide hotline at 1-800-868-9095, no forms or documents required.",
         "steps": [
           {
             "step": 1,
@@ -1579,7 +1579,7 @@
           {
             "step": 2,
             "title": "Describe the situation",
-            "description": "Explain the problem with care quality, residents' rights, facility policies, or staff behavior. No paperwork needed — provide details verbally."
+            "description": "Explain the problem with care quality, residents' rights, facility policies, or staff behavior. No paperwork needed, provide details verbally."
           },
           {
             "step": 3,
@@ -1594,7 +1594,7 @@
         ],
         "processingTime": "Investigation begins promptly; ombudsmen follow up to ensure resolution",
         "waitlist": null,
-        "tip": "Keep notes about specific incidents, dates, and staff involved — this helps ombudsmen investigate more effectively.",
+        "tip": "Keep notes about specific incidents, dates, and staff involved, this helps ombudsmen investigate more effectively.",
         "urls": [
           {
             "label": "South Carolina Department on Aging Ombudsman Program",
@@ -1677,7 +1677,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65 or older and owns their South Carolina home, they can exempt $50,000 from their property's assessed value when calculating county property taxes. If their home is worth $50,000 or less, they pay no property taxes at all.\n\nYour loved one qualifies at age 65 with no income or asset limits — this benefit is available regardless of financial status. They must own their primary residence (house, condo, or mobile home on owned land) and have lived in South Carolina for at least one calendar year. Parents who are totally disabled or legally blind can also qualify regardless of age.\n\nThis is a one-time application that continues automatically once approved. Because each county administers the program through their auditor's office, application procedures and required documents vary slightly by location.",
+      "intro": "If your loved one is 65 or older and owns their South Carolina home, they can exempt $50,000 from their property's assessed value when calculating county property taxes. If their home is worth $50,000 or less, they pay no property taxes at all.\n\nYour loved one qualifies at age 65 with no income or asset limits, this benefit is available regardless of financial status. They must own their primary residence (house, condo, or mobile home on owned land) and have lived in South Carolina for at least one calendar year. Parents who are totally disabled or legally blind can also qualify regardless of age.\n\nThis is a one-time application that continues automatically once approved. Because each county administers the program through their auditor's office, application procedures and required documents vary slightly by location.",
       "savingsRange": "$200 – $1,000/year in 2026",
       "savingsSource": "Estimated savings based on $50,000 exemption applied to typical South Carolina property tax rates",
       "savingsVerified": false,
@@ -1701,7 +1701,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply once in-person or by mail at your county auditor's office — approval continues automatically each year.",
+        "summary": "Apply once in-person or by mail at your county auditor's office, approval continues automatically each year.",
         "steps": [
           {
             "step": 1,
@@ -1724,9 +1724,9 @@
             "description": "Once approved, the exemption applies automatically each year. Contact your county auditor if you don't receive confirmation within 60 days."
           }
         ],
-        "processingTime": "Processing time varies by county — contact your county auditor for current timelines",
+        "processingTime": "Processing time varies by county, contact your county auditor for current timelines",
         "waitlist": null,
-        "tip": "Don't confuse this with the '4% Legal Residence Assessment' program — that's handled by the Tax Assessor's Office and is completely separate.",
+        "tip": "Don't confuse this with the '4% Legal Residence Assessment' program, that's handled by the Tax Assessor's Office and is completely separate.",
         "urls": [
           {
             "label": "South Carolina Department of Revenue - Exempt Property",
@@ -1759,8 +1759,8 @@
         }
       ],
       "applicationNotes": [
-        "If the deed lists your loved one's name with a non-spouse, the exemption is prorated based on ownership percentage — only full ownership with spouse gets the complete $50,000 exemption",
-        "The one-year residency requirement is strict — moving to South Carolina mid-year means waiting until the following year to qualify",
+        "If the deed lists your loved one's name with a non-spouse, the exemption is prorated based on ownership percentage, only full ownership with spouse gets the complete $50,000 exemption",
+        "The one-year residency requirement is strict, moving to South Carolina mid-year means waiting until the following year to qualify",
         "Each county has slightly different documentation requirements, so call ahead to confirm what they need before visiting"
       ],
       "relatedPrograms": [
@@ -1826,7 +1826,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and lives on Social Security or retirement income only, South Carolina's Elderly Simplified Application Project (ESAP) provides monthly SNAP food assistance with far less paperwork than standard food assistance programs. Because ESAP is designed specifically for elderly households with no earned income, your loved one won't need to attend recertification interviews or submit monthly reports — once approved, benefits continue for 36 months.\n\nESAP has achieved a 93% approval rate since 2015, meaning virtually all eligible seniors who apply receive benefits. The program requires all household members to be 60 or older with zero earned income from work. Your loved one can receive Social Security, pensions, or other retirement income and still qualify — the key restriction is no wages or self-employment income.",
+      "intro": "If your loved one is 60 or older and lives on Social Security or retirement income only, South Carolina's Elderly Simplified Application Project (ESAP) provides monthly SNAP food assistance with far less paperwork than standard food assistance programs. Because ESAP is designed specifically for elderly households with no earned income, your loved one won't need to attend recertification interviews or submit monthly reports, once approved, benefits continue for 36 months.\n\nESAP has achieved a 93% approval rate since 2015, meaning virtually all eligible seniors who apply receive benefits. The program requires all household members to be 60 or older with zero earned income from work. Your loved one can receive Social Security, pensions, or other retirement income and still qualify, the key restriction is no wages or self-employment income.",
       "savingsRange": "",
       "savingsSource": "SNAP food assistance benefits vary by household circumstances",
       "savingsVerified": false,
@@ -1866,7 +1866,7 @@
           {
             "step": 3,
             "title": "Attend initial interview",
-            "description": "You'll be scheduled for one required interview at your local DSS office. This is the only interview required — no recertification interviews needed."
+            "description": "You'll be scheduled for one required interview at your local DSS office. This is the only interview required, no recertification interviews needed."
           },
           {
             "step": 4,
@@ -1874,9 +1874,9 @@
             "description": "DSS will notify you in writing of their decision. If approved, benefits are certified for 36 months with no periodic reporting required."
           }
         ],
-        "processingTime": "Processing time not specified — you'll be notified in writing of the decision",
+        "processingTime": "Processing time not specified, you'll be notified in writing of the decision",
         "waitlist": null,
-        "tip": "Submit all verification documents with your initial application to avoid delays — ESAP requires limited verification but what you do submit should be complete.",
+        "tip": "Submit all verification documents with your initial application to avoid delays, ESAP requires limited verification but what you do submit should be complete.",
         "urls": [
           {
             "label": "Official ESAP Information",
@@ -1910,9 +1910,9 @@
       ],
       "applicationNotes": [
         "ESAP has a dedicated caseworker unit statewide that specializes in serving seniors, so your case will be handled by staff trained in elderly-specific needs",
-        "The 36-month certification period means once you're approved, you won't need to reapply for three years — just complete a simple one-page mail-in form annually",
+        "The 36-month certification period means once you're approved, you won't need to reapply for three years, just complete a simple one-page mail-in form annually",
         "If any household member is under 60 or has any earned income from work, the household cannot use ESAP and must apply through regular SNAP instead",
-        "You cannot receive both ESAP and regular SNAP (SCCAP) at the same time — households must choose one program"
+        "You cannot receive both ESAP and regular SNAP (SCCAP) at the same time, households must choose one program"
       ],
       "relatedPrograms": [
         "South Carolina LIHEAP (energy assistance)",
@@ -1935,11 +1935,11 @@
         },
         {
           "question": "How much in SNAP benefits will my loved one receive through ESAP?",
-          "answer": "Benefit amounts are determined by standard SNAP calculations based on household size, income, and allowable deductions. The research doesn't specify exact amounts, but benefits are the same whether received through ESAP or regular SNAP — the difference is in the simplified application process."
+          "answer": "Benefit amounts are determined by standard SNAP calculations based on household size, income, and allowable deductions. The research doesn't specify exact amounts, but benefits are the same whether received through ESAP or regular SNAP, the difference is in the simplified application process."
         },
         {
           "question": "What happens after the 36-month certification period ends?",
-          "answer": "Your loved one will need to complete a simple one-page mail-in recertification form to continue benefits. No interview is required for recertification — this is one of ESAP's key advantages over regular SNAP."
+          "answer": "Your loved one will need to complete a simple one-page mail-in recertification form to continue benefits. No interview is required for recertification, this is one of ESAP's key advantages over regular SNAP."
         },
         {
           "question": "Can a family member apply for ESAP on behalf of an elderly loved one?",
@@ -2068,9 +2068,9 @@
         }
       ],
       "applicationNotes": [
-        "The program only runs May 1 through October 15 each year — the 2025 season has ended, next applications open Summer 2026",
+        "The program only runs May 1 through October 15 each year, the 2025 season has ended, next applications open Summer 2026",
         "Even if your loved one qualifies, vouchers may not be available due to first-come, first-served distribution",
-        "Vouchers can only be used at authorized vendors — not all farmers' markets participate in the program",
+        "Vouchers can only be used at authorized vendors, not all farmers' markets participate in the program",
         "Income limits change annually based on federal poverty guidelines, so verify current thresholds when applying"
       ],
       "relatedPrograms": [
@@ -2081,7 +2081,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my loved one's income is slightly over the limit — is there any flexibility?",
+          "question": "What if my loved one's income is slightly over the limit, is there any flexibility?",
           "answer": "No, the 185% federal poverty guideline is a firm cutoff set by federal regulations. However, income limits are based on gross household income before taxes, and they change annually, so verify the current threshold when applying."
         },
         {
@@ -2089,19 +2089,19 @@
           "answer": "The program requires in-person applications, but you should call Willie Nixon at 803-898-1760 to discuss accommodation options for seniors who cannot travel. Some counties may have mobile distribution or other arrangements."
         },
         {
-          "question": "What happens if we miss the May application period — can we apply later in the season?",
+          "question": "What happens if we miss the May application period, can we apply later in the season?",
           "answer": "Yes, you can apply anytime between May 1 and October 15, but vouchers are distributed first-come, first-served. Counties may run out of vouchers, so applying early in May gives the best chance of receiving benefits."
         },
         {
           "question": "How do we know which farmers' markets accept these vouchers?",
-          "answer": "Only authorized vendors accept SFMNP vouchers — not all farmers' markets participate. Contact the program coordinator at 803-898-1760 for a list of authorized farmers' markets, roadside stands, and CSA programs in your area."
+          "answer": "Only authorized vendors accept SFMNP vouchers, not all farmers' markets participate. Contact the program coordinator at 803-898-1760 for a list of authorized farmers' markets, roadside stands, and CSA programs in your area."
         },
         {
           "question": "Can my loved one use SFMNP vouchers and SNAP benefits at the same farmers' market?",
           "answer": "Yes, many authorized farmers' markets accept both SFMNP vouchers and SNAP EBT cards. Your loved one can use both benefits to maximize their fresh produce purchasing power during farmers' market season."
         },
         {
-          "question": "What if my loved one moves to a different county during the year — do they need to reapply?",
+          "question": "What if my loved one moves to a different county during the year, do they need to reapply?",
           "answer": "Yes, participants must apply in their county of residence, and vouchers are distributed through county-specific sites. If your loved one moves, contact the program coordinator to determine if they need to reapply in the new county."
         },
         {
@@ -2152,7 +2152,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives in the Pee Dee region of South Carolina, Vantage Point can connect them to services that help them stay in their home safely. The program provides referrals for home-delivered meals, caregiver support and respite care, Medicare insurance counseling, and mobility assistance — all coordinated through one assessment.\n\nVantage Point serves six counties: Chesterfield, Darlington, Dillon, Florence, Marion, and Marlboro. Because demand exceeds funding, services are prioritized by need through an assessment tool that scores your loved one's situation. Those with the highest scores get services first, and waitlists exist for most programs.\n\nSome programs have limited benefits available — like $25 Senior Farmers Market vouchers distributed June through October on a first-come, first-served basis until the supply runs out.",
+      "intro": "If your loved one is 60+ and lives in the Pee Dee region of South Carolina, Vantage Point can connect them to services that help them stay in their home safely. The program provides referrals for home-delivered meals, caregiver support and respite care, Medicare insurance counseling, and mobility assistance, all coordinated through one assessment.\n\nVantage Point serves six counties: Chesterfield, Darlington, Dillon, Florence, Marion, and Marlboro. Because demand exceeds funding, services are prioritized by need through an assessment tool that scores your loved one's situation. Those with the highest scores get services first, and waitlists exist for most programs.\n\nSome programs have limited benefits available, like $25 Senior Farmers Market vouchers distributed June through October on a first-come, first-served basis until the supply runs out.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2176,7 +2176,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Hartsville office to complete a needs assessment — services are provided based on priority scoring and availability.",
+        "summary": "Call the Hartsville office to complete a needs assessment, services are provided based on priority scoring and availability.",
         "steps": [
           {
             "step": 1,
@@ -2195,8 +2195,8 @@
           }
         ],
         "processingTime": "Services provided as openings become available",
-        "waitlist": "Yes — maintained by Assessment Coordinator when demand exceeds funding, with priority given to highest assessment scores",
-        "tip": "Call early in the program year for voucher programs like Senior Farmers Market coupons — they're distributed first-come, first-served until supplies are exhausted.",
+        "waitlist": "Yes, maintained by Assessment Coordinator when demand exceeds funding, with priority given to highest assessment scores",
+        "tip": "Call early in the program year for voucher programs like Senior Farmers Market coupons, they're distributed first-come, first-served until supplies are exhausted.",
         "urls": [
           {
             "label": "CareSouth Carolina Seniors Page",
@@ -2233,7 +2233,7 @@
         }
       ],
       "applicationNotes": [
-        "Priority scoring favors seniors with the greatest need — low income and functional limitations increase your assessment score",
+        "Priority scoring favors seniors with the greatest need, low income and functional limitations increase your assessment score",
         "Staff shortages in the Pee Dee region may cause longer wait times for some services"
       ],
       "relatedPrograms": [
@@ -2246,7 +2246,7 @@
       "faqs": [
         {
           "question": "Can I apply if my loved one lives in Florence but I live in Charleston?",
-          "answer": "Yes — only your loved one needs to live in the Pee Dee service area (Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro counties). You can call from anywhere to help coordinate their assessment and services."
+          "answer": "Yes, only your loved one needs to live in the Pee Dee service area (Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro counties). You can call from anywhere to help coordinate their assessment and services."
         },
         {
           "question": "How long is the waitlist really?",
@@ -2254,7 +2254,7 @@
         },
         {
           "question": "What happens if my loved one's situation changes after the assessment?",
-          "answer": "Assessments are updated annually, but you should call if your loved one's needs change significantly — like a hospital stay, new disability, or income change. Their priority score can be recalculated to reflect new circumstances."
+          "answer": "Assessments are updated annually, but you should call if your loved one's needs change significantly, like a hospital stay, new disability, or income change. Their priority score can be recalculated to reflect new circumstances."
         }
       ],
       "layoutIntent": {
@@ -2310,7 +2310,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the state helpline and get immediate assistance — no application or enrollment needed.",
+        "summary": "Call the state helpline and get immediate assistance, no application or enrollment needed.",
         "steps": [
           {
             "step": 1,
@@ -2330,7 +2330,7 @@
         ],
         "processingTime": "Immediate counseling and referral assistance available upon contact",
         "waitlist": null,
-        "tip": "Keep all Medicare Summary Notices — even small billing errors can add up over time and volunteers can spot patterns you might miss.",
+        "tip": "Keep all Medicare Summary Notices, even small billing errors can add up over time and volunteers can spot patterns you might miss.",
         "urls": [
           {
             "label": "South Carolina Department on Aging Medicare Fraud Page",
@@ -2368,11 +2368,11 @@
       "faqs": [
         {
           "question": "Can I get help even if I'm not sure there's actually fraud?",
-          "answer": "Yes — volunteers help with any Medicare billing questions or concerns, whether it's obvious fraud or just confusing paperwork. They're trained to spot errors you might miss, like duplicate charges or services your loved one never received. Even small billing mistakes can add up over time."
+          "answer": "Yes, volunteers help with any Medicare billing questions or concerns, whether it's obvious fraud or just confusing paperwork. They're trained to spot errors you might miss, like duplicate charges or services your loved one never received. Even small billing mistakes can add up over time."
         },
         {
           "question": "What happens if we find actual fraud on my loved one's Medicare bills?",
-          "answer": "The volunteer will help you report it to the proper authorities, including the state fraud hotline at 1-800-447-8477 or federal agencies like HHS Office of Inspector General. They handle the investigation process — you don't need to become a fraud detective yourself."
+          "answer": "The volunteer will help you report it to the proper authorities, including the state fraud hotline at 1-800-447-8477 or federal agencies like HHS Office of Inspector General. They handle the investigation process, you don't need to become a fraud detective yourself."
         },
         {
           "question": "Is this the same as SHIP Medicare counseling?",
@@ -2395,17 +2395,17 @@
     }
   ],
   "stateOverview": {
-    "intro": "South Carolina offers 14 programs to help your aging loved one stay independent and reduce your family's caregiving costs. Nine provide direct financial benefits — from $100–400/month for groceries through SNAP to thousands saved annually through the Community Choices Waiver that pays for home care instead of nursing home placement. Five offer free resources like Medicare counseling and legal help that every senior can access regardless of income. Most programs target seniors 60+ or 65+, with income limits typically around $1,620–2,152/month for single adults. Start by checking the highest-value programs first: Medicare Savings Programs can eliminate monthly premiums, while Community Choices Waiver can save your family $3,000–5,000/month in care costs.",
+    "intro": "South Carolina offers 14 programs to help your aging loved one stay independent and reduce your family's caregiving costs. Nine provide direct financial benefits, from $100–400/month for groceries through SNAP to thousands saved annually through the Community Choices Waiver that pays for home care instead of nursing home placement. Five offer free resources like Medicare counseling and legal help that every senior can access regardless of income. Most programs target seniors 60+ or 65+, with income limits typically around $1,620–2,152/month for single adults. Start by checking the highest-value programs first: Medicare Savings Programs can eliminate monthly premiums, while Community Choices Waiver can save your family $3,000–5,000/month in care costs.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI)",
         "programId": "medicare-savings-programs",
-        "why": "Eliminates Medicare premiums and copays for incomes under $1,620/month — guaranteed monthly savings."
+        "why": "Eliminates Medicare premiums and copays for incomes under $1,620/month, guaranteed monthly savings."
       },
       {
         "name": "Community Choices Waiver",
         "programId": "community-choices-waiver",
-        "why": "Pays for home care services to avoid nursing home placement — potentially saves thousands monthly."
+        "why": "Pays for home care services to avoid nursing home placement, potentially saves thousands monthly."
       },
       {
         "name": "SNAP (Food Assistance)",
@@ -2467,9 +2467,9 @@
     "quickFacts": [
       "Most South Carolina programs use income limits around $1,620–2,152/month for single seniors, based on federal poverty guidelines",
       "Seniors 60+ get simplified applications for food assistance through ESAP, requiring less paperwork than standard SNAP",
-      "Property owners 65+ can reduce taxes through Homestead Exemption — contact your county assessor's office to apply",
+      "Property owners 65+ can reduce taxes through Homestead Exemption, contact your county assessor's office to apply",
       "Pee Dee region residents have additional support through Vantage Point for meal delivery and caregiver services"
     ],
-    "resourcesVsBenefits": "South Carolina's programs split into two types: benefits require income qualification but provide direct financial help (like Community Choices Waiver paying for home care or SNAP providing grocery money), while resources like SHIP Medicare counseling and Legal Assistance for Seniors are free to all seniors regardless of income — use the free resources first to understand your options, then apply for income-based benefits."
+    "resourcesVsBenefits": "South Carolina's programs split into two types: benefits require income qualification but provide direct financial help (like Community Choices Waiver paying for home care or SNAP providing grocery money), while resources like SHIP Medicare counseling and Legal Assistance for Seniors are free to all seniors regardless of income, use the free resources first to understand your options, then apply for income-based benefits."
   }
 }

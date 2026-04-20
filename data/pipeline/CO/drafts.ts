@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.082Z
+ * Last updated: 2026-04-20T23:39:07.849Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -67,7 +67,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your county human services office online, by phone, or in person — typically takes 45 days to process.",
+        "summary": "Apply through your county human services office online, by phone, or in person, typically takes 45 days to process.",
         "steps": [
           {
             "step": 1,
@@ -97,7 +97,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Typically 45 days for standard applications",
         "waitlist": "QI tier often has federal funding caps and waitlists; QMB and SLMB generally no waitlist",
-        "tip": "Apply for the highest tier you might qualify for — the county will place you in the appropriate program based on your income.",
+        "tip": "Apply for the highest tier you might qualify for, the county will place you in the appropriate program based on your income.",
         "urls": [
           {
             "label": "Health First Colorado Application",
@@ -145,9 +145,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI tier has limited federal funding and often maintains waitlists — QMB and SLMB typically have no waiting periods",
+        "QI tier has limited federal funding and often maintains waitlists, QMB and SLMB typically have no waiting periods",
         "Asset limits exclude your primary home and one vehicle, but count all bank accounts and investments",
-        "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs — different eligibility rules apply",
+        "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs, different eligibility rules apply",
         "If approved for QMB, you'll get the most comprehensive coverage including all Medicare copays and deductibles"
       ],
       "relatedPrograms": [
@@ -194,7 +194,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between getting QMB versus SLMB or QI?",
-          "answer": "QMB covers everything — premiums, deductibles, and the 20% Medicare doesn't pay. SLMB and QI only cover the monthly premium, so your loved one still pays deductibles (around $240/year) and 20% of medical costs. QMB provides much more comprehensive financial protection."
+          "answer": "QMB covers everything, premiums, deductibles, and the 20% Medicare doesn't pay. SLMB and QI only cover the monthly premium, so your loved one still pays deductibles (around $240/year) and 20% of medical costs. QMB provides much more comprehensive financial protection."
         },
         {
           "question": "Can I apply for this and regular Health First Colorado Medicaid at the same time?",
@@ -213,7 +213,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, you can apply as an authorized representative if your loved one gives permission or if you have legal authority (power of attorney, guardianship). You'll need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "What if my loved one is denied — can they reapply?",
+          "question": "What if my loved one is denied, can they reapply?",
           "answer": "Yes, they can reapply anytime, especially if their financial situation changes. They also have the right to appeal the denial within 30 days. Contact your county office for appeal forms and deadlines."
         },
         {
@@ -288,7 +288,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Health First Colorado office or a certified provider for assessment — processing time varies but involves both medical and financial eligibility review.",
+        "summary": "Contact your local Health First Colorado office or a certified provider for assessment, processing time varies but involves both medical and financial eligibility review.",
         "steps": [
           {
             "step": 1,
@@ -311,9 +311,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Once approved, work with your assigned case manager to develop an individualized service plan based on your loved one's specific needs and preferences."
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and required assessments",
+        "processingTime": "Not specified, varies by case complexity and required assessments",
         "waitlist": "Possible regional variations in wait times but specific timeframes not documented",
-        "tip": "Gather medical documentation showing your loved one's need for daily assistance before applying — this speeds up the nursing facility level of care assessment.",
+        "tip": "Gather medical documentation showing your loved one's need for daily assistance before applying, this speeds up the nursing facility level of care assessment.",
         "urls": []
       },
       "documentsNeeded": [
@@ -346,10 +346,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The 60-month Look-Back Rule applies — assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
-        "Income test uses only your loved one's individual income, not household income — this can make elderly loved ones on fixed incomes eligible even in higher-income households",
-        "Multiple HCBS waivers exist in Colorado — make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
-        "Home equity cannot exceed $1,130,000 — homes worth more may disqualify applicants regardless of other assets"
+        "The 60-month Look-Back Rule applies, assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
+        "Income test uses only your loved one's individual income, not household income, this can make elderly loved ones on fixed incomes eligible even in higher-income households",
+        "Multiple HCBS waivers exist in Colorado, make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
+        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets"
       ],
       "relatedPrograms": [
         "Health First Colorado (Colorado Medicaid)",
@@ -364,7 +364,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as the home equity interest doesn't exceed $1,130,000 (2026 limit). The house doesn't count toward the asset limit regardless of its total value, only the equity matters."
         },
         {
-          "question": "What if my loved one's income is $2,300/month — just over the $2,199 limit?",
+          "question": "What if my loved one's income is $2,300/month, just over the $2,199 limit?",
           "answer": "Your loved one would not qualify based on income alone. However, if they have high medical expenses, they may still qualify through a \"spend-down\" process where medical costs reduce their countable income to the qualifying level."
         },
         {
@@ -388,7 +388,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Services must be provided by certified Health First Colorado providers, but you can typically choose among qualified providers in your area. Your case manager will help identify available options and coordinate services."
         },
         {
-          "question": "What if we gave away money or assets in the past few years — will that affect eligibility?",
+          "question": "What if we gave away money or assets in the past few years, will that affect eligibility?",
           "answer": "Yes, the 60-month Look-Back Rule means any assets given away or sold below fair market value in the past 5 years can create a penalty period where your loved one is temporarily ineligible for benefits. The penalty length depends on the amount transferred."
         }
       ],
@@ -423,7 +423,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical and social care under one program. Because PACE covers everything from primary care to nursing to therapy to transportation, your loved one won't need to coordinate between separate providers — one team manages their entire care plan.\n\nPACE becomes your loved one's sole source of Medicare and Medicaid benefits, meaning they cannot use other Medicare or Medicaid providers while enrolled. The program is only available in certain Colorado service areas, and your loved one must be assessed as needing nursing home level of care while still being able to live safely in the community with PACE support.\n\nThis is a major commitment — PACE replaces all other Medicare/Medicaid services. However, participants can leave the program at any time for any reason, though re-enrollment may have different requirements.",
+      "intro": "If your loved one is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical and social care under one program. Because PACE covers everything from primary care to nursing to therapy to transportation, your loved one won't need to coordinate between separate providers, one team manages their entire care plan.\n\nPACE becomes your loved one's sole source of Medicare and Medicaid benefits, meaning they cannot use other Medicare or Medicaid providers while enrolled. The program is only available in certain Colorado service areas, and your loved one must be assessed as needing nursing home level of care while still being able to live safely in the community with PACE support.\n\nThis is a major commitment, PACE replaces all other Medicare/Medicaid services. However, participants can leave the program at any time for any reason, though re-enrollment may have different requirements.",
       "savingsRange": "",
       "savingsSource": "Comprehensive care service",
       "savingsVerified": false,
@@ -461,7 +461,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Colorado PACE directly for a comprehensive medical and social assessment — approval typically takes 7-14 days after assessment.",
+        "summary": "Contact Colorado PACE directly for a comprehensive medical and social assessment, approval typically takes 7-14 days after assessment.",
         "steps": [
           {
             "step": 1,
@@ -531,9 +531,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Medicare-only participants have no income or asset limits, but must still meet age and nursing home level of care requirements",
-        "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify — Medicaid planning strategies may help establish eligibility",
-        "Assessment includes evaluation of safety to live in community — your loved one must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
-        "Once enrolled, PACE becomes the exclusive source of Medicare and Medicaid benefits — participants cannot see providers outside the PACE network"
+        "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify, Medicaid planning strategies may help establish eligibility",
+        "Assessment includes evaluation of safety to live in community, your loved one must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
+        "Once enrolled, PACE becomes the exclusive source of Medicare and Medicaid benefits, participants cannot see providers outside the PACE network"
       ],
       "relatedPrograms": [
         "Colorado Medicaid (Community Living Services)",
@@ -607,7 +607,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your loved one might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your loved one can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income — a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their loved one qualifies.",
+      "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your loved one might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your loved one can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income, a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their loved one qualifies.",
       "savingsRange": "$1,200 – $4,800/year in 2026",
       "savingsSource": "Based on typical monthly allotments for elderly households",
       "savingsVerified": true,
@@ -669,7 +669,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Colorado PEAK or call your local county human services office — processing takes up to several weeks.",
+        "summary": "Apply online through Colorado PEAK or call your local county human services office, processing takes up to several weeks.",
         "steps": [
           {
             "step": 1,
@@ -699,7 +699,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to several weeks",
         "waitlist": null,
-        "tip": "Seniors over 60 can often qualify even if their Social Security puts them over the standard income limit — always apply if your loved one's monthly income is under $3,000.",
+        "tip": "Seniors over 60 can often qualify even if their Social Security puts them over the standard income limit, always apply if your loved one's monthly income is under $3,000.",
         "urls": [
           {
             "label": "Colorado PEAK Application Portal",
@@ -742,7 +742,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Seniors 60+ who exceed the gross income limit can still qualify through the net income test if medical expenses bring their countable income down",
         "Colorado has no asset limit for most households, but if your loved one uses the special elderly rules, federal asset limits of $4,500 may apply",
-        "Medical deduction only applies to out-of-pocket expenses over $35/month — keep receipts for Medicare premiums, prescription costs, and medical bills",
+        "Medical deduction only applies to out-of-pocket expenses over $35/month, keep receipts for Medicare premiums, prescription costs, and medical bills",
         "You must recertify every 6-12 months and report income changes annually to keep benefits active"
       ],
       "relatedPrograms": [
@@ -829,7 +829,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating and cooling bills, the Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, duct repairs, and water heater improvements. Because these modifications reduce energy waste, many families see utility bill savings of $200-400 annually after weatherization.\n\nYour loved one may qualify based on income limits that vary by household size and county — ranging from about $45,000-67,000 for a single person depending on their utility provider and location. The program automatically accepts families already receiving SNAP, LEAP (energy assistance), or SSI. Because funding is limited and demand is high, waitlists are common and can extend several months depending on your region.",
+      "intro": "If your loved one struggles with high heating and cooling bills, the Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, duct repairs, and water heater improvements. Because these modifications reduce energy waste, many families see utility bill savings of $200-400 annually after weatherization.\n\nYour loved one may qualify based on income limits that vary by household size and county, ranging from about $45,000-67,000 for a single person depending on their utility provider and location. The program automatically accepts families already receiving SNAP, LEAP (energy assistance), or SSI. Because funding is limited and demand is high, waitlists are common and can extend several months depending on your region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -854,7 +854,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through the Colorado Energy Office portal or contact your regional provider directly — processing times vary by local demand and funding availability.",
+        "summary": "Apply online through the Colorado Energy Office portal or contact your regional provider directly, processing times vary by local demand and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -882,9 +882,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Approval depends on income verification and available funding. Due to high demand, you may be placed on a waitlist before work can be scheduled."
           }
         ],
-        "processingTime": "Varies by regional demand and funding availability — contact your local provider for current timelines",
-        "waitlist": "Waitlists are common due to funding limits — timelines vary by program demand, capacity, and region",
-        "tip": "If you're a renter, contact your landlord early about signing the release form — this is often the biggest delay in the application process.",
+        "processingTime": "Varies by regional demand and funding availability, contact your local provider for current timelines",
+        "waitlist": "Waitlists are common due to funding limits, timelines vary by program demand, capacity, and region",
+        "tip": "If you're a renter, contact your landlord early about signing the release form, this is often the biggest delay in the application process.",
         "urls": [
           {
             "label": "Colorado Energy Office Weatherization Portal",
@@ -898,7 +898,7 @@ export const drafts: PipelineStateDrafts = {
         "Income documentation for all working household members from the past 30 days (pay stubs, Social Security letters)",
         "Complete household list with names, ages, disabilities, and income sources for all members",
         "Legal presence affidavit if applicable",
-        "Landlord Release Form (renters only — must be signed before services can begin)"
+        "Landlord Release Form (renters only, must be signed before services can begin)"
       ],
       "contacts": [
         {
@@ -921,10 +921,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits vary significantly by county and utility provider — what qualifies in one area may not in another, so always check with your local provider",
+        "Income limits vary significantly by county and utility provider, what qualifies in one area may not in another, so always check with your local provider",
         "Families receiving public assistance still need to provide their award letters and valid ID even though they auto-qualify income-wise",
-        "The 15-year rule is strict — homes previously weatherized through any program cannot receive services again until the full period has passed",
-        "Meeting income requirements doesn't guarantee services due to funding limitations — approval depends on available budget and regional priorities"
+        "The 15-year rule is strict, homes previously weatherized through any program cannot receive services again until the full period has passed",
+        "Meeting income requirements doesn't guarantee services due to funding limitations, approval depends on available budget and regional priorities"
       ],
       "relatedPrograms": [
         "Low-Income Energy Assistance Program (LEAP)",
@@ -947,7 +947,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Waitlist times vary dramatically by region and funding cycles — some areas may have openings within months while others extend over a year. Families with elderly members, disabilities, or very high energy burdens may receive priority. Contact your local provider for current estimates."
+          "answer": "Waitlist times vary dramatically by region and funding cycles, some areas may have openings within months while others extend over a year. Families with elderly members, disabilities, or very high energy burdens may receive priority. Contact your local provider for current estimates."
         },
         {
           "question": "What happens if my loved one's income is slightly over the limit?",
@@ -1024,7 +1024,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free helpline for immediate counseling — no application or processing time required.",
+        "summary": "Call the toll-free helpline for immediate counseling, no application or processing time required.",
         "steps": [
           {
             "step": 1,
@@ -1082,7 +1082,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one missed their Medicare enrollment deadline?",
-          "answer": "SHIP counselors can explain Special Enrollment Periods and help determine if your loved one qualifies for an exception. They can also help navigate late enrollment penalties and find the next available enrollment opportunity. Contact SHIP immediately if this happens — waiting longer can increase penalties."
+          "answer": "SHIP counselors can explain Special Enrollment Periods and help determine if your loved one qualifies for an exception. They can also help navigate late enrollment penalties and find the next available enrollment opportunity. Contact SHIP immediately if this happens, waiting longer can increase penalties."
         },
         {
           "question": "Can I call SHIP on behalf of my loved one who has dementia?",
@@ -1128,7 +1128,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your adult child or spouse has a developmental disability, brain injury, or physical disability that started before age 22, Colorado's Community Access Services may provide home care support, day programs, and respite care to give you breaks from caregiving. These services help adults with disabilities live at home instead of in institutions while providing family caregivers temporary relief.\n\nThe program covers services like personal care assistance, community activities, employment planning, and respite care hours. Because this connects to multiple Home and Community-Based Services (HCBS) waivers, the specific services and hours depend on your loved one's disability type and support needs. Financial eligibility varies by county, with some family support services exempt from income limits.\n\nAvailability depends heavily on where you live — rural Southwest Colorado has fewer service options than urban areas. You'll work with a local Case Management Agency that coordinates all services and determines what level of support your family member qualifies for.",
+      "intro": "If your adult child or spouse has a developmental disability, brain injury, or physical disability that started before age 22, Colorado's Community Access Services may provide home care support, day programs, and respite care to give you breaks from caregiving. These services help adults with disabilities live at home instead of in institutions while providing family caregivers temporary relief.\n\nThe program covers services like personal care assistance, community activities, employment planning, and respite care hours. Because this connects to multiple Home and Community-Based Services (HCBS) waivers, the specific services and hours depend on your loved one's disability type and support needs. Financial eligibility varies by county, with some family support services exempt from income limits.\n\nAvailability depends heavily on where you live, rural Southwest Colorado has fewer service options than urban areas. You'll work with a local Case Management Agency that coordinates all services and determines what level of support your family member qualifies for.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1152,7 +1152,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Case Management Agency to start eligibility determination — processing time varies by county.",
+        "summary": "Call your local Case Management Agency to start eligibility determination, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -1222,7 +1222,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Not all services are available in rural areas — Southwest Colorado has limited provider networks",
+        "Not all services are available in rural areas, Southwest Colorado has limited provider networks",
         "You must qualify for both financial eligibility (through county Human Services) and functional eligibility (through the Case Management Agency)",
         "Natural supports and family resources are considered first before waiver services can be approved",
         "Different disability types connect to different HCBS waivers with varying service options and availability"
@@ -1245,7 +1245,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How do I find my local Case Management Agency?",
-          "answer": "Call 2-1-1 and they'll connect you to the correct Case Management Agency for your county. Different regions have different CMAs — for example, Community Connections serves Southwest Colorado while DDRC serves the Denver metro area."
+          "answer": "Call 2-1-1 and they'll connect you to the correct Case Management Agency for your county. Different regions have different CMAs, for example, Community Connections serves Southwest Colorado while DDRC serves the Denver metro area."
         },
         {
           "question": "Can I apply while my loved one is in the hospital or nursing home?",
@@ -1257,7 +1257,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Do I need to choose between different disability waivers?",
-          "answer": "Your Case Management Agency will determine which waiver best fits your family member's diagnosis and needs. Different waivers serve different disability types — developmental disabilities, brain injury, or physical disabilities — each with different service packages."
+          "answer": "Your Case Management Agency will determine which waiver best fits your family member's diagnosis and needs. Different waivers serve different disability types, developmental disabilities, brain injury, or physical disabilities, each with different service packages."
         },
         {
           "question": "Can family members provide some of the care and still get services?",
@@ -1307,7 +1307,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with family income below 125% of the federal poverty level, SCSEP provides paid work experience while they develop skills for permanent employment. Because this combines job training with immediate income, your loved one earns minimum wage for up to 20 hours per week at community nonprofits like schools, hospitals, or senior centers while preparing for their next career chapter.\n\nThe program averages 6 months of training and requires participants to create an Individual Employment Plan with specific goals toward unsubsidized work. Because SCSEP isn't first-come, first-served, enrollment priority goes to veterans, people over 65, those with disabilities, and others facing employment barriers — a Project Director reviews each application for suitability and fit.\n\nSCSEP operates only in specific Colorado areas served by grantees like SER National and IPDC, so your loved one must live in a covered region. Because this is a bridge to permanent employment rather than long-term support, participants must register with Colorado's State Workforce system and commit to professional conduct throughout the program.",
+      "intro": "If your loved one is 55+ and unemployed with family income below 125% of the federal poverty level, SCSEP provides paid work experience while they develop skills for permanent employment. Because this combines job training with immediate income, your loved one earns minimum wage for up to 20 hours per week at community nonprofits like schools, hospitals, or senior centers while preparing for their next career chapter.\n\nThe program averages 6 months of training and requires participants to create an Individual Employment Plan with specific goals toward unsubsidized work. Because SCSEP isn't first-come, first-served, enrollment priority goes to veterans, people over 65, those with disabilities, and others facing employment barriers, a Project Director reviews each application for suitability and fit.\n\nSCSEP operates only in specific Colorado areas served by grantees like SER National and IPDC, so your loved one must live in a covered region. Because this is a bridge to permanent employment rather than long-term support, participants must register with Colorado's State Workforce system and commit to professional conduct throughout the program.",
       "savingsRange": "$3,120 – $6,240/year in 2026",
       "savingsSource": "Part-time wages at minimum wage for up to 20 hours/week",
       "savingsVerified": true,
@@ -1334,7 +1334,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through program grantees or contact local providers directly — processing time varies as applications are reviewed by Project Directors, not processed first-come, first-served.",
+        "summary": "Apply online through program grantees or contact local providers directly, processing time varies as applications are reviewed by Project Directors, not processed first-come, first-served.",
         "steps": [
           {
             "step": 1,
@@ -1359,11 +1359,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Set up direct deposit",
-            "description": "Provide bank account information for wage payments — direct deposit is required for all participants."
+            "description": "Provide bank account information for wage payments, direct deposit is required for all participants."
           }
         ],
-        "processingTime": "Not specified — applications reviewed by Project Director based on eligibility, suitability, and priority criteria rather than first-come, first-served",
-        "waitlist": "Possible if no immediate spots available — priority status affects placement timing",
+        "processingTime": "Not specified, applications reviewed by Project Director based on eligibility, suitability, and priority criteria rather than first-come, first-served",
+        "waitlist": "Possible if no immediate spots available, priority status affects placement timing",
         "tip": "Veterans and their qualified spouses get first priority, so mention military service prominently on the application if applicable.",
         "urls": [
           {
@@ -1417,9 +1417,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Applications are not processed first-come, first-served — Project Directors evaluate each applicant's eligibility, suitability, and priority level before making placement decisions",
+        "Applications are not processed first-come, first-served, Project Directors evaluate each applicant's eligibility, suitability, and priority level before making placement decisions",
         "Priority enrollees (veterans, age 65+, disabled, rural, homeless, low literacy) have better chances of quick placement even if program has limited spots",
-        "You must have a bank account before starting work — direct deposit is mandatory and paper checks are not issued",
+        "You must have a bank account before starting work, direct deposit is mandatory and paper checks are not issued",
         "Willful misrepresentation of income or other eligibility factors results in permanent disqualification from the program"
       ],
       "relatedPrograms": [
@@ -1435,8 +1435,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, but Social Security may reduce benefits if your loved one earns above their annual limit while collecting early retirement benefits. For 2026, people under full retirement age can earn up to $22,320 before Social Security reduces benefits by $1 for every $2 earned above the limit. Contact Social Security at (800) 772-1213 to understand how SCSEP wages will affect their specific benefits."
         },
         {
-          "question": "What happens if my loved one lives in rural Colorado — are they more likely to get accepted?",
-          "answer": "Yes, rural residents receive enrollment priority under federal guidelines, which can improve placement chances when spots are limited. However, your loved one must still live in an area actually served by a Colorado grantee like SER National or IPDC — rural priority doesn't create service in unserved counties."
+          "question": "What happens if my loved one lives in rural Colorado, are they more likely to get accepted?",
+          "answer": "Yes, rural residents receive enrollment priority under federal guidelines, which can improve placement chances when spots are limited. However, your loved one must still live in an area actually served by a Colorado grantee like SER National or IPDC, rural priority doesn't create service in unserved counties."
         },
         {
           "question": "How long does the 6-month average training really last, and can it be extended?",
@@ -1448,11 +1448,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one apply for SCSEP while receiving unemployment benefits?",
-          "answer": "No — SCSEP requires participants to be unemployed, and receiving unemployment benefits indicates active job-seeking status that may conflict with the 20-hour weekly commitment. Your loved one should clarify their unemployment status and benefit eligibility with Colorado Department of Labor before applying, as SCSEP wages may affect unemployment benefit eligibility."
+          "answer": "No, SCSEP requires participants to be unemployed, and receiving unemployment benefits indicates active job-seeking status that may conflict with the 20-hour weekly commitment. Your loved one should clarify their unemployment status and benefit eligibility with Colorado Department of Labor before applying, as SCSEP wages may affect unemployment benefit eligibility."
         },
         {
           "question": "What happens if my loved one's income increases above 125% of poverty level while in SCSEP?",
-          "answer": "Income changes during participation are evaluated case-by-case, but significant increases may affect continued eligibility since SCSEP targets low-income seniors. However, the SCSEP wages themselves don't count against the income limit for continued participation — the concern is other income sources like Social Security increases or family support changes."
+          "answer": "Income changes during participation are evaluated case-by-case, but significant increases may affect continued eligibility since SCSEP targets low-income seniors. However, the SCSEP wages themselves don't count against the income limit for continued participation, the concern is other income sources like Social Security increases or family support changes."
         },
         {
           "question": "How do we find out which specific Colorado counties are actually served?",
@@ -1494,7 +1494,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing eviction, Medicare denials, or elder abuse, Colorado Legal Services provides free attorney representation and advice. Because seniors 60+ don't face income limits for most services, your loved one can get legal help regardless of their Social Security or pension income.\n\nThe program covers housing issues (evictions, landlord disputes), public benefits appeals (Social Security, Medicare, Medicaid), advance directives (living wills, powers of attorney), debt problems, and elder abuse cases. Some offices also provide social worker support. However, resources are limited — in 2021, 323 eligible seniors were turned away due to capacity.",
+      "intro": "If your loved one is 60+ and facing eviction, Medicare denials, or elder abuse, Colorado Legal Services provides free attorney representation and advice. Because seniors 60+ don't face income limits for most services, your loved one can get legal help regardless of their Social Security or pension income.\n\nThe program covers housing issues (evictions, landlord disputes), public benefits appeals (Social Security, Medicare, Medicaid), advance directives (living wills, powers of attorney), debt problems, and elder abuse cases. Some offices also provide social worker support. However, resources are limited, in 2021, 323 eligible seniors were turned away due to capacity.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1518,7 +1518,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at coloradolegalservices.org or call your local office — all cases require intake screening before assignment.",
+        "summary": "Apply online at coloradolegalservices.org or call your local office, all cases require intake screening before assignment.",
         "steps": [
           {
             "step": 1,
@@ -1537,8 +1537,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Team contacts after application, but no specific timeline provided",
-        "waitlist": "Limited resources mean some eligible applicants are turned away — 323 seniors were declined in 2021",
-        "tip": "Have specific details about your legal issue ready — intake staff need to understand the urgency and type of case to prioritize properly.",
+        "waitlist": "Limited resources mean some eligible applicants are turned away, 323 seniors were declined in 2021",
+        "tip": "Have specific details about your legal issue ready, intake staff need to understand the urgency and type of case to prioritize properly.",
         "urls": [
           {
             "label": "Apply Online",
@@ -1628,7 +1628,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a Colorado nursing home or assisted living facility and faces quality of care issues, medication problems, abuse, or violations of their rights, the Long-Term Care Ombudsman provides free advocacy services. Ombudsmen visit nursing homes weekly and assisted living facilities at least twice monthly to investigate complaints and resolve problems.\n\nThe service is completely free with no income or asset requirements. Anyone can contact an ombudsman — family members, facility staff, or concerned individuals — but all interventions are resident-directed and confidential, meaning your loved one must agree to the advocacy. Because ombudsmen specialize in facility regulations and resident rights, they can often resolve issues that families struggle with alone.",
+      "intro": "If your loved one lives in a Colorado nursing home or assisted living facility and faces quality of care issues, medication problems, abuse, or violations of their rights, the Long-Term Care Ombudsman provides free advocacy services. Ombudsmen visit nursing homes weekly and assisted living facilities at least twice monthly to investigate complaints and resolve problems.\n\nThe service is completely free with no income or asset requirements. Anyone can contact an ombudsman, family members, facility staff, or concerned individuals, but all interventions are resident-directed and confidential, meaning your loved one must agree to the advocacy. Because ombudsmen specialize in facility regulations and resident rights, they can often resolve issues that families struggle with alone.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1650,7 +1650,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local ombudsman office directly — no forms or applications needed, and you can get immediate help.",
+        "summary": "Call your local ombudsman office directly, no forms or applications needed, and you can get immediate help.",
         "steps": [
           {
             "step": 1,
@@ -1670,7 +1670,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate assistance for complaints",
         "waitlist": null,
-        "tip": "Keep notes on specific incidents — dates, staff names, and what happened — to help the ombudsman investigate effectively.",
+        "tip": "Keep notes on specific incidents, dates, staff names, and what happened, to help the ombudsman investigate effectively.",
         "urls": [
           {
             "label": "Find Your Local Ombudsman",
@@ -1717,7 +1717,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does the ombudsman only handle serious abuse cases?",
-          "answer": "No, ombudsmen handle all types of concerns — from medication mix-ups and poor food quality to staff attitude problems and billing issues. No concern is too small if it affects your loved one's quality of life or rights."
+          "answer": "No, ombudsmen handle all types of concerns, from medication mix-ups and poor food quality to staff attitude problems and billing issues. No concern is too small if it affects your loved one's quality of life or rights."
         },
         {
           "question": "How long does it take to resolve a complaint?",
@@ -1755,7 +1755,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first — including Social Security, SSI, and SSDI — this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
+      "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first, including Social Security, SSI, and SSDI, this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
       "savingsRange": "$952 – $12,384/year in 2026",
       "savingsSource": "Maximum monthly benefit varies by county: $952 statewide standard, up to $1,032 in Boulder/Douglas Counties",
       "savingsVerified": true,
@@ -1798,7 +1798,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply through your county human services department — call your county office to schedule an interview after submitting your application.",
+        "summary": "Apply through your county human services department, call your county office to schedule an interview after submitting your application.",
         "steps": [
           {
             "step": 1,
@@ -1828,7 +1828,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Interview scheduled after application receipt; timeline varies by county",
         "waitlist": null,
-        "tip": "Apply for Social Security or SSI first if you think your loved one might qualify — OAP requires proof you've pursued all other available benefits.",
+        "tip": "Apply for Social Security or SSI first if you think your loved one might qualify, OAP requires proof you've pursued all other available benefits.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1859,7 +1859,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county has different maximum benefit amounts — Boulder and Douglas Counties pay up to $1,032/month while Grand County pays up to $750/month",
+        "Each county has different maximum benefit amounts, Boulder and Douglas Counties pay up to $1,032/month while Grand County pays up to $750/month",
         "Your loved one's spouse's income counts fully toward the income limit, reducing benefits dollar-for-dollar",
         "If your loved one becomes eligible for Social Security at 62 or Medicare at 65, they must reapply for those programs and OAP benefits may change"
       ],
@@ -1876,7 +1876,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, the primary residence is exempt from asset limits regardless of value. Only one automobile is also exempt, but additional vehicles, boats, or secondary property count toward the $2,000 limit."
         },
         {
-          "question": "What if my loved one is already receiving Social Security — can they still get OAP?",
+          "question": "What if my loved one is already receiving Social Security, can they still get OAP?",
           "answer": "Yes, but Social Security income reduces OAP benefits dollar-for-dollar. If your loved one receives $800 in Social Security and lives in a county with a $952 maximum, they would only get $152 from OAP."
         },
         {
@@ -1935,7 +1935,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and struggling financially while needing daily help with bathing, dressing, or other personal care, Colorado's Home Care Allowance provides up to $1,500 per month for unskilled care services. This state program serves individuals with the lowest functional abilities who don't qualify for Medicaid home services but still need paid assistance.\n\nTo qualify, your loved one must have income below approximately $3,200/month, assets under $2,000, and pass two functional assessments: a Capacity Score of 21+ and a Need for Paid Care Score that determines their priority tier. The money can pay for personal care, respite services, home modifications, and supplies — but not skilled nursing care. Because this program requires you to be evaluated for Medicaid home services first (and be denied), the application process can take up to 90 days.",
+      "intro": "If your loved one is 65+ and struggling financially while needing daily help with bathing, dressing, or other personal care, Colorado's Home Care Allowance provides up to $1,500 per month for unskilled care services. This state program serves individuals with the lowest functional abilities who don't qualify for Medicaid home services but still need paid assistance.\n\nTo qualify, your loved one must have income below approximately $3,200/month, assets under $2,000, and pass two functional assessments: a Capacity Score of 21+ and a Need for Paid Care Score that determines their priority tier. The money can pay for personal care, respite services, home modifications, and supplies, but not skilled nursing care. Because this program requires you to be evaluated for Medicaid home services first (and be denied), the application process can take up to 90 days.",
       "savingsRange": "$1,200 – $18,000/year in 2026",
       "savingsSource": "Based on up to $1,500/month benefit amount",
       "savingsVerified": true,
@@ -1974,7 +1974,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Colorado PEAK or contact your county office — processing takes up to 90 days and requires a functional assessment interview.",
+        "summary": "Apply online through Colorado PEAK or contact your county office, processing takes up to 90 days and requires a functional assessment interview.",
         "steps": [
           {
             "step": 1,
@@ -1999,7 +1999,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Within 90 days from the date the office receives your completed application and all required documents",
         "waitlist": null,
-        "tip": "Start the Medicaid home services evaluation early — you cannot be considered for HCA until you've been evaluated and denied for the Medicaid program first.",
+        "tip": "Start the Medicaid home services evaluation early, you cannot be considered for HCA until you've been evaluated and denied for the Medicaid program first.",
         "urls": [
           {
             "label": "Colorado PEAK Online Application",
@@ -2045,9 +2045,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline — start early",
-        "Skilled personal care (like wound care or medication administration) is explicitly not covered — only unskilled daily living assistance qualifies",
-        "Asset limits are strict at $2,000 — spend down excess assets before applying or consider exempt assets like prepaid burial plans",
+        "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline, start early",
+        "Skilled personal care (like wound care or medication administration) is explicitly not covered, only unskilled daily living assistance qualifies",
+        "Asset limits are strict at $2,000, spend down excess assets before applying or consider exempt assets like prepaid burial plans",
         "Married couples often benefit from applying separately since income and asset limits apply individually rather than as a household"
       ],
       "relatedPrograms": [
@@ -2060,7 +2060,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one get both HCA and Medicaid home services?",
-          "answer": "No, these programs are mutually exclusive — you cannot receive both simultaneously. Your loved one must be evaluated for Medicaid home services first and be denied before HCA can be considered. HCA serves as an alternative for those who don't qualify for the Medicaid program."
+          "answer": "No, these programs are mutually exclusive, you cannot receive both simultaneously. Your loved one must be evaluated for Medicaid home services first and be denied before HCA can be considered. HCA serves as an alternative for those who don't qualify for the Medicaid program."
         },
         {
           "question": "What's the difference between skilled and unskilled personal care?",
@@ -2162,7 +2162,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county Department of Human Services office — processing time not specified by the state.",
+        "summary": "Contact your county Department of Human Services office, processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
@@ -2187,7 +2187,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by county",
         "waitlist": null,
-        "tip": "Call your county office first to ask about current funding availability — some counties may have waiting periods when funds are exhausted.",
+        "tip": "Call your county office first to ask about current funding availability, some counties may have waiting periods when funds are exhausted.",
         "urls": [
           {
             "label": "Colorado Department of Human Services",
@@ -2220,9 +2220,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This is a one-time grant — your loved one cannot receive funds again in future years, even if circumstances change",
+        "This is a one-time grant, your loved one cannot receive funds again in future years, even if circumstances change",
         "Some counties may require estimates or quotes for home modifications before approving funds",
-        "Funding availability varies by county and fiscal year — some areas may have waiting periods when annual allocations are exhausted"
+        "Funding availability varies by county and fiscal year, some areas may have waiting periods when annual allocations are exhausted"
       ],
       "relatedPrograms": [
         "Colorado Old Age Pension (OAP)",
@@ -2254,7 +2254,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long does my loved one have to spend the money once approved?",
-          "answer": "Each county sets its own timeframe for using approved funds. Ask your county office about their specific deadline — some may require purchases within 30-90 days of approval."
+          "answer": "Each county sets its own timeframe for using approved funds. Ask your county office about their specific deadline, some may require purchases within 30-90 days of approval."
         }
       ],
       "layoutIntent": {
@@ -2273,7 +2273,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Colorado offers 12 programs that can reduce costs and provide support for aging loved ones — from monthly cash assistance to free home energy upgrades. Nine of these are benefits requiring qualification (income limits, age, or care needs), while three are free resources available to most Colorado seniors. Programs range from Old Age Pension providing monthly cash to seniors 60+ with limited income, to PACE covering all medical and social care under one coordinated team. Start by checking the highest-impact programs first: those offering the most financial relief or comprehensive support for your loved one's biggest challenges.",
+    "intro": "Colorado offers 12 programs that can reduce costs and provide support for aging loved ones, from monthly cash assistance to free home energy upgrades. Nine of these are benefits requiring qualification (income limits, age, or care needs), while three are free resources available to most Colorado seniors. Programs range from Old Age Pension providing monthly cash to seniors 60+ with limited income, to PACE covering all medical and social care under one coordinated team. Start by checking the highest-impact programs first: those offering the most financial relief or comprehensive support for your loved one's biggest challenges.",
     "startHere": [
       {
         "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
@@ -2346,6 +2346,6 @@ export const drafts: PipelineStateDrafts = {
       "Older Coloradans Cash Fund provides one-time grants up to $1,200 for immediate home safety needs",
       "PACE operates in Colorado as an all-in-one alternative to traditional Medicare for parents needing nursing home level care"
     ],
-    "resourcesVsBenefits": "Benefits like Old Age Pension, SNAP, and HCBS Waivers require meeting specific income, age, or care level requirements and provide ongoing financial assistance or services. Resources like SHIP (Medicare guidance) and Colorado Legal Services offer free help to most seniors regardless of income — no qualification process needed, just call for assistance."
+    "resourcesVsBenefits": "Benefits like Old Age Pension, SNAP, and HCBS Waivers require meeting specific income, age, or care level requirements and provide ongoing financial assistance or services. Resources like SHIP (Medicare guidance) and Colorado Legal Services offer free help to most seniors regardless of income, no qualification process needed, just call for assistance."
   }
 };

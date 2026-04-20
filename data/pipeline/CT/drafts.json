@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ or disabled and lives in Connecticut, HUSKY Health C (Medicaid) can cover all their medical care plus long-term services to help them stay at home. This includes doctor visits, prescriptions, dental, vision, and crucially for aging loved ones — home care, adult day programs, and nursing home care if needed.\n\nThe program has different income limits depending on what services your loved one needs. Standard coverage requires income under $851/month for a single person, but if your loved one needs home care or nursing home care, they can qualify with income up to $2,982/month. Asset limits also apply: $1,600 for a single person in most cases.\n\nBecause HUSKY Health C is comprehensive Medicaid, your loved one won't pay premiums, deductibles, or copays for covered services. One program manages all their health care instead of coordinating between Medicare and separate providers.",
+      "intro": "If your loved one is 65+ or disabled and lives in Connecticut, HUSKY Health C (Medicaid) can cover all their medical care plus long-term services to help them stay at home. This includes doctor visits, prescriptions, dental, vision, and crucially for aging loved ones, home care, adult day programs, and nursing home care if needed.\n\nThe program has different income limits depending on what services your loved one needs. Standard coverage requires income under $851/month for a single person, but if your loved one needs home care or nursing home care, they can qualify with income up to $2,982/month. Asset limits also apply: $1,600 for a single person in most cases.\n\nBecause HUSKY Health C is comprehensive Medicaid, your loved one won't pay premiums, deductibles, or copays for covered services. One program manages all their health care instead of coordinating between Medicare and separate providers.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -147,7 +147,7 @@
         "Working disabled individuals may qualify for MED-Connect with higher income limits (up to $85,000/year) but may owe monthly premiums",
         "If your loved one needs Long-Term Services & Supports, expect a detailed 5-year financial review including all income and asset transfers",
         "Married couples applying for LTSS get special protections for the community spouse's income and assets under CSPA rules",
-        "Income limits are updated annually, typically in March — 2026 changes may adjust standard coverage limits to around $1,413/month for singles"
+        "Income limits are updated annually, typically in March, 2026 changes may adjust standard coverage limits to around $1,413/month for singles"
       ],
       "relatedPrograms": [
         "Connecticut Energy Assistance Program (CEAP)",
@@ -306,7 +306,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local Area Agency on Aging or complete the Home Care Request Form — services may start quickly for state-funded track.",
+        "summary": "Call your local Area Agency on Aging or complete the Home Care Request Form, services may start quickly for state-funded track.",
         "steps": [
           {
             "step": 1,
@@ -331,7 +331,7 @@
         ],
         "processingTime": "Services may start quickly for state-funded track; Medicaid waiver involves up to 5-year financial lookback",
         "waitlist": "Possible 2+ year waitlist for Medicaid waiver funding; varies by region and priority level",
-        "tip": "Apply for state-funded services first if your loved one needs immediate care — you can transition to Medicaid funding later.",
+        "tip": "Apply for state-funded services first if your loved one needs immediate care, you can transition to Medicaid funding later.",
         "urls": [
           {
             "label": "CHCPE Program Page",
@@ -381,10 +381,10 @@
         }
       ],
       "applicationNotes": [
-        "State-funded services can start while you wait for Medicaid waiver approval — don't delay applying if your loved one needs immediate help",
-        "Excess assets can be spent down on any goods or services for your loved one or spouse — no requirement to spend only on medical care",
+        "State-funded services can start while you wait for Medicaid waiver approval, don't delay applying if your loved one needs immediate help",
+        "Excess assets can be spent down on any goods or services for your loved one or spouse, no requirement to spend only on medical care",
         "Medicare Savings Program has no asset limits or estate recovery, unlike the home care component",
-        "Regional variations exist in asset limits and wait times — ask your local Area Agency about current availability"
+        "Regional variations exist in asset limits and wait times, ask your local Area Agency about current availability"
       ],
       "relatedPrograms": [
         "Connecticut Energy Assistance Program (CEAP)",
@@ -424,7 +424,7 @@
         },
         {
           "question": "Will the state try to recover money from my loved one's estate?",
-          "answer": "For Medicaid-funded CHCPE services, Connecticut may seek estate recovery after death. However, Medicare Savings Program benefits have no estate recovery. State-funded services have different recovery rules — check with your caseworker about specific policies."
+          "answer": "For Medicaid-funded CHCPE services, Connecticut may seek estate recovery after death. However, Medicare Savings Program benefits have no estate recovery. State-funded services have different recovery rules, check with your caseworker about specific policies."
         }
       ],
       "layoutIntent": {
@@ -445,14 +445,14 @@
       "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
       "shortName": "CT PACE",
-      "tagline": "Your loved one gets all medical care, medications, and support services through one coordinated team — no copays, no provider juggling.",
+      "tagline": "Your loved one gets all medical care, medications, and support services through one coordinated team, no copays, no provider juggling.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your loved one never bounces between providers or pays copays for covered care.\n\nYour loved one must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your loved one's sole healthcare provider — they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your loved one never bounces between providers or pays copays for covered care.\n\nYour loved one must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your loved one's sole healthcare provider, they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical service coverage",
       "savingsVerified": false,
@@ -466,7 +466,7 @@
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be certified as needing nursing facility level of care — a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other essential activities",
+        "functionalRequirement": "Must be certified as needing nursing facility level of care, a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other essential activities",
         "otherRequirements": [
           "Must live in a PACE organization service area",
           "Must be able to live safely in the community with PACE services",
@@ -477,7 +477,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local PACE organization directly — they handle everything from eligibility screening to enrollment.",
+        "summary": "Contact your local PACE organization directly, they handle everything from eligibility screening to enrollment.",
         "steps": [
           {
             "step": 1,
@@ -487,7 +487,7 @@
           {
             "step": 2,
             "title": "Call for initial screening",
-            "description": "The PACE organization will do a phone screening to check basic eligibility — age, location, and preliminary care needs assessment."
+            "description": "The PACE organization will do a phone screening to check basic eligibility, age, location, and preliminary care needs assessment."
           },
           {
             "step": 3,
@@ -502,7 +502,7 @@
         ],
         "processingTime": "Comprehensive assessment and care plan development within 30 days of enrollment",
         "waitlist": null,
-        "tip": "Ask specifically about Medicare Advantage — your loved one must disenroll from any Medicare Advantage plan before joining PACE.",
+        "tip": "Ask specifically about Medicare Advantage, your loved one must disenroll from any Medicare Advantage plan before joining PACE.",
         "urls": [
           {
             "label": "Eligibility Test",
@@ -532,7 +532,7 @@
         {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
-          "description": "24/7 helpline for social services — can help locate PACE programs in your area",
+          "description": "24/7 helpline for social services, can help locate PACE programs in your area",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -543,9 +543,9 @@
         }
       ],
       "applicationNotes": [
-        "You cannot be enrolled in both PACE and Medicare Advantage — your loved one must choose one or the other",
+        "You cannot be enrolled in both PACE and Medicare Advantage, your loved one must choose one or the other",
         "If your loved one has Medicaid, Connecticut may place a lien on their estate to recover PACE costs after death",
-        "PACE is not available everywhere in Connecticut — service area availability varies significantly by region",
+        "PACE is not available everywhere in Connecticut, service area availability varies significantly by region",
         "Your loved one can leave PACE at any time, but re-enrollment is not guaranteed if they want to return later"
       ],
       "relatedPrograms": [
@@ -574,7 +574,7 @@
         },
         {
           "question": "What if my loved one's care needs increase after they're enrolled?",
-          "answer": "PACE continuously adjusts services as needs change — that's the program's strength. The interdisciplinary team reassesses regularly and adds services like more home care hours or adult day care without additional paperwork."
+          "answer": "PACE continuously adjusts services as needs change, that's the program's strength. The interdisciplinary team reassesses regularly and adds services like more home care hours or adult day care without additional paperwork."
         },
         {
           "question": "Does PACE cover my loved one's spouse who doesn't need nursing home-level care?",
@@ -620,7 +620,7 @@
           }
         ]
       },
-      "intro": "If your loved one is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly — the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your loved one can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
+      "intro": "If your loved one is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly, the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your loved one can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
       "savingsRange": "$298 – $1,789/month in 2026",
       "savingsSource": "Maximum monthly SNAP allotments by household size",
       "savingsVerified": true,
@@ -687,12 +687,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at portal.ct.gov/Apply or call 2-1-1 — typically takes 30 days to process.",
+        "summary": "Apply online at portal.ct.gov/Apply or call 2-1-1, typically takes 30 days to process.",
         "steps": [
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 or 877-423-4746. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form — it's shorter."
+            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 or 877-423-4746. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form, it's shorter."
           },
           {
             "step": 2,
@@ -717,7 +717,7 @@
         ],
         "processingTime": "30 days standard, 7 days expedited for very low income households",
         "waitlist": null,
-        "tip": "If you're 60+ and have high medical or housing costs, make sure to document these expenses — they can significantly lower your countable income and increase your benefit amount.",
+        "tip": "If you're 60+ and have high medical or housing costs, make sure to document these expenses, they can significantly lower your countable income and increase your benefit amount.",
         "urls": [
           {
             "label": "Apply Online",
@@ -766,7 +766,7 @@
       "applicationNotes": [
         "Expedited processing (7 days) available if you have less than $150 monthly income and under $100 in assets",
         "If you live with others, you only need to include people you buy and cook food with in your household size",
-        "Medical expenses over $35/month for ages 60+ can be deducted from income — save all receipts",
+        "Medical expenses over $35/month for ages 60+ can be deducted from income, save all receipts",
         "Benefits are loaded on your EBT card during the first 8 days of each month based on your Client ID number"
       ],
       "relatedPrograms": [
@@ -807,7 +807,7 @@
         },
         {
           "question": "What if the DSS office says my loved one makes too much money?",
-          "answer": "Ask specifically about the elderly rules — households with someone 60+ can skip the gross income test and may qualify based on net income after deductions. High medical or housing costs can significantly reduce countable income."
+          "answer": "Ask specifically about the elderly rules, households with someone 60+ can skip the gross income test and may qualify based on net income after deductions. High medical or housing costs can significantly reduce countable income."
         }
       ],
       "layoutIntent": {
@@ -841,7 +841,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with heating bills in Connecticut, CEAP can provide $295-$645 toward their energy costs this winter. Because the program pays utility companies directly, your loved one won't handle cash — the assistance goes straight toward their heating bill, electric bill, or fuel delivery. Households with elderly members, disabled individuals, or children under 6 receive higher benefit amounts.\n\nThe program runs from September 1, 2025 through May 29, 2026, but funds are limited and distributed first-come, first-served. Because crisis assistance is available for households facing fuel emergencies, eligible families can get fuel delivery authorization within 18 hours if they're running out of heating oil or propane.\n\nIncome limit: $47,764/year for a single person, $62,460 for a couple (2025-2026). No asset test this year. If your loved one receives SNAP, SSI, or TANF, they automatically qualify regardless of other income.",
+      "intro": "If your loved one struggles with heating bills in Connecticut, CEAP can provide $295-$645 toward their energy costs this winter. Because the program pays utility companies directly, your loved one won't handle cash, the assistance goes straight toward their heating bill, electric bill, or fuel delivery. Households with elderly members, disabled individuals, or children under 6 receive higher benefit amounts.\n\nThe program runs from September 1, 2025 through May 29, 2026, but funds are limited and distributed first-come, first-served. Because crisis assistance is available for households facing fuel emergencies, eligible families can get fuel delivery authorization within 18 hours if they're running out of heating oil or propane.\n\nIncome limit: $47,764/year for a single person, $62,460 for a couple (2025-2026). No asset test this year. If your loved one receives SNAP, SSI, or TANF, they automatically qualify regardless of other income.",
       "savingsRange": "$295 – $645/year in 2025",
       "savingsSource": "Basic benefit amounts from Connecticut Department of Social Services, with higher amounts for vulnerable households",
       "savingsVerified": true,
@@ -899,7 +899,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at portal.ct.gov or call your regional provider — processing prioritized for fuel emergencies.",
+        "summary": "Apply online at portal.ct.gov or call your regional provider, processing prioritized for fuel emergencies.",
         "steps": [
           {
             "step": 1,
@@ -924,7 +924,7 @@
         ],
         "processingTime": "Fuel delivery authorization within 18 hours for crisis cases",
         "waitlist": "Benefits available until annual funds run out",
-        "tip": "If your loved one has an elderly household member, disability, or child under 6, make sure to indicate this — vulnerable households receive $50 more in benefits.",
+        "tip": "If your loved one has an elderly household member, disability, or child under 6, make sure to indicate this, vulnerable households receive $50 more in benefits.",
         "urls": [
           {
             "label": "Connecticut CEAP Application Portal",
@@ -1103,7 +1103,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Apply jointly with Energy Assistance by calling 2-1-1 and requesting a Weatherization Card — no separate application needed.",
+        "summary": "Apply jointly with Energy Assistance by calling 2-1-1 and requesting a Weatherization Card, no separate application needed.",
         "steps": [
           {
             "step": 1,
@@ -1128,7 +1128,7 @@
         ],
         "processingTime": null,
         "waitlist": "Priority groups get preference; non-priority households may face longer waits",
-        "tip": "Apply for Energy Assistance first — it's the gateway to weatherization services and both use the same income limits.",
+        "tip": "Apply for Energy Assistance first, it's the gateway to weatherization services and both use the same income limits.",
         "urls": [
           {
             "label": "Connecticut DEEP Weatherization",
@@ -1163,7 +1163,7 @@
         }
       ],
       "applicationNotes": [
-        "The same income limits apply for both Energy Assistance and Weatherization — qualifying for one typically means qualifying for both",
+        "The same income limits apply for both Energy Assistance and Weatherization, qualifying for one typically means qualifying for both",
         "Landlords of rental properties may be required to contribute 20% of material costs, up to $500 per unit",
         "If deferred from Weatherization, you may be referred to other programs like REPS (Residential Energy Efficiency Programs)",
         "Annual renewal is required to maintain eligibility"
@@ -1258,7 +1258,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-994-9422 to connect with a local counselor — no formal application needed, counseling provided immediately upon contact.",
+        "summary": "Call 800-994-9422 to connect with a local counselor, no formal application needed, counseling provided immediately upon contact.",
         "steps": [
           {
             "step": 1,
@@ -1276,7 +1276,7 @@
             "description": "Gather your loved one's Medicare card and any questions about coverage, costs, or enrollment decisions."
           }
         ],
-        "processingTime": "Counseling provided upon contact — no processing time required",
+        "processingTime": "Counseling provided upon contact, no processing time required",
         "waitlist": null,
         "tip": "Call during Open Enrollment (October 15 - December 7) as early as possible, as counselors get busiest closer to the December 7 deadline.",
         "urls": [
@@ -1319,7 +1319,7 @@
         },
         {
           "question": "What's the difference between calling CHOICES versus talking to an insurance agent?",
-          "answer": "Insurance agents can only sell plans from their company and earn commissions on what they sell. CHOICES counselors can compare all available Medicare options in Connecticut — including Original Medicare, all Medicare Advantage plans, and all Part D prescription plans — with no financial bias toward any particular insurer."
+          "answer": "Insurance agents can only sell plans from their company and earn commissions on what they sell. CHOICES counselors can compare all available Medicare options in Connecticut, including Original Medicare, all Medicare Advantage plans, and all Part D prescription plans, with no financial bias toward any particular insurer."
         }
       ],
       "layoutIntent": {
@@ -1419,7 +1419,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Get the physician statement started early — this often takes the longest since it requires a specific form completed by the doctor, not just medical records.",
+        "tip": "Get the physician statement started early, this often takes the longest since it requires a specific form completed by the doctor, not just medical records.",
         "urls": [
           {
             "label": "Official Program Information",
@@ -1458,9 +1458,9 @@
         }
       ],
       "applicationNotes": [
-        "Income limits vary in sources — one cites $58,772 annually while another shows $48,266, so verify the current limit when you apply",
+        "Income limits vary in sources, one cites $58,772 annually while another shows $48,266, so verify the current limit when you apply",
         "Funding depends on available state budget, so approval isn't guaranteed even if you meet all requirements",
-        "You cannot receive this program and Connecticut Homecare Program for Elders simultaneously — choose the one that better fits your needs",
+        "You cannot receive this program and Connecticut Homecare Program for Elders simultaneously, choose the one that better fits your needs",
         "The program offers both agency-provided services and self-directed options where you can hire private caregivers through a fiduciary"
       ],
       "relatedPrograms": [
@@ -1476,7 +1476,7 @@
           "answer": "No, your loved one cannot receive both programs simultaneously. You'll need to choose which program better fits your loved one's needs. The Homecare Program provides broader services while this respite program focuses specifically on caregiver relief for dementia patients."
         },
         {
-          "question": "What if my loved one's income is right at the limit — which number is correct, $58,772 or $48,266?",
+          "question": "What if my loved one's income is right at the limit, which number is correct, $58,772 or $48,266?",
           "answer": "The sources show conflicting income limits, suggesting possible updates or regional variations. Call 1-800-994-9422 to verify the current income threshold for your area before applying."
         },
         {
@@ -1489,7 +1489,7 @@
         },
         {
           "question": "What if my loved one's doctor won't fill out the Physician Statement form?",
-          "answer": "The physician statement is required and must be completed by a doctor — generic medical records won't substitute. If your current doctor won't complete it, you may need to see a specialist familiar with dementia diagnoses."
+          "answer": "The physician statement is required and must be completed by a doctor, generic medical records won't substitute. If your current doctor won't complete it, you may need to see a specialist familiar with dementia diagnoses."
         },
         {
           "question": "Is approval guaranteed if we meet all the eligibility requirements?",
@@ -1522,7 +1522,7 @@
       "id": "scsep-employment-training",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Job Training",
-      "tagline": "Paid job training for unemployed adults 55+ — earn minimum wage while learning skills at nonprofits and public agencies",
+      "tagline": "Paid job training for unemployed adults 55+, earn minimum wage while learning skills at nonprofits and public agencies",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -1530,7 +1530,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Associates for Training and Development (A4TD) — primary Connecticut provider, Stamford, CT 06831",
+            "name": "Associates for Training and Development (A4TD), primary Connecticut provider, Stamford, CT 06831",
             "type": "service-area"
           }
         ]
@@ -1563,7 +1563,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Associates for Training and Development at 203-461-2154 to apply — they handle all Connecticut SCSEP applications.",
+        "summary": "Call Associates for Training and Development at 203-461-2154 to apply, they handle all Connecticut SCSEP applications.",
         "steps": [
           {
             "step": 1,
@@ -1583,7 +1583,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Veterans and those over 65 get priority enrollment — mention this status when calling if it applies to your loved one.",
+        "tip": "Veterans and those over 65 get priority enrollment, mention this status when calling if it applies to your loved one.",
         "urls": [
           {
             "label": "Associates for Training and Development",
@@ -1624,7 +1624,7 @@
           "answer": "SCSEP is temporary job training designed as a bridge to permanent employment. Participants work an average of 20 hours per week at minimum wage while receiving career services and job placement assistance. The goal is to transition into unsubsidized employment after completing the training program."
         },
         {
-          "question": "What if my loved one is under 65 and not a veteran — will they still get accepted?",
+          "question": "What if my loved one is under 65 and not a veteran, will they still get accepted?",
           "answer": "Yes, but they may face longer wait times. Priority goes first to veterans and qualified spouses, then to those over 65, then to people with disabilities or other barriers to employment. Non-priority applicants are still eligible but may need to wait for available training slots."
         }
       ],
@@ -1687,7 +1687,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the ombudsman hotline directly — no application needed and assistance begins immediately.",
+        "summary": "Call the ombudsman hotline directly, no application needed and assistance begins immediately.",
         "steps": [
           {
             "step": 1,
@@ -1707,7 +1707,7 @@
         ],
         "processingTime": "Immediate assistance available upon contact",
         "waitlist": null,
-        "tip": "You can call even if you're just considering facility placement — ombudsmen provide information about quality ratings and what to look for during visits.",
+        "tip": "You can call even if you're just considering facility placement, ombudsmen provide information about quality ratings and what to look for during visits.",
         "urls": [
           {
             "label": "Connecticut LTCOP Official Site",
@@ -1750,7 +1750,7 @@
         },
         {
           "question": "What if the facility retaliates against my loved one for filing a complaint?",
-          "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and can advocate for your loved one's protection. If retaliation occurs, contact the ombudsman immediately at 860-424-5200 — they will investigate and can involve state regulators if needed."
+          "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and can advocate for your loved one's protection. If retaliation occurs, contact the ombudsman immediately at 860-424-5200, they will investigate and can involve state regulators if needed."
         },
         {
           "question": "Can the ombudsman help before my loved one moves into a facility?",
@@ -1773,7 +1773,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Connecticut offers 10 major programs to help your aging loved one — from $298/month for groceries to $15,000 in free home energy improvements. Seven of these provide direct financial benefits or services (requiring income/asset limits), while three offer free resources available to any Connecticut senior regardless of income. Most programs target seniors with monthly incomes below $2,152-$2,901, but some like Medicare counseling and ombudsman services help everyone. Start by checking the highest-value programs first: HUSKY Health for comprehensive medical coverage, Connecticut Home Care Program to keep your loved one out of nursing homes, and SNAP for immediate grocery assistance.",
+    "intro": "Connecticut offers 10 major programs to help your aging loved one, from $298/month for groceries to $15,000 in free home energy improvements. Seven of these provide direct financial benefits or services (requiring income/asset limits), while three offer free resources available to any Connecticut senior regardless of income. Most programs target seniors with monthly incomes below $2,152-$2,901, but some like Medicare counseling and ombudsman services help everyone. Start by checking the highest-value programs first: HUSKY Health for comprehensive medical coverage, Connecticut Home Care Program to keep your loved one out of nursing homes, and SNAP for immediate grocery assistance.",
     "startHere": [
       {
         "name": "HUSKY Health (Medicaid for seniors/disabled)",
@@ -1849,6 +1849,6 @@
       "Connecticut's PACE program operates through specific provider locations, not statewide",
       "Energy assistance applications typically open in November with emergency help available year-round"
     ],
-    "resourcesVsBenefits": "Seven Connecticut programs provide direct benefits (money, services, or coverage) but require meeting income and asset limits — like HUSKY Health, SNAP, and energy assistance. Three programs offer free resources to any Connecticut senior regardless of income: CHOICES provides Medicare counseling, the Ombudsman helps with nursing home issues, and SCSEP offers job training for those who want to work."
+    "resourcesVsBenefits": "Seven Connecticut programs provide direct benefits (money, services, or coverage) but require meeting income and asset limits, like HUSKY Health, SNAP, and energy assistance. Three programs offer free resources to any Connecticut senior regardless of income: CHOICES provides Medicare counseling, the Ombudsman helps with nursing home issues, and SCSEP offers job training for those who want to work."
   }
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.091Z
+ * Last updated: 2026-04-20T23:39:07.860Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing home, Michigan Choice Waiver covers comprehensive home care services through Medicaid. Because this program covers everything from meal delivery to personal care under one coordinated plan, your loved one gets a dedicated care team instead of juggling multiple providers.\n\nYour loved one must be 65+ (or 18-64 if disabled), have gross monthly income under $2,982 (2025), and countable assets under $9,950. They must also qualify for nursing facility level of care through a clinical assessment and need at least two waiver services including supports coordination. The program operates statewide through regional agencies, though waitlists vary by area.\n\nServices are individualized based on your loved one's assessed needs and include adult day health, home delivered meals, personal emergency response systems, respite care, environmental modifications, and specialized medical equipment. You must contact your regional MI Choice Waiver Agency directly — there's no central application hotline.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing home, Michigan Choice Waiver covers comprehensive home care services through Medicaid. Because this program covers everything from meal delivery to personal care under one coordinated plan, your loved one gets a dedicated care team instead of juggling multiple providers.\n\nYour loved one must be 65+ (or 18-64 if disabled), have gross monthly income under $2,982 (2025), and countable assets under $9,950. They must also qualify for nursing facility level of care through a clinical assessment and need at least two waiver services including supports coordination. The program operates statewide through regional agencies, though waitlists vary by area.\n\nServices are individualized based on your loved one's assessed needs and include adult day health, home delivered meals, personal emergency response systems, respite care, environmental modifications, and specialized medical equipment. You must contact your regional MI Choice Waiver Agency directly, there's no central application hotline.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -69,7 +69,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional MI Choice Waiver Agency for a phone screening, followed by an in-person assessment — processing time varies by agency.",
+        "summary": "Call your regional MI Choice Waiver Agency for a phone screening, followed by an in-person assessment, processing time varies by agency.",
         "steps": [
           {
             "step": 1,
@@ -102,9 +102,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved and a slot is available, care coordination begins. If waitlisted, you'll be contacted when services become available."
           }
         ],
-        "processingTime": "Not specified — varies by regional agency",
-        "waitlist": "Exists and varies by region — some agencies may have immediate openings while others have extended wait times",
-        "tip": "Contact multiple regional agencies if you're near county borders — some may have shorter waitlists than others.",
+        "processingTime": "Not specified, varies by regional agency",
+        "waitlist": "Exists and varies by region, some agencies may have immediate openings while others have extended wait times",
+        "tip": "Contact multiple regional agencies if you're near county borders, some may have shorter waitlists than others.",
         "urls": [
           {
             "label": "Michigan DHHS MI Choice Waiver Program",
@@ -150,11 +150,11 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must contact your specific regional agency — there is no central state hotline for applications",
+        "You must contact your specific regional agency, there is no central state hotline for applications",
         "Being $1 over the income limit ($2,982 gross monthly in 2025) disqualifies your loved one entirely",
         "The 60-month look-back period means any assets given away or sold below fair market value in the last 5 years can create a penalty period",
-        "Having dementia alone doesn't guarantee approval — your loved one must need help with specific activities of daily living",
-        "Annual income and asset limits change each year based on federal rates — verify current limits when applying"
+        "Having dementia alone doesn't guarantee approval, your loved one must need help with specific activities of daily living",
+        "Annual income and asset limits change each year based on federal rates, verify current limits when applying"
       ],
       "relatedPrograms": [
         "MI Health Link (Medicare-Medicaid integration)",
@@ -397,7 +397,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs help navigating Medicare options or exploring alternatives to nursing home care, MI Options provides free person-centered counseling sessions. Because these are certified counselors who specialize in aging services, your loved one gets personalized guidance on home and community-based services, caregiver respite, transportation options, and Medicare plan selection — all in one 90-minute session with follow-up support.\n\nMI Options is open to all Michigan residents age 18 and older, including caregivers and family members. There are no income or asset limits. The program launched in 2025 and connects you to local Area Agencies on Aging and nonprofit partners statewide, but the counseling itself is always free.",
+      "intro": "If your loved one needs help navigating Medicare options or exploring alternatives to nursing home care, MI Options provides free person-centered counseling sessions. Because these are certified counselors who specialize in aging services, your loved one gets personalized guidance on home and community-based services, caregiver respite, transportation options, and Medicare plan selection, all in one 90-minute session with follow-up support.\n\nMI Options is open to all Michigan residents age 18 and older, including caregivers and family members. There are no income or asset limits. The program launched in 2025 and connects you to local Area Agencies on Aging and nonprofit partners statewide, but the counseling itself is always free.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -419,7 +419,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide number to schedule a counseling appointment — no forms or documents required upfront.",
+        "summary": "Call the statewide number to schedule a counseling appointment, no forms or documents required upfront.",
         "steps": [
           {
             "step": 1,
@@ -480,7 +480,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. MI Options is specifically designed for family caregivers and includes you as part of the counseling process. The counselor will work with both you and your loved one (as appropriate) to develop a care plan that fits your family's situation."
         },
         {
-          "question": "What if my loved one already has Medicare — can they still use this service?",
+          "question": "What if my loved one already has Medicare, can they still use this service?",
           "answer": "Absolutely. Many MI Options users already have Medicare but need help choosing between different Medicare Advantage plans, understanding Medicare supplements, or exploring what Medicare doesn't cover for long-term care. The counselors specialize in Medicare navigation."
         }
       ],
@@ -509,7 +509,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and lives in Michigan on a limited income, they may qualify for $25 in fresh produce coupons through Senior Project Fresh. Because the program runs from May through October, your loved one can use these digital coupons at farmers markets and roadside stands for Michigan-grown fruits, vegetables, herbs, mushrooms, and honey.\n\nBecause each eligible household member can apply separately, a couple could receive up to $50 in coupons. Income limit: $2,322/month for a single person or $3,151/month for a couple (2024 limits). The program also includes free nutrition counseling.\n\nThe program transitioned to a fully digital system in 2025 through the Healthy Together platform — no more paper coupons. Applications open May 1st each year and coupons expire October 31st.",
+      "intro": "If your loved one is 60+ and lives in Michigan on a limited income, they may qualify for $25 in fresh produce coupons through Senior Project Fresh. Because the program runs from May through October, your loved one can use these digital coupons at farmers markets and roadside stands for Michigan-grown fruits, vegetables, herbs, mushrooms, and honey.\n\nBecause each eligible household member can apply separately, a couple could receive up to $50 in coupons. Income limit: $2,322/month for a single person or $3,151/month for a couple (2024 limits). The program also includes free nutrition counseling.\n\nThe program transitioned to a fully digital system in 2025 through the Healthy Together platform, no more paper coupons. Applications open May 1st each year and coupons expire October 31st.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -550,7 +550,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply online through the Healthy Together platform starting May 1st — processing time not specified but program runs through October.",
+        "summary": "Apply online through the Healthy Together platform starting May 1st, processing time not specified but program runs through October.",
         "steps": [
           {
             "step": 1,
@@ -607,7 +607,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "If you need someone else to pick up or use the coupons for your loved one, they must be 18+ with written approval and identification",
-        "Income limits are updated annually based on Federal Poverty Guidelines — verify current year limits when applying"
+        "Income limits are updated annually based on Federal Poverty Guidelines, verify current year limits when applying"
       ],
       "relatedPrograms": [
         "SNAP (food benefits)",
@@ -664,7 +664,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to afford groceries on a fixed income, they may qualify for SNAP benefits (Michigan Bridge Card) but not know how to apply. MiCAFE provides free, confidential help getting eligible seniors enrolled in food assistance programs they're missing.\n\nNearly 50% of seniors eligible for SNAP aren't enrolled — that's over 160,000 Michigan seniors still facing hunger despite available help. Because medical expenses reduce countable income for SNAP eligibility, many seniors on Medicare actually qualify but never apply.\n\nMiCAFE trained specialists will assess your loved one's eligibility, help complete applications, and connect them to other programs like utility assistance and Medicare prescription drug benefits. All services are free, and they can even come to your loved one's home in some areas.",
+      "intro": "If your loved one struggles to afford groceries on a fixed income, they may qualify for SNAP benefits (Michigan Bridge Card) but not know how to apply. MiCAFE provides free, confidential help getting eligible seniors enrolled in food assistance programs they're missing.\n\nNearly 50% of seniors eligible for SNAP aren't enrolled, that's over 160,000 Michigan seniors still facing hunger despite available help. Because medical expenses reduce countable income for SNAP eligibility, many seniors on Medicare actually qualify but never apply.\n\nMiCAFE trained specialists will assess your loved one's eligibility, help complete applications, and connect them to other programs like utility assistance and Medicare prescription drug benefits. All services are free, and they can even come to your loved one's home in some areas.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -687,7 +687,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (877) 664-2233 for a free consultation — no application needed to get started.",
+        "summary": "Call (877) 664-2233 for a free consultation, no application needed to get started.",
         "steps": [
           {
             "step": 1,
@@ -712,7 +712,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Emphasize any medical expenses your loved one pays out-of-pocket — these reduce countable income and may make them eligible even if their Social Security seems too high.",
+        "tip": "Emphasize any medical expenses your loved one pays out-of-pocket, these reduce countable income and may make them eligible even if their Social Security seems too high.",
         "urls": [
           {
             "label": "MiCAFE information page",
@@ -821,7 +821,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs companionship and help with daily activities like light housekeeping, meal preparation, or getting to appointments, Senior Companion Program connects them with trained volunteers age 55+ who provide one-on-one support. Because companions are matched locally and serve 15-20 hours per week, your loved one gets consistent help from someone who understands their generation and challenges.\n\nYour loved one can receive this support whether they live independently, with family, in assisted living, or even nursing homes. The program serves adults 21+ with disabilities, chronic conditions, dementia, or social isolation across 73 of Michigan's 83 counties. There's no cost to families — volunteers receive a small tax-exempt stipend, but recipients pay nothing.",
+      "intro": "If your loved one needs companionship and help with daily activities like light housekeeping, meal preparation, or getting to appointments, Senior Companion Program connects them with trained volunteers age 55+ who provide one-on-one support. Because companions are matched locally and serve 15-20 hours per week, your loved one gets consistent help from someone who understands their generation and challenges.\n\nYour loved one can receive this support whether they live independently, with family, in assisted living, or even nursing homes. The program serves adults 21+ with disabilities, chronic conditions, dementia, or social isolation across 73 of Michigan's 83 counties. There's no cost to families, volunteers receive a small tax-exempt stipend, but recipients pay nothing.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -845,7 +845,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your regional provider for a referral — no formal application needed and matching typically happens within weeks.",
+        "summary": "Contact your regional provider for a referral, no formal application needed and matching typically happens within weeks.",
         "steps": [
           {
             "step": 1,
@@ -870,7 +870,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Contact multiple providers if you're in an area served by more than one — they may have different availability or specialties.",
+        "tip": "Contact multiple providers if you're in an area served by more than one, they may have different availability or specialties.",
         "urls": []
       },
       "documentsNeeded": null,
@@ -901,7 +901,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This program operates in 73 of 83 Michigan counties — check with providers to confirm your area is served",
+        "This program operates in 73 of 83 Michigan counties, check with providers to confirm your area is served",
         "Referrals typically come through healthcare providers, senior centers, or other agencies rather than direct family contact",
         "Volunteers must be income-eligible (200% of federal poverty level) but there are no financial requirements for care recipients"
       ],
@@ -954,7 +954,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Michigan offers 5 key programs that can help your aging loved one stay independent and reduce your family's caregiving costs. These range from comprehensive home care services (Michigan Choice Waiver) to free grocery assistance navigation (MiCAFE) to volunteer companionship. Most programs focus on seniors with limited income, but some resources like Senior Companion Program are available regardless of finances. Start by checking if your loved one qualifies for the Michigan Choice Waiver Program or MI Health Link — these provide the most comprehensive support and can save thousands in care costs. For immediate help, MiCAFE offers free assistance getting your loved one enrolled in SNAP benefits within days.",
+    "intro": "Michigan offers 5 key programs that can help your aging loved one stay independent and reduce your family's caregiving costs. These range from comprehensive home care services (Michigan Choice Waiver) to free grocery assistance navigation (MiCAFE) to volunteer companionship. Most programs focus on seniors with limited income, but some resources like Senior Companion Program are available regardless of finances. Start by checking if your loved one qualifies for the Michigan Choice Waiver Program or MI Health Link, these provide the most comprehensive support and can save thousands in care costs. For immediate help, MiCAFE offers free assistance getting your loved one enrolled in SNAP benefits within days.",
     "startHere": [
       {
         "name": "Michigan Choice Waiver Program",

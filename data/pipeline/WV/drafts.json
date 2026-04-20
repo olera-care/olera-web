@@ -95,7 +95,7 @@
           {
             "step": 4,
             "title": "Enroll in Extra Help automatically",
-            "description": "Once approved for any Medicare Savings Program, Extra Help for prescription drug costs activates automatically—no separate application needed."
+            "description": "Once approved for any Medicare Savings Program, Extra Help for prescription drug costs activates automatically, no separate application needed."
           }
         ],
         "processingTime": "QMB: 45 days or less, effective first of month after complete information received. SLMB/QI: Up to 3 months retroactive coverage if eligible",
@@ -142,7 +142,7 @@
         }
       ],
       "applicationNotes": [
-        "QI program has limited federal funding—apply early in the year for best chance of approval before funds run out",
+        "QI program has limited federal funding, apply early in the year for best chance of approval before funds run out",
         "Income disregards apply ($20 general exclusion plus other specific exclusions) which may help you qualify even if income appears slightly over limits",
         "Lump sum payments count as income only in the month received, not ongoing months",
         "Once approved for QMB, providers cannot bill your loved one for Medicare-covered services, but small Medicaid copays may apply for some services"
@@ -162,7 +162,7 @@
         {
           "type": "callout",
           "title": "Asset Limits Include Hidden Items",
-          "content": "West Virginia counts more than just bank accounts toward the $9,660/$14,470 asset limits. Annuities, certificates of deposit, stocks, and bonds all count. However, your primary home (regardless of value), one vehicle, personal belongings, and pre-paid burial contracts don't count. If your loved one has investments or annuities, get current statements showing exact values—these can push you over the limit even with low monthly income."
+          "content": "West Virginia counts more than just bank accounts toward the $9,660/$14,470 asset limits. Annuities, certificates of deposit, stocks, and bonds all count. However, your primary home (regardless of value), one vehicle, personal belongings, and pre-paid burial contracts don't count. If your loved one has investments or annuities, get current statements showing exact values, these can push you over the limit even with low monthly income."
         }
       ],
       "faqs": [
@@ -188,7 +188,7 @@
         },
         {
           "question": "Will doctors still accept my loved one's Medicare if they get QMB?",
-          "answer": "Yes, QMB doesn't change Medicare coverage—it just pays the costs your loved one would normally owe. However, providers cannot bill QMB beneficiaries for Medicare-covered services, so some providers prefer QMB patients since they're guaranteed payment with no collection issues."
+          "answer": "Yes, QMB doesn't change Medicare coverage, it just pays the costs your loved one would normally owe. However, providers cannot bill QMB beneficiaries for Medicare-covered services, so some providers prefer QMB patients since they're guaranteed payment with no collection issues."
         },
         {
           "question": "Can my loved one have Medicare Savings Programs and Medicare Advantage at the same time?",
@@ -256,7 +256,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Your loved one's physician must initiate by completing a Medical Necessity Evaluation Request, then you apply through your local DHHR office — processing involves multiple evaluations and depends on slot availability.",
+        "summary": "Your loved one's physician must initiate by completing a Medical Necessity Evaluation Request, then you apply through your local DHHR office, processing involves multiple evaluations and depends on slot availability.",
         "steps": [
           {
             "step": 1,
@@ -289,8 +289,8 @@
             "description": "If approved and a slot is available, a Case Manager will contact you within 5 days to begin coordinating services."
           }
         ],
-        "processingTime": "Timeline not specified — depends on medical evaluation, financial review, and slot availability",
-        "waitlist": "Enrollment depends on availability of funded ADW slots — waitlist length varies",
+        "processingTime": "Timeline not specified, depends on medical evaluation, financial review, and slot availability",
+        "waitlist": "Enrollment depends on availability of funded ADW slots, waitlist length varies",
         "tip": "Apply early even if your loved one doesn't need services immediately, since slots are limited and there's often a waitlist.",
         "urls": [
           {
@@ -335,10 +335,10 @@
         }
       ],
       "applicationNotes": [
-        "Your loved one's physician must initiate the process — self-referrals are not accepted",
-        "Home safety is assessed — unsafe conditions for caregivers could delay or disqualify services",
+        "Your loved one's physician must initiate the process, self-referrals are not accepted",
+        "Home safety is assessed, unsafe conditions for caregivers could delay or disqualify services",
         "Even if your loved one exceeds income limits, they may qualify through the Medically Needy Program if medical expenses consume most monthly income",
-        "Multiple organizations coordinate this program (DHHR, KEPRO, Case Management agencies) — expect coordination delays"
+        "Multiple organizations coordinate this program (DHHR, KEPRO, Case Management agencies), expect coordination delays"
       ],
       "relatedPrograms": [
         "West Virginia Medicaid",
@@ -365,7 +365,7 @@
           "answer": "The program allows applications for adults who cannot apply themselves, but you'll need proper legal authority (power of attorney or guardianship) to represent them in the application process. The physician evaluation and in-home assessment still must involve your loved one directly."
         },
         {
-          "question": "What happens if my loved one's condition gets worse after enrollment — do we need to reapply?",
+          "question": "What happens if my loved one's condition gets worse after enrollment, do we need to reapply?",
           "answer": "Once enrolled, your Case Manager monitors your loved one's needs and can adjust services based on changing conditions. You don't need to reapply, but significant changes in medical or functional status will trigger reassessments to ensure appropriate care levels."
         },
         {
@@ -412,7 +412,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay home, PACE provides everything under one roof — primary care, specialists, prescriptions, therapy, meals, transportation, and home care — all coordinated by a single team. Because PACE becomes your loved one's sole Medicare and Medicaid provider, they won't juggle multiple doctors or insurance plans anymore.\n\nMost participants qualify through Medicare and Medicaid, but private pay options exist if your loved one's income is too high for Medicaid. In West Virginia, PACE is only available through PACE Your LIFE in specific service areas — not statewide — so location determines eligibility.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay home, PACE provides everything under one roof, primary care, specialists, prescriptions, therapy, meals, transportation, and home care, all coordinated by a single team. Because PACE becomes your loved one's sole Medicare and Medicaid provider, they won't juggle multiple doctors or insurance plans anymore.\n\nMost participants qualify through Medicare and Medicaid, but private pay options exist if your loved one's income is too high for Medicaid. In West Virginia, PACE is only available through PACE Your LIFE in specific service areas, not statewide, so location determines eligibility.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical and social services",
       "savingsVerified": false,
@@ -441,7 +441,7 @@
           {
             "step": 1,
             "title": "Check service area coverage",
-            "description": "Visit paceyourlifemwv.com to confirm PACE Your LIFE serves your loved one's address — the program is not available statewide in West Virginia."
+            "description": "Visit paceyourlifemwv.com to confirm PACE Your LIFE serves your loved one's address, the program is not available statewide in West Virginia."
           },
           {
             "step": 2,
@@ -461,7 +461,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Schedule the clinical assessment as soon as possible — this is often the longest part of the enrollment process.",
+        "tip": "Schedule the clinical assessment as soon as possible, this is often the longest part of the enrollment process.",
         "urls": [
           {
             "label": "PACE Your LIFE West Virginia",
@@ -498,10 +498,10 @@
         }
       ],
       "applicationNotes": [
-        "PACE becomes your loved one's sole source of Medicare and Medicaid benefits — they cannot use other health plans simultaneously",
-        "Your loved one must be able to live safely at home at the time of enrollment — PACE is not for immediate crisis situations requiring nursing home placement",
+        "PACE becomes your loved one's sole source of Medicare and Medicaid benefits, they cannot use other health plans simultaneously",
+        "Your loved one must be able to live safely at home at the time of enrollment, PACE is not for immediate crisis situations requiring nursing home placement",
         "Private pay options may be available if your loved one's income is too high for Medicaid but they still need comprehensive care coordination",
-        "Service availability is limited to specific geographic areas — many parts of West Virginia are not covered by PACE providers"
+        "Service availability is limited to specific geographic areas, many parts of West Virginia are not covered by PACE providers"
       ],
       "relatedPrograms": [
         "West Virginia Medicaid Waiver Programs",
@@ -574,7 +574,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, SNAP provides monthly benefits loaded onto an EBT card for food purchases. West Virginia offers more flexible rules for older adults — your loved one may qualify even if their Social Security or pension puts them over standard income limits.\n\nBenefit amounts depend on household size and net income, but many seniors receive $100-300+ monthly. Because West Virginia has no asset limits under state rules, your loved one's savings account or car value won't disqualify them. The certification period lasts 24 months for households with someone 60+, meaning less frequent renewals than younger applicants face.\n\nWork requirements don't apply to anyone 60 or older. Your loved one can use SNAP benefits at most grocery stores and farmers markets, but not for alcohol, tobacco, or prepared hot foods.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, SNAP provides monthly benefits loaded onto an EBT card for food purchases. West Virginia offers more flexible rules for older adults, your loved one may qualify even if their Social Security or pension puts them over standard income limits.\n\nBenefit amounts depend on household size and net income, but many seniors receive $100-300+ monthly. Because West Virginia has no asset limits under state rules, your loved one's savings account or car value won't disqualify them. The certification period lasts 24 months for households with someone 60+, meaning less frequent renewals than younger applicants face.\n\nWork requirements don't apply to anyone 60 or older. Your loved one can use SNAP benefits at most grocery stores and farmers markets, but not for alcohol, tobacco, or prepared hot foods.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Monthly EBT benefits of $100-300+ based on household size and income",
       "savingsVerified": false,
@@ -642,7 +642,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through WV PATH or call your local DHHR office — no documents needed to start the application.",
+        "summary": "Apply online through WV PATH or call your local DHHR office, no documents needed to start the application.",
         "steps": [
           {
             "step": 1,
@@ -665,7 +665,7 @@
             "description": "If approved, you'll receive your West Virginia EBT card in the mail. Benefits are loaded monthly and can be used at most grocery stores."
           }
         ],
-        "processingTime": "Processing time varies by county office — submitting your application secures your benefit start date",
+        "processingTime": "Processing time varies by county office, submitting your application secures your benefit start date",
         "waitlist": null,
         "tip": "Submit your application first, then gather documents. Your benefit start date is protected once DHHR receives your application.",
         "urls": [
@@ -706,9 +706,9 @@
       ],
       "applicationNotes": [
         "Households with someone 60+ get 24-month certification periods instead of 12 months, meaning less frequent renewals",
-        "If your loved one's gross income exceeds 200% of poverty level, they can still qualify using only the net income test — many seniors miss this expanded eligibility",
+        "If your loved one's gross income exceeds 200% of poverty level, they can still qualify using only the net income test, many seniors miss this expanded eligibility",
         "Medical expenses over $35/month for seniors can be deducted from income, potentially increasing benefit amounts",
-        "Include everyone who buys and prepares food together in the household count — Social Security income must be reported but work requirements don't apply to anyone 60+"
+        "Include everyone who buys and prepares food together in the household count, Social Security income must be reported but work requirements don't apply to anyone 60+"
       ],
       "relatedPrograms": [
         "LIHEAP (Low Income Home Energy Assistance)",
@@ -740,7 +740,7 @@
         },
         {
           "question": "What happens when my loved one's 24-month certification period ends?",
-          "answer": "DHHR will mail renewal paperwork before the certification expires. Because seniors get 24-month periods instead of 12 months, renewals happen less frequently. Submit the renewal on time to avoid benefit interruption — you typically have 30 days to complete the renewal process."
+          "answer": "DHHR will mail renewal paperwork before the certification expires. Because seniors get 24-month periods instead of 12 months, renewals happen less frequently. Submit the renewal on time to avoid benefit interruption, you typically have 30 days to complete the renewal process."
         },
         {
           "question": "Can my loved one use SNAP benefits to buy groceries online?",
@@ -782,7 +782,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct cash payments to utility companies or vendors to cover energy costs. The program serves households with gross monthly income at or below 60% of West Virginia's median income — $1,884/month for a single person, $2,464 for two people.\n\nLIHEAP operates seasonally with regular assistance in fall and winter for heating costs, plus summer cooling assistance. Crisis LIHEAP provides emergency help when your loved one faces utility shutoff or a broken heating system. The program automatically qualifies households already receiving SNAP, TANF, or SSI Code A benefits.\n\nFunding is limited and exhausts each season, so early application is critical. West Virginia processes applications within 30 days, but benefits stop when federal funds run out — typically before winter ends.",
+      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct cash payments to utility companies or vendors to cover energy costs. The program serves households with gross monthly income at or below 60% of West Virginia's median income, $1,884/month for a single person, $2,464 for two people.\n\nLIHEAP operates seasonally with regular assistance in fall and winter for heating costs, plus summer cooling assistance. Crisis LIHEAP provides emergency help when your loved one faces utility shutoff or a broken heating system. The program automatically qualifies households already receiving SNAP, TANF, or SSI Code A benefits.\n\nFunding is limited and exhausts each season, so early application is critical. West Virginia processes applications within 30 days, but benefits stop when federal funds run out, typically before winter ends.",
       "savingsRange": "",
       "savingsSource": "Direct utility bill payment assistance",
       "savingsVerified": false,
@@ -833,7 +833,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at WV PATH, by phone at 1-800-642-8589, or at local offices — processing takes up to 30 days.",
+        "summary": "Apply online at WV PATH, by phone at 1-800-642-8589, or at local offices, processing takes up to 30 days.",
         "steps": [
           {
             "step": 1,
@@ -858,12 +858,12 @@
           {
             "step": 5,
             "title": "Receive payment notification",
-            "description": "If approved, LIHEAP sends payment directly to your utility company or heating vendor — you'll receive notification of the payment amount."
+            "description": "If approved, LIHEAP sends payment directly to your utility company or heating vendor, you'll receive notification of the payment amount."
           }
         ],
         "processingTime": "Within 30 days of receipt or program open date (whichever is later)",
-        "waitlist": "No waitlist, but funding is limited and exhausts during the season — apply early as benefits stop when funds run out",
-        "tip": "Income is calculated only from the month you apply — if your loved one receives a large Social Security payment one month, consider applying in a different month since Social Security is excluded from income calculations.",
+        "waitlist": "No waitlist, but funding is limited and exhausts during the season, apply early as benefits stop when funds run out",
+        "tip": "Income is calculated only from the month you apply, if your loved one receives a large Social Security payment one month, consider applying in a different month since Social Security is excluded from income calculations.",
         "urls": [
           {
             "label": "WV PATH Online Application",
@@ -908,10 +908,10 @@
         }
       ],
       "applicationNotes": [
-        "Crisis LIHEAP requires immediate emergency proof like disconnection notices and evaluation by DHHR worker — call your local office immediately",
+        "Crisis LIHEAP requires immediate emergency proof like disconnection notices and evaluation by DHHR worker, call your local office immediately",
         "If your loved one receives SNAP, TANF, or SSI Code A, they automatically qualify for LIHEAP income requirements",
-        "Income exclusions like Social Security and Veterans benefits can significantly change eligibility — make sure the intake worker knows about these exclusions",
-        "Applications received after funding exhausts are automatically denied, even if mailed before the deadline — apply as early in the season as possible"
+        "Income exclusions like Social Security and Veterans benefits can significantly change eligibility, make sure the intake worker knows about these exclusions",
+        "Applications received after funding exhausts are automatically denied, even if mailed before the deadline, apply as early in the season as possible"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -930,12 +930,12 @@
           "answer": "Social Security and Veterans benefits are excluded from income calculations for LIHEAP eligibility. Only count wages, unemployment benefits, and other non-excluded income. This exclusion often makes the difference between qualifying and not qualifying."
         },
         {
-          "question": "My loved one rents and utilities are included in rent — can they still get LIHEAP?",
+          "question": "My loved one rents and utilities are included in rent, can they still get LIHEAP?",
           "answer": "Your loved one must be directly responsible for paying the heating bill to qualify for LIHEAP. If utilities are included in rent and the landlord pays the utility company directly, your loved one typically cannot receive LIHEAP benefits."
         },
         {
           "question": "How late in the winter season can my loved one still apply?",
-          "answer": "Applications are accepted until funding runs out, which typically happens before winter ends. West Virginia does not maintain a waitlist — once funds are exhausted, applications are denied. Apply in early fall for the best chance of receiving benefits."
+          "answer": "Applications are accepted until funding runs out, which typically happens before winter ends. West Virginia does not maintain a waitlist, once funds are exhausted, applications are denied. Apply in early fall for the best chance of receiving benefits."
         },
         {
           "question": "Can I apply for LIHEAP on behalf of my elderly loved one?",
@@ -946,7 +946,7 @@
           "answer": "Everyone living at the same address who shares responsibility for the utility bill counts as the household. This includes spouses, adult children, and other relatives living together, even if they file separate tax returns."
         },
         {
-          "question": "My loved one's heating system broke in January — is it too late for Crisis LIHEAP?",
+          "question": "My loved one's heating system broke in January, is it too late for Crisis LIHEAP?",
           "answer": "Crisis LIHEAP operates year-round for emergencies like broken heating systems or utility shutoffs. Call your local DoHS office immediately at 1-800-642-8589. Crisis cases receive expedited processing, but you need immediate proof of the emergency."
         },
         {
@@ -985,7 +985,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills, the Weatherization Assistance Program provides free home improvements to reduce heating and cooling costs. The program covers air sealing, insulation, duct repairs, heating system tune-ups, and electrical improvements — all based on a professional energy audit of your loved one's home.\n\nYour loved one qualifies if their household income is under 200% of federal poverty guidelines: $31,300/year for one person or $42,300 for a couple in 2026. There are no asset limits, but the home must be structurally suitable for weatherization work. Households with seniors 60+, people with disabilities, or children get priority on the waitlist.\n\nThe program operates through local community action agencies in each West Virginia county. Because demand is high, eligible applicants are placed on a priority-based waitlist after approval.",
+      "intro": "If your loved one struggles with high energy bills, the Weatherization Assistance Program provides free home improvements to reduce heating and cooling costs. The program covers air sealing, insulation, duct repairs, heating system tune-ups, and electrical improvements, all based on a professional energy audit of your loved one's home.\n\nYour loved one qualifies if their household income is under 200% of federal poverty guidelines: $31,300/year for one person or $42,300 for a couple in 2026. There are no asset limits, but the home must be structurally suitable for weatherization work. Households with seniors 60+, people with disabilities, or children get priority on the waitlist.\n\nThe program operates through local community action agencies in each West Virginia county. Because demand is high, eligible applicants are placed on a priority-based waitlist after approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1035,7 +1035,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's community action agency by phone or in-person — application takes about 20 minutes but waitlist follows income verification.",
+        "summary": "Contact your county's community action agency by phone or in-person, application takes about 20 minutes but waitlist follows income verification.",
         "steps": [
           {
             "step": 1,
@@ -1070,7 +1070,7 @@
         ],
         "processingTime": "Eligibility determination after application (time-consuming due to income verification); then placed on waitlist for energy audit and services. No specific timeline given.",
         "waitlist": "Yes, all eligible applicants placed on waitlist; prioritized by points for high energy burden/use, elderly (60+), disabled, children.",
-        "tip": "If your loved one is 60+, has a disability, or you have children in the household, make sure the agency knows — you'll get priority points on the waitlist.",
+        "tip": "If your loved one is 60+, has a disability, or you have children in the household, make sure the agency knows, you'll get priority points on the waitlist.",
         "urls": [
           {
             "label": "West Virginia Community Action Directory",
@@ -1119,9 +1119,9 @@
       ],
       "applicationNotes": [
         "Priority households (elderly 60+, disabled, children, high energy burden) move faster through the waitlist than general applicants",
-        "Renters must get landlord permission before applying — the landlord form is required at application",
-        "Income verification is detailed and includes all sources — gathering complete documentation upfront speeds the process",
-        "Not all homes qualify — your dwelling must be structurally suitable for weatherization improvements"
+        "Renters must get landlord permission before applying, the landlord form is required at application",
+        "Income verification is detailed and includes all sources, gathering complete documentation upfront speeds the process",
+        "Not all homes qualify, your dwelling must be structurally suitable for weatherization improvements"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1137,7 +1137,7 @@
         },
         {
           "question": "What if my landlord won't give permission for weatherization work?",
-          "answer": "You cannot proceed without landlord permission — it's required at application. Try explaining that the improvements increase property value and reduce tenant utility complaints. If they still refuse, you're not eligible as a renter."
+          "answer": "You cannot proceed without landlord permission, it's required at application. Try explaining that the improvements increase property value and reduce tenant utility complaints. If they still refuse, you're not eligible as a renter."
         },
         {
           "question": "Can my loved one get weatherization if their house is very old or in poor condition?",
@@ -1153,7 +1153,7 @@
         },
         {
           "question": "Does the energy audit cost anything or commit us to the work?",
-          "answer": "The energy audit is free and determines what weatherization services your loved one's home needs. There's no cost for any part of the program — the audit and all resulting improvements are completely free if eligible."
+          "answer": "The energy audit is free and determines what weatherization services your loved one's home needs. There's no cost for any part of the program, the audit and all resulting improvements are completely free if eligible."
         }
       ],
       "layoutIntent": {
@@ -1213,7 +1213,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call to schedule a counseling appointment — no paperwork required upfront.",
+        "summary": "Call to schedule a counseling appointment, no paperwork required upfront.",
         "steps": [
           {
             "step": 1,
@@ -1327,7 +1327,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's Area Agency on Aging or senior center — some approve within a week, others have waitlists.",
+        "summary": "Contact your county's Area Agency on Aging or senior center, some approve within a week, others have waitlists.",
         "steps": [
           {
             "step": 1,
@@ -1350,9 +1350,9 @@
             "description": "Processing varies from within a week to several months depending on waitlists. You'll be notified when meal delivery can begin."
           }
         ],
-        "processingTime": "Varies by county — some within a week, others have extended waitlists",
+        "processingTime": "Varies by county, some within a week, others have extended waitlists",
         "waitlist": "Over 1,000 seniors statewide are on waitlists as of October 2024, with 70 waiting in McDowell County alone",
-        "tip": "Apply early if your loved one's condition is declining — waitlists are common and many counties can't serve seniors outside their delivery areas.",
+        "tip": "Apply early if your loved one's condition is declining, waitlists are common and many counties can't serve seniors outside their delivery areas.",
         "urls": [
           {
             "label": "Meals on Wheels America Provider Search",
@@ -1385,7 +1385,7 @@
         }
       ],
       "applicationNotes": [
-        "Each county runs its own program with different eligibility criteria — always confirm requirements with your specific local agency",
+        "Each county runs its own program with different eligibility criteria, always confirm requirements with your specific local agency",
         "Even if your loved one meets all requirements, they may be denied if they live outside the delivery service area",
         "Some programs disqualify applicants who own cars or can still leave home independently",
         "Fees may apply on a sliding scale based on income, though many programs accept voluntary donations instead"
@@ -1453,7 +1453,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a loved one 60+ or someone with Alzheimer's, NFCSP provides free caregiver training, respite care, and support services through local Area Agencies on Aging. Because this is a federal program administered locally, services include information sessions, stress management training, temporary respite care, and supplemental services like support groups — no income test required.\n\nThe program also serves older relatives (55+) caring for children under 18, recognizing the growing number of grandparents raising grandchildren. Services are delivered through 11 regional Area Agencies on Aging across West Virginia, though specific services and availability vary by county.",
+      "intro": "If you're caring for a loved one 60+ or someone with Alzheimer's, NFCSP provides free caregiver training, respite care, and support services through local Area Agencies on Aging. Because this is a federal program administered locally, services include information sessions, stress management training, temporary respite care, and supplemental services like support groups, no income test required.\n\nThe program also serves older relatives (55+) caring for children under 18, recognizing the growing number of grandparents raising grandchildren. Services are delivered through 11 regional Area Agencies on Aging across West Virginia, though specific services and availability vary by county.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1477,7 +1477,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging — no formal application process, services are arranged directly through regional offices.",
+        "summary": "Contact your local Area Agency on Aging, no formal application process, services are arranged directly through regional offices.",
         "steps": [
           {
             "step": 1,
@@ -1497,7 +1497,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Services vary significantly by region — some areas may have more respite options or training programs than others.",
+        "tip": "Services vary significantly by region, some areas may have more respite options or training programs than others.",
         "urls": [
           {
             "label": "West Virginia Bureau for Senior Services",
@@ -1528,8 +1528,8 @@
         }
       ],
       "applicationNotes": [
-        "This program provides services, not cash payments — if you need paid caregiver support, ask about West Virginia's Lighthouse program or VA caregiver benefits if the care recipient is a veteran",
-        "Regional differences are significant — urban areas like Charleston may have more respite providers while rural counties may focus more on training and information services"
+        "This program provides services, not cash payments, if you need paid caregiver support, ask about West Virginia's Lighthouse program or VA caregiver benefits if the care recipient is a veteran",
+        "Regional differences are significant, urban areas like Charleston may have more respite providers while rural counties may focus more on training and information services"
       ],
       "relatedPrograms": [
         "West Virginia Lighthouse Program",
@@ -1595,7 +1595,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and lives in West Virginia, they can get free legal help with issues like Medicaid applications, nursing home problems, guardianship questions, or protection from financial scams. West Virginia Senior Legal Aid provides legal information to all qualifying seniors, with enhanced services (legal advice and representation) prioritized for low-income, disabled, rural, minority, LGBT, or very elderly seniors.\n\nThe program handles civil legal matters specific to aging — long-term care disputes, public benefits appeals, age discrimination, consumer fraud, abuse or neglect cases, and guardianship issues. Because this is a separate organization from Legal Aid of West Virginia, there are no income requirements for basic services, though higher levels of help are reserved for vulnerable populations. They cannot help with criminal cases, accidents, or personal injury matters.",
+      "intro": "If your loved one is 60 or older and lives in West Virginia, they can get free legal help with issues like Medicaid applications, nursing home problems, guardianship questions, or protection from financial scams. West Virginia Senior Legal Aid provides legal information to all qualifying seniors, with enhanced services (legal advice and representation) prioritized for low-income, disabled, rural, minority, LGBT, or very elderly seniors.\n\nThe program handles civil legal matters specific to aging, long-term care disputes, public benefits appeals, age discrimination, consumer fraud, abuse or neglect cases, and guardianship issues. Because this is a separate organization from Legal Aid of West Virginia, there are no income requirements for basic services, though higher levels of help are reserved for vulnerable populations. They cannot help with criminal cases, accidents, or personal injury matters.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1735,7 +1735,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free ombudsman line at 1-800-834-0598 to be connected to your regional advocate — no application needed.",
+        "summary": "Call the toll-free ombudsman line at 1-800-834-0598 to be connected to your regional advocate, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1745,7 +1745,7 @@
           {
             "step": 2,
             "title": "Describe the problem",
-            "description": "Explain the care, safety, or rights issue your loved one is experiencing. No paperwork required — you can file complaints verbally."
+            "description": "Explain the care, safety, or rights issue your loved one is experiencing. No paperwork required, you can file complaints verbally."
           },
           {
             "step": 3,
@@ -1836,7 +1836,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives in West Virginia but earns too much to qualify for Medicaid, the Lighthouse Program can provide up to 60 hours per month of in-home care services. The program covers personal care, meal preparation, light housekeeping, and mobility assistance — designed specifically for seniors whose income disqualifies them from Medicaid but who still need daily support to stay at home.\n\nBecause Lighthouse uses a sliding fee scale based on your loved one's income, they'll pay a portion of the cost rather than receiving free services. The exact fee depends on their annual income (including spouse's income if married), but there are no asset limits — your loved one can own their home and have savings without being disqualified. A registered nurse will evaluate your loved one's functional needs to determine medical eligibility and the number of hours they'll receive.",
+      "intro": "If your loved one is 60+ and lives in West Virginia but earns too much to qualify for Medicaid, the Lighthouse Program can provide up to 60 hours per month of in-home care services. The program covers personal care, meal preparation, light housekeeping, and mobility assistance, designed specifically for seniors whose income disqualifies them from Medicaid but who still need daily support to stay at home.\n\nBecause Lighthouse uses a sliding fee scale based on your loved one's income, they'll pay a portion of the cost rather than receiving free services. The exact fee depends on their annual income (including spouse's income if married), but there are no asset limits, your loved one can own their home and have savings without being disqualified. A registered nurse will evaluate your loved one's functional needs to determine medical eligibility and the number of hours they'll receive.",
       "savingsRange": "",
       "savingsSource": "Sliding fee service based on income",
       "savingsVerified": false,
@@ -1861,7 +1861,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local county senior program to schedule a nurse evaluation — processing time varies by county and caregiver availability.",
+        "summary": "Call your local county senior program to schedule a nurse evaluation, processing time varies by county and caregiver availability.",
         "steps": [
           {
             "step": 1,
@@ -1884,9 +1884,9 @@
             "description": "Services depend on availability of county-employed caregivers in your area. Your county program will contact you when services can begin."
           }
         ],
-        "processingTime": "Not specified — varies by county and caregiver availability",
+        "processingTime": "Not specified, varies by county and caregiver availability",
         "waitlist": "Services limited by availability of caregivers in your county",
-        "tip": "Gather all income documentation before your first call — having complete financial information speeds up the fee determination process.",
+        "tip": "Gather all income documentation before your first call, having complete financial information speeds up the fee determination process.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1916,8 +1916,8 @@
         }
       ],
       "applicationNotes": [
-        "Each of West Virginia's 55 counties has its own senior program provider — you must apply through your specific county, not a central office",
-        "The sliding fee scale is determined by state schedule, but exact dollar amounts aren't publicly available — you'll learn your fee during the application process",
+        "Each of West Virginia's 55 counties has its own senior program provider, you must apply through your specific county, not a central office",
+        "The sliding fee scale is determined by state schedule, but exact dollar amounts aren't publicly available, you'll learn your fee during the application process",
         "Services are provided by county-employed caregivers, so availability varies significantly by location and staffing levels",
         "If your loved one's needs exceed 60 hours per month, ask your county program about other available services or programs"
       ],
@@ -1930,7 +1930,7 @@
       "faqs": [
         {
           "question": "How much will my loved one pay with the sliding fee scale?",
-          "answer": "The exact fee depends on your loved one's annual income (and spouse's income if married) according to a state cost share schedule. However, the specific dollar amounts aren't published publicly — you'll learn the fee amount during the application process when you provide income documentation."
+          "answer": "The exact fee depends on your loved one's annual income (and spouse's income if married) according to a state cost share schedule. However, the specific dollar amounts aren't published publicly, you'll learn the fee amount during the application process when you provide income documentation."
         },
         {
           "question": "What if my loved one owns their home and has savings?",
@@ -1938,7 +1938,7 @@
         },
         {
           "question": "Can I apply if my loved one was denied Medicaid?",
-          "answer": "Yes — Lighthouse is specifically designed for seniors who don't qualify for Medicaid programs but still need in-home support. Being ineligible for Medicaid is actually a requirement for Lighthouse."
+          "answer": "Yes, Lighthouse is specifically designed for seniors who don't qualify for Medicaid programs but still need in-home support. Being ineligible for Medicaid is actually a requirement for Lighthouse."
         },
         {
           "question": "What happens if there are no caregivers available in our county?",
@@ -2016,7 +2016,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 1-855-519-7557 to start the application process — processing time not specified but requires coordination with facility discharge planning.",
+        "summary": "Call 1-855-519-7557 to start the application process, processing time not specified but requires coordination with facility discharge planning.",
         "steps": [
           {
             "step": 1,
@@ -2039,9 +2039,9 @@
             "description": "A TMH field staff member will assess your loved one's needs and develop a comprehensive, person-centered transition plan covering housing, services, and community supports."
           }
         ],
-        "processingTime": "Processing time not specified — varies based on individual circumstances and discharge planning coordination",
+        "processingTime": "Processing time not specified, varies based on individual circumstances and discharge planning coordination",
         "waitlist": null,
-        "tip": "Housing history including evictions, bad credit, or criminal history will be assessed as it may impact successful transition — be prepared to discuss these factors openly.",
+        "tip": "Housing history including evictions, bad credit, or criminal history will be assessed as it may impact successful transition, be prepared to discuss these factors openly.",
         "urls": [
           {
             "label": "Official Take Me Home Program page",
@@ -2089,9 +2089,9 @@
         }
       ],
       "applicationNotes": [
-        "Transition cannot begin until after completing the full 90 consecutive days in the facility — Medicare rehabilitation days don't count toward this requirement",
+        "Transition cannot begin until after completing the full 90 consecutive days in the facility, Medicare rehabilitation days don't count toward this requirement",
         "Your loved one must have active Medicaid benefits on their very last day in the facility or they won't qualify",
-        "Housing challenges like past evictions or bad credit will be assessed but don't automatically disqualify — the team works to address these barriers",
+        "Housing challenges like past evictions or bad credit will be assessed but don't automatically disqualify, the team works to address these barriers",
         "The program is specifically for transitioning from institutional care, not for general elderly support in the community"
       ],
       "relatedPrograms": [
@@ -2152,7 +2152,7 @@
       "id": "visions-blind-services",
       "name": "Visually Impaired Seniors In-Home Outreach and Networking Services (VISIONS)",
       "shortName": "VISIONS",
-      "tagline": "Free in-home training to help your visually impaired loved one live independently — from cooking safely to using technology.",
+      "tagline": "Free in-home training to help your visually impaired loved one live independently, from cooking safely to using technology.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2165,7 +2165,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ with permanent vision loss and not currently working, West Virginia's VISIONS program provides free one-on-one training in their home to help them live independently. The program covers everything from safe cooking and navigation techniques to using adaptive technology and audio devices — whatever your loved one needs most.\n\nA specially trained rehabilitation counselor works with your loved one for 3–9 months, customizing the training to their specific vision level and daily challenges. Because services come to your loved one's home, they learn skills in their actual environment where they'll use them. The program includes travel training, computer access technology, braille instruction if desired, and coping strategies for adjusting to vision loss.",
+      "intro": "If your loved one is 55+ with permanent vision loss and not currently working, West Virginia's VISIONS program provides free one-on-one training in their home to help them live independently. The program covers everything from safe cooking and navigation techniques to using adaptive technology and audio devices, whatever your loved one needs most.\n\nA specially trained rehabilitation counselor works with your loved one for 3–9 months, customizing the training to their specific vision level and daily challenges. Because services come to your loved one's home, they learn skills in their actual environment where they'll use them. The program includes travel training, computer access technology, braille instruction if desired, and coping strategies for adjusting to vision loss.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2188,7 +2188,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact West Virginia Division of Rehabilitation Services directly — no formal application needed.",
+        "summary": "Contact West Virginia Division of Rehabilitation Services directly, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -2208,7 +2208,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Services are highly individualized — be specific about your loved one's biggest daily challenges when you call so the counselor can tailor the initial assessment.",
+        "tip": "Services are highly individualized, be specific about your loved one's biggest daily challenges when you call so the counselor can tailor the initial assessment.",
         "urls": [
           {
             "label": "Find your local DRS office",
@@ -2228,7 +2228,7 @@
         {
           "label": "West Virginia Division of Rehabilitation Services",
           "phone": null,
-          "description": "Rehabilitation counselors specializing in blind and visually impaired services — visit website for local office numbers",
+          "description": "Rehabilitation counselors specializing in blind and visually impaired services, visit website for local office numbers",
           "hours": "Business hours vary by office"
         },
         {
@@ -2256,7 +2256,7 @@
           "answer": "Yes, VISIONS serves people with varying degrees of vision loss, not just total blindness. The key requirement is permanent vision loss that impacts daily living, regardless of whether some sight remains. The rehabilitation counselor will assess your loved one's functional vision level during the initial consultation."
         },
         {
-          "question": "What if my loved one is currently working part-time — are they still eligible?",
+          "question": "What if my loved one is currently working part-time, are they still eligible?",
           "answer": "No, VISIONS specifically serves seniors who are not working. However, your loved one may be eligible for other DRS vision services designed for people who are employed. Contact DRS to discuss alternative programs that might fit their situation."
         },
         {
@@ -2268,7 +2268,7 @@
           "answer": "While the program focuses on training your loved one directly, rehabilitation counselors often include family members in sessions when it helps support the person's independence goals. Discuss this with the counselor during the initial assessment to determine what level of family involvement would be most beneficial."
         },
         {
-          "question": "What if my loved one lives in a rural area — will services still come to their home?",
+          "question": "What if my loved one lives in a rural area, will services still come to their home?",
           "answer": "Yes, VISIONS provides in-home services statewide throughout West Virginia, including rural areas. DRS has specially trained rehabilitation counselors available across the state, though scheduling may take longer in very remote locations."
         },
         {
@@ -2311,7 +2311,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs home modifications to stay safely in their house, West Virginia provides grants up to $3,000 for wheelchair ramps, bathroom grab bars, stair lifts, and assistive technology. Because the program covers both home modifications and durable medical equipment, your loved one can use one application for multiple safety improvements — from a walk-in shower conversion to voice-activated emergency devices.\n\nThe grant requires pre-approval with detailed contractor estimates and photos before and after completion. Because there are no income or asset limits mentioned in the program guidelines, eligibility focuses on demonstrating the need for modifications to age in place safely. The program operates statewide through West Virginia's Aging & Disability Resource Center, which coordinates applications and payments directly to approved contractors.\n\nMost applications involve licensed contractors for structural changes like ramps or bathroom modifications, but the program also covers assistive devices and technology that don't require installation. Your loved one must be a West Virginia resident and show how the requested modifications will help them live more independently at home.",
+      "intro": "If your loved one is 60+ and needs home modifications to stay safely in their house, West Virginia provides grants up to $3,000 for wheelchair ramps, bathroom grab bars, stair lifts, and assistive technology. Because the program covers both home modifications and durable medical equipment, your loved one can use one application for multiple safety improvements, from a walk-in shower conversion to voice-activated emergency devices.\n\nThe grant requires pre-approval with detailed contractor estimates and photos before and after completion. Because there are no income or asset limits mentioned in the program guidelines, eligibility focuses on demonstrating the need for modifications to age in place safely. The program operates statewide through West Virginia's Aging & Disability Resource Center, which coordinates applications and payments directly to approved contractors.\n\nMost applications involve licensed contractors for structural changes like ramps or bathroom modifications, but the program also covers assistive devices and technology that don't require installation. Your loved one must be a West Virginia resident and show how the requested modifications will help them live more independently at home.",
       "savingsRange": "Up to $3,000 in 2026",
       "savingsSource": "Maximum grant amount per WV ADRC program guidelines",
       "savingsVerified": true,
@@ -2334,7 +2334,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Download application online or call 866-981-2372 — processing time not specified, but requires contractor estimates and pre-approval before work begins.",
+        "summary": "Download application online or call 866-981-2372, processing time not specified, but requires contractor estimates and pre-approval before work begins.",
         "steps": [
           {
             "step": 1,
@@ -2369,7 +2369,7 @@
         ],
         "processingTime": "Not specified in program guidelines",
         "waitlist": null,
-        "tip": "Get contractor estimates before applying — the application requires detailed cost breakdowns and proof the contractor is licensed and insured.",
+        "tip": "Get contractor estimates before applying, the application requires detailed cost breakdowns and proof the contractor is licensed and insured.",
         "urls": [
           {
             "label": "Download Application",
@@ -2403,10 +2403,10 @@
         }
       ],
       "applicationNotes": [
-        "Do not begin any work until you receive written approval — starting work early can disqualify the application for payment",
+        "Do not begin any work until you receive written approval, starting work early can disqualify the application for payment",
         "Contractor estimates must exclude sales tax as the state does not pay tax on grant-funded modifications",
-        "Both 'before' and 'after' photos are required for payment processing — take detailed photos of the work area",
-        "Payment goes directly to the contractor after work completion and photo verification — recipients do not handle the money directly"
+        "Both 'before' and 'after' photos are required for payment processing, take detailed photos of the work area",
+        "Payment goes directly to the contractor after work completion and photo verification, recipients do not handle the money directly"
       ],
       "relatedPrograms": [
         "WV Medicaid Waiver Programs",
@@ -2437,7 +2437,7 @@
           "answer": "Processing time isn't specified in program materials, but you must wait for written approval before starting work, then submit completion photos for final payment. The timeline depends on application review speed and contractor availability."
         },
         {
-          "question": "What if we need modifications that cost less than $1,000 — is there a minimum grant amount?",
+          "question": "What if we need modifications that cost less than $1,000, is there a minimum grant amount?",
           "answer": "No minimum grant amount is specified. The program provides grants up to $3,000, so smaller modifications like grab bars or threshold ramps under $1,000 should qualify if they meet the independence and safety criteria."
         }
       ],
@@ -2457,7 +2457,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "West Virginia offers 15 programs specifically designed to help seniors stay independent and reduce costs for their families. These range from direct financial assistance (like $100-300+ monthly grocery benefits through SNAP) to specialized services (like free in-home care training for visually impaired seniors). Most programs target seniors with limited income — typically below $1,884-2,152/month for a single person — but several valuable resources like Medicare counseling and legal aid are available regardless of income. Start by checking the three high-impact programs below, then explore options by your specific need.",
+    "intro": "West Virginia offers 15 programs specifically designed to help seniors stay independent and reduce costs for their families. These range from direct financial assistance (like $100-300+ monthly grocery benefits through SNAP) to specialized services (like free in-home care training for visually impaired seniors). Most programs target seniors with limited income, typically below $1,884-2,152/month for a single person, but several valuable resources like Medicare counseling and legal aid are available regardless of income. Start by checking the three high-impact programs below, then explore options by your specific need.",
     "startHere": [
       {
         "name": "Medicaid Medicare Savings Programs",
@@ -2472,7 +2472,7 @@
       {
         "name": "SHIP",
         "programId": "ship",
-        "why": "Free Medicare counseling helps prevent overpaying for coverage — available to all seniors regardless of income."
+        "why": "Free Medicare counseling helps prevent overpaying for coverage, available to all seniors regardless of income."
       }
     ],
     "byNeed": [
@@ -2529,7 +2529,7 @@
     ],
     "quickFacts": [
       "Most West Virginia senior benefit programs use income limits between $1,884-2,152/month for single seniors",
-      "Several programs require meeting 'Nursing Facility Level of Care' — a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication",
+      "Several programs require meeting 'Nursing Facility Level of Care', a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication",
       "Free resources like Medicare counseling (SHIP) and legal aid are available to all West Virginia seniors regardless of income",
       "West Virginia's Lighthouse Program specifically helps seniors who earn too much for Medicaid but still need in-home care"
     ],

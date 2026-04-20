@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.083Z
+ * Last updated: 2026-04-20T23:39:07.851Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs help with daily activities like bathing or dressing, or if they're on a low income without Medicare, Diamond State Health Plan provides comprehensive health coverage through Delaware's Medicaid program. DSHP-Plus covers seniors who meet nursing home level care requirements but want to stay home — including doctor visits, prescriptions, home health services, and long-term care support.\n\nThe program has two tiers: standard DSHP for low-income adults under 100% Federal Poverty Level (about $1,255/month), and DSHP-Plus for seniors needing long-term care with income up to $2,485/month. Because this is managed care, your loved one must enroll with a specific health plan (MCO) to receive any services — coverage doesn't begin until enrollment is complete.",
+      "intro": "If your loved one needs help with daily activities like bathing or dressing, or if they're on a low income without Medicare, Diamond State Health Plan provides comprehensive health coverage through Delaware's Medicaid program. DSHP-Plus covers seniors who meet nursing home level care requirements but want to stay home, including doctor visits, prescriptions, home health services, and long-term care support.\n\nThe program has two tiers: standard DSHP for low-income adults under 100% Federal Poverty Level (about $1,255/month), and DSHP-Plus for seniors needing long-term care with income up to $2,485/month. Because this is managed care, your loved one must enroll with a specific health plan (MCO) to receive any services, coverage doesn't begin until enrollment is complete.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -54,7 +54,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care — requiring assistance with at least one daily activity like bathing, dressing, mobility, toileting, eating, or transferring. Assessed through Pre-Admission Screening (PAS).",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care, requiring assistance with at least one daily activity like bathing, dressing, mobility, toileting, eating, or transferring. Assessed through Pre-Admission Screening (PAS).",
         "otherRequirements": [
           "Delaware resident",
           "Not eligible for Medicare",
@@ -65,7 +65,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Delaware's Medicaid portal or call 1-800-372-2022 — processing time not specified but requires clinical assessment for DSHP-Plus.",
+        "summary": "Apply online through Delaware's Medicaid portal or call 1-800-372-2022, processing time not specified but requires clinical assessment for DSHP-Plus.",
         "steps": [
           {
             "step": 1,
@@ -95,7 +95,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified in official sources",
         "waitlist": null,
-        "tip": "For DSHP-Plus, gather medical records showing daily assistance needs before applying — dementia diagnosis alone isn't sufficient without functional assessment.",
+        "tip": "For DSHP-Plus, gather medical records showing daily assistance needs before applying, dementia diagnosis alone isn't sufficient without functional assessment.",
         "urls": [
           {
             "label": "Delaware Medicaid Application",
@@ -134,10 +134,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must enroll in a managed care organization (MCO) to receive any benefits — approval alone doesn't provide coverage",
-        "DSHP-Plus applicants keep only $75/month for personal needs — most income goes to the state to offset care costs",
+        "You must enroll in a managed care organization (MCO) to receive any benefits, approval alone doesn't provide coverage",
+        "DSHP-Plus applicants keep only $75/month for personal needs, most income goes to the state to offset care costs",
         "If your loved one's home equity exceeds $752,000, they may be disqualified even if other assets are under $2,000",
-        "Medicare-eligible individuals cannot enroll in DSHP — they need different Medicaid programs"
+        "Medicare-eligible individuals cannot enroll in DSHP, they need different Medicaid programs"
       ],
       "relatedPrograms": [
         "Delaware SNAP (food assistance)",
@@ -161,7 +161,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long after approval before my loved one gets coverage?",
-          "answer": "Coverage doesn't begin until your loved one enrolls with a managed care organization like Highmark Health Options or Delaware First Health. Approval for DSHP alone provides no benefits — the MCO enrollment is required."
+          "answer": "Coverage doesn't begin until your loved one enrolls with a managed care organization like Highmark Health Options or Delaware First Health. Approval for DSHP alone provides no benefits, the MCO enrollment is required."
         },
         {
           "question": "What happens to my loved one's Social Security check if they get DSHP-Plus?",
@@ -169,7 +169,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one switch MCOs if they don't like their health plan?",
-          "answer": "Contact the Delaware Medicaid office at 1-800-372-2022 to ask about changing MCOs. Availability varies — some plans may have immediate openings while others maintain waitlists."
+          "answer": "Contact the Delaware Medicaid office at 1-800-372-2022 to ask about changing MCOs. Availability varies, some plans may have immediate openings while others maintain waitlists."
         }
       ],
       "layoutIntent": {
@@ -207,7 +207,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Delaware's DSAAPD waivers can provide personal care services, case management, and assistive devices — all covered by Medicaid. Your loved one gets help with daily activities like bathing, dressing, toileting, and medication management from trained caregivers who come to their home.\n\nBecause this is a Medicaid waiver program, your loved one must first qualify for Medicaid and meet nursing home level of care requirements (needing daily help with multiple activities of daily living). The program covers Delaware residents age 60+ or younger adults 18-59 who meet stricter financial and medical criteria. Services include personal care attendants, respite care for family caregivers, assistive devices like shower chairs and ramps, and case management to coordinate all care.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Delaware's DSAAPD waivers can provide personal care services, case management, and assistive devices, all covered by Medicaid. Your loved one gets help with daily activities like bathing, dressing, toileting, and medication management from trained caregivers who come to their home.\n\nBecause this is a Medicaid waiver program, your loved one must first qualify for Medicaid and meet nursing home level of care requirements (needing daily help with multiple activities of daily living). The program covers Delaware residents age 60+ or younger adults 18-59 who meet stricter financial and medical criteria. Services include personal care attendants, respite care for family caregivers, assistive devices like shower chairs and ramps, and case management to coordinate all care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -245,7 +245,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-223-9074 for intake — processing time varies but you must qualify for Medicaid first.",
+        "summary": "Call 800-223-9074 for intake, processing time varies but you must qualify for Medicaid first.",
         "steps": [
           {
             "step": 1,
@@ -255,7 +255,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Apply for Medicaid",
-            "description": "Complete Medicaid application since waiver eligibility requires Medicaid qualification — this is handled through Division of Medicaid and Medical Assistance (DMMA)."
+            "description": "Complete Medicaid application since waiver eligibility requires Medicaid qualification, this is handled through Division of Medicaid and Medical Assistance (DMMA)."
           },
           {
             "step": 3,
@@ -270,7 +270,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start the Medicaid application process early — waiver services can't begin until Medicaid eligibility is confirmed.",
+        "tip": "Start the Medicaid application process early, waiver services can't begin until Medicaid eligibility is confirmed.",
         "urls": [
           {
             "label": "DSAAPD Official Site",
@@ -311,7 +311,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Ages 18-59 face stricter financial and medical criteria than applicants 60 and older",
         "If assets exceed $2,000, you may need to establish an irrevocable trust before qualifying",
-        "Different waivers available (Elderly & Disabled, Assisted Living, Acquired Brain Injury) — intake will determine which fits your loved one's needs",
+        "Different waivers available (Elderly & Disabled, Assisted Living, Acquired Brain Injury), intake will determine which fits your loved one's needs",
         "Assisted living waiver coverage requires the facility to be licensed and offer covered services"
       ],
       "relatedPrograms": [
@@ -348,7 +348,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for DSAAPD waivers and PACE at the same time?",
-          "answer": "No — these are different Medicaid programs that serve similar populations. The intake coordinator will help determine which program best fits your loved one's needs and preferences."
+          "answer": "No, these are different Medicaid programs that serve similar populations. The intake coordinator will help determine which program best fits your loved one's needs and preferences."
         },
         {
           "question": "What happens if we move out of Delaware?",
@@ -385,7 +385,7 @@ export const drafts: PipelineStateDrafts = {
             "type": "service-area"
           },
           {
-            "name": "Saint Francis LIFE (Trinity Health PACE) — serves specific Delaware service area zip codes",
+            "name": "Saint Francis LIFE (Trinity Health PACE), serves specific Delaware service area zip codes",
             "type": "service-area"
           },
           {
@@ -394,7 +394,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical care, medications, and services through one coordinated team — with no co-pays or deductibles ever. Because PACE covers everything from doctor visits to prescription drugs to transportation under one program, your loved one won't need to coordinate between separate providers or worry about Medicare gaps.\n\nPACE requires that your loved one be certified as needing nursing home level of care (extensive assistance with daily activities like bathing, grooming, toileting, walking, transferring, and eating) but be able to live safely in the community with support. There are no income or asset limits for PACE eligibility itself, though most participants also qualify for Medicaid coverage. PACE is only available in specific service areas within Delaware — you must live in an approved PACE service area to enroll.",
+      "intro": "If your loved one is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical care, medications, and services through one coordinated team, with no co-pays or deductibles ever. Because PACE covers everything from doctor visits to prescription drugs to transportation under one program, your loved one won't need to coordinate between separate providers or worry about Medicare gaps.\n\nPACE requires that your loved one be certified as needing nursing home level of care (extensive assistance with daily activities like bathing, grooming, toileting, walking, transferring, and eating) but be able to live safely in the community with support. There are no income or asset limits for PACE eligibility itself, though most participants also qualify for Medicaid coverage. PACE is only available in specific service areas within Delaware, you must live in an approved PACE service area to enroll.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive medical service",
       "savingsVerified": true,
@@ -422,7 +422,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by the state as needing nursing home level of care — requiring extensive assistance with Activities of Daily Living: bathing, grooming, toileting, walking, transferring, eating",
+        "functionalRequirement": "Must be certified by the state as needing nursing home level of care, requiring extensive assistance with Activities of Daily Living: bathing, grooming, toileting, walking, transferring, eating",
         "otherRequirements": [
           "Must be able to live safely in the community with PACE services",
           "Must reside in an approved PACE service area",
@@ -433,7 +433,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your local PACE provider directly for an intake visit — processing includes home visit, clinical assessment, and state certification.",
+        "summary": "Contact your local PACE provider directly for an intake visit, processing includes home visit, clinical assessment, and state certification.",
         "steps": [
           {
             "step": 1,
@@ -461,9 +461,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, your loved one will be enrolled and begin receiving all services through the PACE interdisciplinary team."
           }
         ],
-        "processingTime": "Processing timeline varies by provider — contact your local PACE organization for specific timeline",
-        "waitlist": "Waitlist status varies by provider and service area — ask about current availability when you call",
-        "tip": "Verify your loved one's zip code is in a PACE service area before starting the application process — not all of Delaware is covered.",
+        "processingTime": "Processing timeline varies by provider, contact your local PACE organization for specific timeline",
+        "waitlist": "Waitlist status varies by provider and service area, ask about current availability when you call",
+        "tip": "Verify your loved one's zip code is in a PACE service area before starting the application process, not all of Delaware is covered.",
         "urls": []
       },
       "documentsNeeded": [
@@ -501,7 +501,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must be living in the community at enrollment — if your loved one is already in a nursing home, they may not qualify for PACE",
+        "You must be living in the community at enrollment, if your loved one is already in a nursing home, they may not qualify for PACE",
         "PACE is all-or-nothing: once enrolled, your loved one must receive all services exclusively through the PACE organization and cannot use other providers",
         "If your loved one doesn't qualify for Medicaid, they can still enroll as a private-pay participant with a flat monthly premium",
         "Moving out of the PACE service area for more than 30 consecutive days without prior arrangement can result in disenrollment"
@@ -516,7 +516,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one keep their current doctors if they enroll in PACE?",
-          "answer": "No. PACE requires exclusive enrollment — your loved one must receive all medical care through the PACE interdisciplinary team and cannot use outside providers. This includes primary care, specialists, medications, and all other services."
+          "answer": "No. PACE requires exclusive enrollment, your loved one must receive all medical care through the PACE interdisciplinary team and cannot use outside providers. This includes primary care, specialists, medications, and all other services."
         },
         {
           "question": "What if my loved one lives in Delaware but their zip code isn't covered by PACE?",
@@ -578,7 +578,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or co-pays, Delaware may cover these costs entirely. The state offers two levels of help: QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for people with income under $1,325/month, while SLMB (Specified Low-Income Medicare Beneficiary) covers just the Part B premium for those earning $1,325–$1,585/month.\n\nUnlike most states, Delaware has no asset test — your loved one can own their home, have savings, or other assets and still qualify. The only requirement is low income and existing Medicare coverage. Because Delaware pays providers directly, your loved one cannot be billed for Medicare-covered services beyond what Medicare allows.\n\nThis isn't additional Medicaid coverage — it's specifically Medicare cost-sharing help. Your loved one keeps their existing Medicare benefits and providers, but Delaware eliminates the financial burden of premiums, deductibles, and co-payments.",
+      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or co-pays, Delaware may cover these costs entirely. The state offers two levels of help: QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for people with income under $1,325/month, while SLMB (Specified Low-Income Medicare Beneficiary) covers just the Part B premium for those earning $1,325–$1,585/month.\n\nUnlike most states, Delaware has no asset test, your loved one can own their home, have savings, or other assets and still qualify. The only requirement is low income and existing Medicare coverage. Because Delaware pays providers directly, your loved one cannot be billed for Medicare-covered services beyond what Medicare allows.\n\nThis isn't additional Medicaid coverage, it's specifically Medicare cost-sharing help. Your loved one keeps their existing Medicare benefits and providers, but Delaware eliminates the financial burden of premiums, deductibles, and co-payments.",
       "savingsRange": "$1,800 – $4,200/year in 2025",
       "savingsSource": "Medicare Part B premium ($174.70/month) plus typical deductibles and co-pays",
       "savingsVerified": true,
@@ -612,7 +612,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Delaware ASSIST or call 1-800-852-9089 — processing typically takes 45 days.",
+        "summary": "Apply online through Delaware ASSIST or call 1-800-852-9089, processing typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -635,9 +635,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, show your new QMB or SLMB card to Medicare providers. They cannot bill you for covered services beyond what Medicare allows."
           }
         ],
-        "processingTime": "Typically 45 days — eligibility is not retroactive",
+        "processingTime": "Typically 45 days, eligibility is not retroactive",
         "waitlist": null,
-        "tip": "Delaware's no-asset-test policy means you don't need to document savings accounts, home value, or investments — focus on gathering income proof.",
+        "tip": "Delaware's no-asset-test policy means you don't need to document savings accounts, home value, or investments, focus on gathering income proof.",
         "urls": [
           {
             "label": "Delaware ASSIST Online Application",
@@ -672,10 +672,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits are updated annually — current limits apply through March 2025, then new federal poverty guidelines take effect",
+        "Income limits are updated annually, current limits apply through March 2025, then new federal poverty guidelines take effect",
         "If your loved one has Social Security income, revised poverty levels apply starting April 1st each year rather than February 1st",
-        "Providers are federally prohibited from billing QMB recipients for Medicare-covered services — if this happens, contact DMMA immediately",
-        "QMB and SLMB only provide Medicare cost-sharing help — your loved one cannot receive full Medicaid services while enrolled"
+        "Providers are federally prohibited from billing QMB recipients for Medicare-covered services, if this happens, contact DMMA immediately",
+        "QMB and SLMB only provide Medicare cost-sharing help, your loved one cannot receive full Medicaid services while enrolled"
       ],
       "relatedPrograms": [
         "Medicare Savings Programs",
@@ -691,7 +691,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between QMB and SLMB coverage?",
-          "answer": "QMB covers everything: Part A premiums (if any), Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services. SLMB only covers the Part B premium ($174.70/month in 2025) — your loved one still pays deductibles and co-pays."
+          "answer": "QMB covers everything: Part A premiums (if any), Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services. SLMB only covers the Part B premium ($174.70/month in 2025), your loved one still pays deductibles and co-pays."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -703,7 +703,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will this affect my loved one's other benefits or Medicare coverage?",
-          "answer": "No. QMB/SLMB supplements existing Medicare — same doctors, same coverage, just Delaware pays the bills. It won't affect Social Security, pensions, or other benefits. However, you cannot receive full Medicaid services while enrolled."
+          "answer": "No. QMB/SLMB supplements existing Medicare, same doctors, same coverage, just Delaware pays the bills. It won't affect Social Security, pensions, or other benefits. However, you cannot receive full Medicaid services while enrolled."
         },
         {
           "question": "How long does approval last?",
@@ -715,7 +715,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get QMB or SLMB if they have a Medicare Advantage plan?",
-          "answer": "Yes, as long as they're entitled to Medicare Part A. The benefits work the same way — Delaware pays the Medicare costs whether your loved one has Original Medicare or Medicare Advantage."
+          "answer": "Yes, as long as they're entitled to Medicare Part A. The benefits work the same way, Delaware pays the Medicare costs whether your loved one has Original Medicare or Medicare Advantage."
         }
       ],
       "layoutIntent": {
@@ -749,7 +749,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–291/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states — up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions — typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–291/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states, up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions, typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
       "savingsRange": "$1,200 – $3,492/year in 2026",
       "savingsSource": "Maximum monthly SNAP benefits: $291 for 1-person household, $535 for 2-person household",
       "savingsVerified": true,
@@ -806,7 +806,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mybenefits.delaware.gov or call your local DSS office — decision within 30 days, expedited benefits within 7 days if income is very low.",
+        "summary": "Apply online at mybenefits.delaware.gov or call your local DSS office, decision within 30 days, expedited benefits within 7 days if income is very low.",
         "steps": [
           {
             "step": 1,
@@ -816,7 +816,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule interview",
-            "description": "DSS will contact you within a few days to schedule a phone interview. Seniors can always do phone interviews — no need to visit an office."
+            "description": "DSS will contact you within a few days to schedule a phone interview. Seniors can always do phone interviews, no need to visit an office."
           },
           {
             "step": 3,
@@ -836,7 +836,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days for standard applications, 7 days for expedited benefits if household has very low income or high expenses",
         "waitlist": null,
-        "tip": "SSI recipients are automatically eligible — mention SSI status when applying to speed up the process",
+        "tip": "SSI recipients are automatically eligible, mention SSI status when applying to speed up the process",
         "urls": [
           {
             "label": "Delaware SNAP Online Application",
@@ -884,7 +884,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Expedited SNAP benefits (within 7 days) are available if gross monthly income is under $150 and liquid resources under $100, or if monthly shelter costs exceed monthly income and resources combined",
-        "Phone interviews are standard for seniors — no need to travel to a DSS office unless you prefer in-person meetings",
+        "Phone interviews are standard for seniors, no need to travel to a DSS office unless you prefer in-person meetings",
         "All household members who live together and buy/prepare food together must be included in the application, including adult children living at home",
         "Delaware's 12-month certification period for senior households means less frequent renewals compared to younger applicants who may need to reapply every 6 months"
       ],
@@ -909,7 +909,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, if your loved one designates you as their authorized representative. You'll need to complete a form during the application process and can handle the interview and ongoing communication with DSS on their behalf."
         },
         {
-          "question": "What if my loved one gets SSI — do they automatically qualify for SNAP?",
+          "question": "What if my loved one gets SSI, do they automatically qualify for SNAP?",
           "answer": "Yes, SSI recipients are categorically eligible for SNAP regardless of other income. The DSS worker should fast-track the application when you mention SSI status, though an interview and some documentation are still required."
         },
         {
@@ -964,7 +964,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct grants to help cover energy costs. Delaware households earning up to $3,278/month (single person) or $4,287/month (couple) can receive $100–$2,561 for heating assistance, plus up to $1,000 for cooling and $10,000 for energy emergencies like shut-off notices.\n\nBecause funding is limited and distributed first-come-first-served, applications often close before the season ends — even though heating season runs October through March. Priority goes to households with someone 60 or older, disabled family members, or children under 5.\n\nThe program covers all common heating fuels (electricity, natural gas, oil, propane, wood) and works for both homeowners and renters. Grants are paid either directly to your loved one or to their utility company to reduce bills.",
+      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct grants to help cover energy costs. Delaware households earning up to $3,278/month (single person) or $4,287/month (couple) can receive $100–$2,561 for heating assistance, plus up to $1,000 for cooling and $10,000 for energy emergencies like shut-off notices.\n\nBecause funding is limited and distributed first-come-first-served, applications often close before the season ends, even though heating season runs October through March. Priority goes to households with someone 60 or older, disabled family members, or children under 5.\n\nThe program covers all common heating fuels (electricity, natural gas, oil, propane, wood) and works for both homeowners and renters. Grants are paid either directly to your loved one or to their utility company to reduce bills.",
       "savingsRange": "$100 – $2,561/year in 2026",
       "savingsSource": "Delaware LIHEAP heating assistance grants, with average of $553/year",
       "savingsVerified": true,
@@ -1012,7 +1012,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Catholic Charities or call (302) 255-9875 — but apply early because funding runs out before seasons end.",
+        "summary": "Apply online through Catholic Charities or call (302) 255-9875, but apply early because funding runs out before seasons end.",
         "steps": [
           {
             "step": 1,
@@ -1035,7 +1035,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "If your loved one has a shut-off notice or energy emergency, include that documentation for expedited crisis assistance up to $10,000."
           }
         ],
-        "processingTime": "Not specified — first-come-first-served until funds are exhausted",
+        "processingTime": "Not specified, first-come-first-served until funds are exhausted",
         "waitlist": "Applications may close early when funds run out, even before heating season ends in March",
         "tip": "Apply as early as possible when the season opens. Heating assistance opens in October, cooling in May, and crisis assistance is year-round.",
         "urls": [
@@ -1068,7 +1068,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Applications stop when funds run out — this often happens before heating season ends in March",
+        "Applications stop when funds run out, this often happens before heating season ends in March",
         "Households are defined as everyone sharing the utility bill, which may differ from SNAP or other program definitions",
         "Priority processing goes to elderly (60+), disabled individuals, and families with children 5 and under",
         "Crisis assistance requires proof of emergency like a shut-off notice but is available year-round"
@@ -1081,7 +1081,7 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [
         {
           "type": "callout",
-          "title": "Apply Early — Funding Runs Out",
+          "title": "Apply Early, Funding Runs Out",
           "content": "LIHEAP operates on first-come-first-served basis with limited annual funding. Applications often close before the official season ends, even though heating assistance is supposed to run October through March. Don't wait if your loved one qualifies."
         }
       ],
@@ -1112,7 +1112,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How does being over 60 help with priority processing?",
-          "answer": "Households with elderly members (60+), disabled individuals, or children under 5 get priority when applications are processed. This matters because funding is limited and distributed first-come-first-served — priority status helps ensure your loved one's application gets reviewed before funds run out."
+          "answer": "Households with elderly members (60+), disabled individuals, or children under 5 get priority when applications are processed. This matters because funding is limited and distributed first-come-first-served, priority status helps ensure your loved one's application gets reviewed before funds run out."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one who can't manage the paperwork?",
@@ -1158,7 +1158,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating and cooling bills, Delaware's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program covers air sealing, insulation, heating system repairs, window and door replacement, and other weatherization measures based on a professional energy audit of your loved one's home.\n\nBoth homeowners and renters can qualify if household income falls below $30,120 for a single person or $40,880 for a couple. Because funding is limited, eligible households are placed on a waiting list and prioritized by need, with elderly residents receiving some priority consideration. Your loved one must live in a single-family home, townhome, or mobile home — apartments and condos are not eligible even if owned.",
+      "intro": "If your loved one struggles with high heating and cooling bills, Delaware's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program covers air sealing, insulation, heating system repairs, window and door replacement, and other weatherization measures based on a professional energy audit of your loved one's home.\n\nBoth homeowners and renters can qualify if household income falls below $30,120 for a single person or $40,880 for a couple. Because funding is limited, eligible households are placed on a waiting list and prioritized by need, with elderly residents receiving some priority consideration. Your loved one must live in a single-family home, townhome, or mobile home, apartments and condos are not eligible even if owned.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1244,8 +1244,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified; applicants placed on waiting list after eligibility determination",
-        "waitlist": "Yes — after deemed eligible, households are placed on waiting list prioritized by need, age, and special needs. Not all applicants served each year. Must reapply annually if not served within 12 months.",
-        "tip": "If you rent, get landlord permission in writing before applying — this is often the biggest barrier for renters.",
+        "waitlist": "Yes, after deemed eligible, households are placed on waiting list prioritized by need, age, and special needs. Not all applicants served each year. Must reapply annually if not served within 12 months.",
+        "tip": "If you rent, get landlord permission in writing before applying, this is often the biggest barrier for renters.",
         "urls": [
           {
             "label": "Apply online through Energy Coordinating Agency",
@@ -1289,7 +1289,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If not served within 12 months, you must reapply annually to maintain eligibility — applications do not automatically carry over",
+        "If not served within 12 months, you must reapply annually to maintain eligibility, applications do not automatically carry over",
         "Multi-family homes (apartments, condos) are not eligible even if your loved one owns their unit",
         "A Pre-WAP program exists for homes that need roof, window, or masonry repairs before qualifying for full weatherization services"
       ],
@@ -1356,7 +1356,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Medicare, they can get free one-on-one counseling to help with billing disputes, enrollment questions, and protection from Medicare fraud. Delaware Senior Medicare Patrol provides trained counselors who review Medicare statements, explain coverage options, and help report suspicious billing.\n\nBecause Medicare fraud costs billions annually and can leave seniors paying for services they never received, this program teaches your loved one how to spot errors on their Medicare Summary Notice (MSN) and Explanation of Benefits (EOB). The service is available to all Medicare beneficiaries, family members, and caregivers in Delaware — no income limits or financial tests apply.\n\nThe program also offers community presentations, health fair education, and the My Health Care Tracker tool to help organize medical statements. You can reach a Delaware counselor immediately by phone Monday through Friday, 9am to 5:30pm.",
+      "intro": "If your loved one has Medicare, they can get free one-on-one counseling to help with billing disputes, enrollment questions, and protection from Medicare fraud. Delaware Senior Medicare Patrol provides trained counselors who review Medicare statements, explain coverage options, and help report suspicious billing.\n\nBecause Medicare fraud costs billions annually and can leave seniors paying for services they never received, this program teaches your loved one how to spot errors on their Medicare Summary Notice (MSN) and Explanation of Benefits (EOB). The service is available to all Medicare beneficiaries, family members, and caregivers in Delaware, no income limits or financial tests apply.\n\nThe program also offers community presentations, health fair education, and the My Health Care Tracker tool to help organize medical statements. You can reach a Delaware counselor immediately by phone Monday through Friday, 9am to 5:30pm.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1398,7 +1398,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate phone counseling available; individualized assistance begins upon contact",
         "waitlist": null,
-        "tip": "Have your loved one's Medicare statements and Medicare card ready when you call — this helps counselors review specific billing questions.",
+        "tip": "Have your loved one's Medicare statements and Medicare card ready when you call, this helps counselors review specific billing questions.",
         "urls": [
           {
             "label": "SMP National Locator",
@@ -1433,10 +1433,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No formal application required — counseling begins with your phone call",
+        "No formal application required, counseling begins with your phone call",
         "The program focuses on education and fraud prevention, not direct medical care or financial assistance",
         "Volunteer counselors handle much of the outreach, so availability may depend on local staffing",
-        "You must actively report suspected fraud cases — counselors will guide you through the reporting process"
+        "You must actively report suspected fraud cases, counselors will guide you through the reporting process"
       ],
       "relatedPrograms": [
         "Delaware SHIP (State Health Insurance Assistance Program)",
@@ -1506,7 +1506,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and can't easily leave home to shop or cook due to physical disability, they may qualify for free nutritionally balanced meals delivered to their door at least 5 days per week. There are no income or asset limits — the program focuses on whether your loved one is homebound and needs help with daily activities like bathing or walking.\n\nBecause this program operates through local providers in different counties, you'll need to contact the specific organization serving your loved one's area. New Castle County residents call City Fare Meals On Wheels at 302-421-3734, while Kent County residents call Modern Maturity Center at 302-734-1200 ext. 119. Some areas may have waitlists, so applying early is important.",
+      "intro": "If your loved one is 60+ and can't easily leave home to shop or cook due to physical disability, they may qualify for free nutritionally balanced meals delivered to their door at least 5 days per week. There are no income or asset limits, the program focuses on whether your loved one is homebound and needs help with daily activities like bathing or walking.\n\nBecause this program operates through local providers in different counties, you'll need to contact the specific organization serving your loved one's area. New Castle County residents call City Fare Meals On Wheels at 302-421-3734, while Kent County residents call Modern Maturity Center at 302-734-1200 ext. 119. Some areas may have waitlists, so applying early is important.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1530,7 +1530,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Meals on Wheels provider for a phone assessment — processing typically takes one week unless there's a waitlist.",
+        "summary": "Call your county's Meals on Wheels provider for a phone assessment, processing typically takes one week unless there's a waitlist.",
         "steps": [
           {
             "step": 1,
@@ -1555,7 +1555,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies; some programs process within a week, others longer if waitlist exists",
         "waitlist": "Possible waitlists in some programs; check locally",
-        "tip": "Ask about waitlist status when you call — some areas have immediate openings while others may take longer.",
+        "tip": "Ask about waitlist status when you call, some areas have immediate openings while others may take longer.",
         "urls": [
           {
             "label": "City Fare Meals (New Castle County)",
@@ -1603,7 +1603,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Sussex County residents should call 2-1-1 to find their local provider, as it's not explicitly listed in state documentation",
-        "Car ownership or ability to shop may affect eligibility in some local programs — they assess your actual ability to get food",
+        "Car ownership or ability to shop may affect eligibility in some local programs, they assess your actual ability to get food",
         "If you have Medicaid long-term services, you may qualify for up to 2 meals per day through a separate program with prior authorization"
       ],
       "relatedPrograms": [
@@ -1619,7 +1619,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one lives in assisted living or gets help from an aide?",
-          "answer": "Meals are not delivered to assisted living facilities, nursing homes, or adult day care centers. If your loved one lives independently but has a home health aide, they may still qualify if they meet the homebound criteria — having help doesn't automatically disqualify them."
+          "answer": "Meals are not delivered to assisted living facilities, nursing homes, or adult day care centers. If your loved one lives independently but has a home health aide, they may still qualify if they meet the homebound criteria, having help doesn't automatically disqualify them."
         },
         {
           "question": "How long can my loved one receive meals?",
@@ -1681,7 +1681,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55 or older and struggling to find work, SCSEP provides paid part-time employment (about 20 hours per week) at community organizations like schools, hospitals, and senior centers while helping them transition to permanent jobs. Participants earn at least $9.25 per hour while gaining work experience and receiving job training, resume help, and interview coaching.\n\nBecause SCSEP targets adults with low incomes and employment barriers, your loved one must have family income at or below 125% of the federal poverty level and be currently unemployed. The program operates differently in each Delaware county — New Castle County is served by National Able Network, Sussex County by First State Community Action Agency, and Kent County through local providers you contact via Delaware 211.\n\nFunding is limited, so waitlists exist in all counties. Veterans, adults 65+, people with disabilities, and those who are homeless, live in rural areas, or have low literacy get priority placement.",
+      "intro": "If your loved one is 55 or older and struggling to find work, SCSEP provides paid part-time employment (about 20 hours per week) at community organizations like schools, hospitals, and senior centers while helping them transition to permanent jobs. Participants earn at least $9.25 per hour while gaining work experience and receiving job training, resume help, and interview coaching.\n\nBecause SCSEP targets adults with low incomes and employment barriers, your loved one must have family income at or below 125% of the federal poverty level and be currently unemployed. The program operates differently in each Delaware county, New Castle County is served by National Able Network, Sussex County by First State Community Action Agency, and Kent County through local providers you contact via Delaware 211.\n\nFunding is limited, so waitlists exist in all counties. Veterans, adults 65+, people with disabilities, and those who are homeless, live in rural areas, or have low literacy get priority placement.",
       "savingsRange": "$3,900 – $9,600/year",
       "savingsSource": "Based on 20 hours/week at $9.25/hour minimum wage, working 20-52 weeks depending on program duration",
       "savingsVerified": true,
@@ -1708,7 +1708,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your county's SCSEP provider for an orientation and assessment — application involves creating an Individual Employment Plan and waiting for placement based on funding and priority.",
+        "summary": "Contact your county's SCSEP provider for an orientation and assessment, application involves creating an Individual Employment Plan and waiting for placement based on funding and priority.",
         "steps": [
           {
             "step": 1,
@@ -1731,9 +1731,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "You'll be placed on a waiting list and contacted when a community service position becomes available at a host site."
           }
         ],
-        "processingTime": "Varies based on funding availability and priority status — involves assessment and IEP development before placement",
-        "waitlist": "Possible due to limited funding slots — varies by county and priority level",
-        "tip": "Veterans, adults 65+, and those with disabilities get priority — mention these circumstances if they apply to your loved one.",
+        "processingTime": "Varies based on funding availability and priority status, involves assessment and IEP development before placement",
+        "waitlist": "Possible due to limited funding slots, varies by county and priority level",
+        "tip": "Veterans, adults 65+, and those with disabilities get priority, mention these circumstances if they apply to your loved one.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1766,10 +1766,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county has different providers and potentially different wait times — contact your specific county office rather than trying a statewide number",
+        "Each county has different providers and potentially different wait times, contact your specific county office rather than trying a statewide number",
         "Priority is given to veterans, adults 65+, people with disabilities, and those who are homeless, rural residents, or have low literacy skills",
-        "The program requires active participation in job search activities and training — it's not just a community service job",
-        "Income limits are strict at 125% of poverty level after allowable exclusions — you must be fully unemployed to qualify"
+        "The program requires active participation in job search activities and training, it's not just a community service job",
+        "Income limits are strict at 125% of poverty level after allowable exclusions, you must be fully unemployed to qualify"
       ],
       "relatedPrograms": [
         "Delaware SNAP (food assistance)",
@@ -1785,7 +1785,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one gets a full-time job while in SCSEP?",
-          "answer": "That's the goal — SCSEP is designed to be a bridge to permanent employment. Your loved one will graduate from the program when they find unsubsidized work. Staff will continue to provide support during the transition to help ensure job success."
+          "answer": "That's the goal, SCSEP is designed to be a bridge to permanent employment. Your loved one will graduate from the program when they find unsubsidized work. Staff will continue to provide support during the transition to help ensure job success."
         },
         {
           "question": "How long can my loved one stay in the SCSEP program?",
@@ -1796,12 +1796,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Staff will try to match your loved one's skills and interests with available positions at host sites like schools, hospitals, libraries, and senior centers. However, placement depends on what positions are available and funded in your county when your loved one reaches the top of the waitlist."
         },
         {
-          "question": "What if my loved one has a disability — does that help or hurt their chances?",
+          "question": "What if my loved one has a disability, does that help or hurt their chances?",
           "answer": "Having a disability actually gives your loved one priority for placement ahead of others on the waitlist. SCSEP specifically serves people with barriers to employment, and disability is considered a qualifying barrier. Staff will work to find appropriate accommodations at host sites."
         },
         {
           "question": "Is there transportation help if my loved one doesn't drive?",
-          "answer": "SCSEP provides supportive services that may include transportation assistance or referrals to local transportation resources. Ask about this during the assessment — it's considered part of addressing barriers to employment."
+          "answer": "SCSEP provides supportive services that may include transportation assistance or referrals to local transportation resources. Ask about this during the assessment, it's considered part of addressing barriers to employment."
         }
       ],
       "layoutIntent": {
@@ -1839,7 +1839,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal problems like eviction, Medicare denials, or financial abuse, Delaware's Legal Aid for Seniors provides free legal representation and advice. The program handles elder-specific civil matters including Social Security appeals, nursing home discharge issues, and creating powers of attorney.\n\nWhile the state mandates services for all Delaware residents 60+, individual legal aid providers apply their own income guidelines — typically around 125% of Federal Poverty Level. Priority goes to those with the greatest social and economic need, especially low-income and rural residents.",
+      "intro": "If your loved one is 60+ and facing legal problems like eviction, Medicare denials, or financial abuse, Delaware's Legal Aid for Seniors provides free legal representation and advice. The program handles elder-specific civil matters including Social Security appeals, nursing home discharge issues, and creating powers of attorney.\n\nWhile the state mandates services for all Delaware residents 60+, individual legal aid providers apply their own income guidelines, typically around 125% of Federal Poverty Level. Priority goes to those with the greatest social and economic need, especially low-income and rural residents.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1882,7 +1882,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": null,
-        "waitlist": "Priority-based allocation — high-need cases receive priority",
+        "waitlist": "Priority-based allocation, high-need cases receive priority",
         "tip": "Have all your documents ready when you call, including any legal notices like eviction papers or benefit denial letters.",
         "urls": [
           {
@@ -1935,7 +1935,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "What if my loved one's income is slightly above the guidelines but they can't afford a lawyer?",
-          "answer": "Each provider reviews cases individually and may make exceptions for seniors with special circumstances. Assets are considered case-by-case, and your primary home typically doesn't count. Call your county office to discuss your specific situation — they can often find ways to help even if income is slightly over the limit."
+          "answer": "Each provider reviews cases individually and may make exceptions for seniors with special circumstances. Assets are considered case-by-case, and your primary home typically doesn't count. Call your county office to discuss your specific situation, they can often find ways to help even if income is slightly over the limit."
         },
         {
           "question": "Can I apply for legal aid on behalf of my elderly loved one?",
@@ -1981,7 +1981,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home or assisted living facility in Delaware and faces problems with their care, staff, or living conditions, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. The program investigates issues like poor care quality, billing disputes, discharge problems, or violations of residents' rights — and works directly with facility staff to find solutions.\n\nBecause ombudsmen are independent advocates (not employed by facilities), they can challenge facility decisions and ensure your loved one's voice is heard. They also conduct regular facility visits to monitor care standards and can provide information about your loved one's rights under federal and state law. No income limits or fees apply — services are available to all long-term care facility residents statewide regardless of their ability to pay.",
+      "intro": "If your loved one lives in a nursing home or assisted living facility in Delaware and faces problems with their care, staff, or living conditions, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. The program investigates issues like poor care quality, billing disputes, discharge problems, or violations of residents' rights, and works directly with facility staff to find solutions.\n\nBecause ombudsmen are independent advocates (not employed by facilities), they can challenge facility decisions and ensure your loved one's voice is heard. They also conduct regular facility visits to monitor care standards and can provide information about your loved one's rights under federal and state law. No income limits or fees apply, services are available to all long-term care facility residents statewide regardless of their ability to pay.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2002,7 +2002,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-223-9074 to file a complaint or request assistance — no forms or documentation required.",
+        "summary": "Call 800-223-9074 to file a complaint or request assistance, no forms or documentation required.",
         "steps": [
           {
             "step": 1,
@@ -2012,7 +2012,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Explain the problem",
-            "description": "Describe your loved one's complaint or concern verbally — no written documentation is required upfront. The ombudsman will determine next steps based on the situation."
+            "description": "Describe your loved one's complaint or concern verbally, no written documentation is required upfront. The ombudsman will determine next steps based on the situation."
           },
           {
             "step": 3,
@@ -2022,7 +2022,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Investigation begins immediately upon contact, with facility visits scheduled as needed",
         "waitlist": null,
-        "tip": "Keep notes about specific dates, staff names, and incidents — this helps the ombudsman investigate more effectively.",
+        "tip": "Keep notes about specific dates, staff names, and incidents, this helps the ombudsman investigate more effectively.",
         "urls": [
           {
             "label": "Delaware Division of Services for Aging and Adults with Physical Disabilities",
@@ -2082,7 +2082,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Delaware offers 11 programs that can help your aging loved one — from covering medical costs to delivering free meals. Eight provide direct financial benefits or services (like Medicaid coverage or grocery assistance), while three offer free advocacy and legal help regardless of income. If your loved one is struggling with Medicare costs, food expenses, or utility bills, Delaware has specific programs that can provide hundreds of dollars in monthly relief. Start by checking the three highest-impact programs below, then explore others based on your loved one's specific needs.",
+    "intro": "Delaware offers 11 programs that can help your aging loved one, from covering medical costs to delivering free meals. Eight provide direct financial benefits or services (like Medicaid coverage or grocery assistance), while three offer free advocacy and legal help regardless of income. If your loved one is struggling with Medicare costs, food expenses, or utility bills, Delaware has specific programs that can provide hundreds of dollars in monthly relief. Start by checking the three highest-impact programs below, then explore others based on your loved one's specific needs.",
     "startHere": [
       {
         "name": "Diamond State Health Plan (DSHP)",
@@ -2148,6 +2148,6 @@ export const drafts: PipelineStateDrafts = {
       "Delaware PACE serves seniors 55+ in New Castle County only",
       "Three programs provide free help regardless of income: Medicare fraud protection, legal aid, and nursing home advocacy"
     ],
-    "resourcesVsBenefits": "Most Delaware programs require income qualification — like SNAP (grocery assistance) or LIHEAP (utility help) — and provide direct financial benefits. However, three programs offer free help to any Delaware senior regardless of income: Medicare fraud protection, legal aid for seniors, and nursing home advocacy through the Ombudsman Program."
+    "resourcesVsBenefits": "Most Delaware programs require income qualification, like SNAP (grocery assistance) or LIHEAP (utility help), and provide direct financial benefits. However, three programs offer free help to any Delaware senior regardless of income: Medicare fraud protection, legal aid for seniors, and nursing home advocacy through the Ombudsman Program."
   }
 };

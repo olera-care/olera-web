@@ -65,7 +65,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at New York State of Health or call 855-355-5777 for eligibility screening — processing typically takes weeks to months.",
+        "summary": "Apply online at New York State of Health or call 855-355-5777 for eligibility screening, processing typically takes weeks to months.",
         "steps": [
           {
             "step": 1,
@@ -95,7 +95,7 @@
         ],
         "processingTime": "Weeks to months depending on completeness of application and required assessments",
         "waitlist": "Possible for certain services or managed care plans depending on region",
-        "tip": "Apply in the county where your loved one lives — each county's Department of Social Services handles applications differently.",
+        "tip": "Apply in the county where your loved one lives, each county's Department of Social Services handles applications differently.",
         "urls": [
           {
             "label": "New York State of Health",
@@ -139,10 +139,10 @@
         }
       ],
       "applicationNotes": [
-        "Income over the limit may still qualify through a Pooled Income Trust — ask about this option during screening",
-        "Asset transfers in the last 60 months trigger penalty periods — be honest about any gifts or sales below market value",
+        "Income over the limit may still qualify through a Pooled Income Trust, ask about this option during screening",
+        "Asset transfers in the last 60 months trigger penalty periods, be honest about any gifts or sales below market value",
         "Spousal protections allow the community spouse to keep more assets and income if your loved one is married",
-        "Choose your MLTC plan carefully — switching later can be difficult and some plans have longer wait times than others"
+        "Choose your MLTC plan carefully, switching later can be difficult and some plans have longer wait times than others"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -158,11 +158,11 @@
         },
         {
           "question": "What if my loved one's income is just over the $1,800 monthly limit?",
-          "answer": "They may still qualify using a Pooled Income Trust, where excess income is deposited each month to meet the limit. Call 855-355-5777 to ask about this option — many families don't know it exists."
+          "answer": "They may still qualify using a Pooled Income Trust, where excess income is deposited each month to meet the limit. Call 855-355-5777 to ask about this option, many families don't know it exists."
         },
         {
           "question": "How long is the waitlist for home health aide services?",
-          "answer": "Wait times vary by region and MLTC plan — some have immediate openings while others have several months' wait. When choosing a plan, ask specifically about current wait times for the services your loved one needs most."
+          "answer": "Wait times vary by region and MLTC plan, some have immediate openings while others have several months' wait. When choosing a plan, ask specifically about current wait times for the services your loved one needs most."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -170,7 +170,7 @@
         },
         {
           "question": "What happens if my loved one's condition gets worse after enrollment?",
-          "answer": "The MLTC plan will reassess their needs and can increase services like adding more aide hours or therapy visits. Contact the plan's care coordinator when you notice changes — don't wait for the annual review."
+          "answer": "The MLTC plan will reassess their needs and can increase services like adding more aide hours or therapy visits. Contact the plan's care coordinator when you notice changes, don't wait for the annual review."
         },
         {
           "question": "Can my loved one have both Medicare and Community Medicaid?",
@@ -178,7 +178,7 @@
         },
         {
           "question": "What if we gave money to grandchildren in the past five years?",
-          "answer": "Any asset transfers below fair market value in the last 60 months create penalty periods that delay Medicaid eligibility. The penalty length depends on the transfer amount — be prepared to document all gifts and explain the circumstances."
+          "answer": "Any asset transfers below fair market value in the last 60 months create penalty periods that delay Medicaid eligibility. The penalty length depends on the transfer amount, be prepared to document all gifts and explain the circumstances."
         },
         {
           "question": "Do we have to use specific home health aide agencies?",
@@ -216,7 +216,7 @@
           }
         ]
       },
-      "intro": "If your adult child has a developmental disability, intellectual disability, or autism, New York's HCBS waiver programs can provide home and community-based services instead of institutional care. These programs cover day programs, job training, respite care, home modifications, and live-in caregivers — allowing your family member to stay in the community while receiving necessary support.\n\nThe services are administered through county-based Developmental Disabilities Services Offices (DDSOs) and funded through Medicaid. Your family member must be eligible for Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID) level of care — meaning they need daily help with activities like bathing, dressing, medication management, or behavioral support.\n\nBecause these are some of New York's most requested disability services, many programs have long waiting lists. However, once enrolled, the waiver covers the full cost of approved services with no copays for families.",
+      "intro": "If your adult child has a developmental disability, intellectual disability, or autism, New York's HCBS waiver programs can provide home and community-based services instead of institutional care. These programs cover day programs, job training, respite care, home modifications, and live-in caregivers, allowing your family member to stay in the community while receiving necessary support.\n\nThe services are administered through county-based Developmental Disabilities Services Offices (DDSOs) and funded through Medicaid. Your family member must be eligible for Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID) level of care, meaning they need daily help with activities like bathing, dressing, medication management, or behavioral support.\n\nBecause these are some of New York's most requested disability services, many programs have long waiting lists. However, once enrolled, the waiver covers the full cost of approved services with no copays for families.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -230,7 +230,7 @@
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must qualify for Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID) level of care — a clinical assessment showing your family member needs daily assistance with activities like bathing, dressing, medication management, or behavioral support due to their disability",
+        "functionalRequirement": "Must qualify for Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID) level of care, a clinical assessment showing your family member needs daily assistance with activities like bathing, dressing, medication management, or behavioral support due to their disability",
         "otherRequirements": [
           "Diagnosed with developmental disability, intellectual disability, or autism",
           "Eligible for Medicaid (child's income only counts for children's waivers)",
@@ -241,7 +241,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's Developmental Disabilities Services Office (DDSO) to start the intake process — processing time varies widely due to waitlists.",
+        "summary": "Contact your county's Developmental Disabilities Services Office (DDSO) to start the intake process, processing time varies widely due to waitlists.",
         "steps": [
           {
             "step": 1,
@@ -271,7 +271,7 @@
         ],
         "processingTime": "Processing time varies widely due to waitlists and regional differences",
         "waitlist": "Most waiver programs have long waiting lists, especially for high-demand services like residential support and day programs",
-        "tip": "Apply even if there's a waitlist — your family member's priority level can change based on circumstances, and some regions have shorter waits than others.",
+        "tip": "Apply even if there's a waitlist, your family member's priority level can change based on circumstances, and some regions have shorter waits than others.",
         "urls": [
           {
             "label": "DDSO County Contacts",
@@ -313,10 +313,10 @@
         }
       ],
       "applicationNotes": [
-        "Some counties have significantly longer waitlists than others — ask about wait times when choosing where to apply if you have flexibility in residence",
+        "Some counties have significantly longer waitlists than others, ask about wait times when choosing where to apply if you have flexibility in residence",
         "Crisis situations involving safety risks or loss of current supports may receive expedited consideration",
         "For children's waivers, only the child's income counts toward Medicaid eligibility, not parent income",
-        "Some waiver services have been incorporated into Managed Long-Term Services and Supports (MLTSS) — your DDSO will explain which programs are available"
+        "Some waiver services have been incorporated into Managed Long-Term Services and Supports (MLTSS), your DDSO will explain which programs are available"
       ],
       "relatedPrograms": [
         "New York Medicaid",
@@ -394,7 +394,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides everything under one roof: primary care, specialists, transportation, prescriptions delivered, home health aides, adult day care, and 24/7 care coordination. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers — one interdisciplinary team manages everything from doctor visits to physical therapy to meals.\n\nYour loved one must be 55+ and live in a PACE service area (currently only Rochester-area counties and Bronx/Westchester in New York). They need to qualify for nursing home-level care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services. Most participants have both Medicare and Medicaid, but private pay options exist.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides everything under one roof: primary care, specialists, transportation, prescriptions delivered, home health aides, adult day care, and 24/7 care coordination. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers, one interdisciplinary team manages everything from doctor visits to physical therapy to meals.\n\nYour loved one must be 55+ and live in a PACE service area (currently only Rochester-area counties and Bronx/Westchester in New York). They need to qualify for nursing home-level care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services. Most participants have both Medicare and Medicaid, but private pay options exist.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical and social services",
       "savingsVerified": false,
@@ -418,7 +418,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local PACE provider directly — there's no central New York application system.",
+        "summary": "Contact your local PACE provider directly, there's no central New York application system.",
         "steps": [
           {
             "step": 1,
@@ -433,12 +433,12 @@
           {
             "step": 3,
             "title": "Complete enrollment",
-            "description": "If approved, your loved one's Medicare and Medicaid benefits transfer entirely to PACE — they become the sole provider for all covered services."
+            "description": "If approved, your loved one's Medicare and Medicaid benefits transfer entirely to PACE, they become the sole provider for all covered services."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "PACE becomes your loved one's sole Medicare and Medicaid provider — they can't use other plans while enrolled, but can disenroll anytime.",
+        "tip": "PACE becomes your loved one's sole Medicare and Medicaid provider, they can't use other plans while enrolled, but can disenroll anytime.",
         "urls": [
           {
             "label": "NY Medicaid Choice PACE Info",
@@ -481,10 +481,10 @@
         }
       ],
       "applicationNotes": [
-        "PACE is only available in specific counties — confirm your loved one lives in a service area before starting the application process",
+        "PACE is only available in specific counties, confirm your loved one lives in a service area before starting the application process",
         "Your loved one must be able to live safely in the community at enrollment time, even if they need extensive support",
         "Private pay is possible for those who don't qualify for Medicaid but meet other requirements",
-        "Once enrolled, PACE becomes the sole provider of all Medicare and Medicaid benefits — your loved one cannot use other healthcare plans simultaneously"
+        "Once enrolled, PACE becomes the sole provider of all Medicare and Medicaid benefits, your loved one cannot use other healthcare plans simultaneously"
       ],
       "relatedPrograms": [
         "Consumer Directed Personal Assistance Program (CDPAP)",
@@ -550,7 +550,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or copays, New York's Medicare Savings Program can cover these costs based on income. The program has three levels: QMB covers all Medicare costs for incomes up to $1,350/month for singles, SLMB covers Part B premiums for incomes up to $1,526/month, and QI covers Part B premiums for incomes up to $1,715/month.\n\nNew York uses more generous income limits than the federal minimums — your loved one may qualify even if they wouldn't in other states. QMB participants also get full Medicaid benefits, while all levels automatically qualify for Extra Help with prescription drug costs (maximum $12.65 per prescription in 2026).\n\nThe program counts assets like bank accounts and stocks, but exempts your loved one's home, car, and burial plots. Asset limits are $9,950 for individuals and $14,910 for couples in 2026.",
+      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or copays, New York's Medicare Savings Program can cover these costs based on income. The program has three levels: QMB covers all Medicare costs for incomes up to $1,350/month for singles, SLMB covers Part B premiums for incomes up to $1,526/month, and QI covers Part B premiums for incomes up to $1,715/month.\n\nNew York uses more generous income limits than the federal minimums, your loved one may qualify even if they wouldn't in other states. QMB participants also get full Medicaid benefits, while all levels automatically qualify for Extra Help with prescription drug costs (maximum $12.65 per prescription in 2026).\n\nThe program counts assets like bank accounts and stocks, but exempts your loved one's home, car, and burial plots. Asset limits are $9,950 for individuals and $14,910 for couples in 2026.",
       "savingsRange": "$1,000 – $8,000/year in 2026",
       "savingsSource": "Medicare Part B premium ($185/month), deductibles, and copays",
       "savingsVerified": true,
@@ -600,7 +600,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your county's Department of Social Services or use the shorter MSP-only form — decisions within 45 days.",
+        "summary": "Call your county's Department of Social Services or use the shorter MSP-only form, decisions within 45 days.",
         "steps": [
           {
             "step": 1,
@@ -677,7 +677,7 @@
         }
       ],
       "applicationNotes": [
-        "New York's income limits are higher than federal minimums — you may qualify even if turned down in other states",
+        "New York's income limits are higher than federal minimums, you may qualify even if turned down in other states",
         "QI-1 has annual funding limits and operates first-come, first-served starting each January",
         "Use the MSP-only short form (BRC-1071) if your income is too high for full Medicaid but within MSP limits",
         "All MSP levels automatically qualify you for Medicare Extra Help with prescription costs"
@@ -768,7 +768,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP) / ESAP / NYSCAP",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly food assistance for seniors 60+ on fixed incomes — up to hundreds of dollars per month on an EBT card",
+      "tagline": "Monthly food assistance for seniors 60+ on fixed incomes, up to hundreds of dollars per month on an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -781,7 +781,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and on a fixed income with no earned wages, they may qualify for monthly food assistance through SNAP's simplified enrollment programs. New York offers two streamlined versions: ESAP for seniors/disabled households with no earned income, and NYSCAP for SSI recipients living alone — both with easier applications and 3-year certifications instead of frequent renewals.\n\nThe benefit amount depends on household size and net income, loaded monthly onto an EBT card for grocery purchases. Because these simplified programs use data matching with Social Security, your loved one won't need to provide as much documentation or attend recertification interviews every few months like regular SNAP.\n\nEven if your loved one's income seems too high for regular SNAP, New York has expanded income limits for seniors and disabled adults — households with all members 60+ or disabled can have gross monthly income up to $2,608 for a single person (compared to lower limits for working-age adults).",
+      "intro": "If your loved one is 60+ and on a fixed income with no earned wages, they may qualify for monthly food assistance through SNAP's simplified enrollment programs. New York offers two streamlined versions: ESAP for seniors/disabled households with no earned income, and NYSCAP for SSI recipients living alone, both with easier applications and 3-year certifications instead of frequent renewals.\n\nThe benefit amount depends on household size and net income, loaded monthly onto an EBT card for grocery purchases. Because these simplified programs use data matching with Social Security, your loved one won't need to provide as much documentation or attend recertification interviews every few months like regular SNAP.\n\nEven if your loved one's income seems too high for regular SNAP, New York has expanded income limits for seniors and disabled adults, households with all members 60+ or disabled can have gross monthly income up to $2,608 for a single person (compared to lower limits for working-age adults).",
       "savingsRange": "",
       "savingsSource": "Monthly food benefit amount varies by household size and income",
       "savingsVerified": false,
@@ -849,7 +849,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at myBenefits.ny.gov or call your local Department of Social Services — simplified process takes up to 30 days.",
+        "summary": "Apply online at myBenefits.ny.gov or call your local Department of Social Services, simplified process takes up to 30 days.",
         "steps": [
           {
             "step": 1,
@@ -921,8 +921,8 @@
       "applicationNotes": [
         "SSI recipients living alone are often automatically enrolled in NYSCAP and don't need to apply separately",
         "If any adult in your household starts working or a new adult moves in, you'll need to transition from ESAP to regular SNAP",
-        "ESAP certification lasts 36 months with no recertification interview required — much simpler than regular SNAP renewals",
-        "New York has higher income limits for seniors than federal SNAP — even if denied elsewhere, you may qualify here"
+        "ESAP certification lasts 36 months with no recertification interview required, much simpler than regular SNAP renewals",
+        "New York has higher income limits for seniors than federal SNAP, even if denied elsewhere, you may qualify here"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -938,7 +938,7 @@
         },
         {
           "question": "What happens if my loved one starts receiving a small pension while on ESAP?",
-          "answer": "Pension income is fine for ESAP — the restriction is only on earned income from employment. Report the pension to your local DSS office as it may affect the benefit amount, but won't disqualify them from the simplified program as long as income stays under limits."
+          "answer": "Pension income is fine for ESAP, the restriction is only on earned income from employment. Report the pension to your local DSS office as it may affect the benefit amount, but won't disqualify them from the simplified program as long as income stays under limits."
         },
         {
           "question": "Can I apply for both ESAP and regular SNAP at the same time?",
@@ -1004,7 +1004,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with heating or electric bills, HEAP provides direct payments to utility companies or fuel vendors. Benefits range from $45 for households with heat included in rent to $900+ for those who pay directly for oil, propane, or other deliverable fuels.\n\nYour loved one automatically qualifies if they receive SNAP, Temporary Assistance, or SSI. Otherwise, household income must be at or below 130% of federal poverty level. The heating or electric bill must be in your loved one's name — this is a hard requirement.\n\nRegular HEAP is open now (started December 1, 2025). Emergency HEAP for families facing shutoff opens January 2, 2026 and requires a disconnection notice.",
+      "intro": "If your loved one struggles with heating or electric bills, HEAP provides direct payments to utility companies or fuel vendors. Benefits range from $45 for households with heat included in rent to $900+ for those who pay directly for oil, propane, or other deliverable fuels.\n\nYour loved one automatically qualifies if they receive SNAP, Temporary Assistance, or SSI. Otherwise, household income must be at or below 130% of federal poverty level. The heating or electric bill must be in your loved one's name, this is a hard requirement.\n\nRegular HEAP is open now (started December 1, 2025). Emergency HEAP for families facing shutoff opens January 2, 2026 and requires a disconnection notice.",
       "savingsRange": "$45 – $900+/year in 2026",
       "savingsSource": "Benefit amounts vary by heating source and living situation, from OTDA official guidelines",
       "savingsVerified": true,
@@ -1064,7 +1064,7 @@
         ],
         "processingTime": null,
         "waitlist": "Emergency HEAP opens January 2, 2026 and closes April 7, 2026",
-        "tip": "If your loved one receives SNAP, TA, or SSI, mention this upfront — it makes them automatically income-eligible regardless of other income.",
+        "tip": "If your loved one receives SNAP, TA, or SSI, mention this upfront, it makes them automatically income-eligible regardless of other income.",
         "urls": [
           {
             "label": "Apply for HEAP online",
@@ -1099,7 +1099,7 @@
         {
           "label": "NYC 311",
           "phone": "311",
-          "description": "Ask for HEAP help — they'll connect you to the right office",
+          "description": "Ask for HEAP help, they'll connect you to the right office",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -1110,9 +1110,9 @@
         }
       ],
       "applicationNotes": [
-        "Tenants in government-subsidized housing where heat is included in rent do NOT qualify — this is the most common reason applications are denied",
-        "Bank statements cannot be used as proof of monthly income — you need pay stubs, tax returns, or pension statements",
-        "The heating or electric bill must be in the applicant's name — utility companies won't accept applications where someone else is the account holder",
+        "Tenants in government-subsidized housing where heat is included in rent do NOT qualify, this is the most common reason applications are denied",
+        "Bank statements cannot be used as proof of monthly income, you need pay stubs, tax returns, or pension statements",
+        "The heating or electric bill must be in the applicant's name, utility companies won't accept applications where someone else is the account holder",
         "You can only receive one Regular HEAP benefit per program year, so timing matters if your loved one's situation might change"
       ],
       "relatedPrograms": [
@@ -1124,7 +1124,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "My loved one lives in senior housing where heat is included in rent — can they still get HEAP?",
+          "question": "My loved one lives in senior housing where heat is included in rent, can they still get HEAP?",
           "answer": "No, tenants in government-subsidized housing with heat included in rent do not qualify for HEAP. However, if your loved one pays their own electric bill separately, they may qualify for electric assistance even if heat is included."
         },
         {
@@ -1132,11 +1132,11 @@
           "answer": "Yes, these are separate programs. Regular HEAP is for general heating assistance, while Emergency HEAP is specifically for households facing utility shutoff. You need a disconnection notice for Emergency HEAP, which opens January 2, 2026."
         },
         {
-          "question": "My loved one receives Social Security but no other benefits — do they automatically qualify?",
+          "question": "My loved one receives Social Security but no other benefits, do they automatically qualify?",
           "answer": "Social Security alone doesn't automatically qualify your loved one. They need to receive SNAP, Temporary Assistance, or Code A SSI Living Alone for automatic eligibility. Otherwise, total household income must be at or below 130% of federal poverty level."
         },
         {
-          "question": "The utility bill is in my name but my loved one lives there — can we still apply?",
+          "question": "The utility bill is in my name but my loved one lives there, can we still apply?",
           "answer": "No, the heating and/or electric bill must be in the applicant's name. You'll need to contact the utility company to add your loved one's name to the account or transfer it entirely before applying for HEAP."
         },
         {
@@ -1144,7 +1144,7 @@
           "answer": "It depends on their heating source and living situation. Households paying directly for oil, propane, or kerosene typically receive $900+. Those with wood, pellets, or coal get $635+. Households with heat included in rent receive much less: $45-50."
         },
         {
-          "question": "My loved one was denied HEAP before — can they reapply?",
+          "question": "My loved one was denied HEAP before, can they reapply?",
           "answer": "Yes, they can reapply each program year. Common reasons for denial include heat being included in subsidized rent, utility bills not in applicant's name, or income over 130% federal poverty level. Address the specific denial reason before reapplying."
         },
         {
@@ -1364,7 +1364,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare or is turning 65 soon, HIICAP provides free, confidential counseling to help them understand their options. Nearly 500 trained counselors across New York offer one-on-one guidance on Medicare Advantage plans, Medigap policies, prescription drug coverage, and costs — with no sales pressure or bias toward any insurance company.\n\nBecause Medicare has dozens of plan options that change every year, many families struggle to compare benefits and find the best fit. HIICAP counselors help your loved one understand their current coverage, compare alternatives during open enrollment, resolve claims problems, and apply for programs that reduce Medicare costs. They also provide referrals to other assistance programs and help with insurance paperwork.",
+      "intro": "If your loved one has Medicare or is turning 65 soon, HIICAP provides free, confidential counseling to help them understand their options. Nearly 500 trained counselors across New York offer one-on-one guidance on Medicare Advantage plans, Medigap policies, prescription drug coverage, and costs, with no sales pressure or bias toward any insurance company.\n\nBecause Medicare has dozens of plan options that change every year, many families struggle to compare benefits and find the best fit. HIICAP counselors help your loved one understand their current coverage, compare alternatives during open enrollment, resolve claims problems, and apply for programs that reduce Medicare costs. They also provide referrals to other assistance programs and help with insurance paperwork.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1387,7 +1387,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free hotline to be connected with a local counselor — no application needed.",
+        "summary": "Call the toll-free hotline to be connected with a local counselor, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1420,7 +1420,7 @@
         {
           "label": "HIICAP Statewide Hotline",
           "phone": "1-800-701-0501",
-          "description": "Free Medicare counseling — routed to your local county office",
+          "description": "Free Medicare counseling, routed to your local county office",
           "hours": "Business hours, Monday-Friday"
         },
         {
@@ -1480,7 +1480,7 @@
       "id": "meals-on-wheels-eisep",
       "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly Program - EISEP)",
       "shortName": "Meals on Wheels EISEP",
-      "tagline": "Home-delivered meals 5 days a week for parents who need help with daily activities — suggested $4 per meal, no refusal for inability to pay.",
+      "tagline": "Home-delivered meals 5 days a week for parents who need help with daily activities, suggested $4 per meal, no refusal for inability to pay.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1493,7 +1493,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles with cooking or meal preparation, they may qualify for home-delivered meals through New York's EISEP program. Because this program serves those who need assistance with daily living activities, your loved one gets both meals (typically 5 days per week) plus case management to coordinate other home services.\n\nMeals on Wheels is one component of EISEP, which means your loved one gets comprehensive assessment and ongoing support — not just food delivery. The suggested contribution is around $4 per meal in most areas, but services cannot be denied for inability to pay. Because EISEP uses sliding-scale cost-sharing starting at 150% of the federal poverty level ($2,328/month for a single person in 2026), families with higher incomes pay proportionally more.\n\nYour loved one must be able to live safely at home with services and cannot be eligible for the same services through Medicaid. The program requires assessment by a case manager who determines which combination of services — meals, personal care, housekeeping, or emergency response systems — will help your loved one remain independent.",
+      "intro": "If your loved one is 60+ and struggles with cooking or meal preparation, they may qualify for home-delivered meals through New York's EISEP program. Because this program serves those who need assistance with daily living activities, your loved one gets both meals (typically 5 days per week) plus case management to coordinate other home services.\n\nMeals on Wheels is one component of EISEP, which means your loved one gets comprehensive assessment and ongoing support, not just food delivery. The suggested contribution is around $4 per meal in most areas, but services cannot be denied for inability to pay. Because EISEP uses sliding-scale cost-sharing starting at 150% of the federal poverty level ($2,328/month for a single person in 2026), families with higher incomes pay proportionally more.\n\nYour loved one must be able to live safely at home with services and cannot be eligible for the same services through Medicaid. The program requires assessment by a case manager who determines which combination of services, meals, personal care, housekeeping, or emergency response systems, will help your loved one remain independent.",
       "savingsRange": "$1,040 – $1,560/year in 2026",
       "savingsSource": "Estimated from 260 meals annually at suggested $4/meal contribution versus retail meal delivery costs of $10-15/meal",
       "savingsVerified": false,
@@ -1518,7 +1518,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging or the statewide NY Connects line — a case manager will conduct a comprehensive assessment to determine eligibility and services.",
+        "summary": "Call your local Area Agency on Aging or the statewide NY Connects line, a case manager will conduct a comprehensive assessment to determine eligibility and services.",
         "steps": [
           {
             "step": 1,
@@ -1543,7 +1543,7 @@
         ],
         "processingTime": "Assessment scheduled upon initial contact; service start timing varies by local provider availability",
         "waitlist": null,
-        "tip": "Prepare to discuss your loved one's specific challenges with meal preparation, shopping, and daily activities — the more detailed information you provide, the better the case manager can match services to needs.",
+        "tip": "Prepare to discuss your loved one's specific challenges with meal preparation, shopping, and daily activities, the more detailed information you provide, the better the case manager can match services to needs.",
         "urls": [
           {
             "label": "NY Connects (statewide)",
@@ -1590,8 +1590,8 @@
       ],
       "applicationNotes": [
         "Even if your loved one receives some Medicaid home care services, they may still qualify for EISEP meals if their current plan doesn't adequately address nutritional needs",
-        "Cost-sharing fees are determined locally and may vary between counties — ask about fee schedules during your initial assessment",
-        "Services are designed to supplement, not replace, informal family care — the case manager will consider what help family members can provide",
+        "Cost-sharing fees are determined locally and may vary between counties, ask about fee schedules during your initial assessment",
+        "Services are designed to supplement, not replace, informal family care, the case manager will consider what help family members can provide",
         "Consumer-directed options may be available but require your loved one to be capable of managing and directing their own care workers"
       ],
       "relatedPrograms": [
@@ -1653,7 +1653,7 @@
       "id": "nyfsc-respite-care",
       "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
       "shortName": "NYFSC Respite Care",
-      "tagline": "Get trained home attendants to care for your NYC loved one while you take a break — starting at $7.15/hour or free for emergencies.",
+      "tagline": "Get trained home attendants to care for your NYC loved one while you take a break, starting at $7.15/hour or free for emergencies.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1692,7 +1692,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (212) 962-7559 or visit their Manhattan office — a social worker will conduct a home visit to assess your loved one's needs.",
+        "summary": "Call (212) 962-7559 or visit their Manhattan office, a social worker will conduct a home visit to assess your loved one's needs.",
         "steps": [
           {
             "step": 1,
@@ -1717,7 +1717,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Emphasize that your loved one is NOT Medicaid eligible when you call — this is a key requirement that distinguishes this program from other NYC respite services.",
+        "tip": "Emphasize that your loved one is NOT Medicaid eligible when you call, this is a key requirement that distinguishes this program from other NYC respite services.",
         "urls": [
           {
             "label": "NYFSC Respite Care Program",
@@ -1756,9 +1756,9 @@
       ],
       "applicationNotes": [
         "Emergency/extended hours services are provided free but have income preference for care recipients earning $40,000 or less annually",
-        "Care recipients pay home health aides directly for basic services — rates start at $7.15/hour plus carfare but current rates may be higher",
-        "The program explicitly excludes Medicaid-eligible individuals — if your loved one qualifies for Medicaid, contact NY Office for the Aging instead",
-        "This is a NYC-only program — families outside the five boroughs should contact their local Area Agency on Aging"
+        "Care recipients pay home health aides directly for basic services, rates start at $7.15/hour plus carfare but current rates may be higher",
+        "The program explicitly excludes Medicaid-eligible individuals, if your loved one qualifies for Medicaid, contact NY Office for the Aging instead",
+        "This is a NYC-only program, families outside the five boroughs should contact their local Area Agency on Aging"
       ],
       "relatedPrograms": [
         "NY State Office for the Aging Respite Programs",
@@ -1861,7 +1861,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55 or older, unemployed, and earning less than $1,548 per month, SCSEP provides part-time paid training positions at nonprofits, schools, and community organizations across New York. Participants work an average of 20 hours per week earning minimum wage — $300-400+ weekly depending on local rates — while receiving job training and support to find permanent employment.\n\nBecause SCSEP combines immediate income with skills training, your loved one gets paid while learning computer skills, customer service, or other marketable abilities. The program also provides annual health screenings, resume assistance, and one-on-one job coaching to help transition to unsubsidized employment. Priority goes to veterans, people 65+, and those with disabilities, but all eligible adults can apply through local offices statewide.",
+      "intro": "If your loved one is 55 or older, unemployed, and earning less than $1,548 per month, SCSEP provides part-time paid training positions at nonprofits, schools, and community organizations across New York. Participants work an average of 20 hours per week earning minimum wage, $300-400+ weekly depending on local rates, while receiving job training and support to find permanent employment.\n\nBecause SCSEP combines immediate income with skills training, your loved one gets paid while learning computer skills, customer service, or other marketable abilities. The program also provides annual health screenings, resume assistance, and one-on-one job coaching to help transition to unsubsidized employment. Priority goes to veterans, people 65+, and those with disabilities, but all eligible adults can apply through local offices statewide.",
       "savingsRange": "$7,800 – $10,400/year in 2026",
       "savingsSource": "20 hours/week at $15+ minimum wage in New York",
       "savingsVerified": true,
@@ -1889,7 +1889,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply in-person at local SCSEP offices or call regional contacts for referral — processing times vary by location and funding availability.",
+        "summary": "Apply in-person at local SCSEP offices or call regional contacts for referral, processing times vary by location and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -1912,8 +1912,8 @@
             "description": "If accepted, you'll work with staff to create a personalized plan including training goals, placement location, and pathway to permanent employment."
           }
         ],
-        "processingTime": "Not specified — contact local office for current timelines",
-        "waitlist": "Program experiencing federal funding delays — availability varies by region",
+        "processingTime": "Not specified, contact local office for current timelines",
+        "waitlist": "Program experiencing federal funding delays, availability varies by region",
         "tip": "Veterans, people 65+, and those with disabilities get priority enrollment, so mention these qualifications when applying.",
         "urls": [
           {
@@ -1962,9 +1962,9 @@
       ],
       "applicationNotes": [
         "Priority enrollment goes to veterans, people 65+, disabled individuals, those with limited English, rural residents, homeless individuals, and those who haven't found work through American Job Centers",
-        "Program is experiencing federal funding transitions — call ahead to confirm current availability and enrollment status in your area",
-        "This is temporary training employment, not permanent work — the goal is to help you find unsubsidized employment within 12-24 months",
-        "Even small amounts of current income may disqualify you — the unemployment requirement is strict"
+        "Program is experiencing federal funding transitions, call ahead to confirm current availability and enrollment status in your area",
+        "This is temporary training employment, not permanent work, the goal is to help you find unsubsidized employment within 12-24 months",
+        "Even small amounts of current income may disqualify you, the unemployment requirement is strict"
       ],
       "relatedPrograms": [
         "SNAP (food benefits)",
@@ -2054,7 +2054,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal issues like eviction threats, Social Security denials, Medicare problems, or financial exploitation, they may qualify for free legal help through county-based programs across New York. These services include advice, document preparation, representation, and appeals for civil legal matters affecting seniors.\n\nThe program covers tenant issues, public benefits applications and appeals, estate planning (wills, health care proxies, powers of attorney), nursing home problems, consumer fraud, and abuse/exploitation cases. Most providers don't require income verification — priority goes to low-income seniors, but services are often available regardless of financial status.\n\nThis isn't a single statewide program. Each county has different providers and eligibility rules. Some require low-income status unless you're referred by your local Office for Aging, while others (especially Title III-B funded programs) serve all seniors 60+ without income limits.",
+      "intro": "If your loved one is 60+ and facing legal issues like eviction threats, Social Security denials, Medicare problems, or financial exploitation, they may qualify for free legal help through county-based programs across New York. These services include advice, document preparation, representation, and appeals for civil legal matters affecting seniors.\n\nThe program covers tenant issues, public benefits applications and appeals, estate planning (wills, health care proxies, powers of attorney), nursing home problems, consumer fraud, and abuse/exploitation cases. Most providers don't require income verification, priority goes to low-income seniors, but services are often available regardless of financial status.\n\nThis isn't a single statewide program. Each county has different providers and eligibility rules. Some require low-income status unless you're referred by your local Office for Aging, while others (especially Title III-B funded programs) serve all seniors 60+ without income limits.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2077,7 +2077,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Office for Aging or local legal aid provider — no application form required.",
+        "summary": "Call your county's Office for Aging or local legal aid provider, no application form required.",
         "steps": [
           {
             "step": 1,
@@ -2087,7 +2087,7 @@
           {
             "step": 2,
             "title": "Explain your legal issue",
-            "description": "Describe your situation — eviction notice, benefit denial, Medicare problem, or other civil legal matter. Have relevant documents ready (denial letters, court papers, contracts)."
+            "description": "Describe your situation, eviction notice, benefit denial, Medicare problem, or other civil legal matter. Have relevant documents ready (denial letters, court papers, contracts)."
           },
           {
             "step": 3,
@@ -2097,7 +2097,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Get an Office for Aging referral if your income is above limits — many providers waive income requirements for OFA referrals.",
+        "tip": "Get an Office for Aging referral if your income is above limits, many providers waive income requirements for OFA referrals.",
         "urls": [
           {
             "label": "NYC Find Services Locator",
@@ -2134,7 +2134,7 @@
         }
       ],
       "applicationNotes": [
-        "Title III-B funded programs cannot deny services based on income — ask if your provider uses this funding",
+        "Title III-B funded programs cannot deny services based on income, ask if your provider uses this funding",
         "Some providers may suggest voluntary contributions (like $10 for consultation) but this doesn't affect your eligibility"
       ],
       "relatedPrograms": [
@@ -2155,7 +2155,7 @@
         },
         {
           "question": "Will they help with criminal charges or family court issues?",
-          "answer": "No, these programs only handle civil legal matters affecting seniors — landlord disputes, public benefits, Medicare issues, consumer fraud, estate planning, and financial exploitation. Criminal defense and family court require different attorneys."
+          "answer": "No, these programs only handle civil legal matters affecting seniors, landlord disputes, public benefits, Medicare issues, consumer fraud, estate planning, and financial exploitation. Criminal defense and family court require different attorneys."
         }
       ],
       "layoutIntent": {
@@ -2189,7 +2189,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65 or older and owns their home in New York City, the Senior Citizen Homeowners' Exemption could reduce their property taxes by 5% to 50%. The amount depends on their total household income — those earning up to $50,000 get the maximum 50% reduction, while those earning up to $58,399 still qualify for smaller reductions.\n\nBecause this exemption reduces the assessed value of their property, your loved one's property tax bill drops directly. For example, if their home is assessed at $400,000 and they qualify for the 50% reduction, they'll only pay taxes on $200,000 of assessed value. The program covers one-, two-, or three-family homes, condominiums, and cooperative apartments across all five NYC boroughs.\n\nYour loved one must have owned and lived in the property as their primary residence for at least 12 consecutive months before applying. All household income counts toward the $58,399 limit — Social Security, pensions, retirement benefits, interest, dividends, and any other income sources.",
+      "intro": "If your loved one is 65 or older and owns their home in New York City, the Senior Citizen Homeowners' Exemption could reduce their property taxes by 5% to 50%. The amount depends on their total household income, those earning up to $50,000 get the maximum 50% reduction, while those earning up to $58,399 still qualify for smaller reductions.\n\nBecause this exemption reduces the assessed value of their property, your loved one's property tax bill drops directly. For example, if their home is assessed at $400,000 and they qualify for the 50% reduction, they'll only pay taxes on $200,000 of assessed value. The program covers one-, two-, or three-family homes, condominiums, and cooperative apartments across all five NYC boroughs.\n\nYour loved one must have owned and lived in the property as their primary residence for at least 12 consecutive months before applying. All household income counts toward the $58,399 limit, Social Security, pensions, retirement benefits, interest, dividends, and any other income sources.",
       "savingsRange": "",
       "savingsSource": "Property tax reduction varies by assessed value and income tier",
       "savingsVerified": false,
@@ -2239,7 +2239,7 @@
         ],
         "processingTime": "Processing time not specified by NYC Department of Finance",
         "waitlist": null,
-        "tip": "Application window is short — mark your calendar for September 15 when applications open.",
+        "tip": "Application window is short, mark your calendar for September 15 when applications open.",
         "urls": [
           {
             "label": "NYC Department of Finance SCHE Application",
@@ -2276,7 +2276,7 @@
         }
       ],
       "applicationNotes": [
-        "Income calculation changed for applications after July 1, 2024 — use adjusted gross income minus taxable IRA distributions",
+        "Income calculation changed for applications after July 1, 2024, use adjusted gross income minus taxable IRA distributions",
         "If property is owned by spouses or siblings, only one owner needs to be 65+",
         "Owners receiving in-patient care at residential health facilities may still qualify",
         "If part of your property is used for business, the exemption only applies to the residential portion"
@@ -2344,7 +2344,7 @@
         },
         {
           "question": "What happens if my loved one's income is slightly over $58,399?",
-          "answer": "They won't qualify for SCHE at all — there's no partial benefit above $58,399. However, they should check if they qualify for other property tax exemptions like STAR or Enhanced STAR."
+          "answer": "They won't qualify for SCHE at all, there's no partial benefit above $58,399. However, they should check if they qualify for other property tax exemptions like STAR or Enhanced STAR."
         },
         {
           "question": "Does Social Security income count toward the income limit?",
@@ -2360,7 +2360,7 @@
         },
         {
           "question": "How much will this actually save on property taxes?",
-          "answer": "It depends on their home's assessed value and income level. If their home is assessed at $300,000 and they qualify for the 50% reduction, they'll pay taxes on only $150,000 of assessed value — potentially saving thousands annually."
+          "answer": "It depends on their home's assessed value and income level. If their home is assessed at $300,000 and they qualify for the 50% reduction, they'll pay taxes on only $150,000 of assessed value, potentially saving thousands annually."
         },
         {
           "question": "Can my loved one keep SCHE if they temporarily move to assisted living?",
@@ -2368,7 +2368,7 @@
         },
         {
           "question": "What happens if my loved one sells the house and buys another in NYC?",
-          "answer": "They'll need to reapply for the new property and meet the 12-month ownership requirement again, unless they previously received SCHE on their old residence — in that case, the 12-month rule may be waived."
+          "answer": "They'll need to reapply for the new property and meet the 12-month ownership requirement again, unless they previously received SCHE on their old residence, in that case, the 12-month rule may be waived."
         }
       ],
       "layoutIntent": {
@@ -2406,7 +2406,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 62 or older and lives in rent-regulated housing in New York City, SCRIE can freeze their rent at the current level — protecting them from all future legal rent increases. This matters because your loved one's rent stays the same even when their landlord would otherwise be allowed to raise it for renewals or improvements.\n\nTo qualify, your loved one must earn $50,000 or less per year and currently pay at least one-third of their household income toward rent. Because SCRIE only applies to rent-stabilized, rent-controlled, and certain other regulated apartments, you'll need to confirm your loved one's housing type qualifies. The landlord receives a tax credit to cover the difference, so they have no financial reason to object.",
+      "intro": "If your loved one is 62 or older and lives in rent-regulated housing in New York City, SCRIE can freeze their rent at the current level, protecting them from all future legal rent increases. This matters because your loved one's rent stays the same even when their landlord would otherwise be allowed to raise it for renewals or improvements.\n\nTo qualify, your loved one must earn $50,000 or less per year and currently pay at least one-third of their household income toward rent. Because SCRIE only applies to rent-stabilized, rent-controlled, and certain other regulated apartments, you'll need to confirm your loved one's housing type qualifies. The landlord receives a tax credit to cover the difference, so they have no financial reason to object.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2430,7 +2430,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through NYC's Tenant Access Portal or call 311 — processing time not specified by the city.",
+        "summary": "Apply online through NYC's Tenant Access Portal or call 311, processing time not specified by the city.",
         "steps": [
           {
             "step": 1,
@@ -2450,7 +2450,7 @@
         ],
         "processingTime": "Not specified by NYC Department of Finance",
         "waitlist": null,
-        "tip": "Set a calendar reminder to watch for your renewal notice — missing the renewal deadline means losing your rent freeze and having to reapply.",
+        "tip": "Set a calendar reminder to watch for your renewal notice, missing the renewal deadline means losing your rent freeze and having to reapply.",
         "urls": [
           {
             "label": "NYC Rent Freeze Program",
@@ -2543,7 +2543,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR, with benefits that increase by 2% annually.\n\nTo qualify, your loved one's combined household income (including all property owners and spouses living there) must be below $110,750 for 2026 benefits. Starting in 2026, if your loved one already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them — no separate application needed.",
+      "intro": "If your loved one is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR, with benefits that increase by 2% annually.\n\nTo qualify, your loved one's combined household income (including all property owners and spouses living there) must be below $110,750 for 2026 benefits. Starting in 2026, if your loved one already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them, no separate application needed.",
       "savingsRange": "",
       "savingsSource": "Property tax exemption amount varies by local school tax rates",
       "savingsVerified": false,
@@ -2567,7 +2567,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at tax.ny.gov/star or call (518) 457-2036 — processing handled by New York State starting in 2026.",
+        "summary": "Apply online at tax.ny.gov/star or call (518) 457-2036, processing handled by New York State starting in 2026.",
         "steps": [
           {
             "step": 1,
@@ -2605,7 +2605,7 @@
         ]
       },
       "documentsNeeded": [
-        "Copy of federal or New York State tax return from 2 years prior (Pages 1 and 2) — for 2026 benefits, provide your 2024 tax return",
+        "Copy of federal or New York State tax return from 2 years prior (Pages 1 and 2), for 2026 benefits, provide your 2024 tax return",
         "Proof of age: driver's license, birth certificate, or passport",
         "Form RP-425-E (Enhanced STAR Application)",
         "Form RP-425-IVP (Income Verification Program supplement)",
@@ -2628,9 +2628,9 @@
         }
       ],
       "applicationNotes": [
-        "Income limits include all property owners (residents and non-residents) plus any owner's spouse who resides at the property — non-resident owners' income counts toward the $110,750 limit",
+        "Income limits include all property owners (residents and non-residents) plus any owner's spouse who resides at the property, non-resident owners' income counts toward the $110,750 limit",
         "Once enrolled in the Income Verification Program, New York State verifies your income eligibility annually with no further deadlines to miss",
-        "Application deadlines vary by town but are typically March 1 — always verify the exact deadline with your local assessor",
+        "Application deadlines vary by town but are typically March 1, always verify the exact deadline with your local assessor",
         "If you miss the deadline, you may still be eligible if you can demonstrate good cause, but this requires additional documentation"
       ],
       "relatedPrograms": [
@@ -2662,7 +2662,7 @@
           "answer": "The exact dollar savings depends on your local school tax rates, but Enhanced STAR provides greater savings than Basic STAR and increases by 2% yearly. Contact your local assessor or check your school tax bill to estimate specific savings for your loved one's property."
         },
         {
-          "question": "What if my loved one turns 65 in December — can they still apply that year?",
+          "question": "What if my loved one turns 65 in December, can they still apply that year?",
           "answer": "Yes, your loved one can apply for Enhanced STAR in the year they turn 65, even if they turn 65 on December 31, as long as they submit the application before the March 1 deadline (or whatever deadline applies in their town)."
         }
       ],
@@ -2705,7 +2705,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, cooking, or housekeeping but doesn't qualify for Medicaid, EISEP provides case management and in-home services. All participants receive professional case management to assess needs and coordinate care. Additional services may include personal care assistance, housekeeping, meal delivery, emergency response systems, and respite care for family caregivers.\n\nThis program is designed for people who have some income or assets but still need support — you'll pay on a sliding scale based on what you can afford, from no cost to full cost. Because EISEP operates through local Area Agencies on Aging, services and wait times vary significantly by county based on local provider availability.",
+      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, cooking, or housekeeping but doesn't qualify for Medicaid, EISEP provides case management and in-home services. All participants receive professional case management to assess needs and coordinate care. Additional services may include personal care assistance, housekeeping, meal delivery, emergency response systems, and respite care for family caregivers.\n\nThis program is designed for people who have some income or assets but still need support, you'll pay on a sliding scale based on what you can afford, from no cost to full cost. Because EISEP operates through local Area Agencies on Aging, services and wait times vary significantly by county based on local provider availability.",
       "savingsRange": "",
       "savingsSource": "Sliding scale service based on income and service costs",
       "savingsVerified": false,
@@ -2719,16 +2719,16 @@
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must need assistance with personal care or household chores due to illness or disability — specifically those facing challenges with activities of daily living like bathing, dressing, cooking, or housekeeping",
+        "functionalRequirement": "Must need assistance with personal care or household chores due to illness or disability, specifically those facing challenges with activities of daily living like bathing, dressing, cooking, or housekeeping",
         "otherRequirements": [
           "Cannot be eligible for Medicaid",
-          "Services supplement existing informal care from family or friends — they don't replace family support entirely"
+          "Services supplement existing informal care from family or friends, they don't replace family support entirely"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call NY Connects at 1-800-342-9871 to connect with your local Area Agency on Aging — processing time depends on local aide availability.",
+        "summary": "Call NY Connects at 1-800-342-9871 to connect with your local Area Agency on Aging, processing time depends on local aide availability.",
         "steps": [
           {
             "step": 1,
@@ -2743,7 +2743,7 @@
           {
             "step": 3,
             "title": "Complete income evaluation",
-            "description": "Provide income documentation for sliding scale cost-share calculation — this determines what portion of services your loved one pays."
+            "description": "Provide income documentation for sliding scale cost-share calculation, this determines what portion of services your loved one pays."
           },
           {
             "step": 4,
@@ -2753,12 +2753,12 @@
           {
             "step": 5,
             "title": "Begin services",
-            "description": "Start with case management immediately. Other services begin based on provider availability in your area — wait times vary by county."
+            "description": "Start with case management immediately. Other services begin based on provider availability in your area, wait times vary by county."
           }
         ],
-        "processingTime": "Not specified statewide — depends on home care aide availability in your area",
-        "waitlist": "Wait times vary by region based on local provider and aide availability — can be significant in some areas",
-        "tip": "Contact multiple providers in your county if available — different agencies may have shorter wait times for specific services.",
+        "processingTime": "Not specified statewide, depends on home care aide availability in your area",
+        "waitlist": "Wait times vary by region based on local provider and aide availability, can be significant in some areas",
+        "tip": "Contact multiple providers in your county if available, different agencies may have shorter wait times for specific services.",
         "urls": [
           {
             "label": "NY State Office for the Aging - EISEP",
@@ -2801,10 +2801,10 @@
         }
       ],
       "applicationNotes": [
-        "All participants automatically receive case management — additional services like personal care or meals depend on your assessment and local provider capacity",
-        "Even if you have moderate income or assets, you may qualify with cost-sharing — the sliding scale goes from no-cost to full-cost based on your situation",
-        "Services are meant to supplement family care, not replace it entirely — be prepared to discuss what informal support is already in place",
-        "Wait times vary dramatically by county — rural areas often have longer waits due to fewer available home care aides"
+        "All participants automatically receive case management, additional services like personal care or meals depend on your assessment and local provider capacity",
+        "Even if you have moderate income or assets, you may qualify with cost-sharing, the sliding scale goes from no-cost to full-cost based on your situation",
+        "Services are meant to supplement family care, not replace it entirely, be prepared to discuss what informal support is already in place",
+        "Wait times vary dramatically by county, rural areas often have longer waits due to fewer available home care aides"
       ],
       "relatedPrograms": [
         "NY State Medicaid",
@@ -2816,7 +2816,7 @@
       "faqs": [
         {
           "question": "Can my loved one get EISEP if they have significant savings but don't qualify for Medicaid?",
-          "answer": "Yes, EISEP has no asset limits and is specifically designed for people who don't qualify for Medicaid. Your loved one will pay on a sliding scale based on income and service costs — this could range from no cost to full cost depending on their financial situation."
+          "answer": "Yes, EISEP has no asset limits and is specifically designed for people who don't qualify for Medicaid. Your loved one will pay on a sliding scale based on income and service costs, this could range from no cost to full cost depending on their financial situation."
         },
         {
           "question": "What's the difference between Personal Care I and Personal Care II services?",
@@ -2872,7 +2872,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 62+ with a New York ID, they can enter most state parks, boat launches, and arboretums for free Monday through Friday. No income limits, no application — just show their current New York driver's license or state ID card at the entrance.\n\nThe program also provides reduced fees at state historic sites and state-operated golf courses on weekdays. Because there's no application process, your loved one can start using this benefit immediately at participating locations across New York.",
+      "intro": "If your loved one is 62+ with a New York ID, they can enter most state parks, boat launches, and arboretums for free Monday through Friday. No income limits, no application, just show their current New York driver's license or state ID card at the entrance.\n\nThe program also provides reduced fees at state historic sites and state-operated golf courses on weekdays. Because there's no application process, your loved one can start using this benefit immediately at participating locations across New York.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2895,7 +2895,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "No application needed — just present your loved one's current New York ID at any participating park entrance.",
+        "summary": "No application needed, just present your loved one's current New York ID at any participating park entrance.",
         "steps": [
           {
             "step": 1,
@@ -2979,7 +2979,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "New York offers 17 programs to help your aging loved one stay independent and reduce your family's caregiving costs. These range from major financial benefits — like Community Medicaid covering thousands in monthly home care costs, or SNAP providing up to $300/month for groceries — to free resources like legal help and Medicare counseling that require no income qualification. New York also has unique programs like SCRIE (rent freeze for seniors) and generous property tax exemptions that other states don't offer. Start by checking the highest-impact financial programs first, then explore the free resources that can solve immediate problems.",
+    "intro": "New York offers 17 programs to help your aging loved one stay independent and reduce your family's caregiving costs. These range from major financial benefits, like Community Medicaid covering thousands in monthly home care costs, or SNAP providing up to $300/month for groceries, to free resources like legal help and Medicare counseling that require no income qualification. New York also has unique programs like SCRIE (rent freeze for seniors) and generous property tax exemptions that other states don't offer. Start by checking the highest-impact financial programs first, then explore the free resources that can solve immediate problems.",
     "startHere": [
       {
         "name": "Community Medicaid",
@@ -3052,10 +3052,10 @@
     ],
     "quickFacts": [
       "Most income-based programs use $1,715/month for single seniors as a key qualification threshold (approximately 135% of federal poverty level)",
-      "New York has stronger tenant protections than most states — SCRIE can permanently freeze rent for qualifying seniors 62+",
+      "New York has stronger tenant protections than most states, SCRIE can permanently freeze rent for qualifying seniors 62+",
       "NYC residents have access to additional programs like SCRIE and enhanced respite care that aren't available statewide",
-      "Many programs allow higher income limits for seniors than younger adults — SNAP qualification is easier at age 60+"
+      "Many programs allow higher income limits for seniors than younger adults, SNAP qualification is easier at age 60+"
     ],
-    "resourcesVsBenefits": "New York's programs split into two categories: income-qualified benefits that provide direct financial assistance (like Community Medicaid, SNAP, or HEAP), and free resources available to all seniors regardless of income (like HIICAP Medicare counseling, Legal Services, and Golden Park access). Start with benefits if your loved one's income is under $2,000/month, but don't skip the free resources — HIICAP alone can save hundreds by optimizing Medicare coverage, and legal services can prevent costly evictions or benefit denials."
+    "resourcesVsBenefits": "New York's programs split into two categories: income-qualified benefits that provide direct financial assistance (like Community Medicaid, SNAP, or HEAP), and free resources available to all seniors regardless of income (like HIICAP Medicare counseling, Legal Services, and Golden Park access). Start with benefits if your loved one's income is under $2,000/month, but don't skip the free resources, HIICAP alone can save hundreds by optimizing Medicare coverage, and legal services can prevent costly evictions or benefit denials."
   }
 }

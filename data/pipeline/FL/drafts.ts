@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:49:44.092Z
+ * Last updated: 2026-04-20T23:39:07.851Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -68,7 +68,7 @@ export const drafts: PipelineStateDrafts = {
           "60-month look-back: asset transfers at less than fair market value within 5 years trigger a penalty period (2026 penalty divisor: $10,645/month)",
           "Community Spouse Resource Allowance: if one spouse applies and the other stays at home, the community spouse can keep up to $162,660 in assets (2026)"
         ],
-        "povertyLevelReference": "300% of the Federal Benefit Rate (FBR) — $2,982/month for a single applicant in 2026"
+        "povertyLevelReference": "300% of the Federal Benefit Rate (FBR), $2,982/month for a single applicant in 2026"
       },
       "applicationGuide": {
         "method": "multiple",
@@ -105,7 +105,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Apply early even if services aren't needed immediately. The waitlist uses a priority score system, so being in the queue matters even before urgent need hits.",
         "urls": [
           {
-            "label": "FL Elder Affairs — SMMC-LTC Program",
+            "label": "FL Elder Affairs, SMMC-LTC Program",
             "url": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/"
           },
           {
@@ -145,7 +145,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "DCF ACCESS Florida (financial side)",
           "phone": "1-866-762-2237",
-          "description": "Department of Children and Families — handles the income and asset review. Use this for Miller Trust questions or ACCESS Florida portal help.",
+          "description": "Department of Children and Families, handles the income and asset review. Use this for Miller Trust questions or ACCESS Florida portal help.",
           "hours": "Mon–Fri"
         },
         {
@@ -310,7 +310,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay at home, PACE provides everything under one program — doctors, nurses, medications, transportation, meals, and even adult day care. Because PACE covers all medical care through one coordinated team, your loved one won't need to manage separate Medicare providers or coordinate between different specialists.\n\nPACE is only available in specific Florida counties (currently Miami-Dade, with potential expansion). Your loved one must qualify for nursing home level care but be able to live safely in the community with PACE services. Most participants have both Medicare and Medicaid, though PACE helps with Medicaid enrollment if needed.\n\nThe program covers everything at no additional cost beyond Medicare/Medicaid: primary care, specialists, prescription drugs, hospital stays, home care, adult day health care, meals, and transportation to medical appointments. Average participants are 76 years old with complex medical needs.",
+      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay at home, PACE provides everything under one program, doctors, nurses, medications, transportation, meals, and even adult day care. Because PACE covers all medical care through one coordinated team, your loved one won't need to manage separate Medicare providers or coordinate between different specialists.\n\nPACE is only available in specific Florida counties (currently Miami-Dade, with potential expansion). Your loved one must qualify for nursing home level care but be able to live safely in the community with PACE services. Most participants have both Medicare and Medicaid, though PACE helps with Medicaid enrollment if needed.\n\nThe program covers everything at no additional cost beyond Medicare/Medicaid: primary care, specialists, prescription drugs, hospital stays, home care, adult day health care, meals, and transportation to medical appointments. Average participants are 76 years old with complex medical needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -349,7 +349,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Florida PACE Centers at 786-933-7223 for pre-screening — the enrollment process takes 2-3 months with three in-home visits.",
+        "summary": "Call Florida PACE Centers at 786-933-7223 for pre-screening, the enrollment process takes 2-3 months with three in-home visits.",
         "steps": [
           {
             "step": 1,
@@ -423,7 +423,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE is voluntary enrollment — your loved one can disenroll at any time and return to regular Medicare",
+        "PACE is voluntary enrollment, your loved one can disenroll at any time and return to regular Medicare",
         "The program works best for people with complex medical needs who want to avoid nursing home placement",
         "If your loved one doesn't qualify for Medicaid initially, they may still enroll and pay privately while PACE assists with Medicaid planning",
         "Currently only available in Miami-Dade County, though Florida is working to expand to other areas"
@@ -453,7 +453,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much does my family pay out-of-pocket for PACE services?",
-          "answer": "If your loved one has both Medicare and Medicaid, there are no out-of-pocket costs. Medicare-only participants pay a monthly premium for long-term care services. PACE covers everything else — no copays, deductibles, or additional charges."
+          "answer": "If your loved one has both Medicare and Medicaid, there are no out-of-pocket costs. Medicare-only participants pay a monthly premium for long-term care services. PACE covers everything else, no copays, deductibles, or additional charges."
         },
         {
           "question": "Can I apply for PACE while my loved one is in the hospital?",
@@ -493,7 +493,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles to afford Medicare premiums or copays, Florida's Medicare Savings Programs could cover hundreds or thousands in annual costs. These three programs — QMB, SLMB, and QI — help pay Medicare expenses based on your loved one's income level. QMB provides the most help (covering all Medicare cost-sharing) for those with the lowest incomes (under $1,350/month for individuals). SLMB and QI cover Medicare Part B premiums for those with slightly higher incomes.\n\nAll three programs require your loved one to have Medicare Part A, be a Florida resident, and meet strict income and asset limits. Because QMB covers deductibles and copays that your loved one would otherwise pay out-of-pocket, providers cannot bill QMB recipients for these costs — this alone could save thousands per year depending on healthcare usage.",
+      "intro": "If your loved one struggles to afford Medicare premiums or copays, Florida's Medicare Savings Programs could cover hundreds or thousands in annual costs. These three programs, QMB, SLMB, and QI, help pay Medicare expenses based on your loved one's income level. QMB provides the most help (covering all Medicare cost-sharing) for those with the lowest incomes (under $1,350/month for individuals). SLMB and QI cover Medicare Part B premiums for those with slightly higher incomes.\n\nAll three programs require your loved one to have Medicare Part A, be a Florida resident, and meet strict income and asset limits. Because QMB covers deductibles and copays that your loved one would otherwise pay out-of-pocket, providers cannot bill QMB recipients for these costs, this alone could save thousands per year depending on healthcare usage.",
       "savingsRange": "$1,000 – $3,000+/year in 2026",
       "savingsSource": "Part B premium savings plus potential deductible/copay coverage",
       "savingsVerified": true,
@@ -551,7 +551,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at myflfamilies.com or call 1-877-411-6810 — processing times vary by county workload.",
+        "summary": "Apply online at myflfamilies.com or call 1-877-411-6810, processing times vary by county workload.",
         "steps": [
           {
             "step": 1,
@@ -574,8 +574,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "Contact your county DCF office if you don't hear back within 45 days. QMB approvals include automatic enrollment in Extra Help for prescription drug costs."
           }
         ],
-        "processingTime": "Varies by county workload — contact your local DCF office for current timelines",
-        "waitlist": "QI program operates first-come, first-served until annual funding exhausted — no waitlist, just denial if funds run out",
+        "processingTime": "Varies by county workload, contact your local DCF office for current timelines",
+        "waitlist": "QI program operates first-come, first-served until annual funding exhausted, no waitlist, just denial if funds run out",
         "tip": "Apply early in the year for QI program since funding is limited and applications are processed first-come, first-served.",
         "urls": [
           {
@@ -624,7 +624,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI program funding is finite — even if you meet all requirements, you may be denied if annual funds are exhausted, so apply early in the calendar year",
+        "QI program funding is finite, even if you meet all requirements, you may be denied if annual funds are exhausted, so apply early in the calendar year",
         "Income limits include a $20 general exclusion for unearned income, meaning your loved one can have $20 more in unearned income and still qualify",
         "Household size affects income limits and includes all blood relatives or spouses who depend on your loved one for at least half their support",
         "If approved for QMB, your loved one automatically qualifies for Extra Help with Medicare Part D prescription costs (maximum $12.65 copay per drug in 2026)"
@@ -639,7 +639,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "tier-comparison",
           "title": "Program Tiers: QMB vs SLMB vs QI",
-          "content": "QMB (Qualified Medicare Beneficiary) covers the most but has the lowest income limit ($1,350/month individual). Pays Medicare Part B premiums, all deductibles, and copays. SLMB (Specified Low-Income Medicare Beneficiary) covers only Part B premiums for slightly higher incomes. QI (Qualifying Individual) also covers Part B premiums but operates on limited annual funding — first-come, first-served until money runs out."
+          "content": "QMB (Qualified Medicare Beneficiary) covers the most but has the lowest income limit ($1,350/month individual). Pays Medicare Part B premiums, all deductibles, and copays. SLMB (Specified Low-Income Medicare Beneficiary) covers only Part B premiums for slightly higher incomes. QI (Qualifying Individual) also covers Part B premiums but operates on limited annual funding, first-come, first-served until money runs out."
         }
       ],
       "faqs": [
@@ -652,7 +652,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Income limits are strict, but Florida applies a $20 general exclusion to unearned income first. Also, income limits change every April 1 based on federal poverty levels, so your loved one might qualify later in the year."
         },
         {
-          "question": "My loved one got a bill from their doctor even though they have QMB — is this right?",
+          "question": "My loved one got a bill from their doctor even though they have QMB, is this right?",
           "answer": "No. Providers are prohibited from billing QMB beneficiaries for Medicare deductibles or coinsurance. Contact the provider's billing department immediately and show them your loved one's QMB card. If problems persist, call 1-877-411-6810."
         },
         {
@@ -707,7 +707,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people.\n\nFlorida uses a senior-friendly income test: the gross limit is 200% of the federal poverty level ($2,610/month for one person in 2026), nearly double the 130% limit most states apply to working-age households. On top of that, reporting medical expenses above $35/month — Medicare premiums, prescriptions, out-of-pocket costs — lowers the 'countable income' used to calculate the actual benefit.\n\nThe program covers fruits, vegetables, meat, dairy, and grains. As of April 20, 2026, Florida's Healthy SNAP rules also prohibit soda, energy drinks, candy, and ultra-processed shelf-stable desserts. Benefits are calculated as the maximum allotment minus 30% of net income — a single senior with $800/month net income receives $298 − $240 = $58/month.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people.\n\nFlorida uses a senior-friendly income test: the gross limit is 200% of the federal poverty level ($2,610/month for one person in 2026), nearly double the 130% limit most states apply to working-age households. On top of that, reporting medical expenses above $35/month, Medicare premiums, prescriptions, out-of-pocket costs, lowers the 'countable income' used to calculate the actual benefit.\n\nThe program covers fruits, vegetables, meat, dairy, and grains. As of April 20, 2026, Florida's Healthy SNAP rules also prohibit soda, energy drinks, candy, and ultra-processed shelf-stable desserts. Benefits are calculated as the maximum allotment minus 30% of net income, a single senior with $800/month net income receives $298 − $240 = $58/month.",
       "savingsRange": "$58 – $298/month in 2025",
       "savingsSource": "Maximum SNAP allotments minus 30% of net income calculation",
       "savingsVerified": true,
@@ -753,7 +753,7 @@ export const drafts: PipelineStateDrafts = {
           "Social Security number or proof of application",
           "Not fleeing felony warrant"
         ],
-        "povertyLevelReference": "200% FPL gross — Florida uses Broad-Based Categorical Eligibility (BBCE) for senior/disabled households"
+        "povertyLevelReference": "200% FPL gross, Florida uses Broad-Based Categorical Eligibility (BBCE) for senior/disabled households"
       },
       "applicationGuide": {
         "method": "multiple",
@@ -782,7 +782,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Typically 30 days; expedited processing (within 7 days) if household has less than $150 gross monthly income and less than $100 cash",
         "waitlist": null,
-        "tip": "Emphasize all medical expenses over $35/month during the interview — prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
+        "tip": "Emphasize all medical expenses over $35/month during the interview, prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
         "urls": [
           {
             "label": "MyACCESS Portal (apply online)",
@@ -829,7 +829,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Medical expense deductions are often overlooked — include Medicare premiums, prescription costs, dental bills, and any medical equipment over $35/month total",
+        "Medical expense deductions are often overlooked, include Medicare premiums, prescription costs, dental bills, and any medical equipment over $35/month total",
         "If your loved one lives with family but buys and prepares food separately, they can apply as a one-person household with lower income limits",
         "Expedited processing (within 7 days) is available for households with very low income and minimal cash on hand",
         "Benefits can be used for online grocery purchases through Amazon and Walmart, and at participating farmers markets with bonus incentives"
@@ -844,7 +844,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Applicants 60+ can use Florida's Elderly Simplified Application Project (ESAP) — a shorter application, 36-month certification (vs. 12 months), and no in-person interview required. Ask DCF about ESAP when you apply."
+          "text": "Applicants 60+ can use Florida's Elderly Simplified Application Project (ESAP), a shorter application, 36-month certification (vs. 12 months), and no in-person interview required. Ask DCF about ESAP when you apply."
         },
         {
           "type": "callout",
@@ -860,27 +860,27 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one keep SNAP if they live in my house but don't pay rent?",
-          "answer": "Yes — if they buy and prepare food separately from your household, they can apply as a one-person household. Paying zero rent means no shelter deduction, but taking responsibility for even one utility bill (like a cell phone) restores part of it. Their share of the home isn't a problem — the primary residence is an excluded asset."
+          "answer": "Yes, if they buy and prepare food separately from your household, they can apply as a one-person household. Paying zero rent means no shelter deduction, but taking responsibility for even one utility bill (like a cell phone) restores part of it. Their share of the home isn't a problem, the primary residence is an excluded asset."
         },
         {
-          "question": "What if my loved one's Social Security is $1,400/month — too high for the income limit?",
-          "answer": "It's not too high. Florida uses 200% of the federal poverty level ($2,610/month for one person in 2026) as the gross income limit for senior/disabled households — nearly double the 130% threshold most states use. Medical expenses above $35/month further lower their countable income, which raises the monthly benefit."
+          "question": "What if my loved one's Social Security is $1,400/month, too high for the income limit?",
+          "answer": "It's not too high. Florida uses 200% of the federal poverty level ($2,610/month for one person in 2026) as the gross income limit for senior/disabled households, nearly double the 130% threshold most states use. Medical expenses above $35/month further lower their countable income, which raises the monthly benefit."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
-          "answer": "Yes — you can act as their Authorized Representative. Your loved one signs a form designating you, and you handle the application and any interview. They should still be available by phone during the eligibility interview, but you can lead the conversation. For applicants 60+ using ESAP, the interview is often waived entirely."
+          "answer": "Yes, you can act as their Authorized Representative. Your loved one signs a form designating you, and you handle the application and any interview. They should still be available by phone during the eligibility interview, but you can lead the conversation. For applicants 60+ using ESAP, the interview is often waived entirely."
         },
         {
           "question": "How does owning a house affect SNAP eligibility?",
-          "answer": "It doesn't. The primary residence is an excluded asset regardless of value — it never counts toward the $4,500 limit. Rental property or a second home is counted. Property taxes and homeowner's insurance can be deducted as shelter costs, lowering countable income."
+          "answer": "It doesn't. The primary residence is an excluded asset regardless of value, it never counts toward the $4,500 limit. Rental property or a second home is counted. Property taxes and homeowner's insurance can be deducted as shelter costs, lowering countable income."
         },
         {
           "question": "What happens if my loved one's income changes after approval?",
-          "answer": "Florida uses Simplified Reporting for most senior households. You only need to notify DCF if monthly income crosses $1,696 (130% FPL for one person). If it does, report within 10 days of the following month to avoid overpayments you'd later have to repay. Reporting income decreases or new medical expenses is always optional — and often increases benefits."
+          "answer": "Florida uses Simplified Reporting for most senior households. You only need to notify DCF if monthly income crosses $1,696 (130% FPL for one person). If it does, report within 10 days of the following month to avoid overpayments you'd later have to repay. Reporting income decreases or new medical expenses is always optional, and often increases benefits."
         },
         {
           "question": "Can my loved one use SNAP and still get meals from a senior center?",
-          "answer": "Yes — congregate meals at senior centers and Meals on Wheels don't count against SNAP. The programs are designed to work together. SNAP covers groceries at the store; senior center meals fill social gaps."
+          "answer": "Yes, congregate meals at senior centers and Meals on Wheels don't count against SNAP. The programs are designed to work together. SNAP covers groceries at the store; senior center meals fill social gaps."
         },
         {
           "question": "What can't my loved one buy with SNAP anymore in Florida?",
@@ -933,7 +933,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$1,350 directly to their utility company. Crisis assistance can go up to $2,000 if they're facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. Because LIHEAP is administered by local agencies in each county, you'll need to apply through your loved one's specific county provider — not all Florida counties participate.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
+      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$1,350 directly to their utility company. Crisis assistance can go up to $2,000 if they're facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. Because LIHEAP is administered by local agencies in each county, you'll need to apply through your loved one's specific county provider, not all Florida counties participate.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
       "savingsRange": "$400 – $2,000/year in 2026",
       "savingsSource": "Payment ranges from Florida LIHEAP providers",
       "savingsVerified": true,
@@ -983,7 +983,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your county's local LIHEAP provider by phone, online, or in-person — processing time varies by county and demand.",
+        "summary": "Apply through your county's local LIHEAP provider by phone, online, or in-person, processing time varies by county and demand.",
         "steps": [
           {
             "step": 1,
@@ -1006,9 +1006,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "The local agency reviews your application and contacts you for any missing information. If approved, payment goes directly to the utility company."
           }
         ],
-        "processingTime": "Varies by local agency and demand — some counties process within weeks, others may take longer during peak seasons",
+        "processingTime": "Varies by local agency and demand, some counties process within weeks, others may take longer during peak seasons",
         "waitlist": "Applications may be paused when funding runs low, especially during peak summer and winter months",
-        "tip": "Apply as early as possible when the program opens — funding is limited and runs out during high-demand periods.",
+        "tip": "Apply as early as possible when the program opens, funding is limited and runs out during high-demand periods.",
         "urls": [
           {
             "label": "Florida LIHEAP Main Site",
@@ -1113,7 +1113,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does my loved one's house or car count against the income limits?",
-          "answer": "No, LIHEAP has no asset limits. Your loved one's home, car, savings accounts, or other assets don't count against eligibility — only monthly income matters for qualification."
+          "answer": "No, LIHEAP has no asset limits. Your loved one's home, car, savings accounts, or other assets don't count against eligibility, only monthly income matters for qualification."
         }
       ],
       "layoutIntent": {
@@ -1159,7 +1159,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills and their household earns less than $31,300/year for one person (200% of the federal poverty level), they may qualify for free home energy improvements through Florida's Weatherization Assistance Program. The program provides up to $2,600 in upgrades — attic insulation, energy-efficient appliances, new water heaters, heating/cooling system repairs — all at no cost.\n\nPriority goes to households with someone 60+, people with disabilities, or families with children under 12. Funding is limited and demand is high, so most areas have waitlists. Both homeowners and renters qualify, but renters need landlord approval since the improvements stay with the property.",
+      "intro": "If your loved one struggles with high energy bills and their household earns less than $31,300/year for one person (200% of the federal poverty level), they may qualify for free home energy improvements through Florida's Weatherization Assistance Program. The program provides up to $2,600 in upgrades, attic insulation, energy-efficient appliances, new water heaters, heating/cooling system repairs, all at no cost.\n\nPriority goes to households with someone 60+, people with disabilities, or families with children under 12. Funding is limited and demand is high, so most areas have waitlists. Both homeowners and renters qualify, but renters need landlord approval since the improvements stay with the property.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1217,12 +1217,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "WAP is administered by local Community Action Agencies — contact the agency serving your county directly. State-level questions can go to the WAP Manager at (850) 717-8523.",
+        "summary": "WAP is administered by local Community Action Agencies, contact the agency serving your county directly. State-level questions can go to the WAP Manager at (850) 717-8523.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local agency",
-            "description": "Use the Florida Department of Commerce directory (link below) to find the agency serving your loved one's county. Every county is covered, though not always by an agency named after the county — larger regional agencies cover multiple counties."
+            "description": "Use the Florida Department of Commerce directory (link below) to find the agency serving your loved one's county. Every county is covered, though not always by an agency named after the county, larger regional agencies cover multiple counties."
           },
           {
             "step": 2,
@@ -1237,12 +1237,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Wait for priority ranking and approval",
-            "description": "Applications are ranked by priority points — households with someone 60+, disabled, or children under 12 move faster. Expect a waitlist; elderly-priority applications can still take 6–18 months depending on region."
+            "description": "Applications are ranked by priority points, households with someone 60+, disabled, or children under 12 move faster. Expect a waitlist; elderly-priority applications can still take 6–18 months depending on region."
           }
         ],
-        "processingTime": "Varies widely by county — typically 6–18 months from application to installation, priority households move faster",
-        "waitlist": "Most areas have waitlists due to funding limits and high demand — elderly and disabled households receive priority",
-        "tip": "Gather all income documentation for every household member before applying — incomplete applications cause delays. If the waitlist is long, apply to LIHEAP in parallel for immediate bill help.",
+        "processingTime": "Varies widely by county, typically 6–18 months from application to installation, priority households move faster",
+        "waitlist": "Most areas have waitlists due to funding limits and high demand, elderly and disabled households receive priority",
+        "tip": "Gather all income documentation for every household member before applying, incomplete applications cause delays. If the waitlist is long, apply to LIHEAP in parallel for immediate bill help.",
         "urls": [
           {
             "label": "Florida Department of Commerce WAP Directory",
@@ -1282,10 +1282,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This is NOT a window replacement program despite common misconceptions — focus is on insulation, appliances, and heating/cooling systems",
-        "Income verification is strictly enforced — bank statements and self-prepared tax returns are not accepted, only official documentation",
+        "This is NOT a window replacement program despite common misconceptions, focus is on insulation, appliances, and heating/cooling systems",
+        "Income verification is strictly enforced, bank statements and self-prepared tax returns are not accepted, only official documentation",
         "Renters must get landlord approval before applying since improvements become property of the landlord at no cost",
-        "Be alert for scams — legitimate WAP staff will never call asking for personal information for 'payroll updates'"
+        "Be alert for scams, legitimate WAP staff will never call asking for personal information for 'payroll updates'"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1414,7 +1414,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is overwhelmed by Medicare choices, prescription costs, or insurance appeals, SHINE provides free one-on-one counseling to sort through their options. Because this is an unbiased service run by trained volunteers, your loved one won't get sales pitches — just clear explanations of Medicare plans, Medigap policies, prescription assistance programs, and help with appeals.\n\nSHINE counselors can also help your loved one apply for Extra Help (Low Income Subsidy) to reduce prescription costs and Medicare Savings Programs that cover premiums. The service is available to any Medicare beneficiary or their family in Florida — no income limits or fees. Counseling happens by phone, in-person at local Area Agency on Aging sites, or through community events.",
+      "intro": "If your loved one is overwhelmed by Medicare choices, prescription costs, or insurance appeals, SHINE provides free one-on-one counseling to sort through their options. Because this is an unbiased service run by trained volunteers, your loved one won't get sales pitches, just clear explanations of Medicare plans, Medigap policies, prescription assistance programs, and help with appeals.\n\nSHINE counselors can also help your loved one apply for Extra Help (Low Income Subsidy) to reduce prescription costs and Medicare Savings Programs that cover premiums. The service is available to any Medicare beneficiary or their family in Florida, no income limits or fees. Counseling happens by phone, in-person at local Area Agency on Aging sites, or through community events.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1435,7 +1435,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Elder Helpline at 1-800-963-5337 for immediate counseling — no application needed.",
+        "summary": "Call the Elder Helpline at 1-800-963-5337 for immediate counseling, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1570,7 +1570,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Elder Helpline to find your local program — assessment typically completed within one week, though waitlists are common.",
+        "summary": "Call the Elder Helpline to find your local program, assessment typically completed within one week, though waitlists are common.",
         "steps": [
           {
             "step": 1,
@@ -1600,7 +1600,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by region; some programs within 1 week, longer with waitlists",
         "waitlist": "Common in many local programs due to capacity constraints; wait times vary significantly by region",
-        "tip": "If your loved one has Medicaid, check with their health plan first — they may offer meal delivery benefits with shorter wait times than community programs.",
+        "tip": "If your loved one has Medicaid, check with their health plan first, they may offer meal delivery benefits with shorter wait times than community programs.",
         "urls": [
           {
             "label": "Florida Elder Helpline",
@@ -1635,8 +1635,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Car ownership or having family members who can cook may disqualify your loved one from some programs, as they assess true need for meal delivery",
-        "Service delivery zones are strictly enforced — moving outside the area will terminate service, even within the same county",
-        "Medicaid Special Needs Plans (SNCP) and some Medicare Advantage plans offer meal benefits separate from community Meals on Wheels — check health plan benefits first",
+        "Service delivery zones are strictly enforced, moving outside the area will terminate service, even within the same county",
+        "Medicaid Special Needs Plans (SNCP) and some Medicare Advantage plans offer meal benefits separate from community Meals on Wheels, check health plan benefits first",
         "Spouses may sometimes be included in meal delivery, but this varies by local program and must be verified during assessment"
       ],
       "relatedPrograms": [
@@ -1665,7 +1665,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one moves to assisted living after starting meal delivery?",
-          "answer": "Meal delivery typically stops when moving to assisted living, as facilities are required to provide meals. However, some programs may continue delivery to independent living communities — check with the local ADRC about your loved one's specific housing situation."
+          "answer": "Meal delivery typically stops when moving to assisted living, as facilities are required to provide meals. However, some programs may continue delivery to independent living communities, check with the local ADRC about your loved one's specific housing situation."
         },
         {
           "question": "Can I pay for meals if my loved one doesn't qualify for free service?",
@@ -1677,7 +1677,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How quickly can meal delivery start in an emergency situation?",
-          "answer": "Emergency placements may be possible for seniors being discharged from the hospital or facing immediate nutritional crisis. Contact the local ADRC immediately and mention the urgent nature — some programs reserve emergency slots for these situations."
+          "answer": "Emergency placements may be possible for seniors being discharged from the hospital or facing immediate nutritional crisis. Contact the local ADRC immediately and mention the urgent nature, some programs reserve emergency slots for these situations."
         }
       ],
       "layoutIntent": {
@@ -1698,7 +1698,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "adi-respite-services",
       "name": "Alzheimer's Disease Initiative (ADI) Respite Services",
       "shortName": "ADI Respite",
-      "tagline": "Get help caring for your loved one with dementia — in-home respite, adult day care, and emergency relief when you need a break.",
+      "tagline": "Get help caring for your loved one with dementia, in-home respite, adult day care, and emergency relief when you need a break.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1715,7 +1715,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Alzheimer's disease or dementia and you're struggling to provide 24/7 care, Florida's ADI program can give you relief. Because caring for someone with memory loss is exhausting, this program provides in-home respite workers, adult day care, emergency respite (when you have a crisis), and extended respite up to 30 days. Your loved one must be 60+ with a diagnosed memory disorder and at risk of nursing home placement.\n\nThe program also includes case management to coordinate your loved one's care, caregiver training to help you manage challenging behaviors, medical supplies, and therapeutic activities. Cost is based on a sliding scale according to your loved one's income — it's not free, but no specific dollar amounts are published. Services vary significantly by region based on local funding and provider availability.",
+      "intro": "If your loved one has Alzheimer's disease or dementia and you're struggling to provide 24/7 care, Florida's ADI program can give you relief. Because caring for someone with memory loss is exhausting, this program provides in-home respite workers, adult day care, emergency respite (when you have a crisis), and extended respite up to 30 days. Your loved one must be 60+ with a diagnosed memory disorder and at risk of nursing home placement.\n\nThe program also includes case management to coordinate your loved one's care, caregiver training to help you manage challenging behaviors, medical supplies, and therapeutic activities. Cost is based on a sliding scale according to your loved one's income, it's not free, but no specific dollar amounts are published. Services vary significantly by region based on local funding and provider availability.",
       "savingsRange": "",
       "savingsSource": "Service program with sliding-scale co-payments",
       "savingsVerified": false,
@@ -1738,7 +1738,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Elder Helpline at 1-800-963-5337 to connect with your local Area Agency on Aging for assessment — no forms to download.",
+        "summary": "Call the Elder Helpline at 1-800-963-5337 to connect with your local Area Agency on Aging for assessment, no forms to download.",
         "steps": [
           {
             "step": 1,
@@ -1761,9 +1761,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved and funding is available, your AAA will connect you with local respite providers and coordinate services."
           }
         ],
-        "processingTime": "Not specified — depends on local AAA capacity and funding availability",
+        "processingTime": "Not specified, depends on local AAA capacity and funding availability",
         "waitlist": "Potential waitlists based on funding availability, but specific wait times not published",
-        "tip": "Ask specifically about emergency respite when you call — this may have faster availability than regular ongoing respite services.",
+        "tip": "Ask specifically about emergency respite when you call, this may have faster availability than regular ongoing respite services.",
         "urls": [
           {
             "label": "Florida Department of Elder Affairs ADI page",
@@ -1796,10 +1796,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each of Florida's 11 Area Agencies on Aging operates differently — eligibility requirements and available services vary by region",
+        "Each of Florida's 11 Area Agencies on Aging operates differently, eligibility requirements and available services vary by region",
         "Emergency respite may be available more quickly than ongoing respite services, especially during caregiver crises",
-        "Funding availability changes throughout the year — if told no funding is available, ask when to call back",
-        "Some regions have age requirements different from 60+ (like 18+ in Broward County) — confirm with your local AAA"
+        "Funding availability changes throughout the year, if told no funding is available, ask when to call back",
+        "Some regions have age requirements different from 60+ (like 18+ in Broward County), confirm with your local AAA"
       ],
       "relatedPrograms": [
         "AHCA Waiver Programs",
@@ -1810,15 +1810,15 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "What if my loved one is under 60 but has early-onset dementia?",
-          "answer": "Some local Area Agencies on Aging have different age requirements — for example, Broward County serves adults 18+. Call 1-800-963-5337 to check if your region has exceptions for younger adults with dementia."
+          "answer": "Some local Area Agencies on Aging have different age requirements, for example, Broward County serves adults 18+. Call 1-800-963-5337 to check if your region has exceptions for younger adults with dementia."
         },
         {
           "question": "How much will the sliding-scale co-payment cost?",
-          "answer": "Florida doesn't publish specific co-payment amounts — this is determined individually by your local AAA based on your loved one's income. During your assessment, ask for the co-payment schedule so you can budget accordingly."
+          "answer": "Florida doesn't publish specific co-payment amounts, this is determined individually by your local AAA based on your loved one's income. During your assessment, ask for the co-payment schedule so you can budget accordingly."
         },
         {
           "question": "Can I get emergency respite if I haven't used regular respite services?",
-          "answer": "Yes, emergency respite is available for crisis situations even if you're not enrolled in ongoing respite. Call your local AAA immediately when you have a caregiver emergency — don't wait for regular intake processes."
+          "answer": "Yes, emergency respite is available for crisis situations even if you're not enrolled in ongoing respite. Call your local AAA immediately when you have a caregiver emergency, don't wait for regular intake processes."
         },
         {
           "question": "What's the difference between in-home respite and adult day care through this program?",
@@ -1908,7 +1908,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local SCSEP provider directly — processing time varies by provider and funding availability.",
+        "summary": "Contact your local SCSEP provider directly, processing time varies by provider and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -1931,9 +1931,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If accepted, you'll be matched with a host site based on available positions and your skills. Training positions average 20 hours per week."
           }
         ],
-        "processingTime": "Not specified — varies by provider and funding availability",
+        "processingTime": "Not specified, varies by provider and funding availability",
         "waitlist": "Possible delays due to federal funding cycles and priority enrollment system",
-        "tip": "Veterans and people over 65 get priority — mention these qualifications upfront when calling.",
+        "tip": "Veterans and people over 65 get priority, mention these qualifications upfront when calling.",
         "urls": [
           {
             "label": "Florida Department of Elder Affairs SCSEP page",
@@ -1978,10 +1978,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits are based on household size and updated annually — contact your local provider for current income guidelines",
+        "Income limits are based on household size and updated annually, contact your local provider for current income guidelines",
         "Priority enrollment may delay non-priority applicants, especially during high-demand periods",
         "This is a temporary bridge program averaging 6 months, designed to lead to permanent unsubsidized employment",
-        "Program funding is 90% federal with 10% state/local match — subject to annual funding changes that may affect availability"
+        "Program funding is 90% federal with 10% state/local match, subject to annual funding changes that may affect availability"
       ],
       "relatedPrograms": [
         "SNAP (food assistance for low-income households)",
@@ -2222,7 +2222,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and at risk of nursing home placement, Florida's Home Care for the Elderly (HCE) Program provides in-home services when they live with an adult caregiver willing to help. This isn't general home care — your loved one must meet the same clinical need level that qualifies for nursing home care, but they can stay home with family support instead.\n\nThe program covers assistance with social, physical, and emotional needs through approved caregivers in a family-type living arrangement. Because this prevents costly nursing home placement, it can save thousands per month while keeping your loved one in familiar surroundings. Your loved one must have income and assets below Medicaid nursing home limits — roughly $2,982/month income and $2,000 in countable assets for a single person.\n\nThe key requirement: your loved one cannot live alone. They must have a live-in adult caregiver (family member or chosen adult) who passes a background assessment and meets state qualifications. The caregiver doesn't need to provide all care personally but must coordinate services and be present in the home.",
+      "intro": "If your loved one is 60+ and at risk of nursing home placement, Florida's Home Care for the Elderly (HCE) Program provides in-home services when they live with an adult caregiver willing to help. This isn't general home care, your loved one must meet the same clinical need level that qualifies for nursing home care, but they can stay home with family support instead.\n\nThe program covers assistance with social, physical, and emotional needs through approved caregivers in a family-type living arrangement. Because this prevents costly nursing home placement, it can save thousands per month while keeping your loved one in familiar surroundings. Your loved one must have income and assets below Medicaid nursing home limits, roughly $2,982/month income and $2,000 in countable assets for a single person.\n\nThe key requirement: your loved one cannot live alone. They must have a live-in adult caregiver (family member or chosen adult) who passes a background assessment and meets state qualifications. The caregiver doesn't need to provide all care personally but must coordinate services and be present in the home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2252,7 +2252,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be at nursing home level of care based on 701B assessment — meaning your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision.",
+        "functionalRequirement": "Must be at nursing home level of care based on 701B assessment, meaning your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision.",
         "otherRequirements": [
           "Florida resident with intent to remain",
           "Lives with approved adult caregiver (age 18+)",
@@ -2263,7 +2263,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Aging and Disability Resource Center to request a 701B assessment — processing time varies by region.",
+        "summary": "Call your local Aging and Disability Resource Center to request a 701B assessment, processing time varies by region.",
         "steps": [
           {
             "step": 1,
@@ -2291,9 +2291,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If eligible, your loved one is assigned a priority tier. Services are allocated based on available funding and priority level through local contractors."
           }
         ],
-        "processingTime": "Not specified — varies by local provider and caseload",
+        "processingTime": "Not specified, varies by local provider and caseload",
         "waitlist": "Potential waitlist due to priority-based allocation and funding limits",
-        "tip": "Have your caregiver's identification and willingness confirmation ready — the program cannot serve anyone living alone.",
+        "tip": "Have your caregiver's identification and willingness confirmation ready, the program cannot serve anyone living alone.",
         "urls": [
           {
             "label": "Department of Elder Affairs Programs",
@@ -2332,10 +2332,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "SSI, QMB, or SLMB recipients automatically meet financial eligibility — bring award letters to speed processing",
-        "The caregiver assessment is required even for adult children — they must demonstrate ability and commitment to provide ongoing support",
-        "Priority is given based on greatest need and risk factors — having no other support systems may increase priority",
-        "Services vary significantly by region based on local contractors — ask specifically what services are available in your area"
+        "SSI, QMB, or SLMB recipients automatically meet financial eligibility, bring award letters to speed processing",
+        "The caregiver assessment is required even for adult children, they must demonstrate ability and commitment to provide ongoing support",
+        "Priority is given based on greatest need and risk factors, having no other support systems may increase priority",
+        "Services vary significantly by region based on local contractors, ask specifically what services are available in your area"
       ],
       "relatedPrograms": [
         "PACE (Program of All-Inclusive Care for the Elderly)",
@@ -2347,7 +2347,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one qualify if they own their home worth more than $2,000?",
-          "answer": "Yes — the primary residence is typically exempt from asset limits under Medicaid ICP rules. However, there may be home equity caps that apply. The $2,000 limit refers to countable assets like bank accounts, investments, and additional vehicles."
+          "answer": "Yes, the primary residence is typically exempt from asset limits under Medicaid ICP rules. However, there may be home equity caps that apply. The $2,000 limit refers to countable assets like bank accounts, investments, and additional vehicles."
         },
         {
           "question": "What if our family member can't be the live-in caregiver full-time?",
@@ -2403,7 +2403,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides free home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there may be waiting periods, and eligibility is determined through a comprehensive assessment that looks at your loved one's ability to perform daily activities rather than strict income limits.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but you cannot receive CCE services while enrolled in a Medicaid capitated long-term care program — families must choose one or the other.",
+      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides free home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there may be waiting periods, and eligibility is determined through a comprehensive assessment that looks at your loved one's ability to perform daily activities rather than strict income limits.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but you cannot receive CCE services while enrolled in a Medicaid capitated long-term care program, families must choose one or the other.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2426,7 +2426,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact the Florida Department of Elder Affairs for an in-person assessment — processing time not specified.",
+        "summary": "Contact the Florida Department of Elder Affairs for an in-person assessment, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -2455,8 +2455,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified by the Florida Department of Elder Affairs",
-        "waitlist": "Not specified — contact local office for current availability",
-        "tip": "If your loved one doesn't qualify for CCE, ask about the referral to other agencies — it's required by the program.",
+        "waitlist": "Not specified, contact local office for current availability",
+        "tip": "If your loved one doesn't qualify for CCE, ask about the referral to other agencies, it's required by the program.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2486,9 +2486,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You cannot be enrolled in both CCE and Medicaid capitated long-term care programs at the same time — you must choose one",
+        "You cannot be enrolled in both CCE and Medicaid capitated long-term care programs at the same time, you must choose one",
         "Priority is given to individuals most at risk of nursing home placement, which may affect wait times",
-        "Annual reassessment is mandatory — missing this appointment could result in loss of services",
+        "Annual reassessment is mandatory, missing this appointment could result in loss of services",
         "If you're denied CCE services, the department is required to refer you to other appropriate agencies"
       ],
       "relatedPrograms": [
@@ -2568,7 +2568,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with daily activities like bathing, dressing, or meal preparation, Elder Options may provide in-home care services to help them stay safely at home instead of moving to a nursing facility. This program offers personalized home and community-based services including personal care assistance, homemaker services, adult day care, and caregiver respite — all designed as alternatives to institutionalization.\n\nBecause Elder Options tailors services to each person's specific needs after a comprehensive assessment, there are no fixed dollar amounts or guaranteed hours. Your loved one must meet both financial eligibility (following Florida Medicaid rules) and medical eligibility through a Nursing Facility Level of Care assessment that determines they need daily help with activities of daily living. Income limits for 2026: $2,982/month for a single person applying for nursing home-level services.\n\nElder Options specifically serves residents of Hernando, Citrus, Lake, Sumter, and Marion counties in Florida. Other counties have their own Aging and Disability Resource Centers with similar programs but different providers and potentially different waitlist times.",
+      "intro": "If your loved one is 60+ and struggling with daily activities like bathing, dressing, or meal preparation, Elder Options may provide in-home care services to help them stay safely at home instead of moving to a nursing facility. This program offers personalized home and community-based services including personal care assistance, homemaker services, adult day care, and caregiver respite, all designed as alternatives to institutionalization.\n\nBecause Elder Options tailors services to each person's specific needs after a comprehensive assessment, there are no fixed dollar amounts or guaranteed hours. Your loved one must meet both financial eligibility (following Florida Medicaid rules) and medical eligibility through a Nursing Facility Level of Care assessment that determines they need daily help with activities of daily living. Income limits for 2026: $2,982/month for a single person applying for nursing home-level services.\n\nElder Options specifically serves residents of Hernando, Citrus, Lake, Sumter, and Marion counties in Florida. Other counties have their own Aging and Disability Resource Centers with similar programs but different providers and potentially different waitlist times.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2610,7 +2610,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-96-ELDER for screening and assessment — processing varies but expect 30+ days for full approval.",
+        "summary": "Call 1-800-96-ELDER for screening and assessment, processing varies but expect 30+ days for full approval.",
         "steps": [
           {
             "step": 1,
@@ -2638,8 +2638,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "Get matched with local service providers for approved services like in-home care, adult day care, or respite care."
           }
         ],
-        "processingTime": "Varies by program — GUIDE program Medicare approval takes approximately 30 days post-assessment; general CARES assessment followed by review process",
-        "waitlist": "Possible waitlist for services due to funding limitations — managed by local ADRCs with varying wait times",
+        "processingTime": "Varies by program, GUIDE program Medicare approval takes approximately 30 days post-assessment; general CARES assessment followed by review process",
+        "waitlist": "Possible waitlist for services due to funding limitations, managed by local ADRCs with varying wait times",
         "tip": "Submit all financial documentation at once to avoid delays, and ask specifically about current waitlist times for the services your loved one needs most.",
         "urls": [
           {
@@ -2690,9 +2690,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Elder Options only serves specific counties (Hernando, Citrus, Lake, Sumter, Marion) — other Florida counties have different ADRC providers with separate applications",
-        "Financial eligibility through DCF and medical eligibility through CARES are separate processes — both must be completed for approval",
-        "Services are not guaranteed even if eligible — depends on funding availability and current waitlists in your area",
+        "Elder Options only serves specific counties (Hernando, Citrus, Lake, Sumter, Marion), other Florida counties have different ADRC providers with separate applications",
+        "Financial eligibility through DCF and medical eligibility through CARES are separate processes, both must be completed for approval",
+        "Services are not guaranteed even if eligible, depends on funding availability and current waitlists in your area",
         "Some programs may require co-payments or have means testing even after Medicaid eligibility is established"
       ],
       "relatedPrograms": [
@@ -2705,7 +2705,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one apply if their house is worth more than $2,000?",
-          "answer": "Yes — the primary home is exempt from asset limits up to $585,000 in equity if your loved one lives there or intends to return. The $2,000 asset limit applies to countable assets like bank accounts, investments, and second properties, not the primary residence."
+          "answer": "Yes, the primary home is exempt from asset limits up to $585,000 in equity if your loved one lives there or intends to return. The $2,000 asset limit applies to countable assets like bank accounts, investments, and second properties, not the primary residence."
         },
         {
           "question": "What happens if my loved one lives outside the Elder Options service area?",
@@ -2721,7 +2721,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one doesn't qualify for Nursing Facility Level of Care?",
-          "answer": "If the CARES assessment determines your loved one doesn't need nursing home-level care, they won't qualify for most long-term care services through Elder Options. However, they may still be eligible for other programs or services — Elder Options staff can provide referrals to appropriate alternatives."
+          "answer": "If the CARES assessment determines your loved one doesn't need nursing home-level care, they won't qualify for most long-term care services through Elder Options. However, they may still be eligible for other programs or services, Elder Options staff can provide referrals to appropriate alternatives."
         },
         {
           "question": "Can my loved one receive Elder Options services and keep their Medicare Advantage plan?",
@@ -2752,7 +2752,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Florida offers 13 programs to help your aging loved one stay home safely and afford basic needs. These range from monthly financial benefits (like $400–$2,000 toward utility bills through LIHEAP) to free services (like home-delivered meals and legal aid). Most programs focus on in-home care alternatives to nursing home placement — Florida has multiple waiver programs and home care services designed to keep seniors aging in place. Start by checking if your loved one qualifies for Medicaid home care waivers or Medicare assistance programs, as these provide the most comprehensive financial relief. For immediate help navigating options, SHINE offers free one-on-one guidance for any Florida senior.",
+    "intro": "Florida offers 13 programs to help your aging loved one stay home safely and afford basic needs. These range from monthly financial benefits (like $400–$2,000 toward utility bills through LIHEAP) to free services (like home-delivered meals and legal aid). Most programs focus on in-home care alternatives to nursing home placement, Florida has multiple waiver programs and home care services designed to keep seniors aging in place. Start by checking if your loved one qualifies for Medicaid home care waivers or Medicare assistance programs, as these provide the most comprehensive financial relief. For immediate help navigating options, SHINE offers free one-on-one guidance for any Florida senior.",
     "startHere": [
       {
         "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
@@ -2772,7 +2772,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "SHINE (Serving Health Insurance Needs of Elders)",
         "programId": "florida-shine",
-        "why": "Free expert help navigating all Medicare and insurance questions — available to every Florida senior."
+        "why": "Free expert help navigating all Medicare and insurance questions, available to every Florida senior."
       }
     ],
     "byNeed": [
@@ -2826,11 +2826,11 @@ export const drafts: PipelineStateDrafts = {
       }
     ],
     "quickFacts": [
-      "Florida has five separate programs offering in-home care alternatives to nursing home placement — most require Medicaid eligibility or specific income limits.",
-      "SHINE provides free Medicare counseling to every Florida senior regardless of income — call 1-800-963-5337.",
+      "Florida has five separate programs offering in-home care alternatives to nursing home placement, most require Medicaid eligibility or specific income limits.",
+      "SHINE provides free Medicare counseling to every Florida senior regardless of income, call 1-800-963-5337.",
       "Most income-based programs use limits around $2,000–$2,600/month for a single person, but each has different requirements.",
-      "Area Agencies on Aging manage many local programs — your loved one's specific services depend on which of Florida's 11 regions they live in."
+      "Area Agencies on Aging manage many local programs, your loved one's specific services depend on which of Florida's 11 regions they live in."
     ],
-    "resourcesVsBenefits": "Florida programs fall into two categories: qualification-based benefits that require meeting income or health criteria (like Medicaid waivers or LIHEAP utility assistance), and free resources available to all seniors (like SHINE Medicare counseling or legal aid through Area Agencies on Aging). Start with the free resources — SHINE can help determine which benefits your loved one might qualify for, and legal aid can assist with applications or appeals."
+    "resourcesVsBenefits": "Florida programs fall into two categories: qualification-based benefits that require meeting income or health criteria (like Medicaid waivers or LIHEAP utility assistance), and free resources available to all seniors (like SHINE Medicare counseling or legal aid through Area Agencies on Aging). Start with the free resources, SHINE can help determine which benefits your loved one might qualify for, and legal aid can assist with applications or appeals."
   }
 };

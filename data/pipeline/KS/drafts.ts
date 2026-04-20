@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.088Z
+ * Last updated: 2026-04-20T23:39:07.856Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "kancare-frail-elderly-waiver",
       "name": "KanCare Frail Elderly Waiver (FE Waiver)",
       "shortName": "FE Waiver",
-      "tagline": "Home care services for your loved one instead of nursing home placement — if they qualify for daily assistance needs.",
+      "tagline": "Home care services for your loved one instead of nursing home placement, if they qualify for daily assistance needs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing facility, the KanCare Frail Elderly Waiver covers home care services. This program serves as an alternative to nursing home care for Kansas residents 65+ who meet nursing facility level of care requirements.\n\nBecause the waiver covers home and community-based services through individualized care plans, your loved one can receive professional support while remaining in their own home. The program requires KanCare Medicaid eligibility first, and your loved one can keep $2,982 per month of their income (2026 amount).\n\nLimited slots mean waitlists exist statewide. The program does not cover room and board or basic living expenses — only authorized services like personal care, case management, and other supports determined through clinical assessment.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing facility, the KanCare Frail Elderly Waiver covers home care services. This program serves as an alternative to nursing home care for Kansas residents 65+ who meet nursing facility level of care requirements.\n\nBecause the waiver covers home and community-based services through individualized care plans, your loved one can receive professional support while remaining in their own home. The program requires KanCare Medicaid eligibility first, and your loved one can keep $2,982 per month of their income (2026 amount).\n\nLimited slots mean waitlists exist statewide. The program does not cover room and board or basic living expenses, only authorized services like personal care, case management, and other supports determined through clinical assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -58,17 +58,17 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care through Functional Assessment Instrument (FAI) — clinical evaluation of whether your loved one needs daily help with activities like toileting, bathing, dressing, transferring, mobility, eating, plus cognitive or behavioral issues",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through Functional Assessment Instrument (FAI), clinical evaluation of whether your loved one needs daily help with activities like toileting, bathing, dressing, transferring, mobility, eating, plus cognitive or behavioral issues",
         "otherRequirements": [
           "Kansas resident",
           "Eligible for KanCare (Kansas Medicaid)",
-          "60-month Look-Back Rule applies — asset transfers below fair market value within 60 months create penalty periods"
+          "60-month Look-Back Rule applies, asset transfers below fair market value within 60 months create penalty periods"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for KanCare Medicaid first, then request waiver assessment through KDADS — processing time varies but limited slots create waitlists.",
+        "summary": "Apply for KanCare Medicaid first, then request waiver assessment through KDADS, processing time varies but limited slots create waitlists.",
         "steps": [
           {
             "step": 1,
@@ -96,9 +96,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "When a slot opens, work with case manager to create individualized Plan of Care (POC) authorizing specific home and community-based services."
           }
         ],
-        "processingTime": "Not specified — varies by Medicaid processing and slot availability",
+        "processingTime": "Not specified, varies by Medicaid processing and slot availability",
         "waitlist": "Waitlist maintained when no openings exist due to limited slots",
-        "tip": "Start the KanCare Medicaid application immediately — waiver assessment cannot begin until Medicaid eligibility is confirmed.",
+        "tip": "Start the KanCare Medicaid application immediately, waiver assessment cannot begin until Medicaid eligibility is confirmed.",
         "urls": [
           {
             "label": "KanCare Application",
@@ -143,10 +143,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Waiver denial is automatic if your loved one doesn't qualify for KanCare Medicaid first — complete that application before requesting functional assessment",
-        "Wait times vary regionally due to limited slots and local provider availability — ask about current waitlist length in your area",
-        "The 60-month Look-Back Rule can create penalty periods if your loved one transferred assets below fair market value — consult elder law attorney if transfers occurred",
-        "Services require prior authorization through Plan of Care process — emergency services may need retroactive approval"
+        "Waiver denial is automatic if your loved one doesn't qualify for KanCare Medicaid first, complete that application before requesting functional assessment",
+        "Wait times vary regionally due to limited slots and local provider availability, ask about current waitlist length in your area",
+        "The 60-month Look-Back Rule can create penalty periods if your loved one transferred assets below fair market value, consult elder law attorney if transfers occurred",
+        "Services require prior authorization through Plan of Care process, emergency services may need retroactive approval"
       ],
       "relatedPrograms": [
         "KanCare (Kansas Medicaid)",
@@ -215,20 +215,20 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Via Christi HOPE (Wichita) — serves Sedgwick County",
+            "name": "Via Christi HOPE (Wichita), serves Sedgwick County",
             "type": "service-area"
           },
           {
-            "name": "Midland Care (Topeka) — serves Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie, and other counties",
+            "name": "Midland Care (Topeka), serves Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie, and other counties",
             "type": "service-area"
           },
           {
-            "name": "Bluestem PACE (McPherson) — serves Marion, McPherson, Ottawa, Reno, Rice, and Saline counties",
+            "name": "Bluestem PACE (McPherson), serves Marion, McPherson, Ottawa, Reno, Rice, and Saline counties",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs nursing home level care but wants to stay at home, PACE provides everything under one roof — primary care, specialists, therapy, medications, transportation, meals, and even adult day programs. Because PACE coordinates all services through one team, your loved one won't juggle multiple doctors, insurance approvals, or care gaps that leave families scrambling.\n\nPACE is only available in three Kansas regions: Wichita (Sedgwick County), Topeka area (9+ counties), and McPherson area (6 counties). Your loved one must be 55+ and certified as needing nursing home level care (clinical assessment of whether they need daily help with bathing, dressing, or medication management). Most participants are dual-eligible for Medicare and Medicaid — private pay averages $7,000+ per month.\n\nThe average PACE participant is 76 years old with multiple complex conditions. All participants receive identical comprehensive services regardless of how they pay — Medicare covers medical services, Medicaid covers long-term care, and PACE fills every gap in between.",
+      "intro": "If your loved one needs nursing home level care but wants to stay at home, PACE provides everything under one roof, primary care, specialists, therapy, medications, transportation, meals, and even adult day programs. Because PACE coordinates all services through one team, your loved one won't juggle multiple doctors, insurance approvals, or care gaps that leave families scrambling.\n\nPACE is only available in three Kansas regions: Wichita (Sedgwick County), Topeka area (9+ counties), and McPherson area (6 counties). Your loved one must be 55+ and certified as needing nursing home level care (clinical assessment of whether they need daily help with bathing, dressing, or medication management). Most participants are dual-eligible for Medicare and Medicaid, private pay averages $7,000+ per month.\n\nThe average PACE participant is 76 years old with multiple complex conditions. All participants receive identical comprehensive services regardless of how they pay, Medicare covers medical services, Medicaid covers long-term care, and PACE fills every gap in between.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service package",
       "savingsVerified": false,
@@ -267,12 +267,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional PACE provider directly or request referral through Kansas KDADS — processing time varies by provider.",
+        "summary": "Contact your regional PACE provider directly or request referral through Kansas KDADS, processing time varies by provider.",
         "steps": [
           {
             "step": 1,
             "title": "Contact your regional PACE provider",
-            "description": "Via Christi HOPE (Wichita area), Midland Care (Topeka area), or Bluestem PACE (McPherson area) — see contacts below for direct numbers."
+            "description": "Via Christi HOPE (Wichita area), Midland Care (Topeka area), or Bluestem PACE (McPherson area), see contacts below for direct numbers."
           },
           {
             "step": 2,
@@ -297,7 +297,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Call the PACE provider directly rather than going through general Medicaid applications — they handle their own intake and can explain private pay options if income is too high for Medicaid.",
+        "tip": "Call the PACE provider directly rather than going through general Medicaid applications, they handle their own intake and can explain private pay options if income is too high for Medicaid.",
         "urls": []
       },
       "documentsNeeded": [
@@ -321,7 +321,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Via Christi HOPE (Wichita)",
           "phone": null,
-          "description": "Serves Sedgwick County — comprehensive PACE services",
+          "description": "Serves Sedgwick County, comprehensive PACE services",
           "hours": null
         },
         {
@@ -344,10 +344,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You cannot be enrolled in Medicare Advantage plans while in PACE — this is the most common enrollment barrier for seniors already in MA plans",
-        "Private pay is possible but costs $7,000+ per month — most families pursue Medicaid eligibility even if initial income seems too high",
+        "You cannot be enrolled in Medicare Advantage plans while in PACE, this is the most common enrollment barrier for seniors already in MA plans",
+        "Private pay is possible but costs $7,000+ per month, most families pursue Medicaid eligibility even if initial income seems too high",
         "Ages 55-64 face an additional hurdle requiring Social Security disability determination beyond just needing nursing home care",
-        "PACE is designed for complex medical conditions — the average participant has multiple chronic illnesses requiring coordinated care"
+        "PACE is designed for complex medical conditions, the average participant has multiple chronic illnesses requiring coordinated care"
       ],
       "relatedPrograms": [
         "Kansas Medicaid",
@@ -362,12 +362,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. Your loved one's primary home is completely exempt from the $2,000 asset limit for Medicaid-funded PACE. Secondary properties or rental real estate would count toward the limit, but the family home does not matter regardless of value."
         },
         {
-          "question": "What if my loved one is already in Medicare Advantage — do they have to switch?",
+          "question": "What if my loved one is already in Medicare Advantage, do they have to switch?",
           "answer": "Yes. PACE participants cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or standalone prescription drug plans. Your loved one would need to disenroll from Medicare Advantage during the next open enrollment period or qualify for a special enrollment period."
         },
         {
           "question": "How much does PACE cost if my loved one's income is too high for Medicaid?",
-          "answer": "Private pay PACE typically costs $7,000+ per month, though some participants may qualify for Medicaid with a share of cost between $200-900 monthly. Contact a Medicaid planning professional — there may be pathways to Medicaid eligibility even with higher income."
+          "answer": "Private pay PACE typically costs $7,000+ per month, though some participants may qualify for Medicaid with a share of cost between $200-900 monthly. Contact a Medicaid planning professional, there may be pathways to Medicaid eligibility even with higher income."
         },
         {
           "question": "Can my loved one try PACE and switch back to regular Medicare if they don't like it?",
@@ -378,7 +378,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "PACE continues coordinating and paying for nursing home care. Because PACE covers all levels of care, there's no gap in coverage or need to find new funding sources when care needs increase."
         },
         {
-          "question": "My loved one lives just outside the PACE service area — can they still enroll?",
+          "question": "My loved one lives just outside the PACE service area, can they still enroll?",
           "answer": "No. PACE has strict geographic boundaries and you must live within the approved service area of a PACE provider. Moving into a service area specifically for PACE is possible but requires establishing new residency."
         },
         {
@@ -408,7 +408,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Get help paying Medicare premiums, deductibles, and copays — could save your loved one $2,000+ per year.",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays, could save your loved one $2,000+ per year.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -421,7 +421,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Kansas Medicare Savings Programs can help cover these costs. Because these programs pay Medicare expenses directly to providers, your loved one won't receive bills for Medicare-covered services — the state handles payment automatically.\n\nThere are three tiers based on income: QMB covers all Medicare costs including premiums and copays, SLMB covers Part B premiums only, and QI also covers Part B premiums with annual reapplication required. All three programs automatically qualify your loved one for Extra Help with prescription drug costs, capping medication copays at $12.65 per drug in 2026.\n\nBecause income and asset limits are updated annually and QI funding is limited with first-come, first-served enrollment, it's important to apply as soon as your loved one appears eligible.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Kansas Medicare Savings Programs can help cover these costs. Because these programs pay Medicare expenses directly to providers, your loved one won't receive bills for Medicare-covered services, the state handles payment automatically.\n\nThere are three tiers based on income: QMB covers all Medicare costs including premiums and copays, SLMB covers Part B premiums only, and QI also covers Part B premiums with annual reapplication required. All three programs automatically qualify your loved one for Extra Help with prescription drug costs, capping medication copays at $12.65 per drug in 2026.\n\nBecause income and asset limits are updated annually and QI funding is limited with first-come, first-served enrollment, it's important to apply as soon as your loved one appears eligible.",
       "savingsRange": "$2,000+/year",
       "savingsSource": "Medicare premiums, deductibles, and cost-sharing covered by state",
       "savingsVerified": true,
@@ -490,7 +490,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your local Kansas DCF Service Center by phone, in person, or mail — processing typically begins the month you apply if approved.",
+        "summary": "Apply through your local Kansas DCF Service Center by phone, in person, or mail, processing typically begins the month you apply if approved.",
         "steps": [
           {
             "step": 1,
@@ -515,12 +515,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Reapply annually for QI program",
-            "description": "QI (Qualifying Individual) requires annual reapplication and has funding limits — prior recipients get priority, but apply early each year to secure a spot."
+            "description": "QI (Qualifying Individual) requires annual reapplication and has funding limits, prior recipients get priority, but apply early each year to secure a spot."
           }
         ],
         "processingTime": "Typically begins month of application for approved applications",
-        "waitlist": "QI program has first-come, first-served enrollment with possible waitlist if funding exhausted — priority given to prior-year recipients",
-        "tip": "Income and asset limits change every year in February/May — always confirm current limits at 1-800-792-4884 before applying.",
+        "waitlist": "QI program has first-come, first-served enrollment with possible waitlist if funding exhausted, priority given to prior-year recipients",
+        "tip": "Income and asset limits change every year in February/May, always confirm current limits at 1-800-792-4884 before applying.",
         "urls": [
           {
             "label": "Kansas Health Assistance Programs",
@@ -563,10 +563,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI program requires annual reapplication and may reach funding caps — apply early in the year and ask about waitlist status",
+        "QI program requires annual reapplication and may reach funding caps, apply early in the year and ask about waitlist status",
         "All MSP programs automatically qualify you for Extra Help with prescription drug costs, but you must report income changes promptly",
         "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays may still apply for some services",
-        "Income and asset limits are updated annually based on Federal Poverty Level changes — verify current limits before applying"
+        "Income and asset limits are updated annually based on Federal Poverty Level changes, verify current limits before applying"
       ],
       "relatedPrograms": [
         "Extra Help (Medicare Part D Low-Income Subsidy)",
@@ -578,7 +578,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "tier-comparison",
           "title": "Program Tiers: QMB vs. SLMB vs. QI",
-          "content": "**QMB (Qualified Medicare Beneficiary)** — Income up to $1,275/month (individual) or $1,724/month (couple). Covers Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments. Providers cannot bill you for Medicare-covered services.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)** — Income up to approximately $1,549/month (individual) or $2,080/month (couple). Covers Medicare Part B premiums only. You still pay deductibles and copayments.\n\n**QI (Qualifying Individual)** — Income up to approximately $1,660/month (individual) or $2,239/month (couple). Covers Medicare Part B premiums only. Requires annual reapplication and has funding limits with first-come, first-served enrollment."
+          "content": "**QMB (Qualified Medicare Beneficiary)**, Income up to $1,275/month (individual) or $1,724/month (couple). Covers Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments. Providers cannot bill you for Medicare-covered services.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**, Income up to approximately $1,549/month (individual) or $2,080/month (couple). Covers Medicare Part B premiums only. You still pay deductibles and copayments.\n\n**QI (Qualifying Individual)**, Income up to approximately $1,660/month (individual) or $2,239/month (couple). Covers Medicare Part B premiums only. Requires annual reapplication and has funding limits with first-come, first-served enrollment."
         },
         {
           "type": "callout",
@@ -593,7 +593,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the real difference between these three programs?",
-          "answer": "QMB covers all Medicare costs and protects from provider billing. SLMB and QI only cover Part B premiums — your loved one still pays deductibles and copays. All three get Extra Help for prescriptions, but QI requires annual reapplication and may have waitlists."
+          "answer": "QMB covers all Medicare costs and protects from provider billing. SLMB and QI only cover Part B premiums, your loved one still pays deductibles and copays. All three get Extra Help for prescriptions, but QI requires annual reapplication and may have waitlists."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -613,7 +613,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will providers actually stop billing us with QMB?",
-          "answer": "Yes, QMB legally prohibits providers from billing beneficiaries for Medicare-covered services. If you receive bills, contact DCF at 1-800-792-4884 — providers may not realize your loved one has QMB coverage and need education."
+          "answer": "Yes, QMB legally prohibits providers from billing beneficiaries for Medicare-covered services. If you receive bills, contact DCF at 1-800-792-4884, providers may not realize your loved one has QMB coverage and need education."
         },
         {
           "question": "Do we need to reapply every year for all three programs?",
@@ -692,7 +692,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Kansas Benefits Portal or call your county DCF office — processing takes 30 days.",
+        "summary": "Apply online through Kansas Benefits Portal or call your county DCF office, processing takes 30 days.",
         "steps": [
           {
             "step": 1,
@@ -848,7 +848,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating bills, Kansas LIEAP provides a one-time payment directly to their utility company or fuel vendor. The payment amount varies based on household income, size, type of heating fuel, and current utility rates — but it's designed to help offset winter energy costs for families earning below 150% of the federal poverty level.\n\nYour loved one must be personally responsible for paying their own heating costs (not included in subsidized rent) and live in Kansas. Everyone at the same address must apply together, and their combined income determines eligibility. The program runs annually from January through March, so timing matters.\n\nBecause LIEAP is federally funded, the exact payment amount depends on how much funding Kansas receives each year. Applications are processed through regional DCF offices, and you'll need recent utility bills, income documentation, and proof of heating responsibility.",
+      "intro": "If your loved one struggles to pay heating bills, Kansas LIEAP provides a one-time payment directly to their utility company or fuel vendor. The payment amount varies based on household income, size, type of heating fuel, and current utility rates, but it's designed to help offset winter energy costs for families earning below 150% of the federal poverty level.\n\nYour loved one must be personally responsible for paying their own heating costs (not included in subsidized rent) and live in Kansas. Everyone at the same address must apply together, and their combined income determines eligibility. The program runs annually from January through March, so timing matters.\n\nBecause LIEAP is federally funded, the exact payment amount depends on how much funding Kansas receives each year. Applications are processed through regional DCF offices, and you'll need recent utility bills, income documentation, and proof of heating responsibility.",
       "savingsRange": "",
       "savingsSource": "One-time payment amount varies by household factors and available federal funding",
       "savingsVerified": false,
@@ -970,7 +970,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Everyone living at the same utility address must apply together — you cannot exclude household members from the application",
+        "Everyone living at the same utility address must apply together, you cannot exclude household members from the application",
         "Tribal members should contact United Tribes of Kansas/Southeast Nebraska or Kickapoo Tribe instead of applying through state LIEAP",
         "If heating costs are fully included in subsidized rent with no separate payment responsibility, your loved one is not eligible",
         "College students living in dorms or apartments cannot be counted as household members unless they live at home full-time"
@@ -1004,7 +1004,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much money will my loved one actually receive?",
-          "answer": "The payment amount varies based on household income, size, type of heating fuel, dwelling type, and current utility rates. Payment amounts are not predetermined — DCF calculates each case individually based on these factors and available federal funding."
+          "answer": "The payment amount varies based on household income, size, type of heating fuel, dwelling type, and current utility rates. Payment amounts are not predetermined, DCF calculates each case individually based on these factors and available federal funding."
         },
         {
           "question": "What if my loved one uses propane or wood for heating instead of natural gas?",
@@ -1062,7 +1062,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills, Kansas's Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, and heating system improvements. Your loved one pays nothing — trained professionals perform a certified energy audit and install weatherization measures at no cost.\n\nThe program prioritizes households where someone receives SSI, TANF, or LIEAP, but also serves families with incomes up to 200% of Federal Poverty Guidelines. Because the program covers all materials and professional installation, your loved one gets energy efficiency improvements they might not otherwise afford. Homeowners and renters both qualify, though renters need landlord permission.",
+      "intro": "If your loved one struggles with high energy bills, Kansas's Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, and heating system improvements. Your loved one pays nothing, trained professionals perform a certified energy audit and install weatherization measures at no cost.\n\nThe program prioritizes households where someone receives SSI, TANF, or LIEAP, but also serves families with incomes up to 200% of Federal Poverty Guidelines. Because the program covers all materials and professional installation, your loved one gets energy efficiency improvements they might not otherwise afford. Homeowners and renters both qualify, though renters need landlord permission.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1088,7 +1088,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your local regional provider — processing time varies by region and demand.",
+        "summary": "Apply through your local regional provider, processing time varies by region and demand.",
         "steps": [
           {
             "step": 1,
@@ -1118,7 +1118,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Priority goes to households already receiving SSI, TANF, or LIEAP — mention these benefits prominently if your loved one receives them.",
+        "tip": "Priority goes to households already receiving SSI, TANF, or LIEAP, mention these benefits prominently if your loved one receives them.",
         "urls": [
           {
             "label": "Standardized Application Form",
@@ -1150,7 +1150,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Kansas Housing Resources Corporation",
           "phone": null,
-          "description": "State program administrator — use website to find local provider",
+          "description": "State program administrator, use website to find local provider",
           "hours": "Business hours"
         },
         {
@@ -1161,9 +1161,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each region has different providers — you must apply through the agency serving your loved one's county, not directly to the state",
+        "Each region has different providers, you must apply through the agency serving your loved one's county, not directly to the state",
         "Households receiving SSI, TANF, or LIEAP get priority processing over income-qualified applicants",
-        "Renters need landlord agreement not to raise rent for 2 years after weatherization — this can be a deal-breaker",
+        "Renters need landlord agreement not to raise rent for 2 years after weatherization, this can be a deal-breaker",
         "If your loved one's home was weatherized more than 15 years ago, they may qualify again, but previous measures won't be repeated"
       ],
       "relatedPrograms": [
@@ -1199,7 +1199,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if the energy auditor finds safety problems like mold or asbestos?",
-          "answer": "Major health and safety issues disqualify the home from weatherization services. The program won't address these problems — your loved one would need to resolve them first through other means before reapplying."
+          "answer": "Major health and safety issues disqualify the home from weatherization services. The program won't address these problems, your loved one would need to resolve them first through other means before reapplying."
         },
         {
           "question": "Can my loved one get weatherization if they're planning to move in the next year?",
@@ -1241,7 +1241,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Medicare or is approaching Medicare eligibility, SHICK provides free, confidential counseling to help them understand their options and make informed decisions. Trained volunteer counselors explain Medicare Parts A-D, Medicare Supplement (Medigap), Medicare Advantage, prescription drug coverage, and Extra Help programs through one-on-one sessions by phone or in-person.\n\nBecause Medicare decisions can be overwhelming and costly mistakes are common, SHICK counselors are independent volunteers with no ties to insurance companies — they provide unbiased guidance tailored to your loved one's specific health needs and budget. The service is available to anyone with Medicare questions, including caregivers helping their loved ones navigate the system.\n\nSHICK operates statewide through local Area Agencies on Aging, with counselors available Monday through Friday, typically 8:30 a.m. to 5 p.m. No income limits or eligibility requirements apply — the service is completely free.",
+      "intro": "If your loved one has Medicare or is approaching Medicare eligibility, SHICK provides free, confidential counseling to help them understand their options and make informed decisions. Trained volunteer counselors explain Medicare Parts A-D, Medicare Supplement (Medigap), Medicare Advantage, prescription drug coverage, and Extra Help programs through one-on-one sessions by phone or in-person.\n\nBecause Medicare decisions can be overwhelming and costly mistakes are common, SHICK counselors are independent volunteers with no ties to insurance companies, they provide unbiased guidance tailored to your loved one's specific health needs and budget. The service is available to anyone with Medicare questions, including caregivers helping their loved ones navigate the system.\n\nSHICK operates statewide through local Area Agencies on Aging, with counselors available Monday through Friday, typically 8:30 a.m. to 5 p.m. No income limits or eligibility requirements apply, the service is completely free.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1263,7 +1263,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide number to schedule a counseling appointment — no forms required.",
+        "summary": "Call the statewide number to schedule a counseling appointment, no forms required.",
         "steps": [
           {
             "step": 1,
@@ -1332,7 +1332,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will the counselor try to sell us insurance?",
-          "answer": "No, SHICK counselors are independent volunteers with no ties to insurance companies. They don't sell plans or receive commissions. Their role is purely educational — to explain options and help you understand the pros and cons of different coverage choices."
+          "answer": "No, SHICK counselors are independent volunteers with no ties to insurance companies. They don't sell plans or receive commissions. Their role is purely educational, to explain options and help you understand the pros and cons of different coverage choices."
         },
         {
           "question": "Can a family member call on behalf of an elderly loved one?",
@@ -1374,7 +1374,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60 or older, they can get nutritious meals delivered to their home or served at local community centers at no cost. The Kansas Senior Nutrition Program provides hot, balanced meals plus nutrition education to help aging adults maintain their health and independence.\n\nBecause the program has no income limits, your loved one qualifies based on age alone — whether they're homebound and need meals delivered, or able to join group dining at a senior center. Spouses qualify regardless of age, so if your 58-year-old stepparent is married to your 62-year-old loved one, both can participate.\n\nHome-delivered meals typically require an assessment to confirm your loved one needs help due to mobility issues, illness, or inability to prepare meals safely. Local providers handle enrollment and determine exact eligibility, so availability and wait times vary by region.",
+      "intro": "If your loved one is 60 or older, they can get nutritious meals delivered to their home or served at local community centers at no cost. The Kansas Senior Nutrition Program provides hot, balanced meals plus nutrition education to help aging adults maintain their health and independence.\n\nBecause the program has no income limits, your loved one qualifies based on age alone, whether they're homebound and need meals delivered, or able to join group dining at a senior center. Spouses qualify regardless of age, so if your 58-year-old stepparent is married to your 62-year-old loved one, both can participate.\n\nHome-delivered meals typically require an assessment to confirm your loved one needs help due to mobility issues, illness, or inability to prepare meals safely. Local providers handle enrollment and determine exact eligibility, so availability and wait times vary by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1397,7 +1397,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Aging and Disability Resource Center at 855-200-ADRC for registration and assessment — processing time varies by provider capacity.",
+        "summary": "Call your local Aging and Disability Resource Center at 855-200-ADRC for registration and assessment, processing time varies by provider capacity.",
         "steps": [
           {
             "step": 1,
@@ -1412,7 +1412,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Schedule assessment",
-            "description": "For home-delivered meals, a provider will assess your loved one's homebound status and functional needs — this may be done over the phone or in person."
+            "description": "For home-delivered meals, a provider will assess your loved one's homebound status and functional needs, this may be done over the phone or in person."
           },
           {
             "step": 4,
@@ -1421,7 +1421,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Varies by local provider capacity and assessment scheduling",
-        "waitlist": "Possible depending on local capacity — contact your provider for current availability",
+        "waitlist": "Possible depending on local capacity, contact your provider for current availability",
         "tip": "Have your loved one's address ready when you call, as meal delivery routes and congregate sites are organized geographically.",
         "urls": [
           {
@@ -1453,9 +1453,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Home-delivered meals require assessment for homebound status, but the criteria vary by local provider — some are more flexible than others",
+        "Home-delivered meals require assessment for homebound status, but the criteria vary by local provider, some are more flexible than others",
         "Spouses automatically qualify regardless of age, unlike many senior programs that require both partners to be 60+",
-        "Congregate meal sites may have limited capacity or specific serving times — ask about schedules when enrolling",
+        "Congregate meal sites may have limited capacity or specific serving times, ask about schedules when enrolling",
         "This is different from the Kansas Senior Farmers Market Nutrition Program, which has strict income limits and only provides produce vouchers"
       ],
       "relatedPrograms": [
@@ -1471,12 +1471,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, adult children can contact the Aging and Disability Resource Center on behalf of their loved ones. Have your loved one's basic information ready, including their address, birth date, and any mobility or health concerns that affect meal preparation."
         },
         {
-          "question": "What if my loved one lives in assisted living — can they still get meals?",
+          "question": "What if my loved one lives in assisted living, can they still get meals?",
           "answer": "This depends on your loved one's specific living situation and what meals their facility provides. Contact your local provider at 855-200-ADRC to discuss whether additional nutrition services are available or appropriate."
         },
         {
           "question": "How long is the waitlist for home-delivered meals?",
-          "answer": "Wait times vary significantly by region and local provider capacity. Some areas have immediate availability while others may have waitlists. Rural areas often have different availability than urban centers — call 855-200-ADRC for current wait times in your loved one's specific area."
+          "answer": "Wait times vary significantly by region and local provider capacity. Some areas have immediate availability while others may have waitlists. Rural areas often have different availability than urban centers, call 855-200-ADRC for current wait times in your loved one's specific area."
         },
         {
           "question": "Can my loved one do both home-delivered meals and congregate dining?",
@@ -1719,7 +1719,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with poor job prospects, SCSEP provides paid work experience at minimum wage for about 20 hours per week. Your loved one earns money while learning new skills like computer literacy, gets help building their resume, and receives professional job placement assistance to transition to permanent employment.\n\nIncome must not exceed 125% of the federal poverty level (specific dollar amounts vary by household size — contact local providers for exact thresholds). The program prioritizes veterans, people over 65, those with disabilities, and rural residents. This is subsidized training designed as a bridge to unsubsidized employment, not permanent work.\n\nSCSEP operates statewide through multiple providers including SER Jobs for Progress, AARP Foundation, and the Kansas WorkforceONE system. Participants also receive supportive services like dental, vision, clothing, and transportation assistance during the program.",
+      "intro": "If your loved one is 55+ and unemployed with poor job prospects, SCSEP provides paid work experience at minimum wage for about 20 hours per week. Your loved one earns money while learning new skills like computer literacy, gets help building their resume, and receives professional job placement assistance to transition to permanent employment.\n\nIncome must not exceed 125% of the federal poverty level (specific dollar amounts vary by household size, contact local providers for exact thresholds). The program prioritizes veterans, people over 65, those with disabilities, and rural residents. This is subsidized training designed as a bridge to unsubsidized employment, not permanent work.\n\nSCSEP operates statewide through multiple providers including SER Jobs for Progress, AARP Foundation, and the Kansas WorkforceONE system. Participants also receive supportive services like dental, vision, clothing, and transportation assistance during the program.",
       "savingsRange": "",
       "savingsSource": "Paid work experience program",
       "savingsVerified": false,
@@ -1753,7 +1753,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact your provider directly",
-            "description": "Call your local provider to discuss income eligibility for your household size — they will verify if your income is below 125% of the federal poverty level."
+            "description": "Call your local provider to discuss income eligibility for your household size, they will verify if your income is below 125% of the federal poverty level."
           },
           {
             "step": 3,
@@ -1768,7 +1768,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Multiple providers operate SCSEP in Kansas — if one has a long waitlist, ask about other providers in your area through the Kansas WorkforceONE system.",
+        "tip": "Multiple providers operate SCSEP in Kansas, if one has a long waitlist, ask about other providers in your area through the Kansas WorkforceONE system.",
         "urls": [
           {
             "label": "AARP Foundation SCSEP Locator",
@@ -1796,10 +1796,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits are strict at 125% of federal poverty level — verify the exact dollar threshold for your household size before applying",
-        "This is part-time work averaging 20 hours per week, not full-time employment — plan accordingly for other income needs",
+        "Income limits are strict at 125% of federal poverty level, verify the exact dollar threshold for your household size before applying",
+        "This is part-time work averaging 20 hours per week, not full-time employment, plan accordingly for other income needs",
         "Priority enrollment system means veterans, seniors over 65, and disabled individuals get faster placement",
-        "Program is designed as temporary training to transition to permanent employment — expect to move to unsubsidized work after completing the program"
+        "Program is designed as temporary training to transition to permanent employment, expect to move to unsubsidized work after completing the program"
       ],
       "relatedPrograms": [
         "Kansas WorkforceONE Career Services",
@@ -1814,7 +1814,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, but the SCSEP wages plus other income cannot exceed 125% of the federal poverty level. Social Security benefits count toward this income limit, so check with your local provider to verify total household income stays within guidelines."
         },
         {
-          "question": "What happens if my loved one has recent work experience — do they still qualify as having 'poor employment prospects'?",
+          "question": "What happens if my loved one has recent work experience, do they still qualify as having 'poor employment prospects'?",
           "answer": "This depends on the type of work, how recent it was, and current barriers to employment like age discrimination or outdated skills. Your local SCSEP provider will assess employment prospects case-by-case, considering factors like long-term unemployment, limited skills, or barriers specific to older workers."
         },
         {
@@ -1865,7 +1865,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs help with wills, powers of attorney, or protection from elder abuse, Kansas Legal Services provides free legal assistance to seniors 60 and older across the state. The program offers document preparation, legal advice, and limited case representation for estate planning, advance directives, consumer protection, and public benefits issues — with priority given to the most vulnerable elderly.\n\nThe Elder Law Hotline (1-888-353-5337) provides immediate legal advice statewide without income requirements. Because the service focuses on civil legal matters only, your loved one can get help with estate planning, living wills, and elder abuse prevention but not criminal cases. Most consultations and document preparation are handled by phone or online, though Johnson County residents can schedule in-person appointments at three community centers.",
+      "intro": "If your loved one needs help with wills, powers of attorney, or protection from elder abuse, Kansas Legal Services provides free legal assistance to seniors 60 and older across the state. The program offers document preparation, legal advice, and limited case representation for estate planning, advance directives, consumer protection, and public benefits issues, with priority given to the most vulnerable elderly.\n\nThe Elder Law Hotline (1-888-353-5337) provides immediate legal advice statewide without income requirements. Because the service focuses on civil legal matters only, your loved one can get help with estate planning, living wills, and elder abuse prevention but not criminal cases. Most consultations and document preparation are handled by phone or online, though Johnson County residents can schedule in-person appointments at three community centers.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1904,12 +1904,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Get matched to services",
-            "description": "Based on your loved one's needs and the program's availability, you'll be connected to appropriate legal assistance — either advice through the hotline or document preparation and limited representation if eligible."
+            "description": "Based on your loved one's needs and the program's availability, you'll be connected to appropriate legal assistance, either advice through the hotline or document preparation and limited representation if eligible."
           }
         ],
         "processingTime": "Intake specialist contacts within 24 hours to 2-3 business days",
         "waitlist": "Services are subject to funding availability with priority given to the most vulnerable",
-        "tip": "The Elder Law Hotline provides advice only — if your loved one needs documents drafted or court representation, ask during intake about full legal services eligibility.",
+        "tip": "The Elder Law Hotline provides advice only, if your loved one needs documents drafted or court representation, ask during intake about full legal services eligibility.",
         "urls": [
           {
             "label": "Online Application",
@@ -2004,7 +2004,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care setting in Kansas, the Long-Term Care Ombudsman can investigate and resolve complaints about their care at no cost. This includes issues with daily care, food service, billing, staff behavior, or violations of your loved one's rights.\n\nThe program serves all residents and prospective residents of long-term care facilities statewide, regardless of income or how they pay for care. Anyone can contact the ombudsman — residents, family members, or facility staff — without needing to qualify or fill out applications. Services are delivered through regional offices across Kansas with trained advocates who understand facility regulations and resident rights.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care setting in Kansas, the Long-Term Care Ombudsman can investigate and resolve complaints about their care at no cost. This includes issues with daily care, food service, billing, staff behavior, or violations of your loved one's rights.\n\nThe program serves all residents and prospective residents of long-term care facilities statewide, regardless of income or how they pay for care. Anyone can contact the ombudsman, residents, family members, or facility staff, without needing to qualify or fill out applications. Services are delivered through regional offices across Kansas with trained advocates who understand facility regulations and resident rights.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2025,7 +2025,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free hotline at 1-877-662-8362 — no application needed, services begin immediately.",
+        "summary": "Call the toll-free hotline at 1-877-662-8362, no application needed, services begin immediately.",
         "steps": [
           {
             "step": 1,
@@ -2035,7 +2035,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the concern",
-            "description": "Explain the problem with care, treatment, or facility conditions. No forms or documentation required — just provide details of what happened"
+            "description": "Explain the problem with care, treatment, or facility conditions. No forms or documentation required, just provide details of what happened"
           },
           {
             "step": 3,
@@ -2045,7 +2045,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Services provided as needed without formal processing time",
         "waitlist": null,
-        "tip": "You can contact the ombudsman even if you're not sure the problem is serious enough — they help with everything from daily care issues to major violations.",
+        "tip": "You can contact the ombudsman even if you're not sure the problem is serious enough, they help with everything from daily care issues to major violations.",
         "urls": [
           {
             "label": "Find Your Regional Ombudsman",
@@ -2088,7 +2088,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I contact the ombudsman if my loved one is afraid of retaliation from facility staff?",
-          "answer": "Yes — ombudsmen are required to protect privacy and confidentiality. They can investigate without revealing who made the complaint if your loved one is concerned about retaliation. The ombudsman will work with you to handle the situation safely while still addressing the problem."
+          "answer": "Yes, ombudsmen are required to protect privacy and confidentiality. They can investigate without revealing who made the complaint if your loved one is concerned about retaliation. The ombudsman will work with you to handle the situation safely while still addressing the problem."
         },
         {
           "question": "What's the difference between the Long-Term Care Ombudsman and the KanCare Ombudsman?",
@@ -2096,7 +2096,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can the ombudsman help if we're just looking at facilities, not living in one yet?",
-          "answer": "Yes — the program serves prospective residents too. The ombudsman can provide information about facility quality, resident rights, and what to look for during tours. This can help you make better decisions before your loved one moves in."
+          "answer": "Yes, the program serves prospective residents too. The ombudsman can provide information about facility quality, resident rights, and what to look for during tours. This can help you make better decisions before your loved one moves in."
         }
       ],
       "layoutIntent": {
@@ -2130,7 +2130,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, meal prep, or shopping but can still live at home with support, Kansas Senior Care Act Services provides in-home care on a sliding fee scale. This includes attendant care, homemaker services, respite care, and adult day care — with the unique option to hire family members or friends as paid caregivers.\n\nUnlike Medicaid waiver programs, SCA Services focus on early intervention before your loved one needs nursing home-level care. You'll pay based on income and assets (from a small donation to full cost), and services vary significantly by county. Income limits are adjusted every July, and your loved one must pass a functional assessment that evaluates their ability to perform daily activities and live independently.",
+      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, meal prep, or shopping but can still live at home with support, Kansas Senior Care Act Services provides in-home care on a sliding fee scale. This includes attendant care, homemaker services, respite care, and adult day care, with the unique option to hire family members or friends as paid caregivers.\n\nUnlike Medicaid waiver programs, SCA Services focus on early intervention before your loved one needs nursing home-level care. You'll pay based on income and assets (from a small donation to full cost), and services vary significantly by county. Income limits are adjusted every July, and your loved one must pass a functional assessment that evaluates their ability to perform daily activities and live independently.",
       "savingsRange": "",
       "savingsSource": "Sliding fee scale service",
       "savingsVerified": false,
@@ -2154,7 +2154,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 855-200-2372 to reach your local Area Agency on Aging for assessment and enrollment — processing time varies by county.",
+        "summary": "Call 855-200-2372 to reach your local Area Agency on Aging for assessment and enrollment, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -2177,9 +2177,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If qualified, work with case manager to create service plan. You can choose to self-direct attendant care or homemaker services using family/friends as caregivers."
           }
         ],
-        "processingTime": "Not specified — varies by county and AAA",
+        "processingTime": "Not specified, varies by county and AAA",
         "waitlist": null,
-        "tip": "Ask specifically about self-direction options if you want to hire a family member as a paid caregiver — this isn't available in all counties.",
+        "tip": "Ask specifically about self-direction options if you want to hire a family member as a paid caregiver, this isn't available in all counties.",
         "urls": [
           {
             "label": "Kansas KDADS Senior Care Act page",
@@ -2214,9 +2214,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Services and availability vary dramatically by county — some areas may have waitlists while others have immediate openings",
+        "Services and availability vary dramatically by county, some areas may have waitlists while others have immediate openings",
         "Income guidelines change every July, so if you applied before and were denied for income, you may want to reapply after July 1st",
-        "Having a dementia diagnosis alone doesn't automatically qualify your loved one — they must still pass the functional assessment",
+        "Having a dementia diagnosis alone doesn't automatically qualify your loved one, they must still pass the functional assessment",
         "Self-direction for attendant care allows you to hire family members or friends, but this option isn't available through every AAA"
       ],
       "relatedPrograms": [
@@ -2308,7 +2308,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Kansas Legal Services or your local Area Agency on Aging — no application forms required.",
+        "summary": "Call Kansas Legal Services or your local Area Agency on Aging, no application forms required.",
         "steps": [
           {
             "step": 1,
@@ -2318,7 +2318,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Explain your situation",
-            "description": "Describe the legal issue — elder abuse, benefit denials, housing problems, or other elder rights concerns."
+            "description": "Describe the legal issue, elder abuse, benefit denials, housing problems, or other elder rights concerns."
           },
           {
             "step": 3,
@@ -2328,7 +2328,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Cases involving elder abuse, healthcare access, and financial assistance get priority — call immediately if abuse is occurring.",
+        "tip": "Cases involving elder abuse, healthcare access, and financial assistance get priority, call immediately if abuse is occurring.",
         "urls": [
           {
             "label": "Kansas Legal Services",
@@ -2388,7 +2388,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Kansas offers 13 programs that can help your aging loved one — 8 provide direct financial benefits or services, 4 offer free resources and advocacy, and 1 provides employment opportunities. These range from monthly grocery assistance ($298 maximum through SNAP) to comprehensive medical care (PACE) to free legal help for seniors 60+. Most financial programs have income limits around $1,900-$2,100 per month for a single person, while resources like Medicare counseling and legal aid are available regardless of income. Start by checking if your loved one qualifies for the highest-value programs first — Medicare Savings Programs alone can save $2,000+ annually, and home care waivers can cost thousands less than nursing home placement.",
+    "intro": "Kansas offers 13 programs that can help your aging loved one, 8 provide direct financial benefits or services, 4 offer free resources and advocacy, and 1 provides employment opportunities. These range from monthly grocery assistance ($298 maximum through SNAP) to comprehensive medical care (PACE) to free legal help for seniors 60+. Most financial programs have income limits around $1,900-$2,100 per month for a single person, while resources like Medicare counseling and legal aid are available regardless of income. Start by checking if your loved one qualifies for the highest-value programs first, Medicare Savings Programs alone can save $2,000+ annually, and home care waivers can cost thousands less than nursing home placement.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
@@ -2398,7 +2398,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
         "programId": "senior-health-insurance-counseling-shick",
-        "why": "Free Medicare guidance available to all Kansas seniors — no income requirements and can prevent costly insurance mistakes."
+        "why": "Free Medicare guidance available to all Kansas seniors, no income requirements and can prevent costly insurance mistakes."
       },
       {
         "name": "KanCare Frail Elderly Waiver",
@@ -2418,7 +2418,7 @@ export const drafts: PipelineStateDrafts = {
           "KanCare Frail Elderly Waiver (FE Waiver)",
           "Senior Care Act Services"
         ],
-        "description": "Two options for in-home care services — one through Medicaid waiver, one for those who don't qualify for Medicaid."
+        "description": "Two options for in-home care services, one through Medicaid waiver, one for those who don't qualify for Medicaid."
       },
       {
         "need": "Medical care coordination",

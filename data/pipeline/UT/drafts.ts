@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.106Z
+ * Last updated: 2026-04-20T23:39:07.876Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ with limited income and needs help with daily activities like bathing or dressing, Utah Medicaid can cover nursing home care, home-based services, or assisted living. The program has multiple pathways depending on your loved one's care needs and income level — from nursing home coverage where most income goes toward care costs (keeping just $45/month for personal needs) to home waiver programs with income limits of $1,255-$2,901/month.\n\nAsset limits are $2,000 for single applicants or $3,000-$4,000 for couples, but your loved one can keep their home (if equity is under $730,000), one vehicle, and personal belongings. Even if your loved one's income is too high, they may still qualify through the Medically Needy program by \"spending down\" excess income on medical expenses.\n\nCoverage can start up to 3 months before approval, and the program covers services as long as your loved one remains eligible — potentially for life. Because there are multiple program types with different rules, understanding which pathway fits your loved one's situation is crucial.",
+      "intro": "If your loved one is 65+ with limited income and needs help with daily activities like bathing or dressing, Utah Medicaid can cover nursing home care, home-based services, or assisted living. The program has multiple pathways depending on your loved one's care needs and income level, from nursing home coverage where most income goes toward care costs (keeping just $45/month for personal needs) to home waiver programs with income limits of $1,255-$2,901/month.\n\nAsset limits are $2,000 for single applicants or $3,000-$4,000 for couples, but your loved one can keep their home (if equity is under $730,000), one vehicle, and personal belongings. Even if your loved one's income is too high, they may still qualify through the Medically Needy program by \"spending down\" excess income on medical expenses.\n\nCoverage can start up to 3 months before approval, and the program covers services as long as your loved one remains eligible, potentially for life. Because there are multiple program types with different rules, understanding which pathway fits your loved one's situation is crucial.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -69,7 +69,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through MyCase at medicaid.utah.gov/apply or call 1-866-435-7414 — coverage can begin up to 3 months before approval.",
+        "summary": "Apply online through MyCase at medicaid.utah.gov/apply or call 1-866-435-7414, coverage can begin up to 3 months before approval.",
         "steps": [
           {
             "step": 1,
@@ -94,7 +94,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Follow up on processing",
-            "description": "Applications can take longer than expected — contact your caseworker if you don't hear back within the estimated timeframe."
+            "description": "Applications can take longer than expected, contact your caseworker if you don't hear back within the estimated timeframe."
           }
         ],
         "processingTime": "Coverage may begin 3 months prior to approval; applications sometimes take longer than expected",
@@ -145,8 +145,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Multiple program types exist with different income limits — nursing home Medicaid has no strict income limit but most income pays toward care, while home waiver programs have specific monthly caps",
-        "Your loved one's home is exempt from asset limits but subject to estate recovery after death — the state may seek repayment from the home's value",
+        "Multiple program types exist with different income limits, nursing home Medicaid has no strict income limit but most income pays toward care, while home waiver programs have specific monthly caps",
+        "Your loved one's home is exempt from asset limits but subject to estate recovery after death, the state may seek repayment from the home's value",
         "If your loved one's income exceeds the limits, they may still qualify through Medically Needy by spending down excess income on medical expenses",
         "Spousal protections allow a community spouse to keep significant assets ($31,584-$157,920) and income when their partner needs nursing home care"
       ],
@@ -164,7 +164,7 @@ export const drafts: PipelineStateDrafts = {
           "tiers": [
             {
               "name": "Nursing Home Medicaid",
-              "income": "No strict limit — most income pays toward care",
+              "income": "No strict limit, most income pays toward care",
               "personalAllowance": "$45/month",
               "description": "Covers full nursing home care costs. Your loved one keeps only $45/month for personal needs."
             },
@@ -247,14 +247,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-elder-care",
       "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Utah PACE",
-      "tagline": "All-in-one medical and long-term care under one team — but not currently available in Utah.",
+      "tagline": "All-in-one medical and long-term care under one team, but not currently available in Utah.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one needs nursing home level care but wants to stay home, PACE would provide all their medical care, medications, therapy, and daily support under one coordinated team with no copays or deductibles. Because everything is managed by a single organization, your loved one wouldn't need to coordinate between different doctors, insurance plans, or service providers.\n\nPACE is available in 31 states and serves adults 55+ who qualify for nursing home care but can live safely at home with support. Unfortunately, Utah is one of 19 states that does not offer PACE — there are no providers or service areas anywhere in the state.",
+      "intro": "If your loved one needs nursing home level care but wants to stay home, PACE would provide all their medical care, medications, therapy, and daily support under one coordinated team with no copays or deductibles. Because everything is managed by a single organization, your loved one wouldn't need to coordinate between different doctors, insurance plans, or service providers.\n\nPACE is available in 31 states and serves adults 55+ who qualify for nursing home care but can live safely at home with support. Unfortunately, Utah is one of 19 states that does not offer PACE, there are no providers or service areas anywhere in the state.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical and social services with no copays or deductibles",
       "savingsVerified": false,
@@ -312,7 +312,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE is fundamentally different from traditional Medicare — it replaces all your loved one's doctors and specialists with one integrated care team",
+        "PACE is fundamentally different from traditional Medicare, it replaces all your loved one's doctors and specialists with one integrated care team",
         "Some families relocate to access PACE if their loved one has complex medical needs that require intensive coordination"
       ],
       "relatedPrograms": [
@@ -500,10 +500,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits update every April based on federal poverty guidelines — verify current limits when applying",
+        "Income limits update every April based on federal poverty guidelines, verify current limits when applying",
         "QMB recipients must show their Medicaid card to prevent provider billing for Medicare costs",
         "SLMB and QI recipients won't receive a card because Utah pays Medicare directly for premiums",
-        "QI funding is not guaranteed — apply as early in the year as possible to avoid being shut out"
+        "QI funding is not guaranteed, apply as early in the year as possible to avoid being shut out"
       ],
       "relatedPrograms": [
         "Utah Medicaid",
@@ -527,15 +527,15 @@ export const drafts: PipelineStateDrafts = {
               "tier": "SLMB (Specified Low-income Medicare Beneficiary)",
               "income": "$1,351–$1,620/month (single), $1,825–$2,189/month (couple)",
               "covers": "Medicare Part B premiums only",
-              "card": "No card issued — premium paid directly",
+              "card": "No card issued, premium paid directly",
               "notes": "Must be enrolled in Medicare Part A and Part B"
             },
             {
               "tier": "QI (Qualifying Individual)",
               "income": "$1,621–$1,823/month (single), $2,190–$2,462/month (couple)",
               "covers": "Medicare Part B premiums only",
-              "card": "No card issued — premium paid directly",
-              "notes": "Limited funding — may close to new applicants"
+              "card": "No card issued, premium paid directly",
+              "notes": "Limited funding, may close to new applicants"
             }
           ]
         }
@@ -559,7 +559,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one already has full Medicaid coverage?",
-          "answer": "Parents with full Medicaid automatically get QMB-level benefits and don't need to apply separately. However, if your loved one has QI coverage, they cannot also have full Medicaid — these programs are mutually exclusive."
+          "answer": "Parents with full Medicaid automatically get QMB-level benefits and don't need to apply separately. However, if your loved one has QI coverage, they cannot also have full Medicaid, these programs are mutually exclusive."
         },
         {
           "question": "Do these programs cover Medicare Advantage plan costs?",
@@ -592,7 +592,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Utah SNAP",
-      "tagline": "Monthly grocery money for Utah seniors 60+ on fixed incomes — up to $415/month loaded on an EBT card.",
+      "tagline": "Monthly grocery money for Utah seniors 60+ on fixed incomes, up to $415/month loaded on an EBT card.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -605,7 +605,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs in Utah, they may qualify for monthly SNAP benefits loaded onto an EBT card. Because Utah has simplified rules for seniors, your loved one doesn't need to pass the gross income test — only net income after deductions for medical expenses over $35/month and high shelter costs.\n\nBecause households with seniors get higher asset limits ($4,500 instead of $3,000), your loved one can keep their home, car, and retirement savings and still qualify. A typical 2-person elderly household might receive $415/month after calculations, though the exact amount depends on net income and allowable deductions.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors, which means one interview and approval for 3 years instead of frequent recertifications. Despite these benefits, only about half of eligible seniors currently apply for SNAP in Utah.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs in Utah, they may qualify for monthly SNAP benefits loaded onto an EBT card. Because Utah has simplified rules for seniors, your loved one doesn't need to pass the gross income test, only net income after deductions for medical expenses over $35/month and high shelter costs.\n\nBecause households with seniors get higher asset limits ($4,500 instead of $3,000), your loved one can keep their home, car, and retirement savings and still qualify. A typical 2-person elderly household might receive $415/month after calculations, though the exact amount depends on net income and allowable deductions.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors, which means one interview and approval for 3 years instead of frequent recertifications. Despite these benefits, only about half of eligible seniors currently apply for SNAP in Utah.",
       "savingsRange": "$1,200 – $4,980/year in 2026",
       "savingsSource": "Based on monthly EBT benefits calculated from net income and household size",
       "savingsVerified": true,
@@ -657,7 +657,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mycase.utah.gov or call 1-866-526-3663 — seniors get simplified processing with approval for 3 years.",
+        "summary": "Apply online at mycase.utah.gov or call 1-866-526-3663, seniors get simplified processing with approval for 3 years.",
         "steps": [
           {
             "step": 1,
@@ -687,7 +687,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days for standard processing, faster for ESAP elderly applications with 3-year approval",
         "waitlist": null,
-        "tip": "Seniors can deduct medical expenses over $35/month and high shelter costs from gross income — gather these receipts to potentially qualify with higher income.",
+        "tip": "Seniors can deduct medical expenses over $35/month and high shelter costs from gross income, gather these receipts to potentially qualify with higher income.",
         "urls": [
           {
             "label": "Apply online at mycase.utah.gov",
@@ -725,10 +725,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "ESAP (Elderly Simplified Application Project) lets seniors 60+ skip frequent recertifications — approved for 3 years with just one interview",
-        "No gross income limit for households with seniors — you only need to pass the net income test after medical and shelter deductions",
+        "ESAP (Elderly Simplified Application Project) lets seniors 60+ skip frequent recertifications, approved for 3 years with just one interview",
+        "No gross income limit for households with seniors, you only need to pass the net income test after medical and shelter deductions",
         "Include all people who live together and buy/prepare food together, even if some have separate income",
-        "Medical expenses over $35/month can be deducted from income — this includes insurance premiums, prescription costs, and out-of-pocket medical bills"
+        "Medical expenses over $35/month can be deducted from income, this includes insurance premiums, prescription costs, and out-of-pocket medical bills"
       ],
       "relatedPrograms": [
         "Utah LIHEAP (Low Income Home Energy Assistance Program)",
@@ -744,7 +744,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's Social Security is higher than the income limit?",
-          "answer": "Because your loved one is 60+, Utah doesn't count gross income — only net income after deductions. Medical expenses over $35/month and high shelter costs reduce the counted income. Many seniors with Social Security above the gross limit still qualify after deductions."
+          "answer": "Because your loved one is 60+, Utah doesn't count gross income, only net income after deductions. Medical expenses over $35/month and high shelter costs reduce the counted income. Many seniors with Social Security above the gross limit still qualify after deductions."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -752,23 +752,23 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Do both spouses need to be 60+ to get the senior benefits?",
-          "answer": "No. If either spouse is 60+ or disabled, the entire household gets the senior rules — no gross income test, $4,500 asset limit instead of $3,000, and simplified recertification every 3 years instead of more frequent reviews."
+          "answer": "No. If either spouse is 60+ or disabled, the entire household gets the senior rules, no gross income test, $4,500 asset limit instead of $3,000, and simplified recertification every 3 years instead of more frequent reviews."
         },
         {
           "question": "What happens if my loved one's income changes after approval?",
-          "answer": "Report changes within 10 days by calling 1-866-526-3663 or logging into mycase.utah.gov. Because seniors get 3-year certifications through ESAP, minor changes won't require a full reapplication — just updated documentation and possibly adjusted benefit amounts."
+          "answer": "Report changes within 10 days by calling 1-866-526-3663 or logging into mycase.utah.gov. Because seniors get 3-year certifications through ESAP, minor changes won't require a full reapplication, just updated documentation and possibly adjusted benefit amounts."
         },
         {
           "question": "Can my loved one get SNAP if they're not a U.S. citizen?",
-          "answer": "Many non-citizens qualify for SNAP in Utah. Legal residents who have lived in the U.S. for 5+ years, people receiving disability benefits, and certain other categories are eligible. Citizenship is not required — call 1-866-526-3663 to discuss specific immigration status."
+          "answer": "Many non-citizens qualify for SNAP in Utah. Legal residents who have lived in the U.S. for 5+ years, people receiving disability benefits, and certain other categories are eligible. Citizenship is not required, call 1-866-526-3663 to discuss specific immigration status."
         },
         {
           "question": "How long does the ESAP approval really last?",
           "answer": "ESAP approvals for elderly households last 3 years with no interim reviews unless you report significant changes. This means one interview and one set of paperwork covers your loved one for 3 years, compared to annual or more frequent recertifications for younger households."
         },
         {
-          "question": "What if my loved one lives in assisted living — do they still qualify?",
-          "answer": "It depends on the living arrangement. If your loved one buys and prepares their own food, they can qualify. If the facility provides all meals as part of the fee, they typically cannot get SNAP. Each situation is different — call 1-866-526-3663 to discuss the specific living arrangement."
+          "question": "What if my loved one lives in assisted living, do they still qualify?",
+          "answer": "It depends on the living arrangement. If your loved one buys and prepares their own food, they can qualify. If the facility provides all meals as part of the fee, they typically cannot get SNAP. Each situation is different, call 1-866-526-3663 to discuss the specific living arrangement."
         }
       ],
       "layoutIntent": {
@@ -814,7 +814,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is struggling with utility bills on a fixed income, Utah's HEAT program (Home Energy Assistance Target) can provide $190 to $850 toward annual heating and cooling costs. Crisis assistance goes up to $2,000 for households facing disconnection or out of fuel.\n\nYour loved one qualifies if their household income is at or below 150% of federal poverty level — that's $1,956/month for a single person or $2,644/month for a two-person household in 2026. The program runs October through September each year, but funds are limited and distributed first-come, first-served.\n\nIf your loved one is 60 or older, disabled, or lives with a child under 6, they get priority access starting October 1. Everyone else can apply starting November 1. The money goes directly to the utility company, not to your loved one.",
+      "intro": "If your loved one is struggling with utility bills on a fixed income, Utah's HEAT program (Home Energy Assistance Target) can provide $190 to $850 toward annual heating and cooling costs. Crisis assistance goes up to $2,000 for households facing disconnection or out of fuel.\n\nYour loved one qualifies if their household income is at or below 150% of federal poverty level, that's $1,956/month for a single person or $2,644/month for a two-person household in 2026. The program runs October through September each year, but funds are limited and distributed first-come, first-served.\n\nIf your loved one is 60 or older, disabled, or lives with a child under 6, they get priority access starting October 1. Everyone else can apply starting November 1. The money goes directly to the utility company, not to your loved one.",
       "savingsRange": "$190 – $850/year in 2026",
       "savingsSource": "Utah Jobs and Family Services heating/cooling assistance amounts, plus crisis assistance up to $2,000",
       "savingsVerified": true,
@@ -864,7 +864,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional HEAT office by phone or visit in person — applications typically process within several weeks if funds remain available.",
+        "summary": "Contact your regional HEAT office by phone or visit in person, applications typically process within several weeks if funds remain available.",
         "steps": [
           {
             "step": 1,
@@ -888,7 +888,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Several weeks, but funds are limited and distributed first-come, first-served",
-        "waitlist": "No waitlist — applications stop when annual funds are exhausted",
+        "waitlist": "No waitlist, applications stop when annual funds are exhausted",
         "tip": "Priority households (elderly, disabled, families with young children) should apply immediately when their window opens October 1.",
         "urls": [
           {
@@ -940,10 +940,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Priority applications for elderly (60+), disabled, or households with children under 6 start October 1 — general public starts November 1",
+        "Priority applications for elderly (60+), disabled, or households with children under 6 start October 1, general public starts November 1",
         "You cannot apply to both state HEAT and tribal LIHEAP programs",
         "Household definition includes all people sharing the address and utility bill, which is different from SNAP",
-        "The program runs year-round but operates on October 1 to September 30 program years — funds typically exhaust before September"
+        "The program runs year-round but operates on October 1 to September 30 program years, funds typically exhaust before September"
       ],
       "relatedPrograms": [
         "Utah Weatherization Assistance Program",
@@ -1029,7 +1029,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is struggling with high heating or cooling bills on a fixed income, Utah's Weatherization Assistance Program provides free professional energy improvements to make their home more efficient. Your loved one's home gets a computerized energy audit, then qualified contractors install insulation, seal air leaks, and repair or replace furnaces, air conditioners, or water heaters at no cost.\n\nPriority goes to households with adults 60+, people with disabilities, families with children under 6, or those with especially high energy costs. The program covers homeowners and renters (with landlord permission), and there are no asset limits — just income requirements at or below 200% of federal poverty level.\n\nBecause weatherization improvements are permanent, your loved one saves on energy bills for years after the work is completed. The program is administered through seven regional agencies across Utah, each serving specific counties.",
+      "intro": "If your loved one is struggling with high heating or cooling bills on a fixed income, Utah's Weatherization Assistance Program provides free professional energy improvements to make their home more efficient. Your loved one's home gets a computerized energy audit, then qualified contractors install insulation, seal air leaks, and repair or replace furnaces, air conditioners, or water heaters at no cost.\n\nPriority goes to households with adults 60+, people with disabilities, families with children under 6, or those with especially high energy costs. The program covers homeowners and renters (with landlord permission), and there are no asset limits, just income requirements at or below 200% of federal poverty level.\n\nBecause weatherization improvements are permanent, your loved one saves on energy bills for years after the work is completed. The program is administered through seven regional agencies across Utah, each serving specific counties.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1080,7 +1080,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's weatherization agency by phone, email, or mail — applications are placed on a priority waitlist after eligibility review.",
+        "summary": "Contact your county's weatherization agency by phone, email, or mail, applications are placed on a priority waitlist after eligibility review.",
         "steps": [
           {
             "step": 1,
@@ -1110,7 +1110,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Processing time varies by agency and demand",
         "waitlist": "Yes, applications are prioritized by need (elderly, disabled, families with young children) and placed on waiting list",
-        "tip": "HEAT program recipients get priority placement — mention if your loved one receives heating assistance when applying.",
+        "tip": "HEAT program recipients get priority placement, mention if your loved one receives heating assistance when applying.",
         "urls": [
           {
             "label": "Agency contact directory",
@@ -1156,10 +1156,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "HEAT program recipients get priority processing — mention this when applying if your loved one receives heating assistance",
-        "Renters must get landlord permission before applying — the notarized agreement is required before work can begin",
-        "Each agency serves specific counties only — calling the wrong agency will delay your application",
-        "Priority waitlists favor elderly, disabled, and households with children under 6 — others may wait significantly longer"
+        "HEAT program recipients get priority processing, mention this when applying if your loved one receives heating assistance",
+        "Renters must get landlord permission before applying, the notarized agreement is required before work can begin",
+        "Each agency serves specific counties only, calling the wrong agency will delay your application",
+        "Priority waitlists favor elderly, disabled, and households with children under 6, others may wait significantly longer"
       ],
       "relatedPrograms": [
         "Utah HEAT Program",
@@ -1186,7 +1186,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one receives HEAT assistance?",
-          "answer": "HEAT recipients automatically meet income requirements and get priority placement on the waitlist. Bring the HEAT approval letter when applying — this can significantly reduce wait times."
+          "answer": "HEAT recipients automatically meet income requirements and get priority placement on the waitlist. Bring the HEAT approval letter when applying, this can significantly reduce wait times."
         },
         {
           "question": "Can my loved one apply for both weatherization and HEAT?",
@@ -1232,7 +1232,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is on Medicare or turning 65 soon, Utah SHIP provides free, personalized counseling to help them understand their options. SHIP counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and walk through enrollment deadlines and penalties.\n\nBecause SHIP counselors are trained specifically on Medicare rules and receive 8-10 hours of intensive program training, they can help identify cost-assistance programs your loved one may qualify for — including Medicare Savings Programs that can cover premiums and Extra Help for prescription drugs. The service is available to all Medicare beneficiaries regardless of income, and family caregivers can also access counseling on behalf of their loved ones.",
+      "intro": "If your loved one is on Medicare or turning 65 soon, Utah SHIP provides free, personalized counseling to help them understand their options. SHIP counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and walk through enrollment deadlines and penalties.\n\nBecause SHIP counselors are trained specifically on Medicare rules and receive 8-10 hours of intensive program training, they can help identify cost-assistance programs your loved one may qualify for, including Medicare Savings Programs that can cover premiums and Extra Help for prescription drugs. The service is available to all Medicare beneficiaries regardless of income, and family caregivers can also access counseling on behalf of their loved ones.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1254,7 +1254,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Utah SHIP at 1-800-541-7735 to schedule free counseling — no application needed.",
+        "summary": "Call Utah SHIP at 1-800-541-7735 to schedule free counseling, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1376,7 +1376,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to leave home to shop for groceries or cook meals, Utah Meals on Wheels delivers hot, nutritious lunches directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs and includes protein, vegetables, fruit, grains, and milk — with no income limits or asset tests.\n\nBecause the program requires your loved one to be homebound (unable to leave home without assistance) and have an in-person assessment, delivery is only available within specific service zones that vary by county. The suggested donation is $3.50-$4 per meal but is completely voluntary — no one is denied meals for inability to pay.\n\nDelivery volunteers also provide a daily wellness check during each visit. Some areas offer weekend meals delivered Thursday or Friday, while high-demand counties like Utah County currently have waitlists.",
+      "intro": "If your loved one is 60+ and struggles to leave home to shop for groceries or cook meals, Utah Meals on Wheels delivers hot, nutritious lunches directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs and includes protein, vegetables, fruit, grains, and milk, with no income limits or asset tests.\n\nBecause the program requires your loved one to be homebound (unable to leave home without assistance) and have an in-person assessment, delivery is only available within specific service zones that vary by county. The suggested donation is $3.50-$4 per meal but is completely voluntary, no one is denied meals for inability to pay.\n\nDelivery volunteers also provide a daily wellness check during each visit. Some areas offer weekend meals delivered Thursday or Friday, while high-demand counties like Utah County currently have waitlists.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1426,7 +1426,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Some programs start within a week, others have longer waits due to waitlists",
         "waitlist": "Yes, some areas like Utah County have had waitlists since January 2022",
-        "tip": "Call early in the day — meals aren't left if your loved one isn't home and cancellations must be made by 9am.",
+        "tip": "Call early in the day, meals aren't left if your loved one isn't home and cancellations must be made by 9am.",
         "urls": [
           {
             "label": "MAG Utah Meals Referral",
@@ -1469,8 +1469,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county operates independently with different providers, costs, and waitlist lengths — call your specific county program",
-        "The homebound requirement is strictly enforced and reassessed annually — parents who can easily leave home or have regular caregivers for shopping may not qualify",
+        "Each county operates independently with different providers, costs, and waitlist lengths, call your specific county program",
+        "The homebound requirement is strictly enforced and reassessed annually, parents who can easily leave home or have regular caregivers for shopping may not qualify",
         "Weekend meals are available in some areas but must be requested separately and delivered Thursday or Friday",
         "Under-60 spouses or disabled dependents may qualify in some programs, often with payment required"
       ],
@@ -1550,7 +1550,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging loved one who needs help with daily activities like bathing or dressing, Utah's Caregiver Support Program provides up to $1,500 in services each year to help you manage. The program covers respite care, personal care aides, adult day care, overnight respite, case management, caregiver support groups, counseling, and training — services that typically cost $15-25/hour out of pocket.\n\nBecause this program has no income limits but requires you to demonstrate caregiver stress through a formal assessment, eligibility depends on your caregiving burden rather than your financial situation. Your loved one must be 60+ (or any age with Alzheimer's or dementia) and need help with at least two daily activities.\n\nThe program operates through county Area Agencies on Aging and often maintains a waiting list. Caregivers 55+ and those with the highest stress scores get priority.",
+      "intro": "If you're caring for an aging loved one who needs help with daily activities like bathing or dressing, Utah's Caregiver Support Program provides up to $1,500 in services each year to help you manage. The program covers respite care, personal care aides, adult day care, overnight respite, case management, caregiver support groups, counseling, and training, services that typically cost $15-25/hour out of pocket.\n\nBecause this program has no income limits but requires you to demonstrate caregiver stress through a formal assessment, eligibility depends on your caregiving burden rather than your financial situation. Your loved one must be 60+ (or any age with Alzheimer's or dementia) and need help with at least two daily activities.\n\nThe program operates through county Area Agencies on Aging and often maintains a waiting list. Caregivers 55+ and those with the highest stress scores get priority.",
       "savingsRange": "$500 – $1,500/year",
       "savingsSource": "Service value based on $15-25/hour typical cost for respite and personal care services",
       "savingsVerified": false,
@@ -1575,7 +1575,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county Area Agency on Aging for assessment — expect several weeks to months on waiting list.",
+        "summary": "Call your county Area Agency on Aging for assessment, expect several weeks to months on waiting list.",
         "steps": [
           {
             "step": 1,
@@ -1598,9 +1598,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "You'll be placed on a priority list based on your assessment scores. Older caregivers and those with highest stress scores are served first."
           }
         ],
-        "processingTime": "Not specified — program often maintains waiting list",
+        "processingTime": "Not specified, program often maintains waiting list",
         "waitlist": "Yes, program often maintains a waiting list; applicants served in priority order based on assessment scores",
-        "tip": "Priority goes to caregivers 55+ with greatest social and economic need — be thorough when describing your stress level and caregiving challenges during the assessment.",
+        "tip": "Priority goes to caregivers 55+ with greatest social and economic need, be thorough when describing your stress level and caregiving challenges during the assessment.",
         "urls": [
           {
             "label": "Utah DAAS Seniors Page",
@@ -1650,9 +1650,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No income requirement means eligibility is broader than most programs, but you must demonstrate significant caregiver stress — this isn't automatic",
-        "Services are capped at $1,500 per 12-month period — plan carefully if you need ongoing intensive support",
-        "Different counties may have different wait times and service availability — ask about current waiting list length when you call",
+        "No income requirement means eligibility is broader than most programs, but you must demonstrate significant caregiver stress, this isn't automatic",
+        "Services are capped at $1,500 per 12-month period, plan carefully if you need ongoing intensive support",
+        "Different counties may have different wait times and service availability, ask about current waiting list length when you call",
         "Caregivers 55+ get priority, but younger caregivers can still qualify if they demonstrate high stress levels"
       ],
       "relatedPrograms": [
@@ -1727,7 +1727,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work training up to 20 hours per week at community organizations. Your loved one earns wages while gaining job skills in fields like customer service, health care, or computer technology — creating a bridge to permanent employment.\n\nYour loved one's family income must be below 125% of the federal poverty level ($2,500/month for a household of two in 2026). Because this isn't first-come, first-served, the program director reviews each application for suitability and may maintain a waitlist. Veterans and adults over 65 get priority for available positions.\n\nParticipants can stay in the program for up to 48 months total across their lifetime. The goal is to develop skills and connections that lead to unsubsidized employment in the community.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work training up to 20 hours per week at community organizations. Your loved one earns wages while gaining job skills in fields like customer service, health care, or computer technology, creating a bridge to permanent employment.\n\nYour loved one's family income must be below 125% of the federal poverty level ($2,500/month for a household of two in 2026). Because this isn't first-come, first-served, the program director reviews each application for suitability and may maintain a waitlist. Veterans and adults over 65 get priority for available positions.\n\nParticipants can stay in the program for up to 48 months total across their lifetime. The goal is to develop skills and connections that lead to unsubsidized employment in the community.",
       "savingsRange": "",
       "savingsSource": "Part-time employment training with wages",
       "savingsVerified": false,
@@ -1771,7 +1771,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at ipdcscsep.org or call (800) 771-2153 — processing time varies and acceptance isn't guaranteed.",
+        "summary": "Apply online at ipdcscsep.org or call (800) 771-2153, processing time varies and acceptance isn't guaranteed.",
         "steps": [
           {
             "step": 1,
@@ -1791,7 +1791,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Wait for Project Director review",
-            "description": "Your application will be reviewed for eligibility and suitability — this is not first-come, first-served. You may be placed on a waitlist."
+            "description": "Your application will be reviewed for eligibility and suitability, this is not first-come, first-served. You may be placed on a waitlist."
           },
           {
             "step": 5,
@@ -1799,9 +1799,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If accepted, work with staff to create your personalized training and employment goals plan."
           }
         ],
-        "processingTime": "Not specified — application reviewed by Project Director based on eligibility and suitability",
+        "processingTime": "Not specified, application reviewed by Project Director based on eligibility and suitability",
         "waitlist": "Possible waitlist if no immediate openings after eligibility determination",
-        "tip": "Veterans and their qualified spouses get first priority, followed by adults over 65 — mention veteran status when applying.",
+        "tip": "Veterans and their qualified spouses get first priority, followed by adults over 65, mention veteran status when applying.",
         "urls": [
           {
             "label": "SCSEP Online Application",
@@ -1836,7 +1836,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Enrollment decisions are based on suitability and priority tiers, not application order — veterans and adults over 65 get preference",
+        "Enrollment decisions are based on suitability and priority tiers, not application order, veterans and adults over 65 get preference",
         "The 48-month lifetime limit applies even if you switch between different SCSEP providers across states",
         "You must be willing to work up to 20 hours per week and follow your Individual Employment Plan requirements",
         "Willfully misreporting income information will disqualify you from the program"
@@ -1854,7 +1854,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, if your loved one has received notice of pending termination or layoff, they can apply even while still employed. They need to provide the termination notice as part of their application."
         },
         {
-          "question": "What happens if my loved one has already used SCSEP in another state — does that count toward the 48-month limit?",
+          "question": "What happens if my loved one has already used SCSEP in another state, does that count toward the 48-month limit?",
           "answer": "Yes, the 48-month limit applies across all SCSEP providers nationwide. If your loved one participated in SCSEP in California for 12 months, they would have 36 months of eligibility remaining for Utah SCSEP."
         },
         {
@@ -1944,7 +1944,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call Utah Legal Services for intake screening — approval depends on income verification and case type.",
+        "summary": "Call Utah Legal Services for intake screening, approval depends on income verification and case type.",
         "steps": [
           {
             "step": 1,
@@ -1967,9 +1967,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Staff reviews your case and income eligibility. If approved, you'll be matched with an attorney or legal advocate."
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and attorney availability",
+        "processingTime": "Not specified, varies by case complexity and attorney availability",
         "waitlist": null,
-        "tip": "Document any hardship expenses (medical bills, disability costs) if your income is above 125% FPL — you may still qualify up to 200% with Executive Director approval.",
+        "tip": "Document any hardship expenses (medical bills, disability costs) if your income is above 125% FPL, you may still qualify up to 200% with Executive Director approval.",
         "urls": [
           {
             "label": "Utah Legal Services",
@@ -2006,7 +2006,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income exceptions up to 200% FPL require Executive Director approval and documented hardship — don't assume automatic approval",
+        "Income exceptions up to 200% FPL require Executive Director approval and documented hardship, don't assume automatic approval",
         "Some services are provided through county contracts or volunteer attorneys, so availability may vary by region"
       ],
       "relatedPrograms": [
@@ -2026,7 +2026,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does this cover help with Social Security disability appeals?",
-          "answer": "Yes, Utah Legal Services handles public benefits cases including Social Security, SSI, and disability appeals. Because these cases have strict deadlines, call immediately if your loved one received a denial letter — you typically have only 60 days to appeal."
+          "answer": "Yes, Utah Legal Services handles public benefits cases including Social Security, SSI, and disability appeals. Because these cases have strict deadlines, call immediately if your loved one received a denial letter, you typically have only 60 days to appeal."
         },
         {
           "question": "Can my loved one get help with a will even if they don't qualify for other services?",
@@ -2076,7 +2076,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living, memory care, or skilled rehab facility and faces problems with care, billing, or their rights, the Utah Long-Term Care Ombudsman Program provides free advocacy. Approximately 50 trained staff and volunteer ombudsmen across 11 regional offices investigate complaints, resolve disputes, and ensure facilities respect residents' rights.\n\nThis program serves any resident already living in a long-term care facility — no age, income, or asset requirements. Because ombudsmen operate independently from facility regulators, they focus purely on advocacy and problem-solving rather than enforcement. Services are completely confidential except in life-threatening emergencies.\n\nImportant: This program advocates for people already in facilities. It does not help with funding care, finding facilities, or getting admitted to care.",
+      "intro": "If your loved one lives in a nursing home, assisted living, memory care, or skilled rehab facility and faces problems with care, billing, or their rights, the Utah Long-Term Care Ombudsman Program provides free advocacy. Approximately 50 trained staff and volunteer ombudsmen across 11 regional offices investigate complaints, resolve disputes, and ensure facilities respect residents' rights.\n\nThis program serves any resident already living in a long-term care facility, no age, income, or asset requirements. Because ombudsmen operate independently from facility regulators, they focus purely on advocacy and problem-solving rather than enforcement. Services are completely confidential except in life-threatening emergencies.\n\nImportant: This program advocates for people already in facilities. It does not help with funding care, finding facilities, or getting admitted to care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2098,7 +2098,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local Area Agency on Aging ombudsman program — no forms or documentation required.",
+        "summary": "Call your local Area Agency on Aging ombudsman program, no forms or documentation required.",
         "steps": [
           {
             "step": 1,
@@ -2108,7 +2108,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the situation",
-            "description": "Explain the problem your loved one is experiencing — billing issues, care quality, facility policies, or rights violations. The ombudsman will determine next steps."
+            "description": "Explain the problem your loved one is experiencing, billing issues, care quality, facility policies, or rights violations. The ombudsman will determine next steps."
           },
           {
             "step": 3,
@@ -2155,7 +2155,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between calling the ombudsman versus reporting to state regulators?",
-          "answer": "Ombudsmen focus on advocacy and problem-solving — they work with facilities to resolve issues and protect residents' rights. State regulators investigate compliance violations and can impose penalties. The ombudsman often resolves problems faster through direct facility engagement, while regulatory complaints may take longer but can result in formal citations."
+          "answer": "Ombudsmen focus on advocacy and problem-solving, they work with facilities to resolve issues and protect residents' rights. State regulators investigate compliance violations and can impose penalties. The ombudsman often resolves problems faster through direct facility engagement, while regulatory complaints may take longer but can result in formal citations."
         }
       ],
       "layoutIntent": {
@@ -2189,7 +2189,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems — all tailored to your loved one's specific needs through a care plan.\n\nTo qualify, your loved one must be 65+ with income below $1,305/month (effective March 2025–February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems, all tailored to your loved one's specific needs through a care plan.\n\nTo qualify, your loved one must be 65+ with income below $1,305/month (effective March 2025–February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2229,7 +2229,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Aging & Adult Services office for phone intake and assessment — processing time varies.",
+        "summary": "Call your county's Aging & Adult Services office for phone intake and assessment, processing time varies.",
         "steps": [
           {
             "step": 1,
@@ -2254,7 +2254,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Dementia diagnosis alone is not sufficient to meet the clinical requirements — your loved one must need significant physical assistance with daily activities or have poor orientation requiring nursing facility-level care.",
+        "tip": "Dementia diagnosis alone is not sufficient to meet the clinical requirements, your loved one must need significant physical assistance with daily activities or have poor orientation requiring nursing facility-level care.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2289,10 +2289,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits update annually in March (not January like federal programs) — current limit is $1,305/month through February 2026, then increases to $1,330/month in March 2026",
+        "Income limits update annually in March (not January like federal programs), current limit is $1,305/month through February 2026, then increases to $1,330/month in March 2026",
         "Spousal income is exempt even if living together, but each spouse has separate asset limits if both are applying",
-        "60-month look-back rule applies — transfers of assets below fair market value in the past 5 years may result in a penalty period",
-        "This is different from New Choices Waiver (which has higher income limit of $2,901/month) — make sure you're applying for the right program"
+        "60-month look-back rule applies, transfers of assets below fair market value in the past 5 years may result in a penalty period",
+        "This is different from New Choices Waiver (which has higher income limit of $2,901/month), make sure you're applying for the right program"
       ],
       "relatedPrograms": [
         "New Choices Waiver",
@@ -2351,12 +2351,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Utah offers 8 financial benefit programs and 2 free resource programs to help your aging loved one. Financial help ranges from $190-$850 toward utility bills (LIHEAP) to up to $1,500/year in caregiver support services, plus monthly grocery assistance up to $415 and comprehensive Medicaid coverage for medical and long-term care costs. Free resources include one-on-one Medicare counseling and legal help for seniors facing benefit issues or elder abuse.\n\nMost financial programs require income verification, but free resources like Medicare counseling through Utah SHIP are available regardless of income. Start by checking if your loved one qualifies for Medicaid — it's Utah's most comprehensive program covering both medical costs and home-based care services.",
+    "intro": "Utah offers 8 financial benefit programs and 2 free resource programs to help your aging loved one. Financial help ranges from $190-$850 toward utility bills (LIHEAP) to up to $1,500/year in caregiver support services, plus monthly grocery assistance up to $415 and comprehensive Medicaid coverage for medical and long-term care costs. Free resources include one-on-one Medicare counseling and legal help for seniors facing benefit issues or elder abuse.\n\nMost financial programs require income verification, but free resources like Medicare counseling through Utah SHIP are available regardless of income. Start by checking if your loved one qualifies for Medicaid, it's Utah's most comprehensive program covering both medical costs and home-based care services.",
     "startHere": [
       {
         "name": "Utah Medicaid Program",
         "programId": "utah-medicaid",
-        "why": "Covers the biggest expenses — nursing home care, home-based services, and medical costs for seniors on limited incomes."
+        "why": "Covers the biggest expenses, nursing home care, home-based services, and medical costs for seniors on limited incomes."
       },
       {
         "name": "Utah SNAP",
@@ -2366,7 +2366,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Utah SHIP",
         "programId": "utah-ship",
-        "why": "Free Medicare counseling available to everyone — helps find cost assistance programs you might be missing."
+        "why": "Free Medicare counseling available to everyone, helps find cost assistance programs you might be missing."
       }
     ],
     "byNeed": [
@@ -2415,6 +2415,6 @@ export const drafts: PipelineStateDrafts = {
       "Crisis energy assistance through LIHEAP can provide up to $2,000 for emergency heating or cooling situations",
       "Most financial programs require income verification, but exact limits vary by program and household size"
     ],
-    "resourcesVsBenefits": "Utah's benefit programs require qualification based on income, assets, or care needs — like Medicaid's income limits or SNAP's fixed-income requirements. But Utah's free resource programs are available to any senior regardless of financial situation: Utah SHIP provides Medicare counseling to anyone 60+, and Utah Legal Services offers free legal help to any senior facing benefit issues, housing problems, or elder abuse."
+    "resourcesVsBenefits": "Utah's benefit programs require qualification based on income, assets, or care needs, like Medicaid's income limits or SNAP's fixed-income requirements. But Utah's free resource programs are available to any senior regardless of financial situation: Utah SHIP provides Medicare counseling to anyone 60+, and Utah Legal Services offers free legal help to any senior facing benefit issues, housing problems, or elder abuse."
   }
 };

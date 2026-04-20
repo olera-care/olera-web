@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.099Z
+ * Last updated: 2026-04-20T23:39:07.870Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and struggling with medical bills, Oklahoma Medicaid SoonerCare covers doctor visits, hospital stays, prescription drugs, and long-term care — including nursing home care and home services like personal care assistance. The program has different categories with different income and asset limits: Aged, Blind, and Disabled (ABD) Medicaid allows up to $9,950 in assets with basic medical coverage, while Nursing Home Medicaid allows only $2,000 in assets but covers full long-term care costs.\n\nBecause SoonerCare works through managed care plans like Aetna Better Health, your loved one gets coordinated care rather than dealing with separate providers for each service. Income limits vary by category — ABD follows SSI levels while Nursing Home Medicaid allows up to $2,982/month for a single person in 2026.\n\nIf your loved one needs daily help with bathing, dressing, or medication management, they may qualify for Home and Community Based Services (HCBS) waivers that provide care at home instead of in a nursing facility. These waivers have waitlists due to limited slots, but can help your loved one stay in their own home longer.",
+      "intro": "If your loved one is 65+ and struggling with medical bills, Oklahoma Medicaid SoonerCare covers doctor visits, hospital stays, prescription drugs, and long-term care, including nursing home care and home services like personal care assistance. The program has different categories with different income and asset limits: Aged, Blind, and Disabled (ABD) Medicaid allows up to $9,950 in assets with basic medical coverage, while Nursing Home Medicaid allows only $2,000 in assets but covers full long-term care costs.\n\nBecause SoonerCare works through managed care plans like Aetna Better Health, your loved one gets coordinated care rather than dealing with separate providers for each service. Income limits vary by category, ABD follows SSI levels while Nursing Home Medicaid allows up to $2,982/month for a single person in 2026.\n\nIf your loved one needs daily help with bathing, dressing, or medication management, they may qualify for Home and Community Based Services (HCBS) waivers that provide care at home instead of in a nursing facility. These waivers have waitlists due to limited slots, but can help your loved one stay in their own home longer.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -67,7 +67,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive.org or call 1-800-987-7767 — processing can take weeks to months depending on documentation review.",
+        "summary": "Apply online at OKDHSLive.org or call 1-800-987-7767, processing can take weeks to months depending on documentation review.",
         "steps": [
           {
             "step": 1,
@@ -91,8 +91,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Weeks to months depending on documentation review and assessments needed",
-        "waitlist": "HCBS waivers have waitlists due to limited slots — basic ABD Medicaid does not have waitlists",
-        "tip": "Apply even if your loved one's income is slightly over the limits — there may be spend-down options or other pathways to qualification.",
+        "waitlist": "HCBS waivers have waitlists due to limited slots, basic ABD Medicaid does not have waitlists",
+        "tip": "Apply even if your loved one's income is slightly over the limits, there may be spend-down options or other pathways to qualification.",
         "urls": [
           {
             "label": "Online Application",
@@ -135,10 +135,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Incomplete applications cause major delays — submit all required documentation at once to avoid processing holds",
+        "Incomplete applications cause major delays, submit all required documentation at once to avoid processing holds",
         "Different SoonerCare categories have different rules: ABD allows higher assets but basic coverage only, while Nursing Home Medicaid has stricter asset limits but covers long-term care",
         "Spousal impoverishment rules protect the community spouse's assets and income if your loved one needs nursing home care",
-        "HCBS waiver waitlists vary by region and priority level — ask about current wait times when applying"
+        "HCBS waiver waitlists vary by region and priority level, ask about current wait times when applying"
       ],
       "relatedPrograms": [
         "Oklahoma SNAP (food benefits)",
@@ -212,7 +212,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Oklahoma's ADvantage Waiver can pay for home care services that would otherwise require nursing home placement. This Medicaid program covers case management, personal care, and other support services tailored to your loved one's specific needs.\n\nYour loved one must be 65+ or have a qualifying physical disability, meet nursing facility level of care requirements, and have income under $2,901/month in 2025. Because this waiver has limited enrollment slots, eligible applicants are placed on a waitlist until an opening becomes available. The program requires living in your own home or a family member's home — not in assisted living or other facilities.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Oklahoma's ADvantage Waiver can pay for home care services that would otherwise require nursing home placement. This Medicaid program covers case management, personal care, and other support services tailored to your loved one's specific needs.\n\nYour loved one must be 65+ or have a qualifying physical disability, meet nursing facility level of care requirements, and have income under $2,901/month in 2025. Because this waiver has limited enrollment slots, eligible applicants are placed on a waitlist until an opening becomes available. The program requires living in your own home or a family member's home, not in assisted living or other facilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -252,7 +252,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call Oklahoma Human Services for assessment — processing includes financial interview, nurse assessment, and waitlist placement if no slots available.",
+        "summary": "Call Oklahoma Human Services for assessment, processing includes financial interview, nurse assessment, and waitlist placement if no slots available.",
         "steps": [
           {
             "step": 1,
@@ -281,7 +281,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Processing time varies and includes financial interview, nurse assessment, and case manager plan development",
-        "waitlist": "Yes — limited enrollment slots mean eligible applicants are placed on waitlist until opening becomes available",
+        "waitlist": "Yes, limited enrollment slots mean eligible applicants are placed on waitlist until opening becomes available",
         "tip": "Gather all financial documents before calling to speed up the eligibility interview process.",
         "urls": [
           {
@@ -322,9 +322,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Limited waiver slots mean even eligible applicants may wait months or years for services to begin",
-        "Annual income and asset limits update each year — 2025 limits are $2,901/month income and $730,000 home equity",
+        "Annual income and asset limits update each year, 2025 limits are $2,901/month income and $730,000 home equity",
         "Participants aged 19-64 with physical disabilities cannot have intellectual disabilities or developmental cognitive impairments",
-        "Services must be needed at least monthly to prevent nursing home placement — not just for general Medicaid eligibility"
+        "Services must be needed at least monthly to prevent nursing home placement, not just for general Medicaid eligibility"
       ],
       "relatedPrograms": [
         "SoonerCare Medicaid",
@@ -348,7 +348,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's income goes over $2,901/month after enrollment?",
-          "answer": "Your loved one would lose eligibility during the annual redetermination process. However, they might qualify for other Medicaid programs or special income trusts — discuss options with your case manager before this happens."
+          "answer": "Your loved one would lose eligibility during the annual redetermination process. However, they might qualify for other Medicaid programs or special income trusts, discuss options with your case manager before this happens."
         },
         {
           "question": "Can my loved one live in assisted living and still get ADvantage Waiver services?",
@@ -402,7 +402,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your loved one won't need to coordinate between separate Medicare and Medicaid providers — one interdisciplinary team manages all their care.\n\nYour loved one must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,901/month for a single person in 2025. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is only available in specific service areas around Oklahoma City and Shawnee — not statewide. Your loved one must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your loved one won't need to coordinate between separate Medicare and Medicaid providers, one interdisciplinary team manages all their care.\n\nYour loved one must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,901/month for a single person in 2025. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is only available in specific service areas around Oklahoma City and Shawnee, not statewide. Your loved one must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service covered by Medicare/Medicaid",
       "savingsVerified": false,
@@ -443,7 +443,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 405-522-7044 to start the process — PACE staff will help complete both medical and financial eligibility assessments.",
+        "summary": "Call 405-522-7044 to start the process, PACE staff will help complete both medical and financial eligibility assessments.",
         "steps": [
           {
             "step": 1,
@@ -471,7 +471,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "PACE's interdisciplinary team evaluates whether your loved one can live safely in the community with PACE services and support."
           }
         ],
-        "processingTime": "Processing time not specified — new medical assessment required if any prior UCAT is more than 6 months old",
+        "processingTime": "Processing time not specified, new medical assessment required if any prior UCAT is more than 6 months old",
         "waitlist": null,
         "tip": "PACE providers help coordinate both the medical and financial eligibility processes, so start with them rather than applying for Medicaid separately.",
         "urls": [
@@ -519,8 +519,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must live in a specific PACE service area — the program is not available statewide, only around Oklahoma City and Shawnee",
-        "Your loved one cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services — PACE becomes the sole provider",
+        "You must live in a specific PACE service area, the program is not available statewide, only around Oklahoma City and Shawnee",
+        "Your loved one cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services, PACE becomes the sole provider",
         "If your loved one needs emergency care outside the PACE network, PACE will coordinate and cover it, but routine care must go through PACE",
         "The interdisciplinary team can deny enrollment if they determine your loved one cannot live safely in the community even with PACE services"
       ],
@@ -536,12 +536,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No. PACE requires participants to use only PACE providers and contractors for all medical care except emergencies. Your loved one will be assigned to PACE doctors, specialists, and other providers. If they receive unauthorized care outside the PACE network, they may be financially liable for those costs."
         },
         {
-          "question": "What if my loved one's house is worth more than $2,000 — does that disqualify them?",
+          "question": "What if my loved one's house is worth more than $2,000, does that disqualify them?",
           "answer": "No. The primary home is exempt from the $2,000 asset limit, regardless of value. The asset limit applies to countable assets like bank accounts, investments, and additional properties. Your loved one can keep their home, one vehicle, personal belongings, and burial plots."
         },
         {
           "question": "How do I know if my loved one lives in a PACE service area?",
-          "answer": "Call 405-522-7044 with your loved one's address to verify coverage. Currently, PACE is only available in specific areas around Oklahoma City and Shawnee through Valir PACE and LIFE PACE. The program is not available statewide — most Oklahoma counties do not have PACE coverage."
+          "answer": "Call 405-522-7044 with your loved one's address to verify coverage. Currently, PACE is only available in specific areas around Oklahoma City and Shawnee through Valir PACE and LIFE PACE. The program is not available statewide, most Oklahoma counties do not have PACE coverage."
         },
         {
           "question": "Can I apply for PACE and the ADvantage Waiver at the same time?",
@@ -560,7 +560,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, adult children can help initiate the PACE application process by calling 405-522-7044. However, your loved one must participate in the medical assessments and agree to use PACE as their sole provider. If your loved one cannot make decisions due to dementia or other conditions, legal guardianship or power of attorney documentation will be needed."
         },
         {
-          "question": "What if my loved one has Medicare Advantage — can they switch to PACE?",
+          "question": "What if my loved one has Medicare Advantage, can they switch to PACE?",
           "answer": "Your loved one must disenroll from Medicare Advantage before joining PACE, as they cannot be enrolled in both programs. PACE staff can help coordinate this transition during the enrollment process. Your loved one will need to return to original Medicare as part of PACE enrollment."
         }
       ],
@@ -595,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or coinsurance, Oklahoma's Medicare Savings Programs can help. These three programs — QMB, SLMB, and QI — pay different levels of Medicare costs based on income. QMB covers the most (all Medicare Part A and B costs), while SLMB and QI cover Medicare Part B premiums only.\n\nOklahoma uses stricter income limits than many states. Monthly limits range from $1,235 for QMB up to $1,660 for QI (single person). Your loved one must also have assets below $9,090 (single) or $13,630 (married couple). Because QI has limited funding and works first-come, first-served, apply early in the year if your loved one qualifies.\n\nAll three programs automatically qualify your loved one for Extra Help with prescription drug costs. Apply through your local OKDHS Human Services Center — you cannot apply through Medicare directly.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or coinsurance, Oklahoma's Medicare Savings Programs can help. These three programs, QMB, SLMB, and QI, pay different levels of Medicare costs based on income. QMB covers the most (all Medicare Part A and B costs), while SLMB and QI cover Medicare Part B premiums only.\n\nOklahoma uses stricter income limits than many states. Monthly limits range from $1,235 for QMB up to $1,660 for QI (single person). Your loved one must also have assets below $9,090 (single) or $13,630 (married couple). Because QI has limited funding and works first-come, first-served, apply early in the year if your loved one qualifies.\n\nAll three programs automatically qualify your loved one for Extra Help with prescription drug costs. Apply through your local OKDHS Human Services Center, you cannot apply through Medicare directly.",
       "savingsRange": "$200 – $2,400/year in 2026",
       "savingsSource": "Medicare Part B premium savings plus potential deductible and coinsurance coverage",
       "savingsVerified": false,
@@ -662,7 +662,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply at your local OKDHS Human Services Center — processing time varies by office and QI has limited annual funding.",
+        "summary": "Apply at your local OKDHS Human Services Center, processing time varies by office and QI has limited annual funding.",
         "steps": [
           {
             "step": 1,
@@ -685,8 +685,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "OKDHS will review your application and contact you if additional information is needed. QI applications are processed first-come, first-served due to limited funding."
           }
         ],
-        "processingTime": "Varies by office — contact your local OKDHS center for current processing times",
-        "waitlist": "QI has first-come, first-served processing with priority to prior-year recipients — limited funds may create waitlist",
+        "processingTime": "Varies by office, contact your local OKDHS center for current processing times",
+        "waitlist": "QI has first-come, first-served processing with priority to prior-year recipients, limited funds may create waitlist",
         "tip": "Apply early in the year for QI since funding is limited and distributed first-come, first-served.",
         "urls": [
           {
@@ -724,7 +724,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits update every April 1 — verify current amounts with OKDHS when applying",
+        "Income limits update every April 1, verify current amounts with OKDHS when applying",
         "Oklahoma uses stricter income limits than federal baselines, so you may not qualify even if eligible in other states",
         "QI requires annual reapplication and excludes those eligible for other Medicaid programs",
         "You must apply through Oklahoma's Medicaid agency (OKDHS), not Medicare directly"
@@ -792,11 +792,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one apply for Medicare Savings Programs and SoonerCare at the same time?",
-          "answer": "Yes, you can apply for both through the same OKDHS application. However, QI applicants cannot be eligible for other Medicaid programs — if your loved one qualifies for regular SoonerCare, they wouldn't be eligible for QI specifically."
+          "answer": "Yes, you can apply for both through the same OKDHS application. However, QI applicants cannot be eligible for other Medicaid programs, if your loved one qualifies for regular SoonerCare, they wouldn't be eligible for QI specifically."
         },
         {
           "question": "How long does the Extra Help prescription coverage last once approved?",
-          "answer": "Extra Help is automatic and continuous as long as your loved one remains enrolled in any Medicare Savings Program. They don't need to apply separately — it starts when their Medicare Savings Program begins."
+          "answer": "Extra Help is automatic and continuous as long as your loved one remains enrolled in any Medicare Savings Program. They don't need to apply separately, it starts when their Medicare Savings Program begins."
         },
         {
           "question": "What if my loved one needs QI but applies late in the year when funding might be gone?",
@@ -821,7 +821,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — potentially $100-400/month on an EBT card.",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes, potentially $100-400/month on an EBT card.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -834,7 +834,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly funds on an EBT card for food purchases. The amount depends on household size and income — a typical 2-person elderly household might receive $415/month after deductions, with a minimum of $24 for smaller households.\n\nSeniors get special advantages: they only need to meet the net income test (not gross), can deduct medical expenses over $35/month, and have higher asset limits. Because Oklahoma processes applications within 30 days (7 days if expedited), your loved one could be getting food assistance within weeks of applying.\n\nThe EBT card works like a debit card at grocery stores for food purchases, but cannot be used for alcohol, tobacco, or hot prepared foods. All Social Security, pension, and other income counts, but medical expenses and housing costs are deducted from income calculations.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly funds on an EBT card for food purchases. The amount depends on household size and income, a typical 2-person elderly household might receive $415/month after deductions, with a minimum of $24 for smaller households.\n\nSeniors get special advantages: they only need to meet the net income test (not gross), can deduct medical expenses over $35/month, and have higher asset limits. Because Oklahoma processes applications within 30 days (7 days if expedited), your loved one could be getting food assistance within weeks of applying.\n\nThe EBT card works like a debit card at grocery stores for food purchases, but cannot be used for alcohol, tobacco, or hot prepared foods. All Social Security, pension, and other income counts, but medical expenses and housing costs are deducted from income calculations.",
       "savingsRange": "$288 – $4,980/year in 2026",
       "savingsSource": "Based on minimum $24/month benefit to typical elderly household benefit of $415/month",
       "savingsVerified": true,
@@ -892,7 +892,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive! or call 1-877-760-0114 — takes about 20 minutes to start, with required interview within 30 days.",
+        "summary": "Apply online at OKDHSLive! or call 1-877-760-0114, takes about 20 minutes to start, with required interview within 30 days.",
         "steps": [
           {
             "step": 1,
@@ -922,7 +922,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days for regular applications, 7 days for expedited processing if very low income",
         "waitlist": null,
-        "tip": "Seniors 60+ should emphasize medical expenses over $35/month — these are deducted from income and can significantly increase your benefit amount.",
+        "tip": "Seniors 60+ should emphasize medical expenses over $35/month, these are deducted from income and can significantly increase your benefit amount.",
         "urls": [
           {
             "label": "OKDHSLive! Online Application",
@@ -971,7 +971,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Expedited processing (7 days) is available if your household has less than $150 in monthly income and $100 or less in cash/bank accounts",
-        "Medical expenses over $35/month can be deducted from your income calculation — keep all receipts for copays, prescriptions, and health insurance premiums",
+        "Medical expenses over $35/month can be deducted from your income calculation, keep all receipts for copays, prescriptions, and health insurance premiums",
         "If your loved one lives with others but can't shop or cook for themselves due to disability or age 60+, they may qualify as a separate household",
         "Changes in income or household size must be reported within 10 days to avoid overpayments that need to be repaid"
       ],
@@ -988,8 +988,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, if the assisted living facility doesn't provide meals or if your loved one pays for their own food separately. They would need to report the address change within 10 days and their benefit amount might change based on new housing costs."
         },
         {
-          "question": "What happens if my loved one's Social Security goes up — will they lose SNAP?",
-          "answer": "Not necessarily. Small Social Security increases are often offset by standard deductions and medical expenses. Report the change within 10 days — OKDHS will recalculate benefits and may reduce the amount rather than eliminate them entirely."
+          "question": "What happens if my loved one's Social Security goes up, will they lose SNAP?",
+          "answer": "Not necessarily. Small Social Security increases are often offset by standard deductions and medical expenses. Report the change within 10 days, OKDHS will recalculate benefits and may reduce the amount rather than eliminate them entirely."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one who has dementia?",
@@ -1001,7 +1001,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one use SNAP and get Meals on Wheels at the same time?",
-          "answer": "Yes, there's no conflict between SNAP benefits and Meals on Wheels. SNAP helps with grocery shopping while Meals on Wheels provides prepared meals — they serve different needs and can complement each other."
+          "answer": "Yes, there's no conflict between SNAP benefits and Meals on Wheels. SNAP helps with grocery shopping while Meals on Wheels provides prepared meals, they serve different needs and can complement each other."
         },
         {
           "question": "How long do SNAP benefits last once approved?",
@@ -1047,7 +1047,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating, cooling, or emergency utility bills, LIHEAP provides one-time payments of $40-$750 directly to their utility company. The amount depends on household size, income level, fuel type, and which component they qualify for — heating assistance (December-February), cooling assistance (summer), or crisis assistance (year-round emergencies).\n\nBecause LIHEAP pays the utility company directly, your loved one won't handle cash — the credit appears on their next bill. Income limits are set at 130% of federal poverty level: $1,695/month for one person or $2,291/month for a couple. Everyone living under the same roof sharing a utility meter counts as one household, even if they don't share expenses.\n\nFunding runs out each year based on priority (elderly and households with young children get preference), and there's no formal waitlist — once money is gone, applications close until the next federal fiscal year. Processing takes up to 60 days for regular heating and cooling assistance, though crisis situations get individual evaluation.",
+      "intro": "If your loved one struggles to pay heating, cooling, or emergency utility bills, LIHEAP provides one-time payments of $40-$750 directly to their utility company. The amount depends on household size, income level, fuel type, and which component they qualify for, heating assistance (December-February), cooling assistance (summer), or crisis assistance (year-round emergencies).\n\nBecause LIHEAP pays the utility company directly, your loved one won't handle cash, the credit appears on their next bill. Income limits are set at 130% of federal poverty level: $1,695/month for one person or $2,291/month for a couple. Everyone living under the same roof sharing a utility meter counts as one household, even if they don't share expenses.\n\nFunding runs out each year based on priority (elderly and households with young children get preference), and there's no formal waitlist, once money is gone, applications close until the next federal fiscal year. Processing takes up to 60 days for regular heating and cooling assistance, though crisis situations get individual evaluation.",
       "savingsRange": "$40 – $750/year in 2026",
       "savingsSource": "Oklahoma LIHEAP benefit amounts vary by income, household size, fuel type, dwelling type",
       "savingsVerified": true,
@@ -1096,7 +1096,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive.org or call (405) 522-5050 — processing takes up to 60 days for heating/cooling assistance.",
+        "summary": "Apply online at OKDHSLive.org or call (405) 522-5050, processing takes up to 60 days for heating/cooling assistance.",
         "steps": [
           {
             "step": 1,
@@ -1121,11 +1121,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Receive payment notification",
-            "description": "If approved, OKDHS pays your utility company directly. The credit will appear on your loved one's next bill — no cash changes hands"
+            "description": "If approved, OKDHS pays your utility company directly. The credit will appear on your loved one's next bill, no cash changes hands"
           }
         ],
         "processingTime": "Up to 60 calendar days for heating/cooling assistance; crisis applications evaluated individually",
-        "waitlist": "No formal waitlist — funding distributed by priority (elderly and young children first) until exhausted",
+        "waitlist": "No formal waitlist, funding distributed by priority (elderly and young children first) until exhausted",
         "tip": "For crisis situations involving disconnection notices or life-threatening conditions, call (405) 522-5050 immediately and ask for emergency energy assistance referral.",
         "urls": [
           {
@@ -1162,7 +1162,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If someone outside your household pays the utility bill directly, your loved one is ineligible — they must be responsible for the payment themselves",
+        "If someone outside your household pays the utility bill directly, your loved one is ineligible, they must be responsible for the payment themselves",
         "Tribal members can choose either OKDHS or their tribal LIHEAP program, but cannot use both in the same federal fiscal year",
         "Crisis assistance may be available year-round for emergencies, but regular heating assistance is only available December through February",
         "Everyone living under the same roof and sharing a utility meter must apply together as one household, even if they don't share living expenses"
@@ -1189,7 +1189,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if the funding runs out before my loved one's application is processed?",
-          "answer": "Applications close when funding is exhausted, typically prioritizing elderly households and those with young children first. There's no waitlist — you would need to reapply when the next federal fiscal year's funding becomes available."
+          "answer": "Applications close when funding is exhausted, typically prioritizing elderly households and those with young children first. There's no waitlist, you would need to reapply when the next federal fiscal year's funding becomes available."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1205,7 +1205,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "If my loved one is Native American, should they apply through the tribe or through OKDHS?",
-          "answer": "Tribal members can choose either their tribal LIHEAP program or the OKDHS program, but cannot use both in the same federal fiscal year. Compare eligibility requirements and benefit amounts — for example, the Wichita Tribe can be reached at (405) 247-2425 to discuss their program."
+          "answer": "Tribal members can choose either their tribal LIHEAP program or the OKDHS program, but cannot use both in the same federal fiscal year. Compare eligibility requirements and benefit amounts, for example, the Wichita Tribe can be reached at (405) 247-2425 to discuss their program."
         }
       ],
       "layoutIntent": {
@@ -1251,7 +1251,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and truly homebound — meaning they can't leave home without help and have no one available to cook for them — they may qualify for free hot meals delivered Monday through Friday. Each meal is planned by a registered dietitian and typically includes an entrée, sides, and sometimes frozen or shelf-stable items for weekends.\n\nThis program serves homebound seniors who cannot safely prepare their own meals. Your loved one must be unable to leave home without assistance (using a taxi or having a friend drive doesn't count as homebound) and have no household member who can cook or shop for groceries. Priority goes to those with the lowest incomes, but there's no strict income requirement under the federal Older Americans Act funding.\n\nWaitlists are common — expect about 2 months in Oklahoma City and similar delays in other areas due to limited capacity. The program runs Monday through Friday only, with no weekend delivery in most areas.",
+      "intro": "If your loved one is 60+ and truly homebound, meaning they can't leave home without help and have no one available to cook for them, they may qualify for free hot meals delivered Monday through Friday. Each meal is planned by a registered dietitian and typically includes an entrée, sides, and sometimes frozen or shelf-stable items for weekends.\n\nThis program serves homebound seniors who cannot safely prepare their own meals. Your loved one must be unable to leave home without assistance (using a taxi or having a friend drive doesn't count as homebound) and have no household member who can cook or shop for groceries. Priority goes to those with the lowest incomes, but there's no strict income requirement under the federal Older Americans Act funding.\n\nWaitlists are common, expect about 2 months in Oklahoma City and similar delays in other areas due to limited capacity. The program runs Monday through Friday only, with no weekend delivery in most areas.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1275,7 +1275,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider — no forms required to start, but expect a 2-month waitlist in most areas.",
+        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider, no forms required to start, but expect a 2-month waitlist in most areas.",
         "steps": [
           {
             "step": 1,
@@ -1300,7 +1300,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate eligibility determination, but service start depends on capacity and waitlist",
         "waitlist": "Approximately 2 months in Oklahoma City; varies by region due to funding and capacity limits",
-        "tip": "Apply as soon as your loved one becomes homebound — waitlists move slowly and early application helps secure a spot.",
+        "tip": "Apply as soon as your loved one becomes homebound, waitlists move slowly and early application helps secure a spot.",
         "urls": [
           {
             "label": "Oklahoma City Meals on Wheels Application",
@@ -1333,8 +1333,8 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "If your loved one needs nursing home level of care, ask about ADvantage Waiver meal services which may have different availability",
         "Some private Meals on Wheels programs charge around $9 per meal if federal funding isn't available",
-        "Homebound status is strictly enforced — being able to leave with a friend's help or use taxi service typically disqualifies applicants",
-        "Weekend meal coverage is limited — ask about frozen or shelf-stable options for Saturday and Sunday"
+        "Homebound status is strictly enforced, being able to leave with a friend's help or use taxi service typically disqualifies applicants",
+        "Weekend meal coverage is limited, ask about frozen or shelf-stable options for Saturday and Sunday"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -1352,14 +1352,14 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one still get meals if they can leave home with my help occasionally?",
-          "answer": "Yes, needing assistance from another person to leave home still qualifies as homebound. The key is that your loved one cannot safely leave home independently — requiring help from family, friends, or caregivers to get around meets the homebound requirement."
+          "answer": "Yes, needing assistance from another person to leave home still qualifies as homebound. The key is that your loved one cannot safely leave home independently, requiring help from family, friends, or caregivers to get around meets the homebound requirement."
         },
         {
           "question": "What happens if there's a 2-month waitlist but my loved one needs meals now?",
           "answer": "Call local food banks, senior centers, or ask about private pay Meals on Wheels options (around $9/meal). Some areas have emergency meal programs for crisis situations. Your local Area Agency on Aging can provide interim resources while you wait for regular service."
         },
         {
-          "question": "My loved one can microwave frozen dinners — do they still qualify?",
+          "question": "My loved one can microwave frozen dinners, do they still qualify?",
           "answer": "Possibly. The program looks at whether your loved one can safely shop for groceries, prepare nutritious meals, and manage cooking equipment. Being able to microwave food doesn't disqualify them if they can't safely shop or cook fresh meals."
         },
         {
@@ -1368,7 +1368,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one lives with me but I work all day?",
-          "answer": "This may disqualify them since there's a household member who could potentially prepare meals, even if you're at work during the day. However, providers assess each situation individually — call to discuss your specific circumstances and work schedule."
+          "answer": "This may disqualify them since there's a household member who could potentially prepare meals, even if you're at work during the day. However, providers assess each situation individually, call to discuss your specific circumstances and work schedule."
         },
         {
           "question": "Are there meals available on weekends and holidays?",
@@ -1376,7 +1376,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get meals if they're already receiving food stamps?",
-          "answer": "Yes, receiving SNAP benefits doesn't disqualify your loved one from Meals on Wheels. These programs can work together — SNAP helps with grocery costs while Meals on Wheels provides prepared meals for someone who cannot cook safely."
+          "answer": "Yes, receiving SNAP benefits doesn't disqualify your loved one from Meals on Wheels. These programs can work together, SNAP helps with grocery costs while Meals on Wheels provides prepared meals for someone who cannot cook safely."
         },
         {
           "question": "What happens if my loved one's health improves and they're no longer homebound?",
@@ -1408,7 +1408,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If you're caring for an aging loved one or disabled child in Oklahoma, you may qualify for vouchers that pay for respite care — someone to watch your loved one while you take a break. Oklahoma runs three separate respite voucher programs based on your care recipient's age and condition: one for seniors 60+, one for people under 60 with disabilities, and one specifically for children 18 and under with developmental disabilities.\n\nThe programs have different income limits and benefit amounts. The National Family Caregiver Support Program has no income limit and provides $400 per quarter ($1,600/year) for grandparents raising grandchildren. The Lifespan program serves households under $90,000/year, while the Developmental Disabilities program serves those under $75,000/year. You can use vouchers to hire family members, friends, or anyone over 18 to provide care in your home or another location.",
+      "intro": "If you're caring for an aging loved one or disabled child in Oklahoma, you may qualify for vouchers that pay for respite care, someone to watch your loved one while you take a break. Oklahoma runs three separate respite voucher programs based on your care recipient's age and condition: one for seniors 60+, one for people under 60 with disabilities, and one specifically for children 18 and under with developmental disabilities.\n\nThe programs have different income limits and benefit amounts. The National Family Caregiver Support Program has no income limit and provides $400 per quarter ($1,600/year) for grandparents raising grandchildren. The Lifespan program serves households under $90,000/year, while the Developmental Disabilities program serves those under $75,000/year. You can use vouchers to hire family members, friends, or anyone over 18 to provide care in your home or another location.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1432,7 +1432,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the program that matches your care recipient's age — processing takes up to 30 days for developmental disabilities program, timeline varies for others.",
+        "summary": "Call the program that matches your care recipient's age, processing takes up to 30 days for developmental disabilities program, timeline varies for others.",
         "steps": [
           {
             "step": 1,
@@ -1504,9 +1504,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "DDS program requires you provide at least 8 hours per day of care to qualify — this is more intensive than other programs",
+        "DDS program requires you provide at least 8 hours per day of care to qualify, this is more intensive than other programs",
         "Applications are valid only for the state fiscal year (July 1-June 30) so you must reapply annually",
-        "Incomplete applications get returned for correction which delays processing — submit everything at once"
+        "Incomplete applications get returned for correction which delays processing, submit everything at once"
       ],
       "relatedPrograms": [
         "ADvantage Waiver Program",
@@ -1517,7 +1517,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply for multiple respite programs at the same time?",
-          "answer": "No, you cannot receive respite services from multiple state or federal programs simultaneously. The programs are designed to serve different populations with minimal overlap — seniors 60+ through National Family Caregiver Support, people under 60 through Lifespan, and children with developmental disabilities through DDS."
+          "answer": "No, you cannot receive respite services from multiple state or federal programs simultaneously. The programs are designed to serve different populations with minimal overlap, seniors 60+ through National Family Caregiver Support, people under 60 through Lifespan, and children with developmental disabilities through DDS."
         },
         {
           "question": "What if my household income is right at the limit?",
@@ -1525,7 +1525,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long do I have to use the vouchers once I get them?",
-          "answer": "DDS vouchers are valid for 90 days from the date of issuance — use them or lose them. The other programs don't specify voucher expiration timelines in available sources, so ask when you apply. Plan your respite care needs in advance to maximize your voucher use."
+          "answer": "DDS vouchers are valid for 90 days from the date of issuance, use them or lose them. The other programs don't specify voucher expiration timelines in available sources, so ask when you apply. Plan your respite care needs in advance to maximize your voucher use."
         },
         {
           "question": "Can my sister who lives in another state provide the respite care?",
@@ -1575,7 +1575,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with very low income, SCSEP provides paid job training at $7.25/hour for 20 hours per week while they build skills for permanent employment. Your loved one works at nonprofits, senior centers, libraries, or government offices while receiving on-the-job training in computer skills or vocational areas.\n\nTo qualify, family income must not exceed 125% of the federal poverty level — significantly stricter than many assistance programs. This is temporary employment designed as a bridge to permanent work, not a long-term job. Priority goes to veterans, adults over 65, those with disabilities, and rural residents.",
+      "intro": "If your loved one is 55+ and unemployed with very low income, SCSEP provides paid job training at $7.25/hour for 20 hours per week while they build skills for permanent employment. Your loved one works at nonprofits, senior centers, libraries, or government offices while receiving on-the-job training in computer skills or vocational areas.\n\nTo qualify, family income must not exceed 125% of the federal poverty level, significantly stricter than many assistance programs. This is temporary employment designed as a bridge to permanent work, not a long-term job. Priority goes to veterans, adults over 65, those with disabilities, and rural residents.",
       "savingsRange": "$3,770 – $7,540/year in 2026",
       "savingsSource": "Federal minimum wage $7.25/hour × 20 hours/week × 26-52 weeks",
       "savingsVerified": true,
@@ -1600,7 +1600,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 405-521-2281 to apply — processing time varies by county and provider.",
+        "summary": "Call 405-521-2281 to apply, processing time varies by county and provider.",
         "steps": [
           {
             "step": 1,
@@ -1630,7 +1630,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Priority enrollment goes to veterans, adults over 65, those with disabilities, and rural residents — mention these qualifications when calling.",
+        "tip": "Priority enrollment goes to veterans, adults over 65, those with disabilities, and rural residents, mention these qualifications when calling.",
         "urls": [
           {
             "label": "Oklahoma SCSEP County Map",
@@ -1673,9 +1673,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Veterans and qualified spouses receive first priority, followed by adults over 65, those with disabilities, low literacy, limited English proficiency, rural residents, homeless individuals, and those with poor employment prospects",
-        "Different counties are served by different providers — some by state contractors, others by national grantees — which may affect wait times and available positions",
-        "This is temporary training employment, not permanent work — participants must actively seek unsubsidized employment and may be required to document job search activities",
-        "Host agencies include senior centers, libraries, museums, thrift stores, YWCA, homeless centers, and government offices — the type of work varies significantly by placement"
+        "Different counties are served by different providers, some by state contractors, others by national grantees, which may affect wait times and available positions",
+        "This is temporary training employment, not permanent work, participants must actively seek unsubsidized employment and may be required to document job search activities",
+        "Host agencies include senior centers, libraries, museums, thrift stores, YWCA, homeless centers, and government offices, the type of work varies significantly by placement"
       ],
       "relatedPrograms": [
         "Oklahoma Works (American Job Centers)",
@@ -1749,7 +1749,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with civil legal issues like landlord disputes, debt collection, or benefit denials, they may qualify for free legal help through Legal Aid Services of Oklahoma. This program provides attorneys and paralegals at no cost for seniors who meet income guidelines — generally up to 200% of the federal poverty level (about $2,510/month for a single person in 2024).\n\nThe service covers non-criminal legal matters only, with priority given to seniors. Because this is funded through the Older Americans Act, seniors get higher income thresholds than other adults. However, your loved one will still need to pay court costs and service fees if their case goes to court, and not all qualifying cases can be accepted due to high demand.",
+      "intro": "If your loved one is 60+ and struggling with civil legal issues like landlord disputes, debt collection, or benefit denials, they may qualify for free legal help through Legal Aid Services of Oklahoma. This program provides attorneys and paralegals at no cost for seniors who meet income guidelines, generally up to 200% of the federal poverty level (about $2,510/month for a single person in 2024).\n\nThe service covers non-criminal legal matters only, with priority given to seniors. Because this is funded through the Older Americans Act, seniors get higher income thresholds than other adults. However, your loved one will still need to pay court costs and service fees if their case goes to court, and not all qualifying cases can be accepted due to high demand.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1773,7 +1773,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the seniors helpline at 1-855-488-6814 or apply online — intake specialist reviews income and legal issue details to determine eligibility.",
+        "summary": "Call the seniors helpline at 1-855-488-6814 or apply online, intake specialist reviews income and legal issue details to determine eligibility.",
         "steps": [
           {
             "step": 1,
@@ -1793,7 +1793,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Call Monday-Thursday 9am-4pm only — they don't take voicemails, so you must reach them during these hours.",
+        "tip": "Call Monday-Thursday 9am-4pm only, they don't take voicemails, so you must reach them during these hours.",
         "urls": [
           {
             "label": "Online Application",
@@ -1836,7 +1836,7 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my loved one's case goes to court — do they have to pay?",
+          "question": "What if my loved one's case goes to court, do they have to pay?",
           "answer": "Yes, your loved one must pay all court costs and service fees even if they qualify for free legal representation. The attorneys and legal advice are free, but court filing fees and other court costs are still your loved one's responsibility."
         },
         {
@@ -1919,10 +1919,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your county OKDHS office for assessment — both medical and financial evaluations are required.",
+        "summary": "Call your county OKDHS office for assessment, both medical and financial evaluations are required.",
         "processingTime": "Processing time not specified; annual redetermination required",
         "waitlist": "Limited slots available; if program is full, placed on statewide waitlist until a slot opens",
-        "tip": "Gather all financial documents before calling — income verification and asset documentation will be needed for the interview",
+        "tip": "Gather all financial documents before calling, income verification and asset documentation will be needed for the interview",
         "steps": [
           {
             "step": 1,
@@ -1984,10 +1984,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your loved one has intellectual disability or cognitive impairment, they may not qualify for ADvantage — ask about other waiver programs that serve those conditions",
+        "If your loved one has intellectual disability or cognitive impairment, they may not qualify for ADvantage, ask about other waiver programs that serve those conditions",
         "Home equity over $730,000 can disqualify your loved one unless a spouse, minor child, or disabled adult child lives in the home",
-        "Annual redetermination is required — financial and medical eligibility must be renewed each year",
-        "Even if income is slightly over $2,199, deductions for medical expenses may bring it within limits — don't assume disqualification"
+        "Annual redetermination is required, financial and medical eligibility must be renewed each year",
+        "Even if income is slightly over $2,199, deductions for medical expenses may bring it within limits, don't assume disqualification"
       ],
       "relatedPrograms": [
         "SoonerCare (Oklahoma Medicaid)",
@@ -2002,7 +2002,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, the family home is exempt from the $2,000 asset limit as long as your loved one lives there or intends to return. However, home equity cannot exceed $730,000 in 2025. If a spouse, minor child under 21, or permanently disabled adult child lives in the home, there's no equity limit at all."
         },
         {
-          "question": "What if my loved one's income is $2,250/month — just over the $2,199 limit?",
+          "question": "What if my loved one's income is $2,250/month, just over the $2,199 limit?",
           "answer": "They may still qualify if they have medical expenses that reduce their countable income below $2,199. Things like Medicare premiums, prescription costs, and other medical expenses can be deducted. The OKDHS financial interview will calculate this for you."
         },
         {
@@ -2210,7 +2210,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and has a household income below 185% of federal poverty guidelines, they can get $50 per year to buy fresh fruits, vegetables, herbs, and honey at authorized farmers' markets in Oklahoma. The program provides an EBT debit card that works at participating markets from May through November.\n\nNative Americans may qualify at age 55 through tribal programs. Chickasaw citizens 55+ can receive up to $100 per year, while other tribal programs provide $50. Because funding is limited and depletes before the season ends, you should apply early—state applications open online, while tribal programs start accepting applications in February (Choctaw) or June (Chickasaw).\n\nThis program only operates in participating counties and tribal service areas, not statewide. You'll need to confirm your area is covered and that there are authorized markets nearby before applying.",
+      "intro": "If your loved one is 60+ and has a household income below 185% of federal poverty guidelines, they can get $50 per year to buy fresh fruits, vegetables, herbs, and honey at authorized farmers' markets in Oklahoma. The program provides an EBT debit card that works at participating markets from May through November.\n\nNative Americans may qualify at age 55 through tribal programs. Chickasaw citizens 55+ can receive up to $100 per year, while other tribal programs provide $50. Because funding is limited and depletes before the season ends, you should apply early, state applications open online, while tribal programs start accepting applications in February (Choctaw) or June (Chickasaw).\n\nThis program only operates in participating counties and tribal service areas, not statewide. You'll need to confirm your area is covered and that there are authorized markets nearby before applying.",
       "savingsRange": "$50 – $100/year in 2026",
       "savingsSource": "EBT benefit amount varies by program tier",
       "savingsVerified": true,
@@ -2235,7 +2235,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at oksfmnp.org for the state program, or contact tribal programs directly—applications are processed in real-time online with EBT cards issued after approval.",
+        "summary": "Apply online at oksfmnp.org for the state program, or contact tribal programs directly, applications are processed in real-time online with EBT cards issued after approval.",
         "steps": [
           {
             "step": 1,
@@ -2307,10 +2307,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Native Americans living in tribal service areas should check both state and tribal programs—tribal programs may offer higher benefits ($100 vs $50) and earlier age eligibility (55 vs 60)",
-        "Funding is limited and programs stop accepting applications once money runs out—state program may close before November, tribal programs typically run February-September (Choctaw) or June-October (Chickasaw)",
-        "Your EBT card only works at authorized farmers' markets and roadside stands for specific items—you cannot use it at grocery stores or for non-eligible foods",
-        "Income documentation must be current within 30 days of application—outdated pay stubs or benefit letters will cause delays"
+        "Native Americans living in tribal service areas should check both state and tribal programs, tribal programs may offer higher benefits ($100 vs $50) and earlier age eligibility (55 vs 60)",
+        "Funding is limited and programs stop accepting applications once money runs out, state program may close before November, tribal programs typically run February-September (Choctaw) or June-October (Chickasaw)",
+        "Your EBT card only works at authorized farmers' markets and roadside stands for specific items, you cannot use it at grocery stores or for non-eligible foods",
+        "Income documentation must be current within 30 days of application, outdated pay stubs or benefit letters will cause delays"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -2358,11 +2358,11 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply for both state and tribal programs if I live in a tribal area?",
-          "answer": "You can only participate in one program per year. If you're eligible for both, compare the benefits—Chickasaw offers up to $100 vs $50 for state program, while Choctaw offers the same $50 but may have different application timing."
+          "answer": "You can only participate in one program per year. If you're eligible for both, compare the benefits, Chickasaw offers up to $100 vs $50 for state program, while Choctaw offers the same $50 but may have different application timing."
         },
         {
           "question": "What happens if funding runs out before I apply?",
-          "answer": "The programs stop accepting applications once federal funding is depleted, which can happen before the official season ends. There's no waitlist—you'll need to reapply when the next year's program opens."
+          "answer": "The programs stop accepting applications once federal funding is depleted, which can happen before the official season ends. There's no waitlist, you'll need to reapply when the next year's program opens."
         },
         {
           "question": "Can my loved one use the EBT card at regular grocery stores?",
@@ -2370,7 +2370,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does my loved one's house or savings count against the income limit?",
-          "answer": "No, there are no asset limits for this program. Only household income matters—it must be below 185% of federal poverty guidelines based on household size."
+          "answer": "No, there are no asset limits for this program. Only household income matters, it must be below 185% of federal poverty guidelines based on household size."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -2378,7 +2378,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if there are no farmers' markets near my loved one's home?",
-          "answer": "The program only benefits people with access to authorized markets and stands. Before applying, check if there are participating vendors in your loved one's area—the benefit is useless without nearby authorized sellers."
+          "answer": "The program only benefits people with access to authorized markets and stands. Before applying, check if there are participating vendors in your loved one's area, the benefit is useless without nearby authorized sellers."
         },
         {
           "question": "Can my loved one get this benefit if they already receive SNAP food stamps?",
@@ -2386,7 +2386,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "When should we apply to have the best chance of getting benefits?",
-          "answer": "Apply as early as possible when applications open—February 1st for Choctaw Nation, June 1st for Chickasaw Nation, and check oksfmnp.org for state program dates. Programs close once funding runs out, often before the official season ends."
+          "answer": "Apply as early as possible when applications open, February 1st for Choctaw Nation, June 1st for Chickasaw Nation, and check oksfmnp.org for state program dates. Programs close once funding runs out, often before the official season ends."
         }
       ],
       "layoutIntent": {
@@ -2405,7 +2405,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Oklahoma offers 11 programs to help your aging loved one — 9 provide direct financial benefits or services, plus 1 employment program and 1 free legal resource. These range from comprehensive medical care through PACE to specific help like $50-100 yearly for fresh produce through the Senior Farmers' Market program. Most benefits require income qualification, but several services like legal assistance and chore services are available regardless of income. Start by checking if your loved one qualifies for Oklahoma Medicaid SoonerCare — it opens the door to multiple other programs including home care services that can help them stay in their own home.",
+    "intro": "Oklahoma offers 11 programs to help your aging loved one, 9 provide direct financial benefits or services, plus 1 employment program and 1 free legal resource. These range from comprehensive medical care through PACE to specific help like $50-100 yearly for fresh produce through the Senior Farmers' Market program. Most benefits require income qualification, but several services like legal assistance and chore services are available regardless of income. Start by checking if your loved one qualifies for Oklahoma Medicaid SoonerCare, it opens the door to multiple other programs including home care services that can help them stay in their own home.",
     "startHere": [
       {
         "name": "Oklahoma Medicaid SoonerCare",
@@ -2472,11 +2472,11 @@ export const drafts: PipelineStateDrafts = {
       }
     ],
     "quickFacts": [
-      "Most benefit programs require income qualification — specific limits vary by program and household size.",
+      "Most benefit programs require income qualification, specific limits vary by program and household size.",
       "Oklahoma's ADvantage Waiver is the state's main program for avoiding nursing home placement through home care services.",
       "Several programs like Legal Aid Services and Oklahoma Chore Services are available based on age (60+) regardless of income level.",
       "PACE programs coordinate all medical care under one team but are only available in certain Oklahoma counties."
     ],
-    "resourcesVsBenefits": "Oklahoma offers both qualification-based benefits that require meeting income or health criteria (like Medicaid SoonerCare or the ADvantage Waiver) and free resources available to all seniors (like Legal Aid Services for those 60+ or Oklahoma Chore Services). Benefits provide ongoing financial assistance or services, while resources offer one-time help or guidance — both can significantly reduce your loved one's expenses and your caregiving burden."
+    "resourcesVsBenefits": "Oklahoma offers both qualification-based benefits that require meeting income or health criteria (like Medicaid SoonerCare or the ADvantage Waiver) and free resources available to all seniors (like Legal Aid Services for those 60+ or Oklahoma Chore Services). Benefits provide ongoing financial assistance or services, while resources offer one-time help or guidance, both can significantly reduce your loved one's expenses and your caregiving burden."
   }
 };

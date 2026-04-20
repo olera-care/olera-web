@@ -130,7 +130,9 @@ export default async function TexasArticlePage({
   if (!authorAvatar && knownAuthor?.avatar) {
     authorAvatar = knownAuthor.avatar;
   }
-  const verifier = getAuthorByName("Dr. Logan DuBose");
+  // DB-driven reviewer with Dr. Logan DuBose as the default when unset.
+  const reviewerName = article.reviewer_name || "Dr. Logan DuBose";
+  const verifier = getAuthorByName(reviewerName);
 
   // Render content
   let contentHtml = article.content_html || "";
@@ -159,6 +161,13 @@ export default async function TexasArticlePage({
       name: authorName,
       ...(authorRole && { jobTitle: authorRole }),
     },
+    ...(verifier && {
+      reviewedBy: {
+        "@type": "Person",
+        name: verifier.name,
+        ...(verifier.role && { jobTitle: verifier.role }),
+      },
+    }),
     publisher: {
       "@type": "Organization",
       name: "Olera",

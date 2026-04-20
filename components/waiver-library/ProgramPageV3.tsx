@@ -952,6 +952,24 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 reviewedAt={program.reviewedAt}
                 className="mt-3"
               />
+              <p className="mt-4 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+                <span className="text-gray-400">Medically reviewed by</span>
+                <Link
+                  href="/author/logan-dubose"
+                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  Dr. Logan DuBose
+                </Link>
+                {(program.lastVerifiedDate || program.reviewedAt || program.draftedAt) && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-gray-400">
+                      Last verified {program.lastVerifiedDate || program.reviewedAt || program.draftedAt}
+                    </span>
+                  </>
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-2">
               <button

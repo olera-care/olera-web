@@ -6,7 +6,7 @@ import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 import { getCategory, type Category } from "@/lib/waiver-category";
-import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
+import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight, Stethoscope } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
@@ -395,6 +395,23 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
           <p className="mt-3 text-lg text-gray-500">
             {programs.length} programs to help your family
+          </p>
+
+          <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+            <span className="text-gray-400">Medically reviewed by</span>
+            <Link
+              href="/author/logan-dubose"
+              className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+            >
+              Dr. Logan DuBose
+            </Link>
+            {draftedAt && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="text-gray-400">Last verified {draftedAt}</span>
+              </>
+            )}
           </p>
         </div>
       </header>

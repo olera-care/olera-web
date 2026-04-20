@@ -277,6 +277,30 @@ export default function AdminContentEditorPage() {
               onChange={(v) => updateField("author_role", v)}
             />
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Verified By</label>
+              <select
+                value={AUTHORS.find(a => a.name === formData.reviewer_name)?.slug || ""}
+                onChange={(e) => {
+                  const author = AUTHORS.find(a => a.slug === e.target.value);
+                  if (author) {
+                    updateField("reviewer_name", author.name);
+                    updateField("reviewer_role", author.role);
+                  } else {
+                    updateField("reviewer_name", "");
+                    updateField("reviewer_role", "");
+                  }
+                }}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+              >
+                <option value="">None</option>
+                {AUTHORS.map(a => (
+                  <option key={a.slug} value={a.slug}>{a.name} — {a.role}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </Section>
 
         {/* Content */}

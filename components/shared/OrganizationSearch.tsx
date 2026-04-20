@@ -226,7 +226,12 @@ export default function OrganizationSearch({
           <div className="max-h-64 overflow-y-auto">
             {results.length > 0 ? (
               <>
-                {results.map((org, index) => (
+                {results.map((org, index) => {
+                  // Defensive: ensure all rendered values are strings to prevent React Error #310
+                  const orgName = String(org.name || "");
+                  const location = [org.city, org.state].filter(Boolean).map(String).join(", ");
+
+                  return (
                   <button
                     key={org.id}
                     ref={(el) => { resultRefs.current[index] = el; }}
@@ -238,11 +243,11 @@ export default function OrganizationSearch({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-medium text-gray-900 truncate">
-                        {org.name}
+                        {orgName}
                       </p>
-                      {(org.city || org.state) && (
+                      {location && (
                         <p className="text-sm text-gray-500 truncate">
-                          {[org.city, org.state].filter(Boolean).join(", ")}
+                          {location}
                         </p>
                       )}
                     </div>
@@ -252,7 +257,8 @@ export default function OrganizationSearch({
                       </span>
                     )}
                   </button>
-                ))}
+                  );
+                })}
               </>
             ) : (
               !loading && (

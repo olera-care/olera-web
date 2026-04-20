@@ -1875,9 +1875,10 @@ function ProviderOnboardingContent() {
                       </p>
                       <div className="space-y-3">
                         {emailMatches.map((result) => {
-                          const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
-                          const location = [result.city, result.state].filter(Boolean).join(", ");
-                          const slug = result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug;
+                          // Defensive: ensure all rendered values are strings to prevent React Error #310
+                          const name = String(result._source === "olera-providers" ? result.provider_name : result.display_name || "");
+                          const location = [result.city, result.state].filter(Boolean).map(String).join(", ");
+                          const slug = String(result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug || "");
                           const image = getProviderImage(result);
                           const { label, variant, action } = getResultAction(result);
                           const isLoading = actionLoading === slug;
@@ -1978,9 +1979,10 @@ function ProviderOnboardingContent() {
                       )}
                       <div className="space-y-3">
                         {otherMatches.map((result) => {
-                          const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
-                          const location = [result.city, result.state].filter(Boolean).join(", ");
-                          const slug = result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug;
+                          // Defensive: ensure all rendered values are strings to prevent React Error #310
+                          const name = String(result._source === "olera-providers" ? result.provider_name : result.display_name || "");
+                          const location = [result.city, result.state].filter(Boolean).map(String).join(", ");
+                          const slug = String(result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug || "");
                           const image = getProviderImage(result);
                           const { label, variant, action } = getResultAction(result);
                           const isLoading = actionLoading === slug;
@@ -2311,10 +2313,11 @@ function ProviderOnboardingContent() {
   // ──────────────────────────────────────────────────────────
 
   if (screen === "confirm-claim" && selectedResult) {
-    const providerName = selectedResult._source === "olera-providers"
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const providerName = String(selectedResult._source === "olera-providers"
       ? selectedResult.provider_name
-      : selectedResult.display_name;
-    const location = [selectedResult.city, selectedResult.state].filter(Boolean).join(", ");
+      : selectedResult.display_name || "");
+    const location = [selectedResult.city, selectedResult.state].filter(Boolean).map(String).join(", ");
     const providerImage = selectedResult._source === "olera-providers"
       ? selectedResult.provider_images?.split("|")[0]?.trim() || null
       : selectedResult.image_url;
@@ -2481,9 +2484,10 @@ function ProviderOnboardingContent() {
 
     // Determine if this is a claim (selectedResult exists) or create (no selectedResult)
     const isClaim = selectedResult !== null;
-    const providerName = selectedResult
-      ? (selectedResult._source === "olera-providers" ? selectedResult.provider_name : selectedResult.display_name)
-      : formData.orgName;
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const providerName = String(selectedResult
+      ? (selectedResult._source === "olera-providers" ? selectedResult.provider_name : selectedResult.display_name || "")
+      : formData.orgName || "");
 
     return (
       <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
@@ -2584,9 +2588,10 @@ function ProviderOnboardingContent() {
   // ──────────────────────────────────────────────────────────
 
   if (screen === "dispute" && disputingResult) {
-    const disputeProviderName = disputingResult._source === "olera-providers"
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const disputeProviderName = String(disputingResult._source === "olera-providers"
       ? disputingResult.provider_name
-      : disputingResult.display_name;
+      : disputingResult.display_name || "");
 
     // Success state after dispute submission
     if (disputeSubmitted) {

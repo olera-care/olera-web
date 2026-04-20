@@ -6,7 +6,7 @@ import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 import { getCategory, type Category } from "@/lib/waiver-category";
-import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight, Stethoscope } from "@phosphor-icons/react";
+import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
@@ -403,7 +403,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
             const { author, reviewedAt } = getStateVerifier(state.abbreviation);
             return (
               <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+                <MagnifyingGlass className="w-3.5 h-3.5 text-gray-400" weight="regular" />
                 <span className="text-gray-400">Reviewed by</span>
                 <Link
                   href={`/author/${author.slug}`}

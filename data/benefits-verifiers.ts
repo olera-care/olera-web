@@ -35,13 +35,15 @@ export interface ResolvedVerifier {
   author: Author;
   /** Only set when the override explicitly carries a reviewed-at date. */
   reviewedAt?: string;
+  /** True when an override entry exists — signals human signoff, regardless of date. */
+  hasExplicitReview: boolean;
 }
 
 function resolve(override: VerifierOverride | undefined): ResolvedVerifier {
   const author =
     (override?.slug ? getAuthorBySlug(override.slug) : undefined) ??
     getAuthorBySlug(DEFAULT_VERIFIER_SLUG)!;
-  return { author, reviewedAt: override?.reviewedAt };
+  return { author, reviewedAt: override?.reviewedAt, hasExplicitReview: !!override };
 }
 
 export function getProgramVerifier(stateAbbrev: string, programId: string): ResolvedVerifier {

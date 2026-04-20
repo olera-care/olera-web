@@ -12,7 +12,7 @@ import type {
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { useSavedPrograms } from "@/hooks/use-saved-programs";
-import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
+import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, MagnifyingGlass, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
@@ -948,34 +948,38 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               ) : program.savingsSource === "Free service" ? (
                 <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
               ) : null}
-              <ContentStatusBadge
-                contentStatus={program.contentStatus}
-                draftedAt={program.draftedAt}
-                reviewedAt={program.reviewedAt}
-                className="mt-3"
-              />
               {(() => {
-                const { author, reviewedAt } = getProgramVerifier(state.abbreviation, program.id);
+                const { author, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
                 const verifiedAt = reviewedAt || program.reviewedAt || program.lastVerifiedDate;
                 return (
-                  <p className="mt-4 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
-                    <span className="text-gray-400">Reviewed by</span>
-                    <Link
-                      href={`/author/${author.slug}`}
-                      className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-                    >
-                      {author.name}
-                    </Link>
-                    {verifiedAt && (
-                      <>
-                        <span className="text-gray-300">·</span>
-                        <span className="text-gray-400">
-                          Last verified {formatReviewDate(verifiedAt)}
-                        </span>
-                      </>
+                  <>
+                    {!hasExplicitReview && (
+                      <ContentStatusBadge
+                        contentStatus={program.contentStatus}
+                        draftedAt={program.draftedAt}
+                        reviewedAt={program.reviewedAt}
+                        className="mt-3"
+                      />
                     )}
-                  </p>
+                    <p className="mt-4 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <MagnifyingGlass className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+                      <span className="text-gray-400">Reviewed by</span>
+                      <Link
+                        href={`/author/${author.slug}`}
+                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        {author.name}
+                      </Link>
+                      {verifiedAt && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className="text-gray-400">
+                            Last verified {formatReviewDate(verifiedAt)}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </>
                 );
               })()}
             </div>

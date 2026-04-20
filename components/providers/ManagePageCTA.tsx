@@ -210,7 +210,7 @@ export default function ManagePageCTA({
                   </svg>
                 </div>
                 <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5">
-                  You manage this listing
+                  You manage this page
                 </h2>
                 <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
                   Update info, respond to families, and manage your presence.
@@ -236,11 +236,11 @@ export default function ManagePageCTA({
                   </svg>
                 </div>
                 <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-                  This listing is claimed
-                  <InfoTooltip content="Someone else has verified ownership of this listing. If you believe this is incorrect, you can submit a dispute." />
+                  This page is claimed
+                  <InfoTooltip content="Someone else has verified ownership of this page. If you believe this is incorrect, you can submit a dispute." />
                 </h2>
                 <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
-                  Someone else is managing this listing.
+                  Someone else is managing this page.
                 </p>
                 <button
                   onClick={handleDispute}
@@ -275,7 +275,7 @@ export default function ManagePageCTA({
                 {/* Title with tooltip */}
                 <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
                   Manage this page
-                  <InfoTooltip content="Sign in with your business email. If it matches our records, you'll get instant access to manage this listing." />
+                  <InfoTooltip content="Sign in with your business email. If it matches our records, you'll get instant access to manage this page." />
                 </h2>
                 {/* Conditional subtitle */}
                 <p className="text-[15px] text-gray-500 leading-relaxed mb-4">

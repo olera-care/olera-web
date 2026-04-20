@@ -394,7 +394,7 @@ function ProviderOnboardingContent() {
       const result = await res.json();
 
       if (!res.ok) {
-        setOtpError(result.error || "Failed to claim listing. Please try again.");
+        setOtpError(result.error || "Failed to claim page. Please try again.");
         setOtpVerifying(false);
         return;
       }
@@ -458,7 +458,7 @@ function ProviderOnboardingContent() {
       const result = await res.json();
 
       if (!res.ok) {
-        setOtpError(result.error || "Failed to create listing. Please try again.");
+        setOtpError(result.error || "Failed to create page. Please try again.");
         setOtpVerifying(false);
         return;
       }
@@ -614,7 +614,7 @@ function ProviderOnboardingContent() {
         // Check if user explicitly clicked "Create new" on marketing page
         if (parsed.createNewSelected) {
           setCreateNewSelected(true);
-          // Go directly to Create Your Listing screen (skip search)
+          // Go directly to Create Your Page screen (skip search)
           setScreen("preview");
         }
       }
@@ -1200,7 +1200,7 @@ function ProviderOnboardingContent() {
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
                 {selectedOrg || createNewSelected
                   ? "Enter your email to continue."
-                  : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
+                  : "Search our directory of 50,000+ providers. Claim your page or create a new one."}
               </p>
             </div>
 
@@ -1246,7 +1246,7 @@ function ProviderOnboardingContent() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    This listing has already been claimed
+                    This page has already been claimed
                   </p>
                 )}
                 {createNewSelected && formData.orgName.trim() && (
@@ -1254,7 +1254,7 @@ function ProviderOnboardingContent() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Creating new listing for &quot;{formData.orgName.trim()}&quot;
+                    Creating new page for &quot;{formData.orgName.trim()}&quot;
                   </p>
                 )}
               </div>
@@ -1390,7 +1390,7 @@ function ProviderOnboardingContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <p className="text-sm text-amber-800">
-                      This email is linked to your personal account. Use a different email to claim a provider listing, or <button type="button" onClick={() => openAuth({ defaultMode: "sign-in" })} className="font-medium underline hover:no-underline">sign in</button> with your organization&apos;s email.
+                      This email is linked to your personal account. Use a different email to claim a provider page, or <button type="button" onClick={() => openAuth({ defaultMode: "sign-in" })} className="font-medium underline hover:no-underline">sign in</button> with your organization&apos;s email.
                     </p>
                   </div>
                 )}
@@ -1416,7 +1416,7 @@ function ProviderOnboardingContent() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-amber-800">Wrong account</p>
                       <p className="text-sm text-amber-700 mt-1">
-                        You&apos;re signed in as <span className="font-medium">{claimSignInMismatch.userEmail}</span>, but &quot;{claimSignInMismatch.listingName}&quot; was claimed with a different email. Please sign in with the correct email or search for the listing and click &quot;Dispute&quot;.
+                        You&apos;re signed in as <span className="font-medium">{claimSignInMismatch.userEmail}</span>, but &quot;{claimSignInMismatch.listingName}&quot; was claimed with a different email. Please sign in with the correct email or search for the page and click &quot;Dispute&quot;.
                       </p>
                     </div>
                     <button
@@ -1516,7 +1516,7 @@ function ProviderOnboardingContent() {
     }
   };
 
-  // Handle "Create New Listing" button - navigate to preview screen
+  // Handle "Create New Page" button - navigate to preview screen
   const handleCreateNew = () => {
     setSelectedResult(null); // Clear any selected result
     setActionError("");
@@ -1653,9 +1653,9 @@ function ProviderOnboardingContent() {
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 {searchResults.length === 0
-                  ? "Create your listing"
+                  ? "Create your page"
                   : selectedOrg && selectedOrg.claimState === "claimed"
-                    ? "This listing is claimed"
+                    ? "This page is claimed"
                     : "Select your organization"}
               </h1>
               <p className="text-gray-500 mt-2">
@@ -1698,7 +1698,7 @@ function ProviderOnboardingContent() {
                         if (claimedResult) {
                           return (
                             <>
-                              Please sign in with the email you used to claim this listing, or{" "}
+                              Please sign in with the email you used to claim this page, or{" "}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1714,7 +1714,7 @@ function ProviderOnboardingContent() {
                           );
                         }
                         // No search results available (page was refreshed) - give generic guidance
-                        return "Please sign in with the email you used to claim this listing, or search for it again and click \"Dispute\" if you believe you should have access.";
+                        return "Please sign in with the email you used to claim this page, or search for it again and click \"Dispute\" if you believe you should have access.";
                       })()}
                     </p>
                   </div>
@@ -1742,9 +1742,9 @@ function ProviderOnboardingContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No matching listings</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
                   <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-                    We don&apos;t have a listing for your organization yet. Create one to start connecting with families.
+                    We don&apos;t have a page for your organization yet. Create one to start connecting with families.
                   </p>
                   {actionError && (
                     <p className="text-sm text-red-600 mb-4">{actionError}</p>
@@ -1754,7 +1754,7 @@ function ProviderOnboardingContent() {
                     onClick={handleCreateNew}
                     loading={actionLoading === "create-new"}
                   >
-                    Create Your Listing
+                    Create Your Page
                   </Button>
                 </div>
               ) : (
@@ -1820,7 +1820,7 @@ function ProviderOnboardingContent() {
                                     {name}
                                   </h3>
                                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                    {result._claimed ? "This listing is claimed." : "Verify to claim."}
+                                    {result._claimed ? "This page is claimed." : "Verify to claim."}
                                   </p>
                                   <div className="flex-1 min-h-2" />
                                   <div className="flex justify-end gap-2">
@@ -1924,7 +1924,7 @@ function ProviderOnboardingContent() {
                                     {name}
                                   </h3>
                                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                    {result._claimed ? "This listing is claimed." : "Unclaimed page."}
+                                    {result._claimed ? "This page is claimed." : "Unclaimed page."}
                                   </p>
                                   <div className="flex-1 min-h-2" />
                                   <div className="flex justify-end gap-2">
@@ -1975,13 +1975,13 @@ function ProviderOnboardingContent() {
                         </svg>
                       </div>
                       <h4 className="font-semibold text-gray-900 mb-1">Don&apos;t see your organization?</h4>
-                      <p className="text-sm text-gray-500 mb-4">Create a new listing to get started on Olera</p>
+                      <p className="text-sm text-gray-500 mb-4">Create a new page to get started on Olera</p>
                       <Button
                         variant="secondary"
                         onClick={handleCreateNew}
                         loading={actionLoading === "create-new"}
                       >
-                        Create New Listing
+                        Create New Page
                       </Button>
                     </div>
                   </div>
@@ -2033,7 +2033,7 @@ function ProviderOnboardingContent() {
             {/* Header */}
             <div className="text-center mb-6">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                Create your listing
+                Create your page
               </h1>
               <p className="text-gray-500 mt-1.5">
                 Add your details to start connecting with families.
@@ -2255,7 +2255,7 @@ function ProviderOnboardingContent() {
               )}
 
               <p className="text-center text-sm text-gray-500">
-                By creating a listing, you agree to our{" "}
+                By creating a page, you agree to our{" "}
                 <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
                   Terms of Service
                 </Link>
@@ -2287,7 +2287,7 @@ function ProviderOnboardingContent() {
                         Creating...
                       </>
                     ) : (
-                      "Create listing"
+                      "Create page"
                     )}
                   </button>
                 ) : (
@@ -2312,7 +2312,7 @@ function ProviderOnboardingContent() {
                         {otpSending ? "Sending code..." : "Processing..."}
                       </>
                     ) : (
-                      "Create listing"
+                      "Create page"
                     )}
                   </button>
                 )}
@@ -2348,7 +2348,7 @@ function ProviderOnboardingContent() {
                     Creating...
                   </>
                 ) : (
-                  "Create listing"
+                  "Create page"
                 )}
               </button>
             ) : (
@@ -2373,7 +2373,7 @@ function ProviderOnboardingContent() {
                     {otpSending ? "Sending code..." : "Processing..."}
                   </>
                 ) : (
-                  "Create listing"
+                  "Create page"
                 )}
               </button>
             )}
@@ -2457,7 +2457,7 @@ function ProviderOnboardingContent() {
               <div className="p-5 space-y-4">
                 {/* Heading */}
                 <div className="text-center">
-                  <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
+                  <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this page</h3>
                   {otpSending ? (
                     <p className="text-gray-500 mt-1.5">Sending verification code...</p>
                   ) : otpSent ? (
@@ -2540,7 +2540,7 @@ function ProviderOnboardingContent() {
                         Claiming...
                       </span>
                     ) : (
-                      "Claim this listing"
+                      "Claim this page"
                     )}
                   </Button>
                   <button
@@ -2648,7 +2648,7 @@ function ProviderOnboardingContent() {
                   </svg>
                 </div>
                 <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight">
-                  Dispute this listing
+                  Dispute this page
                 </h2>
                 <p className="text-gray-500 mt-2">
                   Tell us why you should manage <strong className="text-gray-700">{disputeProviderName}</strong>.
@@ -2724,7 +2724,7 @@ function ProviderOnboardingContent() {
                 {/* Reason */}
                 <div className="space-y-1.5">
                   <label htmlFor="dispute-reason" className="block text-[13px] font-semibold text-gray-700">
-                    Why should you manage this listing? <span className="text-red-500">*</span>
+                    Why should you manage this page? <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="dispute-reason"

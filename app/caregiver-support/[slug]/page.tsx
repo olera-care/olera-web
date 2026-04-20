@@ -155,12 +155,7 @@ export default async function ResourceArticlePage({
   const reviewerSlug = knownReviewer?.slug;
   const reviewerAvatar = knownReviewer?.avatar ?? null;
   const authorSlug = knownAuthor?.slug;
-  const byline = getBylineRules({
-    authorName,
-    reviewerName,
-    publishedAt,
-    updatedAt: article?.updated_at ?? null,
-  });
+  const byline = getBylineRules({ authorName, reviewerName });
   // Fall back to static author avatar when DB value is missing
   if (!authorAvatar && knownAuthor?.avatar) {
     authorAvatar = knownAuthor.avatar;
@@ -276,7 +271,7 @@ export default async function ResourceArticlePage({
 
             {/* Metadata row */}
             <div className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">
-              {showAuthorCard && (
+              {showAuthorCard ? (
                 <>
                   <div className="flex items-center gap-2">
                     {authorAvatar ? (
@@ -292,14 +287,25 @@ export default async function ResourceArticlePage({
                         </span>
                       </div>
                     )}
-                    {authorSlug ? (
-                      <Link href={`/author/${authorSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
-                        {authorName}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-600 font-medium">{authorName}</span>
-                    )}
+                    <span>
+                      <span className="text-gray-400">Written by </span>
+                      {authorSlug ? (
+                        <Link href={`/author/${authorSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
+                          {authorName}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-600 font-medium">{authorName}</span>
+                      )}
+                    </span>
                   </div>
+                  <span className="text-gray-300 mx-1.5">&middot;</span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <span className="text-gray-400">Published by </span>
+                    <span className="text-gray-600 font-medium">Olera team</span>
+                  </span>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}
@@ -317,15 +323,9 @@ export default async function ResourceArticlePage({
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}
-              {byline.showPublishedDate && byline.publishedDate && (
+              {publishedAt && (
                 <>
-                  <span>Published {formatDate(byline.publishedDate)}</span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              )}
-              {byline.verifiedDate && (
-                <>
-                  <span>Verified {formatDate(byline.verifiedDate)}</span>
+                  <span>{formatDate(publishedAt)}</span>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}

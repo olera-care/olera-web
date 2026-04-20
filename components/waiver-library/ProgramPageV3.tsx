@@ -961,11 +961,11 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 >
                   Dr. Logan DuBose
                 </Link>
-                {(program.lastVerifiedDate || program.reviewedAt || program.draftedAt) && (
+                {(program.reviewedAt || program.lastVerifiedDate) && (
                   <>
                     <span className="text-gray-300">·</span>
                     <span className="text-gray-400">
-                      Last verified {program.lastVerifiedDate || program.reviewedAt || program.draftedAt}
+                      Last verified {program.reviewedAt || program.lastVerifiedDate}
                     </span>
                   </>
                 )}

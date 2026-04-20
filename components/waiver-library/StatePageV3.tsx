@@ -406,12 +406,6 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
             >
               Dr. Logan DuBose
             </Link>
-            {draftedAt && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="text-gray-400">Last verified {draftedAt}</span>
-              </>
-            )}
           </p>
         </div>
       </header>

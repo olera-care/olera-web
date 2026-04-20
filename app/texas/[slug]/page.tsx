@@ -132,12 +132,7 @@ export default async function TexasArticlePage({
   // DB-driven reviewer with Dr. Logan DuBose as the default when unset.
   const reviewerName = article.reviewer_name || "Dr. Logan DuBose";
   const verifier = getAuthorByName(reviewerName);
-  const byline = getBylineRules({
-    authorName,
-    reviewerName,
-    publishedAt: article.published_at,
-    updatedAt: article.updated_at,
-  });
+  const byline = getBylineRules({ authorName, reviewerName });
 
   // Render content
   let contentHtml = article.content_html || "";
@@ -252,23 +247,30 @@ export default async function TexasArticlePage({
 
             {/* Author / Verifier / Date row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 mb-10">
-              <div className="flex items-center gap-2">
-                {authorAvatar ? (
-                  <img src={authorAvatar} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center">
-                    <span className="text-white text-[10px] font-medium">{authorName.split(" ").map((n) => n[0]).join("")}</span>
-                  </div>
-                )}
-                <span>
-                  <span className="text-gray-400">Written by </span>
-                  {authorSlug ? (
-                    <Link href={`/author/${authorSlug}`} className="font-medium text-gray-700 hover:text-primary-600 transition-colors">{authorName}</Link>
+              {showAuthorCard ? (
+                <div className="flex items-center gap-2">
+                  {authorAvatar ? (
+                    <img src={authorAvatar} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
                   ) : (
-                    <span className="font-medium text-gray-700">{authorName}</span>
+                    <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center">
+                      <span className="text-white text-[10px] font-medium">{authorName.split(" ").map((n) => n[0]).join("")}</span>
+                    </div>
                   )}
+                  <span>
+                    <span className="text-gray-400">Written by </span>
+                    {authorSlug ? (
+                      <Link href={`/author/${authorSlug}`} className="font-medium text-gray-700 hover:text-primary-600 transition-colors">{authorName}</Link>
+                    ) : (
+                      <span className="font-medium text-gray-700">{authorName}</span>
+                    )}
+                  </span>
+                </div>
+              ) : (
+                <span>
+                  <span className="text-gray-400">Published by </span>
+                  <span className="font-medium text-gray-700">Olera team</span>
                 </span>
-              </div>
+              )}
 
               {verifier && !byline.isSamePerson && (
                 <>
@@ -285,16 +287,10 @@ export default async function TexasArticlePage({
                 </>
               )}
 
-              {byline.showPublishedDate && byline.publishedDate && (
+              {article.published_at && (
                 <>
                   <span className="text-gray-300">|</span>
-                  <span className="text-gray-400">Published {formatDate(byline.publishedDate)}</span>
-                </>
-              )}
-              {byline.verifiedDate && (
-                <>
-                  <span className="text-gray-300">|</span>
-                  <span className="text-gray-400">Verified {formatDate(byline.verifiedDate)}</span>
+                  <span className="text-gray-400">Published {formatDate(article.published_at)}</span>
                 </>
               )}
               {readingTime && (

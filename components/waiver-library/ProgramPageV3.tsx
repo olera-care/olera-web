@@ -12,11 +12,12 @@ import type {
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { useSavedPrograms } from "@/hooks/use-saved-programs";
-import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, MagnifyingGlass, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
+import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
 import { getProgramVerifier } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
 
@@ -961,8 +962,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                         className="mt-3"
                       />
                     )}
-                    <p className="mt-4 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <MagnifyingGlass className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+                    <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                      <ReviewerAvatar author={author} />
                       <span className="text-gray-400">Reviewed by</span>
                       <Link
                         href={`/author/${author.slug}`}
@@ -978,7 +979,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                           </span>
                         </>
                       )}
-                    </p>
+                    </div>
                   </>
                 );
               })()}

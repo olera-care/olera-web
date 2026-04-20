@@ -66,6 +66,9 @@ export interface PipelineDraft {
   icon?: string | null;
   contentStatus: string;
   draftedAt: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  lastVerifiedDate?: string | null;
   geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
 }
 

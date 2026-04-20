@@ -38,6 +38,43 @@ Recovered Chantel's orphan commit `0dd777b6` (Add verified-by reviewer support f
 - Editable Published/Updated/Verified date inputs with smart server-side defaults (empty published_at → NOW() on publish; updated_at → NOW() on save)
 - Override `lastVerifiedDate` per program in `/admin/benefits`
 - Once shipped, reintroduce `Verified [date]` claim on articles — truthful because it'll only set when admin explicitly clicks
+### 2026-04-20 — Benefits review workflow pivot + FL SNAP remediation
+
+PR #602 open against staging: https://github.com/olera-care/olera-web/pull/602 (branch `sparky-bohr`)
+
+**What happened:**
+- Dogfooded the Tier 1 review process on FL (lightest — 14 programs, 2 high-sev flags)
+- While auditing SNAP, TJ surfaced 7 classes of issue the rigid per-field admin comment format couldn't hold: numeric, broken links, wrong phone, missing mechanics, voice/audience framing, FAQ verbosity, structural confusion (Senior SNAP ↔ general SNAP)
+- Admin comment format captures ~20% of real review signal. Shifted composing space to each state's Notion row under a new **Audit Results** H2 (H3 per program + bullets grouped by Numbers / Links / Phone / Copy / Structure / FAQs)
+- Admin dashboard demoted to read-only auditor's view
+
+**Code changes (PR #602):**
+- `data/pipeline/FL/drafts.json` + regenerated `drafts.ts` — FL SNAP patches:
+  - `income_1: $1,255 → $2,610`, `income_2: $1,703 → $3,525` (200% FPL — FL uses BBCE for seniors, not 100% FPL baseline)
+  - Phone `1-866-762-2237 → (850) 300-4323` (official DCF Customer Call Center)
+  - Broken `myflfamilies.com/service-programs/access/` → `myaccess.myflfamilies.com`
+  - Added 3 contentSections callouts: ESAP senior pathway (tip), benefit calc formula (info), Healthy SNAP restrictions effective 2026-04-20 (warning)
+  - Tightened 6 FAQs (removed cross-answer repetition) + added 1 new FAQ on Healthy SNAP
+  - `contentStatus: "under-review"`, `reviewedBy: "TJ"`, `lastVerifiedDate: 2026-04-20`
+- `components/waiver-library/ProgramPageV3.tsx` + `ProgramPageV2.tsx` — label "What your parent can keep" → "What doesn't count" (global fix — works for adult children, spouses, self-advocates, self-applicants)
+- `data/pipeline-drafts-types.ts` — `PipelineDraft` gains optional `reviewedBy`/`reviewedAt`/`lastVerifiedDate` per documented v2 lifecycle spec
+
+**Notion changes (no code):**
+- Process Guide: new "Composing space: the Audit Results section" block; Step 1 numeric-action rewritten; "Where things live" updated; promotion section updated
+- All 4 remaining Tier 1 rows (IN, NC, OH, NY) got the Audit Results scaffold appended + obsolete dashboard-comment references cleaned up
+- FL row is the canonical example — TJ's SNAP audit was the template
+
+**Pre-test review (pre-test command run):** 0 bugs. One cosmetic flag (not a bug in this commit): admin state counter doesn't count "under-review" separately — programs in that status fall through both "drafted" and "approved" counts. Per-program badge still renders correctly. Separate follow-up candidate.
+
+**Key decisions:**
+- Kept `age: 60` on SNAP despite factcheck flagging 60→65 (ESAP pathway uses 60+; factcheck parser quirk documented in process guide)
+- Kept `assets_individual/couple: 4500` (elderly/disabled limit — verified against DCF, not the $3,000 non-senior limit)
+- Did NOT split SNAP into two programs for ESAP — one page with an ESAP callout is cleaner than two parallel entries for what's fundamentally one benefit with two application tracks
+
+### Next up
+- TJ continues auditing the remaining 13 FL programs using the new Audit Results pattern (Weatherization has real numeric flags; then LIHEAP, Medicaid, etc.)
+- After FL is fully audited + approved, move to Tier 1 priority queue: IN (P1, 6 high-sev), NC (P2), OH (P3 — HEAP 70% error is the single worst in the queue), NY (P4)
+- Separate low-priority follow-up: add "under-review" count to admin state card
 
 ### 2026-04-19 — Benefits SEO day (all 4 P1s shipped)
 

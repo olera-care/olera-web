@@ -696,9 +696,11 @@ function ProviderOnboardingContent() {
       const safeState = selectedOrg.state ? String(selectedOrg.state) : null;
       const safeEmail = selectedOrg.email ? String(selectedOrg.email) : null;
       const safeImageUrl = selectedOrg.imageUrl ? String(selectedOrg.imageUrl) : null;
+      const safeClaimState = selectedOrg.claimState || null; // Already a string literal type, but ensure it's not an object
+      const safeSource = selectedOrg.source || "olera-providers";
 
       // Create a search result from the selected org
-      const result: SearchResult = selectedOrg.source === "olera-providers"
+      const result: SearchResult = safeSource === "olera-providers"
         ? {
             provider_id: safeProviderId,
             provider_name: safeName,
@@ -721,7 +723,7 @@ function ProviderOnboardingContent() {
             image_url: safeImageUrl,
             account_id: isClaimed ? "claimed" : null, // Simplified - just need to know if claimed
             source_provider_id: safeProviderId || null,
-            claim_state: selectedOrg.claimState,
+            claim_state: safeClaimState,
             _source: "business_profiles" as const,
             _claimed: isClaimed,
             _emailMatch: emailMatch,

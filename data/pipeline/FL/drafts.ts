@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T17:26:27.884Z
+ * Last updated: 2026-04-20T19:55:39.454Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1043,7 +1043,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy improvements that can lower your parent's utility bills by hundreds of dollars annually",
+      "tagline": "Free home energy improvements that can lower your loved one's utility bills by hundreds of dollars annually",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1068,51 +1068,51 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high energy bills and earns less than $29,160/year (single person), they may qualify for free home energy improvements through Florida's Weatherization Assistance Program. The program provides up to $2,600 in upgrades including attic insulation, energy-efficient appliances, new water heaters, and heating/cooling system repairs — all at no cost to your parent.\n\nPriority goes to households with someone 60+, people with disabilities, or families with children under 12. Because funding is limited and demand is high, most areas have waitlists. Your parent can be a homeowner or renter, but renters need landlord approval since the improvements stay with the property.",
+      "intro": "If your loved one struggles with high energy bills and their household earns less than $31,300/year for one person (200% of the federal poverty level), they may qualify for free home energy improvements through Florida's Weatherization Assistance Program. The program provides up to $2,600 in upgrades — attic insulation, energy-efficient appliances, new water heaters, heating/cooling system repairs — all at no cost.\n\nPriority goes to households with someone 60+, people with disabilities, or families with children under 12. Funding is limited and demand is high, so most areas have waitlists. Both homeowners and renters qualify, but renters need landlord approval since the improvements stay with the property.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Income below 200% of Federal Poverty Guidelines",
+          "Gross income below $2,610/month for one person (200% FPL, 2026)",
           "Florida resident in served counties",
           "Homeowner or renter with landlord consent",
-          "Priority for age 60+",
+          "Priority for age 60+, disabled, or families with children under 12",
           "No asset limits"
         ],
         "ageRequirement": null,
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2430
+            "monthlyLimit": 2610
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3287
+            "monthlyLimit": 3525
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 4143
+            "monthlyLimit": 4440
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 5000
+            "monthlyLimit": 5355
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 5857
+            "monthlyLimit": 6270
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 6713
+            "monthlyLimit": 7185
           },
           {
             "householdSize": 7,
-            "monthlyLimit": 7570
+            "monthlyLimit": 8100
           },
           {
             "householdSize": 8,
-            "monthlyLimit": 8427
+            "monthlyLimit": 9015
           }
         ],
         "assetLimits": null,
@@ -1120,38 +1120,38 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Florida resident in a county served by a local weatherization agency",
           "Homeowner with proof of ownership OR renter with landlord written consent",
-          "Households receiving SSI or TANF may qualify automatically regardless of other income"
+          "Households receiving SSI or TANF are categorically eligible (bypass income test but still apply)"
         ],
-        "povertyLevelReference": "200% FPL"
+        "povertyLevelReference": "200% FPL gross (2026 guidelines)"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's weatherization agency directly — no universal state application exists.",
+        "summary": "WAP is administered by local Community Action Agencies — contact the agency serving your county directly. State-level questions can go to the WAP Manager at (850) 717-8523.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local agency",
-            "description": "Use the Florida Department of Commerce directory at floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program to find which agency serves your parent's county."
+            "description": "Use the Florida Department of Commerce directory (link below) to find the agency serving your loved one's county. Every county is covered, though not always by an agency named after the county — larger regional agencies cover multiple counties."
           },
           {
             "step": 2,
             "title": "Contact the agency directly",
-            "description": "Call or visit the local agency's website. For example: You Thrive Florida serves 7 counties (youthrivefl.org), Central Florida Community Action (cfcaa.org, email info@cfcaa.org), or Miami-Dade County program (miamidade.gov)."
+            "description": "Call the local agency (see county directory section below) or their website. For general state-level questions, call the WAP Manager at (850) 717-8523 or email wxadmin@cfcaa.org."
           },
           {
             "step": 3,
             "title": "Submit application with required documents",
-            "description": "Each agency has its own application process. Most require income verification for all household members from the last 12 months plus proof of home ownership or rental agreement."
+            "description": "Each agency has its own application. All require income verification for every household member (last 12 months), proof of residence, and either home ownership documents or landlord consent for renters."
           },
           {
             "step": 4,
             "title": "Wait for priority ranking and approval",
-            "description": "Applications are ranked by priority points (elderly, disabled, families with young children get preference). Due to high demand, most areas have waitlists."
+            "description": "Applications are ranked by priority points — households with someone 60+, disabled, or children under 12 move faster. Expect a waitlist; elderly-priority applications can still take 6–18 months depending on region."
           }
         ],
-        "processingTime": "Processing time varies by local agency and waitlist length",
+        "processingTime": "Varies widely by county — typically 6–18 months from application to installation, priority households move faster",
         "waitlist": "Most areas have waitlists due to funding limits and high demand — elderly and disabled households receive priority",
-        "tip": "Gather all income documentation for every household member before applying — incomplete applications cause delays.",
+        "tip": "Gather all income documentation for every household member before applying — incomplete applications cause delays. If the waitlist is long, apply to LIHEAP in parallel for immediate bill help.",
         "urls": [
           {
             "label": "Florida Department of Commerce WAP Directory",
@@ -1178,21 +1178,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Florida Department of Commerce WAP",
-          "phone": null,
-          "description": "State agency that administers weatherization funding and maintains local provider directory",
+          "label": "WAP Manager (statewide)",
+          "phone": "(850) 717-8523",
+          "description": "Coreine Rainford, Florida Department of Commerce — general statewide questions. Alt: (850) 717-8467. Email wxadmin@cfcaa.org.",
           "hours": "Business hours"
-        },
-        {
-          "label": "You Thrive Florida",
-          "phone": null,
-          "description": "Serves Hillsborough, Hernando, Pasco, Polk, Sumter, Citrus, and Volusia counties",
-          "hours": "Contact via website"
         },
         {
           "label": "Central Florida Community Action",
           "phone": null,
-          "description": "Email info@cfcaa.org for weatherization services",
+          "description": "Email wxadmin@cfcaa.org. Serves central Florida counties.",
           "hours": "Business hours"
         }
       ],
@@ -1208,39 +1202,91 @@ export const drafts: PipelineStateDrafts = {
         "Supplemental Nutrition Assistance Program (SNAP)",
         "Community Services Block Grant programs"
       ],
-      "contentSections": [],
-      "faqs": [
+      "contentSections": [
         {
-          "question": "Can my parent apply if they rent their home?",
-          "answer": "Yes, renters are eligible, but the landlord must provide written consent since the energy improvements become the landlord's property at no cost. The landlord cannot charge the tenant for these improvements."
+          "type": "county-directory",
+          "heading": "Local agency contacts by region",
+          "offices": [
+            {
+              "name": "Miami-Dade Community Action (Miami-Dade)",
+              "type": "community-action",
+              "phone": "(786) 469-4730"
+            },
+            {
+              "name": "Osceola Council on Aging (Orange, Osceola)",
+              "type": "community-action",
+              "phone": "(407) 846-8532"
+            },
+            {
+              "name": "Tampa Hillsborough Action Plan (Hillsborough)",
+              "type": "community-action",
+              "phone": "(813) 627-3909"
+            },
+            {
+              "name": "NE Florida Community Action (Duval)",
+              "type": "community-action",
+              "phone": "(904) 362-8052"
+            },
+            {
+              "name": "Capital Area Community Action (Leon + 5 counties)",
+              "type": "community-action",
+              "phone": "(850) 222-2043"
+            },
+            {
+              "name": "Centro-Campesino Center (Broward, Palm Beach)",
+              "type": "community-action",
+              "phone": "(305) 245-7738 ext. 236"
+            },
+            {
+              "name": "Pinellas County Urban League (Pinellas)",
+              "type": "community-action",
+              "phone": "(727) 327-0977"
+            }
+          ]
         },
         {
-          "question": "What if my parent's county isn't served by any weatherization agency?",
-          "answer": "Not all Florida counties have active weatherization providers. Check the state directory at floridajobs.org to see if your parent's county is served. If not, they may need to look into utility company efficiency programs instead."
+          "type": "callout",
+          "tone": "info",
+          "text": "If the home needs major repairs first: agencies may \"defer\" weatherization when a home has a failing roof, active mold, or unsafe electrical. That isn't a final no — many agencies connect deferred households with Pre-WAP funds or SHIP (State Housing Initiatives Partnership) to address the repairs so the home becomes weatherization-ready."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Watch for imposter scams. Legitimate WAP staff will never ask for payment, credit card numbers, or \"payroll updates\" over the phone. Contractors scheduling an audit will already have your application details. If anyone demands immediate access or sensitive data, hang up and call your county's official intake office (directory at floridacommerce.gov) to verify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my loved one apply if they rent their home?",
+          "answer": "Yes — renters are eligible, but the landlord must provide written consent, since the energy improvements become the landlord's property at no cost. The landlord cannot pass the cost through to the tenant."
+        },
+        {
+          "question": "What if my loved one's county doesn't appear to have a local office?",
+          "answer": "Every county in Florida is covered by a designated provider. If a local agency isn't listed specifically for the county, a larger regional agency (like Capital Area Community Action or Centro-Campesino Center) has been assigned to manage that area. The full 2026 regional map and contact directory is at floridacommerce.gov."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Waitlist times vary significantly by county and funding availability. Households with elderly members (60+), disabled individuals, or children under 12 get priority points and may move faster through the queue."
+          "answer": "Varies by county and funding, typically 6–18 months. Households with someone 60+, disabled members, or children under 12 get priority points and move through the queue faster."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. However, the parent must be present for any home assessments, and all documentation must be in their name as the resident."
+          "question": "What are the alternatives if the waitlist is too long?",
+          "answer": "Apply for LIHEAP in parallel — it helps with immediate utility bills and emergency HVAC repairs while you wait. Many utility providers (FPL, Duke Energy) also offer free energy audits and rebates that can be used alongside WAP."
         },
         {
-          "question": "What happens if my parent receives both Social Security and a small pension?",
-          "answer": "All income sources must be documented and counted toward the 200% Federal Poverty Guideline limit. However, households receiving SSI or TANF may qualify automatically regardless of other income."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes. Family members can handle the application and paperwork. The applicant must be present for the home assessment, and documentation must be in their name as the resident."
         },
         {
-          "question": "Can my parent get weatherization and LIHEAP energy assistance at the same time?",
-          "answer": "Yes, these are separate programs. In fact, LIHEAP participants often receive priority points for weatherization services. Contact the same local agencies as they often administer both programs."
+          "question": "How are Social Security and pensions counted toward the income limit?",
+          "answer": "All income sources — including Social Security retirement (SSA/SSDI) and pensions — are counted toward the 200% FPL limit ($31,300/year for one person in 2026). One exception: if the household receives SSI (Supplemental Security Income, needs-based) or TANF, they're \"categorically eligible\" and automatically pass the income test, though they still need to complete the standard application. Note the difference: SSI grants auto-eligibility; regular Social Security does not."
         },
         {
-          "question": "What if the home needs major repairs before weatherization work can begin?",
-          "answer": "The program focuses on energy efficiency improvements, not major structural repairs. If significant repairs are needed first, the local agency will inform you during the home assessment process."
+          "question": "What if the home needs major repairs before weatherization can begin?",
+          "answer": "The program focuses on energy efficiency, not structural renovation. If a home has severe issues — failing roof, active mold, unsafe electrical — the agency may \"defer\" the work. That's not necessarily a final no; many Florida agencies can connect you with Pre-WAP or SHIP (State Housing Initiatives Partnership) funds to address the repairs first so the home becomes weatherization-ready."
         },
         {
           "question": "How do I know if someone calling about weatherization is legitimate?",
-          "answer": "Legitimate WAP staff work through official local agencies and never call asking for personal information for 'payroll updates.' Always verify through the official agency websites or the state directory before providing any information."
+          "answer": "Legitimate WAP staff will never ask for payment, credit card numbers, or \"payroll updates\" over the phone. Contractors may call to schedule an audit — they'll already have your application details. If someone demands immediate home access or asks for sensitive data, hang up and call your county's official intake office (floridacommerce.gov directory) to verify."
         }
       ],
       "layoutIntent": {
@@ -1252,10 +1298,13 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "(850) 717-8523",
       "sourceUrl": "https://www.floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "under-review",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "TJ",
+      "reviewedAt": "2026-04-20",
+      "lastVerifiedDate": "2026-04-20"
     },
     {
       "id": "shine-medicare-counseling",

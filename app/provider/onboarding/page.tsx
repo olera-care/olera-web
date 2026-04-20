@@ -1245,27 +1245,41 @@ function ProviderOnboardingContent() {
 
             {/* Search Form Card */}
             <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
-              {/* Organization Name - Autocomplete */}
+              {/* Organization Name - read-only if claiming existing listing, editable otherwise */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Organization name
                 </label>
-                <OrganizationSearch
-                  value={formData.orgName}
-                  onChange={(value) => {
-                    setFormData(prev => ({ ...prev, orgName: value }));
-                    // Clear selected org when user types something different
-                    if (selectedOrg && value !== selectedOrg.name) {
-                      setSelectedOrg(null);
-                    }
-                    // Note: We do NOT clear createNewSelected here.
-                    // User may be editing their org name, still intending to create new.
-                    // createNewSelected is only cleared when they SELECT an existing org from dropdown.
-                  }}
-                  onSelect={handleOrgSelect}
-                  placeholder="e.g., Sunrise Senior Living"
-                  selected={!!selectedOrg && selectedOrg.claimState !== "claimed"}
-                />
+                {selectedOrg && !createNewSelected ? (
+                  // Read-only display for claiming existing listing
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-900">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span className="flex-1 font-medium">{selectedOrg.name}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  // Editable autocomplete for searching/creating
+                  <OrganizationSearch
+                    value={formData.orgName}
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, orgName: value }));
+                      // Clear selected org when user types something different
+                      if (selectedOrg && value !== selectedOrg.name) {
+                        setSelectedOrg(null);
+                      }
+                      // Note: We do NOT clear createNewSelected here.
+                      // User may be editing their org name, still intending to create new.
+                      // createNewSelected is only cleared when they SELECT an existing org from dropdown.
+                    }}
+                    onSelect={handleOrgSelect}
+                    placeholder="e.g., Sunrise Senior Living"
+                    selected={!!selectedOrg && selectedOrg.claimState !== "claimed"}
+                  />
+                )}
                 {selectedOrg?.claimState === "claimed" && (
                   <p className="text-sm text-amber-600 font-medium flex items-center gap-1.5">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1284,87 +1298,101 @@ function ProviderOnboardingContent() {
                 )}
               </div>
 
-              {/* City, State */}
+              {/* City, State - read-only if claiming existing listing with location, editable otherwise */}
               <div className="space-y-2">
                 <label htmlFor="city" className="block text-base font-semibold text-gray-900">
                   City, State
                 </label>
-                {/* Track if city is "completed" (pre-filled from selectedOrg) */}
-                {(() => {
-                  const cityCompleted = !!(formData.city && formData.state);
-                  return (
-                <div className="relative" ref={cityDropdownRef}>
-                  <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
-                    cityCompleted
-                      ? "border-2 border-primary-500 bg-primary-50/50"
-                      : showCityDropdown
-                        ? "border-primary-400 ring-2 ring-primary-100 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
-                  }`}>
-                    <svg className={`w-5 h-5 shrink-0 ${cityCompleted ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {selectedOrg && !createNewSelected && selectedOrg.city && selectedOrg.state ? (
+                  // Read-only display for claiming existing listing
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-900">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <input
-                      ref={cityInputRef}
-                      id="city"
-                      type="text"
-                      value={cityQuery}
-                      onChange={(e) => {
-                        setCityQuery(e.target.value);
-                        setShowCityDropdown(true);
-                        // Clear structured data if user is typing
-                        if (formData.city || formData.state) {
-                          setFormData(prev => ({ ...prev, city: "", state: "" }));
-                        }
-                      }}
-                      onFocus={() => {
-                        preloadCities();
-                        setShowCityDropdown(true);
-                      }}
-                      placeholder="e.g., Austin, TX"
-                      autoComplete="off"
-                      className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                      required
-                    />
-                    {/* Checkmark for completed state */}
-                    {cityCompleted && (
-                      <svg className="w-5 h-5 text-primary-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
+                    <span className="flex-1 font-medium">{selectedOrg.city}, {selectedOrg.state}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-
-                  {/* City Dropdown */}
-                  {showCityDropdown && cityResults.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                      {!cityQuery.trim() && (
-                        <div className="px-4 pt-1 pb-2">
-                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                        </div>
-                      )}
-                      {cityResults.map((city, idx) => (
-                        <button
-                          key={`${city.city}-${city.state}-${idx}`}
-                          type="button"
-                          onClick={() => handleCitySelect(city.city, city.state)}
-                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ) : (
+                  // Editable city input
+                  (() => {
+                    const cityCompleted = !!(formData.city && formData.state);
+                    return (
+                      <div className="relative" ref={cityDropdownRef}>
+                        <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
+                          cityCompleted
+                            ? "border-primary-300 bg-primary-50/30"
+                            : showCityDropdown
+                              ? "border-primary-400 ring-2 ring-primary-100 bg-gray-50"
+                              : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                        }`}>
+                          <svg className={`w-5 h-5 shrink-0 ${cityCompleted ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          <span>
-                            <span className="font-medium text-gray-700">{city.city}</span>
-                            <span className="text-gray-500">, {city.state}</span>
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                  );
-                })()}
+                          <input
+                            ref={cityInputRef}
+                            id="city"
+                            type="text"
+                            value={cityQuery}
+                            onChange={(e) => {
+                              setCityQuery(e.target.value);
+                              setShowCityDropdown(true);
+                              // Clear structured data if user is typing
+                              if (formData.city || formData.state) {
+                                setFormData(prev => ({ ...prev, city: "", state: "" }));
+                              }
+                            }}
+                            onFocus={() => {
+                              preloadCities();
+                              setShowCityDropdown(true);
+                            }}
+                            placeholder="e.g., Austin, TX"
+                            autoComplete="off"
+                            className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                            required
+                          />
+                          {/* Checkmark for completed state */}
+                          {cityCompleted && (
+                            <svg className="w-5 h-5 text-primary-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* City Dropdown */}
+                        {showCityDropdown && cityResults.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                            {!cityQuery.trim() && (
+                              <div className="px-4 pt-1 pb-2">
+                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                              </div>
+                            )}
+                            {cityResults.map((city, idx) => (
+                              <button
+                                key={`${city.city}-${city.state}-${idx}`}
+                                type="button"
+                                onClick={() => handleCitySelect(city.city, city.state)}
+                                className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>
+                                  <span className="font-medium text-gray-700">{city.city}</span>
+                                  <span className="text-gray-500">, {city.state}</span>
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                )}
               </div>
 
               {/* Email */}

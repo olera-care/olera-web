@@ -240,6 +240,59 @@ function ProviderOnboardingContent() {
     listingName: string;
   } | null>(null);
 
+  // Exit URL - store referrer on initial load so Exit takes user back to where they came from
+  const [exitUrl, setExitUrl] = useState("/");
+
+  // Capture referrer on initial mount (before any internal navigation)
+  useEffect(() => {
+    const storageKey = "olera_onboarding_exit_url";
+
+    // Check if we already have a stored exit URL (user might be navigating within onboarding)
+    const storedUrl = sessionStorage.getItem(storageKey);
+    if (storedUrl) {
+      setExitUrl(storedUrl);
+      return;
+    }
+
+    // First visit - capture the referrer
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        const currentUrl = new URL(window.location.href);
+
+        // Only use referrer if it's from our own domain (not external)
+        if (referrerUrl.origin === currentUrl.origin) {
+          // Don't use the onboarding page itself as exit URL
+          if (!referrerUrl.pathname.startsWith("/provider/onboarding")) {
+            sessionStorage.setItem(storageKey, referrerUrl.pathname);
+            setExitUrl(referrerUrl.pathname);
+            return;
+          }
+        }
+      } catch {
+        // Invalid URL, use default
+      }
+    }
+
+    // Fallback: store default
+    sessionStorage.setItem(storageKey, "/");
+  }, []);
+
+  // Clean up exit URL when leaving the onboarding flow
+  useEffect(() => {
+    return () => {
+      // Only clear if we're actually leaving (not just re-rendering)
+      // This will be called on unmount
+    };
+  }, []);
+
+  const handleExit = useCallback(() => {
+    // Clear the stored exit URL since user is intentionally leaving
+    sessionStorage.removeItem("olera_onboarding_exit_url");
+    router.push(exitUrl);
+  }, [exitUrl, router]);
+
   // Cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -868,12 +921,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -1690,12 +1743,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors bg-white"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -2069,12 +2122,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -2293,12 +2346,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -2441,12 +2494,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -2546,7 +2599,7 @@ function ProviderOnboardingContent() {
                 <span className="font-bold text-gray-900">Olera</span>
               </Link>
               <button
-                onClick={() => router.push("/")}
+                onClick={handleExit}
                 className="text-sm font-medium text-gray-500 hover:text-gray-700"
               >
                 Exit
@@ -2589,7 +2642,7 @@ function ProviderOnboardingContent() {
               <span className="font-bold text-gray-900">Olera</span>
             </Link>
             <button
-              onClick={() => router.push("/")}
+              onClick={handleExit}
               className="text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               Exit

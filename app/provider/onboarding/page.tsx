@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect, Component, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,8 +10,60 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
-import type { Provider } from "@/lib/types/provider";
+// Note: We don't import the full Provider type - search only selects specific columns
+// to avoid JSONB fields that can cause React rendering errors
 import { useAuth } from "@/components/auth/AuthProvider";
+
+// Error boundary to catch and display rendering errors
+class OnboardingErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("[OnboardingErrorBoundary] Caught error:", error);
+    console.error("[OnboardingErrorBoundary] Component stack:", errorInfo.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8] p-4">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-gray-500 mb-4 text-sm">
+              {this.state.error?.message || "An unexpected error occurred"}
+            </p>
+            <pre className="text-left text-xs bg-gray-100 p-3 rounded-lg overflow-auto max-h-40 mb-4 text-red-600">
+              {this.state.error?.stack?.slice(0, 500)}
+            </pre>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors"
+            >
+              Reload page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // ============================================================
 // Types
@@ -49,8 +101,89 @@ const DISPUTE_ROLE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
-// Search result from olera-providers
-interface ProviderMatch extends Provider {
+// Consumer email domains (personal emails) - these require magic link verification
+// Business emails (not in this list) get instant access
+const CONSUMER_EMAIL_DOMAINS = new Set([
+  "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+  "icloud.com", "aol.com", "protonmail.com", "live.com",
+  "msn.com", "me.com", "mail.com", "ymail.com", "googlemail.com",
+  "comcast.net", "att.net", "verizon.net", "sbcglobal.net",
+  "cox.net", "earthlink.net", "juno.com", "netzero.com",
+  "zoho.com", "fastmail.com", "tutanota.com", "hey.com",
+  "pm.me", "proton.me", "yahoo.co.uk", "hotmail.co.uk",
+  "outlook.co.uk", "btinternet.com", "virginmedia.com",
+]);
+
+// Check if email is a business email (not a consumer/personal email)
+function isBusinessEmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (!domain) return false;
+  return !CONSUMER_EMAIL_DOMAINS.has(domain);
+}
+
+// Extract domain from email
+function getEmailDomain(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const domain = email.split("@")[1]?.toLowerCase();
+  return domain || null;
+}
+
+// Check if user's email domain matches the provider's email domain on file
+// This allows any employee from the same organization to claim the listing
+function domainsMatch(userEmail: string, providerEmail: string | null | undefined): boolean {
+  const userDomain = getEmailDomain(userEmail);
+  const providerDomain = getEmailDomain(providerEmail);
+  if (!userDomain || !providerDomain) return false;
+  return userDomain === providerDomain;
+}
+
+// Check if user's email domain matches the provider's business name or slug
+// Used as a fallback when no email is on file
+// Example: "Sunrise Senior Living" (slug: sunrise-senior-living) matches sunriseseniorliving.com
+function domainMatchesProviderIdentity(
+  userEmail: string,
+  providerName: string | null | undefined,
+  providerSlug: string | null | undefined
+): boolean {
+  const userDomain = getEmailDomain(userEmail);
+  if (!userDomain) return false;
+
+  // Extract second-level domain (handles subdomains correctly)
+  // mail.sunriseseniorliving.com → sunriseseniorliving
+  // sunriseseniorliving.com → sunriseseniorliving
+  // sunriseseniorliving.co.uk → co (edge case, but rare for business emails)
+  const parts = userDomain.split(".");
+  const domainBase = parts.length >= 2
+    ? parts[parts.length - 2]?.toLowerCase()  // Second-to-last part (before TLD)
+    : parts[0]?.toLowerCase();
+  if (!domainBase || domainBase.length < 3) return false; // Too short to match reliably
+
+  // Normalize provider name: "Sunrise Senior Living" → "sunriseseniorliving"
+  const normalizedName = providerName?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+
+  // Normalize slug: "sunrise-senior-living" → "sunriseseniorliving"
+  const normalizedSlug = providerSlug?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+
+  // Check for match:
+  // 1. Exact match: domain equals name or slug
+  // 2. Name/slug contains domain: "sunriseseniorliving" contains "sunrise"
+  // Note: We do NOT check if domain contains name (too loose, causes false positives)
+  const exactMatch = domainBase === normalizedName || domainBase === normalizedSlug;
+  const nameContainsDomain = domainBase.length >= 5 && normalizedName.includes(domainBase);
+  const slugContainsDomain = domainBase.length >= 5 && normalizedSlug.includes(domainBase);
+
+  return exactMatch || nameContainsDomain || slugContainsDomain;
+}
+
+// Search result from olera-providers (only includes columns we select in search query)
+interface ProviderMatch {
+  provider_id: string;
+  provider_name: string;
+  slug: string | null;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+  provider_images: string | null;
   _source: "olera-providers";
   _claimed: boolean;
   _emailMatch: boolean;
@@ -90,13 +223,15 @@ const EMPTY_FORM: FormData = {
 
 export default function ProviderOnboardingPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
-      <ProviderOnboardingContent />
-    </Suspense>
+    <OnboardingErrorBoundary>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
+        <ProviderOnboardingContent />
+      </Suspense>
+    </OnboardingErrorBoundary>
   );
 }
 
@@ -120,6 +255,8 @@ function ProviderOnboardingContent() {
 
   // Organization autocomplete state
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
+  // Track when user explicitly clicks "Create new" from autocomplete
+  const [createNewSelected, setCreateNewSelected] = useState(false);
 
   // City picker state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -155,6 +292,59 @@ function ProviderOnboardingContent() {
     userEmail: string;
     listingName: string;
   } | null>(null);
+
+  // Exit URL - store referrer on initial load so Exit takes user back to where they came from
+  const [exitUrl, setExitUrl] = useState("/");
+
+  // Capture referrer on initial mount (before any internal navigation)
+  useEffect(() => {
+    const storageKey = "olera_onboarding_exit_url";
+
+    // Check if we already have a stored exit URL (user might be navigating within onboarding)
+    const storedUrl = sessionStorage.getItem(storageKey);
+    if (storedUrl) {
+      setExitUrl(storedUrl);
+      return;
+    }
+
+    // First visit - capture the referrer
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        const currentUrl = new URL(window.location.href);
+
+        // Only use referrer if it's from our own domain (not external)
+        if (referrerUrl.origin === currentUrl.origin) {
+          // Don't use the onboarding page itself as exit URL
+          if (!referrerUrl.pathname.startsWith("/provider/onboarding")) {
+            sessionStorage.setItem(storageKey, referrerUrl.pathname);
+            setExitUrl(referrerUrl.pathname);
+            return;
+          }
+        }
+      } catch {
+        // Invalid URL, use default
+      }
+    }
+
+    // Fallback: store default
+    sessionStorage.setItem(storageKey, "/");
+  }, []);
+
+  // Clean up exit URL when leaving the onboarding flow
+  useEffect(() => {
+    return () => {
+      // Only clear if we're actually leaving (not just re-rendering)
+      // This will be called on unmount
+    };
+  }, []);
+
+  const handleExit = useCallback(() => {
+    // Clear the stored exit URL since user is intentionally leaving
+    sessionStorage.removeItem("olera_onboarding_exit_url");
+    router.push(exitUrl);
+  }, [exitUrl, router]);
 
   // Cooldown timer
   useEffect(() => {
@@ -268,6 +458,7 @@ function ProviderOnboardingContent() {
         searchQuery?: string;
         locationQuery?: string; // Legacy format
         selectedOrg?: SelectedOrg | null;
+        createNewSelected?: boolean; // User explicitly clicked "Create new"
       };
 
       // Clear after reading so it doesn't persist across sessions
@@ -275,7 +466,19 @@ function ProviderOnboardingContent() {
 
       // New format: selectedOrg from OrganizationSearch
       if (parsed.selectedOrg) {
-        const org = parsed.selectedOrg;
+        // Defensive: sanitize all fields to prevent React Error #310
+        // SessionStorage data might have unexpected object types from API
+        const org: SelectedOrg = {
+          name: String(parsed.selectedOrg.name || ""),
+          slug: String(parsed.selectedOrg.slug || ""),
+          city: parsed.selectedOrg.city ? String(parsed.selectedOrg.city) : null,
+          state: parsed.selectedOrg.state ? String(parsed.selectedOrg.state) : null,
+          email: parsed.selectedOrg.email ? String(parsed.selectedOrg.email) : null,
+          claimState: parsed.selectedOrg.claimState || null,
+          source: parsed.selectedOrg.source || "olera-providers",
+          providerId: parsed.selectedOrg.providerId ? String(parsed.selectedOrg.providerId) : undefined,
+          imageUrl: parsed.selectedOrg.imageUrl ? String(parsed.selectedOrg.imageUrl) : null,
+        };
         setSelectedOrg(org);
         setFormData(prev => ({
           ...prev,
@@ -289,6 +492,12 @@ function ProviderOnboardingContent() {
       } else if (parsed.searchQuery?.trim()) {
         // User typed org name but didn't select from dropdown
         setFormData(prev => ({ ...prev, orgName: parsed.searchQuery!.trim() }));
+        // Check if user explicitly clicked "Create new" on marketing page
+        if (parsed.createNewSelected) {
+          setCreateNewSelected(true);
+          // Go directly to Create Your Listing screen (skip search)
+          setScreen("preview");
+        }
       }
 
       // Legacy format: locationQuery (for backwards compatibility)
@@ -420,6 +629,8 @@ function ProviderOnboardingContent() {
   const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
     setSelectedOrg(org);
     if (org) {
+      // Existing org selected - clear "create new" flag
+      setCreateNewSelected(false);
       // Auto-fill city/state from selected org
       if (org.city && org.state) {
         setFormData(prev => ({ ...prev, city: org.city!, state: org.state! }));
@@ -430,9 +641,9 @@ function ProviderOnboardingContent() {
         setCityQuery("");
       }
     } else {
-      // "Create new" selected - clear city/state so user must enter them
-      setFormData(prev => ({ ...prev, city: "", state: "" }));
-      setCityQuery("");
+      // "Create new" explicitly selected from autocomplete
+      setCreateNewSelected(true);
+      // Keep existing city/state - user already entered it, no need to clear
     }
   }, []);
 
@@ -470,12 +681,11 @@ function ProviderOnboardingContent() {
       return;
     }
 
-    // If user selected "Create new" from autocomplete, go directly to preview
-    if (selectedOrg === null && formData.orgName.trim()) {
-      // Check if they actually interacted with autocomplete (typed enough to trigger it)
-      // If selectedOrg is explicitly null (from handleOrgSelect), they chose "Create new"
-      // We need to distinguish between "never interacted" and "chose create new"
-      // For now, continue with search to find matches
+    // If user explicitly selected "Create new" from autocomplete, go directly to preview
+    if (createNewSelected && formData.orgName.trim()) {
+      // They clicked "Create [name] as new organization" - skip search, go to create screen
+      setScreen("preview");
+      return;
     }
 
     // If user selected an existing org from autocomplete, create result directly
@@ -484,31 +694,43 @@ function ProviderOnboardingContent() {
       const emailMatch = selectedOrg.email?.toLowerCase() === normalizedEmail;
       const isClaimed = selectedOrg.claimState === "claimed";
 
+      // Defensive: ensure all fields are proper primitives to prevent React Error #310
+      // Data from sessionStorage/API might have unexpected object types
+      const safeProviderId = String(selectedOrg.providerId || selectedOrg.slug || "");
+      const safeName = String(selectedOrg.name || "");
+      const safeSlug = String(selectedOrg.slug || "");
+      const safeCity = selectedOrg.city ? String(selectedOrg.city) : null;
+      const safeState = selectedOrg.state ? String(selectedOrg.state) : null;
+      const safeEmail = selectedOrg.email ? String(selectedOrg.email) : null;
+      const safeImageUrl = selectedOrg.imageUrl ? String(selectedOrg.imageUrl) : null;
+      const safeClaimState = selectedOrg.claimState || null; // Already a string literal type, but ensure it's not an object
+      const safeSource = selectedOrg.source || "olera-providers";
+
       // Create a search result from the selected org
-      const result: SearchResult = selectedOrg.source === "olera-providers"
+      const result: SearchResult = safeSource === "olera-providers"
         ? {
-            provider_id: selectedOrg.providerId || selectedOrg.slug,
-            provider_name: selectedOrg.name,
-            slug: selectedOrg.slug,
-            city: selectedOrg.city,
-            state: selectedOrg.state,
-            email: selectedOrg.email,
-            provider_images: selectedOrg.imageUrl || undefined, // For getProviderImage()
+            provider_id: safeProviderId,
+            provider_name: safeName,
+            slug: safeSlug,
+            city: safeCity,
+            state: safeState,
+            email: safeEmail,
+            provider_images: safeImageUrl || undefined, // For getProviderImage()
             _source: "olera-providers" as const,
             _claimed: isClaimed,
             _emailMatch: emailMatch,
           } as ProviderMatch
         : {
-            id: selectedOrg.providerId || selectedOrg.slug,
-            display_name: selectedOrg.name,
-            slug: selectedOrg.slug,
-            city: selectedOrg.city,
-            state: selectedOrg.state,
-            email: selectedOrg.email,
-            image_url: selectedOrg.imageUrl || null,
+            id: safeProviderId,
+            display_name: safeName,
+            slug: safeSlug,
+            city: safeCity,
+            state: safeState,
+            email: safeEmail,
+            image_url: safeImageUrl,
             account_id: isClaimed ? "claimed" : null, // Simplified - just need to know if claimed
-            source_provider_id: selectedOrg.providerId || null,
-            claim_state: selectedOrg.claimState,
+            source_provider_id: safeProviderId || null,
+            claim_state: safeClaimState,
             _source: "business_profiles" as const,
             _claimed: isClaimed,
             _emailMatch: emailMatch,
@@ -549,29 +771,41 @@ function ProviderOnboardingContent() {
       // ═══════════════════════════════════════════════════════
       // Query 1: olera-providers (scraped listings)
       // Run two separate queries and merge (safer than OR with special chars)
+      // Note: Only select columns we need - avoid JSONB columns (google_reviews_data, cms_data, ai_trust_signals)
+      // which can cause React rendering errors if accidentally spread into JSX
       // ═══════════════════════════════════════════════════════
+      const providerColumns = "provider_id, provider_name, slug, city, state, email, provider_images";
       const [nameMatchResult, emailMatchResult] = await Promise.all([
         // Name match
         supabase
           .from("olera-providers")
-          .select("*")
+          .select(providerColumns)
           .not("deleted", "is", true)
           .ilike("provider_name", `%${escapedName}%`)
           .limit(15),
         // Email match
         supabase
           .from("olera-providers")
-          .select("*")
+          .select(providerColumns)
           .not("deleted", "is", true)
           .eq("email", normalizedEmail)
           .limit(5),
       ]);
 
       // Merge and dedupe providers
-      const providerMap = new Map<string, Provider>();
+      type PartialProvider = {
+        provider_id: string;
+        provider_name: string;
+        slug: string | null;
+        city: string | null;
+        state: string | null;
+        email: string | null;
+        provider_images: string | null;
+      };
+      const providerMap = new Map<string, PartialProvider>();
       for (const p of [...(emailMatchResult.data || []), ...(nameMatchResult.data || [])]) {
         if (!providerMap.has(p.provider_id)) {
-          providerMap.set(p.provider_id, p as Provider);
+          providerMap.set(p.provider_id, p as PartialProvider);
         }
       }
       const providers = Array.from(providerMap.values());
@@ -712,47 +946,147 @@ function ProviderOnboardingContent() {
     }
   }, [formData]);
 
+  // Handle Flow B: sign in to claim (for personal email users)
+  // Opens auth modal with deferred claim-listing action
+  const handleSignInToClaim = useCallback(() => {
+    if (!selectedResult) return;
+
+    // Extract provider data based on source type
+    const isOleraProvider = selectedResult._source === "olera-providers";
+
+    // Cache provider data for post-auth claim processing
+    const providerData = {
+      provider_id: isOleraProvider
+        ? selectedResult.provider_id
+        : selectedResult.source_provider_id || selectedResult.id,
+      provider_name: isOleraProvider
+        ? selectedResult.provider_name
+        : selectedResult.display_name,
+      slug: isOleraProvider
+        ? (selectedResult.slug || selectedResult.provider_id)
+        : selectedResult.slug,
+      email: selectedResult.email,
+      city: selectedResult.city || formData.city,
+      state: selectedResult.state || formData.state,
+      source_type: selectedResult._source,
+      // For business_profiles, include the actual ID (for updating vs creating)
+      business_profile_id: !isOleraProvider ? selectedResult.id : undefined,
+    };
+
+    try {
+      sessionStorage.setItem("olera_claim_provider_cache", JSON.stringify(providerData));
+    } catch {
+      console.warn("[handleSignInToClaim] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and claim-listing deferred action
+    // Pre-fill their email so they don't have to re-enter it
+    openAuth({
+      intent: "provider",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
+  }, [selectedResult, formData.city, formData.state, formData.email, openAuth]);
+
+  // Handle sign-in to create NEW organization (personal email - requires auth)
+  const handleSignInToCreateNewOrg = useCallback(() => {
+    // Validation first
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        return;
+      }
+    }
+
+    // Cache new org data for post-auth processing
+    const newOrgData = {
+      isNewOrg: true,
+      orgName: formData.orgName,
+      email: formData.email.trim().toLowerCase(),
+      city: formData.city,
+      state: formData.state,
+      phone: formData.phone || undefined,
+      careTypes: formData.careTypes,
+    };
+
+    try {
+      sessionStorage.setItem("olera_new_org_cache", JSON.stringify(newOrgData));
+    } catch {
+      console.warn("[handleSignInToCreateNewOrg] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and deferred action
+    // Note: Using "claim-listing" action - after auth, user will be redirected to complete listing creation
+    openAuth({
+      intent: "provider",
+      providerType: "organization",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
+  }, [formData, openAuth]);
+
   // ──────────────────────────────────────────────────────────
   // Screen 1: Search Form
   // ──────────────────────────────────────────────────────────
 
   if (screen === "search") {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
         <div className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-16 pb-24">
           <div className="w-full max-w-xl animate-fade-in">
-            {/* Header - changes based on whether org is pre-selected */}
+            {/* Header - changes based on state */}
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                {selectedOrg
-                  ? "Confirm your organization"
-                  : "Find your organization"}
+                Confirm your organization
               </h1>
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                {selectedOrg
+                {selectedOrg || createNewSelected
                   ? "Enter your email to continue."
                   : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>
             </div>
 
             {/* Search Form Card */}
-            <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-5">
+            <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
               {/* Organization Name - Autocomplete */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
@@ -762,10 +1096,13 @@ function ProviderOnboardingContent() {
                   value={formData.orgName}
                   onChange={(value) => {
                     setFormData(prev => ({ ...prev, orgName: value }));
-                    // Clear selected org when user types (they're searching again)
+                    // Clear selected org when user types something different
                     if (selectedOrg && value !== selectedOrg.name) {
                       setSelectedOrg(null);
                     }
+                    // Note: We do NOT clear createNewSelected here.
+                    // User may be editing their org name, still intending to create new.
+                    // createNewSelected is only cleared when they SELECT an existing org from dropdown.
                   }}
                   onSelect={handleOrgSelect}
                   placeholder="e.g., Sunrise Senior Living"
@@ -777,6 +1114,14 @@ function ProviderOnboardingContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     This listing has already been claimed
+                  </p>
+                )}
+                {createNewSelected && formData.orgName.trim() && (
+                  <p className="text-sm text-primary-600 font-medium flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Creating new listing for &quot;{formData.orgName.trim()}&quot;
                   </p>
                 )}
               </div>
@@ -884,7 +1229,7 @@ function ProviderOnboardingContent() {
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification link to this email</p>
+                <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
                 {/* Warning: logged-in user with family/caregiver account using same email */}
                 {user &&
                  formData.email.trim().toLowerCase() === user.email?.toLowerCase() &&
@@ -937,20 +1282,26 @@ function ProviderOnboardingContent() {
                   </div>
                 </div>
               )}
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={searching || !formData.email.trim() || !formData.email.includes("@")}
+                className="w-full py-3.5 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {searching ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  "Continue"
+                )}
+              </button>
             </form>
 
           </div>
         </div>
-
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          primary={{
-            label: selectedOrg ? "Continue" : "Find Your Organization",
-            onClick: () => searchFormRef.current?.requestSubmit(),
-            loading: searching,
-            disabled: !formData.email.trim() || !formData.email.includes("@"),
-          }}
-        />
       </div>
     );
   }
@@ -1078,6 +1429,96 @@ function ProviderOnboardingContent() {
     }
   };
 
+  // Handle instant claim for business emails (no email verification needed)
+  const handleInstantClaim = async () => {
+    if (!selectedResult) return;
+
+    // Extract the right IDs based on source type
+    const isOleraProvider = selectedResult._source === "olera-providers";
+    const providerId = isOleraProvider
+      ? selectedResult.provider_id
+      : selectedResult.id;
+    const providerSlug = isOleraProvider
+      ? (selectedResult.slug || selectedResult.provider_id)
+      : selectedResult.slug;
+    const providerName = isOleraProvider
+      ? selectedResult.provider_name
+      : selectedResult.display_name;
+
+    // For business_profiles, also pass the linked source_provider_id if it exists
+    const sourceProviderId = !isOleraProvider
+      ? selectedResult.source_provider_id
+      : undefined;
+
+    setActionLoading("confirm-claim");
+    setActionError("");
+
+    try {
+      const res = await fetch("/api/provider/instant-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          email: formData.email.trim().toLowerCase(),
+          city: selectedResult.city || formData.city,
+          state: selectedResult.state || formData.state,
+          sourceType: selectedResult._source,
+          sourceProviderId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setActionError("Too many claim attempts. Please try again later.");
+          setActionLoading(null);
+          return;
+        }
+        if (res.status === 409) {
+          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
+            setActionError("This email is already used for a personal account. Please use a different business email.");
+          } else if (data.code === "PROFILE_EXISTS") {
+            setActionError("You already have a business profile. Please sign in to manage your listing.");
+          } else if (data.code === "PENDING_CLAIM") {
+            setActionError("This listing has a pending claim. Please try again later.");
+          } else {
+            setActionError("This listing has already been claimed. Please sign in instead.");
+          }
+          setActionLoading(null);
+          return;
+        }
+        throw new Error(data.error || "Failed to claim listing");
+      }
+
+      // Auto-sign-in with the token
+      if (data.tokenHash) {
+        const supabase = createClient();
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: data.tokenHash,
+          type: "magiclink",
+        });
+
+        if (otpError) {
+          console.error("[handleInstantClaim] auto-sign-in error:", otpError);
+          // Still redirect - they can sign in manually
+        }
+      }
+
+      // Clear loading state before redirect
+      setActionLoading(null);
+
+      // Redirect to provider dashboard
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleInstantClaim] Error:", err);
+      setActionError(err instanceof Error ? err.message : "Failed to claim listing. Please try again.");
+      setActionLoading(null);
+    }
+  };
+
   // Handle "Create New Listing" button - navigate to preview screen
   const handleCreateNew = () => {
     setSelectedResult(null); // Clear any selected result
@@ -1159,6 +1600,101 @@ function ProviderOnboardingContent() {
     } catch (err) {
       console.error("[handlePreviewSubmit] Signup email error:", err);
       setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle instant claim for NEW organization (business email - no verification needed)
+  const handleInstantClaimNewOrg = async () => {
+    setActionLoading("preview-submit");
+    setActionError("");
+
+    // Validation (same as handlePreviewSubmit)
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      setActionLoading(null);
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        setActionLoading(null);
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch("/api/provider/instant-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isNewOrg: true, // Flag to indicate new org creation
+          providerName: formData.orgName,
+          email: formData.email.trim().toLowerCase(),
+          city: formData.city,
+          state: formData.state,
+          phone: formData.phone || undefined,
+          careTypes: formData.careTypes,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setActionError("Too many attempts. Please try again later.");
+          setActionLoading(null);
+          return;
+        }
+        if (res.status === 409) {
+          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
+            setActionError("This email is already used for a personal account. Please use a different email.");
+          } else if (data.code === "PROFILE_EXISTS") {
+            setActionError("You already have a business profile. Please sign in to manage your listing.");
+          } else {
+            setActionError(data.error || "Failed to create listing.");
+          }
+          setActionLoading(null);
+          return;
+        }
+        throw new Error(data.error || "Failed to create listing");
+      }
+
+      // Auto-sign-in with the token
+      if (data.tokenHash) {
+        const supabase = createClient();
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: data.tokenHash,
+          type: "magiclink",
+        });
+
+        if (otpError) {
+          console.error("[handleInstantClaimNewOrg] auto-sign-in error:", otpError);
+          // Still redirect - they can sign in manually
+        }
+      }
+
+      setActionLoading(null);
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleInstantClaimNewOrg] Error:", err);
+      setActionError(err instanceof Error ? err.message : "Failed to create listing. Please try again.");
       setActionLoading(null);
     }
   };
@@ -1285,18 +1821,18 @@ function ProviderOnboardingContent() {
     return (
       <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-200/60 bg-vanilla-100/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors bg-white"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -1423,9 +1959,10 @@ function ProviderOnboardingContent() {
                       </p>
                       <div className="space-y-3">
                         {emailMatches.map((result) => {
-                          const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
-                          const location = [result.city, result.state].filter(Boolean).join(", ");
-                          const slug = result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug;
+                          // Defensive: ensure all rendered values are strings to prevent React Error #310
+                          const name = String(result._source === "olera-providers" ? result.provider_name : result.display_name || "");
+                          const location = [result.city, result.state].filter(Boolean).map(String).join(", ");
+                          const slug = String(result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug || "");
                           const image = getProviderImage(result);
                           const { label, variant, action } = getResultAction(result);
                           const isLoading = actionLoading === slug;
@@ -1526,9 +2063,10 @@ function ProviderOnboardingContent() {
                       )}
                       <div className="space-y-3">
                         {otherMatches.map((result) => {
-                          const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
-                          const location = [result.city, result.state].filter(Boolean).join(", ");
-                          const slug = result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug;
+                          // Defensive: ensure all rendered values are strings to prevent React Error #310
+                          const name = String(result._source === "olera-providers" ? result.provider_name : result.display_name || "");
+                          const location = [result.city, result.state].filter(Boolean).map(String).join(", ");
+                          const slug = String(result._source === "olera-providers" ? (result.slug || result.provider_id) : result.slug || "");
                           const image = getProviderImage(result);
                           const { label, variant, action } = getResultAction(result);
                           const isLoading = actionLoading === slug;
@@ -1662,37 +2200,37 @@ function ProviderOnboardingContent() {
 
   if (screen === "preview") {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
-          <div className="max-w-xl mx-auto animate-fade-in">
+        <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12 pb-24 md:pb-12">
+          <div className="w-full max-w-xl animate-fade-in">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Create your listing
               </h1>
-              <p className="text-gray-500 mt-2">
+              <p className="text-gray-500 mt-1.5">
                 Add your details to start connecting with families.
               </p>
             </div>
 
             {/* Preview Form */}
-            <form id="preview-form" onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-6">
+            <form id="preview-form" onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
               {/* Organization Name */}
               <div className="space-y-2">
                 <label htmlFor="previewOrgName" className="block text-base font-semibold text-gray-900">
@@ -1708,68 +2246,132 @@ function ProviderOnboardingContent() {
                 />
               </div>
 
-              {/* Location (read-only display) - green completed state */}
+              {/* Location - editable if empty, read-only completed state if filled */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Location
                 </label>
-                <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="flex-1">{formData.city}, {formData.state}</span>
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+                {formData.city && formData.state ? (
+                  // Completed state - read-only display
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="flex-1">{formData.city}, {formData.state}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  // Editable state - city autocomplete input
+                  <div className="relative" ref={cityDropdownRef}>
+                    <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
+                      showCityDropdown
+                        ? "border-primary-400 ring-2 ring-primary-100 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                    }`}>
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input
+                        ref={cityInputRef}
+                        type="text"
+                        value={cityQuery}
+                        onChange={(e) => {
+                          setCityQuery(e.target.value);
+                          setShowCityDropdown(true);
+                          if (formData.city || formData.state) {
+                            setFormData(prev => ({ ...prev, city: "", state: "" }));
+                          }
+                        }}
+                        onFocus={() => {
+                          preloadCities();
+                          setShowCityDropdown(true);
+                        }}
+                        placeholder="e.g., Austin, TX"
+                        autoComplete="off"
+                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        required
+                      />
+                    </div>
+
+                    {/* City Dropdown */}
+                    {showCityDropdown && cityResults.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                        {!cityQuery.trim() && (
+                          <div className="px-4 pt-1 pb-2">
+                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                          </div>
+                        )}
+                        {cityResults.map((city, idx) => (
+                          <button
+                            key={`preview-${city.city}-${city.state}-${idx}`}
+                            type="button"
+                            onClick={() => handleCitySelect(city.city, city.state)}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>
+                              <span className="font-medium text-gray-700">{city.city}</span>
+                              <span className="text-gray-500">, {city.state}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Email (read-only display) - green completed state */}
+              {/* Email - editable if empty, read-only completed state if filled */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Business email
                 </label>
-                <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="flex-1">{formData.email}</span>
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <p className="text-sm text-gray-500">We&apos;ll send a verification link to this email</p>
-              </div>
-
-              {/* Phone Number (new field) */}
-              <div className="space-y-2">
-                <label htmlFor="previewPhone" className="block text-base font-semibold text-gray-900">
-                  Business phone <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <input
-                    id="previewPhone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                    autoComplete="tel"
-                    className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                  />
-                </div>
+                {formData.email ? (
+                  // Completed state - read-only display
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="flex-1">{formData.email}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  // Editable state - email input
+                  <>
+                    <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="you@yourorganization.com"
+                        autoComplete="email"
+                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        required
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
+                  </>
+                )}
               </div>
 
               {/* Care Types (multi-select) */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
-                  What services do you provide? <span className="text-red-500">*</span>
+                  Services <span className="text-gray-400 font-normal">(select all that apply)</span>
                 </label>
-                <p className="text-sm text-gray-500 -mt-1">Select all that apply</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-wrap gap-2">
                   {CARE_TYPE_OPTIONS.map((type) => {
                     const isSelected = formData.careTypes.includes(type.id);
                     return (
@@ -1777,24 +2379,13 @@ function ProviderOnboardingContent() {
                         key={type.id}
                         type="button"
                         onClick={() => toggleCareType(type.id)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                        className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                           isSelected
-                            ? "border-primary-500 bg-primary-50 text-primary-700"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                            ? "bg-primary-50 border-primary-300 text-primary-700"
+                            : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
                         }`}
                       >
-                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? "border-primary-500 bg-primary-500"
-                            : "border-gray-300 bg-white"
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm font-medium">{type.label}</span>
+                        {type.label}
                       </button>
                     );
                   })}
@@ -1813,29 +2404,77 @@ function ProviderOnboardingContent() {
 
               <p className="text-center text-sm text-gray-500">
                 By creating a listing, you agree to our{" "}
-                <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline">
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
                   Terms of Service
                 </Link>
               </p>
+
+              {/* Action buttons - Desktop only (inline) */}
+              <div className="hidden md:flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionError("");
+                    setScreen(createNewSelected ? "search" : "results");
+                  }}
+                  className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={isBusinessEmail(formData.email)
+                    ? handleInstantClaimNewOrg
+                    : handleSignInToCreateNewOrg}
+                  disabled={actionLoading === "preview-submit"}
+                  className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {actionLoading === "preview-submit" ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          back={{
-            label: "Back",
-            onClick: () => {
-              setActionError("");
-              setScreen("results");
-            },
-          }}
-          primary={{
-            label: "Create My Listing",
-            onClick: () => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit(),
-            loading: actionLoading === "preview-submit",
-          }}
-        />
+        {/* Mobile sticky bottom nav */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-vanilla-100 border-t border-vanilla-200 px-4 py-4 safe-area-inset-bottom">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setScreen(createNewSelected ? "search" : "results");
+              }}
+              className="px-4 py-3 text-base font-medium text-gray-600 border border-gray-300 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={isBusinessEmail(formData.email)
+                ? handleInstantClaimNewOrg
+                : handleSignInToCreateNewOrg}
+              disabled={actionLoading === "preview-submit"}
+              className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {actionLoading === "preview-submit" ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1845,10 +2484,11 @@ function ProviderOnboardingContent() {
   // ──────────────────────────────────────────────────────────
 
   if (screen === "confirm-claim" && selectedResult) {
-    const providerName = selectedResult._source === "olera-providers"
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const providerName = String(selectedResult._source === "olera-providers"
       ? selectedResult.provider_name
-      : selectedResult.display_name;
-    const location = [selectedResult.city, selectedResult.state].filter(Boolean).join(", ");
+      : selectedResult.display_name || "");
+    const location = [selectedResult.city, selectedResult.state].filter(Boolean).map(String).join(", ");
     const providerImage = selectedResult._source === "olera-providers"
       ? selectedResult.provider_images?.split("|")[0]?.trim() || null
       : selectedResult.image_url;
@@ -1856,28 +2496,43 @@ function ProviderOnboardingContent() {
     // Simple confirmation: always send to the email the user entered in the search form
     const userEmail = formData.email;
 
+    // Get provider's email on file (for domain matching)
+    const providerEmailOnFile = selectedResult.email;
+    const providerSlug = selectedResult.slug;
+
+    // Check if this qualifies for instant claim:
+    // 1. User's email must be a business email (not gmail/yahoo/etc.)
+    // 2. EITHER:
+    //    a) User's email domain matches the provider's email domain on file, OR
+    //    b) No email on file, but domain matches provider name/slug
+    // This allows employees from the same organization to claim the listing
+    const isBusinessDomain = isBusinessEmail(userEmail);
+    const emailDomainMatches = domainsMatch(userEmail, providerEmailOnFile);
+    const nameDomainMatches = !providerEmailOnFile && domainMatchesProviderIdentity(userEmail, providerName, providerSlug);
+    const canInstantClaim = isBusinessDomain && (emailDomainMatches || nameDomainMatches);
+
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
-          <div className="max-w-lg mx-auto animate-fade-in">
+        <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
+          <div className="max-w-lg w-full animate-fade-in">
             {/* Provider Card Preview */}
-            <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
               {/* Provider header */}
               <div className="flex items-center gap-4 p-5 border-b border-gray-100">
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative shrink-0 overflow-hidden">
@@ -1910,21 +2565,29 @@ function ProviderOnboardingContent() {
               </div>
 
               {/* Claim confirmation */}
-              <div className="p-5 space-y-5">
+              <div className="p-5 space-y-4">
+                {/* Heading */}
                 <div className="text-center">
                   <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
-                  <p className="text-gray-500 mt-2">
-                    We&apos;ll email you a link to access your dashboard.
-                  </p>
+                  {!canInstantClaim && (
+                    <p className="text-gray-500 mt-1.5">
+                      Sign in or create an account to manage this listing on Olera.
+                    </p>
+                  )}
                 </div>
 
-                {/* Email confirmation display */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-primary-50 rounded-xl border border-primary-200">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-900 font-medium">{userEmail}</span>
-                </div>
+                {/* Flow A: Business email verified (subtle confirmation) */}
+                {canInstantClaim && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      <span className="text-gray-700 font-medium">{userEmail}</span>
+                      {" "}verified
+                    </span>
+                  </div>
+                )}
 
                 {/* Error */}
                 {actionError && (
@@ -1935,27 +2598,41 @@ function ProviderOnboardingContent() {
                     <p className="text-sm text-red-700">{actionError}</p>
                   </div>
                 )}
+
+                {/* Buttons */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={canInstantClaim ? handleInstantClaim : handleSignInToClaim}
+                    disabled={actionLoading === "confirm-claim"}
+                    className="w-full"
+                  >
+                    {actionLoading === "confirm-claim" ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </span>
+                    ) : canInstantClaim ? (
+                      "Claim this listing"
+                    ) : (
+                      "Sign in to claim"
+                    )}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionError("");
+                      // For pre-selected unclaimed orgs, go back to search (they skipped results)
+                      setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
+                    }}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
+                  >
+                    Back
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          back={{
-            label: "Back",
-            onClick: () => {
-              setActionError("");
-              // For pre-selected unclaimed orgs, go back to search (they skipped results)
-              setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
-            },
-          }}
-          primary={{
-            label: "Send Verification Email",
-            onClick: handleSendClaimEmail,
-            loading: actionLoading === "confirm-claim",
-          }}
-        />
       </div>
     );
   }
@@ -1978,9 +2655,10 @@ function ProviderOnboardingContent() {
 
     // Determine if this is a claim (selectedResult exists) or create (no selectedResult)
     const isClaim = selectedResult !== null;
-    const providerName = selectedResult
-      ? (selectedResult._source === "olera-providers" ? selectedResult.provider_name : selectedResult.display_name)
-      : formData.orgName;
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const providerName = String(selectedResult
+      ? (selectedResult._source === "olera-providers" ? selectedResult.provider_name : selectedResult.display_name || "")
+      : formData.orgName || "");
 
     return (
       <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
@@ -1991,12 +2669,12 @@ function ProviderOnboardingContent() {
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={handleExit}
               className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Exit
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -2081,9 +2759,10 @@ function ProviderOnboardingContent() {
   // ──────────────────────────────────────────────────────────
 
   if (screen === "dispute" && disputingResult) {
-    const disputeProviderName = disputingResult._source === "olera-providers"
+    // Defensive: ensure all rendered values are strings to prevent React Error #310
+    const disputeProviderName = String(disputingResult._source === "olera-providers"
       ? disputingResult.provider_name
-      : disputingResult.display_name;
+      : disputingResult.display_name || "");
 
     // Success state after dispute submission
     if (disputeSubmitted) {
@@ -2096,7 +2775,7 @@ function ProviderOnboardingContent() {
                 <span className="font-bold text-gray-900">Olera</span>
               </Link>
               <button
-                onClick={() => router.push("/")}
+                onClick={handleExit}
                 className="text-sm font-medium text-gray-500 hover:text-gray-700"
               >
                 Exit
@@ -2139,7 +2818,7 @@ function ProviderOnboardingContent() {
               <span className="font-bold text-gray-900">Olera</span>
             </Link>
             <button
-              onClick={() => router.push("/")}
+              onClick={handleExit}
               className="text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               Exit

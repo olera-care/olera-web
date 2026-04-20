@@ -8,6 +8,7 @@ import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-progra
 import { getCategory, type Category } from "@/lib/waiver-category";
 import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
+import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -471,7 +472,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
                                 <p className={`text-base font-semibold group-hover:text-primary-700 transition-colors leading-snug ${idx === 0 ? "text-gray-900" : "text-gray-700"}`}>
-                                  {program.shortName || program.name}
+                                  {getDisplayName(program, state)}
                                 </p>
                                 {program.programType && <TypeBadge type={program.programType} />}
                               </div>
@@ -779,7 +780,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                       >
                         <div className="min-w-0">
                           <p className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
-                            {program.name}
+                            {getDisplayName(program, state)}
                           </p>
                           <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
                             {program.tagline || program.description}

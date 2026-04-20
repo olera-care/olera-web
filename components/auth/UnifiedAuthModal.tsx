@@ -564,10 +564,10 @@ export default function UnifiedAuthModal({
     if (options.intent === "provider") {
       onClose();
 
-      // Handle claim-listing deferred action — link account to existing listing
+      // Handle claim-listing deferred action — link account to existing listing OR create new org
       if (deferred?.action === "claim-listing") {
+        // First, check for existing listing claim cache
         try {
-          // Read cached provider data from sessionStorage
           const cached = sessionStorage.getItem("olera_claim_provider_cache");
           if (cached) {
             const providerData = JSON.parse(cached);
@@ -605,6 +605,45 @@ export default function UnifiedAuthModal({
           console.error("Claim listing error:", err);
           // Clear cache and fall through to normal routing
           try { sessionStorage.removeItem("olera_claim_provider_cache"); } catch {}
+        }
+
+        // Second, check for NEW org creation cache (personal email + create new listing flow)
+        try {
+          const newOrgCached = sessionStorage.getItem("olera_new_org_cache");
+          if (newOrgCached) {
+            const newOrgData = JSON.parse(newOrgCached);
+
+            // Call API to create the new listing
+            const res = await fetch("/api/provider/claim-listing", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                isNewOrg: true,
+                orgName: newOrgData.orgName,
+                city: newOrgData.city,
+                state: newOrgData.state,
+                phone: newOrgData.phone,
+                careTypes: newOrgData.careTypes,
+              }),
+            });
+
+            // Clear the cache regardless of result
+            sessionStorage.removeItem("olera_new_org_cache");
+
+            if (res.ok) {
+              // Refresh account data to pick up new profile
+              await refreshAccountData();
+              router.push(deferred?.returnUrl || "/provider");
+              return;
+            } else {
+              const errorData = await res.json().catch(() => ({}));
+              console.error("Create new org failed:", errorData.error);
+              // Fall through to normal routing - they can try again from dashboard
+            }
+          }
+        } catch (err) {
+          console.error("Create new org error:", err);
+          try { sessionStorage.removeItem("olera_new_org_cache"); } catch {}
         }
       }
 

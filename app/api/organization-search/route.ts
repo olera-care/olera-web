@@ -179,16 +179,17 @@ function mergeByCanonicalIdentity(
     );
     const email = claimedBpWithEmail?.email ?? op.email ?? null;
 
+    // Defensive: ensure all fields are strings to prevent React Error #310
     merged.push({
-      id: op.provider_id,
-      name: op.provider_name,
-      slug: op.slug || op.provider_id,
-      city: op.city,
-      state: op.state,
-      email,
+      id: String(op.provider_id || ""),
+      name: String(op.provider_name || ""),
+      slug: String(op.slug || op.provider_id || ""),
+      city: op.city ? String(op.city) : null,
+      state: op.state ? String(op.state) : null,
+      email: email ? String(email) : null,
       claimState,
       source: "olera-providers",
-      providerId: op.provider_id,
+      providerId: String(op.provider_id || ""),
       imageUrl: firstImageFromPipeList(op.provider_images),
     });
     emittedOpIds.add(op.provider_id);
@@ -202,17 +203,18 @@ function mergeByCanonicalIdentity(
     if (bp.source_provider_id && emittedOpIds.has(bp.source_provider_id)) continue;
     seenBpIds.add(bp.id);
 
+    // Defensive: ensure all fields are strings to prevent React Error #310
     merged.push({
-      id: bp.id,
-      name: bp.display_name,
-      slug: bp.slug || bp.id,
-      city: bp.city,
-      state: bp.state,
-      email: bp.email,
+      id: String(bp.id || ""),
+      name: String(bp.display_name || ""),
+      slug: String(bp.slug || bp.id || ""),
+      city: bp.city ? String(bp.city) : null,
+      state: bp.state ? String(bp.state) : null,
+      email: bp.email ? String(bp.email) : null,
       claimState: (bp.claim_state as SearchResult["claimState"]) || null,
       source: "business_profiles",
-      providerId: bp.source_provider_id || bp.id,
-      imageUrl: bp.image_url,
+      providerId: String(bp.source_provider_id || bp.id || ""),
+      imageUrl: bp.image_url ? String(bp.image_url) : null,
     });
   }
 

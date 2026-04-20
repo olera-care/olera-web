@@ -17,6 +17,9 @@ import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
+import { getProgramVerifier } from "@/data/benefits-verifiers";
+import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Design atoms — shared visual vocabulary from the state page, adapted
@@ -946,30 +949,40 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               ) : program.savingsSource === "Free service" ? (
                 <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
               ) : null}
-              <ContentStatusBadge
-                contentStatus={program.contentStatus}
-                draftedAt={program.draftedAt}
-                reviewedAt={program.reviewedAt}
-                className="mt-3"
-              />
-              <p className="mt-4 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
-                <span className="text-gray-400">Reviewed by</span>
-                <Link
-                  href="/author/logan-dubose"
-                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  Dr. Logan DuBose
-                </Link>
-                {(program.reviewedAt || program.lastVerifiedDate) && (
+              {(() => {
+                const { author, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
+                const verifiedAt = reviewedAt || program.reviewedAt || program.lastVerifiedDate;
+                return (
                   <>
-                    <span className="text-gray-300">·</span>
-                    <span className="text-gray-400">
-                      Last verified {program.reviewedAt || program.lastVerifiedDate}
-                    </span>
+                    {!hasExplicitReview && (
+                      <ContentStatusBadge
+                        contentStatus={program.contentStatus}
+                        draftedAt={program.draftedAt}
+                        reviewedAt={program.reviewedAt}
+                        className="mt-3"
+                      />
+                    )}
+                    <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                      <ReviewerAvatar author={author} />
+                      <span className="text-gray-400">Reviewed by</span>
+                      <Link
+                        href={`/author/${author.slug}`}
+                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        {author.name}
+                      </Link>
+                      {verifiedAt && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className="text-gray-400">
+                            Last verified {formatReviewDate(verifiedAt)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </>
-                )}
-              </p>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-2">
               <button

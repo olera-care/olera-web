@@ -6,10 +6,13 @@ import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 import { getCategory, type Category } from "@/lib/waiver-category";
-import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight, Stethoscope } from "@phosphor-icons/react";
+import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
+import { getStateVerifier } from "@/data/benefits-verifiers";
+import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -397,16 +400,27 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
             {programs.length} programs to help your family
           </p>
 
-          <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
-            <span className="text-gray-400">Reviewed by</span>
-            <Link
-              href="/author/logan-dubose"
-              className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-            >
-              Dr. Logan DuBose
-            </Link>
-          </p>
+          {(() => {
+            const { author, reviewedAt } = getStateVerifier(state.abbreviation);
+            return (
+              <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                <ReviewerAvatar author={author} />
+                <span className="text-gray-400">Reviewed by</span>
+                <Link
+                  href={`/author/${author.slug}`}
+                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  {author.name}
+                </Link>
+                {reviewedAt && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-gray-400">Last verified {formatReviewDate(reviewedAt)}</span>
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </header>
 

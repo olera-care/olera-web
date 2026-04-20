@@ -293,6 +293,12 @@ export default async function TexasArticlePage({
                   <span className="text-gray-400">Published {formatDate(article.published_at)}</span>
                 </>
               )}
+              {article.reviewed_at && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Verified {formatDate(article.reviewed_at)}</span>
+                </>
+              )}
               {readingTime && (
                 <>
                   <span className="text-gray-300">|</span>

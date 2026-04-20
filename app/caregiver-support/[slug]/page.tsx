@@ -329,6 +329,12 @@ export default async function ResourceArticlePage({
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}
+              {article?.reviewed_at && (
+                <>
+                  <span>Verified {formatDate(article.reviewed_at)}</span>
+                  <span className="text-gray-300 mx-1.5">&middot;</span>
+                </>
+              )}
               <span>{readingTime}</span>
             </div>
           </header>

@@ -47,6 +47,7 @@ export interface ContentArticle {
   twitter_card_type: string;
   // Timestamps
   published_at: string | null;
+  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;

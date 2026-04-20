@@ -15,6 +15,11 @@ import SEOSection from "@/components/admin/content/SEOSection";
 
 const TiptapEditor = lazy(() => import("@/components/admin/content/TiptapEditor"));
 
+// timestamptz ISO string -> YYYY-MM-DD for <input type="date">
+function isoToDateInput(val: unknown): string {
+  return typeof val === "string" && val ? val.slice(0, 10) : "";
+}
+
 export default function AdminContentEditorPage() {
   const { articleId } = useParams<{ articleId: string }>();
   const router = useRouter();
@@ -299,6 +304,41 @@ export default function AdminContentEditorPage() {
                   <option key={a.slug} value={a.slug}>{a.name} — {a.role}</option>
                 ))}
               </select>
+            </div>
+          </div>
+        </Section>
+
+        {/* Dates */}
+        <Section title="Dates">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Published at</label>
+              <input
+                type="date"
+                value={isoToDateInput(formData.published_at)}
+                onChange={(e) => updateField("published_at", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">Auto-set when status first moves to Published.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Verified at</label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={isoToDateInput(formData.reviewed_at)}
+                  onChange={(e) => updateField("reviewed_at", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                  className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => updateField("reviewed_at", new Date().toISOString())}
+                  className="px-3 py-2.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Mark reviewed
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Only set when medically reviewed. Public byline shows this date.</p>
             </div>
           </div>
         </Section>

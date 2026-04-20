@@ -32,8 +32,10 @@ const EDITABLE_FIELDS = new Set([
   "structured_data_type",
   "focus_keyword",
   "twitter_card_type",
-  // Timestamps managed by the API
+  // Timestamps — published_at is also auto-set by the API on first publish;
+  // reviewed_at is only ever set from admin (button or date picker).
   "published_at",
+  "reviewed_at",
 ]);
 
 /**

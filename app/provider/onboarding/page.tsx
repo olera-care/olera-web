@@ -194,6 +194,8 @@ function ProviderOnboardingContent() {
 
   // Organization autocomplete state
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
+  // Track when user explicitly clicks "Create new" from autocomplete
+  const [createNewSelected, setCreateNewSelected] = useState(false);
 
   // City picker state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -494,6 +496,8 @@ function ProviderOnboardingContent() {
   const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
     setSelectedOrg(org);
     if (org) {
+      // Existing org selected - clear "create new" flag
+      setCreateNewSelected(false);
       // Auto-fill city/state from selected org
       if (org.city && org.state) {
         setFormData(prev => ({ ...prev, city: org.city!, state: org.state! }));
@@ -504,9 +508,9 @@ function ProviderOnboardingContent() {
         setCityQuery("");
       }
     } else {
-      // "Create new" selected - clear city/state so user must enter them
-      setFormData(prev => ({ ...prev, city: "", state: "" }));
-      setCityQuery("");
+      // "Create new" explicitly selected from autocomplete
+      setCreateNewSelected(true);
+      // Keep existing city/state - user already entered it, no need to clear
     }
   }, []);
 
@@ -544,12 +548,11 @@ function ProviderOnboardingContent() {
       return;
     }
 
-    // If user selected "Create new" from autocomplete, go directly to preview
-    if (selectedOrg === null && formData.orgName.trim()) {
-      // Check if they actually interacted with autocomplete (typed enough to trigger it)
-      // If selectedOrg is explicitly null (from handleOrgSelect), they chose "Create new"
-      // We need to distinguish between "never interacted" and "chose create new"
-      // For now, continue with search to find matches
+    // If user explicitly selected "Create new" from autocomplete, go directly to preview
+    if (createNewSelected && formData.orgName.trim()) {
+      // They clicked "Create [name] as new organization" - skip search, go to create screen
+      setScreen("preview");
+      return;
     }
 
     // If user selected an existing org from autocomplete, create result directly
@@ -837,9 +840,9 @@ function ProviderOnboardingContent() {
 
   if (screen === "search") {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
@@ -856,22 +859,26 @@ function ProviderOnboardingContent() {
 
         <div className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-16 pb-24">
           <div className="w-full max-w-xl animate-fade-in">
-            {/* Header - changes based on whether org is pre-selected */}
+            {/* Header - changes based on state */}
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                {selectedOrg
-                  ? "Confirm your organization"
-                  : "Find your organization"}
+                {createNewSelected
+                  ? "Create your listing"
+                  : selectedOrg
+                    ? "Confirm your organization"
+                    : "Find your organization"}
               </h1>
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                {selectedOrg
-                  ? "Enter your email to continue."
-                  : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
+                {createNewSelected
+                  ? "Enter your details to continue."
+                  : selectedOrg
+                    ? "Enter your email to continue."
+                    : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>
             </div>
 
             {/* Search Form Card */}
-            <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-5">
+            <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
               {/* Organization Name - Autocomplete */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
@@ -881,9 +888,13 @@ function ProviderOnboardingContent() {
                   value={formData.orgName}
                   onChange={(value) => {
                     setFormData(prev => ({ ...prev, orgName: value }));
-                    // Clear selected org when user types (they're searching again)
+                    // Clear selected org and "create new" flag when user types (they're searching again)
                     if (selectedOrg && value !== selectedOrg.name) {
                       setSelectedOrg(null);
+                    }
+                    // If they're changing the name after clicking "Create new", clear that flag too
+                    if (createNewSelected) {
+                      setCreateNewSelected(false);
                     }
                   }}
                   onSelect={handleOrgSelect}
@@ -896,6 +907,14 @@ function ProviderOnboardingContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     This listing has already been claimed
+                  </p>
+                )}
+                {createNewSelected && formData.orgName.trim() && (
+                  <p className="text-sm text-primary-600 font-medium flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Creating new listing for &quot;{formData.orgName.trim()}&quot;
                   </p>
                 )}
               </div>
@@ -1056,20 +1075,26 @@ function ProviderOnboardingContent() {
                   </div>
                 </div>
               )}
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={searching || !formData.email.trim() || !formData.email.includes("@")}
+                className="w-full py-3.5 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {searching ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  selectedOrg || createNewSelected ? "Continue" : "Find Your Organization"
+                )}
+              </button>
             </form>
 
           </div>
         </div>
-
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          primary={{
-            label: selectedOrg ? "Continue" : "Find Your Organization",
-            onClick: () => searchFormRef.current?.requestSubmit(),
-            loading: searching,
-            disabled: !formData.email.trim() || !formData.email.includes("@"),
-          }}
-        />
       </div>
     );
   }
@@ -1372,6 +1397,157 @@ function ProviderOnboardingContent() {
     }
   };
 
+  // Handle instant claim for NEW organization (business email - no verification needed)
+  const handleInstantClaimNewOrg = async () => {
+    setActionLoading("preview-submit");
+    setActionError("");
+
+    // Validation (same as handlePreviewSubmit)
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      setActionLoading(null);
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        setActionLoading(null);
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch("/api/provider/instant-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isNewOrg: true, // Flag to indicate new org creation
+          providerName: formData.orgName,
+          email: formData.email.trim().toLowerCase(),
+          city: formData.city,
+          state: formData.state,
+          phone: formData.phone || undefined,
+          careTypes: formData.careTypes,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setActionError("Too many attempts. Please try again later.");
+          setActionLoading(null);
+          return;
+        }
+        if (res.status === 409) {
+          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
+            setActionError("This email is already used for a personal account. Please use a different email.");
+          } else if (data.code === "PROFILE_EXISTS") {
+            setActionError("You already have a business profile. Please sign in to manage your listing.");
+          } else {
+            setActionError(data.error || "Failed to create listing.");
+          }
+          setActionLoading(null);
+          return;
+        }
+        throw new Error(data.error || "Failed to create listing");
+      }
+
+      // Auto-sign-in with the token
+      if (data.tokenHash) {
+        const supabase = createClient();
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: data.tokenHash,
+          type: "magiclink",
+        });
+
+        if (otpError) {
+          console.error("[handleInstantClaimNewOrg] auto-sign-in error:", otpError);
+          // Still redirect - they can sign in manually
+        }
+      }
+
+      setActionLoading(null);
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleInstantClaimNewOrg] Error:", err);
+      setActionError(err instanceof Error ? err.message : "Failed to create listing. Please try again.");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle sign-in to create NEW organization (personal email - requires auth)
+  const handleSignInToCreateNewOrg = useCallback(() => {
+    // Validation first
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        return;
+      }
+    }
+
+    // Cache new org data for post-auth processing
+    const newOrgData = {
+      isNewOrg: true,
+      orgName: formData.orgName,
+      email: formData.email.trim().toLowerCase(),
+      city: formData.city,
+      state: formData.state,
+      phone: formData.phone || undefined,
+      careTypes: formData.careTypes,
+    };
+
+    try {
+      sessionStorage.setItem("olera_new_org_cache", JSON.stringify(newOrgData));
+    } catch {
+      console.warn("[handleSignInToCreateNewOrg] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and deferred action
+    openAuth({
+      intent: "provider",
+      providerType: "organization",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "create-new-org",
+        returnUrl: "/provider",
+      },
+    });
+  }, [formData, openAuth]);
+
   // Toggle care type selection
   const toggleCareType = (typeId: string) => {
     setFormData(prev => ({
@@ -1494,7 +1670,7 @@ function ProviderOnboardingContent() {
     return (
       <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-200/60 bg-vanilla-100/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
@@ -1871,9 +2047,9 @@ function ProviderOnboardingContent() {
 
   if (screen === "preview") {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
@@ -1888,20 +2064,20 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
-          <div className="max-w-xl mx-auto animate-fade-in">
+        <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12 pb-24 md:pb-12">
+          <div className="w-full max-w-xl animate-fade-in">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Create your listing
               </h1>
-              <p className="text-gray-500 mt-2">
+              <p className="text-gray-500 mt-1.5">
                 Add your details to start connecting with families.
               </p>
             </div>
 
             {/* Preview Form */}
-            <form id="preview-form" onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-6">
+            <form id="preview-form" onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
               {/* Organization Name */}
               <div className="space-y-2">
                 <label htmlFor="previewOrgName" className="block text-base font-semibold text-gray-900">
@@ -1948,36 +2124,13 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-sm text-gray-500">We&apos;ll send a verification link to this email</p>
-              </div>
-
-              {/* Phone Number (new field) */}
-              <div className="space-y-2">
-                <label htmlFor="previewPhone" className="block text-base font-semibold text-gray-900">
-                  Business phone <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <input
-                    id="previewPhone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                    autoComplete="tel"
-                    className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                  />
-                </div>
               </div>
 
               {/* Care Types (multi-select) */}
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
-                  What services do you provide? <span className="text-red-500">*</span>
+                  Services <span className="text-gray-400 font-normal">(select all that apply)</span>
                 </label>
-                <p className="text-sm text-gray-500 -mt-0.5">Select all that apply</p>
                 <div className="flex flex-wrap gap-2">
                   {CARE_TYPE_OPTIONS.map((type) => {
                     const isSelected = formData.careTypes.includes(type.id);
@@ -2011,29 +2164,77 @@ function ProviderOnboardingContent() {
 
               <p className="text-center text-sm text-gray-500">
                 By creating a listing, you agree to our{" "}
-                <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline">
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
                   Terms of Service
                 </Link>
               </p>
+
+              {/* Action buttons - Desktop only (inline) */}
+              <div className="hidden md:flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionError("");
+                    setScreen(createNewSelected ? "search" : "results");
+                  }}
+                  className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={isBusinessEmail(formData.email)
+                    ? handleInstantClaimNewOrg
+                    : handleSignInToCreateNewOrg}
+                  disabled={actionLoading === "preview-submit"}
+                  className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {actionLoading === "preview-submit" ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          back={{
-            label: "Back",
-            onClick: () => {
-              setActionError("");
-              setScreen("results");
-            },
-          }}
-          primary={{
-            label: "Create My Listing",
-            onClick: () => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit(),
-            loading: actionLoading === "preview-submit",
-          }}
-        />
+        {/* Mobile sticky bottom nav */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-vanilla-100 border-t border-vanilla-200 px-4 py-4 safe-area-inset-bottom">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setScreen(createNewSelected ? "search" : "results");
+              }}
+              className="px-4 py-3 text-base font-medium text-gray-600 border border-gray-300 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={isBusinessEmail(formData.email)
+                ? handleInstantClaimNewOrg
+                : handleSignInToCreateNewOrg}
+              disabled={actionLoading === "preview-submit"}
+              className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {actionLoading === "preview-submit" ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                isBusinessEmail(formData.email) ? "Create listing" : "Sign in to create"
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2070,9 +2271,9 @@ function ProviderOnboardingContent() {
     const canInstantClaim = isBusinessDomain && (emailDomainMatches || nameDomainMatches);
 
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-vanilla-100">
         {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <nav className="sticky top-0 z-50 border-b border-vanilla-200 bg-vanilla-100/95 backdrop-blur-sm">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
@@ -2090,7 +2291,7 @@ function ProviderOnboardingContent() {
         <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
           <div className="max-w-lg w-full animate-fade-in">
             {/* Provider Card Preview */}
-            <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
               {/* Provider header */}
               <div className="flex items-center gap-4 p-5 border-b border-gray-100">
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative shrink-0 overflow-hidden">

@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home instead of entering a nursing home, Vermont's Choices for Care Waiver provides comprehensive home care services at no cost beyond Medicaid. The program covers personal care assistance, skilled nursing visits, and behavioral support — everything your parent would receive in a nursing facility, delivered at home.\n\nYour parent must qualify for nursing home level care (determined by a registered nurse assessment) and meet Medicaid financial requirements. Because Vermont prioritizes the highest-need applicants, those with the most severe functional limitations get services immediately, while others may wait depending on available funding. The program serves Vermont residents age 65+ with incomes up to 300% of SSI (approximately $1,900+ per month in recent data) and allows up to $10,000 in assets for community-living applicants in the highest need categories.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of entering a nursing home, Vermont's Choices for Care Waiver provides comprehensive home care services at no cost beyond Medicaid. The program covers personal care assistance, skilled nursing visits, and behavioral support — everything your loved one would receive in a nursing facility, delivered at home.\n\nYour loved one must qualify for nursing home level care (determined by a registered nurse assessment) and meet Medicaid financial requirements. Because Vermont prioritizes the highest-need applicants, those with the most severe functional limitations get services immediately, while others may wait depending on available funding. The program serves Vermont residents age 65+ with incomes up to 300% of SSI (approximately $1,900+ per month in recent data) and allows up to $10,000 in assets for community-living applicants in the highest need categories.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -69,7 +69,7 @@
           {
             "step": 1,
             "title": "Start with financial eligibility",
-            "description": "Contact Department of Vermont Health Access (DVHA), Economic Services Division (ESD) to begin financial screening. They'll review your parent's income, assets, and residency status."
+            "description": "Contact Department of Vermont Health Access (DVHA), Economic Services Division (ESD) to begin financial screening. They'll review your loved one's income, assets, and residency status."
           },
           {
             "step": 2,
@@ -160,36 +160,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limits?",
-          "answer": "Yes, your parent's primary home is exempt from asset limits as long as they intend to return home or if a spouse, minor child, or disabled adult child lives there. However, home equity cannot exceed $730,000 in 2025. The home remains protected even while receiving waiver services."
+          "question": "Can my loved one keep their house if it's worth more than the asset limits?",
+          "answer": "Yes, your loved one's primary home is exempt from asset limits as long as they intend to return home or if a spouse, minor child, or disabled adult child lives there. However, home equity cannot exceed $730,000 in 2025. The home remains protected even while receiving waiver services."
         },
         {
-          "question": "What happens if my parent is in High Needs but there's a waitlist?",
+          "question": "What happens if my loved one is in High Needs but there's a waitlist?",
           "answer": "High Needs and Moderate Needs applicants may wait for services depending on available state funding. Vermont doesn't specify wait times, but Highest Needs applicants get immediate services. Contact DAIL regularly for updates on your position and estimated wait times in your area."
         },
         {
-          "question": "Can I apply while my parent is still in the hospital?",
+          "question": "Can I apply while my loved one is still in the hospital?",
           "answer": "Yes, and this is often the best time to start the process. Hospital discharge planners frequently help initiate CFC applications. Having both financial and clinical assessments completed before discharge can prevent gaps in care when transitioning home."
         },
         {
-          "question": "What if my parent transferred money to family members in the past 5 years?",
-          "answer": "Vermont applies a 60-month look-back rule for asset transfers below fair market value. These transfers may result in penalty periods where your parent is temporarily ineligible for services. The penalty length depends on the transfer amount and timing. Consult with ESD about specific transfer situations."
+          "question": "What if my loved one transferred money to family members in the past 5 years?",
+          "answer": "Vermont applies a 60-month look-back rule for asset transfers below fair market value. These transfers may result in penalty periods where your loved one is temporarily ineligible for services. The penalty length depends on the transfer amount and timing. Consult with ESD about specific transfer situations."
         },
         {
-          "question": "How much of my parent's income can they keep for personal expenses?",
-          "answer": "Your parent keeps income for personal needs, uncovered medical expenses, and spouse or dependent support. If your parent is married and has excess shelter costs, their spouse can receive up to $2,644-$3,948 of the applicant's income. ESD calculates the exact amount based on individual circumstances."
+          "question": "How much of my loved one's income can they keep for personal expenses?",
+          "answer": "Your loved one keeps income for personal needs, uncovered medical expenses, and spouse or dependent support. If your loved one is married and has excess shelter costs, their spouse can receive up to $2,644-$3,948 of the applicant's income. ESD calculates the exact amount based on individual circumstances."
         },
         {
           "question": "Can family members provide some care while receiving waiver services?",
-          "answer": "Yes, the waiver supplements rather than replaces family care. The program provides professional services your family cannot safely provide, like skilled nursing care or when your parent needs more hours of assistance than family can manage. The care plan considers available family support."
+          "answer": "Yes, the waiver supplements rather than replaces family care. The program provides professional services your family cannot safely provide, like skilled nursing care or when your loved one needs more hours of assistance than family can manage. The care plan considers available family support."
         },
         {
           "question": "What specific services does the waiver actually provide at home?",
-          "answer": "Services include personal care assistance with bathing, dressing, and toileting; skilled nursing for wound care or medication management; behavioral support for dementia-related issues; and other services equivalent to nursing facility care. The exact services depend on your parent's assessed needs and care plan."
+          "answer": "Services include personal care assistance with bathing, dressing, and toileting; skilled nursing for wound care or medication management; behavioral support for dementia-related issues; and other services equivalent to nursing facility care. The exact services depend on your loved one's assessed needs and care plan."
         },
         {
-          "question": "What if my parent's condition changes after enrollment?",
-          "answer": "Vermont reassesses participants periodically and when conditions change significantly. If your parent's needs increase, they may move to a higher priority level with more services. If needs decrease substantially, services may be reduced, but the goal is maintaining community living safely."
+          "question": "What if my loved one's condition changes after enrollment?",
+          "answer": "Vermont reassesses participants periodically and when conditions change significantly. If your loved one's needs increase, they may move to a higher priority level with more services. If needs decrease substantially, services may be reduced, but the goal is maintaining community living safely."
         }
       ],
       "layoutIntent": {
@@ -210,14 +210,14 @@
       "id": "medicaid-abd",
       "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
       "shortName": "Medicaid ABD",
-      "tagline": "Comprehensive health coverage for your parent if they're 65+, blind, or disabled and on a limited income",
+      "tagline": "Comprehensive health coverage for your loved one if they're 65+, blind, or disabled and on a limited income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65+, blind, or disabled with limited income and assets, Vermont's Medicaid ABD program can cover their medical costs completely. This includes doctor visits, hospital care, prescription drugs, and long-term care services like home health aides or personal care assistance. Unlike regular Medicaid, this program is specifically designed for older adults and people with disabilities.\n\nIncome limits are $1,375/month for a single person outside Chittenden County, or $1,441/month inside Chittenden County (2025-2026 figures). Your parent can have up to $2,000 in countable assets while keeping their home, one vehicle, and personal belongings. Because this program covers both medical care and long-term supports, it can eliminate thousands in monthly healthcare expenses.\n\nThis is a separate application process from regular Vermont Medicaid — you cannot use Vermont Health Connect. You must apply through the specific ABD portal or form, and functional assessments are required for long-term care services.",
+      "intro": "If your loved one is 65+, blind, or disabled with limited income and assets, Vermont's Medicaid ABD program can cover their medical costs completely. This includes doctor visits, hospital care, prescription drugs, and long-term care services like home health aides or personal care assistance. Unlike regular Medicaid, this program is specifically designed for older adults and people with disabilities.\n\nIncome limits are $1,375/month for a single person outside Chittenden County, or $1,441/month inside Chittenden County (2025-2026 figures). Your loved one can have up to $2,000 in countable assets while keeping their home, one vehicle, and personal belongings. Because this program covers both medical care and long-term supports, it can eliminate thousands in monthly healthcare expenses.\n\nThis is a separate application process from regular Vermont Medicaid — you cannot use Vermont Health Connect. You must apply through the specific ABD portal or form, and functional assessments are required for long-term care services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -248,7 +248,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "For long-term care services, your parent must need help with daily activities like bathing, dressing, mobility, or shopping. A functional assessment determines what services they qualify for.",
+        "functionalRequirement": "For long-term care services, your loved one must need help with daily activities like bathing, dressing, mobility, or shopping. A functional assessment determines what services they qualify for.",
         "otherRequirements": [
           "Vermont resident",
           "U.S. citizen or qualified immigrant",
@@ -273,12 +273,12 @@
           {
             "step": 3,
             "title": "Complete and submit application",
-            "description": "Fill out all sections completely. Missing information delays processing. If applying for long-term care services, medical records documenting your parent's functional needs are required."
+            "description": "Fill out all sections completely. Missing information delays processing. If applying for long-term care services, medical records documenting your loved one's functional needs are required."
           },
           {
             "step": 4,
             "title": "Complete functional assessment if needed",
-            "description": "If requesting long-term care services, a clinical assessment will determine what level of help your parent qualifies for — from home health aide hours to nursing home coverage."
+            "description": "If requesting long-term care services, a clinical assessment will determine what level of help your loved one qualifies for — from home health aide hours to nursing home coverage."
           }
         ],
         "processingTime": "Processing time not specified in state guidance",
@@ -324,7 +324,7 @@
       "applicationNotes": [
         "This is completely separate from regular Medicaid and Vermont Health Connect — using the wrong application system will delay your case",
         "Income limits vary by location: $1,375/month outside Chittenden County vs. $1,441/month inside Chittenden County",
-        "Spousal impoverishment protections apply if your parent is married — the healthy spouse can keep more assets and income",
+        "Spousal impoverishment protections apply if your loved one is married — the healthy spouse can keep more assets and income",
         "Basic ABD coverage doesn't require functional assessment, but long-term care services do require clinical evaluation of daily living needs"
       ],
       "relatedPrograms": [
@@ -336,28 +336,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary residence is exempt from the $2,000 asset limit as long as your parent intends to return home. This applies even if they're temporarily in a nursing home. However, if they permanently move to long-term care, equity limits may apply to recovery after death."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary residence is exempt from the $2,000 asset limit as long as your loved one intends to return home. This applies even if they're temporarily in a nursing home. However, if they permanently move to long-term care, equity limits may apply to recovery after death."
         },
         {
           "question": "What's the difference between this and regular Vermont Medicaid?",
           "answer": "ABD is specifically for people 65+, blind, or disabled with different income limits and a separate application process. You cannot apply through Vermont Health Connect. ABD also includes long-term care services that regular Medicaid may not cover."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage their own affairs. You may need to provide documentation of your authority to act (power of attorney) or the state may appoint you as a representative during the application process."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage their own affairs. You may need to provide documentation of your authority to act (power of attorney) or the state may appoint you as a representative during the application process."
         },
         {
-          "question": "Will this affect my parent's Medicare benefits?",
+          "question": "Will this affect my loved one's Medicare benefits?",
           "answer": "No, ABD works alongside Medicare as secondary coverage. Medicare pays first, then ABD covers what Medicare doesn't pay, including copays, deductibles, and services Medicare doesn't cover like long-term personal care."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
+          "question": "What happens if my loved one's income is slightly over the limit?",
           "answer": "They may still qualify through spend-down provisions where medical expenses reduce countable income, or through other Medicaid pathways. Call 1-800-250-8427 to discuss options — don't assume they're automatically ineligible."
         },
         {
           "question": "How long does the functional assessment take for long-term care services?",
-          "answer": "The assessment is a separate process after ABD approval and timing varies by region and assessor availability. The clinical team evaluates your parent's ability to perform daily activities like bathing, dressing, and medication management to determine service levels."
+          "answer": "The assessment is a separate process after ABD approval and timing varies by region and assessor availability. The clinical team evaluates your loved one's ability to perform daily activities like bathing, dressing, and medication management to determine service levels."
         }
       ],
       "layoutIntent": {
@@ -391,7 +391,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and qualifies for nursing home care but wants to stay in their home, PACE provides all their medical and social services through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to home care under one program, your parent won't need to juggle multiple providers — the PACE team manages their entire care plan.\n\nAbout 90% of PACE participants have both Medicare and Medicaid, which covers all costs. If your parent has Medicare only, they can still enroll but will pay approximately $4,000-$5,000 per month for long-term care services if they need nursing home level care later.\n\nPACE is only available in select areas of Vermont, and most programs have waitlists due to limited capacity. Your parent must live in a PACE service area and be able to live safely in the community with support.",
+      "intro": "If your loved one is 55+ and qualifies for nursing home care but wants to stay in their home, PACE provides all their medical and social services through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to home care under one program, your loved one won't need to juggle multiple providers — the PACE team manages their entire care plan.\n\nAbout 90% of PACE participants have both Medicare and Medicaid, which covers all costs. If your loved one has Medicare only, they can still enroll but will pay approximately $4,000-$5,000 per month for long-term care services if they need nursing home level care later.\n\nPACE is only available in select areas of Vermont, and most programs have waitlists due to limited capacity. Your loved one must live in a PACE service area and be able to live safely in the community with support.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -405,7 +405,7 @@
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must meet nursing home level of care (clinical assessment showing your parent needs daily help with activities like bathing, dressing, medication management, or has conditions requiring skilled nursing supervision)",
+        "functionalRequirement": "Must meet nursing home level of care (clinical assessment showing your loved one needs daily help with activities like bathing, dressing, medication management, or has conditions requiring skilled nursing supervision)",
         "otherRequirements": [
           "Live in the service area of a Vermont PACE program",
           "Able to live safely in the community with PACE support"
@@ -419,27 +419,27 @@
           {
             "step": 1,
             "title": "Find your local PACE program",
-            "description": "Use the National PACE Association finder at npaonline.org/find-a-pace-program to locate Vermont programs in your parent's area. Not all areas have PACE."
+            "description": "Use the National PACE Association finder at npaonline.org/find-a-pace-program to locate Vermont programs in your loved one's area. Not all areas have PACE."
           },
           {
             "step": 2,
             "title": "Call for initial screening",
-            "description": "Contact the PACE center directly or call Medicare at 1-800-633-4227 to discuss your parent's situation and schedule an assessment."
+            "description": "Contact the PACE center directly or call Medicare at 1-800-633-4227 to discuss your loved one's situation and schedule an assessment."
           },
           {
             "step": 3,
             "title": "Complete in-person assessment",
-            "description": "PACE staff will meet with your parent to evaluate their health, social needs, and living situation. This determines both eligibility and develops their personalized care plan."
+            "description": "PACE staff will meet with your loved one to evaluate their health, social needs, and living situation. This determines both eligibility and develops their personalized care plan."
           },
           {
             "step": 4,
             "title": "Wait for enrollment decision",
-            "description": "If eligible and space is available, your parent can enroll. If there's a waitlist, you'll be notified when a spot opens."
+            "description": "If eligible and space is available, your loved one can enroll. If there's a waitlist, you'll be notified when a spot opens."
           }
         ],
         "processingTime": "Varies by location and enrollment capacity",
         "waitlist": "Common due to limited spaces — varies by program",
-        "tip": "Prepare for the assessment by gathering all medical records and having your parent's current medications list ready.",
+        "tip": "Prepare for the assessment by gathering all medical records and having your loved one's current medications list ready.",
         "urls": [
           {
             "label": "Find Vermont PACE Programs",
@@ -484,9 +484,9 @@
         }
       ],
       "applicationNotes": [
-        "Your parent cannot use Medicare Advantage, other Medicare Part D plans, HCBS waivers, or hospice while enrolled in PACE — PACE becomes their sole source of Medicare and Medicaid services",
+        "Your loved one cannot use Medicare Advantage, other Medicare Part D plans, HCBS waivers, or hospice while enrolled in PACE — PACE becomes their sole source of Medicare and Medicaid services",
         "Even if there's a waitlist, apply early — priority may be given based on immediate need or risk factors",
-        "Your parent can leave PACE at any time, but if PACE denies enrollment or disenrolls them, they must provide a written reason",
+        "Your loved one can leave PACE at any time, but if PACE denies enrollment or disenrolls them, they must provide a written reason",
         "Medicare-only participants who later need nursing home level care will face high monthly premiums averaging $4,000-$5,000"
       ],
       "relatedPrograms": [
@@ -497,36 +497,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if there's no PACE program in my parent's area?",
-          "answer": "PACE is only available in select Vermont regions. If no program serves your parent's area, they'll need to use other Medicare and Medicaid services separately. Contact Vermont 2-1-1 at 2-1-1 for alternative long-term care options like the Choices for Care waiver program."
+          "question": "What if there's no PACE program in my loved one's area?",
+          "answer": "PACE is only available in select Vermont regions. If no program serves your loved one's area, they'll need to use other Medicare and Medicaid services separately. Contact Vermont 2-1-1 at 2-1-1 for alternative long-term care options like the Choices for Care waiver program."
         },
         {
-          "question": "Can my parent keep their current doctors after joining PACE?",
-          "answer": "No. PACE provides all medical care through their own team of doctors, nurses, and specialists. Your parent cannot see outside providers while enrolled in PACE, except in emergencies when the PACE team authorizes care."
+          "question": "Can my loved one keep their current doctors after joining PACE?",
+          "answer": "No. PACE provides all medical care through their own team of doctors, nurses, and specialists. Your loved one cannot see outside providers while enrolled in PACE, except in emergencies when the PACE team authorizes care."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlist length varies significantly by PACE program location and changes frequently based on enrollment capacity. Some programs may have immediate openings while others have months-long waits. Contact your local PACE program directly for current wait times."
         },
         {
-          "question": "What happens if my parent's income is too high for Medicaid but they can't afford $4,000+ monthly?",
-          "answer": "Your parent may be able to 'spend down' their income by paying medical expenses to qualify for Medicaid. Contact Vermont Medicaid at (800) 250-8427 to discuss spend-down options before enrolling in PACE as Medicare-only."
+          "question": "What happens if my loved one's income is too high for Medicaid but they can't afford $4,000+ monthly?",
+          "answer": "Your loved one may be able to 'spend down' their income by paying medical expenses to qualify for Medicaid. Contact Vermont Medicaid at (800) 250-8427 to discuss spend-down options before enrolling in PACE as Medicare-only."
         },
         {
-          "question": "Can I apply for PACE while my parent is in the hospital?",
+          "question": "Can I apply for PACE while my loved one is in the hospital?",
           "answer": "Yes. Hospital discharge planners can often initiate the PACE assessment process. This is actually ideal timing since PACE can coordinate the discharge and provide immediate home support services."
         },
         {
-          "question": "What if my parent needs nursing home care later?",
+          "question": "What if my loved one needs nursing home care later?",
           "answer": "PACE covers nursing home care when medically necessary. For dual-eligible participants, this is covered at no cost. Medicare-only participants would pay the full nursing home premium, which averages $4,000-$5,000 monthly."
         },
         {
           "question": "Can family members participate in the care planning?",
-          "answer": "Yes. PACE encourages family involvement in care plan development and regular team meetings. Family members can attend assessments and care conferences with your parent's permission."
+          "answer": "Yes. PACE encourages family involvement in care plan development and regular team meetings. Family members can attend assessments and care conferences with your loved one's permission."
         },
         {
-          "question": "What if my parent wants to leave PACE?",
-          "answer": "Your parent can disenroll from PACE at any time and return to regular Medicare and Medicaid services. They'll need to choose new providers and insurance plans. Contact Medicare at (800) 633-4227 for help transitioning back to traditional Medicare."
+          "question": "What if my loved one wants to leave PACE?",
+          "answer": "Your loved one can disenroll from PACE at any time and return to regular Medicare and Medicaid services. They'll need to choose new providers and insurance plans. Contact Medicare at (800) 633-4227 for help transitioning back to traditional Medicare."
         }
       ],
       "layoutIntent": {
@@ -547,7 +547,7 @@
       "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Your parent could get their Medicare premiums and medical costs covered if they earn less than $1,781/month as a single person.",
+      "tagline": "Your loved one could get their Medicare premiums and medical costs covered if they earn less than $1,781/month as a single person.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -560,7 +560,7 @@
           }
         ]
       },
-      "intro": "If your parent is enrolled in Medicare and has limited income, Vermont's Medicare Savings Programs can cover their monthly Medicare premiums and medical costs. QMB (the most comprehensive level) covers the $202.90/month Medicare Part B premium plus all deductibles and copayments for Medicare-covered services. SLMB and QI cover the Part B premium only.\n\nVermont has no asset limits for these programs, unlike most states. Your parent can own their home, have savings, and still qualify based purely on income. Income limits for 2025: QMB covers people earning up to $1,305/month single ($1,763/month couple), SLMB up to $1,565/month single ($2,115/month couple), and QI up to $1,781/month single ($2,400/month couple).\n\nAll three programs automatically qualify your parent for Extra Help with Medicare Part D prescription drug costs. Because Vermont administers these through the same office as Medicaid, you apply once and they'll determine which program your parent qualifies for.",
+      "intro": "If your loved one is enrolled in Medicare and has limited income, Vermont's Medicare Savings Programs can cover their monthly Medicare premiums and medical costs. QMB (the most comprehensive level) covers the $202.90/month Medicare Part B premium plus all deductibles and copayments for Medicare-covered services. SLMB and QI cover the Part B premium only.\n\nVermont has no asset limits for these programs, unlike most states. Your loved one can own their home, have savings, and still qualify based purely on income. Income limits for 2025: QMB covers people earning up to $1,305/month single ($1,763/month couple), SLMB up to $1,565/month single ($2,115/month couple), and QI up to $1,781/month single ($2,400/month couple).\n\nAll three programs automatically qualify your loved one for Extra Help with Medicare Part D prescription drug costs. Because Vermont administers these through the same office as Medicaid, you apply once and they'll determine which program your loved one qualifies for.",
       "savingsRange": "$2,435 – $4,870/year in 2025",
       "savingsSource": "Medicare Part B premiums ($202.90/month) plus estimated deductibles and copayments for QMB tier",
       "savingsVerified": true,
@@ -635,7 +635,7 @@
           {
             "step": 4,
             "title": "Get determination",
-            "description": "Vermont will notify you of approval and which tier your parent qualifies for. Coverage can be retroactive up to 3 months if eligible."
+            "description": "Vermont will notify you of approval and which tier your loved one qualifies for. Coverage can be retroactive up to 3 months if eligible."
           }
         ],
         "processingTime": "Typically 45 days for Medicaid-related applications per federal rules",
@@ -686,8 +686,8 @@
       "applicationNotes": [
         "Income disregards apply: Vermont excludes the first $20 of any income, plus the first $65 of earned income and 50% of remaining earnings — this can help borderline cases qualify",
         "Vermont's no-asset-test policy is unusual — many people who wouldn't qualify in other states can get coverage here",
-        "If your parent has full Medicaid, they can't get QI but may qualify for QMB or SLMB which provide additional Medicare cost coverage",
-        "Coverage can be retroactive up to 3 months if your parent was eligible but not enrolled"
+        "If your loved one has full Medicaid, they can't get QI but may qualify for QMB or SLMB which provide additional Medicare cost coverage",
+        "Coverage can be retroactive up to 3 months if your loved one was eligible but not enrolled"
       ],
       "relatedPrograms": [
         "Extra Help (Medicare Part D Low-Income Subsidy)",
@@ -704,37 +704,37 @@
         {
           "type": "callout",
           "title": "Vermont Advantage: No Asset Test",
-          "content": "Unlike most states that limit assets to around $9,950 for individuals, Vermont has NO asset limits for Medicare Savings Programs. Your parent can own their home, have savings accounts, investments, or other assets and still qualify based purely on income. Many families miss out on these benefits in other states due to asset limits — not an issue in Vermont."
+          "content": "Unlike most states that limit assets to around $9,950 for individuals, Vermont has NO asset limits for Medicare Savings Programs. Your loved one can own their home, have savings accounts, investments, or other assets and still qualify based purely on income. Many families miss out on these benefits in other states due to asset limits — not an issue in Vermont."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent apply for all three programs or do I need to choose one?",
-          "answer": "You don't choose — Vermont automatically determines which program your parent qualifies for based on income. They'll assign the highest benefit level possible (QMB is best, then SLMB, then QI)."
+          "question": "Can my loved one apply for all three programs or do I need to choose one?",
+          "answer": "You don't choose — Vermont automatically determines which program your loved one qualifies for based on income. They'll assign the highest benefit level possible (QMB is best, then SLMB, then QI)."
         },
         {
-          "question": "What if my parent's income is slightly over the limit but they have high medical expenses?",
+          "question": "What if my loved one's income is slightly over the limit but they have high medical expenses?",
           "answer": "Apply anyway. Vermont allows income deductions including $20 off any income source, plus $65 off earned income and 50% of remaining earnings. Medical expenses may also reduce countable income in some cases."
         },
         {
-          "question": "Will providers actually accept that my parent doesn't owe copayments with QMB?",
-          "answer": "By law, providers cannot bill QMB enrollees for Medicare-covered services. If a provider tries to bill your parent, contact Vermont Medicaid at 1-800-250-8427. Keep your QMB card as proof."
+          "question": "Will providers actually accept that my loved one doesn't owe copayments with QMB?",
+          "answer": "By law, providers cannot bill QMB enrollees for Medicare-covered services. If a provider tries to bill your loved one, contact Vermont Medicaid at 1-800-250-8427. Keep your QMB card as proof."
         },
         {
-          "question": "Can my parent keep their Medicare Supplement (Medigap) plan if they get QMB?",
-          "answer": "Yes, but QMB covers the same costs as most Medigap plans (deductibles, copayments). Your parent might want to drop expensive Medigap coverage since QMB provides the same benefits for free."
+          "question": "Can my loved one keep their Medicare Supplement (Medigap) plan if they get QMB?",
+          "answer": "Yes, but QMB covers the same costs as most Medigap plans (deductibles, copayments). Your loved one might want to drop expensive Medigap coverage since QMB provides the same benefits for free."
         },
         {
           "question": "How long does it take to get Extra Help for prescriptions after QMB approval?",
           "answer": "Extra Help is automatic once any Medicare Savings Program is approved. You should receive your Extra Help card within 2-3 weeks of QMB/SLMB/QI approval."
         },
         {
-          "question": "What happens if my parent's income changes after enrollment?",
-          "answer": "Report income changes to Vermont Medicaid at 1-800-250-8427. They'll reassess and may move your parent between program tiers (QMB to SLMB, etc.) or discontinue if income becomes too high."
+          "question": "What happens if my loved one's income changes after enrollment?",
+          "answer": "Report income changes to Vermont Medicaid at 1-800-250-8427. They'll reassess and may move your loved one between program tiers (QMB to SLMB, etc.) or discontinue if income becomes too high."
         },
         {
-          "question": "Can I apply for my parent if they have dementia or can't manage paperwork?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You may need to become an authorized representative or provide power of attorney documentation depending on the situation."
+          "question": "Can I apply for my loved one if they have dementia or can't manage paperwork?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You may need to become an authorized representative or provide power of attorney documentation depending on the situation."
         },
         {
           "question": "Does QMB cover dental, vision, or hearing aids that Medicare doesn't cover?",
@@ -759,7 +759,7 @@
       "id": "3squaresvt-older-vermonters",
       "name": "3SquaresVT for Older Vermonters",
       "shortName": "3SquaresVT",
-      "tagline": "If your parent is 60+ and living on Social Security, they may qualify for monthly grocery assistance with a simplified 3-year application.",
+      "tagline": "If your loved one is 60+ and living on Social Security, they may qualify for monthly grocery assistance with a simplified 3-year application.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -772,7 +772,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60 or older in Vermont, they may qualify for monthly food benefits through 3SquaresVT's simplified application process. This program provides an EBT card that works like a debit card at over 600 Vermont retailers and 40+ farmers' markets. For parents 65+ or receiving SSI, benefits can even be issued as cash deposited directly into their bank account.\n\nBecause this is designed specifically for older adults, the application process is streamlined — households where everyone is 60+ with no job income qualify for a shorter application and only need to recertify every 3 years instead of annually. The exact benefit amount depends on income and household size, but the program helps stretch grocery budgets for Vermont seniors on fixed incomes.",
+      "intro": "If your loved one is 60 or older in Vermont, they may qualify for monthly food benefits through 3SquaresVT's simplified application process. This program provides an EBT card that works like a debit card at over 600 Vermont retailers and 40+ farmers' markets. For parents 65+ or receiving SSI, benefits can even be issued as cash deposited directly into their bank account.\n\nBecause this is designed specifically for older adults, the application process is streamlined — households where everyone is 60+ with no job income qualify for a shorter application and only need to recertify every 3 years instead of annually. The exact benefit amount depends on income and household size, but the program helps stretch grocery budgets for Vermont seniors on fixed incomes.",
       "savingsRange": "",
       "savingsSource": "Monthly food benefit amount",
       "savingsVerified": false,
@@ -812,7 +812,7 @@
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply online at dcf.vermont.gov with a simplified application if your parent is 60+ with no job income.",
+        "summary": "Apply online at dcf.vermont.gov with a simplified application if your loved one is 60+ with no job income.",
         "steps": [
           {
             "step": 1,
@@ -837,7 +837,7 @@
         ],
         "processingTime": "Processing time not specified in available sources",
         "waitlist": null,
-        "tip": "If your parent receives SSI, mention this upfront — they automatically qualify and may be eligible for cash benefits instead of just food assistance.",
+        "tip": "If your loved one receives SSI, mention this upfront — they automatically qualify and may be eligible for cash benefits instead of just food assistance.",
         "urls": [
           {
             "label": "3SquaresVT Online Application",
@@ -885,7 +885,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. Only savings, investments, and similar assets count toward the $4,250 limit, and that limit only applies if income exceeds 185% of Federal Poverty Level."
         },
         {
@@ -893,19 +893,19 @@
           "answer": "The simplified '3SquaresVT in a SNAP' application is shorter and only requires recertification every 3 years instead of annually. It's only available if everyone in the household is 60+ or disabled and has no income from jobs or self-employment."
         },
         {
-          "question": "Can I apply for my parent if they have dementia or can't manage paperwork?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage the process themselves. You'll need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
+          "question": "Can I apply for my loved one if they have dementia or can't manage paperwork?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage the process themselves. You'll need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
         },
         {
           "question": "How is the cash benefit option different from the EBT card?",
           "answer": "Parents who are 65+ or receive SSI can choose to have their benefits deposited directly into their bank account as cash instead of receiving an EBT card restricted to food purchases. This provides more flexibility in how they use the assistance."
         },
         {
-          "question": "Can my parent get 3SquaresVT and Meals on Wheels at the same time?",
+          "question": "Can my loved one get 3SquaresVT and Meals on Wheels at the same time?",
           "answer": "Yes, these programs can be used together. 3SquaresVT helps with grocery costs while Meals on Wheels provides prepared meals. Having one doesn't prevent qualification for the other."
         },
         {
-          "question": "What happens if my parent's Social Security increases after they're approved?",
+          "question": "What happens if my loved one's Social Security increases after they're approved?",
           "answer": "Income changes must be reported, but if they're on the simplified 3-year certification, they won't need to recertify until the full review period. Small Social Security cost-of-living increases typically won't affect eligibility."
         }
       ],
@@ -927,7 +927,7 @@
       "id": "fuel-assistance-heating-help",
       "name": "Fuel Assistance Program",
       "shortName": "Fuel Assistance",
-      "tagline": "Get up to several hundred dollars toward your parent's annual heating costs — oil, propane, electricity, wood, or pellets.",
+      "tagline": "Get up to several hundred dollars toward your loved one's annual heating costs — oil, propane, electricity, wood, or pellets.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -940,7 +940,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills — whether they use oil, propane, electricity, wood, or pellets — Vermont's Fuel Assistance Program provides a yearly payment made directly to their fuel provider. The program serves households at or below 200% of the Federal Poverty Level (around $2,600/month for a single person in 2026) and covers homeowners and renters alike.\n\nBecause the benefit amount is based on your parent's income and average annual heating costs, lower-income households receive larger payments. The program also has Crisis Fuel assistance available from late November through April if your parent runs dangerously low on fuel during winter months.\n\nApply before the end of November for the largest benefit amount. If your parent also qualifies for 3SquaresVT (food assistance), this program may boost those benefits as well.",
+      "intro": "If your loved one struggles with high heating bills — whether they use oil, propane, electricity, wood, or pellets — Vermont's Fuel Assistance Program provides a yearly payment made directly to their fuel provider. The program serves households at or below 200% of the Federal Poverty Level (around $2,600/month for a single person in 2026) and covers homeowners and renters alike.\n\nBecause the benefit amount is based on your loved one's income and average annual heating costs, lower-income households receive larger payments. The program also has Crisis Fuel assistance available from late November through April if your loved one runs dangerously low on fuel during winter months.\n\nApply before the end of November for the largest benefit amount. If your loved one also qualifies for 3SquaresVT (food assistance), this program may boost those benefits as well.",
       "savingsRange": "",
       "savingsSource": "Amount varies by income and heating costs",
       "savingsVerified": false,
@@ -1053,27 +1053,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for both regular Fuel Assistance and Crisis Fuel in the same year?",
-          "answer": "Yes, these are separate programs. Regular Fuel Assistance provides a yearly benefit, while Crisis Fuel helps when your parent runs dangerously low on heating fuel during winter months (late November through April). Apply for regular assistance before November ends, and apply for Crisis assistance only when fuel is nearly depleted."
+          "question": "Can my loved one apply for both regular Fuel Assistance and Crisis Fuel in the same year?",
+          "answer": "Yes, these are separate programs. Regular Fuel Assistance provides a yearly benefit, while Crisis Fuel helps when your loved one runs dangerously low on heating fuel during winter months (late November through April). Apply for regular assistance before November ends, and apply for Crisis assistance only when fuel is nearly depleted."
         },
         {
-          "question": "What if my parent pays heat through their rent — are they still eligible?",
+          "question": "What if my loved one pays heat through their rent — are they still eligible?",
           "answer": "Yes, renters are eligible whether they pay heating costs separately or through their rent. You'll need to provide your lease agreement showing the heating arrangement. The benefit amount calculation considers whether heat is included in rent or paid separately."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has trouble getting to offices?",
+          "question": "Can I apply on behalf of my elderly loved one who has trouble getting to offices?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled parents. For Crisis Fuel assistance, which normally requires in-person application, elderly or disabled applicants may apply by phone. Call your local Community Action Agency to arrange this."
         },
         {
-          "question": "My parent heats with wood — does that qualify for assistance?",
+          "question": "My loved one heats with wood — does that qualify for assistance?",
           "answer": "Yes, the program covers wood, pellets, oil, propane, kerosene, and electricity for heating. You'll need to provide receipts or documentation of wood purchases and delivery costs. The benefit is paid directly to your wood supplier or fuel provider."
         },
         {
-          "question": "Will receiving Fuel Assistance affect my parent's other benefits like Medicare or Social Security?",
-          "answer": "No, Fuel Assistance won't reduce Medicare or Social Security benefits. In fact, if your parent receives 3SquaresVT (food assistance), qualifying for Fuel Assistance may increase their food benefit amount because it's considered a related program."
+          "question": "Will receiving Fuel Assistance affect my loved one's other benefits like Medicare or Social Security?",
+          "answer": "No, Fuel Assistance won't reduce Medicare or Social Security benefits. In fact, if your loved one receives 3SquaresVT (food assistance), qualifying for Fuel Assistance may increase their food benefit amount because it's considered a related program."
         },
         {
-          "question": "What happens if my parent's heating system breaks down during winter?",
+          "question": "What happens if my loved one's heating system breaks down during winter?",
           "answer": "This may qualify as a heating emergency under Crisis Fuel assistance. Contact your local Community Action Agency immediately at (800) 639-1053. They can help with emergency fuel needs and may have connections to heating system repair programs."
         },
         {
@@ -1081,8 +1081,8 @@
           "answer": "Yes — apply before the end of November to qualify for the largest benefit amount. Applications submitted after November may receive reduced benefits or may need to wait until the next heating season, depending on available funding."
         },
         {
-          "question": "Can my parent receive both Fuel Assistance and utility company discount programs?",
-          "answer": "Yes, these programs are separate. Your parent can receive Fuel Assistance and also qualify for utility discount programs like Green Mountain Power's low-income rates or Vermont Gas customer assistance. Apply for both — they don't conflict with each other."
+          "question": "Can my loved one receive both Fuel Assistance and utility company discount programs?",
+          "answer": "Yes, these programs are separate. Your loved one can receive Fuel Assistance and also qualify for utility discount programs like Green Mountain Power's low-income rates or Vermont Gas customer assistance. Apply for both — they don't conflict with each other."
         }
       ],
       "layoutIntent": {
@@ -1103,7 +1103,7 @@
       "id": "weatherization-assistance",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Get up to $10,000 in free home energy improvements to cut your parent's heating bills.",
+      "tagline": "Get up to $10,000 in free home energy improvements to cut your loved one's heating bills.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1132,7 +1132,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills in Vermont, they may qualify for free home energy improvements worth an average of $10,000. The Weatherization Assistance Program provides insulation, air sealing, and safety upgrades at no cost to help reduce monthly energy bills.\n\nYour parent can qualify in two ways: either their household income falls below specific county limits (ranging from $62,580 to $72,695 for a single person depending on county), or they already receive certain benefits like SSI, Reach Up, or seasonal fuel assistance. Because the program focuses on properties rather than just individuals, each home can only receive weatherization once every 15 years.\n\nFor rental properties, both your parent and their landlord must agree to participate. The landlord pays nothing but must consent to the improvements, which typically include insulation, weatherstripping, and heating system upgrades managed by one of five regional community action agencies across Vermont.",
+      "intro": "If your loved one struggles with high heating bills in Vermont, they may qualify for free home energy improvements worth an average of $10,000. The Weatherization Assistance Program provides insulation, air sealing, and safety upgrades at no cost to help reduce monthly energy bills.\n\nYour loved one can qualify in two ways: either their household income falls below specific county limits (ranging from $62,580 to $72,695 for a single person depending on county), or they already receive certain benefits like SSI, Reach Up, or seasonal fuel assistance. Because the program focuses on properties rather than just individuals, each home can only receive weatherization once every 15 years.\n\nFor rental properties, both your loved one and their landlord must agree to participate. The landlord pays nothing but must consent to the improvements, which typically include insulation, weatherstripping, and heating system upgrades managed by one of five regional community action agencies across Vermont.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1194,7 +1194,7 @@
           {
             "step": 1,
             "title": "Find your regional agency",
-            "description": "Vermont has 5 agencies: BROC, Capstone, CVOEO, NETO, and SEVCA. Contact the one serving your parent's county."
+            "description": "Vermont has 5 agencies: BROC, Capstone, CVOEO, NETO, and SEVCA. Contact the one serving your loved one's county."
           },
           {
             "step": 2,
@@ -1219,7 +1219,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent receives SSI, Reach Up, or fuel assistance, mention this immediately — it may speed up eligibility verification.",
+        "tip": "If your loved one receives SSI, Reach Up, or fuel assistance, mention this immediately — it may speed up eligibility verification.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1285,23 +1285,23 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's landlord won't agree to the weatherization work?",
-          "answer": "Both tenant and landlord must consent for rental properties. If the landlord refuses, your parent cannot receive weatherization through this program. The landlord pays nothing but must sign participation agreements allowing the improvements to their property."
+          "question": "What if my loved one's landlord won't agree to the weatherization work?",
+          "answer": "Both tenant and landlord must consent for rental properties. If the landlord refuses, your loved one cannot receive weatherization through this program. The landlord pays nothing but must sign participation agreements allowing the improvements to their property."
         },
         {
-          "question": "Can my parent apply if their home was weatherized 10 years ago?",
-          "answer": "No, properties are only eligible once every 15 years. If weatherization work was completed 10 years ago, your parent must wait 5 more years before the property becomes eligible again."
+          "question": "Can my loved one apply if their home was weatherized 10 years ago?",
+          "answer": "No, properties are only eligible once every 15 years. If weatherization work was completed 10 years ago, your loved one must wait 5 more years before the property becomes eligible again."
         },
         {
-          "question": "Which income limit applies if my parent lives right on a county border?",
-          "answer": "Income limits are based on where your parent's property is located, not where they receive mail or services. Chittenden, Franklin, and Grand Isle counties have the highest limits, while Addison County and the rest of Vermont have different thresholds."
+          "question": "Which income limit applies if my loved one lives right on a county border?",
+          "answer": "Income limits are based on where your loved one's property is located, not where they receive mail or services. Chittenden, Franklin, and Grand Isle counties have the highest limits, while Addison County and the rest of Vermont have different thresholds."
         },
         {
           "question": "What exactly gets improved in a typical weatherization project?",
           "answer": "Most homes receive insulation upgrades, air sealing around windows and doors, weatherstripping, and heating system improvements or repairs. The specific work depends on what the home assessment reveals, but projects average about $10,000 in improvements with no cost to residents."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "Yes, family members can initiate the application process, but you'll need to be clear about your legal authority to act on their behalf. Contact the regional agency to discuss what documentation they need for your specific situation."
         },
         {
@@ -1309,12 +1309,12 @@
           "answer": "The timeline isn't specified in program materials, but it involves multiple steps: eligibility verification, home assessment, work planning, and installation scheduling. Contact your regional agency for current wait times in your area."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
-          "answer": "If household income exceeds the county limits, your parent can still qualify if they receive SSI, Reach Up benefits, or seasonal fuel assistance. These categorical eligibilities don't have separate income tests."
+          "question": "What happens if my loved one's income is slightly over the limit?",
+          "answer": "If household income exceeds the county limits, your loved one can still qualify if they receive SSI, Reach Up benefits, or seasonal fuel assistance. These categorical eligibilities don't have separate income tests."
         },
         {
-          "question": "Can my parent get weatherization and energy assistance at the same time?",
-          "answer": "Yes, receiving fuel assistance actually helps qualify your parent for weatherization. These programs work together — energy assistance helps with current bills while weatherization reduces future energy costs."
+          "question": "Can my loved one get weatherization and energy assistance at the same time?",
+          "answer": "Yes, receiving fuel assistance actually helps qualify your loved one for weatherization. These programs work together — energy assistance helps with current bills while weatherization reduces future energy costs."
         }
       ],
       "layoutIntent": {
@@ -1335,7 +1335,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP Medicare Help",
-      "tagline": "Free one-on-one help understanding your parent's Medicare options and maximizing their benefits.",
+      "tagline": "Free one-on-one help understanding your loved one's Medicare options and maximizing their benefits.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1356,7 +1356,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and you're confused by their coverage options, SHIP provides free one-on-one counseling to help you understand and maximize their benefits. Trained counselors help compare Medicare plans, explain prescription coverage, assist with appeals, and connect your parent to money-saving programs like Medicare Savings Programs that can reduce premiums and copays.\n\nBecause SHIP counselors are independent (not insurance agents), they provide unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and Medicare Advantage plans. They also help with fraud prevention and can walk you through enrollment periods so your parent doesn't miss important deadlines.\n\nThis service is available to all Medicare beneficiaries in Vermont regardless of income, though they prioritize people with limited incomes and disabilities. No income or asset limits apply.",
+      "intro": "If your loved one has Medicare and you're confused by their coverage options, SHIP provides free one-on-one counseling to help you understand and maximize their benefits. Trained counselors help compare Medicare plans, explain prescription coverage, assist with appeals, and connect your loved one to money-saving programs like Medicare Savings Programs that can reduce premiums and copays.\n\nBecause SHIP counselors are independent (not insurance agents), they provide unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and Medicare Advantage plans. They also help with fraud prevention and can walk you through enrollment periods so your loved one doesn't miss important deadlines.\n\nThis service is available to all Medicare beneficiaries in Vermont regardless of income, though they prioritize people with limited incomes and disabilities. No income or asset limits apply.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1393,7 +1393,7 @@
           {
             "step": 3,
             "title": "Prepare for your session",
-            "description": "Gather your parent's Medicare card, current insurance information, and any specific questions about coverage, costs, or plan changes."
+            "description": "Gather your loved one's Medicare card, current insurance information, and any specific questions about coverage, costs, or plan changes."
           }
         ],
         "processingTime": "Appointments scheduled based on availability",
@@ -1437,20 +1437,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call SHIP to help my parent even if they already have Medicare coverage?",
-          "answer": "Yes. SHIP helps people who are already enrolled in Medicare compare their current plan to other options, especially during open enrollment. They can also help if your parent is having problems with claims, appeals, or understanding their benefits."
+          "question": "Can I call SHIP to help my loved one even if they already have Medicare coverage?",
+          "answer": "Yes. SHIP helps people who are already enrolled in Medicare compare their current plan to other options, especially during open enrollment. They can also help if your loved one is having problems with claims, appeals, or understanding their benefits."
         },
         {
           "question": "Will the counselor try to sell us insurance or recommend specific companies?",
-          "answer": "No. SHIP counselors are trained volunteers who don't sell insurance or receive commissions. They provide unbiased information to help you understand all your parent's options without pushing any particular plan or company."
+          "answer": "No. SHIP counselors are trained volunteers who don't sell insurance or receive commissions. They provide unbiased information to help you understand all your loved one's options without pushing any particular plan or company."
         },
         {
-          "question": "What if my parent lives in a rural area — can they still get help?",
+          "question": "What if my loved one lives in a rural area — can they still get help?",
           "answer": "Yes. SHIP operates through local Area Agencies on Aging across Vermont, including rural areas like the Northeast Kingdom. They offer phone counseling and can arrange in-person appointments at local sites when needed."
         },
         {
-          "question": "Can SHIP help if my parent has both Medicare and Medicaid?",
-          "answer": "Yes. SHIP counselors are trained to help people with dual coverage understand how Medicare and Medicaid work together. They can also help determine if your parent qualifies for additional savings programs for people with both coverages."
+          "question": "Can SHIP help if my loved one has both Medicare and Medicaid?",
+          "answer": "Yes. SHIP counselors are trained to help people with dual coverage understand how Medicare and Medicaid work together. They can also help determine if your loved one qualifies for additional savings programs for people with both coverages."
         }
       ],
       "layoutIntent": {
@@ -1471,7 +1471,7 @@
       "id": "meals-on-wheels",
       "name": "Meals on Wheels (Vermont)",
       "shortName": "Meals on Wheels",
-      "tagline": "Free hot meals delivered to your parent's home five days a week if they're 60+ and can't prepare their own food",
+      "tagline": "Free hot meals delivered to your loved one's home five days a week if they're 60+ and can't prepare their own food",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1496,7 +1496,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to prepare meals due to physical, mental, or cognitive challenges, Meals on Wheels Vermont delivers hot, nutritious meals directly to their home Monday through Friday. Each meal includes protein, vegetables, milk, juice, bread, and fruit that meets federal nutrition guidelines. Frozen meals are provided for weekends and holidays when kitchens are closed.\n\nThere are no income limits — your parent qualifies regardless of their financial situation. The suggested donation is $5–6 per meal depending on your provider, but no one is turned away for inability to pay. Because Vermont operates through regional providers rather than one statewide program, you must first identify which organization serves your county, then contact them directly for enrollment.",
+      "intro": "If your loved one is 60+ and struggles to prepare meals due to physical, mental, or cognitive challenges, Meals on Wheels Vermont delivers hot, nutritious meals directly to their home Monday through Friday. Each meal includes protein, vegetables, milk, juice, bread, and fruit that meets federal nutrition guidelines. Frozen meals are provided for weekends and holidays when kitchens are closed.\n\nThere are no income limits — your loved one qualifies regardless of their financial situation. The suggested donation is $5–6 per meal depending on your provider, but no one is turned away for inability to pay. Because Vermont operates through regional providers rather than one statewide program, you must first identify which organization serves your county, then contact them directly for enrollment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1535,7 +1535,7 @@
           {
             "step": 3,
             "title": "Complete assessment",
-            "description": "Provider will assess your parent's needs and ability to prepare meals safely. Some providers may request a referral letter from a doctor or social worker."
+            "description": "Provider will assess your loved one's needs and ability to prepare meals safely. Some providers may request a referral letter from a doctor or social worker."
           },
           {
             "step": 4,
@@ -1606,11 +1606,11 @@
       ],
       "faqs": [
         {
-          "question": "What if my parent can afford to pay for meals but physically can't shop or cook?",
-          "answer": "Your parent still qualifies. Vermont Meals on Wheels has no income limits, so ability to pay doesn't affect eligibility. The suggested donation is $5–6 per meal, but payment ability doesn't determine whether someone receives service."
+          "question": "What if my loved one can afford to pay for meals but physically can't shop or cook?",
+          "answer": "Your loved one still qualifies. Vermont Meals on Wheels has no income limits, so ability to pay doesn't affect eligibility. The suggested donation is $5–6 per meal, but payment ability doesn't determine whether someone receives service."
         },
         {
-          "question": "How do I know which provider serves my parent's town?",
+          "question": "How do I know which provider serves my loved one's town?",
           "answer": "Age Well serves Addison, Franklin, Grand Isle, and Chittenden counties. Bugbee Senior Center serves Hartford, North Hartland, Norwich, and Thetford. For all other areas, call Senior Solutions at 802-465-7293 to confirm coverage."
         },
         {
@@ -1619,14 +1619,14 @@
         },
         {
           "question": "What happens on weekends and holidays when no hot meals are delivered?",
-          "answer": "Your parent receives frozen meals that can be heated at home for weekends, holidays, and any days when the kitchen is closed. These are provided as part of the regular program."
+          "answer": "Your loved one receives frozen meals that can be heated at home for weekends, holidays, and any days when the kitchen is closed. These are provided as part of the regular program."
         },
         {
-          "question": "Is there a waitlist, and how long might my parent wait for service?",
+          "question": "Is there a waitlist, and how long might my loved one wait for service?",
           "answer": "Waitlist information varies by provider and depends on volunteer availability in your area. When you call your local provider, ask specifically about current wait times and whether they're accepting new clients."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
+          "question": "Can I apply on behalf of my loved one who has dementia?",
           "answer": "Yes, family members can contact providers to initiate the application process for parents who cannot apply themselves due to cognitive impairment. The provider will work with you to complete the assessment and determine needs."
         }
       ],
@@ -1648,7 +1648,7 @@
       "id": "caregiver-support-program",
       "name": "Caregiver Support Program",
       "shortName": "Caregiver Support",
-      "tagline": "Multiple programs help you get paid to care for your parent or access respite services.",
+      "tagline": "Multiple programs help you get paid to care for your loved one or access respite services.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1665,7 +1665,7 @@
           }
         ]
       },
-      "intro": "Vermont doesn't have one unified caregiver support program, but several programs can help you get paid to care for your parent or access respite services. If your parent qualifies for Medicaid, the Global Commitment to Health Waiver allows family members (including spouses) to receive up to $1,700 per month tax-free for providing care.\n\nIf your parent needs help with daily activities like bathing or dressing, the Attendant Services Program lets them self-direct their care and choose you as their paid caregiver. Because this is a Medicaid entitlement program, there's no waitlist. For parents with dementia living in central Vermont counties (Lamoille, Washington, Orange), CVCOA provides respite care services.\n\nEach program has different eligibility requirements and serves different needs. Veterans may qualify for separate VA caregiver programs with additional benefits and training.",
+      "intro": "Vermont doesn't have one unified caregiver support program, but several programs can help you get paid to care for your loved one or access respite services. If your loved one qualifies for Medicaid, the Global Commitment to Health Waiver allows family members (including spouses) to receive up to $1,700 per month tax-free for providing care.\n\nIf your loved one needs help with daily activities like bathing or dressing, the Attendant Services Program lets them self-direct their care and choose you as their paid caregiver. Because this is a Medicaid entitlement program, there's no waitlist. For parents with dementia living in central Vermont counties (Lamoille, Washington, Orange), CVCOA provides respite care services.\n\nEach program has different eligibility requirements and serves different needs. Veterans may qualify for separate VA caregiver programs with additional benefits and training.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1761,12 +1761,12 @@
           "answer": "Yes, through the Global Commitment to Health Waiver, spouses can be paid caregivers. This differs from some other programs that exclude spouses. You can receive up to $1,700 per month tax-free if your spouse qualifies for Medicaid and needs care assistance."
         },
         {
-          "question": "What if my parent doesn't qualify for Medicaid but still needs help?",
+          "question": "What if my loved one doesn't qualify for Medicaid but still needs help?",
           "answer": "Most of Vermont's caregiver support programs are tied to Medicaid eligibility. Veterans may qualify for separate VA caregiver programs regardless of Medicaid status. Contact your local VA medical center or call 2-1-1 for other non-Medicaid options."
         },
         {
-          "question": "How do I know if my parent needs 'nursing home level of care'?",
-          "answer": "The Attendant Services Program doesn't require nursing home level of care - just needing help with 2 or more daily activities like bathing, dressing, or medication management. A clinical assessment will determine your parent's functional needs."
+          "question": "How do I know if my loved one needs 'nursing home level of care'?",
+          "answer": "The Attendant Services Program doesn't require nursing home level of care - just needing help with 2 or more daily activities like bathing, dressing, or medication management. A clinical assessment will determine your loved one's functional needs."
         }
       ],
       "layoutIntent": {
@@ -1800,7 +1800,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid training positions averaging 20 hours per week at community organizations like schools, hospitals, and senior centers. Because this is transitional employment lasting typically 6 months, your parent earns at least minimum wage while building skills for permanent employment.\n\nIncome limit: No more than 125% of federal poverty level (contact A4TD for current dollar amounts, as these update annually). Priority goes to veterans, those over 65, rural residents, and people with disabilities or low employment prospects. Training wages are paid bi-weekly and count as regular employment income.\n\nHost organizations across Vermont include public agencies and nonprofits where participants gain work experience in community service roles. The goal is transition to unsubsidized employment after completing the training period.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid training positions averaging 20 hours per week at community organizations like schools, hospitals, and senior centers. Because this is transitional employment lasting typically 6 months, your loved one earns at least minimum wage while building skills for permanent employment.\n\nIncome limit: No more than 125% of federal poverty level (contact A4TD for current dollar amounts, as these update annually). Priority goes to veterans, those over 65, rural residents, and people with disabilities or low employment prospects. Training wages are paid bi-weekly and count as regular employment income.\n\nHost organizations across Vermont include public agencies and nonprofits where participants gain work experience in community service roles. The goal is transition to unsubsidized employment after completing the training period.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1833,7 +1833,7 @@
           {
             "step": 2,
             "title": "Complete income verification",
-            "description": "Provide documentation showing your parent's household income is at or below 125% of federal poverty level and proof of unemployment status."
+            "description": "Provide documentation showing your loved one's household income is at or below 125% of federal poverty level and proof of unemployment status."
           },
           {
             "step": 3,
@@ -1848,7 +1848,7 @@
         ],
         "processingTime": null,
         "waitlist": "Possible due to funding limits",
-        "tip": "Priority enrollment may speed up the process if your parent is a veteran, over 65, has disabilities, or lives in a rural area.",
+        "tip": "Priority enrollment may speed up the process if your loved one is a veteran, over 65, has disabilities, or lives in a rural area.",
         "urls": [
           {
             "label": "A4TD SCSEP Program",
@@ -1894,7 +1894,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work at SCSEP while receiving Social Security or unemployment benefits?",
+          "question": "Can my loved one work at SCSEP while receiving Social Security or unemployment benefits?",
           "answer": "SCSEP wages count as earned income and may affect unemployment benefits. Contact your unemployment office before starting. Social Security recipients should report SCSEP earnings to avoid overpayment issues. The wages are regular employment income paid bi-weekly."
         },
         {
@@ -1902,20 +1902,20 @@
           "answer": "The goal is transition to permanent unsubsidized employment. A4TD provides job search assistance and works with participants to find regular jobs. Some may be eligible for additional training periods if permanent employment isn't secured, depending on funding availability."
         },
         {
-          "question": "Can my parent choose where they want to work for their training?",
+          "question": "Can my loved one choose where they want to work for their training?",
           "answer": "A4TD matches participants with available host sites based on skills, interests, and transportation needs. Host organizations include schools, hospitals, senior centers, and other nonprofits or public agencies. You can express preferences but placement depends on current openings."
         },
         {
-          "question": "How much will my parent actually earn per week?",
+          "question": "How much will my loved one actually earn per week?",
           "answer": "At 20 hours per week earning at least Vermont minimum wage, expect roughly $300-400 per week before taxes. Exact wages depend on whether the host site pays federal, state, or local minimum wage - whichever is highest. Pay is bi-weekly like a regular job."
         },
         {
-          "question": "What if my parent lives in a rural area with limited transportation?",
+          "question": "What if my loved one lives in a rural area with limited transportation?",
           "answer": "Rural residents get priority enrollment, and A4TD considers transportation when making placements. However, participants are generally responsible for their own transportation to work sites. Some rural areas may have limited host site options."
         },
         {
-          "question": "Can someone apply on behalf of an elderly parent who has trouble with paperwork?",
-          "answer": "Yes, family members can assist with the application process, but the participant must be able to perform work duties. A4TD staff will need to interview your parent directly to assess work capacity and job placement needs."
+          "question": "Can someone apply on behalf of an elderly loved one who has trouble with paperwork?",
+          "answer": "Yes, family members can assist with the application process, but the participant must be able to perform work duties. A4TD staff will need to interview your loved one directly to assess work capacity and job placement needs."
         }
       ],
       "layoutIntent": {
@@ -1953,7 +1953,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal problems they can't afford to fight alone, Vermont Legal Aid's Elder Law Project provides free legal advice, advocacy, and representation. They handle housing disputes, Social Security and Medicaid appeals, financial exploitation cases, and elder abuse situations — all at no cost for qualifying low-income seniors.\n\nThe program covers both advice (quick consultations) and full representation (where an attorney takes your parent's case to court or through appeals). Their Medicare Advocacy Project specifically helps dual Medicare/Medicaid recipients fight coverage denials and navigate complex insurance rules. Because this is civil legal aid, they cannot help with criminal matters, but they cover most other legal issues that affect seniors' daily lives.",
+      "intro": "If your loved one is 60+ and facing legal problems they can't afford to fight alone, Vermont Legal Aid's Elder Law Project provides free legal advice, advocacy, and representation. They handle housing disputes, Social Security and Medicaid appeals, financial exploitation cases, and elder abuse situations — all at no cost for qualifying low-income seniors.\n\nThe program covers both advice (quick consultations) and full representation (where an attorney takes your loved one's case to court or through appeals). Their Medicare Advocacy Project specifically helps dual Medicare/Medicaid recipients fight coverage denials and navigate complex insurance rules. Because this is civil legal aid, they cannot help with criminal matters, but they cover most other legal issues that affect seniors' daily lives.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1987,7 +1987,7 @@
           {
             "step": 2,
             "title": "Complete intake screening",
-            "description": "Provide details about your parent's legal issue, household income, and living situation. Staff will determine if the case qualifies for free services."
+            "description": "Provide details about your loved one's legal issue, household income, and living situation. Staff will determine if the case qualifies for free services."
           },
           {
             "step": 3,
@@ -1997,7 +1997,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have details ready about the specific legal problem, any court papers or notices, and your parent's income sources before calling.",
+        "tip": "Have details ready about the specific legal problem, any court papers or notices, and your loved one's income sources before calling.",
         "urls": [
           {
             "label": "VTLawHelp.org Legal Help Tool",
@@ -2041,11 +2041,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can contact Vermont Legal Aid on behalf of elderly parents, especially in cases involving elder abuse, neglect, or financial exploitation. However, the attorney-client relationship will be with your parent directly, and they'll need to consent to representation if they're mentally capable."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can contact Vermont Legal Aid on behalf of elderly loved ones, especially in cases involving elder abuse, neglect, or financial exploitation. However, the attorney-client relationship will be with your loved one directly, and they'll need to consent to representation if they're mentally capable."
         },
         {
-          "question": "What if my parent's income is too high for free services?",
+          "question": "What if my loved one's income is too high for free services?",
           "answer": "Vermont Legal Aid focuses on low-income seniors, but income limits aren't published as fixed dollar amounts. Call 1-800-889-2047 for screening — they may still provide limited advice or referrals to reduced-fee attorneys through the Vermont Bar Association's pro bono network."
         },
         {
@@ -2071,7 +2071,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman",
       "shortName": "Care Ombudsman",
-      "tagline": "Free advocacy when your parent has problems with nursing home care, assisted living, or home care services.",
+      "tagline": "Free advocacy when your loved one has problems with nursing home care, assisted living, or home care services.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2084,7 +2084,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or receives Vermont's Choices for Care home services, the Long-Term Care Ombudsman can investigate complaints and advocate for better care. The service is completely free and available to anyone receiving qualifying long-term care services, regardless of income.\n\nThe ombudsman handles issues like poor care quality, billing problems, discharge disputes, privacy violations, roommate conflicts, and denials of services. Because this is an independent advocacy program, they can investigate facilities and work with administrators to resolve problems your family can't solve alone.\n\nStaff and trained volunteers work throughout Vermont and respond to concerns within three business days. You don't need to file paperwork — just call and describe the situation.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or receives Vermont's Choices for Care home services, the Long-Term Care Ombudsman can investigate complaints and advocate for better care. The service is completely free and available to anyone receiving qualifying long-term care services, regardless of income.\n\nThe ombudsman handles issues like poor care quality, billing problems, discharge disputes, privacy violations, roommate conflicts, and denials of services. Because this is an independent advocacy program, they can investigate facilities and work with administrators to resolve problems your family can't solve alone.\n\nStaff and trained volunteers work throughout Vermont and respond to concerns within three business days. You don't need to file paperwork — just call and describe the situation.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2115,7 +2115,7 @@
           {
             "step": 2,
             "title": "Describe the concern",
-            "description": "Explain the problem with your parent's care, billing, discharge, or facility conditions. No forms required — just describe the situation."
+            "description": "Explain the problem with your loved one's care, billing, discharge, or facility conditions. No forms required — just describe the situation."
           },
           {
             "step": 3,
@@ -2157,16 +2157,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call about my parent's care even if they haven't complained themselves?",
-          "answer": "Yes, family members can file complaints on behalf of a resident or care recipient. The ombudsman will work with you and your parent to address the concerns, though they'll typically want to speak with your parent directly at some point in the process."
+          "question": "Can I call about my loved one's care even if they haven't complained themselves?",
+          "answer": "Yes, family members can file complaints on behalf of a resident or care recipient. The ombudsman will work with you and your loved one to address the concerns, though they'll typically want to speak with your loved one directly at some point in the process."
         },
         {
-          "question": "What if the nursing home retaliates against my parent for filing a complaint?",
+          "question": "What if the nursing home retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation is illegal and the ombudsman specifically monitors for this. If you suspect retaliation after filing a complaint, call the hotline immediately at 1-800-889-2047. The ombudsman can investigate retaliation claims and work with state regulators if needed."
         },
         {
           "question": "Does this help with home care problems, or just facilities?",
-          "answer": "For home care, the ombudsman only helps if your parent receives services through Vermont's Choices for Care program. If they have private home care or other programs, you'd need to contact Vermont's Health Care Ombudsman instead."
+          "answer": "For home care, the ombudsman only helps if your loved one receives services through Vermont's Choices for Care program. If they have private home care or other programs, you'd need to contact Vermont's Health Care Ombudsman instead."
         }
       ],
       "layoutIntent": {
@@ -2187,7 +2187,7 @@
       "id": "senior-companion-program",
       "name": "Vermont Senior Companion Program",
       "shortName": "Senior Companion",
-      "tagline": "Free companionship and daily living assistance for your parent through trained volunteers",
+      "tagline": "Free companionship and daily living assistance for your loved one through trained volunteers",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2212,7 +2212,7 @@
           }
         ]
       },
-      "intro": "If your parent needs help staying independent at home but doesn't qualify for formal home care, Vermont's Senior Companion Program provides free companionship and daily living assistance through trained volunteers. Your parent can receive help with shopping, paying bills, errands, transportation, and friendly visits — services that help prevent isolation and support aging in place.\n\nCompanions are volunteers age 55+ who provide up to 40 hours per week of non-medical assistance. Because this program serves as respite for family caregivers, you get peace of mind knowing someone is checking on your parent regularly while helping with tasks that can become overwhelming. The service is free to families — there are no income requirements for those receiving help.",
+      "intro": "If your loved one needs help staying independent at home but doesn't qualify for formal home care, Vermont's Senior Companion Program provides free companionship and daily living assistance through trained volunteers. Your loved one can receive help with shopping, paying bills, errands, transportation, and friendly visits — services that help prevent isolation and support aging in place.\n\nCompanions are volunteers age 55+ who provide up to 40 hours per week of non-medical assistance. Because this program serves as respite for family caregivers, you get peace of mind knowing someone is checking on your loved one regularly while helping with tasks that can become overwhelming. The service is free to families — there are no income requirements for those receiving help.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2236,7 +2236,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Area Agency on Aging to request a companion for your parent — no forms or income verification required.",
+        "summary": "Call your regional Area Agency on Aging to request a companion for your loved one — no forms or income verification required.",
         "steps": [
           {
             "step": 1,
@@ -2246,22 +2246,22 @@
           {
             "step": 2,
             "title": "Call the helpline",
-            "description": "Call 1-800-642-5119 for Age Well or Senior Solutions areas, or contact your regional agency directly to explain your parent's needs for companionship and daily living assistance."
+            "description": "Call 1-800-642-5119 for Age Well or Senior Solutions areas, or contact your regional agency directly to explain your loved one's needs for companionship and daily living assistance."
           },
           {
             "step": 3,
             "title": "Assessment and matching",
-            "description": "The agency will assess your parent's needs and match them with a trained volunteer companion based on personality, interests, and geographic location."
+            "description": "The agency will assess your loved one's needs and match them with a trained volunteer companion based on personality, interests, and geographic location."
           },
           {
             "step": 4,
             "title": "Service begins",
-            "description": "Your parent's companion will start with introductory visits and gradually build to the agreed-upon schedule of 10-40 hours per week as needed."
+            "description": "Your loved one's companion will start with introductory visits and gradually build to the agreed-upon schedule of 10-40 hours per week as needed."
           }
         ],
         "processingTime": "Varies by volunteer availability in your area",
         "waitlist": "Possible depending on volunteer availability",
-        "tip": "Be specific about what type of help your parent needs most — transportation, errands, companionship, or bill-paying assistance — to help with companion matching.",
+        "tip": "Be specific about what type of help your loved one needs most — transportation, errands, companionship, or bill-paying assistance — to help with companion matching.",
         "urls": [
           {
             "label": "Age Well",
@@ -2325,24 +2325,24 @@
           "answer": "Senior Companion volunteers provide friendship and light assistance but cannot do medical tasks, personal care, or heavy housework. Private companions cost $15-25/hour while this program is free, but volunteers have limited availability and flexible schedules rather than guaranteed hours."
         },
         {
-          "question": "Can my parent's companion drive them to medical appointments?",
-          "answer": "Yes, companions can provide transportation and receive $0.70 per mile reimbursement for driving. However, they cannot assist with medical care or accompany your parent into medical procedures — just transportation and waiting room support."
+          "question": "Can my loved one's companion drive them to medical appointments?",
+          "answer": "Yes, companions can provide transportation and receive $0.70 per mile reimbursement for driving. However, they cannot assist with medical care or accompany your loved one into medical procedures — just transportation and waiting room support."
         },
         {
-          "question": "How long can my parent keep the same companion?",
+          "question": "How long can my loved one keep the same companion?",
           "answer": "Companions can continue serving as long as both parties want to continue and the volunteer remains active in the program. Many companion relationships last for years, providing consistent friendship and support."
         },
         {
-          "question": "What happens if the companion and my parent don't get along?",
+          "question": "What happens if the companion and my loved one don't get along?",
           "answer": "Contact your Area Agency on Aging immediately to request a different companion match. The agencies understand that personality fit is crucial and will work to find a better match based on interests, communication style, and needs."
         },
         {
-          "question": "Can my parent receive a companion if they already get other home services?",
+          "question": "Can my loved one receive a companion if they already get other home services?",
           "answer": "Yes, companions can supplement other services like Meals on Wheels, home health aides, or housekeeping services. The companion focuses on friendship, errands, and light assistance that other programs may not cover."
         },
         {
           "question": "How many hours per week will the companion visit?",
-          "answer": "Companions typically provide 10-15 hours per week but can serve up to 40 hours depending on your parent's needs and the volunteer's availability. The schedule is flexible and arranged between your parent and their companion."
+          "answer": "Companions typically provide 10-15 hours per week but can serve up to 40 hours depending on your loved one's needs and the volunteer's availability. The schedule is flexible and arranged between your loved one and their companion."
         }
       ],
       "layoutIntent": {
@@ -2380,7 +2380,7 @@
           }
         ]
       },
-      "intro": "If your parent is a veteran 60+ who feels isolated or could use regular check-ins, this program matches them with fellow veterans who understand military experience. Because the volunteers are also veterans, they share common ground that creates deeper connections than standard senior programs.\n\nThe program provides regular phone chats, safety check-ins, and emotional support tailored to veterans' unique experiences. This is purely companionship and peer support — not medical care or financial assistance. Volunteer coordinators match personalities and service backgrounds to create meaningful relationships.\n\nAvailable to veterans in the 46 towns served by Senior Solutions in southeastern Vermont, including the Brattleboro area. No income limits apply — this program is available regardless of assets or income level.",
+      "intro": "If your loved one is a veteran 60+ who feels isolated or could use regular check-ins, this program matches them with fellow veterans who understand military experience. Because the volunteers are also veterans, they share common ground that creates deeper connections than standard senior programs.\n\nThe program provides regular phone chats, safety check-ins, and emotional support tailored to veterans' unique experiences. This is purely companionship and peer support — not medical care or financial assistance. Volunteer coordinators match personalities and service backgrounds to create meaningful relationships.\n\nAvailable to veterans in the 46 towns served by Senior Solutions in southeastern Vermont, including the Brattleboro area. No income limits apply — this program is available regardless of assets or income level.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2408,17 +2408,17 @@
           {
             "step": 1,
             "title": "Call Senior Solutions HelpLine",
-            "description": "Phone 800-642-5119 or 802-885-2669 to reach the volunteer coordinator. Explain that your parent is a veteran interested in the Vet-to-Vet companionship program."
+            "description": "Phone 800-642-5119 or 802-885-2669 to reach the volunteer coordinator. Explain that your loved one is a veteran interested in the Vet-to-Vet companionship program."
           },
           {
             "step": 2,
             "title": "Brief phone screening",
-            "description": "The coordinator will ask about your parent's military background, interests, and what kind of companionship they're looking for — phone calls, visits, or both."
+            "description": "The coordinator will ask about your loved one's military background, interests, and what kind of companionship they're looking for — phone calls, visits, or both."
           },
           {
             "step": 3,
             "title": "Volunteer matching",
-            "description": "Staff will match your parent with a veteran volunteer based on service era, personality, and location. The American Legion Brattleboro Post 5 helps identify suitable volunteer matches."
+            "description": "Staff will match your loved one with a veteran volunteer based on service era, personality, and location. The American Legion Brattleboro Post 5 helps identify suitable volunteer matches."
           },
           {
             "step": 4,
@@ -2428,7 +2428,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have your parent's military service information ready — branch, years served, and any specific interests or hobbies that might help with matching.",
+        "tip": "Have your loved one's military service information ready — branch, years served, and any specific interests or hobbies that might help with matching.",
         "urls": [
           {
             "label": "Senior Solutions Veterans Services",
@@ -2469,19 +2469,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get this program if they live outside the Brattleboro area?",
-          "answer": "Yes, as long as they live in one of the 46 towns served by Senior Solutions in southeastern Vermont. The program isn't limited to Brattleboro — that's just where the American Legion partnership is based. Call 800-642-5119 to confirm your parent's town is covered."
+          "question": "Can my loved one get this program if they live outside the Brattleboro area?",
+          "answer": "Yes, as long as they live in one of the 46 towns served by Senior Solutions in southeastern Vermont. The program isn't limited to Brattleboro — that's just where the American Legion partnership is based. Call 800-642-5119 to confirm your loved one's town is covered."
         },
         {
-          "question": "What if my parent has never talked about their military service?",
+          "question": "What if my loved one has never talked about their military service?",
           "answer": "That's common, and veteran volunteers understand this. Many older veterans didn't discuss their service much, but connecting with someone who shared that experience can be meaningful. The volunteer coordinator matches based on comfort level and personality, not just military details."
         },
         {
-          "question": "How often will the volunteer contact my parent?",
+          "question": "How often will the volunteer contact my loved one?",
           "answer": "This varies based on what both people want and the volunteer's availability. Some pairs talk weekly by phone, others might visit monthly or call every few days. The volunteer coordinator helps establish expectations that work for everyone involved."
         },
         {
-          "question": "Can my parent participate in this and still get other Senior Solutions services?",
+          "question": "Can my loved one participate in this and still get other Senior Solutions services?",
           "answer": "Yes, this program works alongside other Senior Solutions offerings like home care, transportation, or meals programs. The Vet-to-Vet companionship is just one piece of what Senior Solutions provides to veterans and other seniors in their service area."
         },
         {
@@ -2489,7 +2489,7 @@
           "answer": "The volunteer coordinator can arrange a different match. Personality fit matters for meaningful companionship, so staff expect that some pairings need adjustment. There's no penalty for requesting a different volunteer match."
         },
         {
-          "question": "Does my parent need to prove their veteran status?",
+          "question": "Does my loved one need to prove their veteran status?",
           "answer": "The program description doesn't specify documentation requirements, but having basic military service information (branch, years served) ready when you call will help with volunteer matching. The coordinator can tell you if any formal proof is needed."
         }
       ],
@@ -2514,7 +2514,7 @@
       {
         "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
         "programId": "medicaid-abd",
-        "why": "Comprehensive health coverage that can save thousands annually if your parent qualifies based on age 65+ and limited income."
+        "why": "Comprehensive health coverage that can save thousands annually if your loved one qualifies based on age 65+ and limited income."
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI)",
@@ -2549,7 +2549,7 @@
           "Meals on Wheels (Vermont)",
           "Vermont Senior Companion Program"
         ],
-        "description": "Services that help your parent stay safely at home instead of moving to a nursing facility."
+        "description": "Services that help your loved one stay safely at home instead of moving to a nursing facility."
       },
       {
         "need": "Food and utility assistance",
@@ -2592,6 +2592,6 @@
       "Weatherization assistance can provide up to $10,000 in free home energy improvements to reduce heating costs",
       "PACE serves Vermont seniors through OneCare Vermont and provides all medical and social services under one program"
     ],
-    "resourcesVsBenefits": "Vermont offers both income-qualified benefits and free resources for all seniors. Benefits like 3SquaresVT, Medicaid ABD, and Choices for Care require your parent to meet specific income limits and provide monthly assistance. Free resources like SHIP Medicare counseling, Legal Assistance for Seniors, and the Long-Term Care Ombudsman are available regardless of income — these help you maximize other benefits and resolve problems with care."
+    "resourcesVsBenefits": "Vermont offers both income-qualified benefits and free resources for all seniors. Benefits like 3SquaresVT, Medicaid ABD, and Choices for Care require your loved one to meet specific income limits and provide monthly assistance. Free resources like SHIP Medicare counseling, Legal Assistance for Seniors, and the Long-Term Care Ombudsman are available regardless of income — these help you maximize other benefits and resolve problems with care."
   }
 }

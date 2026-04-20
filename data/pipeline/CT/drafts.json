@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and lives in Connecticut, HUSKY Health C (Medicaid) can cover all their medical care plus long-term services to help them stay at home. This includes doctor visits, prescriptions, dental, vision, and crucially for aging parents — home care, adult day programs, and nursing home care if needed.\n\nThe program has different income limits depending on what services your parent needs. Standard coverage requires income under $851/month for a single person, but if your parent needs home care or nursing home care, they can qualify with income up to $2,982/month. Asset limits also apply: $1,600 for a single person in most cases.\n\nBecause HUSKY Health C is comprehensive Medicaid, your parent won't pay premiums, deductibles, or copays for covered services. One program manages all their health care instead of coordinating between Medicare and separate providers.",
+      "intro": "If your loved one is 65+ or disabled and lives in Connecticut, HUSKY Health C (Medicaid) can cover all their medical care plus long-term services to help them stay at home. This includes doctor visits, prescriptions, dental, vision, and crucially for aging loved ones — home care, adult day programs, and nursing home care if needed.\n\nThe program has different income limits depending on what services your loved one needs. Standard coverage requires income under $851/month for a single person, but if your loved one needs home care or nursing home care, they can qualify with income up to $2,982/month. Asset limits also apply: $1,600 for a single person in most cases.\n\nBecause HUSKY Health C is comprehensive Medicaid, your loved one won't pay premiums, deductibles, or copays for covered services. One program manages all their health care instead of coordinating between Medicare and separate providers.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -89,12 +89,12 @@
           {
             "step": 5,
             "title": "Get level of care assessment if needed",
-            "description": "If applying for Long-Term Services & Supports, a clinical assessor will evaluate whether your parent needs daily assistance with activities of daily living."
+            "description": "If applying for Long-Term Services & Supports, a clinical assessor will evaluate whether your loved one needs daily assistance with activities of daily living."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "HUSKY Health C has three different subprograms with different income limits. Make sure you're applying for the right one based on your parent's care needs.",
+        "tip": "HUSKY Health C has three different subprograms with different income limits. Make sure you're applying for the right one based on your loved one's care needs.",
         "urls": [
           {
             "label": "HUSKY Health Application Portal",
@@ -107,7 +107,7 @@
         ]
       },
       "documentsNeeded": [
-        "Social Security card for your parent",
+        "Social Security card for your loved one",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Proof of Connecticut residency (utility bill, lease, or voter registration)",
         "Social Security award letter or SSDI determination letter",
@@ -145,7 +145,7 @@
       ],
       "applicationNotes": [
         "Working disabled individuals may qualify for MED-Connect with higher income limits (up to $85,000/year) but may owe monthly premiums",
-        "If your parent needs Long-Term Services & Supports, expect a detailed 5-year financial review including all income and asset transfers",
+        "If your loved one needs Long-Term Services & Supports, expect a detailed 5-year financial review including all income and asset transfers",
         "Married couples applying for LTSS get special protections for the community spouse's income and assets under CSPA rules",
         "Income limits are updated annually, typically in March — 2026 changes may adjust standard coverage limits to around $1,413/month for singles"
       ],
@@ -159,7 +159,7 @@
         {
           "type": "tier-comparison",
           "title": "HUSKY Health C Coverage Types",
-          "description": "Different income and asset limits apply depending on what services your parent needs.",
+          "description": "Different income and asset limits apply depending on what services your loved one needs.",
           "tiers": [
             {
               "name": "Standard Coverage",
@@ -187,36 +187,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, your parent's primary home is generally exempt from the asset limit as long as they live in it or intend to return. There may be equity limits for Long-Term Services & Supports, but the home itself doesn't count toward the $1,600 limit."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, your loved one's primary home is generally exempt from the asset limit as long as they live in it or intend to return. There may be equity limits for Long-Term Services & Supports, but the home itself doesn't count toward the $1,600 limit."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
-          "answer": "Your parent may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call 1-877-284-4911 to discuss spend-down options."
+          "question": "What happens if my loved one's income is slightly over the limit?",
+          "answer": "Your loved one may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call 1-877-284-4911 to discuss spend-down options."
         },
         {
           "question": "Can I apply for HUSKY Health C and Medicare Savings Programs at the same time?",
-          "answer": "Yes, and you should. If your parent qualifies for HUSKY Health C, they automatically qualify for Medicare Savings Programs, which will cover their Medicare premiums and potentially deductibles and copays. Apply for both through the same application."
+          "answer": "Yes, and you should. If your loved one qualifies for HUSKY Health C, they automatically qualify for Medicare Savings Programs, which will cover their Medicare premiums and potentially deductibles and copays. Apply for both through the same application."
         },
         {
           "question": "How long does the level of care assessment take for long-term services?",
-          "answer": "The clinical assessment typically takes 2-4 weeks to schedule and complete. An assessor will evaluate your parent's ability to perform daily activities like bathing, dressing, and medication management. This determines whether they qualify for home care services or nursing home coverage."
+          "answer": "The clinical assessment typically takes 2-4 weeks to schedule and complete. An assessor will evaluate your loved one's ability to perform daily activities like bathing, dressing, and medication management. This determines whether they qualify for home care services or nursing home coverage."
         },
         {
-          "question": "What if my parent has assets in another state?",
+          "question": "What if my loved one has assets in another state?",
           "answer": "All assets count toward the limit regardless of location, including out-of-state bank accounts, property, or investments. You'll need to provide documentation for all assets during the application process, including the 5-year lookback for Long-Term Services & Supports."
         },
         {
-          "question": "Can my parent choose their own home care provider under HUSKY Health C?",
-          "answer": "Yes, Connecticut allows consumer-directed care where your parent can hire their own home care workers, including family members in some cases. This gives more flexibility than agency-provided care, but requires managing payroll and training responsibilities."
+          "question": "Can my loved one choose their own home care provider under HUSKY Health C?",
+          "answer": "Yes, Connecticut allows consumer-directed care where your loved one can hire their own home care workers, including family members in some cases. This gives more flexibility than agency-provided care, but requires managing payroll and training responsibilities."
         },
         {
-          "question": "What happens if my parent's condition changes after enrollment?",
-          "answer": "HUSKY Health C coverage adjusts as your parent's needs change. If they need more care, contact their managed care organization to request a reassessment. If their health improves significantly, they may be moved to a different coverage level during annual reviews."
+          "question": "What happens if my loved one's condition changes after enrollment?",
+          "answer": "HUSKY Health C coverage adjusts as your loved one's needs change. If they need more care, contact their managed care organization to request a reassessment. If their health improves significantly, they may be moved to a different coverage level during annual reviews."
         },
         {
           "question": "Will applying for Long-Term Services & Supports affect my inheritance?",
-          "answer": "Connecticut may seek estate recovery after your parent's death to recoup long-term care costs, but this typically only applies to assets that go through probate. The primary home is often protected if a surviving spouse or disabled child lives there. Consult an elder law attorney about asset protection strategies."
+          "answer": "Connecticut may seek estate recovery after your loved one's death to recoup long-term care costs, but this typically only applies to assets that go through probate. The primary home is often protected if a surviving spouse or disabled child lives there. Consult an elder law attorney about asset protection strategies."
         }
       ],
       "layoutIntent": {
@@ -237,7 +237,7 @@
       "id": "chcpe-medicare-savings",
       "name": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
       "shortName": "CHCPE Medicare Savings",
-      "tagline": "Home care services to keep your parent out of a nursing home, plus Medicare premium savings.",
+      "tagline": "Home care services to keep your loved one out of a nursing home, plus Medicare premium savings.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -258,7 +258,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs help with bathing, dressing, or medication management, CHCPE provides home care services to avoid nursing home placement. The program covers up to 70 hours per week of in-home assistance with daily activities, depending on your parent's functional needs and income level.\n\nBecause CHCPE includes Medicare Savings Program benefits, qualified participants also get their Medicare Part B premiums covered ($185/month in 2026) plus deductibles and co-insurance. State-funded participants pay only 3% of service costs, while Medicaid-funded services have no client cost-share.\n\nThe program has two tracks: Medicaid-funded (income limit $1,956/month for singles in 2025) and state-funded (no income limit but asset limits apply). All participants must demonstrate risk of nursing home placement by needing assistance with at least one activity of daily living.",
+      "intro": "If your loved one is 65+ and needs help with bathing, dressing, or medication management, CHCPE provides home care services to avoid nursing home placement. The program covers up to 70 hours per week of in-home assistance with daily activities, depending on your loved one's functional needs and income level.\n\nBecause CHCPE includes Medicare Savings Program benefits, qualified participants also get their Medicare Part B premiums covered ($185/month in 2026) plus deductibles and co-insurance. State-funded participants pay only 3% of service costs, while Medicaid-funded services have no client cost-share.\n\nThe program has two tracks: Medicaid-funded (income limit $1,956/month for singles in 2025) and state-funded (no income limit but asset limits apply). All participants must demonstrate risk of nursing home placement by needing assistance with at least one activity of daily living.",
       "savingsRange": "$2,220 – $4,500/year in 2026",
       "savingsSource": "Medicare Part B premium savings ($185/month) plus potential deductible/co-insurance coverage",
       "savingsVerified": true,
@@ -316,7 +316,7 @@
           {
             "step": 2,
             "title": "Complete functional assessment",
-            "description": "A nurse or social worker will evaluate your parent's ability to perform daily activities and determine nursing home risk level."
+            "description": "A nurse or social worker will evaluate your loved one's ability to perform daily activities and determine nursing home risk level."
           },
           {
             "step": 3,
@@ -331,7 +331,7 @@
         ],
         "processingTime": "Services may start quickly for state-funded track; Medicaid waiver involves up to 5-year financial lookback",
         "waitlist": "Possible 2+ year waitlist for Medicaid waiver funding; varies by region and priority level",
-        "tip": "Apply for state-funded services first if your parent needs immediate care — you can transition to Medicaid funding later.",
+        "tip": "Apply for state-funded services first if your loved one needs immediate care — you can transition to Medicaid funding later.",
         "urls": [
           {
             "label": "CHCPE Program Page",
@@ -381,8 +381,8 @@
         }
       ],
       "applicationNotes": [
-        "State-funded services can start while you wait for Medicaid waiver approval — don't delay applying if your parent needs immediate help",
-        "Excess assets can be spent down on any goods or services for your parent or spouse — no requirement to spend only on medical care",
+        "State-funded services can start while you wait for Medicaid waiver approval — don't delay applying if your loved one needs immediate help",
+        "Excess assets can be spent down on any goods or services for your loved one or spouse — no requirement to spend only on medical care",
         "Medicare Savings Program has no asset limits or estate recovery, unlike the home care component",
         "Regional variations exist in asset limits and wait times — ask your local Area Agency about current availability"
       ],
@@ -395,35 +395,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is typically exempt from asset limits regardless of value. However, for Medicaid-funded services, the state may place a lien on the home for estate recovery after death. Medicare Savings Program benefits have no asset limits at all."
         },
         {
           "question": "What's the difference between state-funded and Medicaid-funded CHCPE?",
-          "answer": "State-funded has no income limit but your parent pays 3% of service costs and faces asset limits. Medicaid-funded has income limits ($1,956/month for singles) but no client cost-share, and includes a 5-year lookback for asset transfers."
+          "answer": "State-funded has no income limit but your loved one pays 3% of service costs and faces asset limits. Medicaid-funded has income limits ($1,956/month for singles) but no client cost-share, and includes a 5-year lookback for asset transfers."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "State-funded services may start quickly with no waitlist. Medicaid waiver funding can have 2+ year waits depending on your region and your parent's priority level. Higher functional needs get priority placement."
+          "answer": "State-funded services may start quickly with no waitlist. Medicaid waiver funding can have 2+ year waits depending on your region and your loved one's priority level. Higher functional needs get priority placement."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, adult children can apply on behalf of parents with cognitive impairment. You'll need to provide power of attorney documents or become their legal representative through the probate court process."
         },
         {
-          "question": "What if my parent's income is too high for Medicaid-funded services?",
+          "question": "What if my loved one's income is too high for Medicaid-funded services?",
           "answer": "They can still qualify for state-funded CHCPE services with no income limit, though they'll pay 3% of service costs. They may also qualify for Medicare Savings Program benefits which have higher income limits ($2,807/month for QMB in 2026)."
         },
         {
-          "question": "Can my parent get both CHCPE and Medicare Savings Program benefits?",
+          "question": "Can my loved one get both CHCPE and Medicare Savings Program benefits?",
           "answer": "Yes, these programs are often bundled together. Medicare Savings covers Part B premiums, deductibles and co-insurance, while CHCPE provides the actual home care services. The eligibility requirements and asset rules differ between the two components."
         },
         {
-          "question": "What happens if my parent's needs increase after enrollment?",
-          "answer": "Services can be adjusted up to 70 hours per week based on reassessments. Your parent's care coordinator will evaluate changing needs and modify the service plan accordingly. Priority levels may also change based on functional decline."
+          "question": "What happens if my loved one's needs increase after enrollment?",
+          "answer": "Services can be adjusted up to 70 hours per week based on reassessments. Your loved one's care coordinator will evaluate changing needs and modify the service plan accordingly. Priority levels may also change based on functional decline."
         },
         {
-          "question": "Will the state try to recover money from my parent's estate?",
+          "question": "Will the state try to recover money from my loved one's estate?",
           "answer": "For Medicaid-funded CHCPE services, Connecticut may seek estate recovery after death. However, Medicare Savings Program benefits have no estate recovery. State-funded services have different recovery rules — check with your caseworker about specific policies."
         }
       ],
@@ -445,14 +445,14 @@
       "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
       "shortName": "CT PACE",
-      "tagline": "Your parent gets all medical care, medications, and support services through one coordinated team — no copays, no provider juggling.",
+      "tagline": "Your loved one gets all medical care, medications, and support services through one coordinated team — no copays, no provider juggling.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your parent never bounces between providers or pays copays for covered care.\n\nYour parent must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your parent's sole healthcare provider — they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your loved one never bounces between providers or pays copays for covered care.\n\nYour loved one must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your loved one's sole healthcare provider — they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical service coverage",
       "savingsVerified": false,
@@ -466,7 +466,7 @@
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be certified as needing nursing facility level of care — a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other essential activities",
+        "functionalRequirement": "Must be certified as needing nursing facility level of care — a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other essential activities",
         "otherRequirements": [
           "Must live in a PACE organization service area",
           "Must be able to live safely in the community with PACE services",
@@ -492,7 +492,7 @@
           {
             "step": 3,
             "title": "Schedule comprehensive assessment",
-            "description": "If initially eligible, PACE's interdisciplinary team conducts an in-person evaluation to determine if your parent meets nursing facility level of care."
+            "description": "If initially eligible, PACE's interdisciplinary team conducts an in-person evaluation to determine if your loved one meets nursing facility level of care."
           },
           {
             "step": 4,
@@ -502,7 +502,7 @@
         ],
         "processingTime": "Comprehensive assessment and care plan development within 30 days of enrollment",
         "waitlist": null,
-        "tip": "Ask specifically about Medicare Advantage — your parent must disenroll from any Medicare Advantage plan before joining PACE.",
+        "tip": "Ask specifically about Medicare Advantage — your loved one must disenroll from any Medicare Advantage plan before joining PACE.",
         "urls": [
           {
             "label": "Eligibility Test",
@@ -543,10 +543,10 @@
         }
       ],
       "applicationNotes": [
-        "You cannot be enrolled in both PACE and Medicare Advantage — your parent must choose one or the other",
-        "If your parent has Medicaid, Connecticut may place a lien on their estate to recover PACE costs after death",
+        "You cannot be enrolled in both PACE and Medicare Advantage — your loved one must choose one or the other",
+        "If your loved one has Medicaid, Connecticut may place a lien on their estate to recover PACE costs after death",
         "PACE is not available everywhere in Connecticut — service area availability varies significantly by region",
-        "Your parent can leave PACE at any time, but re-enrollment is not guaranteed if they want to return later"
+        "Your loved one can leave PACE at any time, but re-enrollment is not guaranteed if they want to return later"
       ],
       "relatedPrograms": [
         "Connecticut Home Care Program for Elders",
@@ -557,36 +557,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctor after joining PACE?",
-          "answer": "No. PACE becomes your parent's sole healthcare provider for all covered services. They must use PACE doctors, specialists, and facilities. This is the trade-off for coordinated care with no copays."
+          "question": "Can my loved one keep seeing their current doctor after joining PACE?",
+          "answer": "No. PACE becomes your loved one's sole healthcare provider for all covered services. They must use PACE doctors, specialists, and facilities. This is the trade-off for coordinated care with no copays."
         },
         {
-          "question": "What happens if my parent lives outside a PACE service area?",
-          "answer": "They cannot enroll. PACE is only available where PACE organizations operate, which is not statewide in Connecticut. Contact 2-1-1 to check if PACE serves your parent's zip code."
+          "question": "What happens if my loved one lives outside a PACE service area?",
+          "answer": "They cannot enroll. PACE is only available where PACE organizations operate, which is not statewide in Connecticut. Contact 2-1-1 to check if PACE serves your loved one's zip code."
         },
         {
-          "question": "How much does PACE cost if my parent doesn't have Medicaid?",
+          "question": "How much does PACE cost if my loved one doesn't have Medicaid?",
           "answer": "Non-Medicaid participants pay a monthly premium, but the exact amount varies by PACE organization and isn't publicly listed. Contact your local PACE program for current rates. Once enrolled, there are no deductibles or copays."
         },
         {
-          "question": "Can I apply for PACE while my parent is still in the hospital?",
-          "answer": "Yes. Hospital discharge planners often help initiate PACE applications. The key is proving your parent can live safely in the community with PACE services, even if they currently need hospital-level care."
+          "question": "Can I apply for PACE while my loved one is still in the hospital?",
+          "answer": "Yes. Hospital discharge planners often help initiate PACE applications. The key is proving your loved one can live safely in the community with PACE services, even if they currently need hospital-level care."
         },
         {
-          "question": "What if my parent's care needs increase after they're enrolled?",
+          "question": "What if my loved one's care needs increase after they're enrolled?",
           "answer": "PACE continuously adjusts services as needs change — that's the program's strength. The interdisciplinary team reassesses regularly and adds services like more home care hours or adult day care without additional paperwork."
         },
         {
-          "question": "Does PACE cover my parent's spouse who doesn't need nursing home-level care?",
+          "question": "Does PACE cover my loved one's spouse who doesn't need nursing home-level care?",
           "answer": "No. Each spouse must qualify individually. If only one spouse meets the nursing facility level of care requirement, only that spouse can enroll in PACE."
         },
         {
-          "question": "Can my parent use Medicare Advantage and PACE together?",
-          "answer": "Absolutely not. Your parent must disenroll from any Medicare Advantage plan, Medicare prepayment plan, or Medicare prescription drug plan before joining PACE. They cannot be in both programs simultaneously."
+          "question": "Can my loved one use Medicare Advantage and PACE together?",
+          "answer": "Absolutely not. Your loved one must disenroll from any Medicare Advantage plan, Medicare prepayment plan, or Medicare prescription drug plan before joining PACE. They cannot be in both programs simultaneously."
         },
         {
-          "question": "What happens to my parent's estate if they have Medicaid and use PACE?",
-          "answer": "Connecticut may place a lien or claim against your parent's estate (including their home) to recover PACE costs paid by Medicaid. This is part of Medicaid estate recovery rules, not specific to PACE."
+          "question": "What happens to my loved one's estate if they have Medicaid and use PACE?",
+          "answer": "Connecticut may place a lien or claim against your loved one's estate (including their home) to recover PACE costs paid by Medicaid. This is part of Medicaid estate recovery rules, not specific to PACE."
         }
       ],
       "layoutIntent": {
@@ -607,7 +607,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Up to $298 per month for groceries if your parent is on a fixed income",
+      "tagline": "Up to $298 per month for groceries if your loved one is on a fixed income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -620,7 +620,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly — the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your parent can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
+      "intro": "If your loved one is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly — the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your loved one can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
       "savingsRange": "$298 – $1,789/month in 2026",
       "savingsSource": "Maximum monthly SNAP allotments by household size",
       "savingsVerified": true,
@@ -778,35 +778,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep SNAP if they also get Medicaid?",
-          "answer": "Yes, your parent can receive both SNAP and Medicaid at the same time. Having one benefit doesn't disqualify them from the other, and the application processes are separate."
+          "question": "Can my loved one keep SNAP if they also get Medicaid?",
+          "answer": "Yes, your loved one can receive both SNAP and Medicaid at the same time. Having one benefit doesn't disqualify them from the other, and the application processes are separate."
         },
         {
-          "question": "What if my parent lives with me but we buy groceries separately?",
-          "answer": "If your parent buys and prepares food separately from your household, they can apply as a one-person household even if living in your home. The key is whether they shop and cook independently."
+          "question": "What if my loved one lives with me but we buy groceries separately?",
+          "answer": "If your loved one buys and prepares food separately from your household, they can apply as a one-person household even if living in your home. The key is whether they shop and cook independently."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent gives written permission or if you have power of attorney. You can complete the application and attend interviews on their behalf."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one gives written permission or if you have power of attorney. You can complete the application and attend interviews on their behalf."
         },
         {
-          "question": "Will my parent's home or car count against the asset limit?",
+          "question": "Will my loved one's home or car count against the asset limit?",
           "answer": "No, the primary home and vehicles are exempt from SNAP asset limits. Only countable assets like bank accounts and stocks matter, and most Connecticut applicants face no asset limit anyway."
         },
         {
-          "question": "How much will my parent actually receive each month?",
+          "question": "How much will my loved one actually receive each month?",
           "answer": "SNAP calculates benefits as the maximum allotment minus 30% of net income. For example, a single person with $1,000 net monthly income would receive $298 (max) minus $300 (30% of income), so they'd get the minimum benefit amount."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
-          "answer": "Report income changes within 10 days to your local DSS office. Benefits will be recalculated, and your parent may need to complete a review every 12 months to continue receiving SNAP."
+          "question": "What happens if my loved one's income changes after approval?",
+          "answer": "Report income changes within 10 days to your local DSS office. Benefits will be recalculated, and your loved one may need to complete a review every 12 months to continue receiving SNAP."
         },
         {
           "question": "Can SNAP benefits be used for groceries delivered to the home?",
-          "answer": "Yes, many grocery stores that accept EBT now offer delivery and pickup services. Your parent can use their EBT card for online grocery orders from participating retailers like Amazon and Walmart."
+          "answer": "Yes, many grocery stores that accept EBT now offer delivery and pickup services. Your loved one can use their EBT card for online grocery orders from participating retailers like Amazon and Walmart."
         },
         {
-          "question": "What if the DSS office says my parent makes too much money?",
+          "question": "What if the DSS office says my loved one makes too much money?",
           "answer": "Ask specifically about the elderly rules — households with someone 60+ can skip the gross income test and may qualify based on net income after deductions. High medical or housing costs can significantly reduce countable income."
         }
       ],
@@ -828,7 +828,7 @@
       "id": "energy-assistance-ceap",
       "name": "Connecticut Energy Assistance Program (CEAP)",
       "shortName": "CEAP Energy Assistance",
-      "tagline": "Help your parent get $295-$645 toward heating bills this winter, with emergency assistance available for fuel crises.",
+      "tagline": "Help your loved one get $295-$645 toward heating bills this winter, with emergency assistance available for fuel crises.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -841,7 +841,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with heating bills in Connecticut, CEAP can provide $295-$645 toward their energy costs this winter. Because the program pays utility companies directly, your parent won't handle cash — the assistance goes straight toward their heating bill, electric bill, or fuel delivery. Households with elderly members, disabled individuals, or children under 6 receive higher benefit amounts.\n\nThe program runs from September 1, 2025 through May 29, 2026, but funds are limited and distributed first-come, first-served. Because crisis assistance is available for households facing fuel emergencies, eligible families can get fuel delivery authorization within 18 hours if they're running out of heating oil or propane.\n\nIncome limit: $47,764/year for a single person, $62,460 for a couple (2025-2026). No asset test this year. If your parent receives SNAP, SSI, or TANF, they automatically qualify regardless of other income.",
+      "intro": "If your loved one struggles with heating bills in Connecticut, CEAP can provide $295-$645 toward their energy costs this winter. Because the program pays utility companies directly, your loved one won't handle cash — the assistance goes straight toward their heating bill, electric bill, or fuel delivery. Households with elderly members, disabled individuals, or children under 6 receive higher benefit amounts.\n\nThe program runs from September 1, 2025 through May 29, 2026, but funds are limited and distributed first-come, first-served. Because crisis assistance is available for households facing fuel emergencies, eligible families can get fuel delivery authorization within 18 hours if they're running out of heating oil or propane.\n\nIncome limit: $47,764/year for a single person, $62,460 for a couple (2025-2026). No asset test this year. If your loved one receives SNAP, SSI, or TANF, they automatically qualify regardless of other income.",
       "savingsRange": "$295 – $645/year in 2025",
       "savingsSource": "Basic benefit amounts from Connecticut Department of Social Services, with higher amounts for vulnerable households",
       "savingsVerified": true,
@@ -924,7 +924,7 @@
         ],
         "processingTime": "Fuel delivery authorization within 18 hours for crisis cases",
         "waitlist": "Benefits available until annual funds run out",
-        "tip": "If your parent has an elderly household member, disability, or child under 6, make sure to indicate this — vulnerable households receive $50 more in benefits.",
+        "tip": "If your loved one has an elderly household member, disability, or child under 6, make sure to indicate this — vulnerable households receive $50 more in benefits.",
         "urls": [
           {
             "label": "Connecticut CEAP Application Portal",
@@ -983,36 +983,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're behind on their electric bill?",
+          "question": "Can my loved one apply if they're behind on their electric bill?",
           "answer": "Yes. CEAP can help with past-due balances and may provide shut-off protection. The program can also set up payment plans and help with equipment repair or replacement. Include any shut-off notices when applying."
         },
         {
-          "question": "What if my parent rents and heat is included in their rent?",
-          "answer": "Your parent can still get help through the rental assistance portion of CEAP, which provides $75-$125 toward rent. You'll need to provide a rent receipt or lease agreement showing heat is included."
+          "question": "What if my loved one rents and heat is included in their rent?",
+          "answer": "Your loved one can still get help through the rental assistance portion of CEAP, which provides $75-$125 toward rent. You'll need to provide a rent receipt or lease agreement showing heat is included."
         },
         {
           "question": "How much more do vulnerable households actually get?",
           "answer": "Vulnerable households (with elderly, disabled, or children under 6) receive $345-$645 instead of the standard $295-$595. That's an extra $50 in assistance. Make sure to indicate vulnerable status when applying."
         },
         {
-          "question": "Can my parent get crisis help if they run out of heating oil?",
+          "question": "Can my loved one get crisis help if they run out of heating oil?",
           "answer": "Yes, but only if they use deliverable fuels like oil or propane, and only after their basic CEAP benefit is used up. Crisis benefits provide $425 per occurrence, up to 3 times per season, with fuel delivery authorization within 18 hours."
         },
         {
-          "question": "What if my parent gets Social Security but can't find their award letter?",
-          "answer": "Connecticut DSS cannot verify Social Security benefits directly, so the award letter is required. Your parent can get a replacement letter by calling Social Security at (800) 772-1213 or logging into their my Social Security account online."
+          "question": "What if my loved one gets Social Security but can't find their award letter?",
+          "answer": "Connecticut DSS cannot verify Social Security benefits directly, so the award letter is required. Your loved one can get a replacement letter by calling Social Security at (800) 772-1213 or logging into their my Social Security account online."
         },
         {
           "question": "Is it too late to apply if the heating season already started?",
           "answer": "No. The application window runs from September 1, 2025 through May 29, 2026. However, funds are limited and distributed first-come, first-served, so applying earlier in the season increases chances of receiving assistance."
         },
         {
-          "question": "Can I apply for my parent if they can't do it themselves?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all the same documentation and may need to show you have permission to act on their behalf. Contact your regional provider to discuss the specific process."
+          "question": "Can I apply for my loved one if they can't do it themselves?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to provide all the same documentation and may need to show you have permission to act on their behalf. Contact your regional provider to discuss the specific process."
         },
         {
-          "question": "What happens if my parent moves to a different town in Connecticut during the heating season?",
-          "answer": "Your parent should contact their new regional provider immediately. Since CEAP is administered by different agencies across Connecticut, they may need to transfer their case or reapply through the new service area."
+          "question": "What happens if my loved one moves to a different town in Connecticut during the heating season?",
+          "answer": "Your loved one should contact their new regional provider immediately. Since CEAP is administered by different agencies across Connecticut, they may need to transfer their case or reapply through the new service area."
         }
       ],
       "layoutIntent": {
@@ -1033,7 +1033,7 @@
       "id": "weatherization-assistance",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization",
-      "tagline": "Free home energy improvements worth up to $15,000 to reduce your parent's heating and cooling bills",
+      "tagline": "Free home energy improvements worth up to $15,000 to reduce your loved one's heating and cooling bills",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1046,7 +1046,7 @@
           }
         ]
       },
-      "intro": "If your parent's home in Connecticut is drafty, poorly insulated, or expensive to heat and cool, they may qualify for free weatherization services worth up to $15,000. The Weatherization Assistance Program provides energy audits, insulation, air sealing, heating system tune-ups, and safety repairs at no cost to income-eligible households.\n\nPriority goes to households with seniors 60+, people with disabilities, or those spending 6% or more of their income on energy bills. Because the program covers both energy improvements ($10,000 maximum) and health/safety repairs ($2,500 maximum), your parent's home becomes more comfortable while reducing monthly utility costs.\n\nThe program requires joint application with Connecticut's Energy Assistance Program through 2-1-1. Your parent's home cannot have been weatherized by any federal program in the past 15 years, and cannot be listed for sale or in foreclosure proceedings.",
+      "intro": "If your loved one's home in Connecticut is drafty, poorly insulated, or expensive to heat and cool, they may qualify for free weatherization services worth up to $15,000. The Weatherization Assistance Program provides energy audits, insulation, air sealing, heating system tune-ups, and safety repairs at no cost to income-eligible households.\n\nPriority goes to households with seniors 60+, people with disabilities, or those spending 6% or more of their income on energy bills. Because the program covers both energy improvements ($10,000 maximum) and health/safety repairs ($2,500 maximum), your loved one's home becomes more comfortable while reducing monthly utility costs.\n\nThe program requires joint application with Connecticut's Energy Assistance Program through 2-1-1. Your loved one's home cannot have been weatherized by any federal program in the past 15 years, and cannot be listed for sale or in foreclosure proceedings.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1118,7 +1118,7 @@
           {
             "step": 3,
             "title": "Schedule energy audit",
-            "description": "A certified energy auditor will visit your parent's home to assess weatherization needs and safety concerns. This determines which improvements qualify."
+            "description": "A certified energy auditor will visit your loved one's home to assess weatherization needs and safety concerns. This determines which improvements qualify."
           },
           {
             "step": 4,
@@ -1176,27 +1176,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for weatherization if they're a renter?",
+          "question": "Can my loved one apply for weatherization if they're a renter?",
           "answer": "Yes, but the landlord may need to contribute 20% of material costs, up to $500 per unit. For multi-family properties, at least two-thirds of tenants must be income-eligible. The landlord must also agree not to sell the property for 6 months after work completion."
         },
         {
-          "question": "What if my parent's home was weatherized years ago through a utility program?",
-          "answer": "Your parent can still qualify as long as the previous weatherization wasn't done by WAP, LIHEAP, HUD, or USDA programs within the past 15 years. Utility company programs like Energize Connecticut don't disqualify them."
+          "question": "What if my loved one's home was weatherized years ago through a utility program?",
+          "answer": "Your loved one can still qualify as long as the previous weatherization wasn't done by WAP, LIHEAP, HUD, or USDA programs within the past 15 years. Utility company programs like Energize Connecticut don't disqualify them."
         },
         {
           "question": "How much priority do seniors actually get in the waitlist?",
           "answer": "Households with seniors 60+, people with disabilities, or those spending 6% or more of income on energy get priority scheduling. While exact wait times aren't published, priority households typically get scheduled for energy audits within a few months rather than facing longer delays."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can help with the application process. Call 2-1-1 and explain you're applying for your parent. You'll need to bring your parent's income documentation and home ownership proof to the intake appointment."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can help with the application process. Call 2-1-1 and explain you're applying for your loved one. You'll need to bring your loved one's income documentation and home ownership proof to the intake appointment."
         },
         {
-          "question": "What happens if my parent's house needs more than $15,000 in work?",
+          "question": "What happens if my loved one's house needs more than $15,000 in work?",
           "answer": "The program caps at $10,000 for energy measures, $2,500 for health/safety repairs, and $2,500 for incidental repairs ($15,000 total for single-family homes). Work exceeding these limits requires special review and approval, which isn't guaranteed."
         },
         {
-          "question": "Can my parent get both Energy Assistance and Weatherization in the same year?",
+          "question": "Can my loved one get both Energy Assistance and Weatherization in the same year?",
           "answer": "Yes, they use the same application through 2-1-1. Energy Assistance helps with current utility bills while Weatherization provides long-term home improvements. Both programs complement each other and share the same income eligibility requirements."
         }
       ],
@@ -1218,7 +1218,7 @@
       "id": "choices-ship",
       "name": "CHOICES (CT SHIP)",
       "shortName": "CHOICES Medicare Help",
-      "tagline": "Free Medicare counseling to help your parent navigate plans, save money, and avoid enrollment mistakes.",
+      "tagline": "Free Medicare counseling to help your loved one navigate plans, save money, and avoid enrollment mistakes.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1235,7 +1235,7 @@
           }
         ]
       },
-      "intro": "If your parent is approaching Medicare eligibility or struggling to understand their current coverage, CHOICES provides free one-on-one counseling to help them make informed decisions. This is Connecticut's version of the federal SHIP program (State Health Insurance Assistance Program), offering unbiased guidance on Medicare Parts A, B, C, and D, plus help finding cost-assistance programs like the Medicare Savings Program and Low-Income Subsidy.\n\nBecause CHOICES counselors are trained volunteers with no financial stake in insurance sales, your parent gets honest advice tailored to their specific needs and budget. The service is available to all Medicare-eligible Connecticut residents regardless of income, plus their family caregivers and anyone preparing for Medicare enrollment.\n\nCounselors can help compare Medicare Advantage plans during Open Enrollment (October 15 - December 7), screen for programs that could lower prescription costs, and resolve claims disputes. Call 800-994-9422 to connect with a local counselor.",
+      "intro": "If your loved one is approaching Medicare eligibility or struggling to understand their current coverage, CHOICES provides free one-on-one counseling to help them make informed decisions. This is Connecticut's version of the federal SHIP program (State Health Insurance Assistance Program), offering unbiased guidance on Medicare Parts A, B, C, and D, plus help finding cost-assistance programs like the Medicare Savings Program and Low-Income Subsidy.\n\nBecause CHOICES counselors are trained volunteers with no financial stake in insurance sales, your loved one gets honest advice tailored to their specific needs and budget. The service is available to all Medicare-eligible Connecticut residents regardless of income, plus their family caregivers and anyone preparing for Medicare enrollment.\n\nCounselors can help compare Medicare Advantage plans during Open Enrollment (October 15 - December 7), screen for programs that could lower prescription costs, and resolve claims disputes. Call 800-994-9422 to connect with a local counselor.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1273,7 +1273,7 @@
           {
             "step": 3,
             "title": "Prepare your Medicare information",
-            "description": "Gather your parent's Medicare card and any questions about coverage, costs, or enrollment decisions."
+            "description": "Gather your loved one's Medicare card and any questions about coverage, costs, or enrollment decisions."
           }
         ],
         "processingTime": "Counseling provided upon contact — no processing time required",
@@ -1310,12 +1310,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help for my parent even if they're already enrolled in Medicare?",
-          "answer": "Yes. CHOICES counselors help with ongoing Medicare questions, plan comparisons during Open Enrollment, prescription drug coverage issues, and claims disputes. They can also screen your parent for cost-assistance programs they may not know about, like the Medicare Savings Program that could eliminate their Part B premium."
+          "question": "Can I get help for my loved one even if they're already enrolled in Medicare?",
+          "answer": "Yes. CHOICES counselors help with ongoing Medicare questions, plan comparisons during Open Enrollment, prescription drug coverage issues, and claims disputes. They can also screen your loved one for cost-assistance programs they may not know about, like the Medicare Savings Program that could eliminate their Part B premium."
         },
         {
           "question": "Is this really free, or will they try to sell us insurance?",
-          "answer": "Completely free with no sales pressure. CHOICES counselors are trained volunteers who don't sell insurance or receive commissions. Their only goal is to help you understand Medicare options and find the most cost-effective coverage for your parent's specific health needs and budget."
+          "answer": "Completely free with no sales pressure. CHOICES counselors are trained volunteers who don't sell insurance or receive commissions. Their only goal is to help you understand Medicare options and find the most cost-effective coverage for your loved one's specific health needs and budget."
         },
         {
           "question": "What's the difference between calling CHOICES versus talking to an insurance agent?",
@@ -1340,7 +1340,7 @@
       "id": "statewide-respite-care",
       "name": "Connecticut Statewide Respite Care Program",
       "shortName": "CT Respite Care",
-      "tagline": "Up to $7,500 annually to help pay for respite care when your parent has dementia",
+      "tagline": "Up to $7,500 annually to help pay for respite care when your loved one has dementia",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1361,7 +1361,7 @@
           }
         ]
       },
-      "intro": "If your parent has Alzheimer's disease or related dementia, Connecticut provides up to $7,500 annually to help pay for respite care services. This program covers adult day care, home health aides, personal care assistants, short-term nursing home stays, and other services that give you breaks from caregiving.\n\nYour parent must have a physician-confirmed diagnosis of irreversible dementia and annual income below $58,772. Because this is a subsidy program, you'll pay 20% of the service costs (unless waived for financial hardship), and the state covers the rest up to the annual cap. Both you and your parent must live in Connecticut, and your parent cannot already receive services through the Connecticut Homecare Program for Elders.",
+      "intro": "If your loved one has Alzheimer's disease or related dementia, Connecticut provides up to $7,500 annually to help pay for respite care services. This program covers adult day care, home health aides, personal care assistants, short-term nursing home stays, and other services that give you breaks from caregiving.\n\nYour loved one must have a physician-confirmed diagnosis of irreversible dementia and annual income below $58,772. Because this is a subsidy program, you'll pay 20% of the service costs (unless waived for financial hardship), and the state covers the rest up to the annual cap. Both you and your loved one must live in Connecticut, and your loved one cannot already receive services through the Connecticut Homecare Program for Elders.",
       "savingsRange": "$1,500 – $6,000/year in 2026",
       "savingsSource": "Up to $7,500 annual subsidy minus 20% co-payment required in most cases",
       "savingsVerified": true,
@@ -1409,12 +1409,12 @@
           {
             "step": 3,
             "title": "Get physician certification",
-            "description": "Have your parent's doctor complete the required 'Physician Statement' form confirming the dementia diagnosis and that it's irreversible and deteriorating."
+            "description": "Have your loved one's doctor complete the required 'Physician Statement' form confirming the dementia diagnosis and that it's irreversible and deteriorating."
           },
           {
             "step": 4,
             "title": "Assessment and care planning",
-            "description": "A Care Manager will assess your parent's needs and help develop a care plan if approved. They'll also determine if the 20% co-payment can be waived due to financial hardship."
+            "description": "A Care Manager will assess your loved one's needs and help develop a care plan if approved. They'll also determine if the 20% co-payment can be waived due to financial hardship."
           }
         ],
         "processingTime": null,
@@ -1472,11 +1472,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get this program if they already receive the Connecticut Homecare Program for Elders?",
-          "answer": "No, your parent cannot receive both programs simultaneously. You'll need to choose which program better fits your parent's needs. The Homecare Program provides broader services while this respite program focuses specifically on caregiver relief for dementia patients."
+          "question": "Can my loved one get this program if they already receive the Connecticut Homecare Program for Elders?",
+          "answer": "No, your loved one cannot receive both programs simultaneously. You'll need to choose which program better fits your loved one's needs. The Homecare Program provides broader services while this respite program focuses specifically on caregiver relief for dementia patients."
         },
         {
-          "question": "What if my parent's income is right at the limit — which number is correct, $58,772 or $48,266?",
+          "question": "What if my loved one's income is right at the limit — which number is correct, $58,772 or $48,266?",
           "answer": "The sources show conflicting income limits, suggesting possible updates or regional variations. Call 1-800-994-9422 to verify the current income threshold for your area before applying."
         },
         {
@@ -1488,7 +1488,7 @@
           "answer": "Yes, the Area Agency on Aging Care Manager can waive the 20% co-payment due to financial hardship. Discuss your financial situation during the assessment process."
         },
         {
-          "question": "What if my parent's doctor won't fill out the Physician Statement form?",
+          "question": "What if my loved one's doctor won't fill out the Physician Statement form?",
           "answer": "The physician statement is required and must be completed by a doctor — generic medical records won't substitute. If your current doctor won't complete it, you may need to see a specialist familiar with dementia diagnoses."
         },
         {
@@ -1535,7 +1535,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed, SCSEP provides paid on-the-job training at nonprofits and public agencies. Your parent earns minimum wage for an average of 20 hours per week while gaining work experience at places like schools, hospitals, senior centers, and day-care centers.\n\nBecause this is federally funded job training, your parent receives career assessment, job placement assistance, and specialized skill training at no cost. The goal is to transition participants into permanent, unsubsidized employment after completing the training program. Career tracks include home health aide, food service, customer service, office administration, stock clerk, and retail sales.\n\nIncome must not exceed 125% of the federal poverty level, and priority goes to veterans, those over 65, and people with disabilities or other barriers to employment.",
+      "intro": "If your loved one is 55+ and unemployed, SCSEP provides paid on-the-job training at nonprofits and public agencies. Your loved one earns minimum wage for an average of 20 hours per week while gaining work experience at places like schools, hospitals, senior centers, and day-care centers.\n\nBecause this is federally funded job training, your loved one receives career assessment, job placement assistance, and specialized skill training at no cost. The goal is to transition participants into permanent, unsubsidized employment after completing the training program. Career tracks include home health aide, food service, customer service, office administration, stock clerk, and retail sales.\n\nIncome must not exceed 125% of the federal poverty level, and priority goes to veterans, those over 65, and people with disabilities or other barriers to employment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1573,17 +1573,17 @@
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Discuss your parent's work history, skills, and career interests. The provider will verify unemployment status and income eligibility during this call."
+            "description": "Discuss your loved one's work history, skills, and career interests. The provider will verify unemployment status and income eligibility during this call."
           },
           {
             "step": 3,
             "title": "Await placement match",
-            "description": "If eligible, your parent will be matched with a community service training position based on their interests and local nonprofit/public agency needs."
+            "description": "If eligible, your loved one will be matched with a community service training position based on their interests and local nonprofit/public agency needs."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Veterans and those over 65 get priority enrollment — mention this status when calling if it applies to your parent.",
+        "tip": "Veterans and those over 65 get priority enrollment — mention this status when calling if it applies to your loved one.",
         "urls": [
           {
             "label": "Associates for Training and Development",
@@ -1616,15 +1616,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for SCSEP while receiving unemployment benefits?",
-          "answer": "No, participants must be unemployed to qualify, which typically means not receiving unemployment compensation. Contact Associates for Training and Development at 203-461-2154 to clarify how unemployment benefits affect eligibility in your parent's specific situation."
+          "question": "Can my loved one apply for SCSEP while receiving unemployment benefits?",
+          "answer": "No, participants must be unemployed to qualify, which typically means not receiving unemployment compensation. Contact Associates for Training and Development at 203-461-2154 to clarify how unemployment benefits affect eligibility in your loved one's specific situation."
         },
         {
           "question": "Is this permanent employment or temporary training?",
           "answer": "SCSEP is temporary job training designed as a bridge to permanent employment. Participants work an average of 20 hours per week at minimum wage while receiving career services and job placement assistance. The goal is to transition into unsubsidized employment after completing the training program."
         },
         {
-          "question": "What if my parent is under 65 and not a veteran — will they still get accepted?",
+          "question": "What if my loved one is under 65 and not a veteran — will they still get accepted?",
           "answer": "Yes, but they may face longer wait times. Priority goes first to veterans and qualified spouses, then to those over 65, then to people with disabilities or other barriers to employment. Non-priority applicants are still eligible but may need to wait for available training slots."
         }
       ],
@@ -1646,7 +1646,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy when your parent has problems with their nursing home or assisted living facility.",
+      "tagline": "Free advocacy when your loved one has problems with their nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1663,7 +1663,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a Connecticut nursing home, assisted living, or residential care facility and has problems with care, billing, or treatment, the Long Term Care Ombudsman provides free advocacy. Ombudsmen investigate complaints confidentially, help resolve disputes between residents and facilities, and ensure your parent's rights are protected.\n\nThe program serves residents of all licensed long-term care facilities statewide, regardless of income. Because ombudsmen are independent advocates (not employed by facilities), they can address issues like inadequate care, medication errors, billing disputes, or restrictions on visitors without conflict of interest.\n\nFamilies considering facility placement can also get information about quality ratings and resident rights before choosing where their parent will live.",
+      "intro": "If your loved one lives in a Connecticut nursing home, assisted living, or residential care facility and has problems with care, billing, or treatment, the Long Term Care Ombudsman provides free advocacy. Ombudsmen investigate complaints confidentially, help resolve disputes between residents and facilities, and ensure your loved one's rights are protected.\n\nThe program serves residents of all licensed long-term care facilities statewide, regardless of income. Because ombudsmen are independent advocates (not employed by facilities), they can address issues like inadequate care, medication errors, billing disputes, or restrictions on visitors without conflict of interest.\n\nFamilies considering facility placement can also get information about quality ratings and resident rights before choosing where their loved one will live.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1697,7 +1697,7 @@
           {
             "step": 2,
             "title": "Describe the problem",
-            "description": "Explain the issue your parent is facing at their facility. The ombudsman will keep your complaint confidential unless you give permission to act on it."
+            "description": "Explain the issue your loved one is facing at their facility. The ombudsman will keep your complaint confidential unless you give permission to act on it."
           },
           {
             "step": 3,
@@ -1745,16 +1745,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call the ombudsman if my parent hasn't given permission?",
-          "answer": "Yes, you can call to discuss concerns and get information. However, the ombudsman cannot act on complaints or investigate without your parent's permission (unless your parent lacks capacity and you have legal authority). The ombudsman will keep your call confidential while helping you understand options."
+          "question": "Can I call the ombudsman if my loved one hasn't given permission?",
+          "answer": "Yes, you can call to discuss concerns and get information. However, the ombudsman cannot act on complaints or investigate without your loved one's permission (unless your loved one lacks capacity and you have legal authority). The ombudsman will keep your call confidential while helping you understand options."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
-          "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and can advocate for your parent's protection. If retaliation occurs, contact the ombudsman immediately at 860-424-5200 — they will investigate and can involve state regulators if needed."
+          "question": "What if the facility retaliates against my loved one for filing a complaint?",
+          "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and can advocate for your loved one's protection. If retaliation occurs, contact the ombudsman immediately at 860-424-5200 — they will investigate and can involve state regulators if needed."
         },
         {
-          "question": "Can the ombudsman help before my parent moves into a facility?",
-          "answer": "Yes, families considering placement can get information about facility quality ratings, resident rights, and what questions to ask during visits. Call 860-424-5200 to speak with an ombudsman about choosing the right facility for your parent's needs."
+          "question": "Can the ombudsman help before my loved one moves into a facility?",
+          "answer": "Yes, families considering placement can get information about facility quality ratings, resident rights, and what questions to ask during visits. Call 860-424-5200 to speak with an ombudsman about choosing the right facility for your loved one's needs."
         }
       ],
       "layoutIntent": {
@@ -1773,7 +1773,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Connecticut offers 10 major programs to help your aging parent — from $298/month for groceries to $15,000 in free home energy improvements. Seven of these provide direct financial benefits or services (requiring income/asset limits), while three offer free resources available to any Connecticut senior regardless of income. Most programs target seniors with monthly incomes below $2,152-$2,901, but some like Medicare counseling and ombudsman services help everyone. Start by checking the highest-value programs first: HUSKY Health for comprehensive medical coverage, Connecticut Home Care Program to keep your parent out of nursing homes, and SNAP for immediate grocery assistance.",
+    "intro": "Connecticut offers 10 major programs to help your aging loved one — from $298/month for groceries to $15,000 in free home energy improvements. Seven of these provide direct financial benefits or services (requiring income/asset limits), while three offer free resources available to any Connecticut senior regardless of income. Most programs target seniors with monthly incomes below $2,152-$2,901, but some like Medicare counseling and ombudsman services help everyone. Start by checking the highest-value programs first: HUSKY Health for comprehensive medical coverage, Connecticut Home Care Program to keep your loved one out of nursing homes, and SNAP for immediate grocery assistance.",
     "startHere": [
       {
         "name": "HUSKY Health (Medicaid for seniors/disabled)",
@@ -1826,7 +1826,7 @@
         "programs": [
           "Connecticut Statewide Respite Care Program"
         ],
-        "description": "Financial help for respite care when your parent has dementia."
+        "description": "Financial help for respite care when your loved one has dementia."
       },
       {
         "need": "Free advice and advocacy",

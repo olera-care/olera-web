@@ -9,7 +9,7 @@
       "id": "ccc-plus-waiver",
       "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
       "shortName": "CCC+ Waiver",
-      "tagline": "If your parent needs daily help with bathing, dressing, or medications but wants to stay home, this Virginia program covers in-home care instead of nursing home placement.",
+      "tagline": "If your loved one needs daily help with bathing, dressing, or medications but wants to stay home, this Virginia program covers in-home care instead of nursing home placement.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -26,7 +26,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Virginia's CCC+ Waiver can cover in-home care services to help them avoid nursing home placement. The program provides respite care (up to 480 hours per year), home modifications (up to $5,000), private duty nursing (up to 112 hours per week), and assistive technology to support aging at home.\n\nTo qualify, your parent must be eligible for Virginia Medicaid, meet Nursing Facility Level of Care (assessed through Virginia's clinical screening tool), and be at imminent risk of nursing home placement without these services. Because this waiver has no current waiting list, approved applicants can begin receiving services relatively quickly compared to other state programs.\n\nBecause CCC+ covers comprehensive home-based care under one coordinated program, your parent won't need to manage separate providers for different services — one care team coordinates everything from nursing visits to home safety modifications.",
+      "intro": "If your loved one is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Virginia's CCC+ Waiver can cover in-home care services to help them avoid nursing home placement. The program provides respite care (up to 480 hours per year), home modifications (up to $5,000), private duty nursing (up to 112 hours per week), and assistive technology to support aging at home.\n\nTo qualify, your loved one must be eligible for Virginia Medicaid, meet Nursing Facility Level of Care (assessed through Virginia's clinical screening tool), and be at imminent risk of nursing home placement without these services. Because this waiver has no current waiting list, approved applicants can begin receiving services relatively quickly compared to other state programs.\n\nBecause CCC+ covers comprehensive home-based care under one coordinated program, your loved one won't need to manage separate providers for different services — one care team coordinates everything from nursing visits to home safety modifications.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -56,7 +56,7 @@
           {
             "step": 1,
             "title": "Request Long-Term Services Screening",
-            "description": "Contact your local Department of Social Services to request LTSS screening. A Community Based Screening Team (social worker and health department nurse) will assess your parent's care needs using Virginia's clinical tool."
+            "description": "Contact your local Department of Social Services to request LTSS screening. A Community Based Screening Team (social worker and health department nurse) will assess your loved one's care needs using Virginia's clinical tool."
           },
           {
             "step": 2,
@@ -66,7 +66,7 @@
           {
             "step": 3,
             "title": "Complete Clinical Assessment",
-            "description": "The screening team will evaluate Activities of Daily Living, medical needs, and living situation to determine if your parent meets Nursing Facility Level of Care requirements."
+            "description": "The screening team will evaluate Activities of Daily Living, medical needs, and living situation to determine if your loved one meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 4,
@@ -76,7 +76,7 @@
         ],
         "processingTime": null,
         "waitlist": "No current waiting list",
-        "tip": "If your parent is hospitalized, ask the discharge planner to initiate the CCC+ screening process before discharge.",
+        "tip": "If your loved one is hospitalized, ask the discharge planner to initiate the CCC+ screening process before discharge.",
         "urls": [
           {
             "label": "Virginia Medicaid Application",
@@ -132,9 +132,9 @@
       ],
       "applicationNotes": [
         "You must meet Virginia Medicaid financial eligibility first — applying over income/asset limits leads to automatic denial",
-        "A dementia diagnosis alone does not qualify — your parent must meet clinical level of care through the assessment process",
+        "A dementia diagnosis alone does not qualify — your loved one must meet clinical level of care through the assessment process",
         "You can apply for CCC+ while on developmental disability waiver waitlists, as services are more limited but available immediately",
-        "Spousal impoverishment protections apply if your parent is married — only the applicant's income counts toward eligibility"
+        "Spousal impoverishment protections apply if your loved one is married — only the applicant's income counts toward eligibility"
       ],
       "relatedPrograms": [
         "Virginia Medicaid",
@@ -145,23 +145,23 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than Medicaid asset limits?",
-          "answer": "Yes, the family home is typically exempt from Medicaid asset limits while your parent lives there or intends to return. However, Virginia may place a lien on the property to recover costs after death, though spousal protections apply."
+          "question": "Can my loved one keep their house if it's worth more than Medicaid asset limits?",
+          "answer": "Yes, the family home is typically exempt from Medicaid asset limits while your loved one lives there or intends to return. However, Virginia may place a lien on the property to recover costs after death, though spousal protections apply."
         },
         {
-          "question": "What if my parent needs more than 480 hours of respite care per year?",
+          "question": "What if my loved one needs more than 480 hours of respite care per year?",
           "answer": "The 480-hour limit is firm for the State fiscal year (July 1 - June 30). You'll need to arrange private pay or family coverage beyond this limit, or explore other community resources through your care coordinator."
         },
         {
-          "question": "Can I apply for CCC+ while my parent is still in the hospital?",
+          "question": "Can I apply for CCC+ while my loved one is still in the hospital?",
           "answer": "Yes, and this is often ideal timing. Hospital discharge planners can initiate the screening process, and being hospitalized may help demonstrate the imminent risk of nursing facility placement that CCC+ requires."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
-          "answer": "The screening team will reassess your parent's needs and can adjust services within program limits. If needs exceed what CCC+ can provide, they may help transition to other programs or higher levels of care."
+          "question": "What happens if my loved one's care needs increase after enrollment?",
+          "answer": "The screening team will reassess your loved one's needs and can adjust services within program limits. If needs exceed what CCC+ can provide, they may help transition to other programs or higher levels of care."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
+          "question": "Can a family member apply on behalf of an elderly loved one?",
           "answer": "Yes, but you'll need legal authority through power of attorney, guardianship, or authorized representative designation. Bring legal documents showing your authority to act on their behalf."
         },
         {
@@ -169,11 +169,11 @@
           "answer": "The Community Based Screening Team will schedule the assessment, but specific timeframes aren't published. Contact your local Department of Social Services for current scheduling availability in your area."
         },
         {
-          "question": "Can my parent receive CCC+ services if they live in assisted living?",
-          "answer": "This depends on your parent's specific living arrangement and care needs. The screening team will evaluate whether waiver services are appropriate given their current housing situation and level of care already received."
+          "question": "Can my loved one receive CCC+ services if they live in assisted living?",
+          "answer": "This depends on your loved one's specific living arrangement and care needs. The screening team will evaluate whether waiver services are appropriate given their current housing situation and level of care already received."
         },
         {
-          "question": "What if my parent's Medicaid application is denied but they clearly need nursing home level care?",
+          "question": "What if my loved one's Medicaid application is denied but they clearly need nursing home level care?",
           "answer": "You can appeal the Medicaid decision and request a fair hearing. Meanwhile, ask the screening team about other community resources or state programs that might provide interim support while resolving the Medicaid eligibility issue."
         }
       ],
@@ -208,7 +208,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with daily tasks like housekeeping, meal preparation, or money management, Virginia's Adult Services Program provides free homemaker services, chore assistance, and companionship services. Because this program targets at-risk elderly adults, your parent gets priority if they're vulnerable to abuse, neglect, or exploitation.\n\nUnlike Medicaid home care programs, Adult Services has no strict statewide income limits — eligibility is assessed locally based on functional need and risk factors. Services include up to 15 hours per week of homemaker help in some counties, adult day center referrals, and Adult Protective Services coordination.\n\nThe program operates through your local Department of Social Services office. Because funding varies by county, service availability and hours differ across Virginia — some areas may have waitlists while others can start services within 45 days of approval.",
+      "intro": "If your loved one is 60+ and struggling with daily tasks like housekeeping, meal preparation, or money management, Virginia's Adult Services Program provides free homemaker services, chore assistance, and companionship services. Because this program targets at-risk elderly adults, your loved one gets priority if they're vulnerable to abuse, neglect, or exploitation.\n\nUnlike Medicaid home care programs, Adult Services has no strict statewide income limits — eligibility is assessed locally based on functional need and risk factors. Services include up to 15 hours per week of homemaker help in some counties, adult day center referrals, and Adult Protective Services coordination.\n\nThe program operates through your local Department of Social Services office. Because funding varies by county, service availability and hours differ across Virginia — some areas may have waitlists while others can start services within 45 days of approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -307,23 +307,23 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get Adult Services if they already have Medicaid?",
-          "answer": "Yes. Adult Services is separate from Medicaid with different eligibility rules. Your parent can receive both programs simultaneously. Adult Services may fill gaps in services that Medicaid doesn't cover or provide faster access while waiting for Medicaid waiver approval."
+          "question": "Can my loved one get Adult Services if they already have Medicaid?",
+          "answer": "Yes. Adult Services is separate from Medicaid with different eligibility rules. Your loved one can receive both programs simultaneously. Adult Services may fill gaps in services that Medicaid doesn't cover or provide faster access while waiting for Medicaid waiver approval."
         },
         {
-          "question": "What if my parent's county has a waitlist for services?",
-          "answer": "Waitlist times vary significantly by county and available funding. Adults in immediate danger or with protective service needs typically get priority. Contact your local DSS office to ask about current wait times and whether your parent's situation qualifies for expedited processing."
+          "question": "What if my loved one's county has a waitlist for services?",
+          "answer": "Waitlist times vary significantly by county and available funding. Adults in immediate danger or with protective service needs typically get priority. Contact your local DSS office to ask about current wait times and whether your loved one's situation qualifies for expedited processing."
         },
         {
-          "question": "Can I apply for Adult Services on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. If your parent is incapacitated, you may need legal documentation like power of attorney. DSS staff can assist with completing applications and will work with family members who are helping coordinate care."
+          "question": "Can I apply for Adult Services on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. If your loved one is incapacitated, you may need legal documentation like power of attorney. DSS staff can assist with completing applications and will work with family members who are helping coordinate care."
         },
         {
-          "question": "How many hours of homemaker services can my parent actually get?",
-          "answer": "Hours vary by county funding and assessed need. Some counties like Lee County provide up to 15 hours per week of companion services. Your local DSS office will assess your parent's specific needs and tell you what's available in your area."
+          "question": "How many hours of homemaker services can my loved one actually get?",
+          "answer": "Hours vary by county funding and assessed need. Some counties like Lee County provide up to 15 hours per week of companion services. Your local DSS office will assess your loved one's specific needs and tell you what's available in your area."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
+          "question": "What happens if my loved one's income changes after they're approved?",
           "answer": "You must report income changes within 10 days. Because Adult Services doesn't have strict statewide income limits, small changes may not affect eligibility. However, significant changes could impact service levels or priority status."
         },
         {
@@ -331,12 +331,12 @@
           "answer": "Adult Protective Services (APS) is part of the broader Adult Services Program. APS specifically handles cases involving suspected abuse, neglect, or exploitation. General Adult Services includes homemaker help, chore services, and other supportive services for at-risk adults."
         },
         {
-          "question": "Can my parent choose their own homemaker or service provider?",
+          "question": "Can my loved one choose their own homemaker or service provider?",
           "answer": "Provider approval and selection processes vary by county. Each local DSS office maintains its own list of approved providers who meet county-specific requirements. You can ask your DSS caseworker about the selection process and whether you have input on provider assignment."
         },
         {
-          "question": "What if my parent needs more services than Adult Services provides?",
-          "answer": "Adult Services staff can screen your parent for other programs like assisted living placement, nursing home care, adult day care, or Medicaid waiver services. Because DSS coordinates multiple programs, they can help connect your parent to additional resources based on assessed needs."
+          "question": "What if my loved one needs more services than Adult Services provides?",
+          "answer": "Adult Services staff can screen your loved one for other programs like assisted living placement, nursing home care, adult day care, or Medicaid waiver services. Because DSS coordinates multiple programs, they can help connect your loved one to additional resources based on assessed needs."
         }
       ],
       "layoutIntent": {
@@ -357,7 +357,7 @@
       "id": "vicap-medicare-counseling",
       "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
       "shortName": "VICAP",
-      "tagline": "Free one-on-one Medicare counseling to help your parent choose the right plan and avoid costly mistakes.",
+      "tagline": "Free one-on-one Medicare counseling to help your loved one choose the right plan and avoid costly mistakes.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -382,7 +382,7 @@
           }
         ]
       },
-      "intro": "If your parent is confused by Medicare options or paying too much for prescription drugs, VICAP provides free, unbiased counseling to help them choose the right plan. Because VICAP counselors cannot sell insurance or receive commissions, they give honest advice about Medicare Part D, Medicare Advantage, Medigap, and Medicare Savings Programs without pushing any particular company.\n\nThe program serves any Medicare beneficiary in Virginia, including those under 65 with disabilities, plus their family caregivers. Services include one-on-one plan comparisons, help with enrollment during Open Enrollment (October 15–December 7), appeals assistance when Medicare denies a claim, and referrals to prescription drug assistance programs. VICAP counselors are specially trained and certified in Medicare rules — they're not general financial advisors.\n\nYou access VICAP through your local Area Agency on Aging, not directly through the state office. Each region has its own phone number and office location, but all provide the same free counseling services statewide.",
+      "intro": "If your loved one is confused by Medicare options or paying too much for prescription drugs, VICAP provides free, unbiased counseling to help them choose the right plan. Because VICAP counselors cannot sell insurance or receive commissions, they give honest advice about Medicare Part D, Medicare Advantage, Medigap, and Medicare Savings Programs without pushing any particular company.\n\nThe program serves any Medicare beneficiary in Virginia, including those under 65 with disabilities, plus their family caregivers. Services include one-on-one plan comparisons, help with enrollment during Open Enrollment (October 15–December 7), appeals assistance when Medicare denies a claim, and referrals to prescription drug assistance programs. VICAP counselors are specially trained and certified in Medicare rules — they're not general financial advisors.\n\nYou access VICAP through your local Area Agency on Aging, not directly through the state office. Each region has its own phone number and office location, but all provide the same free counseling services statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -420,7 +420,7 @@
           {
             "step": 3,
             "title": "Attend counseling session",
-            "description": "Meet with your certified VICAP counselor who will review your parent's current coverage, compare plan options, and help with enrollment if needed."
+            "description": "Meet with your certified VICAP counselor who will review your loved one's current coverage, compare plan options, and help with enrollment if needed."
           }
         ],
         "processingTime": "Counseling appointments typically scheduled within 1-2 weeks of calling",
@@ -477,20 +477,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help choosing a Medicare plan for my parent even if they already have coverage?",
-          "answer": "Yes. VICAP counselors help people compare their current plan with other options, especially during Medicare Open Enrollment (October 15–December 7). They can show you if your parent is paying too much or missing better coverage for their medications. Outside Open Enrollment, plan changes are limited, but counselors can still explain options for the next enrollment period."
+          "question": "Can I get help choosing a Medicare plan for my loved one even if they already have coverage?",
+          "answer": "Yes. VICAP counselors help people compare their current plan with other options, especially during Medicare Open Enrollment (October 15–December 7). They can show you if your loved one is paying too much or missing better coverage for their medications. Outside Open Enrollment, plan changes are limited, but counselors can still explain options for the next enrollment period."
         },
         {
-          "question": "Will the VICAP counselor try to sell my parent insurance?",
-          "answer": "No. VICAP counselors cannot sell insurance or receive commissions from insurance companies. Because they have no financial incentive to push any particular plan, they provide truly unbiased advice. Their job is to help your parent understand options and make the best choice for their specific needs and budget."
+          "question": "Will the VICAP counselor try to sell my loved one insurance?",
+          "answer": "No. VICAP counselors cannot sell insurance or receive commissions from insurance companies. Because they have no financial incentive to push any particular plan, they provide truly unbiased advice. Their job is to help your loved one understand options and make the best choice for their specific needs and budget."
         },
         {
-          "question": "Can my parent get help with Medicare appeals if their claim was denied?",
+          "question": "Can my loved one get help with Medicare appeals if their claim was denied?",
           "answer": "Yes. VICAP counselors help with Medicare appeals and denials, explaining your rights and walking you through the appeals process. They can also help you understand why a claim was denied and whether it's worth appealing based on Medicare rules."
         },
         {
-          "question": "Does my parent qualify for VICAP if they have both Medicare and Medicaid?",
-          "answer": "Yes. VICAP serves people with both Medicare and Medicaid (dual eligibles). In fact, counselors can help identify special Dual Eligible Special Needs Plans (D-SNPs) that may provide better coordination between the two programs and additional benefits your parent isn't getting now."
+          "question": "Does my loved one qualify for VICAP if they have both Medicare and Medicaid?",
+          "answer": "Yes. VICAP serves people with both Medicare and Medicaid (dual eligibles). In fact, counselors can help identify special Dual Eligible Special Needs Plans (D-SNPs) that may provide better coordination between the two programs and additional benefits your loved one isn't getting now."
         }
       ],
       "layoutIntent": {
@@ -524,7 +524,7 @@
           }
         ]
       },
-      "intro": "If you're helping your parent navigate Virginia's maze of services, SeniorNavigator gives you a searchable database of over 27,000 programs covering health care, housing, transportation, employment, and financial planning. Because it's organized by city and county, you can find exactly what's available in your parent's specific area — from local food pantries to specialized geriatricians to transportation services.\n\nThe platform includes eligibility criteria, application processes, costs, and contact information for each program, plus an 'Ask an Expert' feature for personalized guidance. You can search specialized portals for seniors, people with disabilities, veterans, and caregivers. Over 1 million people use SeniorNavigator annually to connect with local services across Virginia.",
+      "intro": "If you're helping your loved one navigate Virginia's maze of services, SeniorNavigator gives you a searchable database of over 27,000 programs covering health care, housing, transportation, employment, and financial planning. Because it's organized by city and county, you can find exactly what's available in your loved one's specific area — from local food pantries to specialized geriatricians to transportation services.\n\nThe platform includes eligibility criteria, application processes, costs, and contact information for each program, plus an 'Ask an Expert' feature for personalized guidance. You can search specialized portals for seniors, people with disabilities, veterans, and caregivers. Over 1 million people use SeniorNavigator annually to connect with local services across Virginia.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -556,7 +556,7 @@
           {
             "step": 2,
             "title": "Search by location and topic",
-            "description": "Enter your parent's city or county, then browse categories like health, housing, transportation, or financial planning."
+            "description": "Enter your loved one's city or county, then browse categories like health, housing, transportation, or financial planning."
           },
           {
             "step": 3,
@@ -566,12 +566,12 @@
           {
             "step": 4,
             "title": "Contact programs directly",
-            "description": "Call or apply to the individual programs that match your parent's needs — each has its own application process and requirements."
+            "description": "Call or apply to the individual programs that match your loved one's needs — each has its own application process and requirements."
           }
         ],
         "processingTime": "Immediate access to directory",
         "waitlist": null,
-        "tip": "Use the 'Ask an Expert' feature if you're overwhelmed by options — they can help narrow down programs that fit your parent's specific situation.",
+        "tip": "Use the 'Ask an Expert' feature if you're overwhelmed by options — they can help narrow down programs that fit your loved one's specific situation.",
         "urls": [
           {
             "label": "SeniorNavigator Main Site",
@@ -620,12 +620,12 @@
           "answer": "No, SeniorNavigator is a directory that connects you to programs — you must apply directly to each individual program. Each listing includes the specific application process and contact information for that service."
         },
         {
-          "question": "What if I can't find programs in my parent's rural county?",
+          "question": "What if I can't find programs in my loved one's rural county?",
           "answer": "Try searching neighboring counties or regional providers. Many programs serve multiple counties, and some state programs are available regardless of location. The 'Ask an Expert' feature can help identify options for rural areas."
         },
         {
-          "question": "How do I know which programs my parent actually qualifies for?",
-          "answer": "Each program listing includes eligibility criteria, but requirements can be complex. Use the 'Ask an Expert' feature for personalized guidance, or call programs directly to discuss your parent's specific situation before applying."
+          "question": "How do I know which programs my loved one actually qualifies for?",
+          "answer": "Each program listing includes eligibility criteria, but requirements can be complex. Use the 'Ask an Expert' feature for personalized guidance, or call programs directly to discuss your loved one's specific situation before applying."
         },
         {
           "question": "Can I search for multiple types of services at once?",
@@ -650,7 +650,7 @@
       "id": "scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
-      "tagline": "If your parent is 55+ and unemployed, they can earn up to $11,000/year while learning job skills through part-time community service work.",
+      "tagline": "If your loved one is 55+ and unemployed, they can earn up to $11,000/year while learning job skills through part-time community service work.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -675,7 +675,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55 or older and unemployed, SCSEP provides paid job training through community service work at nonprofits and government agencies. Your parent can work up to 29 hours per week (average 20 hours) at sites like senior centers, libraries, schools, and hospitals, earning minimum wage while developing skills for permanent employment.\n\nThe program covers roles like teacher's aide, librarian assistant, clerical work, customer service, and maintenance. Because SCSEP includes computer training and job placement assistance, participants gain marketable skills while earning income. Family income must be at or below 125% of federal poverty level — for example, $16,988 per year for a single person in Northern Virginia (2023).\n\nYour parent must be completely unemployed to qualify — any paid work hours disqualify them. Regular Social Security income counts toward the income limit, but SSI and SSDI do not count. The goal is transitioning to permanent unsubsidized employment after gaining experience and training.",
+      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides paid job training through community service work at nonprofits and government agencies. Your loved one can work up to 29 hours per week (average 20 hours) at sites like senior centers, libraries, schools, and hospitals, earning minimum wage while developing skills for permanent employment.\n\nThe program covers roles like teacher's aide, librarian assistant, clerical work, customer service, and maintenance. Because SCSEP includes computer training and job placement assistance, participants gain marketable skills while earning income. Family income must be at or below 125% of federal poverty level — for example, $16,988 per year for a single person in Northern Virginia (2023).\n\nYour loved one must be completely unemployed to qualify — any paid work hours disqualify them. Regular Social Security income counts toward the income limit, but SSI and SSDI do not count. The goal is transitioning to permanent unsubsidized employment after gaining experience and training.",
       "savingsRange": "$8,000 – $11,000/year",
       "savingsSource": "Part-time wages at minimum wage for 20-29 hours/week",
       "savingsVerified": true,
@@ -797,27 +797,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work any hours at all and still qualify for SCSEP?",
-          "answer": "No. Your parent must be completely unemployed with zero work hours to qualify. Even one hour of paid work per week disqualifies them from the program. This includes part-time jobs, gig work, or consulting."
+          "question": "Can my loved one work any hours at all and still qualify for SCSEP?",
+          "answer": "No. Your loved one must be completely unemployed with zero work hours to qualify. Even one hour of paid work per week disqualifies them from the program. This includes part-time jobs, gig work, or consulting."
         },
         {
-          "question": "Does my parent's Social Security count toward the income limit?",
+          "question": "Does my loved one's Social Security count toward the income limit?",
           "answer": "Regular Social Security retirement benefits count toward the 125% poverty level income limit. However, SSI and SSDI payments do not count as income for SCSEP eligibility purposes."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is temporary job training, not permanent employment. Participants work up to 29 hours per week while receiving training and job placement assistance. The goal is to transition to unsubsidized permanent employment."
         },
         {
-          "question": "What if my parent lives on the border between two SCSEP service areas?",
-          "answer": "Your parent must live within the specific coverage area of a SCSEP provider. For example, Northern Virginia SCSEP covers specific counties like Fairfax and Loudoun. Call the provider for your area to confirm coverage."
+          "question": "What if my loved one lives on the border between two SCSEP service areas?",
+          "answer": "Your loved one must live within the specific coverage area of a SCSEP provider. For example, Northern Virginia SCSEP covers specific counties like Fairfax and Loudoun. Call the provider for your area to confirm coverage."
         },
         {
-          "question": "Can my parent choose what type of work they do in SCSEP?",
-          "answer": "SCSEP matches participants with available positions at nonprofit and government sites like senior centers, libraries, schools, and hospitals. Roles include clerical work, teacher's aide, customer service, and maintenance based on local availability and your parent's skills."
+          "question": "Can my loved one choose what type of work they do in SCSEP?",
+          "answer": "SCSEP matches participants with available positions at nonprofit and government sites like senior centers, libraries, schools, and hospitals. Roles include clerical work, teacher's aide, customer service, and maintenance based on local availability and your loved one's skills."
         },
         {
-          "question": "What happens if my parent gets a job offer while in SCSEP?",
+          "question": "What happens if my loved one gets a job offer while in SCSEP?",
           "answer": "That's the goal! SCSEP provides job placement assistance to help participants transition to permanent unsubsidized employment. The program includes training specifically designed to make participants more marketable to employers."
         },
         {
@@ -825,8 +825,8 @@
           "answer": "Waitlists vary by region and funding availability. Some areas may have immediate openings while others have waiting periods. Apply now to get on file as positions become available regularly due to people transitioning to permanent jobs."
         },
         {
-          "question": "Can my parent apply for SCSEP and other programs at the same time?",
-          "answer": "Yes. Your parent can receive SCSEP wages along with benefits like SNAP food assistance, as long as they meet each program's individual requirements. The SCSEP income may affect other benefit calculations."
+          "question": "Can my loved one apply for SCSEP and other programs at the same time?",
+          "answer": "Yes. Your loved one can receive SCSEP wages along with benefits like SNAP food assistance, as long as they meet each program's individual requirements. The SCSEP income may affect other benefit calculations."
         }
       ],
       "layoutIntent": {
@@ -845,12 +845,12 @@
     }
   ],
   "stateOverview": {
-    "intro": "Virginia offers dozens of programs to help seniors stay independent and manage costs, from in-home care coverage to job training for older adults. The state's Commonwealth Coordinated Care Plus program can cover significant home care costs if your parent qualifies, while free resources like VICAP provide Medicare guidance without income restrictions. Virginia also maintains SeniorNavigator, a comprehensive database of over 27,000 local programs across the state. Start by checking if your parent qualifies for CCC+ if they need daily care assistance, then explore free resources that can provide immediate help regardless of income.",
+    "intro": "Virginia offers dozens of programs to help seniors stay independent and manage costs, from in-home care coverage to job training for older adults. The state's Commonwealth Coordinated Care Plus program can cover significant home care costs if your loved one qualifies, while free resources like VICAP provide Medicare guidance without income restrictions. Virginia also maintains SeniorNavigator, a comprehensive database of over 27,000 local programs across the state. Start by checking if your loved one qualifies for CCC+ if they need daily care assistance, then explore free resources that can provide immediate help regardless of income.",
     "startHere": [
       {
         "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
         "programId": "ccc-plus-waiver",
-        "why": "Covers significant in-home care costs if your parent needs daily help but wants to avoid nursing home placement."
+        "why": "Covers significant in-home care costs if your loved one needs daily help but wants to avoid nursing home placement."
       },
       {
         "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",

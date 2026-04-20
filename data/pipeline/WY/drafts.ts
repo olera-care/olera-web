@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.929Z
+ * Last updated: 2026-04-20T22:05:18.109Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "state-parks-senior-discounts",
       "name": "Wyoming State Parks Senior Discounts",
       "shortName": "State Parks Senior Discounts",
-      "tagline": "Save on camping, day passes, and cabin rentals at all Wyoming state parks and historic sites if your parent is 62+",
+      "tagline": "Save on camping, day passes, and cabin rentals at all Wyoming state parks and historic sites if your loved one is 62+",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your Wyoming parent is 62 or older, they automatically qualify for reduced fees at all Wyoming state parks and historic sites — no application needed. They'll pay less for day-use passes, camping spots, cabin rentals, and entry to historic sites like Fort Laramie and Devils Tower.\n\nBecause there's no formal senior pass to purchase, your parent simply shows their photo ID and proof of Wyoming residency at the park entrance to receive the discount. This works at all 35+ state parks and historic sites across Wyoming, from Curt Gowdy State Park to Hot Springs State Park.\n\nThis discount is separate from the federal Senior Pass for national parks like Yellowstone — that's a different program with different requirements. Wyoming's program is specifically for state-run parks and historic sites.",
+      "intro": "If your Wyoming loved one is 62 or older, they automatically qualify for reduced fees at all Wyoming state parks and historic sites — no application needed. They'll pay less for day-use passes, camping spots, cabin rentals, and entry to historic sites like Fort Laramie and Devils Tower.\n\nBecause there's no formal senior pass to purchase, your loved one simply shows their photo ID and proof of Wyoming residency at the park entrance to receive the discount. This works at all 35+ state parks and historic sites across Wyoming, from Curt Gowdy State Park to Hot Springs State Park.\n\nThis discount is separate from the federal Senior Pass for national parks like Yellowstone — that's a different program with different requirements. Wyoming's program is specifically for state-run parks and historic sites.",
       "savingsRange": "",
       "savingsSource": "Discount amount varies by park and activity type",
       "savingsVerified": false,
@@ -119,20 +119,20 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, this is only for Wyoming state parks and historic sites. For national parks like Yellowstone and Grand Teton, you need the federal Senior Pass, which costs $80 for life and requires different eligibility (age 62+ but no residency requirement)."
         },
         {
-          "question": "What if my parent is a Wyoming resident but doesn't have a Wyoming driver's license?",
-          "answer": "Any proof of Wyoming residency works — utility bills, bank statements, lease agreements, or voter registration cards. The park staff needs to verify both age (62+) and that your parent lives in Wyoming."
+          "question": "What if my loved one is a Wyoming resident but doesn't have a Wyoming driver's license?",
+          "answer": "Any proof of Wyoming residency works — utility bills, bank statements, lease agreements, or voter registration cards. The park staff needs to verify both age (62+) and that your loved one lives in Wyoming."
         },
         {
           "question": "How much money will this actually save?",
           "answer": "The exact discount amount varies by park and activity. Some historic sites charge $9 for adults and $4.50 for youth, with seniors getting the reduced rate. Camping and cabin rental discounts depend on the specific location and season."
         },
         {
-          "question": "Can my out-of-state parent get this discount when visiting me in Wyoming?",
-          "answer": "No, this benefit is only for Wyoming residents. Your parent would need to establish Wyoming residency to qualify. Out-of-state visitors pay regular non-resident rates at Wyoming state parks."
+          "question": "Can my out-of-state loved one get this discount when visiting me in Wyoming?",
+          "answer": "No, this benefit is only for Wyoming residents. Your loved one would need to establish Wyoming residency to qualify. Out-of-state visitors pay regular non-resident rates at Wyoming state parks."
         },
         {
           "question": "Do I need to reapply or renew this discount annually?",
-          "answer": "No, there's no pass to purchase or renew. As long as your parent remains a Wyoming resident and is 62+, they simply show their documents each visit to receive the discount. No paperwork or annual fees required."
+          "answer": "No, there's no pass to purchase or renew. As long as your loved one remains a Wyoming resident and is 62+, they simply show their documents each visit to receive the discount. No paperwork or annual fees required."
         }
       ],
       "layoutIntent": {
@@ -166,7 +166,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills during Wyoming's harsh winters, LIHEAP can provide direct payment to their utility company. This federal program pays between $49 and $2,176 toward heating costs from November through May, with the payment going straight to the utility so your parent doesn't have to manage reimbursements.\n\nYour parent qualifies if their household income is below $2,985/month for a single person or $3,904/month for a couple. Because Wyoming uses automatic eligibility, if your parent already receives SNAP, SSI, TANF, or certain veterans benefits, they're immediately approved without income verification.\n\nCrisis assistance provides an additional $550 in winter months if your parent faces shut-off notices or heating system failures. Applications open October 1st each year, but funding is limited and the program often closes early when money runs out.",
+      "intro": "If your loved one struggles to pay heating bills during Wyoming's harsh winters, LIHEAP can provide direct payment to their utility company. This federal program pays between $49 and $2,176 toward heating costs from November through May, with the payment going straight to the utility so your loved one doesn't have to manage reimbursements.\n\nYour loved one qualifies if their household income is below $2,985/month for a single person or $3,904/month for a couple. Because Wyoming uses automatic eligibility, if your loved one already receives SNAP, SSI, TANF, or certain veterans benefits, they're immediately approved without income verification.\n\nCrisis assistance provides an additional $550 in winter months if your loved one faces shut-off notices or heating system failures. Applications open October 1st each year, but funding is limited and the program often closes early when money runs out.",
       "savingsRange": "$49 – $2,176/year in 2026",
       "savingsSource": "Wyoming Department of Family Services maximum and minimum benefit amounts for regular heating assistance",
       "savingsVerified": true,
@@ -280,7 +280,7 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives with other family members who don't help pay utilities?",
+          "question": "What if my loved one lives with other family members who don't help pay utilities?",
           "answer": "Everyone living at the same address counts as one household for LIEAP purposes, even if they keep separate finances. You'll need to include income from all household members when applying, which may affect eligibility if their combined income exceeds the limits."
         },
         {
@@ -288,28 +288,28 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, but you must complete the regular LIEAP application first. Crisis assistance provides up to an additional $550 in winter months for shut-off notices or heating failures, but it's separate from the regular $49-$2,176 heating benefit."
         },
         {
-          "question": "What happens if my parent's utility company threatens shut-off before I can get crisis help?",
+          "question": "What happens if my loved one's utility company threatens shut-off before I can get crisis help?",
           "answer": "Contact (800) 246-4221 immediately and explain the emergency situation. Crisis assistance is designed for these situations, but you must have the regular LIEAP application on file first. Many utility companies will delay shut-off if you can show a pending LIEAP application."
         },
         {
-          "question": "How do I know if my parent qualifies for automatic eligibility?",
-          "answer": "If your parent receives SNAP food benefits, SSI, TANF, or certain veterans benefits, they automatically qualify without income verification. Bring their benefit award letter or card when applying to streamline the process."
+          "question": "How do I know if my loved one qualifies for automatic eligibility?",
+          "answer": "If your loved one receives SNAP food benefits, SSI, TANF, or certain veterans benefits, they automatically qualify without income verification. Bring their benefit award letter or card when applying to streamline the process."
         },
         {
-          "question": "Can my parent apply if they heat with propane or wood instead of electric or gas?",
-          "answer": "Yes, LIEAP covers various heating fuel types including propane. The program pays vendors directly, so your parent will need bills or receipts from their propane supplier or other fuel vendor."
+          "question": "Can my loved one apply if they heat with propane or wood instead of electric or gas?",
+          "answer": "Yes, LIEAP covers various heating fuel types including propane. The program pays vendors directly, so your loved one will need bills or receipts from their propane supplier or other fuel vendor."
         },
         {
           "question": "What if we miss the application deadline because the program closes early?",
           "answer": "If LIEAP funding runs out before April 30th, there's no additional funding until the next heating season starting October 1st. This is why applying as early as possible in October is crucial — waiting until winter arrives often means missing out entirely."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has trouble with paperwork?",
-          "answer": "Yes, family members can help with the application process. When you call (800) 246-4221, explain that you're helping your parent apply and ask about any authorization forms needed to discuss their case with the regional contractor."
+          "question": "Can I apply on behalf of my elderly loved one who has trouble with paperwork?",
+          "answer": "Yes, family members can help with the application process. When you call (800) 246-4221, explain that you're helping your loved one apply and ask about any authorization forms needed to discuss their case with the regional contractor."
         },
         {
-          "question": "Will LIEAP assistance affect my parent's other benefits like Medicaid or Social Security?",
-          "answer": "No, LIEAP payments go directly to utility companies and don't count as income for other benefit programs. Since the money never goes to your parent directly, it won't affect Social Security, Medicaid, or other assistance programs they receive."
+          "question": "Will LIEAP assistance affect my loved one's other benefits like Medicaid or Social Security?",
+          "answer": "No, LIEAP payments go directly to utility companies and don't count as income for other benefit programs. Since the money never goes to your loved one directly, it won't affect Social Security, Medicaid, or other assistance programs they receive."
         }
       ],
       "layoutIntent": {
@@ -343,7 +343,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ or permanently disabled and lives in Wyoming on a fixed income, they may qualify for an annual tax refund of $250–900. Because Wyoming doesn't have state income tax, this program refunds money your parent paid through sales taxes, property taxes, and utility costs throughout the year.\n\nThe refund amount depends on your parent's income level. Single applicants with income below $10,000 receive the full $800 refund, while those earning $10,001–$17,500 get a prorated amount down to $250. Married couples get $900 (full refund) if their combined income is below $16,000, prorated down to $216 for incomes up to $28,500.\n\nYour parent must reapply every year and meet asset limits of $29,950 per adult household member. The program is administered by the Wyoming Department of Health and available statewide to qualifying residents.",
+      "intro": "If your loved one is 65+ or permanently disabled and lives in Wyoming on a fixed income, they may qualify for an annual tax refund of $250–900. Because Wyoming doesn't have state income tax, this program refunds money your loved one paid through sales taxes, property taxes, and utility costs throughout the year.\n\nThe refund amount depends on your loved one's income level. Single applicants with income below $10,000 receive the full $800 refund, while those earning $10,001–$17,500 get a prorated amount down to $250. Married couples get $900 (full refund) if their combined income is below $16,000, prorated down to $216 for incomes up to $28,500.\n\nYour loved one must reapply every year and meet asset limits of $29,950 per adult household member. The program is administered by the Wyoming Department of Health and available statewide to qualifying residents.",
       "savingsRange": "$250 – $900/year in 2026",
       "savingsSource": "Wyoming Department of Health refund schedule based on income tiers",
       "savingsVerified": false,
@@ -440,28 +440,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they have dementia or can't handle paperwork?",
+          "question": "Can I apply for my loved one if they have dementia or can't handle paperwork?",
           "answer": "The sources don't specify whether family members can apply on behalf of elderly or disabled parents. Contact the Wyoming Department of Health directly to ask about representative payee or power of attorney arrangements for the application process."
         },
         {
           "question": "What counts toward the $29,950 asset limit per person?",
-          "answer": "The sources don't detail which assets are counted or exempted from the limit. Your parent's home may or may not count toward this limit. Contact Wyoming Department of Health for a complete list of countable assets before applying."
+          "answer": "The sources don't detail which assets are counted or exempted from the limit. Your loved one's home may or may not count toward this limit. Contact Wyoming Department of Health for a complete list of countable assets before applying."
         },
         {
-          "question": "If my parent moves to Wyoming from another state, when can they apply?",
-          "answer": "Your parent must be a Wyoming resident for 12 consecutive months before applying. If they moved to Wyoming in January, they couldn't apply until the following January at the earliest."
+          "question": "If my loved one moves to Wyoming from another state, when can they apply?",
+          "answer": "Your loved one must be a Wyoming resident for 12 consecutive months before applying. If they moved to Wyoming in January, they couldn't apply until the following January at the earliest."
         },
         {
-          "question": "How much will my parent actually receive if their income is in the middle range?",
-          "answer": "Refunds are prorated between the minimum and maximum amounts based on income. For example, if your single parent earns $13,750 (halfway between $10,000-$17,500), they'd likely receive around $525 (halfway between $250-$800). Contact Wyoming Department of Health for the exact calculation formula."
+          "question": "How much will my loved one actually receive if their income is in the middle range?",
+          "answer": "Refunds are prorated between the minimum and maximum amounts based on income. For example, if your single loved one earns $13,750 (halfway between $10,000-$17,500), they'd likely receive around $525 (halfway between $250-$800). Contact Wyoming Department of Health for the exact calculation formula."
         },
         {
-          "question": "What happens if my parent forgets to reapply one year?",
+          "question": "What happens if my loved one forgets to reapply one year?",
           "answer": "They lose eligibility for that year since this requires a new application annually. There's no automatic renewal or carryover from previous years. They can reapply the following year if still eligible."
         },
         {
-          "question": "Can my parent get both this refund and the Property Tax Refund Program?",
-          "answer": "These are separate programs with different administrators and eligibility rules. The Property Tax Refund Program is run by the Department of Revenue and has different requirements like 5-year residency. Contact both agencies to see if your parent qualifies for both."
+          "question": "Can my loved one get both this refund and the Property Tax Refund Program?",
+          "answer": "These are separate programs with different administrators and eligibility rules. The Property Tax Refund Program is run by the Department of Revenue and has different requirements like 5-year residency. Contact both agencies to see if your loved one qualifies for both."
         }
       ],
       "layoutIntent": {
@@ -480,7 +480,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Wyoming offers 3 key programs to help seniors with living costs — from reducing state park fees to covering heating bills and providing tax relief. These programs can save your parent $250–2,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your parent's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
+    "intro": "Wyoming offers 3 key programs to help seniors with living costs — from reducing state park fees to covering heating bills and providing tax relief. These programs can save your loved one $250–2,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your loved one's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
     "startHere": [
       {
         "name": "Low Income Energy Assistance Program (LIHEAP)",

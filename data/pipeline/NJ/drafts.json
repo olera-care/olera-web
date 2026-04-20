@@ -16,7 +16,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65+ and owns their New Jersey home, they can get 50% of their property taxes back — up to $6,500 per year. This means if they pay $10,000 in property taxes, they'll receive $5,000 back.\n\nStay NJ is designed for older homeowners with annual income below $500,000 who have lived in their home for the full previous year. Because one application (PAS-1) covers multiple New Jersey tax relief programs, the state automatically determines which benefits your parent qualifies for — they may receive Stay NJ plus additional programs like ANCHOR or Senior Freeze for even more savings.",
+      "intro": "If your loved one is 65+ and owns their New Jersey home, they can get 50% of their property taxes back — up to $6,500 per year. This means if they pay $10,000 in property taxes, they'll receive $5,000 back.\n\nStay NJ is designed for older homeowners with annual income below $500,000 who have lived in their home for the full previous year. Because one application (PAS-1) covers multiple New Jersey tax relief programs, the state automatically determines which benefits your loved one qualifies for — they may receive Stay NJ plus additional programs like ANCHOR or Senior Freeze for even more savings.",
       "savingsRange": "$1,000 – $6,500/year in 2026",
       "savingsSource": "50% reimbursement of property taxes up to maximum $6,500 benefit",
       "savingsVerified": true,
@@ -115,28 +115,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for Stay NJ if they moved to their current home in the middle of last year?",
-          "answer": "No. Your parent must have owned and lived in the home as their principal residence for the full 12 months of the prior year. If they moved in July, they'd need to wait until the following application cycle to meet the full-year requirement."
+          "question": "Can my loved one apply for Stay NJ if they moved to their current home in the middle of last year?",
+          "answer": "No. Your loved one must have owned and lived in the home as their principal residence for the full 12 months of the prior year. If they moved in July, they'd need to wait until the following application cycle to meet the full-year requirement."
         },
         {
-          "question": "What if my parent owns a mobile home and pays property taxes on it?",
+          "question": "What if my loved one owns a mobile home and pays property taxes on it?",
           "answer": "Mobile homeowners are specifically excluded from Stay NJ, even if they pay property taxes or are assessed like traditional homeowners. This exclusion is explicit in the program rules."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has difficulty with online applications?",
-          "answer": "Yes, you can help your parent apply, but the application must be in their name and use their information. You can print the PAS-1 form and mail it to the New Jersey Division of Taxation if online access is difficult, though direct deposit requires online submission."
+          "question": "Can I apply on behalf of my elderly loved one who has difficulty with online applications?",
+          "answer": "Yes, you can help your loved one apply, but the application must be in their name and use their information. You can print the PAS-1 form and mail it to the New Jersey Division of Taxation if online access is difficult, though direct deposit requires online submission."
         },
         {
-          "question": "How much will my parent actually receive if their property taxes are $8,000?",
-          "answer": "Your parent would receive $4,000 (50% of $8,000). The reimbursement is exactly half of the property taxes billed, up to a maximum benefit of $6,500 for those paying $13,000 or more in property taxes."
+          "question": "How much will my loved one actually receive if their property taxes are $8,000?",
+          "answer": "Your loved one would receive $4,000 (50% of $8,000). The reimbursement is exactly half of the property taxes billed, up to a maximum benefit of $6,500 for those paying $13,000 or more in property taxes."
         },
         {
-          "question": "Can my parent get Stay NJ and ANCHOR benefits at the same time?",
-          "answer": "The state determines which combination of benefits your parent receives based on their PAS-1 application. Many people qualify for multiple programs simultaneously — Stay NJ, ANCHOR, and Senior Freeze can often be combined for maximum tax relief."
+          "question": "Can my loved one get Stay NJ and ANCHOR benefits at the same time?",
+          "answer": "The state determines which combination of benefits your loved one receives based on their PAS-1 application. Many people qualify for multiple programs simultaneously — Stay NJ, ANCHOR, and Senior Freeze can often be combined for maximum tax relief."
         },
         {
-          "question": "What happens if my parent's income is close to the $500,000 limit?",
-          "answer": "The income limit is based on the prior year's state tax return, so use that year's actual income. If your parent's income fluctuates around the limit, apply anyway — the state will make the determination based on the specific tax year's income."
+          "question": "What happens if my loved one's income is close to the $500,000 limit?",
+          "answer": "The income limit is based on the prior year's state tax return, so use that year's actual income. If your loved one's income fluctuates around the limit, apply anyway — the state will make the determination based on the specific tax year's income."
         }
       ],
       "layoutIntent": {
@@ -157,7 +157,7 @@
       "id": "senior-freeze-property-tax",
       "name": "Senior Freeze (Property Tax Reimbursement)",
       "shortName": "Senior Freeze",
-      "tagline": "Get reimbursed for property tax increases if your parent is 65+ and has lived in their New Jersey home for years",
+      "tagline": "Get reimbursed for property tax increases if your loved one is 65+ and has lived in their New Jersey home for years",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -170,7 +170,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and has lived in their New Jersey home since at least 2016, they may get reimbursed for property tax increases above what they paid in their first qualifying year. Income limit: $99,735 or less for 2025 applications (combined for married couples).\n\nThis isn't a tax freeze — it's a reimbursement program. Your parent still pays the full property tax bill, but the state reimburses them for increases above their \"base year\" amount. Because New Jersey administers this through one combined application (PAS-1), your parent can apply for Senior Freeze, ANCHOR, and Stay NJ benefits all at once.",
+      "intro": "If your loved one is 65+ and has lived in their New Jersey home since at least 2016, they may get reimbursed for property tax increases above what they paid in their first qualifying year. Income limit: $99,735 or less for 2025 applications (combined for married couples).\n\nThis isn't a tax freeze — it's a reimbursement program. Your loved one still pays the full property tax bill, but the state reimburses them for increases above their \"base year\" amount. Because New Jersey administers this through one combined application (PAS-1), your loved one can apply for Senior Freeze, ANCHOR, and Stay NJ benefits all at once.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -260,19 +260,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for Senior Freeze and ANCHOR at the same time?",
-          "answer": "Yes — the PAS-1 application covers Senior Freeze, ANCHOR, and Stay NJ all in one form. The state will determine which programs your parent qualifies for and send a letter explaining their benefits."
+          "question": "Can my loved one apply for Senior Freeze and ANCHOR at the same time?",
+          "answer": "Yes — the PAS-1 application covers Senior Freeze, ANCHOR, and Stay NJ all in one form. The state will determine which programs your loved one qualifies for and send a letter explaining their benefits."
         },
         {
-          "question": "What if my parent moved within New Jersey since 2016?",
+          "question": "What if my loved one moved within New Jersey since 2016?",
           "answer": "They may still qualify if they received Senior Freeze reimbursement for their prior New Jersey residence in the last full year they lived there. Contact (800) 882-6597 to discuss their specific situation."
         },
         {
           "question": "Does the income limit include both spouses?",
-          "answer": "Yes — if your parents are married or in a civil union and living together, their combined income cannot exceed $99,735 for 2025 applications. The limit applies to their total household income."
+          "answer": "Yes — if your loved ones are married or in a civil union and living together, their combined income cannot exceed $99,735 for 2025 applications. The limit applies to their total household income."
         },
         {
-          "question": "What happens if my parent missed the eligibility requirements for one year?",
+          "question": "What happens if my loved one missed the eligibility requirements for one year?",
           "answer": "They must meet all requirements every year from their base year through the application year. If they missed even one year, they may lose eligibility and would need to restart with a new base year if they qualify again."
         }
       ],
@@ -311,7 +311,7 @@
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but earns too much for Medicaid, JACC provides up to $1,156 monthly in home care services. This New Jersey program serves people 60+ who need nursing facility level care but want to stay in their own homes.\n\nJACC covers personal care, homemaking, and care management through a personalized Plan of Care. Because the program includes Participant-Employed Provider (PEP) options, your parent can hire family members or friends as their caregivers. You'll pay a sliding-scale co-pay based on income, but the program covers the majority of costs.\n\nThe catch: JACC is specifically for people who don't qualify for Medicaid waiver services like MLTSS. Income limit is 365% of Federal Poverty Level (around $3,300/month for individuals), and assets must be under $40,000 for individuals or $60,000 for couples.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but earns too much for Medicaid, JACC provides up to $1,156 monthly in home care services. This New Jersey program serves people 60+ who need nursing facility level care but want to stay in their own homes.\n\nJACC covers personal care, homemaking, and care management through a personalized Plan of Care. Because the program includes Participant-Employed Provider (PEP) options, your loved one can hire family members or friends as their caregivers. You'll pay a sliding-scale co-pay based on income, but the program covers the majority of costs.\n\nThe catch: JACC is specifically for people who don't qualify for Medicaid waiver services like MLTSS. Income limit is 365% of Federal Poverty Level (around $3,300/month for individuals), and assets must be under $40,000 for individuals or $60,000 for couples.",
       "savingsRange": "$900 – $1,156/month in 2026",
       "savingsSource": "Monthly service cap minus sliding-scale co-pay based on income",
       "savingsVerified": true,
@@ -434,15 +434,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for JACC if they currently receive some Medicaid benefits?",
-          "answer": "No, JACC is specifically for people who are financially ineligible for Medicaid or Medicaid waiver services like MLTSS. If your parent qualifies for any Medicaid long-term care services, they cannot receive JACC. However, they may be able to receive JACC for services not covered by their current Medicaid benefits - ask during the assessment."
+          "question": "Can my loved one apply for JACC if they currently receive some Medicaid benefits?",
+          "answer": "No, JACC is specifically for people who are financially ineligible for Medicaid or Medicaid waiver services like MLTSS. If your loved one qualifies for any Medicaid long-term care services, they cannot receive JACC. However, they may be able to receive JACC for services not covered by their current Medicaid benefits - ask during the assessment."
         },
         {
-          "question": "Can I hire myself as my parent's caregiver through the Participant-Employed Provider option?",
-          "answer": "Yes, the PEP option allows your parent to hire family members or friends as their paid caregivers. You'll need to complete provider training and meet program requirements. This option gives families more control over who provides care and when."
+          "question": "Can I hire myself as my loved one's caregiver through the Participant-Employed Provider option?",
+          "answer": "Yes, the PEP option allows your loved one to hire family members or friends as their paid caregivers. You'll need to complete provider training and meet program requirements. This option gives families more control over who provides care and when."
         },
         {
-          "question": "What happens if my parent's income or assets change after they're approved?",
+          "question": "What happens if my loved one's income or assets change after they're approved?",
           "answer": "You must report changes in income or assets to your care manager. Significant increases might affect eligibility or co-pay amounts. Your Plan of Care is reviewed periodically, and changes in financial status could impact services."
         },
         {
@@ -454,16 +454,16 @@
           "answer": "JACC serves people who earn too much to qualify for Medicaid but still need nursing-level care at home. Unlike Medicaid, JACC has higher income limits (365% FPL vs. Medicaid's much lower limits) and asset limits ($40,000 individual vs. Medicaid's $2,000), but requires co-pays and has monthly service caps."
         },
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limits?",
-          "answer": "The home you live in is typically not counted toward the $40,000/$60,000 asset limits for JACC eligibility. However, the specific rules about what assets are exempt aren't detailed in available sources, so ask your care manager during the application process about how your parent's home equity affects eligibility."
+          "question": "Can my loved one keep their house if it's worth more than the asset limits?",
+          "answer": "The home you live in is typically not counted toward the $40,000/$60,000 asset limits for JACC eligibility. However, the specific rules about what assets are exempt aren't detailed in available sources, so ask your care manager during the application process about how your loved one's home equity affects eligibility."
         },
         {
           "question": "What specific services does the monthly cap cover, and what doesn't it include?",
           "answer": "The $1,090-$1,156 monthly cap covers services in your personalized Plan of Care, such as personal care assistance, homemaking, and care management. Medical care, prescription drugs, and equipment typically aren't covered - those remain your responsibility through Medicare or other insurance."
         },
         {
-          "question": "Can we apply while my parent is still in the hospital or rehab facility?",
-          "answer": "You can start the application process while your parent is in a facility, but JACC services can only begin once they're living in qualifying community housing (their own home or unlicensed home of family/friend). Discharge planners may be able to help coordinate the transition and application timing."
+          "question": "Can we apply while my loved one is still in the hospital or rehab facility?",
+          "answer": "You can start the application process while your loved one is in a facility, but JACC services can only begin once they're living in qualifying community housing (their own home or unlicensed home of family/friend). Discharge planners may be able to help coordinate the transition and application timing."
         }
       ],
       "layoutIntent": {
@@ -484,7 +484,7 @@
       "id": "paad-prescription-assistance",
       "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
       "shortName": "PAAD",
-      "tagline": "If your parent lives in New Jersey and earns less than $54,943/year, they may qualify for $5-7 prescription copays instead of full drug prices.",
+      "tagline": "If your loved one lives in New Jersey and earns less than $54,943/year, they may qualify for $5-7 prescription copays instead of full drug prices.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -497,7 +497,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and lives in New Jersey, PAAD can dramatically reduce their prescription costs. Instead of paying full price for medications, they'll pay just $5 per generic drug and $7 per brand-name drug — PAAD covers the rest. This applies to all FDA-approved prescription medications, insulin, and insulin supplies.\n\nIncome limit for 2026: $54,943 or less if single, $62,390 or less if married. Because there are no asset limits, your parent can qualify even if they own their home or have savings. The catch: if they're Medicare-eligible, they must enroll in a Medicare Part D prescription drug plan, and PAAD will pay the premium for qualifying low-cost plans.\n\nBecause PAAD works alongside Medicare Part D rather than replacing it, your parent gets the broad coverage of Medicare's formulary with the low copays of a state assistance program. One team at the state level manages both the prescription benefits and Part D premium payments.",
+      "intro": "If your loved one is 65+ or disabled and lives in New Jersey, PAAD can dramatically reduce their prescription costs. Instead of paying full price for medications, they'll pay just $5 per generic drug and $7 per brand-name drug — PAAD covers the rest. This applies to all FDA-approved prescription medications, insulin, and insulin supplies.\n\nIncome limit for 2026: $54,943 or less if single, $62,390 or less if married. Because there are no asset limits, your loved one can qualify even if they own their home or have savings. The catch: if they're Medicare-eligible, they must enroll in a Medicare Part D prescription drug plan, and PAAD will pay the premium for qualifying low-cost plans.\n\nBecause PAAD works alongside Medicare Part D rather than replacing it, your loved one gets the broad coverage of Medicare's formulary with the low copays of a state assistance program. One team at the state level manages both the prescription benefits and Part D premium payments.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Estimated based on $5-7 copays versus typical Medicare Part D copays of $15-50+ per prescription for common medications",
       "savingsVerified": false,
@@ -537,7 +537,7 @@
           {
             "step": 1,
             "title": "Check if you need Medicare Part D first",
-            "description": "If your parent has Medicare, they must be enrolled in a Medicare Part D prescription drug plan or Medicare Advantage plan with Part D coverage before applying. Call 1-800-792-9745 for help choosing a qualifying low-premium plan."
+            "description": "If your loved one has Medicare, they must be enrolled in a Medicare Part D prescription drug plan or Medicare Advantage plan with Part D coverage before applying. Call 1-800-792-9745 for help choosing a qualifying low-premium plan."
           },
           {
             "step": 2,
@@ -552,12 +552,12 @@
           {
             "step": 4,
             "title": "Wait for approval and card",
-            "description": "Once approved, your parent will receive a PAAD card to use at pharmacies statewide. The state will also handle Medicare Part D premium payments for qualifying plans."
+            "description": "Once approved, your loved one will receive a PAAD card to use at pharmacies statewide. The state will also handle Medicare Part D premium payments for qualifying plans."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent is Medicare-eligible, don't skip the Part D enrollment step — PAAD won't cover medications without it, and the state can help you choose a qualifying low-premium plan.",
+        "tip": "If your loved one is Medicare-eligible, don't skip the Part D enrollment step — PAAD won't cover medications without it, and the state can help you choose a qualifying low-premium plan.",
         "urls": [
           {
             "label": "NJSaves Online Application",
@@ -604,7 +604,7 @@
       "applicationNotes": [
         "PAAD only pays Medicare Part D premiums for specific low-cost plans at or near the regional benchmark — enrolling in a higher-premium plan on your own may disqualify you from premium assistance",
         "Income limits are updated annually based on federal guidelines, so use the current year's figures when applying",
-        "If your parent's medication isn't covered by their Medicare Part D plan's formulary, you'll need to get an exception through Part D first — PAAD can't override formulary restrictions",
+        "If your loved one's medication isn't covered by their Medicare Part D plan's formulary, you'll need to get an exception through Part D first — PAAD can't override formulary restrictions",
         "PAAD is often confused with Senior Gold, which has higher income limits but different copay amounts — make sure you're applying for the right program"
       ],
       "relatedPrograms": [
@@ -616,36 +616,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for both PAAD and Senior Gold?",
-          "answer": "No, your parent can only be enrolled in one program at a time. PAAD has lower income limits ($54,943 single/$62,390 married) with $5 generic/$7 brand copays. Senior Gold has higher income limits but different copay structures. Apply for PAAD first if income-eligible since the copays are lower."
+          "question": "Can my loved one apply for both PAAD and Senior Gold?",
+          "answer": "No, your loved one can only be enrolled in one program at a time. PAAD has lower income limits ($54,943 single/$62,390 married) with $5 generic/$7 brand copays. Senior Gold has higher income limits but different copay structures. Apply for PAAD first if income-eligible since the copays are lower."
         },
         {
-          "question": "What happens if my parent's Medicare Part D plan has a high premium?",
-          "answer": "PAAD only pays premiums for plans at or near the regional benchmark (typically the lowest-cost plans in your area). If your parent chooses a more expensive plan, they may lose premium assistance but can still get the $5/$7 copays. Call 1-800-792-9745 to find qualifying low-premium plans before enrolling."
+          "question": "What happens if my loved one's Medicare Part D plan has a high premium?",
+          "answer": "PAAD only pays premiums for plans at or near the regional benchmark (typically the lowest-cost plans in your area). If your loved one chooses a more expensive plan, they may lose premium assistance but can still get the $5/$7 copays. Call 1-800-792-9745 to find qualifying low-premium plans before enrolling."
         },
         {
           "question": "Does PAAD cover diabetic test strips and supplies?",
-          "answer": "No, PAAD does not cover diabetic testing supplies or most supplies covered by Medicare Part B. It covers FDA-approved prescription drugs, insulin, insulin supplies, and syringes/needles for multiple sclerosis injectables only. Your parent would need to rely on Medicare Part B or other insurance for test strips."
+          "answer": "No, PAAD does not cover diabetic testing supplies or most supplies covered by Medicare Part B. It covers FDA-approved prescription drugs, insulin, insulin supplies, and syringes/needles for multiple sclerosis injectables only. Your loved one would need to rely on Medicare Part B or other insurance for test strips."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help complete the application, especially if your parent has difficulty with paperwork or technology. You can apply online at NJSaves.org or complete the AP-2 form by mail. You'll need access to all their financial and medical documentation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help complete the application, especially if your loved one has difficulty with paperwork or technology. You can apply online at NJSaves.org or complete the AP-2 form by mail. You'll need access to all their financial and medical documentation."
         },
         {
-          "question": "What if my parent's medication isn't covered by their Medicare Part D plan?",
+          "question": "What if my loved one's medication isn't covered by their Medicare Part D plan?",
           "answer": "PAAD cannot override Medicare Part D formulary restrictions. If a medication isn't covered, you must first request an exception or prior authorization through the Medicare Part D plan. If approved by Part D, then PAAD will provide the $5/$7 copay. Call your Part D plan directly for exception requests."
         },
         {
-          "question": "Will owning a house or having savings disqualify my parent?",
-          "answer": "No, PAAD has no asset limits. Your parent can own their home, have bank accounts, investments, or other assets and still qualify. Only income matters for eligibility — $54,943 or less for singles, $62,390 or less for married couples in 2026."
+          "question": "Will owning a house or having savings disqualify my loved one?",
+          "answer": "No, PAAD has no asset limits. Your loved one can own their home, have bank accounts, investments, or other assets and still qualify. Only income matters for eligibility — $54,943 or less for singles, $62,390 or less for married couples in 2026."
         },
         {
-          "question": "What happens if my parent moves from New Jersey to another state?",
-          "answer": "PAAD benefits end when your parent is no longer a New Jersey resident. They would need to apply for prescription assistance programs in their new state. Make sure to notify PAAD of the address change and ask about the effective date of termination."
+          "question": "What happens if my loved one moves from New Jersey to another state?",
+          "answer": "PAAD benefits end when your loved one is no longer a New Jersey resident. They would need to apply for prescription assistance programs in their new state. Make sure to notify PAAD of the address change and ask about the effective date of termination."
         },
         {
-          "question": "Can my parent get PAAD if they have Medicaid or are applying for it?",
-          "answer": "No, PAAD eligibility specifically excludes people who have Medicaid. If your parent is considering both programs, compare the prescription benefits — Medicaid typically has very low copays already. If they lose Medicaid eligibility later, they can then apply for PAAD."
+          "question": "Can my loved one get PAAD if they have Medicaid or are applying for it?",
+          "answer": "No, PAAD eligibility specifically excludes people who have Medicaid. If your loved one is considering both programs, compare the prescription benefits — Medicaid typically has very low copays already. If they lose Medicaid eligibility later, they can then apply for PAAD."
         }
       ],
       "layoutIntent": {
@@ -666,14 +666,14 @@
       "id": "lifeline-utility-credit",
       "name": "Lifeline Credit",
       "shortName": "Lifeline Credit",
-      "tagline": "Up to $225/year off your parent's electric and gas bills if they're 65+ and qualify for prescription assistance.",
+      "tagline": "Up to $225/year off your loved one's electric and gas bills if they're 65+ and qualify for prescription assistance.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65+ and already gets New Jersey's prescription assistance (PAAD) or receives SSI, they qualify for up to $225/year off their electric and natural gas bills. The Lifeline Credit appears automatically on their utility bill — no monthly paperwork or vouchers to manage.\n\nFor 2026, your parent qualifies if their annual gross income is below $54,943 (single) or $62,390 (married). They must be a residential electric or gas customer — the program doesn't cover oil, propane, or other heating sources. Only one person per household can receive the credit.\n\nSSI recipients get this benefit automatically in their monthly check and don't need to apply separately. Everyone else applies through the same NJSave application used for prescription assistance, making it a simple add-on to programs your parent may already use.",
+      "intro": "If your loved one is 65+ and already gets New Jersey's prescription assistance (PAAD) or receives SSI, they qualify for up to $225/year off their electric and natural gas bills. The Lifeline Credit appears automatically on their utility bill — no monthly paperwork or vouchers to manage.\n\nFor 2026, your loved one qualifies if their annual gross income is below $54,943 (single) or $62,390 (married). They must be a residential electric or gas customer — the program doesn't cover oil, propane, or other heating sources. Only one person per household can receive the credit.\n\nSSI recipients get this benefit automatically in their monthly check and don't need to apply separately. Everyone else applies through the same NJSave application used for prescription assistance, making it a simple add-on to programs your loved one may already use.",
       "savingsRange": "Up to $225/year in 2026",
       "savingsSource": "Annual bill credit for eligible residential electric and/or natural gas customers",
       "savingsVerified": true,
@@ -734,7 +734,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent already receives prescription assistance through PAAD, they may automatically qualify for Lifeline Credit without a separate application.",
+        "tip": "If your loved one already receives prescription assistance through PAAD, they may automatically qualify for Lifeline Credit without a separate application.",
         "urls": [
           {
             "label": "NJSave Application",
@@ -786,15 +786,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get Lifeline Credit if they heat with oil or propane?",
+          "question": "Can my loved one get Lifeline Credit if they heat with oil or propane?",
           "answer": "No. Lifeline Credit only applies to residential electric and natural gas customers. Homes heated with oil, propane, wood, or coal don't qualify for this program. Look into LIHEAP energy assistance instead, which covers all heating sources."
         },
         {
-          "question": "What if both my parents live together — can they both apply?",
+          "question": "What if both my loved ones live together — can they both apply?",
           "answer": "No. Only one person per household can receive Lifeline Credit, even if both parents meet the age and income requirements. The application must be in the name of the person who pays the utility bills or their spouse."
         },
         {
-          "question": "My parent gets SSI — do they still need to apply for Lifeline Credit?",
+          "question": "My loved one gets SSI — do they still need to apply for Lifeline Credit?",
           "answer": "No. SSI recipients get the Lifeline Credit automatically as part of their monthly SSI payment. They should not submit a separate application for this program."
         },
         {
@@ -803,19 +803,19 @@
         },
         {
           "question": "How does the credit appear on the utility bill?",
-          "answer": "The annual credit of up to $225 appears directly on your parent's electric and/or natural gas bill. There are no vouchers to redeem or separate payments to manage — the utility company applies the credit automatically."
+          "answer": "The annual credit of up to $225 appears directly on your loved one's electric and/or natural gas bill. There are no vouchers to redeem or separate payments to manage — the utility company applies the credit automatically."
         },
         {
-          "question": "What happens if my parent's income goes up after they're approved?",
-          "answer": "Eligibility is typically checked annually as of July 1st. If your parent's income rises above the limits ($54,943 for single, $62,390 for married), they'll need to report the change and may lose eligibility for the following year."
+          "question": "What happens if my loved one's income goes up after they're approved?",
+          "answer": "Eligibility is typically checked annually as of July 1st. If your loved one's income rises above the limits ($54,943 for single, $62,390 for married), they'll need to report the change and may lose eligibility for the following year."
         },
         {
-          "question": "My parent already gets the automatic application in the mail — do they still need to reapply each year?",
+          "question": "My loved one already gets the automatic application in the mail — do they still need to reapply each year?",
           "answer": "Yes. Even though MAA, MAO, and New Jersey Care beneficiaries receive applications automatically each August, they must complete and return the form annually to continue receiving the Lifeline Credit."
         },
         {
-          "question": "Can my parent get Lifeline Credit if they're not a U.S. citizen?",
-          "answer": "Yes. U.S. citizenship is not required for Lifeline Credit. Your parent only needs to be a New Jersey resident who meets the age, income, and utility customer requirements."
+          "question": "Can my loved one get Lifeline Credit if they're not a U.S. citizen?",
+          "answer": "Yes. U.S. citizenship is not required for Lifeline Credit. Your loved one only needs to be a New Jersey resident who meets the age, income, and utility customer requirements."
         }
       ],
       "layoutIntent": {
@@ -836,14 +836,14 @@
       "id": "statewide-respite-care",
       "name": "New Jersey Statewide Respite Care Program",
       "shortName": "Respite Care",
-      "tagline": "If you're caring for a disabled parent in New Jersey, get paid companion care, overnight help, or adult day services to give you a break.",
+      "tagline": "If you're caring for a disabled loved one in New Jersey, get paid companion care, overnight help, or adult day services to give you a break.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If you're providing daily care for a parent with a chronic disability or illness in New Jersey, you may qualify for companion care, overnight help, adult day services, or even short-term facility placement to give you respite. Because this program covers in-home care, nursing services, and temporary placement options, your parent can get the supervision they need while you take a break or handle other responsibilities.\n\nYour parent must receive daily care from you (unpaid) and have functional impairments certified by their doctor. Income limit: $2,982/month for a single person, $5,964/month for married couples in 2026. Asset limit: $40,000 for single, $60,000 for couples. You'll pay a sliding scale co-pay of 0-25% based on income — families at the lowest income levels pay nothing.",
+      "intro": "If you're providing daily care for a loved one with a chronic disability or illness in New Jersey, you may qualify for companion care, overnight help, adult day services, or even short-term facility placement to give you respite. Because this program covers in-home care, nursing services, and temporary placement options, your loved one can get the supervision they need while you take a break or handle other responsibilities.\n\nYour loved one must receive daily care from you (unpaid) and have functional impairments certified by their doctor. Income limit: $2,982/month for a single person, $5,964/month for married couples in 2026. Asset limit: $40,000 for single, $60,000 for couples. You'll pay a sliding scale co-pay of 0-25% based on income — families at the lowest income levels pay nothing.",
       "savingsRange": "",
       "savingsSource": "Sliding scale service with 0-25% co-pay based on income",
       "savingsVerified": false,
@@ -908,7 +908,7 @@
           {
             "step": 3,
             "title": "Get medical certification",
-            "description": "Have your parent's doctor complete documentation certifying their functional impairments and need for daily supervision or assistance."
+            "description": "Have your loved one's doctor complete documentation certifying their functional impairments and need for daily supervision or assistance."
           },
           {
             "step": 4,
@@ -967,23 +967,23 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Does my income count toward eligibility if I'm the caregiver living with my parent?",
-          "answer": "No, only your parent's income counts toward the eligibility limits. Even if you live in the same household, your income is irrelevant for this program. The limits are $2,982/month for a single person or $5,964/month for married couples in 2026."
+          "question": "Does my income count toward eligibility if I'm the caregiver living with my loved one?",
+          "answer": "No, only your loved one's income counts toward the eligibility limits. Even if you live in the same household, your income is irrelevant for this program. The limits are $2,982/month for a single person or $5,964/month for married couples in 2026."
         },
         {
-          "question": "Can my parent qualify if they're already getting some paid help?",
-          "answer": "No, your parent must be receiving daily care from an unpaid caregiver to qualify. If they're currently paying for regular care services, they won't meet the eligibility requirements for this program."
+          "question": "Can my loved one qualify if they're already getting some paid help?",
+          "answer": "No, your loved one must be receiving daily care from an unpaid caregiver to qualify. If they're currently paying for regular care services, they won't meet the eligibility requirements for this program."
         },
         {
-          "question": "What if my parent lives in assisted living?",
-          "answer": "Your parent cannot qualify while living in assisted living, nursing homes, or any residential care facility. This program is only for people living in community settings like their own home or apartment."
+          "question": "What if my loved one lives in assisted living?",
+          "answer": "Your loved one cannot qualify while living in assisted living, nursing homes, or any residential care facility. This program is only for people living in community settings like their own home or apartment."
         },
         {
           "question": "How much will we actually pay for services?",
-          "answer": "You'll pay between 0-25% of the service cost based on your parent's income. Families at the lowest income levels pay nothing, while those closer to the income limits pay up to 25% of costs."
+          "answer": "You'll pay between 0-25% of the service cost based on your loved one's income. Families at the lowest income levels pay nothing, while those closer to the income limits pay up to 25% of costs."
         },
         {
-          "question": "Can we apply if my parent is already on Medicaid?",
+          "question": "Can we apply if my loved one is already on Medicaid?",
           "answer": "It depends on which Medicaid program. You cannot participate in MLTSS, JACC, Alzheimer's Adult Day Services, or Congregate Housing Services simultaneously. However, you may be able to switch from JACC or the Alzheimer's program to Statewide Respite."
         },
         {
@@ -1017,7 +1017,7 @@
       "id": "alzheimers-adult-day-services",
       "name": "Alzheimer's Adult Day Services Program",
       "shortName": "Adult Day Services",
-      "tagline": "Subsidized dementia-specialized day care for your parent while you work or get respite",
+      "tagline": "Subsidized dementia-specialized day care for your loved one while you work or get respite",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1030,7 +1030,7 @@
           }
         ]
       },
-      "intro": "If your parent has Alzheimer's or another form of dementia, New Jersey will help pay for specialized adult day care services. This program subsidizes attendance at participating day centers that have high staff-to-client ratios and activities designed specifically for cognitive loss. Your parent can attend at any stage of their dementia as long as family or friends provide daily assistance at home.\n\nBecause these centers specialize in dementia care, your parent will be in an environment designed for their needs rather than a general senior center. The state covers most costs through income-based subsidies, though you'll pay a copay based on your parent's income. Centers offer both social model programs (activities and supervision) and medical model programs (nursing care and therapy services).",
+      "intro": "If your loved one has Alzheimer's or another form of dementia, New Jersey will help pay for specialized adult day care services. This program subsidizes attendance at participating day centers that have high staff-to-client ratios and activities designed specifically for cognitive loss. Your loved one can attend at any stage of their dementia as long as family or friends provide daily assistance at home.\n\nBecause these centers specialize in dementia care, your loved one will be in an environment designed for their needs rather than a general senior center. The state covers most costs through income-based subsidies, though you'll pay a copay based on your loved one's income. Centers offer both social model programs (activities and supervision) and medical model programs (nursing care and therapy services).",
       "savingsRange": "",
       "savingsSource": "Income-based subsidies with copay required",
       "savingsVerified": false,
@@ -1045,7 +1045,7 @@
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Your parent must require daily assistance from family or friends due to functional impairments caused by their dementia",
+        "functionalRequirement": "Your loved one must require daily assistance from family or friends due to functional impairments caused by their dementia",
         "otherRequirements": [
           "Must have medical diagnosis of qualifying dementia (Alzheimer's, Pick's disease, dementia due to Parkinson's, Huntington's, multi-infarct/vascular dementia, Creutzfeldt-Jakob, Fronto-Temporal, Lewy body, dementia due to normal pressure hydrocephalus, or Wernicke-Korsakoff syndrome)",
           "Cannot currently participate in Medicaid (NJ FamilyCare, MLTSS), JACC, or Congregate Housing Services Program"
@@ -1064,7 +1064,7 @@
           {
             "step": 2,
             "title": "Contact centers directly",
-            "description": "Call the centers you're interested in to discuss your parent's needs, tour the facility, and ask about current availability and copay amounts."
+            "description": "Call the centers you're interested in to discuss your loved one's needs, tour the facility, and ask about current availability and copay amounts."
           },
           {
             "step": 3,
@@ -1074,7 +1074,7 @@
           {
             "step": 4,
             "title": "Get medical certification",
-            "description": "Your parent's doctor must provide written diagnosis confirmation of qualifying dementia and functional impairments requiring care."
+            "description": "Your loved one's doctor must provide written diagnosis confirmation of qualifying dementia and functional impairments requiring care."
           }
         ],
         "processingTime": null,
@@ -1129,8 +1129,8 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent participate if they're already getting some Medicaid services?",
-          "answer": "No, your parent cannot participate if they're currently receiving Medicaid (NJ FamilyCare), Managed Long Term Services and Supports (MLTSS), JACC, or Congregate Housing Services Program. You'll need to choose between this program and those other benefits."
+          "question": "Can my loved one participate if they're already getting some Medicaid services?",
+          "answer": "No, your loved one cannot participate if they're currently receiving Medicaid (NJ FamilyCare), Managed Long Term Services and Supports (MLTSS), JACC, or Congregate Housing Services Program. You'll need to choose between this program and those other benefits."
         },
         {
           "question": "What's the difference between social model and medical model centers?",
@@ -1138,18 +1138,18 @@
         },
         {
           "question": "How much will I actually pay with the income-based copay?",
-          "answer": "Copay amounts aren't published in program materials and vary based on your parent's income and assets. Contact participating centers directly for specific copay calculations based on your parent's financial situation."
+          "answer": "Copay amounts aren't published in program materials and vary based on your loved one's income and assets. Contact participating centers directly for specific copay calculations based on your loved one's financial situation."
         },
         {
-          "question": "Does my parent's dementia need to be at a certain stage to qualify?",
-          "answer": "No, your parent can participate at any stage of dementia as long as they have a medical diagnosis of qualifying dementia and require daily assistance from family or friends. The program serves people from early-stage through advanced dementia."
+          "question": "Does my loved one's dementia need to be at a certain stage to qualify?",
+          "answer": "No, your loved one can participate at any stage of dementia as long as they have a medical diagnosis of qualifying dementia and require daily assistance from family or friends. The program serves people from early-stage through advanced dementia."
         },
         {
           "question": "Can I apply to multiple adult day centers at once?",
           "answer": "Yes, and it's recommended since availability varies by location. Contact several participating centers to compare services, copay amounts, and availability. Each center will help you with the same subsidy application process."
         },
         {
-          "question": "What happens if my parent's income changes after enrollment?",
+          "question": "What happens if my loved one's income changes after enrollment?",
           "answer": "Your copay amount may change since it's based on current income and assets. Contact your center or the Division of Aging Services to report income changes and get your copay amount recalculated."
         }
       ],
@@ -1171,7 +1171,7 @@
       "id": "senior-ezpass-discount",
       "name": "Senior Citizen E-ZPass Discount",
       "shortName": "Senior E-ZPass Discount",
-      "tagline": "If your parent drives and has an E-ZPass, they can get 10% off tolls on the NJ Turnpike and Garden State Parkway after age 65.",
+      "tagline": "If your loved one drives and has an E-ZPass, they can get 10% off tolls on the NJ Turnpike and Garden State Parkway after age 65.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1188,7 +1188,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and drives on New Jersey toll roads, this discount can cut their toll costs by 10% during off-peak hours on the NJ Turnpike and Garden State Parkway. Because there are no income or asset limits, any senior with a valid driver's license and vehicle registration can qualify — regardless of how much money they have.\n\nThe catch: your parent must be actively driving the vehicle (not just a passenger), must have a New Jersey E-ZPass account specifically, and the discount only applies during off-peak hours (weekdays off-peak and weekends). There's also a separate program for four Delaware River bridges that provides an $18 credit if your parent makes 18+ trips in a month.\n\nBecause the program requires annual renewal tied to vehicle registration dates, some enrollment periods may be less than 12 months. Your parent can only have one discounted E-ZPass tag, and if anyone else uses it, they'll lose the discount permanently.",
+      "intro": "If your loved one is 65+ and drives on New Jersey toll roads, this discount can cut their toll costs by 10% during off-peak hours on the NJ Turnpike and Garden State Parkway. Because there are no income or asset limits, any senior with a valid driver's license and vehicle registration can qualify — regardless of how much money they have.\n\nThe catch: your loved one must be actively driving the vehicle (not just a passenger), must have a New Jersey E-ZPass account specifically, and the discount only applies during off-peak hours (weekdays off-peak and weekends). There's also a separate program for four Delaware River bridges that provides an $18 credit if your loved one makes 18+ trips in a month.\n\nBecause the program requires annual renewal tied to vehicle registration dates, some enrollment periods may be less than 12 months. Your loved one can only have one discounted E-ZPass tag, and if anyone else uses it, they'll lose the discount permanently.",
       "savingsRange": "",
       "savingsSource": "10% discount on off-peak tolls",
       "savingsVerified": false,
@@ -1293,11 +1293,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent use this discount if they don't live in New Jersey?",
-          "answer": "Yes, there's no residency requirement. Your parent just needs a New Jersey E-ZPass account, which out-of-state residents can open. Vehicle registration can be from any state for Turnpike/Parkway, or NJ/PA/DE for DRPA bridges."
+          "question": "Can my loved one use this discount if they don't live in New Jersey?",
+          "answer": "Yes, there's no residency requirement. Your loved one just needs a New Jersey E-ZPass account, which out-of-state residents can open. Vehicle registration can be from any state for Turnpike/Parkway, or NJ/PA/DE for DRPA bridges."
         },
         {
-          "question": "What happens if my parent lets other family members use their discounted E-ZPass tag?",
+          "question": "What happens if my loved one lets other family members use their discounted E-ZPass tag?",
           "answer": "They'll permanently lose their discount privileges. The program is tag-specific and only the enrolled senior can use it. Each senior can only have one discounted tag."
         },
         {
@@ -1305,15 +1305,15 @@
           "answer": "No, the discount only applies during off-peak hours — weekdays off-peak and weekends. You won't save money during peak rush hour periods when tolls are most expensive."
         },
         {
-          "question": "Can my parent get both the Turnpike discount and the bridge discount?",
+          "question": "Can my loved one get both the Turnpike discount and the bridge discount?",
           "answer": "Yes, but they're separate programs requiring separate applications. Call 732-750-5300 for Turnpike/Parkway and 856-968-2000 press 5 for the four Delaware River bridges."
         },
         {
-          "question": "What if my parent's E-ZPass account is from New York or Pennsylvania?",
+          "question": "What if my loved one's E-ZPass account is from New York or Pennsylvania?",
           "answer": "They'll need to open a New Jersey E-ZPass account specifically. Out-of-state E-ZPass accounts don't qualify for this discount program."
         },
         {
-          "question": "How much can my parent actually save with this discount?",
+          "question": "How much can my loved one actually save with this discount?",
           "answer": "Savings depend on how often they drive toll roads during off-peak hours. The 10% discount applies to their off-peak tolls on Turnpike and Parkway only. For bridges, they get $18 credit only if they make 18+ trips per month."
         }
       ],
@@ -1333,7 +1333,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "New Jersey offers 8 senior programs that could save your parent hundreds to thousands of dollars annually. These range from property tax relief (up to $6,500 back through Stay NJ) to prescription drug assistance ($5-7 copays instead of full prices) to respite care while you work. Most programs target specific needs — housing costs, medical expenses, or caregiver support — rather than general financial assistance.\n\nStart by checking if your parent qualifies for property tax relief or prescription assistance, as these typically offer the largest savings. Then look into caregiver support programs if you're providing daily care. Each program has different income limits and requirements, so your parent may qualify for some but not others.",
+    "intro": "New Jersey offers 8 senior programs that could save your loved one hundreds to thousands of dollars annually. These range from property tax relief (up to $6,500 back through Stay NJ) to prescription drug assistance ($5-7 copays instead of full prices) to respite care while you work. Most programs target specific needs — housing costs, medical expenses, or caregiver support — rather than general financial assistance.\n\nStart by checking if your loved one qualifies for property tax relief or prescription assistance, as these typically offer the largest savings. Then look into caregiver support programs if you're providing daily care. Each program has different income limits and requirements, so your loved one may qualify for some but not others.",
     "startHere": [
       {
         "name": "Stay NJ",
@@ -1399,7 +1399,7 @@
     "quickFacts": [
       "New Jersey's property tax programs (Stay NJ and Senior Freeze) offer the largest potential savings but require homeownership and residency history.",
       "PAAD prescription assistance has an income limit of $54,943/year for a single person and requires New Jersey residency.",
-      "Several programs are linked — if your parent qualifies for PAAD, they automatically qualify for Lifeline Credit utility assistance."
+      "Several programs are linked — if your loved one qualifies for PAAD, they automatically qualify for Lifeline Credit utility assistance."
     ],
     "resourcesVsBenefits": "Most New Jersey senior programs are qualification-based benefits requiring specific income limits, age requirements, or care needs. For example, PAAD requires income under $54,943/year, while JACC requires nursing-level care assessment. Only one program (Senior Freeze) functions as a general resource with broader eligibility. Unlike some states that offer universal information services, New Jersey focuses on targeted financial assistance for those who meet specific criteria."
   }

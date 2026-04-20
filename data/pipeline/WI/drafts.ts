@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.928Z
+ * Last updated: 2026-04-20T22:05:18.108Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "seniorcare-prescription-assistance",
       "name": "SeniorCare",
       "shortName": "SeniorCare",
-      "tagline": "Help your parent save hundreds on prescriptions with $5 generics and $15 brand-name drugs.",
+      "tagline": "Help your loved one save hundreds on prescriptions with $5 generics and $15 brand-name drugs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ and paying high prescription costs, Wisconsin SeniorCare can reduce their drug bills to $5 for generics and $15 for brand-name medications. The program covers most FDA-approved drugs and coordinates with Medicare Part D to fill coverage gaps.\n\nSeniorCare works on income tiers — parents earning up to $25,536/year (single) or $34,624/year (couple) pay no deductible and get immediate $5/$15 copays. Higher income levels have deductibles from $500-$850 but still get the same low copays once met. The program has no asset limits and costs just $30/year to enroll.\n\nMost Wisconsin pharmacies accept the SeniorCare card, and coverage includes vaccines at no cost. Because SeniorCare coordinates as secondary insurance with Medicare, your parent can often save significantly compared to Medicare Part D alone.",
+      "intro": "If your loved one is 65+ and paying high prescription costs, Wisconsin SeniorCare can reduce their drug bills to $5 for generics and $15 for brand-name medications. The program covers most FDA-approved drugs and coordinates with Medicare Part D to fill coverage gaps.\n\nSeniorCare works on income tiers — parents earning up to $25,536/year (single) or $34,624/year (couple) pay no deductible and get immediate $5/$15 copays. Higher income levels have deductibles from $500-$850 but still get the same low copays once met. The program has no asset limits and costs just $30/year to enroll.\n\nMost Wisconsin pharmacies accept the SeniorCare card, and coverage includes vaccines at no cost. Because SeniorCare coordinates as secondary insurance with Medicare, your loved one can often save significantly compared to Medicare Part D alone.",
       "savingsRange": "$600 – $3,600/year",
       "savingsSource": "Estimated based on typical senior prescription usage with SeniorCare copay structure versus retail prices",
       "savingsVerified": false,
@@ -78,7 +78,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "4-6 weeks",
         "waitlist": null,
-        "tip": "You can apply starting the month of your parent's 65th birthday — don't wait until they're already paying high prescription costs.",
+        "tip": "You can apply starting the month of your loved one's 65th birthday — don't wait until they're already paying high prescription costs.",
         "urls": [
           {
             "label": "SeniorCare Application Form",
@@ -164,36 +164,36 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep SeniorCare if they're already on Medicare Part D?",
-          "answer": "Yes, and they should keep both. SeniorCare coordinates with Medicare Part D as secondary coverage, often providing better copays than Part D alone. Your parent will use their SeniorCare card at the pharmacy, and the programs will coordinate automatically."
+          "question": "Can my loved one keep SeniorCare if they're already on Medicare Part D?",
+          "answer": "Yes, and they should keep both. SeniorCare coordinates with Medicare Part D as secondary coverage, often providing better copays than Part D alone. Your loved one will use their SeniorCare card at the pharmacy, and the programs will coordinate automatically."
         },
         {
-          "question": "What happens if my parent's income puts them in Level 3 with the monthly spenddown?",
-          "answer": "Each month, your parent must spend an amount equal to their income over 240% FPL on medical expenses before SeniorCare coverage begins. For example, if they're $200 over the limit, they pay the first $200 in prescription costs, then SeniorCare covers the rest with the $5/$15 copays."
+          "question": "What happens if my loved one's income puts them in Level 3 with the monthly spenddown?",
+          "answer": "Each month, your loved one must spend an amount equal to their income over 240% FPL on medical expenses before SeniorCare coverage begins. For example, if they're $200 over the limit, they pay the first $200 in prescription costs, then SeniorCare covers the rest with the $5/$15 copays."
         },
         {
-          "question": "Why was my parent's application denied if they're on BadgerCare Plus?",
-          "answer": "People enrolled in full-benefit Medicaid or BadgerCare Plus cannot enroll in SeniorCare. However, those with limited Medicaid like Qualified Medicare Beneficiary (QMB) or SLMB programs can still qualify. Call 800-657-2038 to clarify which type of Medicaid coverage your parent has."
+          "question": "Why was my loved one's application denied if they're on BadgerCare Plus?",
+          "answer": "People enrolled in full-benefit Medicaid or BadgerCare Plus cannot enroll in SeniorCare. However, those with limited Medicaid like Qualified Medicare Beneficiary (QMB) or SLMB programs can still qualify. Call 800-657-2038 to clarify which type of Medicaid coverage your loved one has."
         },
         {
-          "question": "Does my spouse's income count if only my parent is applying?",
-          "answer": "Yes, if your parent is married and living with their spouse, both incomes are combined to determine the SeniorCare tier, even if only one spouse applies. This is different from some other programs that look at individual income only."
+          "question": "Does my spouse's income count if only my loved one is applying?",
+          "answer": "Yes, if your loved one is married and living with their spouse, both incomes are combined to determine the SeniorCare tier, even if only one spouse applies. This is different from some other programs that look at individual income only."
         },
         {
           "question": "What happens if we forget to renew by the deadline?",
-          "answer": "Coverage ends, and your parent will lose SeniorCare benefits until they reapply. There's no grace period, so mark the renewal date on your calendar and pay the $30 annual fee on time. The renewal notice comes by mail with instructions."
+          "answer": "Coverage ends, and your loved one will lose SeniorCare benefits until they reapply. There's no grace period, so mark the renewal date on your calendar and pay the $30 annual fee on time. The renewal notice comes by mail with instructions."
         },
         {
-          "question": "Can I help my parent apply if they have dementia or can't manage paperwork?",
-          "answer": "Yes, family members can help complete the application. If your parent cannot sign documents due to cognitive issues, you may need to establish power of attorney or guardianship first. Call SeniorCare Customer Service at 800-657-2038 to discuss your specific situation and what documentation they'll accept."
+          "question": "Can I help my loved one apply if they have dementia or can't manage paperwork?",
+          "answer": "Yes, family members can help complete the application. If your loved one cannot sign documents due to cognitive issues, you may need to establish power of attorney or guardianship first. Call SeniorCare Customer Service at 800-657-2038 to discuss your specific situation and what documentation they'll accept."
         },
         {
           "question": "Which pharmacies accept SeniorCare, and what if our pharmacy doesn't participate?",
-          "answer": "Most Wisconsin pharmacies accept SeniorCare cards, including major chains and independent pharmacies. If your parent's current pharmacy doesn't participate, they can switch to any participating pharmacy. Call 800-657-2038 for a list of participating pharmacies in your area."
+          "answer": "Most Wisconsin pharmacies accept SeniorCare cards, including major chains and independent pharmacies. If your loved one's current pharmacy doesn't participate, they can switch to any participating pharmacy. Call 800-657-2038 for a list of participating pharmacies in your area."
         },
         {
           "question": "Are there prescription drugs that SeniorCare won't cover?",
-          "answer": "SeniorCare covers most FDA-approved prescription drugs and prefers generics when available. Some brand-name drugs may require prior authorization from your parent's doctor. Experimental drugs and over-the-counter medications are typically not covered. Check with the pharmacy or call customer service about specific medications."
+          "answer": "SeniorCare covers most FDA-approved prescription drugs and prefers generics when available. Some brand-name drugs may require prior authorization from your loved one's doctor. Experimental drugs and over-the-counter medications are typically not covered. Check with the pharmacy or call customer service about specific medications."
         }
       ],
       "layoutIntent": {
@@ -214,7 +214,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "elder-benefit-specialist",
       "name": "Elder Benefit Specialist (EBS) Program",
       "shortName": "Elder Benefit Specialist",
-      "tagline": "Free expert help navigating Medicare, Social Security, food stamps, and housing assistance for your parent.",
+      "tagline": "Free expert help navigating Medicare, Social Security, food stamps, and housing assistance for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -227,7 +227,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is struggling with Social Security denials, Medicare confusion, or benefit applications, Wisconsin's Elder Benefit Specialists provide free one-on-one help. These trained advocates, supervised by elder law attorneys, can assist with appeals, compare insurance options, help with FoodShare applications, and protect against debt collection — all at no cost.\n\nBecause Elder Benefit Specialists work for you (not insurance companies or government agencies), they provide unbiased guidance on which programs make the most financial sense. Your parent qualifies regardless of income or assets — the only requirement is living in Wisconsin and being 60 or older.",
+      "intro": "If your loved one is struggling with Social Security denials, Medicare confusion, or benefit applications, Wisconsin's Elder Benefit Specialists provide free one-on-one help. These trained advocates, supervised by elder law attorneys, can assist with appeals, compare insurance options, help with FoodShare applications, and protect against debt collection — all at no cost.\n\nBecause Elder Benefit Specialists work for you (not insurance companies or government agencies), they provide unbiased guidance on which programs make the most financial sense. Your loved one qualifies regardless of income or assets — the only requirement is living in Wisconsin and being 60 or older.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -302,8 +302,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
-          "answer": "Yes, but your parent will need to sign a release of information form allowing the Elder Benefit Specialist to discuss their case with you. If your parent cannot sign due to cognitive impairment, bring documentation of your legal authority (power of attorney or guardianship papers)."
+          "question": "Can I call on behalf of my loved one who has dementia?",
+          "answer": "Yes, but your loved one will need to sign a release of information form allowing the Elder Benefit Specialist to discuss their case with you. If your loved one cannot sign due to cognitive impairment, bring documentation of your legal authority (power of attorney or guardianship papers)."
         },
         {
           "question": "What's the difference between an Elder Benefit Specialist and a Medicare insurance agent?",
@@ -314,7 +314,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Elder Benefit Specialist services are completely free. Some offices accept donations, but donations are never required. If your specialist identifies that you need full legal representation, they will refer you to appropriate legal aid services."
         },
         {
-          "question": "Can they help if my parent already applied for benefits and was denied?",
+          "question": "Can they help if my loved one already applied for benefits and was denied?",
           "answer": "Yes, helping with appeals and benefit denials is a core service. Elder Benefit Specialists can review denial letters, help gather additional documentation, and guide you through the appeals process for Social Security, Medicare, Medicaid, and other programs."
         }
       ],
@@ -365,7 +365,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, WISE provides paid part-time work (typically 20 hours per week) at minimum wage while building job skills for permanent employment. Your parent earns a paycheck while receiving job training, work experience, and individual counseling to transition to unsubsidized employment.\n\nThe program places participants in community service positions at local nonprofits and government agencies. Because WISE pays at least minimum wage for all hours worked, your parent receives steady income while developing marketable skills. Veterans and participants over 65 get priority enrollment — others may face waiting periods depending on local provider capacity.\n\nTo qualify, your family income must be at or below 125% of the federal poverty level (exact dollar amounts change annually). Your parent must be a Wisconsin resident and actively seeking work. The program is administered by different regional providers across the state, so contact your local office directly to apply.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, WISE provides paid part-time work (typically 20 hours per week) at minimum wage while building job skills for permanent employment. Your loved one earns a paycheck while receiving job training, work experience, and individual counseling to transition to unsubsidized employment.\n\nThe program places participants in community service positions at local nonprofits and government agencies. Because WISE pays at least minimum wage for all hours worked, your loved one receives steady income while developing marketable skills. Veterans and participants over 65 get priority enrollment — others may face waiting periods depending on local provider capacity.\n\nTo qualify, your family income must be at or below 125% of the federal poverty level (exact dollar amounts change annually). Your loved one must be a Wisconsin resident and actively seeking work. The program is administered by different regional providers across the state, so contact your local office directly to apply.",
       "savingsRange": "",
       "savingsSource": "Paid employment program",
       "savingsVerified": true,
@@ -476,15 +476,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work at WISE while receiving Social Security retirement benefits?",
-          "answer": "Yes, but Social Security has earnings limits that could reduce benefits if your parent earns too much. In 2026, retirees under full retirement age can earn $22,320 annually before Social Security reduces benefits. Contact Social Security at (800) 772-1213 to understand how WISE wages might affect payments."
+          "question": "Can my loved one work at WISE while receiving Social Security retirement benefits?",
+          "answer": "Yes, but Social Security has earnings limits that could reduce benefits if your loved one earns too much. In 2026, retirees under full retirement age can earn $22,320 annually before Social Security reduces benefits. Contact Social Security at (800) 772-1213 to understand how WISE wages might affect payments."
         },
         {
-          "question": "What if my parent has been unemployed for years — does that hurt their chances?",
+          "question": "What if my loved one has been unemployed for years — does that hurt their chances?",
           "answer": "No, long-term unemployment actually supports eligibility since WISE specifically targets people with poor employment prospects due to age or other barriers. The program is designed for exactly this situation."
         },
         {
-          "question": "How long can my parent stay in the WISE program?",
+          "question": "How long can my loved one stay in the WISE program?",
           "answer": "The program is temporary training designed to transition participants to unsubsidized employment. Specific time limits vary by regional provider and individual progress toward employment goals."
         },
         {
@@ -492,12 +492,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, you cannot receive unemployment insurance while employed in WISE since you'll be earning wages. You may need to choose between continuing unemployment benefits or accepting a WISE position."
         },
         {
-          "question": "What happens if my parent gets sick and can't work their WISE hours?",
+          "question": "What happens if my loved one gets sick and can't work their WISE hours?",
           "answer": "Contact your regional provider immediately. Policies for medical leave or temporary absences vary by provider. Some may hold your position while others may need to fill it due to limited slots."
         },
         {
           "question": "Does WISE provide health insurance or other benefits besides wages?",
-          "answer": "WISE provides wages, skills training, job counseling, and yearly physical exams. Health insurance is not typically provided. Your parent should maintain existing coverage through BadgerCare Plus, Medicare, or other sources."
+          "answer": "WISE provides wages, skills training, job counseling, and yearly physical exams. Health insurance is not typically provided. Your loved one should maintain existing coverage through BadgerCare Plus, Medicare, or other sources."
         }
       ],
       "layoutIntent": {
@@ -518,7 +518,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "family-care",
       "name": "Family Care",
       "shortName": "Family Care",
-      "tagline": "Home and community-based care services that help your parent avoid nursing home placement while staying in their own home or community.",
+      "tagline": "Home and community-based care services that help your loved one avoid nursing home placement while staying in their own home or community.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -535,7 +535,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with activities like bathing, dressing, or meal preparation, Family Care provides comprehensive home and community services to help them avoid nursing home placement. Because the program covers personal care, respite care, home modifications, and care coordination under one managed care plan, your parent gets all their long-term care services coordinated by a single team instead of juggling multiple providers.\n\nYour parent must be 65+ (or 18-64 with a disability), meet Wisconsin Medicaid income and asset limits, and pass a functional assessment showing they need the level of care typically provided in a nursing facility. The program is only available in participating Wisconsin counties where managed care organizations provide services. There are no waitlists once you're approved, but enrollment requires both financial Medicaid eligibility and a clinical assessment of care needs.",
+      "intro": "If your loved one needs daily help with activities like bathing, dressing, or meal preparation, Family Care provides comprehensive home and community services to help them avoid nursing home placement. Because the program covers personal care, respite care, home modifications, and care coordination under one managed care plan, your loved one gets all their long-term care services coordinated by a single team instead of juggling multiple providers.\n\nYour loved one must be 65+ (or 18-64 with a disability), meet Wisconsin Medicaid income and asset limits, and pass a functional assessment showing they need the level of care typically provided in a nursing facility. The program is only available in participating Wisconsin counties where managed care organizations provide services. There are no waitlists once you're approved, but enrollment requires both financial Medicaid eligibility and a clinical assessment of care needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -563,7 +563,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must need Nursing Facility Level of Care (a clinical assessment showing your parent needs daily assistance with activities like bathing, eating, mobility, meal preparation, or medication management)",
+        "functionalRequirement": "Must need Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily assistance with activities like bathing, eating, mobility, meal preparation, or medication management)",
         "otherRequirements": [
           "Wisconsin resident in a participating county/region",
           "Financially eligible for Medicaid"
@@ -582,7 +582,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete functional screening",
-            "description": "Your ADRC will conduct the Long Term Care Functional Screen (LTC FS) to determine if your parent meets Nursing Facility Level of Care requirements."
+            "description": "Your ADRC will conduct the Long Term Care Functional Screen (LTC FS) to determine if your loved one meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 3,
@@ -638,7 +638,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Family Care is not available statewide — you must live in a participating county where managed care organizations offer the program",
         "Both financial Medicaid eligibility AND functional screening are required — meeting income limits alone is not sufficient for enrollment",
-        "If your parent is already on Medicaid but hasn't had a functional assessment, they still need the Long Term Care Functional Screen",
+        "If your loved one is already on Medicaid but hasn't had a functional assessment, they still need the Long Term Care Functional Screen",
         "Medicare beneficiaries can still qualify for Family Care if they meet Medicaid financial rules and functional requirements"
       ],
       "relatedPrograms": [
@@ -649,27 +649,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for Family Care?",
-          "answer": "Yes, your parent's primary residence is exempt from Medicaid asset limits regardless of value. Family Care is specifically designed to help people stay in their homes and communities rather than enter nursing facilities."
+          "question": "Can my loved one keep their house if they qualify for Family Care?",
+          "answer": "Yes, your loved one's primary residence is exempt from Medicaid asset limits regardless of value. Family Care is specifically designed to help people stay in their homes and communities rather than enter nursing facilities."
         },
         {
           "question": "What if we live in a county that doesn't offer Family Care?",
           "answer": "Family Care is only available in participating counties with managed care organizations. Contact your local ADRC to learn what other long-term care options are available in your area, such as traditional Medicaid waiver programs."
         },
         {
-          "question": "Can I apply for Family Care on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. If your parent cannot make decisions for themselves, you may need legal documentation like power of attorney or guardianship to act on their behalf."
+          "question": "Can I apply for Family Care on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. If your loved one cannot make decisions for themselves, you may need legal documentation like power of attorney or guardianship to act on their behalf."
         },
         {
           "question": "How do I choose between the different managed care organizations?",
           "answer": "Your ADRC will explain which CMOs serve your area and their differences in providers, services, and care coordination approaches. You can switch CMOs during certain enrollment periods if you're not satisfied with your choice."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
-          "answer": "Your parent's care plan is regularly reassessed and can be adjusted as their needs change. The CMO care team will modify services and supports without requiring a new application as long as they continue to meet program eligibility."
+          "question": "What happens if my loved one's care needs increase after enrollment?",
+          "answer": "Your loved one's care plan is regularly reassessed and can be adjusted as their needs change. The CMO care team will modify services and supports without requiring a new application as long as they continue to meet program eligibility."
         },
         {
-          "question": "Can my parent have both Medicare and Family Care?",
+          "question": "Can my loved one have both Medicare and Family Care?",
           "answer": "Yes, many Family Care participants have Medicare for their medical needs and Family Care for long-term care services. The programs work together to provide comprehensive coverage without duplication."
         },
         {
@@ -677,8 +677,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "While there are no program waitlists, the timeline for starting services depends on completing assessments, developing your care plan, and arranging providers. Your CMO care coordinator will work to start essential services as quickly as possible."
         },
         {
-          "question": "What if my parent needs care immediately while we're waiting for approval?",
-          "answer": "Contact your ADRC about emergency or crisis services that may be available immediately. Some urgent needs can be addressed while the application is being processed, especially if your parent is being discharged from a hospital."
+          "question": "What if my loved one needs care immediately while we're waiting for approval?",
+          "answer": "Contact your ADRC about emergency or crisis services that may be available immediately. Some urgent needs can be addressed while the application is being processed, especially if your loved one is being discharged from a hospital."
         }
       ],
       "layoutIntent": {
@@ -699,7 +699,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "iris-self-directed-care",
       "name": "IRIS (Include, Respect, I Self-Direct)",
       "shortName": "IRIS",
-      "tagline": "Your parent controls their care budget to hire providers and buy services they choose.",
+      "tagline": "Your loved one controls their care budget to hire providers and buy services they choose.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -716,7 +716,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "IRIS gives your parent control over their long-term care budget instead of being assigned specific providers. Your parent gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your parent controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule.\n\nTo qualify, your parent must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports — your parent decides how to spend their allocated budget.",
+      "intro": "IRIS gives your loved one control over their long-term care budget instead of being assigned specific providers. Your loved one gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your loved one controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule.\n\nTo qualify, your loved one must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports — your loved one decides how to spend their allocated budget.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -765,7 +765,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete functional assessment",
-            "description": "Complete the Wisconsin Adult Long-Term Care Functional Screen with your ADRC to determine if your parent needs nursing home level care."
+            "description": "Complete the Wisconsin Adult Long-Term Care Functional Screen with your ADRC to determine if your loved one needs nursing home level care."
           },
           {
             "step": 3,
@@ -775,7 +775,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Select Fiscal Employer Agent",
-            "description": "Choose a Fiscal Employer Agent (FEA) with help from your ADRC. The FEA will handle payroll and tax responsibilities when your parent hires caregivers."
+            "description": "Choose a Fiscal Employer Agent (FEA) with help from your ADRC. The FEA will handle payroll and tax responsibilities when your loved one hires caregivers."
           }
         ],
         "urls": [
@@ -820,7 +820,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "You must live in an eligible community setting — not in a nursing facility or certain residential care facilities",
-        "Self-direction means your parent manages their budget, hires and fires providers, and follows program rules — the FEA handles payroll but not service decisions",
+        "Self-direction means your loved one manages their budget, hires and fires providers, and follows program rules — the FEA handles payroll but not service decisions",
         "All hired providers must enroll with Wisconsin's ForwardHealth Portal before they can be paid",
         "Having existing Medicaid coverage speeds up IRIS enrollment since financial eligibility is already established"
       ],
@@ -833,36 +833,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent hire family members as paid caregivers through IRIS?",
-          "answer": "Yes, your parent can hire family members as caregivers using their IRIS budget. The family member must enroll with ForwardHealth Portal as a provider and follow all program requirements. The Fiscal Employer Agent will handle payroll, taxes, and workers' compensation."
+          "question": "Can my loved one hire family members as paid caregivers through IRIS?",
+          "answer": "Yes, your loved one can hire family members as caregivers using their IRIS budget. The family member must enroll with ForwardHealth Portal as a provider and follow all program requirements. The Fiscal Employer Agent will handle payroll, taxes, and workers' compensation."
         },
         {
-          "question": "What happens if my parent's care needs change after they're enrolled?",
-          "answer": "IRIS budgets can be adjusted when care needs change. Contact your parent's IRIS Consultant Agency to request a reassessment. If the functional screen shows increased needs, the budget may be increased. Regular reassessments ensure the budget matches current needs."
+          "question": "What happens if my loved one's care needs change after they're enrolled?",
+          "answer": "IRIS budgets can be adjusted when care needs change. Contact your loved one's IRIS Consultant Agency to request a reassessment. If the functional screen shows increased needs, the budget may be increased. Regular reassessments ensure the budget matches current needs."
         },
         {
-          "question": "How much control does my parent really have over their care budget?",
-          "answer": "Your parent has significant control but must follow program rules. They choose and hire all providers, decide when services are provided, and can change providers anytime. However, all purchases must be from the approved services list and all providers must be enrolled with ForwardHealth."
+          "question": "How much control does my loved one really have over their care budget?",
+          "answer": "Your loved one has significant control but must follow program rules. They choose and hire all providers, decide when services are provided, and can change providers anytime. However, all purchases must be from the approved services list and all providers must be enrolled with ForwardHealth."
         },
         {
-          "question": "What if my parent owns their home but it's worth more than $750,000?",
-          "answer": "If your parent lives in their home or intends to return to it, they can keep it as long as the equity doesn't exceed $750,000. If equity exceeds this limit, they won't qualify for Medicaid and therefore not for IRIS."
+          "question": "What if my loved one owns their home but it's worth more than $750,000?",
+          "answer": "If your loved one lives in their home or intends to return to it, they can keep it as long as the equity doesn't exceed $750,000. If equity exceeds this limit, they won't qualify for Medicaid and therefore not for IRIS."
         },
         {
-          "question": "Can my parent use IRIS while also getting other Medicaid services?",
-          "answer": "IRIS coordinates with other Medicaid services, but your parent cannot be enrolled in Family Care or other long-term care programs at the same time. Regular Medicaid services like doctor visits and prescriptions continue alongside IRIS."
+          "question": "Can my loved one use IRIS while also getting other Medicaid services?",
+          "answer": "IRIS coordinates with other Medicaid services, but your loved one cannot be enrolled in Family Care or other long-term care programs at the same time. Regular Medicaid services like doctor visits and prescriptions continue alongside IRIS."
         },
         {
           "question": "What's the difference between IRIS and Family Care in Wisconsin?",
-          "answer": "IRIS gives your parent control over their budget to hire their own providers, while Family Care assigns a care management organization that coordinates services for them. IRIS offers more control but requires more responsibility for managing the budget and providers."
+          "answer": "IRIS gives your loved one control over their budget to hire their own providers, while Family Care assigns a care management organization that coordinates services for them. IRIS offers more control but requires more responsibility for managing the budget and providers."
         },
         {
           "question": "How long does it take to get approved for IRIS after applying?",
-          "answer": "Processing time varies by county and depends on whether your parent already has Medicaid approved. The functional assessment and Medicaid application are the main time factors. Contact your local ADRC for current processing times in your area."
+          "answer": "Processing time varies by county and depends on whether your loved one already has Medicaid approved. The functional assessment and Medicaid application are the main time factors. Contact your local ADRC for current processing times in your area."
         },
         {
-          "question": "What happens to the IRIS budget if my parent goes to the hospital?",
-          "answer": "The IRIS budget may be suspended or reduced during hospital stays since care needs are being met by the hospital. When your parent returns home, the budget typically resumes. Notify the IRIS Consultant Agency about hospital admissions to avoid payment issues."
+          "question": "What happens to the IRIS budget if my loved one goes to the hospital?",
+          "answer": "The IRIS budget may be suspended or reduced during hospital stays since care needs are being met by the hospital. When your loved one returns home, the budget typically resumes. Notify the IRIS Consultant Agency about hospital admissions to avoid payment issues."
         }
       ],
       "layoutIntent": {
@@ -881,12 +881,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Wisconsin offers 5 key programs to help your aging parent — 3 financial benefits, 1 employment program, and 1 free resource. Your parent could save hundreds monthly on prescriptions through SeniorCare, get paid part-time work through WISE if they're under income limits, or receive home care services through Family Care to avoid nursing home placement. The Elder Benefit Specialist Program provides free expert help navigating all these options plus Medicare and Social Security. Start by calling an Elder Benefit Specialist at your local Aging and Disability Resource Center — they'll help you identify which programs your parent qualifies for and handle applications.",
+    "intro": "Wisconsin offers 5 key programs to help your aging loved one — 3 financial benefits, 1 employment program, and 1 free resource. Your loved one could save hundreds monthly on prescriptions through SeniorCare, get paid part-time work through WISE if they're under income limits, or receive home care services through Family Care to avoid nursing home placement. The Elder Benefit Specialist Program provides free expert help navigating all these options plus Medicare and Social Security. Start by calling an Elder Benefit Specialist at your local Aging and Disability Resource Center — they'll help you identify which programs your loved one qualifies for and handle applications.",
     "startHere": [
       {
         "name": "Elder Benefit Specialist (EBS) Program",
         "programId": "elder-benefit-specialist-ebs-program",
-        "why": "Free expert help to identify which programs your parent qualifies for and navigate applications."
+        "why": "Free expert help to identify which programs your loved one qualifies for and navigate applications."
       },
       {
         "name": "SeniorCare",
@@ -896,7 +896,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Family Care",
         "programId": "family-care",
-        "why": "Comprehensive home care services to help your parent avoid nursing home placement."
+        "why": "Comprehensive home care services to help your loved one avoid nursing home placement."
       }
     ],
     "byNeed": [
@@ -913,7 +913,7 @@ export const drafts: PipelineStateDrafts = {
           "Family Care",
           "IRIS"
         ],
-        "description": "Services to help your parent stay in their home or community."
+        "description": "Services to help your loved one stay in their home or community."
       },
       {
         "need": "Part-time work and income",
@@ -933,8 +933,8 @@ export const drafts: PipelineStateDrafts = {
     "quickFacts": [
       "Elder Benefit Specialists are available at every Wisconsin Aging and Disability Resource Center for free consultations",
       "SeniorCare is Wisconsin's state prescription drug program with lower costs than most Medicare Part D plans",
-      "Family Care and IRIS both require Nursing Facility Level of Care assessment but let your parent stay at home"
+      "Family Care and IRIS both require Nursing Facility Level of Care assessment but let your loved one stay at home"
     ],
-    "resourcesVsBenefits": "The Elder Benefit Specialist Program is free to all Wisconsin seniors regardless of income — call your local Aging and Disability Resource Center anytime for help. The other four programs require qualification: SeniorCare has income limits, Family Care and IRIS require clinical assessments showing your parent needs daily care assistance, and WISE requires unemployment and income under $31,200/year for a family of two."
+    "resourcesVsBenefits": "The Elder Benefit Specialist Program is free to all Wisconsin seniors regardless of income — call your local Aging and Disability Resource Center anytime for help. The other four programs require qualification: SeniorCare has income limits, Family Care and IRIS require clinical assessments showing your loved one needs daily care assistance, and WISE requires unemployment and income under $31,200/year for a family of two."
   }
 };

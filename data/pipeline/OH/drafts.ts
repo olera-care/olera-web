@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.918Z
+ * Last updated: 2026-04-20T22:05:18.099Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65 or older, legally blind, or disabled with limited income and savings, Ohio's Medicaid ABD program provides comprehensive health coverage at no cost. This includes all medical care, prescription drugs, hospital stays, and nursing home care if needed — with no premiums, deductibles, or copays.\n\nThe program covers parents with monthly income under $794 (single) or $1,191 (couple) and savings under $2,000 (single) or $3,000 (couple) in 2024. If your parent's income is higher, they may still qualify through a spend-down process where they pay medical bills equal to the excess income each month. Because this is full Medicaid coverage, it also pays Medicare premiums and covers services Medicare doesn't, like long-term care.",
+      "intro": "If your loved one is 65 or older, legally blind, or disabled with limited income and savings, Ohio's Medicaid ABD program provides comprehensive health coverage at no cost. This includes all medical care, prescription drugs, hospital stays, and nursing home care if needed — with no premiums, deductibles, or copays.\n\nThe program covers parents with monthly income under $794 (single) or $1,191 (couple) and savings under $2,000 (single) or $3,000 (couple) in 2024. If your loved one's income is higher, they may still qualify through a spend-down process where they pay medical bills equal to the excess income each month. Because this is full Medicaid coverage, it also pays Medicare premiums and covers services Medicare doesn't, like long-term care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete disability determination (if applicable)",
-            "description": "If applying based on disability, Social Security Administration will evaluate your parent's condition — this can extend processing time up to 90 days."
+            "description": "If applying based on disability, Social Security Administration will evaluate your loved one's condition — this can extend processing time up to 90 days."
           },
           {
             "step": 5,
@@ -110,7 +110,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by county and complexity; up to 90 days if disability determination needed",
         "waitlist": null,
-        "tip": "If your parent has high medical expenses, ask about spend-down — they may qualify even if income exceeds limits by paying medical bills equal to the excess each month.",
+        "tip": "If your loved one has high medical expenses, ask about spend-down — they may qualify even if income exceeds limits by paying medical bills equal to the excess each month.",
         "urls": [
           {
             "label": "Ohio Medicaid ABD Information",
@@ -151,8 +151,8 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Income limits vary by county and update annually — always verify current limits with your local JFS office",
         "SSI income is often excluded from countable income calculations, but this must be verified during application",
-        "If your parent's home equity exceeds $752,000, they may still qualify if a spouse, disabled child, or caregiver child lives there",
-        "Retroactive coverage up to 90 days is available if your parent had qualifying medical expenses before approval"
+        "If your loved one's home equity exceeds $752,000, they may still qualify if a spouse, disabled child, or caregiver child lives there",
+        "Retroactive coverage up to 90 days is available if your loved one had qualifying medical expenses before approval"
       ],
       "relatedPrograms": [
         "Medicare Savings Programs",
@@ -163,31 +163,31 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
-          "answer": "Yes, the primary home is exempt from asset limits up to $752,000 in equity. If home equity exceeds this amount, your parent may still qualify if a spouse, disabled child, or caregiver child lives in the home."
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits up to $752,000 in equity. If home equity exceeds this amount, your loved one may still qualify if a spouse, disabled child, or caregiver child lives in the home."
         },
         {
-          "question": "What if my parent's income is slightly above the limit?",
+          "question": "What if my loved one's income is slightly above the limit?",
           "answer": "They may still qualify through spend-down. Each month, they pay medical bills equal to the amount their income exceeds the limit. Once they've spent down to the limit, Medicaid covers remaining medical costs for that month."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, you can apply as an authorized representative. You'll need to provide documentation showing your authority to act on their behalf, such as power of attorney or guardianship papers."
         },
         {
           "question": "Does ABD Medicaid work with Medicare?",
-          "answer": "Yes, if your parent has Medicare, ABD Medicaid becomes secondary insurance and covers Medicare premiums, deductibles, and services Medicare doesn't cover like long-term care. This is called being \"dual eligible.\""
+          "answer": "Yes, if your loved one has Medicare, ABD Medicaid becomes secondary insurance and covers Medicare premiums, deductibles, and services Medicare doesn't cover like long-term care. This is called being \"dual eligible.\""
         },
         {
           "question": "How is disability determined for ABD Medicaid?",
-          "answer": "Your parent must meet Social Security Administration disability criteria — a condition expected to last 12+ months that prevents substantial work. If they already receive Social Security Disability, they automatically meet this requirement."
+          "answer": "Your loved one must meet Social Security Administration disability criteria — a condition expected to last 12+ months that prevents substantial work. If they already receive Social Security Disability, they automatically meet this requirement."
         },
         {
-          "question": "Can my parent have a car and still qualify?",
+          "question": "Can my loved one have a car and still qualify?",
           "answer": "Yes, one vehicle is exempt regardless of value. Additional vehicles count toward the asset limit unless used for medical transportation or modified for disability."
         },
         {
-          "question": "What happens if my parent moves to a nursing home?",
+          "question": "What happens if my loved one moves to a nursing home?",
           "answer": "Different rules apply for nursing home Medicaid. The income limit increases to $2,982/month in 2026, and they must meet Nursing Facility Level of Care requirements through clinical assessment."
         },
         {
@@ -213,7 +213,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "passport-waiver",
       "name": "PASSPORT Waiver",
       "shortName": "PASSPORT Waiver",
-      "tagline": "Comprehensive home care services to help your parent avoid nursing home placement while staying safely at home.",
+      "tagline": "Comprehensive home care services to help your loved one avoid nursing home placement while staying safely at home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -226,7 +226,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your parent receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems — all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your parent won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, which means live-in family members (including spouses) can now be paid to provide care. Your parent must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
+      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your loved one receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems — all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your loved one won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, which means live-in family members (including spouses) can now be paid to provide care. Your loved one must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Ohio Medicaid",
       "savingsVerified": false,
@@ -240,7 +240,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with Activities of Daily Living like bathing, dressing, eating, mobility, or toileting)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily help with Activities of Daily Living like bathing, dressing, eating, mobility, or toileting)",
         "otherRequirements": [
           "Ohio resident",
           "Must qualify for Ohio Medicaid",
@@ -263,7 +263,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule in-home assessment",
-            "description": "If you pass initial screening, schedule an Adult Comprehensive Assessment Tool (ACAT) evaluation. An assessor visits your parent's home to evaluate functional abilities and safety needs."
+            "description": "If you pass initial screening, schedule an Adult Comprehensive Assessment Tool (ACAT) evaluation. An assessor visits your loved one's home to evaluate functional abilities and safety needs."
           },
           {
             "step": 3,
@@ -278,7 +278,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by assessment complexity and Medicaid eligibility determination",
         "waitlist": null,
-        "tip": "Have your parent's primary care physician ready to confirm they need home care services — medical approval is required for program entry.",
+        "tip": "Have your loved one's primary care physician ready to confirm they need home care services — medical approval is required for program entry.",
         "urls": [
           {
             "label": "Ohio Department of Aging PASSPORT page",
@@ -287,7 +287,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your parent and spouse",
+        "Social Security cards for your loved one and spouse",
         "Medicare card (both Part A and Part B)",
         "Medicaid card if already enrolled",
         "Most recent Social Security award letter",
@@ -332,7 +332,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Each of Ohio's 12 Area Agencies on Aging has different local providers and contact numbers — make sure you're calling the right region",
         "Structured Family Caregiving is new as of October 2024 — ask specifically about paying family members to provide care",
-        "The nursing home level of care assessment is strict — your parent must need significant daily assistance, not just occasional help",
+        "The nursing home level of care assessment is strict — your loved one must need significant daily assistance, not just occasional help",
         "Services are customized but capped at 60% of nursing home costs — higher-need individuals may hit this limit and need additional private care"
       ],
       "relatedPrograms": [
@@ -344,32 +344,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for PASSPORT?",
-          "answer": "Yes, your parent's primary residence doesn't count toward Medicaid asset limits regardless of value. However, they must still meet Ohio Medicaid income requirements and pass the nursing home level of care assessment."
+          "question": "Can my loved one keep their house and still qualify for PASSPORT?",
+          "answer": "Yes, your loved one's primary residence doesn't count toward Medicaid asset limits regardless of value. However, they must still meet Ohio Medicaid income requirements and pass the nursing home level of care assessment."
         },
         {
           "question": "What's the difference between PASSPORT and Assisted Living Waiver?",
-          "answer": "PASSPORT provides services in your parent's own home, while Assisted Living Waiver only covers services in licensed assisted living facilities. PASSPORT is for people who want to age in place with coordinated home care."
+          "answer": "PASSPORT provides services in your loved one's own home, while Assisted Living Waiver only covers services in licensed assisted living facilities. PASSPORT is for people who want to age in place with coordinated home care."
         },
         {
-          "question": "Can I get paid to care for my parent through PASSPORT?",
-          "answer": "Yes, as of October 2024, Structured Family Caregiving allows live-in family members including spouses to be paid caregivers. You'll need to meet provider qualifications and have this included in your parent's approved care plan."
+          "question": "Can I get paid to care for my loved one through PASSPORT?",
+          "answer": "Yes, as of October 2024, Structured Family Caregiving allows live-in family members including spouses to be paid caregivers. You'll need to meet provider qualifications and have this included in your loved one's approved care plan."
         },
         {
-          "question": "What if my parent needs more care than the 60% cost cap allows?",
-          "answer": "If your parent's assessed needs exceed 60% of nursing home costs, PASSPORT can't cover additional services. You'd need to pay privately for extra care or consider nursing home placement where Medicaid covers full costs."
+          "question": "What if my loved one needs more care than the 60% cost cap allows?",
+          "answer": "If your loved one's assessed needs exceed 60% of nursing home costs, PASSPORT can't cover additional services. You'd need to pay privately for extra care or consider nursing home placement where Medicaid covers full costs."
         },
         {
           "question": "How long does the assessment process really take?",
-          "answer": "The phone screening happens immediately, but scheduling the in-home ACAT assessment can take several weeks depending on your Area Agency on Aging's caseload. Factor in additional time for Medicaid eligibility processing if your parent isn't already enrolled."
+          "answer": "The phone screening happens immediately, but scheduling the in-home ACAT assessment can take several weeks depending on your Area Agency on Aging's caseload. Factor in additional time for Medicaid eligibility processing if your loved one isn't already enrolled."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "PASSPORT includes ongoing monitoring and care plan updates. Contact your assigned care coordinator when your parent's condition changes — they can reassess and modify services. Plans are typically reviewed annually or when needs significantly change."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "PASSPORT includes ongoing monitoring and care plan updates. Contact your assigned care coordinator when your loved one's condition changes — they can reassess and modify services. Plans are typically reviewed annually or when needs significantly change."
         },
         {
-          "question": "Can my parent have PASSPORT and still go to adult day care?",
-          "answer": "Yes, adult day care is one of the covered PASSPORT services. Your care plan can include both in-home personal care and adult day care depending on your parent's assessed needs and preferences."
+          "question": "Can my loved one have PASSPORT and still go to adult day care?",
+          "answer": "Yes, adult day care is one of the covered PASSPORT services. Your care plan can include both in-home personal care and adult day care depending on your loved one's assessed needs and preferences."
         },
         {
           "question": "What if we disagree with the nursing home level of care assessment?",
@@ -411,7 +411,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, Ohio PACE coordinates all their medical care under one team. PACE covers all Medicare and Medicaid services — doctor visits, specialists, prescription drugs, adult day care, home care, hospital stays, and transportation — without limits on hours or services.\n\nYour parent must live in Hamilton, Cuyahoga, Lorain, or Summit County and be certified as needing intermediate or skilled nursing facility care. Because PACE becomes your parent's sole provider for all Medicare and Medicaid services (except emergencies), they cannot use other doctors or programs. If your parent has Medicaid, PACE is free. Private pay typically costs $7,000+ per month.\n\nPACE replaces Medicare Advantage, traditional Medicare supplements, and other programs like Ohio's PASSPORT waiver — your parent must disenroll from these before joining PACE.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Ohio PACE coordinates all their medical care under one team. PACE covers all Medicare and Medicaid services — doctor visits, specialists, prescription drugs, adult day care, home care, hospital stays, and transportation — without limits on hours or services.\n\nYour loved one must live in Hamilton, Cuyahoga, Lorain, or Summit County and be certified as needing intermediate or skilled nursing facility care. Because PACE becomes your loved one's sole provider for all Medicare and Medicaid services (except emergencies), they cannot use other doctors or programs. If your loved one has Medicaid, PACE is free. Private pay typically costs $7,000+ per month.\n\nPACE replaces Medicare Advantage, traditional Medicare supplements, and other programs like Ohio's PASSPORT waiver — your loved one must disenroll from these before joining PACE.",
       "savingsRange": "",
       "savingsSource": "Free service with Medicaid coverage",
       "savingsVerified": false,
@@ -426,7 +426,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be certified as needing intermediate or skilled nursing facility level of care (clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must be certified as needing intermediate or skilled nursing facility level of care (clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "Reside in a PACE service area (Hamilton, Cuyahoga, Lorain, or Summit County)",
           "Able to live safely in the community with PACE services at time of enrollment",
@@ -447,12 +447,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete interdisciplinary team evaluation",
-            "description": "A PACE team (doctor, nurse, social worker, therapist) assesses your parent's medical needs and determines if they require nursing facility level of care."
+            "description": "A PACE team (doctor, nurse, social worker, therapist) assesses your loved one's medical needs and determines if they require nursing facility level of care."
           },
           {
             "step": 3,
             "title": "Verify Medicaid eligibility (if needed)",
-            "description": "Visit ohiobenefits.org or call Ohio Benefits to apply for Medicaid if your parent needs cost coverage. Private pay is an option without Medicaid."
+            "description": "Visit ohiobenefits.org or call Ohio Benefits to apply for Medicaid if your loved one needs cost coverage. Private pay is an option without Medicaid."
           },
           {
             "step": 4,
@@ -462,7 +462,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Gather all medical records before the assessment — PACE needs to document that your parent requires nursing home-level care to qualify.",
+        "tip": "Gather all medical records before the assessment — PACE needs to document that your loved one requires nursing home-level care to qualify.",
         "urls": [
           {
             "label": "PACE of Cincinnati",
@@ -516,9 +516,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE becomes your parent's sole medical provider — personal liability applies for any out-of-network care except emergencies",
+        "PACE becomes your loved one's sole medical provider — personal liability applies for any out-of-network care except emergencies",
         "Without Medicaid coverage, private pay typically exceeds $7,000 per month for comprehensive PACE services",
-        "Your parent must be safe to live in the community at enrollment, even if they need nursing home-level care",
+        "Your loved one must be safe to live in the community at enrollment, even if they need nursing home-level care",
         "Enrollment requires disenrolling from PASSPORT waiver, Medicare Advantage, and other conflicting programs first"
       ],
       "relatedPrograms": [
@@ -529,27 +529,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctors after joining PACE?",
-          "answer": "No. PACE requires your parent to receive all Medicare and Medicaid-covered care from PACE providers only, except for emergency care. Your parent will be assigned to a PACE medical team that coordinates all their care."
+          "question": "Can my loved one keep seeing their current doctors after joining PACE?",
+          "answer": "No. PACE requires your loved one to receive all Medicare and Medicaid-covered care from PACE providers only, except for emergency care. Your loved one will be assigned to a PACE medical team that coordinates all their care."
         },
         {
-          "question": "What happens if my parent needs emergency care while enrolled in PACE?",
-          "answer": "Emergency care is covered anywhere, but PACE must be notified as soon as possible. For non-emergency care outside the PACE network, your parent would be personally responsible for the full cost."
+          "question": "What happens if my loved one needs emergency care while enrolled in PACE?",
+          "answer": "Emergency care is covered anywhere, but PACE must be notified as soon as possible. For non-emergency care outside the PACE network, your loved one would be personally responsible for the full cost."
         },
         {
-          "question": "Can my parent stay on PASSPORT waiver and also join PACE?",
-          "answer": "No. Your parent must disenroll from PASSPORT waiver, Medicare Advantage, other Medicaid managed care, and hospice before joining PACE. PACE replaces these programs with comprehensive coordinated care."
+          "question": "Can my loved one stay on PASSPORT waiver and also join PACE?",
+          "answer": "No. Your loved one must disenroll from PASSPORT waiver, Medicare Advantage, other Medicaid managed care, and hospice before joining PACE. PACE replaces these programs with comprehensive coordinated care."
         },
         {
-          "question": "How much does PACE cost if my parent doesn't qualify for Medicaid?",
+          "question": "How much does PACE cost if my loved one doesn't qualify for Medicaid?",
           "answer": "Private pay rates vary by provider but typically exceed $7,000 per month. Contact PACE of Cincinnati or McGregor PACE directly for current private pay rates in your area."
         },
         {
-          "question": "What if my parent needs nursing home-level care but isn't safe living at home?",
-          "answer": "PACE requires participants to be safe living in the community at enrollment, even with extensive services. If your parent cannot safely remain at home even with PACE support, traditional nursing home placement may be more appropriate."
+          "question": "What if my loved one needs nursing home-level care but isn't safe living at home?",
+          "answer": "PACE requires participants to be safe living in the community at enrollment, even with extensive services. If your loved one cannot safely remain at home even with PACE support, traditional nursing home placement may be more appropriate."
         },
         {
-          "question": "Can I apply for PACE on behalf of my parent?",
+          "question": "Can I apply for PACE on behalf of my loved one?",
           "answer": "Yes, if you have legal authority through power of attorney or guardianship. The PACE provider will need to see these documents during the enrollment process and assessment."
         },
         {
@@ -557,8 +557,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Only Hamilton County (PACE of Cincinnati) and Cuyahoga, Lorain, and Summit Counties (McGregor PACE). PACE is not available statewide in Ohio."
         },
         {
-          "question": "What happens if my parent's care needs change after enrollment?",
-          "answer": "PACE provides ongoing assessment and adjusts services as needs change. Services can be increased without limits, but if your parent no longer needs nursing facility-level care or becomes unsafe in the community, they may need to transition out of PACE."
+          "question": "What happens if my loved one's care needs change after enrollment?",
+          "answer": "PACE provides ongoing assessment and adjusts services as needs change. Services can be increased without limits, but if your loved one no longer needs nursing facility-level care or becomes unsafe in the community, they may need to transition out of PACE."
         }
       ],
       "layoutIntent": {
@@ -579,7 +579,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's income is below $1,824/month, these programs can eliminate Medicare premiums and copayments",
+      "tagline": "If your loved one's income is below $1,824/month, these programs can eliminate Medicare premiums and copayments",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -592,7 +592,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with Medicare costs, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premiums ($185/month in 2025) and potentially all Medicare copayments and deductibles. These federal programs have three tiers based on income: QMB covers the most costs for those with income up to $1,350/month, SLMB covers Part B premiums for income up to $1,620/month, and QI-1 also covers premiums for income up to $1,824/month.\n\nBecause these programs work with Medicare, your parent keeps their current doctors and coverage — the program simply pays what Medicare doesn't cover. For someone on QMB, this eliminates all out-of-pocket costs for Medicare-covered services, which can save thousands annually.\n\nQI-1 has limited federal funding and operates first-come, first-served, so slots can fill up. The program reopens each January with priority for current recipients who reapply.",
+      "intro": "If your loved one struggles with Medicare costs, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premiums ($185/month in 2025) and potentially all Medicare copayments and deductibles. These federal programs have three tiers based on income: QMB covers the most costs for those with income up to $1,350/month, SLMB covers Part B premiums for income up to $1,620/month, and QI-1 also covers premiums for income up to $1,824/month.\n\nBecause these programs work with Medicare, your loved one keeps their current doctors and coverage — the program simply pays what Medicare doesn't cover. For someone on QMB, this eliminates all out-of-pocket costs for Medicare-covered services, which can save thousands annually.\n\nQI-1 has limited federal funding and operates first-come, first-served, so slots can fill up. The program reopens each January with priority for current recipients who reapply.",
       "savingsRange": "$2,220 – $5,000+/year in 2025",
       "savingsSource": "Part B premiums ($2,220/year) plus potential elimination of all Medicare deductibles and copayments for QMB recipients",
       "savingsVerified": true,
@@ -772,36 +772,36 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. Only countable assets like bank accounts, stocks, and life insurance over $1,500 cash value count toward the $9,950 individual/$14,910 couple limits."
         },
         {
-          "question": "What happens if my parent gets approved for QMB but their doctor doesn't accept Medicare assignment?",
-          "answer": "QMB protects your parent from balance billing for Medicare-covered services, but non-participating providers who don't accept Medicare assignment can still charge up to the Medicare limiting charge. It's best to use providers who participate in Medicare."
+          "question": "What happens if my loved one gets approved for QMB but their doctor doesn't accept Medicare assignment?",
+          "answer": "QMB protects your loved one from balance billing for Medicare-covered services, but non-participating providers who don't accept Medicare assignment can still charge up to the Medicare limiting charge. It's best to use providers who participate in Medicare."
         },
         {
           "question": "Can I apply for QI-1 if the program is full this year?",
           "answer": "You can still apply and be placed on a waiting list, but approval is unlikely until January when federal funding resets. Current QI-1 recipients get priority for renewal, so new applicants should apply early in January."
         },
         {
-          "question": "If my parent qualifies for SLMB, can they get retroactive coverage?",
-          "answer": "Yes, SLMB can cover Part B premiums for up to 3 months before the application date, but your parent must have met all eligibility requirements during those months. QMB has no retroactive coverage."
+          "question": "If my loved one qualifies for SLMB, can they get retroactive coverage?",
+          "answer": "Yes, SLMB can cover Part B premiums for up to 3 months before the application date, but your loved one must have met all eligibility requirements during those months. QMB has no retroactive coverage."
         },
         {
-          "question": "Can my parent have both a Medicare Savings Program and a Medigap policy?",
+          "question": "Can my loved one have both a Medicare Savings Program and a Medigap policy?",
           "answer": "Yes, but QMB already covers most of what Medigap covers, so it may not be cost-effective. SLMB and QI-1 only cover Part B premiums, so Medigap could still provide value for copayments and deductibles."
         },
         {
-          "question": "What if my parent's income is slightly over the limit due to a one-time payment?",
-          "answer": "Income is averaged over 3 months for retroactive coverage decisions. One-time payments may not disqualify your parent if their regular monthly income is below limits. Contact 1-800-324-8680 to discuss specific situations."
+          "question": "What if my loved one's income is slightly over the limit due to a one-time payment?",
+          "answer": "Income is averaged over 3 months for retroactive coverage decisions. One-time payments may not disqualify your loved one if their regular monthly income is below limits. Contact 1-800-324-8680 to discuss specific situations."
         },
         {
-          "question": "Does my parent need to reapply every year?",
+          "question": "Does my loved one need to reapply every year?",
           "answer": "QMB and SLMB recipients undergo annual redeterminations but don't need to reapply unless circumstances change significantly. QI-1 recipients must reapply every January because it's funded annually with limited slots."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent signs the appropriate forms or if you have legal authority like power of attorney. Call 1-800-324-8680 for specific requirements and forms."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one signs the appropriate forms or if you have legal authority like power of attorney. Call 1-800-324-8680 for specific requirements and forms."
         }
       ],
       "layoutIntent": {
@@ -835,7 +835,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, Ohio SNAP provides monthly money on an EBT card they can use at any grocery store. Benefits range from a minimum of $23/month up to $415/month for a 2-person household, depending on income and expenses like rent and medical costs.\n\nYour parent gets special protections as an older adult — higher asset limits ($4,500 vs. $2,500 for younger people), no gross income cap if their net income qualifies after subtracting expenses, and exemption from work requirements at 65+. However, if they're 55-64, new work requirements now apply unless they're disabled or caring for a young child.\n\nOnly about 50% of eligible older adults actually enroll in SNAP, often because they don't realize they qualify or think the process is too complicated. The application takes about 30 days to process, and benefits are loaded monthly onto an EBT card that works like a debit card at grocery stores.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, Ohio SNAP provides monthly money on an EBT card they can use at any grocery store. Benefits range from a minimum of $23/month up to $415/month for a 2-person household, depending on income and expenses like rent and medical costs.\n\nYour loved one gets special protections as an older adult — higher asset limits ($4,500 vs. $2,500 for younger people), no gross income cap if their net income qualifies after subtracting expenses, and exemption from work requirements at 65+. However, if they're 55-64, new work requirements now apply unless they're disabled or caring for a young child.\n\nOnly about 50% of eligible older adults actually enroll in SNAP, often because they don't realize they qualify or think the process is too complicated. The application takes about 30 days to process, and benefits are loaded monthly onto an EBT card that works like a debit card at grocery stores.",
       "savingsRange": "$276 – $4,980/year in 2026",
       "savingsSource": "Based on minimum $23/month to maximum $415/month for elderly households from Ohio Benefits",
       "savingsVerified": true,
@@ -944,8 +944,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your parent is 55-64, they must work, volunteer, or train 80 hours/month unless they're disabled, pregnant, or caring for a child under 14",
-        "Separate household rules may apply if your parent is 60+ and unable to prepare meals with other household members",
+        "If your loved one is 55-64, they must work, volunteer, or train 80 hours/month unless they're disabled, pregnant, or caring for a child under 14",
+        "Separate household rules may apply if your loved one is 60+ and unable to prepare meals with other household members",
         "Medical expenses over $35/month are subtracted from income — keep all receipts and bills",
         "You'll need to recertify every 6-12 months to continue receiving benefits"
       ],
@@ -958,35 +958,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent gives written permission or if you have legal authority like power of attorney. You'll need to provide documentation of your authority to act on their behalf."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one gives written permission or if you have legal authority like power of attorney. You'll need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "What if my parent lives with family but buys and prepares food separately?",
-          "answer": "If your parent is 60+ and unable to prepare meals with the household due to age or disability, they can apply as a separate SNAP household even if living with family. This often results in higher benefits than applying as one large household."
+          "question": "What if my loved one lives with family but buys and prepares food separately?",
+          "answer": "If your loved one is 60+ and unable to prepare meals with the household due to age or disability, they can apply as a separate SNAP household even if living with family. This often results in higher benefits than applying as one large household."
         },
         {
-          "question": "Does my parent's house count toward the $4,500 asset limit?",
+          "question": "Does my loved one's house count toward the $4,500 asset limit?",
           "answer": "No, their primary home is completely exempt regardless of value. Also exempt are most vehicles, retirement accounts like 401(k)s and IRAs, and personal belongings. Only count cash, savings, and checking accounts toward the $4,500 limit."
         },
         {
           "question": "How do medical expenses help with SNAP eligibility?",
-          "answer": "Medical expenses over $35/month are subtracted from your parent's income when calculating SNAP eligibility. This includes Medicare premiums, prescription costs, doctor visits, and medical equipment. Keep all receipts — these deductions often make the difference between qualifying and not qualifying."
+          "answer": "Medical expenses over $35/month are subtracted from your loved one's income when calculating SNAP eligibility. This includes Medicare premiums, prescription costs, doctor visits, and medical equipment. Keep all receipts — these deductions often make the difference between qualifying and not qualifying."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
+          "question": "What happens if my loved one's income is slightly over the limit?",
           "answer": "For households with someone 60+, there's no gross income limit — only net income matters after subtracting allowable expenses like rent, utilities, and medical costs. A parent earning $2,608/month might still qualify if they have high medical or housing expenses."
         },
         {
-          "question": "Can my 62-year-old parent avoid the work requirements?",
-          "answer": "At 62, your parent is subject to the 80 hours/month work requirement unless they're disabled, caring for a child under 14, or pregnant. At 65+, all work requirements are waived. Disability exemptions require documentation from a doctor or SSI/SSDI award letter."
+          "question": "Can my 62-year-old loved one avoid the work requirements?",
+          "answer": "At 62, your loved one is subject to the 80 hours/month work requirement unless they're disabled, caring for a child under 14, or pregnant. At 65+, all work requirements are waived. Disability exemptions require documentation from a doctor or SSI/SSDI award letter."
         },
         {
           "question": "How long do SNAP benefits last once approved?",
-          "answer": "Benefits continue as long as your parent remains eligible and completes recertification every 6-12 months. Ohio will send renewal notices before benefits expire, and you can often recertify by phone if there are no major changes to income or household size."
+          "answer": "Benefits continue as long as your loved one remains eligible and completes recertification every 6-12 months. Ohio will send renewal notices before benefits expire, and you can often recertify by phone if there are no major changes to income or household size."
         },
         {
-          "question": "What can't my parent buy with SNAP benefits?",
+          "question": "What can't my loved one buy with SNAP benefits?",
           "answer": "SNAP cannot be used for alcohol, tobacco, hot prepared foods, vitamins, household supplies, or pet food. It covers groceries like meat, dairy, bread, fruits, vegetables, and seeds for growing food. Energy drinks are allowed if they have a nutrition facts label."
         }
       ],
@@ -1008,14 +1008,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "heap-energy-assistance",
       "name": "Home Energy Assistance Program (HEAP)",
       "shortName": "HEAP",
-      "tagline": "Get $41–$811 applied directly to your parent's heating bill this winter",
+      "tagline": "Get $41–$811 applied directly to your loved one's heating bill this winter",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is struggling with heating bills, Ohio's Home Energy Assistance Program (HEAP) provides one-time assistance of $41–$811 applied directly to their utility or fuel bill. This federally-funded program helps families with household incomes up to $60,590/year for single people or $81,797/year for couples pay for heating costs during the winter months.\n\nBecause HEAP benefits go straight to the utility company or fuel provider, your parent won't handle any cash — the assistance reduces what they owe on their next bill. Both homeowners and renters qualify, and the program covers all heating sources including natural gas, electric, propane, oil, and even coal or wood. Applications are accepted until May 31, 2026, but benefits aren't applied to bills until after January 1.",
+      "intro": "If your loved one is struggling with heating bills, Ohio's Home Energy Assistance Program (HEAP) provides one-time assistance of $41–$811 applied directly to their utility or fuel bill. This federally-funded program helps families with household incomes up to $60,590/year for single people or $81,797/year for couples pay for heating costs during the winter months.\n\nBecause HEAP benefits go straight to the utility company or fuel provider, your loved one won't handle any cash — the assistance reduces what they owe on their next bill. Both homeowners and renters qualify, and the program covers all heating sources including natural gas, electric, propane, oil, and even coal or wood. Applications are accepted until May 31, 2026, but benefits aren't applied to bills until after January 1.",
       "savingsRange": "$41 – $811/year in 2026",
       "savingsSource": "Ohio HEAP benefit amounts",
       "savingsVerified": true,
@@ -1162,19 +1162,19 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get HEAP if they're already on PIPP?",
-          "answer": "Yes, but the HEAP benefit is reduced by 75% if your parent is enrolled in Ohio's Percentage of Income Payment Plan (PIPP). They'll still receive some assistance, just a smaller amount than the standard benefit."
+          "question": "Can my loved one get HEAP if they're already on PIPP?",
+          "answer": "Yes, but the HEAP benefit is reduced by 75% if your loved one is enrolled in Ohio's Percentage of Income Payment Plan (PIPP). They'll still receive some assistance, just a smaller amount than the standard benefit."
         },
         {
-          "question": "What if my parent's heating bill is less than their HEAP benefit amount?",
-          "answer": "HEAP pays only up to the actual amount owed. If your parent's heating bill is $300 but they qualify for a $500 benefit, HEAP will pay the full $300 bill. The extra money doesn't carry over or get refunded."
+          "question": "What if my loved one's heating bill is less than their HEAP benefit amount?",
+          "answer": "HEAP pays only up to the actual amount owed. If your loved one's heating bill is $300 but they qualify for a $500 benefit, HEAP will pay the full $300 bill. The extra money doesn't carry over or get refunded."
         },
         {
-          "question": "Can I apply for my parent who has dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot apply themselves. You'll need their Social Security number, income information, and utility bills. Call 1-800-282-0880 to discuss your specific situation with a local provider."
+          "question": "Can I apply for my loved one who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot apply themselves. You'll need their Social Security number, income information, and utility bills. Call 1-800-282-0880 to discuss your specific situation with a local provider."
         },
         {
-          "question": "What if my parent gets a utility shutoff notice while waiting for HEAP?",
+          "question": "What if my loved one gets a utility shutoff notice while waiting for HEAP?",
           "answer": "Call immediately for Crisis LIHEAP assistance, which provides emergency help up to $1,200 for utility shutoffs or broken heating equipment. Crisis assistance is processed much faster than regular HEAP and can prevent service disconnection."
         },
         {
@@ -1182,16 +1182,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, Ohio's HEAP program only covers heating costs, not cooling. The program specifically helps with winter heating bills from gas, electric heat, propane, oil, kerosene, coal, or wood."
         },
         {
-          "question": "Can my parent get HEAP if they live in subsidized housing?",
-          "answer": "Yes, both homeowners and renters qualify, including those in subsidized housing. As long as your parent pays some portion of their utility bill directly and meets income limits, they can receive HEAP assistance."
+          "question": "Can my loved one get HEAP if they live in subsidized housing?",
+          "answer": "Yes, both homeowners and renters qualify, including those in subsidized housing. As long as your loved one pays some portion of their utility bill directly and meets income limits, they can receive HEAP assistance."
         },
         {
-          "question": "What happens if my parent's income changes after applying?",
-          "answer": "HEAP determines eligibility based on income at the time of application. If income decreases later due to job loss or other changes, your parent can reapply next program year but cannot get additional benefits in the current year."
+          "question": "What happens if my loved one's income changes after applying?",
+          "answer": "HEAP determines eligibility based on income at the time of application. If income decreases later due to job loss or other changes, your loved one can reapply next program year but cannot get additional benefits in the current year."
         },
         {
-          "question": "How will my parent know when the HEAP benefit is applied to their bill?",
-          "answer": "The utility company will show the HEAP credit on your parent's regular monthly bill after January 1. Some families also receive a notification letter from their local HEAP provider confirming when the benefit was applied."
+          "question": "How will my loved one know when the HEAP benefit is applied to their bill?",
+          "answer": "The utility company will show the HEAP credit on your loved one's regular monthly bill after January 1. Some families also receive a notification letter from their local HEAP provider confirming when the benefit was applied."
         }
       ],
       "layoutIntent": {
@@ -1212,7 +1212,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home weatherization services to help your parent reduce energy bills and stay comfortable year-round",
+      "tagline": "Free home weatherization services to help your loved one reduce energy bills and stay comfortable year-round",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1225,7 +1225,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent owns or rents a home and has household income below $31,300 (for one person) or $42,300 (for two people), they can get free weatherization services to reduce energy bills. The program provides insulation, heating system repairs or replacements, duct sealing, and other energy-saving improvements at no cost.\n\nBecause Ohio gives priority to households with adults over 60, disabilities, children, or high energy bills, your parent may qualify for faster service. Households already receiving SSI, TANF, or HEAP are automatically eligible but must still apply through their county's local weatherization provider.\n\nThe services are completely free for single-family homes, though multi-family units may require special arrangements with property owners. All work includes safety inspections and energy audits to determine which improvements will save the most on heating and cooling costs.",
+      "intro": "If your loved one owns or rents a home and has household income below $31,300 (for one person) or $42,300 (for two people), they can get free weatherization services to reduce energy bills. The program provides insulation, heating system repairs or replacements, duct sealing, and other energy-saving improvements at no cost.\n\nBecause Ohio gives priority to households with adults over 60, disabilities, children, or high energy bills, your loved one may qualify for faster service. Households already receiving SSI, TANF, or HEAP are automatically eligible but must still apply through their county's local weatherization provider.\n\nThe services are completely free for single-family homes, though multi-family units may require special arrangements with property owners. All work includes safety inspections and energy audits to determine which improvements will save the most on heating and cooling costs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1302,7 +1302,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Schedule home energy audit",
-            "description": "Agency will conduct a free energy audit to determine which weatherization services will provide the greatest energy savings for your parent's specific home."
+            "description": "Agency will conduct a free energy audit to determine which weatherization services will provide the greatest energy savings for your loved one's specific home."
           },
           {
             "step": 5,
@@ -1364,7 +1364,7 @@ export const drafts: PipelineStateDrafts = {
         "Each county has a different local agency - you cannot apply through a single statewide office",
         "Households with adults 60+, disabilities, children, or high energy bills get priority but others are served by application date",
         "Renters are eligible but may need landlord permission and cooperation for certain improvements",
-        "If your parent received SSI, TANF, or HEAP benefits in the last 12 months, they automatically meet income requirements but still need to apply"
+        "If your loved one received SSI, TANF, or HEAP benefits in the last 12 months, they automatically meet income requirements but still need to apply"
       ],
       "relatedPrograms": [
         "Home Energy Assistance Program (HEAP)",
@@ -1374,28 +1374,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're a renter?",
+          "question": "Can my loved one apply if they're a renter?",
           "answer": "Yes, renters are eligible for weatherization services. However, you'll need to provide landlord or property manager contact information during application. Some improvements may require landlord permission, and the agency will coordinate directly with the property owner."
         },
         {
-          "question": "What if my parent already receives SSI or SNAP benefits?",
-          "answer": "If your parent received SSI, TANF, or HEAP (not Emergency HEAP) in the past 12 months, they automatically qualify income-wise. However, they still need to submit a full application through their county weatherization provider - automatic eligibility doesn't mean automatic enrollment."
+          "question": "What if my loved one already receives SSI or SNAP benefits?",
+          "answer": "If your loved one received SSI, TANF, or HEAP (not Emergency HEAP) in the past 12 months, they automatically qualify income-wise. However, they still need to submit a full application through their county weatherization provider - automatic eligibility doesn't mean automatic enrollment."
         },
         {
           "question": "How long is the waiting list really?",
           "answer": "Wait times vary significantly by county and available funding. Applications are processed in order of receipt within priority groups (households with seniors 60+, disabilities, children, or high energy bills go first). Some counties may have several month waits while others can start work more quickly."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
+          "question": "What happens if my loved one's income is slightly over the limit?",
           "answer": "The income limits are firm - household income must be at or below 200% of federal poverty guidelines ($31,300 for one person, $42,300 for two people in 2025). There's no flexibility above these amounts, but some counties may have other energy assistance programs with different requirements."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. You'll need your parent's consent and cooperation to provide their income documentation, utility bills, and other required paperwork. Contact your county provider to discuss the best way to handle the application."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. You'll need your loved one's consent and cooperation to provide their income documentation, utility bills, and other required paperwork. Contact your county provider to discuss the best way to handle the application."
         },
         {
-          "question": "What if my parent had weatherization work done years ago?",
-          "answer": "Your parent can receive weatherization services again, but not within 12 months of previous work. If it's been more than a year and their home could benefit from additional energy improvements, they can reapply through their county provider."
+          "question": "What if my loved one had weatherization work done years ago?",
+          "answer": "Your loved one can receive weatherization services again, but not within 12 months of previous work. If it's been more than a year and their home could benefit from additional energy improvements, they can reapply through their county provider."
         },
         {
           "question": "Does the program cover emergency heating repairs?",
@@ -1403,7 +1403,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my county's weatherization agency runs out of funding?",
-          "answer": "Weatherization funding is limited each program year. If your county exhausts funds, your parent's application may be held for the next funding cycle. Apply early in the year (fall/winter) for the best chance of receiving services before funding runs out."
+          "answer": "Weatherization funding is limited each program year. If your county exhausts funds, your loved one's application may be held for the next funding cycle. Apply early in the year (fall/winter) for the best chance of receiving services before funding runs out."
         }
       ],
       "layoutIntent": {
@@ -1424,7 +1424,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "oshiip-medicare-counseling",
       "name": "Ohio Senior Health Insurance Information Program (OSHIIP)",
       "shortName": "OSHIIP",
-      "tagline": "Free Medicare counseling to help your parent understand benefits, compare plans, and avoid costly mistakes",
+      "tagline": "Free Medicare counseling to help your loved one understand benefits, compare plans, and avoid costly mistakes",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1441,7 +1441,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare or is turning 65, they need objective guidance through a complex system where one wrong choice can cost thousands. OSHIIP provides free, one-on-one counseling from trained volunteers who aren't trying to sell anything — they'll explain Medicare options, compare Part D prescription plans, review Medicare Advantage vs. supplement insurance, and help with enrollment.\n\nBecause OSHIIP counselors are unbiased (funded by federal grants, not insurance companies), your parent gets honest answers about which plans actually fit their needs and budget. The service includes help with claims problems, understanding benefits explanations, and connecting to cost-saving programs for people with limited income.\n\nAvailable to all Ohio Medicare beneficiaries regardless of age or income — whether your parent is 65+ or under 65 with a disability. No appointment needed for the hotline; local counselors available statewide.",
+      "intro": "If your loved one has Medicare or is turning 65, they need objective guidance through a complex system where one wrong choice can cost thousands. OSHIIP provides free, one-on-one counseling from trained volunteers who aren't trying to sell anything — they'll explain Medicare options, compare Part D prescription plans, review Medicare Advantage vs. supplement insurance, and help with enrollment.\n\nBecause OSHIIP counselors are unbiased (funded by federal grants, not insurance companies), your loved one gets honest answers about which plans actually fit their needs and budget. The service includes help with claims problems, understanding benefits explanations, and connecting to cost-saving programs for people with limited income.\n\nAvailable to all Ohio Medicare beneficiaries regardless of age or income — whether your loved one is 65+ or under 65 with a disability. No appointment needed for the hotline; local counselors available statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1519,15 +1519,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who has Medicare?",
-          "answer": "Yes, family members can call for general Medicare information and guidance. For specific account details, your parent may need to be on the call or provide written permission to the counselor."
+          "question": "Can I call on behalf of my loved one who has Medicare?",
+          "answer": "Yes, family members can call for general Medicare information and guidance. For specific account details, your loved one may need to be on the call or provide written permission to the counselor."
         },
         {
-          "question": "Will OSHIIP try to sell my parent insurance?",
+          "question": "Will OSHIIP try to sell my loved one insurance?",
           "answer": "No. OSHIIP counselors are funded by federal and state grants, not insurance companies. They provide unbiased education and won't recommend specific insurance products or companies."
         },
         {
-          "question": "What if my parent has both Medicare and Medicaid?",
+          "question": "What if my loved one has both Medicare and Medicaid?",
           "answer": "OSHIIP counselors specialize in dual-eligible situations and can explain how Medicare and Medicaid work together, plus help identify Special Needs Plans designed for people with both programs."
         }
       ],
@@ -1549,7 +1549,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "home-delivered-meals-aging-network",
       "name": "Home-Delivered Meals (via Ohio Aging Network)",
       "shortName": "Home-Delivered Meals",
-      "tagline": "Free or low-cost nutritious meals delivered to your parent's home 5 days a week if they're 60+ and can't prepare their own food.",
+      "tagline": "Free or low-cost nutritious meals delivered to your loved one's home 5 days a week if they're 60+ and can't prepare their own food.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1574,7 +1574,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and homebound or unable to prepare meals due to health issues, Ohio's Aging Network delivers hot, nutritious meals directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs, with options for diabetic, renal, kosher, and vegetarian diets.\n\nThe program serves all 88 Ohio counties through 33 local Area Agencies on Aging. Most areas offer meals free or on a sliding fee scale based on income — some counties like Franklin charge co-pays, while others like Geauga accept donations only. Your parent also gets a friendly volunteer visit for socialization with each delivery.\n\nBecause this program requires functional need (not just age), your parent must be assessed as unable to shop or cook independently due to disability, health condition, or homebound status. Contact your local Area Agency on Aging — not a centralized state office — to apply.",
+      "intro": "If your loved one is 60+ and homebound or unable to prepare meals due to health issues, Ohio's Aging Network delivers hot, nutritious meals directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs, with options for diabetic, renal, kosher, and vegetarian diets.\n\nThe program serves all 88 Ohio counties through 33 local Area Agencies on Aging. Most areas offer meals free or on a sliding fee scale based on income — some counties like Franklin charge co-pays, while others like Geauga accept donations only. Your loved one also gets a friendly volunteer visit for socialization with each delivery.\n\nBecause this program requires functional need (not just age), your loved one must be assessed as unable to shop or cook independently due to disability, health condition, or homebound status. Contact your local Area Agency on Aging — not a centralized state office — to apply.",
       "savingsRange": "",
       "savingsSource": "Free or low-cost service",
       "savingsVerified": false,
@@ -1612,7 +1612,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "Provider will assess whether your parent is homebound or unable to prepare meals independently due to health or disability."
+            "description": "Provider will assess whether your loved one is homebound or unable to prepare meals independently due to health or disability."
           },
           {
             "step": 4,
@@ -1627,7 +1627,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": "Possible regional waitlists depending on local provider capacity",
-        "tip": "Have your parent's medical information ready — providers need to understand their functional limitations and any dietary restrictions.",
+        "tip": "Have your loved one's medical information ready — providers need to understand their functional limitations and any dietary restrictions.",
         "urls": [
           {
             "label": "Ohio Department of Aging",
@@ -1668,7 +1668,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Each county has different providers and fee structures — Franklin County has sliding fee co-pays while Geauga County requests donations only",
         "Therapeutic diets like diabetic or renal meals require a doctor's order and may have limited availability",
-        "If your parent has PASSPORT Medicaid waiver, meal delivery may be covered as part of their waiver services",
+        "If your loved one has PASSPORT Medicaid waiver, meal delivery may be covered as part of their waiver services",
         "Some providers offer both hot daily meals and weekly frozen meal deliveries — ask about options when you call"
       ],
       "relatedPrograms": [
@@ -1680,35 +1680,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they can't make the phone call themselves?",
-          "answer": "Yes, adult children can contact the Area Agency on Aging on behalf of their parent. You'll need to provide your parent's personal information and may need their consent during the assessment process. Have their medical and income information ready."
+          "question": "Can I apply for my loved one if they can't make the phone call themselves?",
+          "answer": "Yes, adult children can contact the Area Agency on Aging on behalf of their loved one. You'll need to provide your loved one's personal information and may need their consent during the assessment process. Have their medical and income information ready."
         },
         {
-          "question": "What if my parent lives in assisted living — can they still get meal delivery?",
-          "answer": "It depends on the facility and local provider policies. Most assisted living facilities provide meals, so your parent may not qualify as 'unable to prepare meals.' Contact your local AAA to discuss your parent's specific situation and care needs."
+          "question": "What if my loved one lives in assisted living — can they still get meal delivery?",
+          "answer": "It depends on the facility and local provider policies. Most assisted living facilities provide meals, so your loved one may not qualify as 'unable to prepare meals.' Contact your local AAA to discuss your loved one's specific situation and care needs."
         },
         {
-          "question": "How much will my parent have to pay for meals?",
+          "question": "How much will my loved one have to pay for meals?",
           "answer": "Costs vary dramatically by county. Franklin County uses a sliding fee scale with possible co-pays based on monthly income. Geauga County provides meals free but appreciates donations. Some areas accept private pay, Medicaid, or Title III funding. Ask about costs when you call your local provider."
         },
         {
-          "question": "Can my parent get both SNAP food benefits and home-delivered meals?",
-          "answer": "Yes, your parent can receive both programs simultaneously. SNAP provides monthly grocery money while home-delivered meals provide prepared food. These programs complement each other and there's no conflict in receiving both benefits."
+          "question": "Can my loved one get both SNAP food benefits and home-delivered meals?",
+          "answer": "Yes, your loved one can receive both programs simultaneously. SNAP provides monthly grocery money while home-delivered meals provide prepared food. These programs complement each other and there's no conflict in receiving both benefits."
         },
         {
-          "question": "What happens if my parent's health improves and they can cook again?",
-          "answer": "The program requires ongoing functional need assessment. If your parent's health improves and they can safely shop and cook independently, they may no longer qualify for home delivery. However, they may still be eligible for congregate meals at senior centers."
+          "question": "What happens if my loved one's health improves and they can cook again?",
+          "answer": "The program requires ongoing functional need assessment. If your loved one's health improves and they can safely shop and cook independently, they may no longer qualify for home delivery. However, they may still be eligible for congregate meals at senior centers."
         },
         {
           "question": "How long is the waitlist really in most Ohio counties?",
           "answer": "Waitlist times aren't specified in official sources and vary significantly by county and provider capacity. Some areas may have immediate availability while others have waiting periods. Contact your local Area Agency on Aging for current waitlist status in your specific county."
         },
         {
-          "question": "Can my parent choose what days to receive meals?",
-          "answer": "Most providers deliver Monday through Friday, typically between 10:30am-1pm, but scheduling may be limited by delivery routes. Your Person-Centered Service Plan will determine meal frequency (up to 2 meals per day) based on your parent's needs and the provider's capacity."
+          "question": "Can my loved one choose what days to receive meals?",
+          "answer": "Most providers deliver Monday through Friday, typically between 10:30am-1pm, but scheduling may be limited by delivery routes. Your Person-Centered Service Plan will determine meal frequency (up to 2 meals per day) based on your loved one's needs and the provider's capacity."
         },
         {
-          "question": "What if my parent has multiple dietary restrictions like diabetic and low-sodium?",
+          "question": "What if my loved one has multiple dietary restrictions like diabetic and low-sodium?",
           "answer": "Providers can often accommodate multiple dietary needs, but complex therapeutic diets require orders from a licensed prescriber like a doctor or registered dietitian. Not all providers offer every specialized diet option, so ask about availability when you apply."
         }
       ],
@@ -1743,7 +1743,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a parent 60+ or a family member with Alzheimer's, Ohio's National Family Caregiver Support Program provides free respite care, counseling, and training to help you manage caregiving stress. Because services are delivered through your local Area Agency on Aging, you'll work with counselors and respite providers in your community who understand your region's resources.\n\nThe program serves unpaid family caregivers in four situations: caring for someone 60+, caring for someone with Alzheimer's or dementia (any age), grandparents 55+ raising children under 18, or relatives 55+ caring for disabled adults 18-59. No income limits apply — eligibility focuses entirely on your caregiving role.\n\nServices include individual counseling, caregiver support groups, respite care to give you breaks, help accessing other services, and limited supplemental services like emergency supplies. Because funding and providers vary by county, available services and wait times differ across Ohio.",
+      "intro": "If you're caring for a loved one 60+ or a family member with Alzheimer's, Ohio's National Family Caregiver Support Program provides free respite care, counseling, and training to help you manage caregiving stress. Because services are delivered through your local Area Agency on Aging, you'll work with counselors and respite providers in your community who understand your region's resources.\n\nThe program serves unpaid family caregivers in four situations: caring for someone 60+, caring for someone with Alzheimer's or dementia (any age), grandparents 55+ raising children under 18, or relatives 55+ caring for disabled adults 18-59. No income limits apply — eligibility focuses entirely on your caregiving role.\n\nServices include individual counseling, caregiver support groups, respite care to give you breaks, help accessing other services, and limited supplemental services like emergency supplies. Because funding and providers vary by county, available services and wait times differ across Ohio.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1838,8 +1838,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help if my parent doesn't qualify for other programs because of their income?",
-          "answer": "Yes. NFCSP has no income or asset limits for caregivers or care recipients. The program focuses entirely on your role as an unpaid family caregiver, not financial eligibility. Even if your parent's income is too high for Medicaid or other means-tested programs, you can still access caregiver support services."
+          "question": "Can I get help if my loved one doesn't qualify for other programs because of their income?",
+          "answer": "Yes. NFCSP has no income or asset limits for caregivers or care recipients. The program focuses entirely on your role as an unpaid family caregiver, not financial eligibility. Even if your loved one's income is too high for Medicaid or other means-tested programs, you can still access caregiver support services."
         },
         {
           "question": "What if I'm caring for my spouse with dementia who is only 58?",
@@ -1851,7 +1851,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for this program and PASSPORT Medicaid waiver at the same time?",
-          "answer": "Yes, and you should. NFCSP provides caregiver support services while PASSPORT provides direct care services for your parent. They complement each other — NFCSP helps you cope with caregiving stress while PASSPORT funds home care aides, adult day programs, and other services for your parent. Contact your local AAA about both programs."
+          "answer": "Yes, and you should. NFCSP provides caregiver support services while PASSPORT provides direct care services for your loved one. They complement each other — NFCSP helps you cope with caregiving stress while PASSPORT funds home care aides, adult day programs, and other services for your loved one. Contact your local AAA about both programs."
         },
         {
           "question": "What happens if my local Area Agency on Aging doesn't have the services I need?",
@@ -1917,7 +1917,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed, SCSEP provides paid work training at minimum wage for about 20 hours per week. Your parent trains at nonprofits like schools, hospitals, or senior centers while building job skills and receiving placement assistance to find permanent employment. The program typically lasts 6 months and costs nothing to participants.\n\nTo qualify, your parent must be unemployed with family income at or below 125% of the federal poverty level (roughly $19,000-$20,000 annually for a single person in 2026, but exact amounts vary by household size). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. Because funding is limited, non-priority applicants may face waitlists.\n\nSCSEP operates in all 88 Ohio counties through multiple providers like VANTAGE Aging, Goodwill, and AARP Foundation. Each county has its own provider, so you'll need to contact the specific organization serving your parent's area.",
+      "intro": "If your loved one is 55+ and unemployed, SCSEP provides paid work training at minimum wage for about 20 hours per week. Your loved one trains at nonprofits like schools, hospitals, or senior centers while building job skills and receiving placement assistance to find permanent employment. The program typically lasts 6 months and costs nothing to participants.\n\nTo qualify, your loved one must be unemployed with family income at or below 125% of the federal poverty level (roughly $19,000-$20,000 annually for a single person in 2026, but exact amounts vary by household size). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. Because funding is limited, non-priority applicants may face waitlists.\n\nSCSEP operates in all 88 Ohio counties through multiple providers like VANTAGE Aging, Goodwill, and AARP Foundation. Each county has its own provider, so you'll need to contact the specific organization serving your loved one's area.",
       "savingsRange": "$3,500 – $4,000 for 6 months",
       "savingsSource": "20 hours/week at Ohio minimum wage ($10.45/hour) for approximately 6 months",
       "savingsVerified": true,
@@ -2036,11 +2036,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're collecting Social Security but still need extra income?",
+          "question": "Can my loved one apply if they're collecting Social Security but still need extra income?",
           "answer": "Yes, if they're unemployed and total family income (including Social Security) stays at or below 125% of the federal poverty level. Social Security counts toward the income limit, so verify the exact threshold with your county provider before applying."
         },
         {
-          "question": "What if my parent lives in a rural county with limited job training opportunities?",
+          "question": "What if my loved one lives in a rural county with limited job training opportunities?",
           "answer": "Rural residents get priority for SCSEP slots specifically because of limited local employment options. The program places participants at rural nonprofits, schools, and government offices. Contact your county provider — rural areas often have shorter waitlists than urban counties."
         },
         {
@@ -2048,24 +2048,24 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Training typically lasts about 6 months at 20 hours per week, earning minimum wage. The goal is transition to permanent unsubsidized employment with job placement assistance. Some participants find permanent work before 6 months; others may get extensions based on individual circumstances and provider capacity."
         },
         {
-          "question": "Can my parent choose what type of work they train for?",
+          "question": "Can my loved one choose what type of work they train for?",
           "answer": "Providers try to match participants with appropriate positions based on skills and interests, but options depend on available host sites in your county. Common placements include schools, hospitals, senior centers, and government offices. Discuss preferences during the eligibility meeting."
         },
         {
-          "question": "What if my parent gets a job offer while in SCSEP training?",
-          "answer": "That's the program's goal. Your parent should take permanent employment immediately — SCSEP provides job placement assistance to help evaluate offers and transition successfully. The training position ends when permanent work begins."
+          "question": "What if my loved one gets a job offer while in SCSEP training?",
+          "answer": "That's the program's goal. Your loved one should take permanent employment immediately — SCSEP provides job placement assistance to help evaluate offers and transition successfully. The training position ends when permanent work begins."
         },
         {
           "question": "Does participating in SCSEP affect other benefits like SNAP or Medicaid?",
           "answer": "SCSEP wages count as income for other means-tested programs, which could affect eligibility for SNAP, Medicaid, or housing assistance. However, the temporary nature and part-time hours may minimize impact. Check with each program's caseworker before starting SCSEP."
         },
         {
-          "question": "What happens if there's no SCSEP slot available in my parent's county right now?",
-          "answer": "Ask to be placed on the waitlist and request an estimated timeframe. Priority applicants (veterans, 65+, disabilities) move up faster. Meanwhile, your parent can explore OhioMeansJobs centers for other employment services while waiting for SCSEP placement."
+          "question": "What happens if there's no SCSEP slot available in my loved one's county right now?",
+          "answer": "Ask to be placed on the waitlist and request an estimated timeframe. Priority applicants (veterans, 65+, disabilities) move up faster. Meanwhile, your loved one can explore OhioMeansJobs centers for other employment services while waiting for SCSEP placement."
         },
         {
-          "question": "Can my parent apply to multiple county providers to improve their chances?",
-          "answer": "No, you must apply through the provider serving your parent's county of residence. However, if your parent moves to a different Ohio county, they can transfer their application to the new county's provider."
+          "question": "Can my loved one apply to multiple county providers to improve their chances?",
+          "answer": "No, you must apply through the provider serving your loved one's county of residence. However, if your loved one moves to a different Ohio county, they can transfer their application to the new county's provider."
         }
       ],
       "layoutIntent": {
@@ -2086,7 +2086,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors (via Ohio Legal Services)",
       "shortName": "Legal Assistance",
-      "tagline": "Free legal help for your parent's Medicare, housing, elder abuse, or estate planning issues.",
+      "tagline": "Free legal help for your loved one's Medicare, housing, elder abuse, or estate planning issues.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2111,7 +2111,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs legal help with Medicare problems, housing issues, estate planning, or elder abuse, Ohio provides free legal advice and services specifically for seniors. The Pro Seniors Legal Helpline offers immediate phone consultations with attorneys statewide — no income requirements for advice and referrals.\n\nFor more complex cases requiring full legal representation, low-income seniors can access free attorneys through regional legal aid organizations across Ohio. These services handle civil legal matters including Medicaid appeals, powers of attorney, simple wills, consumer protection, and nursing home advocacy.",
+      "intro": "If your loved one is 60+ and needs legal help with Medicare problems, housing issues, estate planning, or elder abuse, Ohio provides free legal advice and services specifically for seniors. The Pro Seniors Legal Helpline offers immediate phone consultations with attorneys statewide — no income requirements for advice and referrals.\n\nFor more complex cases requiring full legal representation, low-income seniors can access free attorneys through regional legal aid organizations across Ohio. These services handle civil legal matters including Medicaid appeals, powers of attorney, simple wills, consumer protection, and nursing home advocacy.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2145,7 +2145,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the legal issue during intake",
-            "description": "Staff will gather basic information about your parent's legal problem to match them with the right attorney or service."
+            "description": "Staff will gather basic information about your loved one's legal problem to match them with the right attorney or service."
           },
           {
             "step": 3,
@@ -2193,15 +2193,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, family members can call for initial information and referrals. For legal representation, the attorney will need to assess your parent's capacity or work with existing power of attorney documents. If no legal authority exists, they can help you understand guardianship options."
+          "question": "Can I call on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, family members can call for initial information and referrals. For legal representation, the attorney will need to assess your loved one's capacity or work with existing power of attorney documents. If no legal authority exists, they can help you understand guardianship options."
         },
         {
           "question": "What's the difference between the free hotline advice and full legal representation?",
           "answer": "The Pro Seniors hotline provides 30-minute consultations, document preparation guidance, and referrals with no income requirements statewide. Full representation (where an attorney handles your case) requires low-income qualification and is provided by regional legal aid organizations that vary by county."
         },
         {
-          "question": "My parent lives in rural Ohio — are services available outside major cities?",
+          "question": "My loved one lives in rural Ohio — are services available outside major cities?",
           "answer": "Yes, the Pro Seniors hotline serves all Ohio counties for advice and referrals. For representation, Legal Aid of Western Ohio covers northwest counties including rural areas like Henry, Paulding, and Williams counties. Other regions have their own legal aid providers."
         }
       ],
@@ -2221,17 +2221,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Ohio offers 11 major programs to help your aging parent — from free health coverage to grocery assistance to home care services. Most require income below $1,500–$3,000/month, but several resources are available regardless of income. The programs range from monthly cash-like benefits (SNAP provides up to hundreds per month for groceries) to comprehensive care coordination (PACE manages all medical and home care through one team). Start by checking the highest-value programs first: Medicaid can eliminate all health insurance costs, while PASSPORT Waiver can provide thousands in home care services to avoid nursing home placement. Most applications go through your local Area Agency on Aging or Ohio Benefits portal.",
+    "intro": "Ohio offers 11 major programs to help your aging loved one — from free health coverage to grocery assistance to home care services. Most require income below $1,500–$3,000/month, but several resources are available regardless of income. The programs range from monthly cash-like benefits (SNAP provides up to hundreds per month for groceries) to comprehensive care coordination (PACE manages all medical and home care through one team). Start by checking the highest-value programs first: Medicaid can eliminate all health insurance costs, while PASSPORT Waiver can provide thousands in home care services to avoid nursing home placement. Most applications go through your local Area Agency on Aging or Ohio Benefits portal.",
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
         "programId": "medicaid-abd",
-        "why": "Free comprehensive health coverage can save thousands monthly if your parent qualifies."
+        "why": "Free comprehensive health coverage can save thousands monthly if your loved one qualifies."
       },
       {
         "name": "PASSPORT Waiver",
         "programId": "passport-waiver",
-        "why": "Provides extensive home care services to help your parent avoid nursing home costs."
+        "why": "Provides extensive home care services to help your loved one avoid nursing home costs."
       },
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
@@ -2260,7 +2260,7 @@ export const drafts: PipelineStateDrafts = {
           "PASSPORT Waiver",
           "Ohio Program of All-Inclusive Care for the Elderly (PACE)"
         ],
-        "description": "Comprehensive services to help your parent stay safely at home."
+        "description": "Comprehensive services to help your loved one stay safely at home."
       },
       {
         "need": "Food and nutrition help",

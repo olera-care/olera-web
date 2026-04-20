@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.899Z
+ * Last updated: 2026-04-20T22:05:18.083Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "epd-waiver-program",
       "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
       "shortName": "EPD Waiver",
-      "tagline": "If your parent needs daily help with bathing or dressing but wants to stay home, this DC program covers personal care aides and adult day services.",
+      "tagline": "If your loved one needs daily help with bathing or dressing but wants to stay home, this DC program covers personal care aides and adult day services.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -31,7 +31,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ or has a physical disability and needs daily help with bathing, dressing, or medication management, DC's EPD Waiver covers personal care aides, adult day health services, and respite care so they can stay in their home or assisted living instead of a nursing facility.\n\nThe program requires nursing facility level of care (determined through a clinical assessment) but allows your parent to receive those services at home. Services include case management, homemaker services, personal care aides, respite care, and environmental modifications. Room and board are not covered.\n\nIncome limit is $2,743/month for an individual (2023), with assets limited to $4,000. The program has a waitlist on a first-come, first-served basis, and you must be Medicaid-eligible or meet Medicaid spend-down requirements.",
+      "intro": "If your loved one is 65+ or has a physical disability and needs daily help with bathing, dressing, or medication management, DC's EPD Waiver covers personal care aides, adult day health services, and respite care so they can stay in their home or assisted living instead of a nursing facility.\n\nThe program requires nursing facility level of care (determined through a clinical assessment) but allows your loved one to receive those services at home. Services include case management, homemaker services, personal care aides, respite care, and environmental modifications. Room and board are not covered.\n\nIncome limit is $2,743/month for an individual (2023), with assets limited to $4,000. The program has a waitlist on a first-come, first-served basis, and you must be Medicaid-eligible or meet Medicaid spend-down requirements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -75,12 +75,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Get physician assessment",
-            "description": "Have your parent's physician or advanced practice registered nurse complete and sign the required Prescription Order Form (POF). This medical form is mandatory for application."
+            "description": "Have your loved one's physician or advanced practice registered nurse complete and sign the required Prescription Order Form (POF). This medical form is mandatory for application."
           },
           {
             "step": 3,
             "title": "Complete Liberty Healthcare assessment",
-            "description": "Schedule a face-to-face assessment with Liberty Healthcare to determine nursing facility level of care. This clinical assessment evaluates your parent's need for daily assistance."
+            "description": "Schedule a face-to-face assessment with Liberty Healthcare to determine nursing facility level of care. This clinical assessment evaluates your loved one's need for daily assistance."
           },
           {
             "step": 4,
@@ -155,36 +155,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're not already on Medicaid?",
-          "answer": "Yes, your parent can apply without already having Medicaid, but they must be Medicaid-eligible or meet Medicaid spend-down requirements to qualify for the EPD Waiver. The program will help determine Medicaid eligibility as part of the process."
+          "question": "Can my loved one apply if they're not already on Medicaid?",
+          "answer": "Yes, your loved one can apply without already having Medicaid, but they must be Medicaid-eligible or meet Medicaid spend-down requirements to qualify for the EPD Waiver. The program will help determine Medicaid eligibility as part of the process."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "The program operates on a first-come, first-served basis, but specific wait times aren't published. Contact DACL Medicaid Services Enrollment Unit for current waitlist information, as this can vary significantly based on funding and capacity."
         },
         {
-          "question": "What if my parent's assets are slightly over $4,000?",
-          "answer": "The $4,000 asset limit is strict for individuals. Your parent would need to spend down assets below this limit before qualifying. Consider paying for medical expenses, home modifications, or other allowable expenses to meet the requirement."
+          "question": "What if my loved one's assets are slightly over $4,000?",
+          "answer": "The $4,000 asset limit is strict for individuals. Your loved one would need to spend down assets below this limit before qualifying. Consider paying for medical expenses, home modifications, or other allowable expenses to meet the requirement."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process, but your parent will still need to participate in the required face-to-face assessment with Liberty Healthcare. Contact DACL Medicaid Services Enrollment Unit to discuss your specific situation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process, but your loved one will still need to participate in the required face-to-face assessment with Liberty Healthcare. Contact DACL Medicaid Services Enrollment Unit to discuss your specific situation."
         },
         {
           "question": "What's the difference between home care and assisted living coverage?",
-          "answer": "The EPD Waiver covers services in both your parent's home and in assisted living facilities. However, room and board costs in assisted living are not covered — only the care services themselves."
+          "answer": "The EPD Waiver covers services in both your loved one's home and in assisted living facilities. However, room and board costs in assisted living are not covered — only the care services themselves."
         },
         {
-          "question": "What happens if my parent's condition changes after enrollment?",
-          "answer": "Your parent will have ongoing case management to monitor their needs. If their condition improves significantly and they no longer need nursing facility level of care, they may lose eligibility. If needs increase, services can be adjusted within the program."
+          "question": "What happens if my loved one's condition changes after enrollment?",
+          "answer": "Your loved one will have ongoing case management to monitor their needs. If their condition improves significantly and they no longer need nursing facility level of care, they may lose eligibility. If needs increase, services can be adjusted within the program."
         },
         {
-          "question": "Can my parent have both Medicare and EPD Waiver services?",
+          "question": "Can my loved one have both Medicare and EPD Waiver services?",
           "answer": "Yes, EPD Waiver services complement Medicare and Medicaid coverage. The waiver covers long-term care services that Medicare typically doesn't provide, such as personal care aides and adult day health services."
         },
         {
           "question": "What if the Liberty Healthcare assessment doesn't find nursing facility level of care?",
-          "answer": "If the assessment doesn't establish nursing facility level of care (requiring assistance with at least 2 activities of daily living), your parent won't qualify for the EPD Waiver. You can appeal this decision or explore other DC programs for lower levels of care needs."
+          "answer": "If the assessment doesn't establish nursing facility level of care (requiring assistance with at least 2 activities of daily living), your loved one won't qualify for the EPD Waiver. You can appeal this decision or explore other DC programs for lower levels of care needs."
         }
       ],
       "layoutIntent": {
@@ -205,7 +205,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "safe-at-home-program",
       "name": "Safe at Home Program",
       "shortName": "Safe at Home",
-      "tagline": "Your parent can get up to $7,000 in home safety modifications like grab bars, stair lifts, and bathtub cuts to prevent falls.",
+      "tagline": "Your loved one can get up to $7,000 in home safety modifications like grab bars, stair lifts, and bathtub cuts to prevent falls.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -222,7 +222,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ or has a disability and lives in DC, they may qualify for up to $7,000 in home modifications to prevent falls. The program covers grab bars, handrails, stair lifts, bathtub cuts, shower seats, and even security cameras — modifications that can help your parent stay safely in their home instead of moving to a facility.\n\nBecause this program focuses specifically on fall prevention, your parent will need to pass a falls risk assessment to determine their maximum benefit amount. Income limits are $72,550/year for a single person or $82,550/year for a married couple, though higher-income households may qualify with a cost-share component.\n\nThe catch: 60% of applications are rejected for incomplete documentation, and your parent can only use this program twice in their lifetime. If their needs exceed $7,000 or they're considered high fall risk, they'll be automatically referred to a different DC housing program.",
+      "intro": "If your loved one is 60+ or has a disability and lives in DC, they may qualify for up to $7,000 in home modifications to prevent falls. The program covers grab bars, handrails, stair lifts, bathtub cuts, shower seats, and even security cameras — modifications that can help your loved one stay safely in their home instead of moving to a facility.\n\nBecause this program focuses specifically on fall prevention, your loved one will need to pass a falls risk assessment to determine their maximum benefit amount. Income limits are $72,550/year for a single person or $82,550/year for a married couple, though higher-income households may qualify with a cost-share component.\n\nThe catch: 60% of applications are rejected for incomplete documentation, and your loved one can only use this program twice in their lifetime. If their needs exceed $7,000 or they're considered high fall risk, they'll be automatically referred to a different DC housing program.",
       "savingsRange": "Up to $7,000 in 2026",
       "savingsSource": "Maximum grant amount per residence from DC Department of Aging and Community Living",
       "savingsVerified": true,
@@ -335,32 +335,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent their home?",
+          "question": "Can my loved one apply if they rent their home?",
           "answer": "Yes, but they must get written permission from their landlord to make the modifications. This written permission must be submitted with the application. Without landlord approval, the application will be rejected."
         },
         {
-          "question": "What happens if my parent needs more than $7,000 in modifications?",
+          "question": "What happens if my loved one needs more than $7,000 in modifications?",
           "answer": "They'll be automatically referred to DC's Department of Housing and Community Development Single Family Residential Rehabilitation Program, which handles larger projects. The Safe at Home Program cannot exceed its $7,000 limit."
         },
         {
-          "question": "How many times can my parent use this program?",
+          "question": "How many times can my loved one use this program?",
           "answer": "Only twice in their lifetime. Each use is called an 'episode' and covers a separate set of modifications. Plan carefully since there's no third opportunity."
         },
         {
-          "question": "What if my parent's income is slightly above $72,550?",
+          "question": "What if my loved one's income is slightly above $72,550?",
           "answer": "They may still qualify under the cost-share component with income up to $99,600 for individuals or $113,850 for couples. Call (202) 724-5626 to confirm current thresholds and cost-share requirements."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. However, your parent will need to be present for the required falls risk assessment since it evaluates their specific mobility and safety needs."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. However, your loved one will need to be present for the required falls risk assessment since it evaluates their specific mobility and safety needs."
         },
         {
-          "question": "What if my parent fails the falls risk assessment?",
+          "question": "What if my loved one fails the falls risk assessment?",
           "answer": "There's no 'failing' — the assessment determines benefit level. High fall risk clients are referred to DHCD's larger rehabilitation program for more comprehensive modifications, while lower risk clients receive up to $7,000 through Safe at Home."
         },
         {
           "question": "Are these grants taxable income?",
-          "answer": "No, Safe at Home grants are specifically exempt from District of Columbia income taxation. Your parent won't owe DC taxes on the modification value."
+          "answer": "No, Safe at Home grants are specifically exempt from District of Columbia income taxation. Your loved one won't owe DC taxes on the modification value."
         },
         {
           "question": "Why do so many applications get rejected?",
@@ -385,7 +385,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "dacl-benefits-assistance",
       "name": "DACL Benefits Assistance",
       "shortName": "DACL Benefits Assistance",
-      "tagline": "Get help enrolling your DC parent in Medicaid home care programs that could cover personal care aides and case management.",
+      "tagline": "Get help enrolling your DC loved one in Medicaid home care programs that could cover personal care aides and case management.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -406,7 +406,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ or has a disability and needs help with daily tasks like bathing, dressing, or medication management, DACL Benefits Assistance helps them enroll in DC's Elderly and Persons with Physical Disabilities (EPD) Waiver program. This Medicaid waiver covers personal care aide services, case management, and other supports that let your parent stay home instead of moving to a nursing home.\n\nYour parent must qualify for Medicaid with income under $2,743/month and countable assets under $4,000 (2023 figures). Because this program requires nursing home level of care, your parent will need a face-to-face assessment by Liberty Healthcare to determine their level of need. DACL staff guide families through the entire enrollment process, from Medicaid applications to waiver services.\n\nThis is enrollment assistance, not direct benefits — DACL helps you navigate the complex EPD Waiver system and connects you with the right case managers once approved.",
+      "intro": "If your loved one is 65+ or has a disability and needs help with daily tasks like bathing, dressing, or medication management, DACL Benefits Assistance helps them enroll in DC's Elderly and Persons with Physical Disabilities (EPD) Waiver program. This Medicaid waiver covers personal care aide services, case management, and other supports that let your loved one stay home instead of moving to a nursing home.\n\nYour loved one must qualify for Medicaid with income under $2,743/month and countable assets under $4,000 (2023 figures). Because this program requires nursing home level of care, your loved one will need a face-to-face assessment by Liberty Healthcare to determine their level of need. DACL staff guide families through the entire enrollment process, from Medicaid applications to waiver services.\n\nThis is enrollment assistance, not direct benefits — DACL helps you navigate the complex EPD Waiver system and connects you with the right case managers once approved.",
       "savingsRange": "",
       "savingsSource": "Free enrollment assistance service",
       "savingsVerified": false,
@@ -451,7 +451,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call DACL Medicaid Enrollment Services",
-            "description": "Contact (202) 724-5626 to speak with DACL staff who will assess your parent's situation and guide you through the process."
+            "description": "Contact (202) 724-5626 to speak with DACL staff who will assess your loved one's situation and guide you through the process."
           },
           {
             "step": 2,
@@ -461,12 +461,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Get doctor to complete Prescription Order Form",
-            "description": "A DC Medicaid provider must complete the required Prescription Order Form (POF) documenting your parent's medical need for services."
+            "description": "A DC Medicaid provider must complete the required Prescription Order Form (POF) documenting your loved one's medical need for services."
           },
           {
             "step": 4,
             "title": "Liberty Healthcare assessment",
-            "description": "Liberty Healthcare will schedule a face-to-face assessment at your parent's home to evaluate their level of care needs."
+            "description": "Liberty Healthcare will schedule a face-to-face assessment at your loved one's home to evaluate their level of care needs."
           },
           {
             "step": 5,
@@ -476,7 +476,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "45 calendar days after complete application submission",
         "waitlist": null,
-        "tip": "Have your parent's DC Medicaid provider complete the Prescription Order Form early — this often causes delays if missing.",
+        "tip": "Have your loved one's DC Medicaid provider complete the Prescription Order Form early — this often causes delays if missing.",
         "urls": [
           {
             "label": "DACL Benefits Assistance",
@@ -529,27 +529,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $4,000?",
-          "answer": "Yes, your parent's primary home doesn't count toward the $4,000 asset limit. The limit only applies to countable assets like bank accounts, investments, and cash value of life insurance over $10,000."
+          "question": "Can my loved one keep their house if it's worth more than $4,000?",
+          "answer": "Yes, your loved one's primary home doesn't count toward the $4,000 asset limit. The limit only applies to countable assets like bank accounts, investments, and cash value of life insurance over $10,000."
         },
         {
-          "question": "What if my parent's income is over $2,743 per month?",
-          "answer": "Your parent may still qualify through Medicaid spend-down, where they pay their excess income toward medical expenses each month. DACL staff can explain how spend-down works and help calculate the amount."
+          "question": "What if my loved one's income is over $2,743 per month?",
+          "answer": "Your loved one may still qualify through Medicaid spend-down, where they pay their excess income toward medical expenses each month. DACL staff can explain how spend-down works and help calculate the amount."
         },
         {
           "question": "How long does the Liberty Healthcare assessment take?",
-          "answer": "The face-to-face assessment typically takes 1-2 hours and must be done in your parent's home or assisted living facility. Liberty Healthcare will schedule this after the initial DACL screening."
+          "answer": "The face-to-face assessment typically takes 1-2 hours and must be done in your loved one's home or assisted living facility. Liberty Healthcare will schedule this after the initial DACL screening."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can help with the application process. If your parent cannot sign documents due to cognitive issues, you may need power of attorney or guardianship documentation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can help with the application process. If your loved one cannot sign documents due to cognitive issues, you may need power of attorney or guardianship documentation."
         },
         {
-          "question": "What happens if my parent doesn't qualify for nursing home level of care?",
-          "answer": "If the Liberty Healthcare assessment shows your parent doesn't meet nursing home level of care, they won't qualify for EPD Waiver services. DACL may refer you to other community programs that require less intensive care needs."
+          "question": "What happens if my loved one doesn't qualify for nursing home level of care?",
+          "answer": "If the Liberty Healthcare assessment shows your loved one doesn't meet nursing home level of care, they won't qualify for EPD Waiver services. DACL may refer you to other community programs that require less intensive care needs."
         },
         {
-          "question": "Can my parent get services while living in assisted living?",
+          "question": "Can my loved one get services while living in assisted living?",
           "answer": "Yes, EPD Waiver services can be provided in assisted living facilities, not just private homes. The assessment will determine what additional services are needed beyond what the facility provides."
         },
         {
@@ -604,7 +604,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older and lives in DC, they can access free meals, health screenings, social activities, and case management support through the city's network of senior centers. These centers provide daily programming like exercise classes, nutritional counseling, blood pressure checks, and mental health support — often with no cost or sliding scale fees based on ability to pay.\n\nDC operates multiple senior centers across the city, each with different specialties and hours. SOME Senior Services focuses on general programming but excludes residents with dementia diagnoses, while Vida Senior Centers specifically serves Hispanic seniors with Spanish-language programming. Most centers offer services Monday through Friday with varying schedules, and many provide free congregate meals as part of their daily programming.",
+      "intro": "If your loved one is 60 or older and lives in DC, they can access free meals, health screenings, social activities, and case management support through the city's network of senior centers. These centers provide daily programming like exercise classes, nutritional counseling, blood pressure checks, and mental health support — often with no cost or sliding scale fees based on ability to pay.\n\nDC operates multiple senior centers across the city, each with different specialties and hours. SOME Senior Services focuses on general programming but excludes residents with dementia diagnoses, while Vida Senior Centers specifically serves Hispanic seniors with Spanish-language programming. Most centers offer services Monday through Friday with varying schedules, and many provide free congregate meals as part of their daily programming.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -632,7 +632,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose a center",
-            "description": "Contact the D.C. Office on Aging at (202) 724-7000 for referrals to centers near your parent, or visit centers directly like SOME at 1395 Aspen St. NW or Vida Senior Centers for Hispanic seniors."
+            "description": "Contact the D.C. Office on Aging at (202) 724-7000 for referrals to centers near your loved one, or visit centers directly like SOME at 1395 Aspen St. NW or Vida Senior Centers for Hispanic seniors."
           },
           {
             "step": 2,
@@ -647,7 +647,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate intake at centers upon eligibility screening",
         "waitlist": null,
-        "tip": "Each center has different rules and specialties — call ahead to confirm they can serve your parent's specific needs, especially if they have dementia or prefer services in Spanish.",
+        "tip": "Each center has different rules and specialties — call ahead to confirm they can serve your loved one's specific needs, especially if they have dementia or prefer services in Spanish.",
         "urls": [
           {
             "label": "D.C. Office on Aging",
@@ -685,12 +685,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent with dementia participate in DC senior centers?",
-          "answer": "It depends on the specific center. SOME Senior Services excludes participants with dementia or Alzheimer's diagnoses, but other centers in the DC network may accept participants with cognitive impairments. Call the D.C. Office on Aging at (202) 724-7000 to find centers that can accommodate your parent's needs."
+          "question": "Can my loved one with dementia participate in DC senior centers?",
+          "answer": "It depends on the specific center. SOME Senior Services excludes participants with dementia or Alzheimer's diagnoses, but other centers in the DC network may accept participants with cognitive impairments. Call the D.C. Office on Aging at (202) 724-7000 to find centers that can accommodate your loved one's needs."
         },
         {
-          "question": "What if my parent doesn't speak English well?",
-          "answer": "Vida Senior Centers specifically serve Hispanic seniors with programming conducted in Spanish. Contact the D.C. Office on Aging at (202) 724-7000 to locate Vida center locations or other centers that may offer services in your parent's preferred language."
+          "question": "What if my loved one doesn't speak English well?",
+          "answer": "Vida Senior Centers specifically serve Hispanic seniors with programming conducted in Spanish. Contact the D.C. Office on Aging at (202) 724-7000 to locate Vida center locations or other centers that may offer services in your loved one's preferred language."
         },
         {
           "question": "How much do the meals and activities cost?",
@@ -713,12 +713,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "If your parent lives in DC and needs daily help staying independent, the District offers 3 benefit programs that could cover thousands in home care services and safety modifications, plus free resources for all seniors 60+. The most valuable is DC's EPD Waiver Program, which covers personal care aides and adult day services for seniors who qualify for nursing home care but want to stay home. DC also provides up to $7,000 in home safety modifications through the Safe at Home Program and dedicated help navigating Medicaid home care programs through DACL Benefits Assistance. Start with the EPD Waiver if your parent needs daily personal care — it offers the most comprehensive coverage.",
+    "intro": "If your loved one lives in DC and needs daily help staying independent, the District offers 3 benefit programs that could cover thousands in home care services and safety modifications, plus free resources for all seniors 60+. The most valuable is DC's EPD Waiver Program, which covers personal care aides and adult day services for seniors who qualify for nursing home care but want to stay home. DC also provides up to $7,000 in home safety modifications through the Safe at Home Program and dedicated help navigating Medicaid home care programs through DACL Benefits Assistance. Start with the EPD Waiver if your loved one needs daily personal care — it offers the most comprehensive coverage.",
     "startHere": [
       {
         "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
         "programId": "epd-waiver",
-        "why": "Covers personal care aides and adult day services if your parent needs nursing home level care but wants to stay home."
+        "why": "Covers personal care aides and adult day services if your loved one needs nursing home level care but wants to stay home."
       },
       {
         "name": "Safe at Home Program",
@@ -728,7 +728,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "DACL Benefits Assistance",
         "programId": "dacl-benefits",
-        "why": "Free help enrolling your parent in DC Medicaid home care programs that cover personal care and case management."
+        "why": "Free help enrolling your loved one in DC Medicaid home care programs that cover personal care and case management."
       }
     ],
     "byNeed": [

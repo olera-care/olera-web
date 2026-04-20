@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.921Z
+ * Last updated: 2026-04-20T22:05:18.102Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "community-choices-waiver",
       "name": "Community Choices Waiver",
       "shortName": "Community Choices",
-      "tagline": "Medicaid waiver that pays for home care services so your parent can avoid nursing home placement",
+      "tagline": "Medicaid waiver that pays for home care services so your loved one can avoid nursing home placement",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, South Carolina's Community Choices Waiver can cover the cost of personal care, adult day health care, home modifications, and other services. Because this Medicaid waiver covers comprehensive home-based care, your parent can avoid nursing home placement while getting the support they need.\n\nThe waiver covers services like personal care attendants, companion care, home-delivered meals, emergency response systems, and even home accessibility modifications. Your parent must already qualify for Medicaid and meet Nursing Facility Level of Care (clinical assessment showing they need daily assistance with activities like mobility, eating, toileting, or 8+ hours of skilled nursing per day).\n\nWaiver slots are limited and managed through a waitlist system. Because slots are valuable and finite, enrollees must use services regularly to retain their spot. The program operates statewide through local Community Long Term Care offices.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, South Carolina's Community Choices Waiver can cover the cost of personal care, adult day health care, home modifications, and other services. Because this Medicaid waiver covers comprehensive home-based care, your loved one can avoid nursing home placement while getting the support they need.\n\nThe waiver covers services like personal care attendants, companion care, home-delivered meals, emergency response systems, and even home accessibility modifications. Your loved one must already qualify for Medicaid and meet Nursing Facility Level of Care (clinical assessment showing they need daily assistance with activities like mobility, eating, toileting, or 8+ hours of skilled nursing per day).\n\nWaiver slots are limited and managed through a waitlist system. Because slots are valuable and finite, enrollees must use services regularly to retain their spot. The program operates statewide through local Community Long Term Care offices.",
       "savingsRange": "",
       "savingsSource": "Free service covered by Medicaid waiver",
       "savingsVerified": false,
@@ -84,7 +84,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Schedule NFLOC assessment",
-            "description": "Arrange for clinical assessment to determine if your parent meets Nursing Facility Level of Care requirements."
+            "description": "Arrange for clinical assessment to determine if your loved one meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 4,
@@ -94,7 +94,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Wait for slot availability",
-            "description": "If eligible, your parent will be placed on waitlist until a waiver slot becomes available in your region."
+            "description": "If eligible, your loved one will be placed on waitlist until a waiver slot becomes available in your region."
           }
         ],
         "processingTime": null,
@@ -152,11 +152,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $730,000?",
-          "answer": "Your parent can keep their home if they live there or plan to return, even if equity exceeds $730,000, as long as a spouse, disabled child of any age, or child under 21 also lives there. Otherwise, the equity limit may disqualify them from Medicaid and the waiver."
+          "question": "Can my loved one keep their house if it's worth more than $730,000?",
+          "answer": "Your loved one can keep their home if they live there or plan to return, even if equity exceeds $730,000, as long as a spouse, disabled child of any age, or child under 21 also lives there. Otherwise, the equity limit may disqualify them from Medicaid and the waiver."
         },
         {
-          "question": "What if my parent already has some home care but needs more services?",
+          "question": "What if my loved one already has some home care but needs more services?",
           "answer": "The waiver can supplement existing services, but the total cost of all waiver services must remain below what nursing facility care would cost. Your CLTC case manager will coordinate with current providers to avoid service duplication."
         },
         {
@@ -164,24 +164,24 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Waitlist length varies significantly by region and priority level. Some areas may have shorter waits while others extend several months. Contact your local CLTC office for current wait times in your specific county."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply on behalf of aging parents, but you'll need legal documentation if your parent cannot sign forms themselves. This includes power of attorney, guardianship papers, or representative payee status."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply on behalf of aging loved ones, but you'll need legal documentation if your loved one cannot sign forms themselves. This includes power of attorney, guardianship papers, or representative payee status."
         },
         {
-          "question": "What happens if my parent's condition gets worse after enrollment?",
-          "answer": "Services can be adjusted through periodic reassessments with your case manager. However, if your parent's needs exceed what can be safely provided at home, they may need to transition to nursing facility care."
+          "question": "What happens if my loved one's condition gets worse after enrollment?",
+          "answer": "Services can be adjusted through periodic reassessments with your case manager. However, if your loved one's needs exceed what can be safely provided at home, they may need to transition to nursing facility care."
         },
         {
-          "question": "Can my parent apply for Community Choices and nursing home Medicaid at the same time?",
-          "answer": "Yes, applying for both simultaneously is often recommended since waiver slots are limited. If no waiver slot is available when your parent needs care, nursing home Medicaid ensures coverage for facility-based care."
+          "question": "Can my loved one apply for Community Choices and nursing home Medicaid at the same time?",
+          "answer": "Yes, applying for both simultaneously is often recommended since waiver slots are limited. If no waiver slot is available when your loved one needs care, nursing home Medicaid ensures coverage for facility-based care."
         },
         {
-          "question": "What if my parent is currently in the hospital or rehab?",
-          "answer": "You can apply while your parent is still hospitalized or in rehabilitation. Hospital discharge planners often help initiate waiver applications to ensure services are ready when your parent returns home."
+          "question": "What if my loved one is currently in the hospital or rehab?",
+          "answer": "You can apply while your loved one is still hospitalized or in rehabilitation. Hospital discharge planners often help initiate waiver applications to ensure services are ready when your loved one returns home."
         },
         {
-          "question": "Does my parent lose their waiver slot if they temporarily stay in assisted living?",
-          "answer": "Short-term stays may be allowable, but extended institutional stays could result in loss of the waiver slot. Notify your case manager immediately about any residential changes to protect your parent's enrollment status."
+          "question": "Does my loved one lose their waiver slot if they temporarily stay in assisted living?",
+          "answer": "Short-term stays may be allowable, but extended institutional stays could result in loss of the waiver slot. Notify your case manager immediately about any residential changes to protect your loved one's enrollment status."
         }
       ],
       "layoutIntent": {
@@ -202,7 +202,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's income is under $1,620/month, they could get their Medicare premiums and copays paid for free.",
+      "tagline": "If your loved one's income is under $1,620/month, they could get their Medicare premiums and copays paid for free.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -215,7 +215,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums or copays, three programs can help. QMB (Qualified Medicare Beneficiary) covers your parent's $202.90 monthly Medicare Part B premium plus all deductibles and copays. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover just the Part B premium.\n\nYour parent qualifies based on income: QMB for incomes up to $1,350/month for singles, SLMB for $1,350-$1,620/month, and QI for $1,620-$1,823/month (2026 limits). Asset limits are $9,660 for individuals, $14,470 for couples. In South Carolina, QMB provides full Medicaid benefits, meaning providers cannot bill your parent for any covered services.\n\nQI has limited federal funding and operates first-come, first-served — if your parent might qualify, apply early in the calendar year before funds run out.",
+      "intro": "If your loved one struggles to afford Medicare premiums or copays, three programs can help. QMB (Qualified Medicare Beneficiary) covers your loved one's $202.90 monthly Medicare Part B premium plus all deductibles and copays. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover just the Part B premium.\n\nYour loved one qualifies based on income: QMB for incomes up to $1,350/month for singles, SLMB for $1,350-$1,620/month, and QI for $1,620-$1,823/month (2026 limits). Asset limits are $9,660 for individuals, $14,470 for couples. In South Carolina, QMB provides full Medicaid benefits, meaning providers cannot bill your loved one for any covered services.\n\nQI has limited federal funding and operates first-come, first-served — if your loved one might qualify, apply early in the calendar year before funds run out.",
       "savingsRange": "$2,435 – $4,870/year in 2026",
       "savingsSource": "Medicare Part B premium ($202.90/month = $2,435/year) plus deductibles and copays for QMB",
       "savingsVerified": true,
@@ -390,19 +390,19 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes. The primary home and the land it sits on are completely exempt from asset limits, regardless of value. Only countable assets like bank accounts, stocks, and bonds count toward the $9,660 limit for individuals."
         },
         {
           "question": "What's the difference between these three programs if they all pay the Part B premium?",
-          "answer": "QMB covers everything — the Part B premium, deductibles, and all copays, plus provides full Medicaid benefits in South Carolina. SLMB and QI only cover the $202.90 monthly Part B premium. QMB saves the most money if your parent uses healthcare regularly."
+          "answer": "QMB covers everything — the Part B premium, deductibles, and all copays, plus provides full Medicaid benefits in South Carolina. SLMB and QI only cover the $202.90 monthly Part B premium. QMB saves the most money if your loved one uses healthcare regularly."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage their own affairs. You'll need to indicate on the application that you're applying as their representative. SCDHHS may ask for documentation of your authority to act on their behalf."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage their own affairs. You'll need to indicate on the application that you're applying as their representative. SCDHHS may ask for documentation of your authority to act on their behalf."
         },
         {
-          "question": "What happens if my parent's income is right at the border between programs?",
+          "question": "What happens if my loved one's income is right at the border between programs?",
           "answer": "Apply for the highest tier you think they might qualify for. If they don't qualify for QMB, SCDHHS will automatically consider them for SLMB, then QI. The $20 monthly income disregard may also put them in a lower tier than expected."
         },
         {
@@ -410,16 +410,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "It varies by state and year, but QI funding often runs out mid-year because it's capped federally. South Carolina gets a fixed allocation and serves people first-come, first-served until it's gone. Apply in January or February to have the best chance."
         },
         {
-          "question": "Can my parent have both Medicare Savings Programs and Medicare Part D Extra Help?",
+          "question": "Can my loved one have both Medicare Savings Programs and Medicare Part D Extra Help?",
           "answer": "Yes, and they should apply for both. Medicare Savings Programs help with Part B costs, while Extra Help helps with prescription drug costs under Part D. Having one often makes you eligible for the other automatically."
         },
         {
-          "question": "What if my parent's income changes after they're approved?",
+          "question": "What if my loved one's income changes after they're approved?",
           "answer": "Report income changes to SCDHHS at 1-888-549-0820. Significant increases might affect eligibility, while decreases might qualify them for a higher tier of benefits. They'll reassess eligibility based on the new income level."
         },
         {
           "question": "Do these programs cover Medicare Advantage plan costs too?",
-          "answer": "Yes, if your parent has a Medicare Advantage plan instead of Original Medicare, these programs will still cover the Part B premium portion and any applicable copays and deductibles, depending on which tier they qualify for."
+          "answer": "Yes, if your loved one has a Medicare Advantage plan instead of Original Medicare, these programs will still cover the Part B premium portion and any applicable copays and deductibles, depending on which tier they qualify for."
         }
       ],
       "layoutIntent": {
@@ -440,7 +440,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "SNAP (Food Assistance)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "If your parent is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries",
+      "tagline": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -453,7 +453,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to afford groceries on Social Security or a pension, SNAP provides monthly food assistance loaded onto an EBT card. A typical elderly couple might receive $415/month, while a single person could get $200-300/month depending on their income and medical expenses.\n\nSouth Carolina offers streamlined application options for seniors. The Elderly Simplified Application Project (ESAP) requires no interview and provides 36-month certification periods for households where everyone is 60+ with no earned income. Because South Carolina has expanded income limits beyond federal minimums, your parent may qualify even if their income seems too high for other programs.\n\nSNAP benefits work like a debit card at grocery stores, farmers markets, and many online retailers. Medical expenses over $35/month can be deducted from income calculations, potentially increasing the benefit amount.",
+      "intro": "If your loved one struggles to afford groceries on Social Security or a pension, SNAP provides monthly food assistance loaded onto an EBT card. A typical elderly couple might receive $415/month, while a single person could get $200-300/month depending on their income and medical expenses.\n\nSouth Carolina offers streamlined application options for seniors. The Elderly Simplified Application Project (ESAP) requires no interview and provides 36-month certification periods for households where everyone is 60+ with no earned income. Because South Carolina has expanded income limits beyond federal minimums, your loved one may qualify even if their income seems too high for other programs.\n\nSNAP benefits work like a debit card at grocery stores, farmers markets, and many online retailers. Medical expenses over $35/month can be deducted from income calculations, potentially increasing the benefit amount.",
       "savingsRange": "$200 – $400/month in 2026",
       "savingsSource": "Based on South Carolina SNAP benefit calculations for elderly households",
       "savingsVerified": false,
@@ -586,16 +586,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for SNAP?",
+          "question": "Can my loved one keep their house and still qualify for SNAP?",
           "answer": "Yes, your primary home is exempt from asset limits regardless of value. South Carolina generally has no asset limits for SNAP, but if your household has more than $4,500 in countable assets (bank accounts, investments), you must meet the gross income test."
         },
         {
-          "question": "What if my parent receives both Social Security and a small pension?",
+          "question": "What if my loved one receives both Social Security and a small pension?",
           "answer": "Both Social Security and pension income count toward the income limits, but medical expenses over $35/month can be deducted. A single person can have up to $2,608/month gross income (2026 limits) and still potentially qualify depending on deductions."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent cannot apply themselves due to age, disability, or other circumstances. You'll need to complete additional paperwork establishing your authority to act on their behalf."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one cannot apply themselves due to age, disability, or other circumstances. You'll need to complete additional paperwork establishing your authority to act on their behalf."
         },
         {
           "question": "What's the difference between regular SNAP and ESAP?",
@@ -606,7 +606,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, SNAP EBT cards work for online grocery purchases at participating retailers like Amazon, Walmart, and many local stores. This is especially helpful for seniors with mobility limitations or transportation challenges."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
+          "question": "What happens if my loved one's income changes after approval?",
           "answer": "You must report significant changes in income, household size, or expenses within 10 days. However, ESAP recipients have simplified reporting requirements and may only need to report during their 36-month recertification period."
         }
       ],
@@ -628,7 +628,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Up to $1,500/year toward your parent's heating and cooling bills, plus crisis help when utilities face disconnection",
+      "tagline": "Up to $1,500/year toward your loved one's heating and cooling bills, plus crisis help when utilities face disconnection",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -641,7 +641,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,500 for energy crises like disconnection notices. Your parent can receive up to two services per year, meaning a maximum of $1,500 in annual assistance.\n\nLIHEAP prioritizes vulnerable households — those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
+      "intro": "If your loved one struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,500 for energy crises like disconnection notices. Your loved one can receive up to two services per year, meaning a maximum of $1,500 in annual assistance.\n\nLIHEAP prioritizes vulnerable households — those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
       "savingsRange": "$200 – $1,500/year in 2026",
       "savingsSource": "Maximum benefit amounts from South Carolina Office of Economic Opportunity",
       "savingsVerified": true,
@@ -823,36 +823,36 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent get both heating and cooling assistance in the same year?",
-          "answer": "Yes, your parent can receive up to two services per calendar year — one for heating (up to $850) and one for cooling (up to $775). However, the total for any single service cannot exceed $1,500, and crisis assistance counts as one of the two services."
+          "question": "Can my loved one get both heating and cooling assistance in the same year?",
+          "answer": "Yes, your loved one can receive up to two services per calendar year — one for heating (up to $850) and one for cooling (up to $775). However, the total for any single service cannot exceed $1,500, and crisis assistance counts as one of the two services."
         },
         {
-          "question": "What if my parent rents and utilities are included in the rent?",
-          "answer": "Your parent can still qualify, but you'll need an itemized utility bill from the landlord showing the energy costs. The energy portion must be clearly separated from rent costs, and a household member must be responsible for this portion of the bill."
+          "question": "What if my loved one rents and utilities are included in the rent?",
+          "answer": "Your loved one can still qualify, but you'll need an itemized utility bill from the landlord showing the energy costs. The energy portion must be clearly separated from rent costs, and a household member must be responsible for this portion of the bill."
         },
         {
-          "question": "How quickly can LIHEAP help if my parent receives a disconnection notice?",
+          "question": "How quickly can LIHEAP help if my loved one receives a disconnection notice?",
           "answer": "Crisis assistance is available year-round and may be processed faster than regular seasonal assistance. Contact your local Community Action Agency immediately when you receive a disconnection notice — crisis assistance can provide up to $1,500 and counts as one of your two annual services."
         },
         {
-          "question": "Does my parent's house value or savings account affect LIHEAP eligibility?",
+          "question": "Does my loved one's house value or savings account affect LIHEAP eligibility?",
           "answer": "No, LIHEAP has no asset limits mentioned in South Carolina's program guidelines. Eligibility is based solely on gross monthly household income being at or below approximately 60% of the state median income for your household size."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help your parent apply and advocate for them during the process, but the application must be in the household member's name who is responsible for the energy bill. Contact your county's Community Action Agency to discuss your specific situation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply and advocate for them during the process, but the application must be in the household member's name who is responsible for the energy bill. Contact your county's Community Action Agency to discuss your specific situation."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit some months?",
-          "answer": "LIHEAP uses gross monthly household income at the time of application. If your parent's income varies month to month, apply during a month when income is below the limits. Income includes everyone living at the address, including Social Security, pensions, and other sources."
+          "question": "What happens if my loved one's income is slightly over the limit some months?",
+          "answer": "LIHEAP uses gross monthly household income at the time of application. If your loved one's income varies month to month, apply during a month when income is below the limits. Income includes everyone living at the address, including Social Security, pensions, and other sources."
         },
         {
-          "question": "How do I know which Community Action Agency serves my parent's area?",
+          "question": "How do I know which Community Action Agency serves my loved one's area?",
           "answer": "Visit oeo.sc.gov and use their county map to find the specific agency, or call 803-734-0662 for a direct referral. Each county has its own agency, and you must apply through your county's designated agency — you cannot apply directly to the state."
         },
         {
-          "question": "Will getting LIHEAP assistance affect my parent's other benefits?",
-          "answer": "LIHEAP assistance generally does not count as income for other benefit programs like SNAP or Medicaid. However, if your parent receives other energy assistance, make sure to report this to avoid any conflicts or overpayments between programs."
+          "question": "Will getting LIHEAP assistance affect my loved one's other benefits?",
+          "answer": "LIHEAP assistance generally does not count as income for other benefit programs like SNAP or Medicaid. However, if your loved one receives other energy assistance, make sure to report this to avoid any conflicts or overpayments between programs."
         }
       ],
       "layoutIntent": {
@@ -886,7 +886,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high energy bills and lives on a limited income, South Carolina's Weatherization Assistance Program provides free home improvements to permanently reduce heating and cooling costs. The program installs insulation, seals air leaks, and addresses safety issues like carbon monoxide risks — all at no cost to qualifying households.\n\nYour parent qualifies if their household income is at or below 200% of the federal poverty level ($2,610/month for a single person in 2026). Priority goes to seniors 60+, disabled households, and families with children under 18. The home cannot have been weatherized in the last 15 years.\n\nBecause the program operates through 8 regional community action agencies across South Carolina's 46 counties, you'll work directly with your local agency for assessment and installation. Renters need written landlord permission, but homeowners simply need proof of ownership.",
+      "intro": "If your loved one struggles with high energy bills and lives on a limited income, South Carolina's Weatherization Assistance Program provides free home improvements to permanently reduce heating and cooling costs. The program installs insulation, seals air leaks, and addresses safety issues like carbon monoxide risks — all at no cost to qualifying households.\n\nYour loved one qualifies if their household income is at or below 200% of the federal poverty level ($2,610/month for a single person in 2026). Priority goes to seniors 60+, disabled households, and families with children under 18. The home cannot have been weatherized in the last 15 years.\n\nBecause the program operates through 8 regional community action agencies across South Carolina's 46 counties, you'll work directly with your local agency for assessment and installation. Renters need written landlord permission, but homeowners simply need proof of ownership.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -942,7 +942,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your local community action agency",
-            "description": "Visit oeo.sc.gov or energyfundsforall.org to identify which of the 8 agencies serves your parent's county. Each agency covers specific service areas across South Carolina's 46 counties."
+            "description": "Visit oeo.sc.gov or energyfundsforall.org to identify which of the 8 agencies serves your loved one's county. Each agency covers specific service areas across South Carolina's 46 counties."
           },
           {
             "step": 2,
@@ -957,7 +957,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Wait for home assessment",
-            "description": "A professional will evaluate your parent's home to determine what weatherization measures are needed, such as insulation, air sealing, or safety improvements."
+            "description": "A professional will evaluate your loved one's home to determine what weatherization measures are needed, such as insulation, air sealing, or safety improvements."
           }
         ],
         "processingTime": "Not specified — varies by agency and funding availability",
@@ -1016,36 +1016,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent is a renter and the landlord won't give permission?",
-          "answer": "Your parent cannot receive weatherization services without written landlord permission. Try explaining to the landlord that the improvements will increase property value and reduce tenant turnover. Some agencies may help negotiate with reluctant landlords, but ultimately permission is required."
+          "question": "What if my loved one is a renter and the landlord won't give permission?",
+          "answer": "Your loved one cannot receive weatherization services without written landlord permission. Try explaining to the landlord that the improvements will increase property value and reduce tenant turnover. Some agencies may help negotiate with reluctant landlords, but ultimately permission is required."
         },
         {
-          "question": "Can my parent apply if their home was weatherized 10 years ago?",
-          "answer": "No — homes that received weatherization services in the last 15 years are ineligible. Your parent would need to wait until 15 years have passed since the previous weatherization before applying again."
+          "question": "Can my loved one apply if their home was weatherized 10 years ago?",
+          "answer": "No — homes that received weatherization services in the last 15 years are ineligible. Your loved one would need to wait until 15 years have passed since the previous weatherization before applying again."
         },
         {
-          "question": "What happens if my parent's income is slightly above the limit?",
-          "answer": "If your parent receives SSI or Aid to Families with Dependent Children, they automatically qualify regardless of the income chart. Otherwise, income must be at or below 200% of federal poverty level with no exceptions for being slightly over the limit."
+          "question": "What happens if my loved one's income is slightly above the limit?",
+          "answer": "If your loved one receives SSI or Aid to Families with Dependent Children, they automatically qualify regardless of the income chart. Otherwise, income must be at or below 200% of federal poverty level with no exceptions for being slightly over the limit."
         },
         {
           "question": "How long does the actual weatherization work take once approved?",
           "answer": "The sources don't specify installation timeframes. After approval and assessment, contact your local community action agency for estimated completion times, which likely depend on the scope of work needed and contractor availability."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "The program requires specific documentation and signatures from the applicant. If you have legal authority (power of attorney or guardianship), contact your local community action agency to discuss how to proceed with the application process."
         },
         {
-          "question": "What if my parent needs weatherization but also has urgent utility shut-off notices?",
+          "question": "What if my loved one needs weatherization but also has urgent utility shut-off notices?",
           "answer": "Weatherization provides long-term energy savings but won't help with immediate utility crises. Contact your local community action agency about LIHEAP (energy bill assistance) for urgent situations, then apply for weatherization for permanent savings."
         },
         {
-          "question": "Does my parent's mobile home qualify for weatherization services?",
+          "question": "Does my loved one's mobile home qualify for weatherization services?",
           "answer": "The sources don't specify whether mobile homes are eligible. Contact your local community action agency directly to ask about mobile home weatherization — eligibility and available services may vary by agency and home type."
         },
         {
-          "question": "What if my parent owns their home but doesn't have the county tax receipt?",
-          "answer": "The county tax receipt is required documentation for homeowners. Your parent can request a copy from their county tax assessor's office. Most counties also provide tax records online through their official websites."
+          "question": "What if my loved one owns their home but doesn't have the county tax receipt?",
+          "answer": "The county tax receipt is required documentation for homeowners. Your loved one can request a copy from their county tax assessor's office. Most counties also provide tax records online through their official websites."
         }
       ],
       "layoutIntent": {
@@ -1066,7 +1066,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ship-i-care",
       "name": "SHIP / I-Care",
       "shortName": "SHIP / I-Care",
-      "tagline": "Free Medicare counseling to help your parent choose the right plan and resolve insurance problems.",
+      "tagline": "Free Medicare counseling to help your loved one choose the right plan and resolve insurance problems.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1083,7 +1083,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare or is turning 65, SHIP / I-Care provides free, personalized counseling to help them navigate their insurance options. Because Medicare plans change every year and coverage can be confusing, trained counselors help compare plans, resolve billing problems, and find prescription assistance — with no income limits or eligibility tests.\n\nYour parent gets one-on-one help understanding Medicare health plans, drug coverage, Medigap supplements, and Medicaid options. Because SHIP counselors are funded federally and independent of insurance companies, they provide unbiased advice focused on your parent's specific needs and medications.\n\nThis service is available to all South Carolina residents with Medicare, their families, and caregivers. Counselors can meet in person, over the phone, or help you during Medicare Open Enrollment (October 15 - December 7) when plans change.",
+      "intro": "If your loved one has Medicare or is turning 65, SHIP / I-Care provides free, personalized counseling to help them navigate their insurance options. Because Medicare plans change every year and coverage can be confusing, trained counselors help compare plans, resolve billing problems, and find prescription assistance — with no income limits or eligibility tests.\n\nYour loved one gets one-on-one help understanding Medicare health plans, drug coverage, Medigap supplements, and Medicaid options. Because SHIP counselors are funded federally and independent of insurance companies, they provide unbiased advice focused on your loved one's specific needs and medications.\n\nThis service is available to all South Carolina residents with Medicare, their families, and caregivers. Counselors can meet in person, over the phone, or help you during Medicare Open Enrollment (October 15 - December 7) when plans change.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1121,7 +1121,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Bring your information",
-            "description": "Have your parent's Medicare card, current medications list, and any insurance bills or notices ready for the consultation."
+            "description": "Have your loved one's Medicare card, current medications list, and any insurance bills or notices ready for the consultation."
           }
         ],
         "processingTime": "Immediate counseling upon contact",
@@ -1138,7 +1138,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card (Part A and Part B)",
         "List of current medications with dosages",
         "Medicare Summary Notice or recent bills if you have billing problems",
-        "Current insurance cards if your parent has supplemental coverage",
+        "Current insurance cards if your loved one has supplemental coverage",
         "Income information if exploring Medicaid options",
         "Recent statements from prescription drug plans if comparing coverage"
       ],
@@ -1158,7 +1158,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "No formal application required — this is free counseling, not a benefit program that provides payments or services",
-        "Counselors can help family members calling on behalf of elderly parents"
+        "Counselors can help family members calling on behalf of elderly loved ones"
       ],
       "relatedPrograms": [
         "Medicare Extra Help (Part D)",
@@ -1169,16 +1169,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
-          "answer": "Yes, family members and caregivers can get counseling about Medicare options for their parents. The counselor can explain plan options to you, but your parent would need to sign any enrollment forms unless you have legal authority to act on their behalf."
+          "question": "Can I call on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members and caregivers can get counseling about Medicare options for their loved ones. The counselor can explain plan options to you, but your loved one would need to sign any enrollment forms unless you have legal authority to act on their behalf."
         },
         {
-          "question": "My parent already chose a Medicare plan — can SHIP still help?",
-          "answer": "Absolutely. SHIP counselors help resolve billing problems, find prescription assistance programs, and explain coverage throughout the year. They can also help you prepare for next year's Open Enrollment when your parent can change plans again."
+          "question": "My loved one already chose a Medicare plan — can SHIP still help?",
+          "answer": "Absolutely. SHIP counselors help resolve billing problems, find prescription assistance programs, and explain coverage throughout the year. They can also help you prepare for next year's Open Enrollment when your loved one can change plans again."
         },
         {
           "question": "How is this different from calling Medicare directly?",
-          "answer": "Medicare's 1-800-MEDICARE line provides general information, but SHIP counselors give personalized advice based on your parent's specific medications, doctors, and budget. Because they're independent of insurance companies, they can recommend the best plan without sales pressure."
+          "answer": "Medicare's 1-800-MEDICARE line provides general information, but SHIP counselors give personalized advice based on your loved one's specific medications, doctors, and budget. Because they're independent of insurance companies, they can recommend the best plan without sales pressure."
         }
       ],
       "layoutIntent": {
@@ -1199,7 +1199,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "congregate-home-delivered-meals",
       "name": "Congregate Meals / Home Delivered Meals",
       "shortName": "Senior Meal Programs",
-      "tagline": "If your parent is 60+ and struggles to shop or cook, they may qualify for daily delivered meals or group dining at local senior centers.",
+      "tagline": "If your loved one is 60+ and struggles to shop or cook, they may qualify for daily delivered meals or group dining at local senior centers.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1216,7 +1216,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and has trouble shopping for groceries or preparing meals, South Carolina offers two meal programs that can help. Home-delivered meals provide 1-7 nutritious meals per day delivered to homebound seniors who can't leave home unassisted. Congregate meals offer hot, nutritious group dining at senior centers with optional social activities and outings.\n\nBoth programs provide meals tailored to medical conditions (diabetic, cardiac, renal diets) and meet one-third of daily nutritional requirements. Because there are two funding tracks — basic Older Americans Act programs (age 60+, no income test) and Medicaid programs (stricter eligibility) — your parent may qualify even if their income seems too high for other benefits. Suggested donations help cover costs, but meals aren't denied if your parent can't pay.",
+      "intro": "If your loved one is 60+ and has trouble shopping for groceries or preparing meals, South Carolina offers two meal programs that can help. Home-delivered meals provide 1-7 nutritious meals per day delivered to homebound seniors who can't leave home unassisted. Congregate meals offer hot, nutritious group dining at senior centers with optional social activities and outings.\n\nBoth programs provide meals tailored to medical conditions (diabetic, cardiac, renal diets) and meet one-third of daily nutritional requirements. Because there are two funding tracks — basic Older Americans Act programs (age 60+, no income test) and Medicaid programs (stricter eligibility) — your loved one may qualify even if their income seems too high for other benefits. Suggested donations help cover costs, but meals aren't denied if your loved one can't pay.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1249,7 +1249,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Your provider will assess your parent's homebound status, ability to prepare food, and dietary needs. For Medicaid track, they'll verify enrollment in Community Long Term Care or HCBS waiver programs."
+            "description": "Your provider will assess your loved one's homebound status, ability to prepare food, and dietary needs. For Medicaid track, they'll verify enrollment in Community Long Term Care or HCBS waiver programs."
           },
           {
             "step": 3,
@@ -1264,7 +1264,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Providers must accept/decline referrals within 2 working days (Medicaid); approval process varies by local AAA",
         "waitlist": "Waitlist times not specified — likely varies by region and demand",
-        "tip": "If your parent needs Medicaid-funded meals but isn't enrolled in Community Long Term Care, contact your local CLTC office first to establish Medicaid eligibility.",
+        "tip": "If your loved one needs Medicaid-funded meals but isn't enrolled in Community Long Term Care, contact your local CLTC office first to establish Medicaid eligibility.",
         "urls": [
           {
             "label": "SC Department on Aging",
@@ -1315,7 +1315,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Two separate tracks exist: basic Older Americans Act program (age 60+, no income test) and Medicaid program (requires HCBS waiver or CLTC enrollment)",
         "Home-delivered meals are strictly for homebound seniors — congregate meals require ability to attend group dining",
-        "Eligibility must be reconfirmed monthly for Medicaid track; service ends if your parent is institutionalized or moves",
+        "Eligibility must be reconfirmed monthly for Medicaid track; service ends if your loved one is institutionalized or moves",
         "If ineligible for subsidized programs, some providers offer purchase options (Mom's Meals at $9.49/meal mentioned as alternative)"
       ],
       "relatedPrograms": [
@@ -1327,36 +1327,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get both congregate meals and home-delivered meals?",
-          "answer": "No, these are separate programs for different needs. Home-delivered meals are for homebound seniors who can't leave home unassisted. Congregate meals are for seniors who can attend group dining at senior centers. Your parent would qualify for one based on their mobility and independence level."
+          "question": "Can my loved one get both congregate meals and home-delivered meals?",
+          "answer": "No, these are separate programs for different needs. Home-delivered meals are for homebound seniors who can't leave home unassisted. Congregate meals are for seniors who can attend group dining at senior centers. Your loved one would qualify for one based on their mobility and independence level."
         },
         {
-          "question": "What happens if my parent's income is too high for the Medicaid track?",
+          "question": "What happens if my loved one's income is too high for the Medicaid track?",
           "answer": "They may still qualify for the basic Older Americans Act program, which has no income limits — only age 60+ is required. Contact your local Area Agency on Aging to discuss both options. If neither program has availability, some providers offer meals for purchase."
         },
         {
-          "question": "How many meals can my parent receive per day?",
-          "answer": "Home-delivered meals typically provide 1-7 meals per day depending on need and program capacity. Congregate meals are usually one meal per day during scheduled dining times. The specific number depends on your parent's assessed needs and your local provider's resources."
+          "question": "How many meals can my loved one receive per day?",
+          "answer": "Home-delivered meals typically provide 1-7 meals per day depending on need and program capacity. Congregate meals are usually one meal per day during scheduled dining times. The specific number depends on your loved one's assessed needs and your local provider's resources."
         },
         {
-          "question": "What if my parent has special dietary needs like diabetes or kidney disease?",
-          "answer": "Both programs offer specialized diets including diabetic, cardiac, renal, mechanical soft, and pureed options. During the intake assessment, discuss your parent's medical conditions and dietary restrictions. Meals are designed to meet one-third of daily nutritional requirements while accommodating health needs."
+          "question": "What if my loved one has special dietary needs like diabetes or kidney disease?",
+          "answer": "Both programs offer specialized diets including diabetic, cardiac, renal, mechanical soft, and pureed options. During the intake assessment, discuss your loved one's medical conditions and dietary restrictions. Meals are designed to meet one-third of daily nutritional requirements while accommodating health needs."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can contact local Area Agencies on Aging to initiate the application process. However, the assessment will need to evaluate your parent's specific needs, living situation, and homebound status. Have your parent's medical information and contact details ready when you call."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can contact local Area Agencies on Aging to initiate the application process. However, the assessment will need to evaluate your loved one's specific needs, living situation, and homebound status. Have your loved one's medical information and contact details ready when you call."
         },
         {
           "question": "What if there's a waitlist in my area?",
           "answer": "Waitlist times aren't specified and likely vary significantly by region and funding track. Ask your local provider about current wait times and whether emergency or priority cases get expedited processing. Some regions may have immediate availability while others have longer waits."
         },
         {
-          "question": "Does my parent have to pay for meals if they're on a fixed income?",
-          "answer": "Suggested donations are based on ability to pay, and meals aren't denied if your parent can't contribute. The programs rely partially on donations to cover full costs, but financial inability doesn't disqualify someone from receiving meals."
+          "question": "Does my loved one have to pay for meals if they're on a fixed income?",
+          "answer": "Suggested donations are based on ability to pay, and meals aren't denied if your loved one can't contribute. The programs rely partially on donations to cover full costs, but financial inability doesn't disqualify someone from receiving meals."
         },
         {
-          "question": "What happens if my parent's condition changes and they're no longer homebound?",
-          "answer": "If your parent becomes more mobile, they may transition from home-delivered meals to congregate meals at a senior center. Eligibility is reconfirmed monthly for Medicaid programs, and providers will reassess needs. Contact your provider to discuss the transition process and continued meal support options."
+          "question": "What happens if my loved one's condition changes and they're no longer homebound?",
+          "answer": "If your loved one becomes more mobile, they may transition from home-delivered meals to congregate meals at a senior center. Eligibility is reconfirmed monthly for Medicaid programs, and providers will reassess needs. Contact your provider to discuss the transition process and continued meal support options."
         }
       ],
       "layoutIntent": {
@@ -1402,7 +1402,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal problems with housing, healthcare bills, Social Security denials, or elder abuse, South Carolina provides free legal advice and representation through attorneys. Because these are real lawyers (not just legal information), your parent gets actual representation in court and direct advocacy with creditors, landlords, and government agencies.\n\nThe program handles around 1,160 cases per year statewide across 11 priority areas: income protection, healthcare, long-term care, housing, utilities, abuse and neglect, guardianship defense, and age discrimination. Because funding is limited to approximately $330,000 annually, priority goes to seniors with the greatest economic need, particularly low-income individuals, minorities, those with limited English proficiency, and rural residents.",
+      "intro": "If your loved one is 60+ and facing legal problems with housing, healthcare bills, Social Security denials, or elder abuse, South Carolina provides free legal advice and representation through attorneys. Because these are real lawyers (not just legal information), your loved one gets actual representation in court and direct advocacy with creditors, landlords, and government agencies.\n\nThe program handles around 1,160 cases per year statewide across 11 priority areas: income protection, healthcare, long-term care, housing, utilities, abuse and neglect, guardianship defense, and age discrimination. Because funding is limited to approximately $330,000 annually, priority goes to seniors with the greatest economic need, particularly low-income individuals, minorities, those with limited English proficiency, and rural residents.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1499,8 +1499,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The program covers 11 priority areas: income protection (Social Security appeals, pension issues), healthcare disputes, long-term care problems, housing issues (evictions, landlord disputes), utility shutoffs, protective services, guardianship defense, abuse and neglect cases, and age discrimination. Criminal matters are not covered."
         },
         {
-          "question": "Can I apply if my parent has some income but is struggling financially?",
-          "answer": "Yes — there are no specific income cutoffs published. The program prioritizes seniors with the \"greatest economic need\" rather than using strict income limits. Your parent's overall financial situation and the urgency of their legal problem will be considered during screening."
+          "question": "Can I apply if my loved one has some income but is struggling financially?",
+          "answer": "Yes — there are no specific income cutoffs published. The program prioritizes seniors with the \"greatest economic need\" rather than using strict income limits. Your loved one's overall financial situation and the urgency of their legal problem will be considered during screening."
         },
         {
           "question": "How long does it take to get an attorney assigned?",
@@ -1529,7 +1529,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
-      "tagline": "Free advocacy when your parent faces problems with their nursing home or assisted living facility.",
+      "tagline": "Free advocacy when your loved one faces problems with their nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1546,7 +1546,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living, or other long-term care facility in South Carolina, the Ombudsman Program provides free advocacy when problems arise. Trained ombudsmen investigate complaints about quality of care, residents' rights violations, improper discharges, abuse or neglect, and help resolve conflicts with facility staff.\n\nThe program serves any resident in a long-term care facility — nursing homes, assisted living communities, community residential care facilities, or specialized DDSN/DMH facilities. Anyone can file a complaint on behalf of a resident: family members, friends, facility staff, or concerned community members. Because ombudsmen are independent advocates, they can mediate disputes and push for changes that families might struggle to achieve on their own.\n\nServices are completely free with no income or asset requirements. The program operates statewide through 10 regional offices, each covering specific counties with local ombudsmen who know the facilities in their area.",
+      "intro": "If your loved one lives in a nursing home, assisted living, or other long-term care facility in South Carolina, the Ombudsman Program provides free advocacy when problems arise. Trained ombudsmen investigate complaints about quality of care, residents' rights violations, improper discharges, abuse or neglect, and help resolve conflicts with facility staff.\n\nThe program serves any resident in a long-term care facility — nursing homes, assisted living communities, community residential care facilities, or specialized DDSN/DMH facilities. Anyone can file a complaint on behalf of a resident: family members, friends, facility staff, or concerned community members. Because ombudsmen are independent advocates, they can mediate disputes and push for changes that families might struggle to achieve on their own.\n\nServices are completely free with no income or asset requirements. The program operates statewide through 10 regional offices, each covering specific counties with local ombudsmen who know the facilities in their area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1588,7 +1588,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Follow-up and resolution",
-            "description": "The ombudsman follows up to ensure the problem is resolved and your parent's rights are protected ongoing."
+            "description": "The ombudsman follows up to ensure the problem is resolved and your loved one's rights are protected ongoing."
           }
         ],
         "processingTime": "Investigation begins promptly; ombudsmen follow up to ensure resolution",
@@ -1625,8 +1625,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint even if my parent is afraid of retaliation from facility staff?",
-          "answer": "Yes. Ombudsmen protect confidentiality and can investigate without revealing who filed the complaint unless your parent gives permission. Federal law prohibits facilities from retaliating against residents or families who file complaints."
+          "question": "Can I file a complaint even if my loved one is afraid of retaliation from facility staff?",
+          "answer": "Yes. Ombudsmen protect confidentiality and can investigate without revealing who filed the complaint unless your loved one gives permission. Federal law prohibits facilities from retaliating against residents or families who file complaints."
         },
         {
           "question": "What if the facility says the problem is a 'family matter' they won't discuss?",
@@ -1655,7 +1655,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "homestead-exemption-property-tax",
       "name": "Homestead Exemption (State Property Tax Assistance)",
       "shortName": "Homestead Exemption",
-      "tagline": "Reduce your parent's property taxes by up to $50,000 in assessed value if they're 65+ and own their home.",
+      "tagline": "Reduce your loved one's property taxes by up to $50,000 in assessed value if they're 65+ and own their home.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1676,7 +1676,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65 or older and owns their South Carolina home, they can exempt $50,000 from their property's assessed value when calculating county property taxes. If their home is worth $50,000 or less, they pay no property taxes at all.\n\nYour parent qualifies at age 65 with no income or asset limits — this benefit is available regardless of financial status. They must own their primary residence (house, condo, or mobile home on owned land) and have lived in South Carolina for at least one calendar year. Parents who are totally disabled or legally blind can also qualify regardless of age.\n\nThis is a one-time application that continues automatically once approved. Because each county administers the program through their auditor's office, application procedures and required documents vary slightly by location.",
+      "intro": "If your loved one is 65 or older and owns their South Carolina home, they can exempt $50,000 from their property's assessed value when calculating county property taxes. If their home is worth $50,000 or less, they pay no property taxes at all.\n\nYour loved one qualifies at age 65 with no income or asset limits — this benefit is available regardless of financial status. They must own their primary residence (house, condo, or mobile home on owned land) and have lived in South Carolina for at least one calendar year. Parents who are totally disabled or legally blind can also qualify regardless of age.\n\nThis is a one-time application that continues automatically once approved. Because each county administers the program through their auditor's office, application procedures and required documents vary slightly by location.",
       "savingsRange": "$200 – $1,000/year in 2026",
       "savingsSource": "Estimated savings based on $50,000 exemption applied to typical South Carolina property tax rates",
       "savingsVerified": false,
@@ -1758,7 +1758,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If the deed lists your parent's name with a non-spouse, the exemption is prorated based on ownership percentage — only full ownership with spouse gets the complete $50,000 exemption",
+        "If the deed lists your loved one's name with a non-spouse, the exemption is prorated based on ownership percentage — only full ownership with spouse gets the complete $50,000 exemption",
         "The one-year residency requirement is strict — moving to South Carolina mid-year means waiting until the following year to qualify",
         "Each county has slightly different documentation requirements, so call ahead to confirm what they need before visiting"
       ],
@@ -1770,11 +1770,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent qualify if they own the house with someone who isn't their spouse?",
-          "answer": "Yes, but the exemption will be reduced. If the deed shows your parent owns 50% with a non-spouse, they get 50% of the $50,000 exemption ($25,000). Only joint ownership with a spouse qualifies for the full exemption."
+          "question": "Can my loved one qualify if they own the house with someone who isn't their spouse?",
+          "answer": "Yes, but the exemption will be reduced. If the deed shows your loved one owns 50% with a non-spouse, they get 50% of the $50,000 exemption ($25,000). Only joint ownership with a spouse qualifies for the full exemption."
         },
         {
-          "question": "What if my parent moved to South Carolina in 2025 but wants to apply now?",
+          "question": "What if my loved one moved to South Carolina in 2025 but wants to apply now?",
           "answer": "They must wait until 2026 to apply. The law requires one full calendar year of South Carolina residency as of December 31 before the tax year. Moving mid-year doesn't count toward this requirement."
         },
         {
@@ -1782,11 +1782,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "These are separate programs with different benefits. The Homestead Exemption reduces assessed value by $50,000. The 4% assessment caps the tax rate on your primary residence. Check with both your county auditor (homestead) and tax assessor (4% rate) about applying for both."
         },
         {
-          "question": "What happens if my parent becomes disabled before age 65?",
+          "question": "What happens if my loved one becomes disabled before age 65?",
           "answer": "They can qualify immediately with a disability certification from a state or federal agency with authority to make that determination. Social Security disability approval counts, but they'll need the official award letter or proof of benefit form."
         },
         {
-          "question": "Does my parent need to reapply every year?",
+          "question": "Does my loved one need to reapply every year?",
           "answer": "No. Once approved, the exemption continues automatically each year as long as they still own and live in the home. Some counties may send verification forms periodically, but no annual reapplication is required."
         },
         {
@@ -1812,7 +1812,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "esap-food-benefits",
       "name": "Elderly Simplified Application Project (ESAP)",
       "shortName": "ESAP Food Benefits",
-      "tagline": "If your parent is 60+ with no work income, this simplified SNAP pathway provides monthly grocery assistance with minimal paperwork.",
+      "tagline": "If your loved one is 60+ with no work income, this simplified SNAP pathway provides monthly grocery assistance with minimal paperwork.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1825,7 +1825,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older and lives on Social Security or retirement income only, South Carolina's Elderly Simplified Application Project (ESAP) provides monthly SNAP food assistance with far less paperwork than standard food assistance programs. Because ESAP is designed specifically for elderly households with no earned income, your parent won't need to attend recertification interviews or submit monthly reports — once approved, benefits continue for 36 months.\n\nESAP has achieved a 93% approval rate since 2015, meaning virtually all eligible seniors who apply receive benefits. The program requires all household members to be 60 or older with zero earned income from work. Your parent can receive Social Security, pensions, or other retirement income and still qualify — the key restriction is no wages or self-employment income.",
+      "intro": "If your loved one is 60 or older and lives on Social Security or retirement income only, South Carolina's Elderly Simplified Application Project (ESAP) provides monthly SNAP food assistance with far less paperwork than standard food assistance programs. Because ESAP is designed specifically for elderly households with no earned income, your loved one won't need to attend recertification interviews or submit monthly reports — once approved, benefits continue for 36 months.\n\nESAP has achieved a 93% approval rate since 2015, meaning virtually all eligible seniors who apply receive benefits. The program requires all household members to be 60 or older with zero earned income from work. Your loved one can receive Social Security, pensions, or other retirement income and still qualify — the key restriction is no wages or self-employment income.",
       "savingsRange": "",
       "savingsSource": "SNAP food assistance benefits vary by household circumstances",
       "savingsVerified": false,
@@ -1921,36 +1921,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work part-time and still qualify for ESAP?",
+          "question": "Can my loved one work part-time and still qualify for ESAP?",
           "answer": "No. ESAP requires zero earned income from work for all household members. Even part-time work or self-employment income disqualifies the household. However, Social Security, pensions, and other retirement income are allowed."
         },
         {
-          "question": "What if my 62-year-old parent lives with their 58-year-old spouse?",
+          "question": "What if my 62-year-old loved one lives with their 58-year-old spouse?",
           "answer": "The household would not qualify for ESAP because all household members must be 60 or older. They would need to apply for regular SNAP instead, which has different requirements and more frequent reporting."
         },
         {
-          "question": "Can I apply for ESAP if my parent is already getting regular SNAP benefits?",
-          "answer": "No. Households cannot receive both ESAP and South Carolina's regular SNAP program (SCCAP) at the same time. If your parent currently receives regular SNAP, they would need to choose which program works better for their situation."
+          "question": "Can I apply for ESAP if my loved one is already getting regular SNAP benefits?",
+          "answer": "No. Households cannot receive both ESAP and South Carolina's regular SNAP program (SCCAP) at the same time. If your loved one currently receives regular SNAP, they would need to choose which program works better for their situation."
         },
         {
-          "question": "How much in SNAP benefits will my parent receive through ESAP?",
+          "question": "How much in SNAP benefits will my loved one receive through ESAP?",
           "answer": "Benefit amounts are determined by standard SNAP calculations based on household size, income, and allowable deductions. The research doesn't specify exact amounts, but benefits are the same whether received through ESAP or regular SNAP — the difference is in the simplified application process."
         },
         {
           "question": "What happens after the 36-month certification period ends?",
-          "answer": "Your parent will need to complete a simple one-page mail-in recertification form to continue benefits. No interview is required for recertification — this is one of ESAP's key advantages over regular SNAP."
+          "answer": "Your loved one will need to complete a simple one-page mail-in recertification form to continue benefits. No interview is required for recertification — this is one of ESAP's key advantages over regular SNAP."
         },
         {
-          "question": "Can a family member apply for ESAP on behalf of an elderly parent?",
-          "answer": "The research doesn't specify authorized representative procedures for ESAP. Contact your local DSS office to ask about applying on behalf of your parent, especially if they have mobility or disability challenges that prevent them from applying themselves."
+          "question": "Can a family member apply for ESAP on behalf of an elderly loved one?",
+          "answer": "The research doesn't specify authorized representative procedures for ESAP. Contact your local DSS office to ask about applying on behalf of your loved one, especially if they have mobility or disability challenges that prevent them from applying themselves."
         },
         {
           "question": "Why does ESAP have a 93% approval rate when regular SNAP applications are often denied?",
           "answer": "ESAP is designed specifically for elderly households with straightforward financial situations (no earned income, limited verification required). The simplified process and dedicated caseworker unit reduce procedural denials that often affect seniors applying for regular SNAP."
         },
         {
-          "question": "What if my parent's income changes during the 36-month certification period?",
-          "answer": "Because ESAP has no periodic reporting requirements, your parent won't need to report most changes immediately. However, contact DSS if there are major changes like starting work (which would disqualify them from ESAP) or significant income increases."
+          "question": "What if my loved one's income changes during the 36-month certification period?",
+          "answer": "Because ESAP has no periodic reporting requirements, your loved one won't need to report most changes immediately. However, contact DSS if there are major changes like starting work (which would disqualify them from ESAP) or significant income increases."
         }
       ],
       "layoutIntent": {
@@ -1971,14 +1971,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-farmers-market-nutrition",
       "name": "Senior Farmers Market Nutrition Program (SFMNP)",
       "shortName": "SFMNP",
-      "tagline": "If your parent is 60+ and on a low income, they can get $50 worth of vouchers each year for fresh produce at farmers' markets.",
+      "tagline": "If your loved one is 60+ and on a low income, they can get $50 worth of vouchers each year for fresh produce at farmers' markets.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 60 or older and has limited income, South Carolina's Senior Farmers Market Nutrition Program provides $50 in vouchers each year to buy fresh fruits, vegetables, honey, and herbs at farmers' markets. The program gives five $10 vouchers that work at authorized farmers' markets, roadside stands, and community-supported agriculture programs from May through October.\n\nYour parent must have a household income below 185% of federal poverty guidelines (approximately $2,769/month for a single person in 2024) and live in one of the 46 participating South Carolina counties. Because benefits are distributed first-come, first-served, eligible seniors should apply early when the season opens in May. Applications must be completed in person at approved distribution sites in your parent's county of residence.",
+      "intro": "If your loved one is 60 or older and has limited income, South Carolina's Senior Farmers Market Nutrition Program provides $50 in vouchers each year to buy fresh fruits, vegetables, honey, and herbs at farmers' markets. The program gives five $10 vouchers that work at authorized farmers' markets, roadside stands, and community-supported agriculture programs from May through October.\n\nYour loved one must have a household income below 185% of federal poverty guidelines (approximately $2,769/month for a single person in 2024) and live in one of the 46 participating South Carolina counties. Because benefits are distributed first-come, first-served, eligible seniors should apply early when the season opens in May. Applications must be completed in person at approved distribution sites in your loved one's county of residence.",
       "savingsRange": "$50/year in 2026",
       "savingsSource": "Five $10 vouchers per participant per year from SC Department of Social Services",
       "savingsVerified": true,
@@ -2014,12 +2014,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Applications must be completed in person at approved distribution sites in your parent's county, processing time varies by location.",
+        "summary": "Applications must be completed in person at approved distribution sites in your loved one's county, processing time varies by location.",
         "steps": [
           {
             "step": 1,
             "title": "Contact the program coordinator",
-            "description": "Call Willie Nixon at 803-898-1760 or email willie.j.nixon@dss.sc.gov to find approved distribution locations in your parent's county."
+            "description": "Call Willie Nixon at 803-898-1760 or email willie.j.nixon@dss.sc.gov to find approved distribution locations in your loved one's county."
           },
           {
             "step": 2,
@@ -2029,7 +2029,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Apply in person during season",
-            "description": "Visit the approved distribution location in your parent's county of residence between May 1 and October 15. Applications are processed first-come, first-served."
+            "description": "Visit the approved distribution location in your loved one's county of residence between May 1 and October 15. Applications are processed first-come, first-served."
           },
           {
             "step": 4,
@@ -2068,7 +2068,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "The program only runs May 1 through October 15 each year — the 2025 season has ended, next applications open Summer 2026",
-        "Even if your parent qualifies, vouchers may not be available due to first-come, first-served distribution",
+        "Even if your loved one qualifies, vouchers may not be available due to first-come, first-served distribution",
         "Vouchers can only be used at authorized vendors — not all farmers' markets participate in the program",
         "Income limits change annually based on federal poverty guidelines, so verify current thresholds when applying"
       ],
@@ -2080,11 +2080,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's income is slightly over the limit — is there any flexibility?",
+          "question": "What if my loved one's income is slightly over the limit — is there any flexibility?",
           "answer": "No, the 185% federal poverty guideline is a firm cutoff set by federal regulations. However, income limits are based on gross household income before taxes, and they change annually, so verify the current threshold when applying."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who can't travel to the distribution site?",
+          "question": "Can I apply on behalf of my elderly loved one who can't travel to the distribution site?",
           "answer": "The program requires in-person applications, but you should call Willie Nixon at 803-898-1760 to discuss accommodation options for seniors who cannot travel. Some counties may have mobile distribution or other arrangements."
         },
         {
@@ -2096,19 +2096,19 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Only authorized vendors accept SFMNP vouchers — not all farmers' markets participate. Contact the program coordinator at 803-898-1760 for a list of authorized farmers' markets, roadside stands, and CSA programs in your area."
         },
         {
-          "question": "Can my parent use SFMNP vouchers and SNAP benefits at the same farmers' market?",
-          "answer": "Yes, many authorized farmers' markets accept both SFMNP vouchers and SNAP EBT cards. Your parent can use both benefits to maximize their fresh produce purchasing power during farmers' market season."
+          "question": "Can my loved one use SFMNP vouchers and SNAP benefits at the same farmers' market?",
+          "answer": "Yes, many authorized farmers' markets accept both SFMNP vouchers and SNAP EBT cards. Your loved one can use both benefits to maximize their fresh produce purchasing power during farmers' market season."
         },
         {
-          "question": "What if my parent moves to a different county during the year — do they need to reapply?",
-          "answer": "Yes, participants must apply in their county of residence, and vouchers are distributed through county-specific sites. If your parent moves, contact the program coordinator to determine if they need to reapply in the new county."
+          "question": "What if my loved one moves to a different county during the year — do they need to reapply?",
+          "answer": "Yes, participants must apply in their county of residence, and vouchers are distributed through county-specific sites. If your loved one moves, contact the program coordinator to determine if they need to reapply in the new county."
         },
         {
           "question": "Do unused vouchers carry over to the next year?",
-          "answer": "No, vouchers must be used during the current season (May 1 through October 15) and cannot be saved for the following year. Your parent must reapply annually for new vouchers."
+          "answer": "No, vouchers must be used during the current season (May 1 through October 15) and cannot be saved for the following year. Your loved one must reapply annually for new vouchers."
         },
         {
-          "question": "What exactly can my parent buy with these vouchers?",
+          "question": "What exactly can my loved one buy with these vouchers?",
           "answer": "Vouchers can only be used for fresh, unprepared fruits and vegetables, honey, and herbs from authorized vendors. They cannot be used for prepared foods, baked goods, plants, seeds, or non-food items."
         }
       ],
@@ -2151,7 +2151,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and lives in the Pee Dee region of South Carolina, Vantage Point can connect them to services that help them stay in their home safely. The program provides referrals for home-delivered meals, caregiver support and respite care, Medicare insurance counseling, and mobility assistance — all coordinated through one assessment.\n\nVantage Point serves six counties: Chesterfield, Darlington, Dillon, Florence, Marion, and Marlboro. Because demand exceeds funding, services are prioritized by need through an assessment tool that scores your parent's situation. Those with the highest scores get services first, and waitlists exist for most programs.\n\nSome programs have limited benefits available — like $25 Senior Farmers Market vouchers distributed June through October on a first-come, first-served basis until the supply runs out.",
+      "intro": "If your loved one is 60+ and lives in the Pee Dee region of South Carolina, Vantage Point can connect them to services that help them stay in their home safely. The program provides referrals for home-delivered meals, caregiver support and respite care, Medicare insurance counseling, and mobility assistance — all coordinated through one assessment.\n\nVantage Point serves six counties: Chesterfield, Darlington, Dillon, Florence, Marion, and Marlboro. Because demand exceeds funding, services are prioritized by need through an assessment tool that scores your loved one's situation. Those with the highest scores get services first, and waitlists exist for most programs.\n\nSome programs have limited benefits available — like $25 Senior Farmers Market vouchers distributed June through October on a first-come, first-served basis until the supply runs out.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2180,12 +2180,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call for assessment",
-            "description": "Contact Vantage Point at (843) 857-0111 to complete the Question Pro assessment tool. This scoring determines your parent's priority tier for services."
+            "description": "Contact Vantage Point at (843) 857-0111 to complete the Question Pro assessment tool. This scoring determines your loved one's priority tier for services."
           },
           {
             "step": 2,
             "title": "Wait for service openings",
-            "description": "If services aren't immediately available, your parent will be placed on a waitlist. Priority is given to those with the highest assessment scores."
+            "description": "If services aren't immediately available, your loved one will be placed on a waitlist. Priority is given to those with the highest assessment scores."
           },
           {
             "step": 3,
@@ -2244,16 +2244,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply if my parent lives in Florence but I live in Charleston?",
-          "answer": "Yes — only your parent needs to live in the Pee Dee service area (Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro counties). You can call from anywhere to help coordinate their assessment and services."
+          "question": "Can I apply if my loved one lives in Florence but I live in Charleston?",
+          "answer": "Yes — only your loved one needs to live in the Pee Dee service area (Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro counties). You can call from anywhere to help coordinate their assessment and services."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Wait times aren't specified and depend on your parent's assessment score and which services they need. Those with the highest scores (typically lowest income, greatest functional needs) get priority. Call (843) 857-0111 to understand current availability for specific services."
+          "answer": "Wait times aren't specified and depend on your loved one's assessment score and which services they need. Those with the highest scores (typically lowest income, greatest functional needs) get priority. Call (843) 857-0111 to understand current availability for specific services."
         },
         {
-          "question": "What happens if my parent's situation changes after the assessment?",
-          "answer": "Assessments are updated annually, but you should call if your parent's needs change significantly — like a hospital stay, new disability, or income change. Their priority score can be recalculated to reflect new circumstances."
+          "question": "What happens if my loved one's situation changes after the assessment?",
+          "answer": "Assessments are updated annually, but you should call if your loved one's needs change significantly — like a hospital stay, new disability, or income change. Their priority score can be recalculated to reflect new circumstances."
         }
       ],
       "layoutIntent": {
@@ -2287,7 +2287,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you suspect Medicare fraud or need help reviewing confusing Medicare bills, Senior Medicare Patrol volunteers can help you spot errors and prevent scams at no cost. Because Medicare fraud costs families through higher premiums and copays, catching billing errors protects both your parent's coverage and your wallet.\n\nThe program provides free one-on-one counseling to review Medicare Summary Notices, education about common fraud schemes, and assistance reporting suspicious billing to the proper authorities. Volunteers are trained to help Medicare beneficiaries, family members, and caregivers identify billing problems that might otherwise go unnoticed.",
+      "intro": "If you suspect Medicare fraud or need help reviewing confusing Medicare bills, Senior Medicare Patrol volunteers can help you spot errors and prevent scams at no cost. Because Medicare fraud costs families through higher premiums and copays, catching billing errors protects both your loved one's coverage and your wallet.\n\nThe program provides free one-on-one counseling to review Medicare Summary Notices, education about common fraud schemes, and assistance reporting suspicious billing to the proper authorities. Volunteers are trained to help Medicare beneficiaries, family members, and caregivers identify billing problems that might otherwise go unnoticed.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2367,10 +2367,10 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I get help even if I'm not sure there's actually fraud?",
-          "answer": "Yes — volunteers help with any Medicare billing questions or concerns, whether it's obvious fraud or just confusing paperwork. They're trained to spot errors you might miss, like duplicate charges or services your parent never received. Even small billing mistakes can add up over time."
+          "answer": "Yes — volunteers help with any Medicare billing questions or concerns, whether it's obvious fraud or just confusing paperwork. They're trained to spot errors you might miss, like duplicate charges or services your loved one never received. Even small billing mistakes can add up over time."
         },
         {
-          "question": "What happens if we find actual fraud on my parent's Medicare bills?",
+          "question": "What happens if we find actual fraud on my loved one's Medicare bills?",
           "answer": "The volunteer will help you report it to the proper authorities, including the state fraud hotline at 1-800-447-8477 or federal agencies like HHS Office of Inspector General. They handle the investigation process — you don't need to become a fraud detective yourself."
         },
         {
@@ -2394,7 +2394,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "South Carolina offers 14 programs to help your aging parent stay independent and reduce your family's caregiving costs. Nine provide direct financial benefits — from $100–400/month for groceries through SNAP to thousands saved annually through the Community Choices Waiver that pays for home care instead of nursing home placement. Five offer free resources like Medicare counseling and legal help that every senior can access regardless of income. Most programs target seniors 60+ or 65+, with income limits typically around $1,620–2,152/month for single adults. Start by checking the highest-value programs first: Medicare Savings Programs can eliminate monthly premiums, while Community Choices Waiver can save your family $3,000–5,000/month in care costs.",
+    "intro": "South Carolina offers 14 programs to help your aging loved one stay independent and reduce your family's caregiving costs. Nine provide direct financial benefits — from $100–400/month for groceries through SNAP to thousands saved annually through the Community Choices Waiver that pays for home care instead of nursing home placement. Five offer free resources like Medicare counseling and legal help that every senior can access regardless of income. Most programs target seniors 60+ or 65+, with income limits typically around $1,620–2,152/month for single adults. Start by checking the highest-value programs first: Medicare Savings Programs can eliminate monthly premiums, while Community Choices Waiver can save your family $3,000–5,000/month in care costs.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI)",
@@ -2423,7 +2423,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "Community Choices Waiver"
         ],
-        "description": "Medicaid waiver that covers personal care, adult day services, and home modifications to keep your parent out of nursing homes."
+        "description": "Medicaid waiver that covers personal care, adult day services, and home modifications to keep your loved one out of nursing homes."
       },
       {
         "need": "Lower healthcare costs",

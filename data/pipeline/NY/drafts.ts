@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.917Z
+ * Last updated: 2026-04-20T22:05:18.098Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "community-medicaid",
       "name": "Community Medicaid",
       "shortName": "Community Medicaid",
-      "tagline": "Medicaid coverage for home care services so your parent can stay in their own home instead of moving to a nursing facility",
+      "tagline": "Medicaid coverage for home care services so your loved one can stay in their own home instead of moving to a nursing facility",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help with daily activities like bathing, dressing, or medication management, Community Medicaid can cover home health aides, personal care, nursing visits, and other services that help them stay home safely. Your parent must need nursing home-level care (help with at least 3 daily activities since 2021) and have limited income and assets to qualify.\n\nThe program covers home health aides, personal care assistance, nursing visits, physical therapy, adult day care, respite care, meal preparation, light housekeeping, and medication management. Because Community Medicaid works through Managed Long Term Care (MLTC) plans, one care team coordinates all services instead of you managing separate providers.\n\nFor 2026, your parent can have up to $33,038 in countable assets if single, and monthly income up to approximately $1,800. The home they live in doesn't count toward the asset limit, and neither does one car or personal belongings.",
+      "intro": "If your loved one needs help with daily activities like bathing, dressing, or medication management, Community Medicaid can cover home health aides, personal care, nursing visits, and other services that help them stay home safely. Your loved one must need nursing home-level care (help with at least 3 daily activities since 2021) and have limited income and assets to qualify.\n\nThe program covers home health aides, personal care assistance, nursing visits, physical therapy, adult day care, respite care, meal preparation, light housekeeping, and medication management. Because Community Medicaid works through Managed Long Term Care (MLTC) plans, one care team coordinates all services instead of you managing separate providers.\n\nFor 2026, your loved one can have up to $33,038 in countable assets if single, and monthly income up to approximately $1,800. The home they live in doesn't count toward the asset limit, and neither does one car or personal belongings.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -75,7 +75,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Get eligibility screening",
-            "description": "Call 855-355-5777 (TTY 1-800-662-1220) to check if your parent meets basic income and asset requirements. Have their Social Security number and income information ready."
+            "description": "Call 855-355-5777 (TTY 1-800-662-1220) to check if your loved one meets basic income and asset requirements. Have their Social Security number and income information ready."
           },
           {
             "step": 2,
@@ -90,7 +90,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete functional assessment",
-            "description": "A nurse or case manager will evaluate your parent's ability to perform daily activities like bathing, dressing, and medication management to confirm nursing home-level care need."
+            "description": "A nurse or case manager will evaluate your loved one's ability to perform daily activities like bathing, dressing, and medication management to confirm nursing home-level care need."
           },
           {
             "step": 5,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Weeks to months depending on completeness of application and required assessments",
         "waitlist": "Possible for certain services or managed care plans depending on region",
-        "tip": "Apply in the county where your parent lives — each county's Department of Social Services handles applications differently.",
+        "tip": "Apply in the county where your loved one lives — each county's Department of Social Services handles applications differently.",
         "urls": [
           {
             "label": "New York State of Health",
@@ -146,7 +146,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Income over the limit may still qualify through a Pooled Income Trust — ask about this option during screening",
         "Asset transfers in the last 60 months trigger penalty periods — be honest about any gifts or sales below market value",
-        "Spousal protections allow the community spouse to keep more assets and income if your parent is married",
+        "Spousal protections allow the community spouse to keep more assets and income if your loved one is married",
         "Choose your MLTC plan carefully — switching later can be difficult and some plans have longer wait times than others"
       ],
       "relatedPrograms": [
@@ -158,27 +158,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, the primary residence is exempt from the $33,038 asset limit regardless of value. Your parent can keep their home as long as they live in it or intend to return. However, Medicaid may place a lien on the property to recover costs after death."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary residence is exempt from the $33,038 asset limit regardless of value. Your loved one can keep their home as long as they live in it or intend to return. However, Medicaid may place a lien on the property to recover costs after death."
         },
         {
-          "question": "What if my parent's income is just over the $1,800 monthly limit?",
+          "question": "What if my loved one's income is just over the $1,800 monthly limit?",
           "answer": "They may still qualify using a Pooled Income Trust, where excess income is deposited each month to meet the limit. Call 855-355-5777 to ask about this option — many families don't know it exists."
         },
         {
           "question": "How long is the waitlist for home health aide services?",
-          "answer": "Wait times vary by region and MLTC plan — some have immediate openings while others have several months' wait. When choosing a plan, ask specifically about current wait times for the services your parent needs most."
+          "answer": "Wait times vary by region and MLTC plan — some have immediate openings while others have several months' wait. When choosing a plan, ask specifically about current wait times for the services your loved one needs most."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, adult children can apply on behalf of parents who cannot manage their affairs due to dementia or other conditions. You may need to become their representative payee or have power of attorney to act on their behalf."
         },
         {
-          "question": "What happens if my parent's condition gets worse after enrollment?",
+          "question": "What happens if my loved one's condition gets worse after enrollment?",
           "answer": "The MLTC plan will reassess their needs and can increase services like adding more aide hours or therapy visits. Contact the plan's care coordinator when you notice changes — don't wait for the annual review."
         },
         {
-          "question": "Can my parent have both Medicare and Community Medicaid?",
+          "question": "Can my loved one have both Medicare and Community Medicaid?",
           "answer": "Yes, this is common and beneficial. Medicare covers medical care while Community Medicaid covers long-term services Medicare doesn't pay for, like ongoing personal care and home health aide services."
         },
         {
@@ -399,7 +399,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay home, PACE provides everything under one roof: primary care, specialists, transportation, prescriptions delivered, home health aides, adult day care, and 24/7 care coordination. Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one interdisciplinary team manages everything from doctor visits to physical therapy to meals.\n\nYour parent must be 55+ and live in a PACE service area (currently only Rochester-area counties and Bronx/Westchester in New York). They need to qualify for nursing home-level care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services. Most participants have both Medicare and Medicaid, but private pay options exist.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides everything under one roof: primary care, specialists, transportation, prescriptions delivered, home health aides, adult day care, and 24/7 care coordination. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers — one interdisciplinary team manages everything from doctor visits to physical therapy to meals.\n\nYour loved one must be 55+ and live in a PACE service area (currently only Rochester-area counties and Bronx/Westchester in New York). They need to qualify for nursing home-level care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services. Most participants have both Medicare and Medicaid, but private pay options exist.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical and social services",
       "savingsVerified": false,
@@ -414,7 +414,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must meet nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services",
+        "functionalRequirement": "Must meet nursing home level of care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication management) and require more than 120 days of community-based long-term care services",
         "otherRequirements": [
           "Must live in the service area of a PACE organization",
           "Must be able to live safely in the community at time of enrollment with PACE assistance"
@@ -433,17 +433,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule assessment",
-            "description": "The PACE team will assess whether your parent meets nursing home level of care requirements and can live safely in the community with their support."
+            "description": "The PACE team will assess whether your loved one meets nursing home level of care requirements and can live safely in the community with their support."
           },
           {
             "step": 3,
             "title": "Complete enrollment",
-            "description": "If approved, your parent's Medicare and Medicaid benefits transfer entirely to PACE — they become the sole provider for all covered services."
+            "description": "If approved, your loved one's Medicare and Medicaid benefits transfer entirely to PACE — they become the sole provider for all covered services."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "PACE becomes your parent's sole Medicare and Medicaid provider — they can't use other plans while enrolled, but can disenroll anytime.",
+        "tip": "PACE becomes your loved one's sole Medicare and Medicaid provider — they can't use other plans while enrolled, but can disenroll anytime.",
         "urls": [
           {
             "label": "NY Medicaid Choice PACE Info",
@@ -486,10 +486,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE is only available in specific counties — confirm your parent lives in a service area before starting the application process",
-        "Your parent must be able to live safely in the community at enrollment time, even if they need extensive support",
+        "PACE is only available in specific counties — confirm your loved one lives in a service area before starting the application process",
+        "Your loved one must be able to live safely in the community at enrollment time, even if they need extensive support",
         "Private pay is possible for those who don't qualify for Medicaid but meet other requirements",
-        "Once enrolled, PACE becomes the sole provider of all Medicare and Medicaid benefits — your parent cannot use other healthcare plans simultaneously"
+        "Once enrolled, PACE becomes the sole provider of all Medicare and Medicaid benefits — your loved one cannot use other healthcare plans simultaneously"
       ],
       "relatedPrograms": [
         "Consumer Directed Personal Assistance Program (CDPAP)",
@@ -500,28 +500,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their current doctor if they join PACE?",
-          "answer": "No, PACE provides all medical care through their own interdisciplinary team of geriatricians, nurses, and specialists. Your parent's current doctors will not be covered. However, the PACE team coordinates all care and often has better availability than traditional practices."
+          "question": "Can my loved one keep their current doctor if they join PACE?",
+          "answer": "No, PACE provides all medical care through their own interdisciplinary team of geriatricians, nurses, and specialists. Your loved one's current doctors will not be covered. However, the PACE team coordinates all care and often has better availability than traditional practices."
         },
         {
-          "question": "What if my parent lives outside the PACE service areas?",
-          "answer": "PACE is currently only available in Monroe, Ontario, Wayne Counties (through ElderONE) and Bronx/Westchester (through ArchCare). If your parent lives elsewhere in New York, they're not eligible. Consider Medicaid Managed Long Term Care (MLTC) or CDPAP as alternatives."
+          "question": "What if my loved one lives outside the PACE service areas?",
+          "answer": "PACE is currently only available in Monroe, Ontario, Wayne Counties (through ElderONE) and Bronx/Westchester (through ArchCare). If your loved one lives elsewhere in New York, they're not eligible. Consider Medicaid Managed Long Term Care (MLTC) or CDPAP as alternatives."
         },
         {
-          "question": "How much does PACE cost if my parent has Medicare but not Medicaid?",
+          "question": "How much does PACE cost if my loved one has Medicare but not Medicaid?",
           "answer": "Private pay options exist but specific costs aren't published. Contact your local PACE provider directly for pricing. Most participants are dual-eligible for both Medicare and Medicaid, which covers all PACE services."
         },
         {
-          "question": "Can my parent leave PACE if they don't like the services?",
+          "question": "Can my loved one leave PACE if they don't like the services?",
           "answer": "Yes, participants can disenroll from PACE at any time and return to regular Medicare and Medicaid coverage. However, they may face gaps in care coordination and need to find new providers independently."
         },
         {
-          "question": "What happens if my parent needs to move to a different county?",
-          "answer": "If your parent moves outside their PACE service area, they must disenroll and find new healthcare providers. PACE coverage doesn't transfer between regions, even within New York State."
+          "question": "What happens if my loved one needs to move to a different county?",
+          "answer": "If your loved one moves outside their PACE service area, they must disenroll and find new healthcare providers. PACE coverage doesn't transfer between regions, even within New York State."
         },
         {
           "question": "Does PACE provide 24-hour home care if needed?",
-          "answer": "PACE provides comprehensive services including home health aides, but the specific hours depend on your parent's assessed needs. The program includes 24/7 care coordination, meaning someone is always available by phone for emergencies or urgent needs."
+          "answer": "PACE provides comprehensive services including home health aides, but the specific hours depend on your loved one's assessed needs. The program includes 24/7 care coordination, meaning someone is always available by phone for emergencies or urgent needs."
         }
       ],
       "layoutIntent": {
@@ -542,7 +542,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-program-qmb-slmb-qi",
       "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
       "shortName": "Medicare Savings Program",
-      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $1,715/month",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your loved one's income is under $1,715/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -555,7 +555,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay Medicare premiums, deductibles, or copays, New York's Medicare Savings Program can cover these costs based on income. The program has three levels: QMB covers all Medicare costs for incomes up to $1,350/month for singles, SLMB covers Part B premiums for incomes up to $1,526/month, and QI covers Part B premiums for incomes up to $1,715/month.\n\nNew York uses more generous income limits than the federal minimums — your parent may qualify even if they wouldn't in other states. QMB participants also get full Medicaid benefits, while all levels automatically qualify for Extra Help with prescription drug costs (maximum $12.65 per prescription in 2026).\n\nThe program counts assets like bank accounts and stocks, but exempts your parent's home, car, and burial plots. Asset limits are $9,950 for individuals and $14,910 for couples in 2026.",
+      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or copays, New York's Medicare Savings Program can cover these costs based on income. The program has three levels: QMB covers all Medicare costs for incomes up to $1,350/month for singles, SLMB covers Part B premiums for incomes up to $1,526/month, and QI covers Part B premiums for incomes up to $1,715/month.\n\nNew York uses more generous income limits than the federal minimums — your loved one may qualify even if they wouldn't in other states. QMB participants also get full Medicaid benefits, while all levels automatically qualify for Extra Help with prescription drug costs (maximum $12.65 per prescription in 2026).\n\nThe program counts assets like bank accounts and stocks, but exempts your loved one's home, car, and burial plots. Asset limits are $9,950 for individuals and $14,910 for couples in 2026.",
       "savingsRange": "$1,000 – $8,000/year in 2026",
       "savingsSource": "Medicare Part B premium ($185/month), deductibles, and copays",
       "savingsVerified": true,
@@ -723,35 +723,35 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes. The home where your parent lives is completely exempt from the $9,950 asset limit, regardless of value. New York also exempts one car, burial plots, and personal belongings."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. The home where your loved one lives is completely exempt from the $9,950 asset limit, regardless of value. New York also exempts one car, burial plots, and personal belongings."
         },
         {
-          "question": "What if my parent's income is just over the limit some months?",
+          "question": "What if my loved one's income is just over the limit some months?",
           "answer": "New York uses net income after deductions, so medical expenses and Medicare premiums are subtracted from gross income. Even if Social Security is slightly over the limit, deductions might bring them into eligibility."
         },
         {
           "question": "Can I apply for MSP and regular Medicaid at the same time?",
-          "answer": "Yes, use the full Medicaid application instead of the MSP-only short form. The county will determine which programs your parent qualifies for. QMB automatically includes full Medicaid benefits."
+          "answer": "Yes, use the full Medicaid application instead of the MSP-only short form. The county will determine which programs your loved one qualifies for. QMB automatically includes full Medicaid benefits."
         },
         {
           "question": "How long does QI-1 funding actually last each year?",
           "answer": "QI-1 operates on limited federal funding that resets each January. In busy counties, it may fill up by mid-year. Apply as early in January as possible, and prior QI recipients get priority."
         },
         {
-          "question": "What happens if my parent moves to a different county in New York?",
+          "question": "What happens if my loved one moves to a different county in New York?",
           "answer": "MSP benefits continue, but they need to transfer their case to the new county's Department of Social Services within 10 days. Benefits shouldn't be interrupted if you report the move promptly."
         },
         {
-          "question": "Does MSP affect my parent's Medicare Advantage plan?",
-          "answer": "MSP works with Medicare Advantage plans and covers the same costs it would with Original Medicare. Your parent may also qualify for Special Needs Plans designed for MSP recipients with extra benefits."
+          "question": "Does MSP affect my loved one's Medicare Advantage plan?",
+          "answer": "MSP works with Medicare Advantage plans and covers the same costs it would with Original Medicare. Your loved one may also qualify for Special Needs Plans designed for MSP recipients with extra benefits."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Yes, family members can apply as authorized representatives. You'll need to complete additional paperwork establishing your authority to act on your parent's behalf during the application process."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Yes, family members can apply as authorized representatives. You'll need to complete additional paperwork establishing your authority to act on your loved one's behalf during the application process."
         },
         {
-          "question": "What if my parent was denied MSP in another state?",
+          "question": "What if my loved one was denied MSP in another state?",
           "answer": "Apply again in New York. New York uses income limits up to 138% of Federal Poverty Level for QMB, which is more generous than federal minimums. Many people who don't qualify elsewhere will qualify here."
         }
       ],
@@ -786,7 +786,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and on a fixed income with no earned wages, they may qualify for monthly food assistance through SNAP's simplified enrollment programs. New York offers two streamlined versions: ESAP for seniors/disabled households with no earned income, and NYSCAP for SSI recipients living alone — both with easier applications and 3-year certifications instead of frequent renewals.\n\nThe benefit amount depends on household size and net income, loaded monthly onto an EBT card for grocery purchases. Because these simplified programs use data matching with Social Security, your parent won't need to provide as much documentation or attend recertification interviews every few months like regular SNAP.\n\nEven if your parent's income seems too high for regular SNAP, New York has expanded income limits for seniors and disabled adults — households with all members 60+ or disabled can have gross monthly income up to $2,608 for a single person (compared to lower limits for working-age adults).",
+      "intro": "If your loved one is 60+ and on a fixed income with no earned wages, they may qualify for monthly food assistance through SNAP's simplified enrollment programs. New York offers two streamlined versions: ESAP for seniors/disabled households with no earned income, and NYSCAP for SSI recipients living alone — both with easier applications and 3-year certifications instead of frequent renewals.\n\nThe benefit amount depends on household size and net income, loaded monthly onto an EBT card for grocery purchases. Because these simplified programs use data matching with Social Security, your loved one won't need to provide as much documentation or attend recertification interviews every few months like regular SNAP.\n\nEven if your loved one's income seems too high for regular SNAP, New York has expanded income limits for seniors and disabled adults — households with all members 60+ or disabled can have gross monthly income up to $2,608 for a single person (compared to lower limits for working-age adults).",
       "savingsRange": "",
       "savingsSource": "Monthly food benefit amount varies by household size and income",
       "savingsVerified": false,
@@ -879,7 +879,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days standard, expedited processing under 7 days if very low income",
         "waitlist": null,
-        "tip": "If your parent receives SSI and lives alone, they may be automatically enrolled in NYSCAP without applying.",
+        "tip": "If your loved one receives SSI and lives alone, they may be automatically enrolled in NYSCAP without applying.",
         "urls": [
           {
             "label": "Apply Online",
@@ -938,36 +938,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep SNAP if they move from living alone to living with family?",
-          "answer": "It depends on the living situation. If your parent moves in with you and you share meals/expenses, they'd join your household and may lose NYSCAP eligibility. If they have separate cooking facilities and buy food separately, they can remain their own household. Report the change to DSS within 10 days to determine impact on benefits."
+          "question": "Can my loved one keep SNAP if they move from living alone to living with family?",
+          "answer": "It depends on the living situation. If your loved one moves in with you and you share meals/expenses, they'd join your household and may lose NYSCAP eligibility. If they have separate cooking facilities and buy food separately, they can remain their own household. Report the change to DSS within 10 days to determine impact on benefits."
         },
         {
-          "question": "What happens if my parent starts receiving a small pension while on ESAP?",
+          "question": "What happens if my loved one starts receiving a small pension while on ESAP?",
           "answer": "Pension income is fine for ESAP — the restriction is only on earned income from employment. Report the pension to your local DSS office as it may affect the benefit amount, but won't disqualify them from the simplified program as long as income stays under limits."
         },
         {
           "question": "Can I apply for both ESAP and regular SNAP at the same time?",
-          "answer": "No, these are different pathways for the same program. Your parent will automatically be evaluated for whichever version they qualify for. If they don't meet ESAP requirements (like having earned income), they'll be processed for regular SNAP instead."
+          "answer": "No, these are different pathways for the same program. Your loved one will automatically be evaluated for whichever version they qualify for. If they don't meet ESAP requirements (like having earned income), they'll be processed for regular SNAP instead."
         },
         {
-          "question": "How much will my parent actually receive each month?",
+          "question": "How much will my loved one actually receive each month?",
           "answer": "The amount depends on net income after deductions for housing costs, medical expenses, and utilities. A single person with $1,000/month income and $600 rent might receive $50-150/month, but the exact calculation requires applying. The benefit decreases as income increases."
         },
         {
-          "question": "What if my parent owns their home but it's worth more than the asset limit?",
+          "question": "What if my loved one owns their home but it's worth more than the asset limit?",
           "answer": "The primary home doesn't count toward the $4,500 asset limit regardless of value. Other exempt assets include one vehicle, reasonable household goods, and burial funds. Only countable assets like bank accounts, investments, and extra property count toward the limit."
         },
         {
-          "question": "Can my parent use SNAP benefits to buy vitamins or prepared hot food?",
+          "question": "Can my loved one use SNAP benefits to buy vitamins or prepared hot food?",
           "answer": "No, SNAP cannot be used for vitamins, supplements, alcohol, tobacco, hot prepared foods, or non-food items. It covers groceries like fruits, vegetables, meat, dairy, bread, cereals, and seeds for growing food. Some stores have programs allowing hot food purchases for elderly or disabled recipients."
         },
         {
           "question": "What happens when the 36-month ESAP certification period ends?",
-          "answer": "Your parent will need to recertify to continue benefits. DSS will mail renewal forms before expiration. Because it's simplified renewal, they won't need an interview and will use data matching when possible. If their situation has changed significantly, they may transition to regular SNAP."
+          "answer": "Your loved one will need to recertify to continue benefits. DSS will mail renewal forms before expiration. Because it's simplified renewal, they won't need an interview and will use data matching when possible. If their situation has changed significantly, they may transition to regular SNAP."
         },
         {
-          "question": "Can my parent get expedited SNAP if they have almost no food or money?",
-          "answer": "Yes, if your parent has less than $150 monthly income and under $100 in cash/bank accounts, or if monthly housing costs exceed monthly income, they may qualify for expedited processing within 7 days instead of 30 days. Apply immediately and mention the emergency situation."
+          "question": "Can my loved one get expedited SNAP if they have almost no food or money?",
+          "answer": "Yes, if your loved one has less than $150 monthly income and under $100 in cash/bank accounts, or if monthly housing costs exceed monthly income, they may qualify for expedited processing within 7 days instead of 30 days. Apply immediately and mention the emergency situation."
         }
       ],
       "layoutIntent": {
@@ -988,7 +988,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "heap-energy-assistance",
       "name": "Home Energy Assistance Program (HEAP)",
       "shortName": "HEAP",
-      "tagline": "Up to $900+ toward heating bills if your parent pays for their own heat or electric.",
+      "tagline": "Up to $900+ toward heating bills if your loved one pays for their own heat or electric.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1009,7 +1009,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with heating or electric bills, HEAP provides direct payments to utility companies or fuel vendors. Benefits range from $45 for households with heat included in rent to $900+ for those who pay directly for oil, propane, or other deliverable fuels.\n\nYour parent automatically qualifies if they receive SNAP, Temporary Assistance, or SSI. Otherwise, household income must be at or below 130% of federal poverty level. The heating or electric bill must be in your parent's name — this is a hard requirement.\n\nRegular HEAP is open now (started December 1, 2025). Emergency HEAP for families facing shutoff opens January 2, 2026 and requires a disconnection notice.",
+      "intro": "If your loved one struggles with heating or electric bills, HEAP provides direct payments to utility companies or fuel vendors. Benefits range from $45 for households with heat included in rent to $900+ for those who pay directly for oil, propane, or other deliverable fuels.\n\nYour loved one automatically qualifies if they receive SNAP, Temporary Assistance, or SSI. Otherwise, household income must be at or below 130% of federal poverty level. The heating or electric bill must be in your loved one's name — this is a hard requirement.\n\nRegular HEAP is open now (started December 1, 2025). Emergency HEAP for families facing shutoff opens January 2, 2026 and requires a disconnection notice.",
       "savingsRange": "$45 – $900+/year in 2026",
       "savingsSource": "Benefit amounts vary by heating source and living situation, from OTDA official guidelines",
       "savingsVerified": true,
@@ -1069,7 +1069,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": "Emergency HEAP opens January 2, 2026 and closes April 7, 2026",
-        "tip": "If your parent receives SNAP, TA, or SSI, mention this upfront — it makes them automatically income-eligible regardless of other income.",
+        "tip": "If your loved one receives SNAP, TA, or SSI, mention this upfront — it makes them automatically income-eligible regardless of other income.",
         "urls": [
           {
             "label": "Apply for HEAP online",
@@ -1118,7 +1118,7 @@ export const drafts: PipelineStateDrafts = {
         "Tenants in government-subsidized housing where heat is included in rent do NOT qualify — this is the most common reason applications are denied",
         "Bank statements cannot be used as proof of monthly income — you need pay stubs, tax returns, or pension statements",
         "The heating or electric bill must be in the applicant's name — utility companies won't accept applications where someone else is the account holder",
-        "You can only receive one Regular HEAP benefit per program year, so timing matters if your parent's situation might change"
+        "You can only receive one Regular HEAP benefit per program year, so timing matters if your loved one's situation might change"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1129,36 +1129,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "My parent lives in senior housing where heat is included in rent — can they still get HEAP?",
-          "answer": "No, tenants in government-subsidized housing with heat included in rent do not qualify for HEAP. However, if your parent pays their own electric bill separately, they may qualify for electric assistance even if heat is included."
+          "question": "My loved one lives in senior housing where heat is included in rent — can they still get HEAP?",
+          "answer": "No, tenants in government-subsidized housing with heat included in rent do not qualify for HEAP. However, if your loved one pays their own electric bill separately, they may qualify for electric assistance even if heat is included."
         },
         {
           "question": "Can I apply for both Regular HEAP and Emergency HEAP in the same year?",
           "answer": "Yes, these are separate programs. Regular HEAP is for general heating assistance, while Emergency HEAP is specifically for households facing utility shutoff. You need a disconnection notice for Emergency HEAP, which opens January 2, 2026."
         },
         {
-          "question": "My parent receives Social Security but no other benefits — do they automatically qualify?",
-          "answer": "Social Security alone doesn't automatically qualify your parent. They need to receive SNAP, Temporary Assistance, or Code A SSI Living Alone for automatic eligibility. Otherwise, total household income must be at or below 130% of federal poverty level."
+          "question": "My loved one receives Social Security but no other benefits — do they automatically qualify?",
+          "answer": "Social Security alone doesn't automatically qualify your loved one. They need to receive SNAP, Temporary Assistance, or Code A SSI Living Alone for automatic eligibility. Otherwise, total household income must be at or below 130% of federal poverty level."
         },
         {
-          "question": "The utility bill is in my name but my parent lives there — can we still apply?",
-          "answer": "No, the heating and/or electric bill must be in the applicant's name. You'll need to contact the utility company to add your parent's name to the account or transfer it entirely before applying for HEAP."
+          "question": "The utility bill is in my name but my loved one lives there — can we still apply?",
+          "answer": "No, the heating and/or electric bill must be in the applicant's name. You'll need to contact the utility company to add your loved one's name to the account or transfer it entirely before applying for HEAP."
         },
         {
-          "question": "How much will my parent actually receive from HEAP?",
+          "question": "How much will my loved one actually receive from HEAP?",
           "answer": "It depends on their heating source and living situation. Households paying directly for oil, propane, or kerosene typically receive $900+. Those with wood, pellets, or coal get $635+. Households with heat included in rent receive much less: $45-50."
         },
         {
-          "question": "My parent was denied HEAP before — can they reapply?",
+          "question": "My loved one was denied HEAP before — can they reapply?",
           "answer": "Yes, they can reapply each program year. Common reasons for denial include heat being included in subsidized rent, utility bills not in applicant's name, or income over 130% federal poverty level. Address the specific denial reason before reapplying."
         },
         {
-          "question": "Does my parent's savings account count against the asset limit?",
-          "answer": "Yes, available resources like savings accounts count toward the $2,500 limit ($3,750 if your parent is 60+ or disabled). However, certain resources are exempt, though specific exemptions aren't detailed in program materials."
+          "question": "Does my loved one's savings account count against the asset limit?",
+          "answer": "Yes, available resources like savings accounts count toward the $2,500 limit ($3,750 if your loved one is 60+ or disabled). However, certain resources are exempt, though specific exemptions aren't detailed in program materials."
         },
         {
-          "question": "Can HEAP help if my parent needs their heating equipment repaired?",
-          "answer": "Yes, the Heating Equipment Repair and Replacement (HERR) program is part of HEAP. However, your parent must be 60+ and have owned and lived in their home for 12 months before applying."
+          "question": "Can HEAP help if my loved one needs their heating equipment repaired?",
+          "answer": "Yes, the Heating Equipment Repair and Replacement (HERR) program is part of HEAP. However, your loved one must be 60+ and have owned and lived in their home for 12 months before applying."
         }
       ],
       "layoutIntent": {
@@ -1179,7 +1179,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "wrap-weatherization",
       "name": "Weatherization Referral and Packaging Program (WRAP)",
       "shortName": "WRAP Weatherization",
-      "tagline": "Free home weatherization services that can cut your parent's energy bills by 20% or more",
+      "tagline": "Free home weatherization services that can cut your loved one's energy bills by 20% or more",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1192,7 +1192,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is struggling with high energy bills, WRAP provides free weatherization services that typically reduce energy costs by more than 20%. The program includes comprehensive home improvements like new insulation, heating system repairs or replacement, air sealing, and Energy Star appliance replacements. Most installations cost $3,000-$4,000 in services at no charge to your parent.\n\nYour parent automatically qualifies if they receive SSI, Public Assistance, SNAP, or HEAP benefits. Otherwise, household income must be at or below 60% of New York State median income (tied to current HEAP guidelines). The program prioritizes seniors, families with children, and people with disabilities, but serves all eligible homeowners and most renters statewide.\n\nBecause WRAP operates through local providers with limited annual funding, there may be a waitlist. However, priority groups often get faster service, and the comprehensive energy audit identifies the most cost-effective improvements for your parent's specific home.",
+      "intro": "If your loved one is struggling with high energy bills, WRAP provides free weatherization services that typically reduce energy costs by more than 20%. The program includes comprehensive home improvements like new insulation, heating system repairs or replacement, air sealing, and Energy Star appliance replacements. Most installations cost $3,000-$4,000 in services at no charge to your loved one.\n\nYour loved one automatically qualifies if they receive SSI, Public Assistance, SNAP, or HEAP benefits. Otherwise, household income must be at or below 60% of New York State median income (tied to current HEAP guidelines). The program prioritizes seniors, families with children, and people with disabilities, but serves all eligible homeowners and most renters statewide.\n\nBecause WRAP operates through local providers with limited annual funding, there may be a waitlist. However, priority groups often get faster service, and the comprehensive energy audit identifies the most cost-effective improvements for your loved one's specific home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1237,7 +1237,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Schedule energy audit",
-            "description": "A certified auditor will inspect your parent's home to identify the most cost-effective weatherization improvements."
+            "description": "A certified auditor will inspect your loved one's home to identify the most cost-effective weatherization improvements."
           },
           {
             "step": 5,
@@ -1247,7 +1247,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Timeline depends on local funding availability and waitlist - contact local provider for current estimates",
         "waitlist": "Funding-dependent - local providers contact applicants when funds become available",
-        "tip": "Apply as early as possible since funding is limited, and mention if your parent is elderly or disabled for priority consideration.",
+        "tip": "Apply as early as possible since funding is limited, and mention if your loved one is elderly or disabled for priority consideration.",
         "urls": [
           {
             "label": "Find Local Provider Directory",
@@ -1286,7 +1286,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "WRAP is often bundled with HEAP applications - if your parent applies for heating assistance, ask about weatherization at the same time",
+        "WRAP is often bundled with HEAP applications - if your loved one applies for heating assistance, ask about weatherization at the same time",
         "NYC individual renters cannot apply, but building owners can apply for multi-family properties",
         "Income limits change annually and follow HEAP guidelines - verify current thresholds with your local provider",
         "Buildings weatherized after 1994 are ineligible for repeat weatherization services"
@@ -1306,35 +1306,35 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they're a renter?",
-          "answer": "Yes, renters are eligible statewide except in NYC where only building owners can apply. Your parent's landlord may need to provide permission for the work. Contact your local provider to discuss renter requirements in your area."
+          "question": "Can my loved one apply if they're a renter?",
+          "answer": "Yes, renters are eligible statewide except in NYC where only building owners can apply. Your loved one's landlord may need to provide permission for the work. Contact your local provider to discuss renter requirements in your area."
         },
         {
-          "question": "What if my parent's income is slightly above the limit?",
-          "answer": "Income limits follow HEAP guidelines and change annually. If your parent receives SSI, SNAP, Public Assistance, or HEAP benefits, they automatically qualify regardless of income amount. Otherwise, they must be at or below 60% of state median income."
+          "question": "What if my loved one's income is slightly above the limit?",
+          "answer": "Income limits follow HEAP guidelines and change annually. If your loved one receives SSI, SNAP, Public Assistance, or HEAP benefits, they automatically qualify regardless of income amount. Otherwise, they must be at or below 60% of state median income."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlist length depends entirely on your local provider's annual funding allocation. Seniors, families with children, and people with disabilities get priority placement. Call your local provider for current wait times in your area."
         },
         {
-          "question": "What happens if my parent's house was weatherized before?",
-          "answer": "Buildings weatherized after 1994 are not eligible for repeat weatherization. If work was done before 1994, your parent may qualify. The energy auditor will determine what additional improvements are needed."
+          "question": "What happens if my loved one's house was weatherized before?",
+          "answer": "Buildings weatherized after 1994 are not eligible for repeat weatherization. If work was done before 1994, your loved one may qualify. The energy auditor will determine what additional improvements are needed."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. You'll need your parent's income documentation and benefit information. If you have legal authority (power of attorney), mention this to the local provider."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. You'll need your loved one's income documentation and benefit information. If you have legal authority (power of attorney), mention this to the local provider."
         },
         {
-          "question": "What if my parent needs heating system replacement?",
+          "question": "What if my loved one needs heating system replacement?",
           "answer": "Heating system improvements and replacements are included in WRAP services. The energy audit will determine if repair or replacement is more cost-effective. There's typically a $6,500 maximum per unit, covering most necessary heating work."
         },
         {
-          "question": "Can my parent get both HEAP and WRAP in the same year?",
+          "question": "Can my loved one get both HEAP and WRAP in the same year?",
           "answer": "Yes, HEAP (heating bill assistance) and WRAP (weatherization services) are complementary programs. Many local providers handle both applications together. HEAP provides immediate bill payment help while WRAP reduces long-term energy costs."
         },
         {
-          "question": "What if my parent lives in a mobile home?",
+          "question": "What if my loved one lives in a mobile home?",
           "answer": "Mobile homes are eligible for weatherization services. The energy audit will identify appropriate improvements like skirting, insulation, and heating system work. Contact your local provider to discuss mobile home-specific weatherization options."
         }
       ],
@@ -1356,7 +1356,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "hiicap-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP) / Health Insurance Information, Counseling and Assistance Program (HIICAP)",
       "shortName": "HIICAP Medicare Counseling",
-      "tagline": "Free one-on-one help navigating Medicare options, understanding costs, and resolving insurance problems for your parent.",
+      "tagline": "Free one-on-one help navigating Medicare options, understanding costs, and resolving insurance problems for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1369,7 +1369,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare or is turning 65 soon, HIICAP provides free, confidential counseling to help them understand their options. Nearly 500 trained counselors across New York offer one-on-one guidance on Medicare Advantage plans, Medigap policies, prescription drug coverage, and costs — with no sales pressure or bias toward any insurance company.\n\nBecause Medicare has dozens of plan options that change every year, many families struggle to compare benefits and find the best fit. HIICAP counselors help your parent understand their current coverage, compare alternatives during open enrollment, resolve claims problems, and apply for programs that reduce Medicare costs. They also provide referrals to other assistance programs and help with insurance paperwork.",
+      "intro": "If your loved one has Medicare or is turning 65 soon, HIICAP provides free, confidential counseling to help them understand their options. Nearly 500 trained counselors across New York offer one-on-one guidance on Medicare Advantage plans, Medigap policies, prescription drug coverage, and costs — with no sales pressure or bias toward any insurance company.\n\nBecause Medicare has dozens of plan options that change every year, many families struggle to compare benefits and find the best fit. HIICAP counselors help your loved one understand their current coverage, compare alternatives during open enrollment, resolve claims problems, and apply for programs that reduce Medicare costs. They also provide referrals to other assistance programs and help with insurance paperwork.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1407,7 +1407,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Prepare for your session",
-            "description": "Have your parent's Medicare card and current insurance information available. The counselor will review options specific to your parent's needs and location."
+            "description": "Have your loved one's Medicare card and current insurance information available. The counselor will review options specific to your loved one's needs and location."
           }
         ],
         "processingTime": "Immediate phone routing and counseling scheduling",
@@ -1451,19 +1451,19 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help for my parent even if they already have Medicare coverage?",
+          "question": "Can I get help for my loved one even if they already have Medicare coverage?",
           "answer": "Yes. HIICAP counselors help people who are already enrolled in Medicare understand their current benefits, compare other plan options during open enrollment, resolve billing problems, and find programs that reduce costs. You don't need to be shopping for new coverage to get help."
         },
         {
           "question": "Will the counselor try to sell us insurance or get paid by insurance companies?",
-          "answer": "No. HIICAP counselors are trained volunteers who provide unbiased information with no sales pressure. They don't work for insurance companies and don't receive commissions. Their only goal is to help your parent understand Medicare options and make informed decisions."
+          "answer": "No. HIICAP counselors are trained volunteers who provide unbiased information with no sales pressure. They don't work for insurance companies and don't receive commissions. Their only goal is to help your loved one understand Medicare options and make informed decisions."
         },
         {
-          "question": "Can I attend the counseling session with my parent?",
-          "answer": "Yes, family members are welcome to participate in counseling sessions. Many adult children attend to help their parents understand complex Medicare information and remember the details discussed. The counselor can explain options to both of you."
+          "question": "Can I attend the counseling session with my loved one?",
+          "answer": "Yes, family members are welcome to participate in counseling sessions. Many adult children attend to help their loved ones understand complex Medicare information and remember the details discussed. The counselor can explain options to both of you."
         },
         {
-          "question": "What if my parent needs help with programs other than Medicare?",
+          "question": "What if my loved one needs help with programs other than Medicare?",
           "answer": "HIICAP counselors can provide referrals to other assistance programs like EPIC for prescription help, LIHEAP for energy assistance, or SNAP for food benefits. While their expertise is Medicare, they know how to connect families with other resources."
         }
       ],
@@ -1498,7 +1498,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles with cooking or meal preparation, they may qualify for home-delivered meals through New York's EISEP program. Because this program serves those who need assistance with daily living activities, your parent gets both meals (typically 5 days per week) plus case management to coordinate other home services.\n\nMeals on Wheels is one component of EISEP, which means your parent gets comprehensive assessment and ongoing support — not just food delivery. The suggested contribution is around $4 per meal in most areas, but services cannot be denied for inability to pay. Because EISEP uses sliding-scale cost-sharing starting at 150% of the federal poverty level ($2,328/month for a single person in 2026), families with higher incomes pay proportionally more.\n\nYour parent must be able to live safely at home with services and cannot be eligible for the same services through Medicaid. The program requires assessment by a case manager who determines which combination of services — meals, personal care, housekeeping, or emergency response systems — will help your parent remain independent.",
+      "intro": "If your loved one is 60+ and struggles with cooking or meal preparation, they may qualify for home-delivered meals through New York's EISEP program. Because this program serves those who need assistance with daily living activities, your loved one gets both meals (typically 5 days per week) plus case management to coordinate other home services.\n\nMeals on Wheels is one component of EISEP, which means your loved one gets comprehensive assessment and ongoing support — not just food delivery. The suggested contribution is around $4 per meal in most areas, but services cannot be denied for inability to pay. Because EISEP uses sliding-scale cost-sharing starting at 150% of the federal poverty level ($2,328/month for a single person in 2026), families with higher incomes pay proportionally more.\n\nYour loved one must be able to live safely at home with services and cannot be eligible for the same services through Medicaid. The program requires assessment by a case manager who determines which combination of services — meals, personal care, housekeeping, or emergency response systems — will help your loved one remain independent.",
       "savingsRange": "$1,040 – $1,560/year in 2026",
       "savingsSource": "Estimated from 260 meals annually at suggested $4/meal contribution versus retail meal delivery costs of $10-15/meal",
       "savingsVerified": false,
@@ -1533,7 +1533,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule assessment appointment",
-            "description": "A case manager will arrange to meet with you and your parent, often in their home, to evaluate functional needs and living situation."
+            "description": "A case manager will arrange to meet with you and your loved one, often in their home, to evaluate functional needs and living situation."
           },
           {
             "step": 3,
@@ -1548,7 +1548,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Assessment scheduled upon initial contact; service start timing varies by local provider availability",
         "waitlist": null,
-        "tip": "Prepare to discuss your parent's specific challenges with meal preparation, shopping, and daily activities — the more detailed information you provide, the better the case manager can match services to needs.",
+        "tip": "Prepare to discuss your loved one's specific challenges with meal preparation, shopping, and daily activities — the more detailed information you provide, the better the case manager can match services to needs.",
         "urls": [
           {
             "label": "NY Connects (statewide)",
@@ -1561,7 +1561,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid photo identification for your parent",
+        "Valid photo identification for your loved one",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Social Security card",
         "Income documentation (Social Security statements, pension letters, bank statements from last 3 months)",
@@ -1594,10 +1594,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Even if your parent receives some Medicaid home care services, they may still qualify for EISEP meals if their current plan doesn't adequately address nutritional needs",
+        "Even if your loved one receives some Medicaid home care services, they may still qualify for EISEP meals if their current plan doesn't adequately address nutritional needs",
         "Cost-sharing fees are determined locally and may vary between counties — ask about fee schedules during your initial assessment",
         "Services are designed to supplement, not replace, informal family care — the case manager will consider what help family members can provide",
-        "Consumer-directed options may be available but require your parent to be capable of managing and directing their own care workers"
+        "Consumer-directed options may be available but require your loved one to be capable of managing and directing their own care workers"
       ],
       "relatedPrograms": [
         "New York SNAP (food assistance)",
@@ -1608,31 +1608,31 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get EISEP meals if they're already on Medicaid?",
-          "answer": "It depends on their current Medicaid services. If Medicaid already covers meal delivery or nutrition services, your parent cannot receive duplicate services through EISEP. However, if their Medicaid plan doesn't include meals or doesn't meet their dietary needs, they may still qualify for EISEP meal services."
+          "question": "Can my loved one get EISEP meals if they're already on Medicaid?",
+          "answer": "It depends on their current Medicaid services. If Medicaid already covers meal delivery or nutrition services, your loved one cannot receive duplicate services through EISEP. However, if their Medicaid plan doesn't include meals or doesn't meet their dietary needs, they may still qualify for EISEP meal services."
         },
         {
-          "question": "How much will my parent actually pay for meals?",
-          "answer": "Cost-sharing starts at 150% of the federal poverty level ($2,328/month for a single person in 2026) and increases proportionally with income and services received. The suggested contribution is around $4 per meal in most areas, but the exact amount depends on your parent's income and your county's fee schedule. Services cannot be denied for inability to pay."
+          "question": "How much will my loved one actually pay for meals?",
+          "answer": "Cost-sharing starts at 150% of the federal poverty level ($2,328/month for a single person in 2026) and increases proportionally with income and services received. The suggested contribution is around $4 per meal in most areas, but the exact amount depends on your loved one's income and your county's fee schedule. Services cannot be denied for inability to pay."
         },
         {
-          "question": "What if my parent only needs meals but not other services?",
-          "answer": "Meals on Wheels is delivered as part of the comprehensive EISEP program, which includes case management for all participants. Even if meals are the primary service your parent needs, they'll still receive ongoing case management to monitor their situation and coordinate additional services if needs change."
+          "question": "What if my loved one only needs meals but not other services?",
+          "answer": "Meals on Wheels is delivered as part of the comprehensive EISEP program, which includes case management for all participants. Even if meals are the primary service your loved one needs, they'll still receive ongoing case management to monitor their situation and coordinate additional services if needs change."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can initiate the application process and participate in the assessment. However, the case manager will need to evaluate your parent's capacity to consent to services and may require documentation of legal authority if your parent cannot make decisions independently."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can initiate the application process and participate in the assessment. However, the case manager will need to evaluate your loved one's capacity to consent to services and may require documentation of legal authority if your loved one cannot make decisions independently."
         },
         {
           "question": "How quickly can meal delivery start once approved?",
           "answer": "Service start timing varies by local provider and current capacity. Some areas may begin delivery within a week of approval, while others may have waiting periods. The case manager will provide specific timing for your area during the assessment process."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "Case managers conduct periodic reassessments to adjust services as needs change. If your parent's functional abilities improve or decline, or if their living situation changes, the case manager can modify the service plan, add new services like personal care or housekeeping, or transition to different programs if appropriate."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "Case managers conduct periodic reassessments to adjust services as needs change. If your loved one's functional abilities improve or decline, or if their living situation changes, the case manager can modify the service plan, add new services like personal care or housekeeping, or transition to different programs if appropriate."
         },
         {
-          "question": "Can my parent choose what types of meals they receive?",
+          "question": "Can my loved one choose what types of meals they receive?",
           "answer": "Meal options vary by local provider, but most programs accommodate dietary restrictions, allergies, and cultural preferences when possible. During the assessment, discuss any special dietary needs, religious requirements, or food preferences with the case manager to ensure appropriate meal planning."
         },
         {
@@ -1658,7 +1658,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "nyfsc-respite-care",
       "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
       "shortName": "NYFSC Respite Care",
-      "tagline": "Get trained home attendants to care for your NYC parent while you take a break — starting at $7.15/hour or free for emergencies.",
+      "tagline": "Get trained home attendants to care for your NYC loved one while you take a break — starting at $7.15/hour or free for emergencies.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1671,7 +1671,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is over 60 and lives in New York City but doesn't qualify for Medicaid, they can get trained home attendants for personal care, light housekeeping, shopping, and companionship. The program offers two tiers: basic respite care starting at $7.15/hour plus carfare, and emergency/extended hours service at no charge for qualifying families.\n\nBecause this program specifically serves non-Medicaid seniors, it fills a gap for families whose parents earn too much for Medicaid but still need daily care assistance. Your parent must have a family caregiver (age 18+) providing daily care, and the program requires that your parent be frail or have disabilities requiring regular supervision.\n\nThe program operates throughout all five NYC boroughs with a single intake office in Manhattan. NYFSC social workers conduct home visits to assess need and coordinate services.",
+      "intro": "If your loved one is over 60 and lives in New York City but doesn't qualify for Medicaid, they can get trained home attendants for personal care, light housekeeping, shopping, and companionship. The program offers two tiers: basic respite care starting at $7.15/hour plus carfare, and emergency/extended hours service at no charge for qualifying families.\n\nBecause this program specifically serves non-Medicaid seniors, it fills a gap for families whose parents earn too much for Medicaid but still need daily care assistance. Your loved one must have a family caregiver (age 18+) providing daily care, and the program requires that your loved one be frail or have disabilities requiring regular supervision.\n\nThe program operates throughout all five NYC boroughs with a single intake office in Manhattan. NYFSC social workers conduct home visits to assess need and coordinate services.",
       "savingsRange": "",
       "savingsSource": "Fee-based service starting at $7.15/hour; emergency services provided free",
       "savingsVerified": false,
@@ -1697,7 +1697,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (212) 962-7559 or visit their Manhattan office — a social worker will conduct a home visit to assess your parent's needs.",
+        "summary": "Call (212) 962-7559 or visit their Manhattan office — a social worker will conduct a home visit to assess your loved one's needs.",
         "steps": [
           {
             "step": 1,
@@ -1707,12 +1707,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Fill out the intake form and gather documentation of your parent's age (60+), NYC residency, non-Medicaid status, and care needs."
+            "description": "Fill out the intake form and gather documentation of your loved one's age (60+), NYC residency, non-Medicaid status, and care needs."
           },
           {
             "step": 3,
             "title": "Schedule home visit",
-            "description": "NYFSC social workers will visit your parent's home to assess functional impairment and determine appropriate level of respite care services."
+            "description": "NYFSC social workers will visit your loved one's home to assess functional impairment and determine appropriate level of respite care services."
           },
           {
             "step": 4,
@@ -1722,7 +1722,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Emphasize that your parent is NOT Medicaid eligible when you call — this is a key requirement that distinguishes this program from other NYC respite services.",
+        "tip": "Emphasize that your loved one is NOT Medicaid eligible when you call — this is a key requirement that distinguishes this program from other NYC respite services.",
         "urls": [
           {
             "label": "NYFSC Respite Care Program",
@@ -1762,7 +1762,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Emergency/extended hours services are provided free but have income preference for care recipients earning $40,000 or less annually",
         "Care recipients pay home health aides directly for basic services — rates start at $7.15/hour plus carfare but current rates may be higher",
-        "The program explicitly excludes Medicaid-eligible individuals — if your parent qualifies for Medicaid, contact NY Office for the Aging instead",
+        "The program explicitly excludes Medicaid-eligible individuals — if your loved one qualifies for Medicaid, contact NY Office for the Aging instead",
         "This is a NYC-only program — families outside the five boroughs should contact their local Area Agency on Aging"
       ],
       "relatedPrograms": [
@@ -1795,24 +1795,24 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "What if my parent becomes Medicaid eligible after enrolling in NYFSC respite care?",
-          "answer": "Your parent would need to transition off the NYFSC program since Medicaid eligibility disqualifies them. Contact the NY Office for the Aging at 1-800-342-9871 to explore Medicaid-funded respite options like the National Family Caregiver Support Program (NFCSP)."
+          "question": "What if my loved one becomes Medicaid eligible after enrolling in NYFSC respite care?",
+          "answer": "Your loved one would need to transition off the NYFSC program since Medicaid eligibility disqualifies them. Contact the NY Office for the Aging at 1-800-342-9871 to explore Medicaid-funded respite options like the National Family Caregiver Support Program (NFCSP)."
         },
         {
           "question": "Can I get emergency respite care even if our family income is over $40,000?",
           "answer": "Yes, but families with care recipients earning $40,000 or less annually get preference for the free emergency/extended hours services. Higher-income families may still access emergency services but could face longer wait times or be directed to the fee-based basic tier."
         },
         {
-          "question": "How do I prove my parent is NOT Medicaid eligible?",
+          "question": "How do I prove my loved one is NOT Medicaid eligible?",
           "answer": "You can provide a Medicaid denial letter if they've applied and been rejected, or submit income documentation showing they exceed Medicaid limits. The NYFSC social worker can help determine Medicaid eligibility status during the home assessment."
         },
         {
           "question": "What's the difference between this program and other NYC respite services?",
-          "answer": "NYFSC specifically serves non-Medicaid seniors, while most other NYC aging programs serve Medicaid-eligible individuals. If your parent is in the income gap above Medicaid limits but still needs affordable care, NYFSC may be your best option in the five boroughs."
+          "answer": "NYFSC specifically serves non-Medicaid seniors, while most other NYC aging programs serve Medicaid-eligible individuals. If your loved one is in the income gap above Medicaid limits but still needs affordable care, NYFSC may be your best option in the five boroughs."
         },
         {
-          "question": "Can adult children living outside NYC apply for their parent who lives in Manhattan?",
-          "answer": "Yes, as long as your parent resides in any of the five NYC boroughs and you serve as their unpaid caregiver. The care recipient's NYC residency is what matters, not where the family caregiver lives."
+          "question": "Can adult children living outside NYC apply for their loved one who lives in Manhattan?",
+          "answer": "Yes, as long as your loved one resides in any of the five NYC boroughs and you serve as their unpaid caregiver. The care recipient's NYC residency is what matters, not where the family caregiver lives."
         },
         {
           "question": "What happens if I need respite care immediately due to a family emergency?",
@@ -1866,7 +1866,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55 or older, unemployed, and earning less than $1,548 per month, SCSEP provides part-time paid training positions at nonprofits, schools, and community organizations across New York. Participants work an average of 20 hours per week earning minimum wage — $300-400+ weekly depending on local rates — while receiving job training and support to find permanent employment.\n\nBecause SCSEP combines immediate income with skills training, your parent gets paid while learning computer skills, customer service, or other marketable abilities. The program also provides annual health screenings, resume assistance, and one-on-one job coaching to help transition to unsubsidized employment. Priority goes to veterans, people 65+, and those with disabilities, but all eligible adults can apply through local offices statewide.",
+      "intro": "If your loved one is 55 or older, unemployed, and earning less than $1,548 per month, SCSEP provides part-time paid training positions at nonprofits, schools, and community organizations across New York. Participants work an average of 20 hours per week earning minimum wage — $300-400+ weekly depending on local rates — while receiving job training and support to find permanent employment.\n\nBecause SCSEP combines immediate income with skills training, your loved one gets paid while learning computer skills, customer service, or other marketable abilities. The program also provides annual health screenings, resume assistance, and one-on-one job coaching to help transition to unsubsidized employment. Priority goes to veterans, people 65+, and those with disabilities, but all eligible adults can apply through local offices statewide.",
       "savingsRange": "$7,800 – $10,400/year in 2026",
       "savingsSource": "20 hours/week at $15+ minimum wage in New York",
       "savingsVerified": true,
@@ -1980,35 +1980,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work SCSEP and collect Social Security at the same time?",
-          "answer": "Yes, but the combined income cannot exceed 125% of the federal poverty level ($1,548/month for a single person in 2026). Social Security earnings rules may also reduce benefits if your parent is under full retirement age and earns more than the annual limit."
+          "question": "Can my loved one work SCSEP and collect Social Security at the same time?",
+          "answer": "Yes, but the combined income cannot exceed 125% of the federal poverty level ($1,548/month for a single person in 2026). Social Security earnings rules may also reduce benefits if your loved one is under full retirement age and earns more than the annual limit."
         },
         {
-          "question": "What if my parent gets priority status but there's still no opening?",
+          "question": "What if my loved one gets priority status but there's still no opening?",
           "answer": "Even with priority status (veteran, 65+, disabled), you may wait for openings due to federal funding delays. Ask your local office about current wait times and whether you can be placed on a notification list for the next available position."
         },
         {
-          "question": "Can my parent choose where they work or what type of training they get?",
+          "question": "Can my loved one choose where they work or what type of training they get?",
           "answer": "Placement depends on available positions at local nonprofits, schools, and community organizations. Common options include computer training, customer service, food services, and clerical work. Discuss preferences during your Individual Employment Plan meeting, but final placement depends on local partnerships."
         },
         {
-          "question": "What happens if my parent finds regular employment while in SCSEP?",
-          "answer": "This is the program's goal. SCSEP provides job search assistance, resume help, and connections to employers. When your parent finds unsubsidized employment, they graduate from the program. Some supportive services may continue for up to 12 months after placement."
+          "question": "What happens if my loved one finds regular employment while in SCSEP?",
+          "answer": "This is the program's goal. SCSEP provides job search assistance, resume help, and connections to employers. When your loved one finds unsubsidized employment, they graduate from the program. Some supportive services may continue for up to 12 months after placement."
         },
         {
           "question": "Does SCSEP count as 'work history' for other benefits or employment?",
           "answer": "Yes, SCSEP is real employment with payroll taxes. It counts toward Social Security work credits and can be listed on job applications. However, it's temporary training employment, not permanent work, so emphasize the skills gained when applying for other positions."
         },
         {
-          "question": "Can I apply for my parent if they have mobility issues or transportation problems?",
+          "question": "Can I apply for my loved one if they have mobility issues or transportation problems?",
           "answer": "Initial application typically requires in-person visits, but accommodations may be available for people with disabilities. Call your local SCSEP office to discuss accessibility needs, transportation assistance, or alternative application methods before visiting."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is designed as temporary training, typically 12-24 months. The program focuses on building skills and finding permanent employment. Extensions may be possible in some cases, but the goal is always transition to unsubsidized work."
         },
         {
-          "question": "What if my parent was rejected for unemployment benefits but meets SCSEP income limits?",
+          "question": "What if my loved one was rejected for unemployment benefits but meets SCSEP income limits?",
           "answer": "SCSEP has different eligibility rules than unemployment insurance. Being denied unemployment doesn't disqualify you from SCSEP as long as you're currently unemployed and meet the age and income requirements. Apply directly through local SCSEP offices."
         }
       ],
@@ -2059,7 +2059,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal issues like eviction threats, Social Security denials, Medicare problems, or financial exploitation, they may qualify for free legal help through county-based programs across New York. These services include advice, document preparation, representation, and appeals for civil legal matters affecting seniors.\n\nThe program covers tenant issues, public benefits applications and appeals, estate planning (wills, health care proxies, powers of attorney), nursing home problems, consumer fraud, and abuse/exploitation cases. Most providers don't require income verification — priority goes to low-income seniors, but services are often available regardless of financial status.\n\nThis isn't a single statewide program. Each county has different providers and eligibility rules. Some require low-income status unless you're referred by your local Office for Aging, while others (especially Title III-B funded programs) serve all seniors 60+ without income limits.",
+      "intro": "If your loved one is 60+ and facing legal issues like eviction threats, Social Security denials, Medicare problems, or financial exploitation, they may qualify for free legal help through county-based programs across New York. These services include advice, document preparation, representation, and appeals for civil legal matters affecting seniors.\n\nThe program covers tenant issues, public benefits applications and appeals, estate planning (wills, health care proxies, powers of attorney), nursing home problems, consumer fraud, and abuse/exploitation cases. Most providers don't require income verification — priority goes to low-income seniors, but services are often available regardless of financial status.\n\nThis isn't a single statewide program. Each county has different providers and eligibility rules. Some require low-income status unless you're referred by your local Office for Aging, while others (especially Title III-B funded programs) serve all seniors 60+ without income limits.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2151,12 +2151,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's income is too high for the local legal aid provider?",
+          "question": "What if my loved one's income is too high for the local legal aid provider?",
           "answer": "Get a referral from your county's Office for Aging first. Many providers waive income requirements for seniors referred by the OFA. Also ask if the provider uses Title III-B funding, which serves all seniors 60+ regardless of income."
         },
         {
-          "question": "Can I call on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, if you have legal authority (power of attorney or guardianship). Some providers will also work with adult children in emergency situations like eviction or benefit termination, even without formal legal authority. Call and explain your parent's condition."
+          "question": "Can I call on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, if you have legal authority (power of attorney or guardianship). Some providers will also work with adult children in emergency situations like eviction or benefit termination, even without formal legal authority. Call and explain your loved one's condition."
         },
         {
           "question": "Will they help with criminal charges or family court issues?",
@@ -2181,7 +2181,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "nyc-senior-homeowners-exemption",
       "name": "Senior Citizen Homeowners' Exemption (SCHE)",
       "shortName": "NYC Property Tax Exemption",
-      "tagline": "If your parent owns their home in NYC and is 65+, they could cut their property taxes by 5% to 50% based on income.",
+      "tagline": "If your loved one owns their home in NYC and is 65+, they could cut their property taxes by 5% to 50% based on income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2194,7 +2194,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65 or older and owns their home in New York City, the Senior Citizen Homeowners' Exemption could reduce their property taxes by 5% to 50%. The amount depends on their total household income — those earning up to $50,000 get the maximum 50% reduction, while those earning up to $58,399 still qualify for smaller reductions.\n\nBecause this exemption reduces the assessed value of their property, your parent's property tax bill drops directly. For example, if their home is assessed at $400,000 and they qualify for the 50% reduction, they'll only pay taxes on $200,000 of assessed value. The program covers one-, two-, or three-family homes, condominiums, and cooperative apartments across all five NYC boroughs.\n\nYour parent must have owned and lived in the property as their primary residence for at least 12 consecutive months before applying. All household income counts toward the $58,399 limit — Social Security, pensions, retirement benefits, interest, dividends, and any other income sources.",
+      "intro": "If your loved one is 65 or older and owns their home in New York City, the Senior Citizen Homeowners' Exemption could reduce their property taxes by 5% to 50%. The amount depends on their total household income — those earning up to $50,000 get the maximum 50% reduction, while those earning up to $58,399 still qualify for smaller reductions.\n\nBecause this exemption reduces the assessed value of their property, your loved one's property tax bill drops directly. For example, if their home is assessed at $400,000 and they qualify for the 50% reduction, they'll only pay taxes on $200,000 of assessed value. The program covers one-, two-, or three-family homes, condominiums, and cooperative apartments across all five NYC boroughs.\n\nYour loved one must have owned and lived in the property as their primary residence for at least 12 consecutive months before applying. All household income counts toward the $58,399 limit — Social Security, pensions, retirement benefits, interest, dividends, and any other income sources.",
       "savingsRange": "",
       "savingsSource": "Property tax reduction varies by assessed value and income tier",
       "savingsVerified": false,
@@ -2344,11 +2344,11 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they live outside New York City?",
-          "answer": "No, SCHE is only for NYC properties. If your parent lives elsewhere in New York State, they should check with their local tax assessor about their municipality's Senior Citizens Exemption, which has different income limits set by each locality."
+          "question": "Can my loved one apply if they live outside New York City?",
+          "answer": "No, SCHE is only for NYC properties. If your loved one lives elsewhere in New York State, they should check with their local tax assessor about their municipality's Senior Citizens Exemption, which has different income limits set by each locality."
         },
         {
-          "question": "What happens if my parent's income is slightly over $58,399?",
+          "question": "What happens if my loved one's income is slightly over $58,399?",
           "answer": "They won't qualify for SCHE at all — there's no partial benefit above $58,399. However, they should check if they qualify for other property tax exemptions like STAR or Enhanced STAR."
         },
         {
@@ -2356,11 +2356,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, all Social Security benefits count toward the $58,399 limit, along with pensions, retirement benefits, interest, dividends, wages, and any other income sources from all household members."
         },
         {
-          "question": "Can my parent get SCHE if they own the property with adult children?",
+          "question": "Can my loved one get SCHE if they own the property with adult children?",
           "answer": "Only if all owners are 65+ by December 31st of the tax year. If any owner is under 65 (except spouses or siblings), the property doesn't qualify for SCHE."
         },
         {
-          "question": "What if my parent missed the March 15 application deadline?",
+          "question": "What if my loved one missed the March 15 application deadline?",
           "answer": "They'll have to wait until the next application period opens on September 15. There are no exceptions to the September 15 – March 15 application window."
         },
         {
@@ -2368,11 +2368,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "It depends on their home's assessed value and income level. If their home is assessed at $300,000 and they qualify for the 50% reduction, they'll pay taxes on only $150,000 of assessed value — potentially saving thousands annually."
         },
         {
-          "question": "Can my parent keep SCHE if they temporarily move to assisted living?",
+          "question": "Can my loved one keep SCHE if they temporarily move to assisted living?",
           "answer": "Yes, owners receiving in-patient care at residential health care facilities may remain eligible for SCHE, even if they're not physically living in the property."
         },
         {
-          "question": "What happens if my parent sells the house and buys another in NYC?",
+          "question": "What happens if my loved one sells the house and buys another in NYC?",
           "answer": "They'll need to reapply for the new property and meet the 12-month ownership requirement again, unless they previously received SCHE on their old residence — in that case, the 12-month rule may be waived."
         }
       ],
@@ -2394,7 +2394,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "scrie-rent-freeze",
       "name": "Senior Citizen Rent Increase Exemption (SCRIE)",
       "shortName": "SCRIE",
-      "tagline": "If your parent is 62+ and pays more than a third of their income in rent, SCRIE can freeze their rent permanently.",
+      "tagline": "If your loved one is 62+ and pays more than a third of their income in rent, SCRIE can freeze their rent permanently.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2411,7 +2411,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 62 or older and lives in rent-regulated housing in New York City, SCRIE can freeze their rent at the current level — protecting them from all future legal rent increases. This matters because your parent's rent stays the same even when their landlord would otherwise be allowed to raise it for renewals or improvements.\n\nTo qualify, your parent must earn $50,000 or less per year and currently pay at least one-third of their household income toward rent. Because SCRIE only applies to rent-stabilized, rent-controlled, and certain other regulated apartments, you'll need to confirm your parent's housing type qualifies. The landlord receives a tax credit to cover the difference, so they have no financial reason to object.",
+      "intro": "If your loved one is 62 or older and lives in rent-regulated housing in New York City, SCRIE can freeze their rent at the current level — protecting them from all future legal rent increases. This matters because your loved one's rent stays the same even when their landlord would otherwise be allowed to raise it for renewals or improvements.\n\nTo qualify, your loved one must earn $50,000 or less per year and currently pay at least one-third of their household income toward rent. Because SCRIE only applies to rent-stabilized, rent-controlled, and certain other regulated apartments, you'll need to confirm your loved one's housing type qualifies. The landlord receives a tax credit to cover the difference, so they have no financial reason to object.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2507,15 +2507,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What happens if my parent's income goes over $50,000 for one year?",
-          "answer": "Your parent loses SCRIE eligibility for that calendar year but can reapply the following year if their income drops back below $50,000. Pandemic unemployment counts as income, but stimulus checks don't count."
+          "question": "What happens if my loved one's income goes over $50,000 for one year?",
+          "answer": "Your loved one loses SCRIE eligibility for that calendar year but can reapply the following year if their income drops back below $50,000. Pandemic unemployment counts as income, but stimulus checks don't count."
         },
         {
-          "question": "Can my parent apply if they live in a regular apartment, not rent-stabilized?",
+          "question": "Can my loved one apply if they live in a regular apartment, not rent-stabilized?",
           "answer": "No. SCRIE only applies to rent-regulated housing like rent-stabilized apartments, rent-controlled units, Mitchell-Lama housing, and certain cooperatives. Most regular market-rate apartments don't qualify."
         },
         {
-          "question": "What if my parent forgets to renew their SCRIE application?",
+          "question": "What if my loved one forgets to renew their SCRIE application?",
           "answer": "They lose the rent freeze and their rent can increase to current legal levels. They'll need to reapply as a new applicant. The city sends renewal notices about 60 days before expiration, so watch for that mail carefully."
         },
         {
@@ -2548,7 +2548,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR, with benefits that increase by 2% annually.\n\nTo qualify, your parent's combined household income (including all property owners and spouses living there) must be below $110,750 for 2026 benefits. Starting in 2026, if your parent already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them — no separate application needed.",
+      "intro": "If your loved one is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR, with benefits that increase by 2% annually.\n\nTo qualify, your loved one's combined household income (including all property owners and spouses living there) must be below $110,750 for 2026 benefits. Starting in 2026, if your loved one already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them — no separate application needed.",
       "savingsRange": "",
       "savingsSource": "Property tax exemption amount varies by local school tax rates",
       "savingsVerified": false,
@@ -2647,28 +2647,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for Enhanced STAR if they already receive Basic STAR?",
-          "answer": "Starting in 2026, they won't need to apply separately. If your parent currently receives Basic STAR and becomes eligible for Enhanced STAR (turns 65 and meets income limits), New York State will automatically notify the assessor and upgrade them. No separate application required."
+          "question": "Can my loved one apply for Enhanced STAR if they already receive Basic STAR?",
+          "answer": "Starting in 2026, they won't need to apply separately. If your loved one currently receives Basic STAR and becomes eligible for Enhanced STAR (turns 65 and meets income limits), New York State will automatically notify the assessor and upgrade them. No separate application required."
         },
         {
-          "question": "What if my parent owns the house with a sibling who doesn't live there?",
-          "answer": "Your parent can still qualify, but the non-resident sibling's income counts toward the $110,750 limit. All owners' incomes (resident and non-resident) plus any owner's spouse who lives at the property are included in the calculation."
+          "question": "What if my loved one owns the house with a sibling who doesn't live there?",
+          "answer": "Your loved one can still qualify, but the non-resident sibling's income counts toward the $110,750 limit. All owners' incomes (resident and non-resident) plus any owner's spouse who lives at the property are included in the calculation."
         },
         {
-          "question": "What happens if my parent's income goes over $110,750 after they're already enrolled?",
+          "question": "What happens if my loved one's income goes over $110,750 after they're already enrolled?",
           "answer": "New York State verifies income eligibility annually through the Income Verification Program. If income exceeds the limit, they'll lose Enhanced STAR benefits for that tax year but can requalify if income drops below the threshold in future years."
         },
         {
           "question": "Can a surviving spouse keep Enhanced STAR after their partner dies?",
-          "answer": "Surviving spouses may be eligible to retain Enhanced STAR benefits, but specific conditions apply. Contact the New York State STAR Program at (518) 457-2036 to discuss your parent's specific situation and required documentation."
+          "answer": "Surviving spouses may be eligible to retain Enhanced STAR benefits, but specific conditions apply. Contact the New York State STAR Program at (518) 457-2036 to discuss your loved one's specific situation and required documentation."
         },
         {
           "question": "How much will Enhanced STAR actually save on property taxes?",
-          "answer": "The exact dollar savings depends on your local school tax rates, but Enhanced STAR provides greater savings than Basic STAR and increases by 2% yearly. Contact your local assessor or check your school tax bill to estimate specific savings for your parent's property."
+          "answer": "The exact dollar savings depends on your local school tax rates, but Enhanced STAR provides greater savings than Basic STAR and increases by 2% yearly. Contact your local assessor or check your school tax bill to estimate specific savings for your loved one's property."
         },
         {
-          "question": "What if my parent turns 65 in December — can they still apply that year?",
-          "answer": "Yes, your parent can apply for Enhanced STAR in the year they turn 65, even if they turn 65 on December 31, as long as they submit the application before the March 1 deadline (or whatever deadline applies in their town)."
+          "question": "What if my loved one turns 65 in December — can they still apply that year?",
+          "answer": "Yes, your loved one can apply for Enhanced STAR in the year they turn 65, even if they turn 65 on December 31, as long as they submit the application before the March 1 deadline (or whatever deadline applies in their town)."
         }
       ],
       "layoutIntent": {
@@ -2689,7 +2689,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "eisep-home-services",
       "name": "Expanded In-home Services for the Elderly Program (EISEP)",
       "shortName": "EISEP",
-      "tagline": "Get case management and in-home help for your parent who needs daily assistance but doesn't qualify for Medicaid.",
+      "tagline": "Get case management and in-home help for your loved one who needs daily assistance but doesn't qualify for Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2710,7 +2710,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with daily tasks like bathing, cooking, or housekeeping but doesn't qualify for Medicaid, EISEP provides case management and in-home services. All participants receive professional case management to assess needs and coordinate care. Additional services may include personal care assistance, housekeeping, meal delivery, emergency response systems, and respite care for family caregivers.\n\nThis program is designed for people who have some income or assets but still need support — you'll pay on a sliding scale based on what you can afford, from no cost to full cost. Because EISEP operates through local Area Agencies on Aging, services and wait times vary significantly by county based on local provider availability.",
+      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, cooking, or housekeeping but doesn't qualify for Medicaid, EISEP provides case management and in-home services. All participants receive professional case management to assess needs and coordinate care. Additional services may include personal care assistance, housekeeping, meal delivery, emergency response systems, and respite care for family caregivers.\n\nThis program is designed for people who have some income or assets but still need support — you'll pay on a sliding scale based on what you can afford, from no cost to full cost. Because EISEP operates through local Area Agencies on Aging, services and wait times vary significantly by county based on local provider availability.",
       "savingsRange": "",
       "savingsSource": "Sliding scale service based on income and service costs",
       "savingsVerified": false,
@@ -2743,12 +2743,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule assessment",
-            "description": "A case manager will schedule a comprehensive home assessment to evaluate your parent's needs and determine appropriate services."
+            "description": "A case manager will schedule a comprehensive home assessment to evaluate your loved one's needs and determine appropriate services."
           },
           {
             "step": 3,
             "title": "Complete income evaluation",
-            "description": "Provide income documentation for sliding scale cost-share calculation — this determines what portion of services your parent pays."
+            "description": "Provide income documentation for sliding scale cost-share calculation — this determines what portion of services your loved one pays."
           },
           {
             "step": 4,
@@ -2772,7 +2772,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID for your parent",
+        "Valid photo ID for your loved one",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Social Security award letter or other income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -2820,36 +2820,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get EISEP if they have significant savings but don't qualify for Medicaid?",
-          "answer": "Yes, EISEP has no asset limits and is specifically designed for people who don't qualify for Medicaid. Your parent will pay on a sliding scale based on income and service costs — this could range from no cost to full cost depending on their financial situation."
+          "question": "Can my loved one get EISEP if they have significant savings but don't qualify for Medicaid?",
+          "answer": "Yes, EISEP has no asset limits and is specifically designed for people who don't qualify for Medicaid. Your loved one will pay on a sliding scale based on income and service costs — this could range from no cost to full cost depending on their financial situation."
         },
         {
           "question": "What's the difference between Personal Care I and Personal Care II services?",
-          "answer": "Personal Care I covers household tasks like housekeeping, cooking, and shopping. Personal Care II covers intimate personal care like bathing, dressing, and grooming. The assessment determines which level your parent needs."
+          "answer": "Personal Care I covers household tasks like housekeeping, cooking, and shopping. Personal Care II covers intimate personal care like bathing, dressing, and grooming. The assessment determines which level your loved one needs."
         },
         {
           "question": "How long is the waitlist really in most areas?",
           "answer": "Wait times vary significantly by county based on local home care aide availability. Urban areas may have shorter waits, while rural counties often face longer delays. Contact your local Area Agency on Aging for current wait times in your specific area."
         },
         {
-          "question": "Can I apply for EISEP while also trying to get my parent qualified for Medicaid?",
+          "question": "Can I apply for EISEP while also trying to get my loved one qualified for Medicaid?",
           "answer": "No, you cannot receive EISEP services while eligible for Medicaid. However, if your Medicaid application is denied, you can then apply for EISEP. Some families use EISEP as a bridge while working on Medicaid spend-down strategies."
         },
         {
-          "question": "What happens if my parent's needs increase after they're enrolled?",
+          "question": "What happens if my loved one's needs increase after they're enrolled?",
           "answer": "The case manager conducts ongoing monitoring and can reassess services as needs change. Additional services can be added to the care plan, subject to availability and your cost-share obligations."
         },
         {
           "question": "Does EISEP provide 24-hour care like a nursing home?",
-          "answer": "No, EISEP provides supplemental in-home services, not round-the-clock care. Services are designed to help your parent remain at home with family support. If 24-hour care is needed, the case manager can help explore other options."
+          "answer": "No, EISEP provides supplemental in-home services, not round-the-clock care. Services are designed to help your loved one remain at home with family support. If 24-hour care is needed, the case manager can help explore other options."
         },
         {
           "question": "Can family members provide some care while EISEP provides other services?",
           "answer": "Yes, EISEP is specifically designed to supplement informal family care, not replace it. During assessment, they'll ask what care family already provides and design services to fill the gaps."
         },
         {
-          "question": "What if there are no available home care aides in my parent's area?",
-          "answer": "Service availability varies by region. If direct care services aren't available, your parent will still receive case management and may access other services like meal delivery or emergency response systems. The case manager can help identify alternative local resources."
+          "question": "What if there are no available home care aides in my loved one's area?",
+          "answer": "Service availability varies by region. If direct care services aren't available, your loved one will still receive case management and may access other services like meal delivery or emergency response systems. The case manager can help identify alternative local resources."
         }
       ],
       "layoutIntent": {
@@ -2870,14 +2870,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "golden-park-program",
       "name": "Golden Park Program",
       "shortName": "Golden Park",
-      "tagline": "Free weekday park access for your parent at 62+ with just a New York ID",
+      "tagline": "Free weekday park access for your loved one at 62+ with just a New York ID",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 62+ with a New York ID, they can enter most state parks, boat launches, and arboretums for free Monday through Friday. No income limits, no application — just show their current New York driver's license or state ID card at the entrance.\n\nThe program also provides reduced fees at state historic sites and state-operated golf courses on weekdays. Because there's no application process, your parent can start using this benefit immediately at participating locations across New York.",
+      "intro": "If your loved one is 62+ with a New York ID, they can enter most state parks, boat launches, and arboretums for free Monday through Friday. No income limits, no application — just show their current New York driver's license or state ID card at the entrance.\n\nThe program also provides reduced fees at state historic sites and state-operated golf courses on weekdays. Because there's no application process, your loved one can start using this benefit immediately at participating locations across New York.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2900,12 +2900,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "No application needed — just present your parent's current New York ID at any participating park entrance.",
+        "summary": "No application needed — just present your loved one's current New York ID at any participating park entrance.",
         "steps": [
           {
             "step": 1,
             "title": "Verify eligibility",
-            "description": "Confirm your parent is 62+ and has a current valid New York State Driver's License or Non-Driver ID card."
+            "description": "Confirm your loved one is 62+ and has a current valid New York State Driver's License or Non-Driver ID card."
           },
           {
             "step": 2,
@@ -2956,12 +2956,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The Golden Park Program is not valid at Walkway Over the Hudson, Earl W. Brydges Artpark, Lake Superior State Park, Fahnestock Winter Park, Mark Twain State Park, Soaring Eagles Golf Course, and Ganondagan State Historic Site. Regular fees apply at these excluded locations. Check the NYS Parks website to verify acceptance at specific sites."
         },
         {
-          "question": "Can my parent use this on weekends or holidays?",
+          "question": "Can my loved one use this on weekends or holidays?",
           "answer": "No, the Golden Park Program only provides free access Monday through Friday, excluding holidays. Weekend and holiday visits require paying regular park fees. This restriction applies to all participating locations statewide."
         },
         {
           "question": "Does this work at national parks like Niagara Falls?",
-          "answer": "No, the Golden Park Program only covers New York state parks and facilities. For national parks, your parent needs the separate America the Beautiful Senior Pass, which costs $80 for lifetime access to all national parks and federal recreation sites."
+          "answer": "No, the Golden Park Program only covers New York state parks and facilities. For national parks, your loved one needs the separate America the Beautiful Senior Pass, which costs $80 for lifetime access to all national parks and federal recreation sites."
         },
         {
           "question": "What if the park entrance has an automated pay station with no staff?",
@@ -2984,17 +2984,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "New York offers 17 programs to help your aging parent stay independent and reduce your family's caregiving costs. These range from major financial benefits — like Community Medicaid covering thousands in monthly home care costs, or SNAP providing up to $300/month for groceries — to free resources like legal help and Medicare counseling that require no income qualification. New York also has unique programs like SCRIE (rent freeze for seniors) and generous property tax exemptions that other states don't offer. Start by checking the highest-impact financial programs first, then explore the free resources that can solve immediate problems.",
+    "intro": "New York offers 17 programs to help your aging loved one stay independent and reduce your family's caregiving costs. These range from major financial benefits — like Community Medicaid covering thousands in monthly home care costs, or SNAP providing up to $300/month for groceries — to free resources like legal help and Medicare counseling that require no income qualification. New York also has unique programs like SCRIE (rent freeze for seniors) and generous property tax exemptions that other states don't offer. Start by checking the highest-impact financial programs first, then explore the free resources that can solve immediate problems.",
     "startHere": [
       {
         "name": "Community Medicaid",
         "programId": "community-medicaid",
-        "why": "Covers thousands of dollars in monthly home care costs so your parent can avoid nursing home placement."
+        "why": "Covers thousands of dollars in monthly home care costs so your loved one can avoid nursing home placement."
       },
       {
         "name": "Medicare Savings Program (MSP)",
         "programId": "medicare-savings-program",
-        "why": "Automatically qualifies your parent for Extra Help with prescription drugs and can save hundreds monthly on Medicare costs."
+        "why": "Automatically qualifies your loved one for Extra Help with prescription drugs and can save hundreds monthly on Medicare costs."
       },
       {
         "name": "SNAP Food Assistance",
@@ -3004,7 +3004,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Health Insurance Information, Counseling and Assistance Program (HIICAP)",
         "programId": "hiicap-medicare-counseling",
-        "why": "Free expert help to optimize your parent's Medicare coverage and resolve billing problems."
+        "why": "Free expert help to optimize your loved one's Medicare coverage and resolve billing problems."
       }
     ],
     "byNeed": [
@@ -3016,7 +3016,7 @@ export const drafts: PipelineStateDrafts = {
           "Program of All-Inclusive Care for the Elderly (PACE)",
           "New York State Home and Community-Based Services (HCBS) Waiver Programs"
         ],
-        "description": "These programs can cover thousands in monthly care costs to keep your parent home instead of in a facility."
+        "description": "These programs can cover thousands in monthly care costs to keep your loved one home instead of in a facility."
       },
       {
         "need": "Food and daily living expenses",
@@ -3061,6 +3061,6 @@ export const drafts: PipelineStateDrafts = {
       "NYC residents have access to additional programs like SCRIE and enhanced respite care that aren't available statewide",
       "Many programs allow higher income limits for seniors than younger adults — SNAP qualification is easier at age 60+"
     ],
-    "resourcesVsBenefits": "New York's programs split into two categories: income-qualified benefits that provide direct financial assistance (like Community Medicaid, SNAP, or HEAP), and free resources available to all seniors regardless of income (like HIICAP Medicare counseling, Legal Services, and Golden Park access). Start with benefits if your parent's income is under $2,000/month, but don't skip the free resources — HIICAP alone can save hundreds by optimizing Medicare coverage, and legal services can prevent costly evictions or benefit denials."
+    "resourcesVsBenefits": "New York's programs split into two categories: income-qualified benefits that provide direct financial assistance (like Community Medicaid, SNAP, or HEAP), and free resources available to all seniors regardless of income (like HIICAP Medicare counseling, Legal Services, and Golden Park access). Start with benefits if your loved one's income is under $2,000/month, but don't skip the free resources — HIICAP alone can save hundreds by optimizing Medicare coverage, and legal services can prevent costly evictions or benefit denials."
   }
 };

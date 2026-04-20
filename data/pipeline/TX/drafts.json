@@ -9,7 +9,7 @@
       "id": "medicaid-buy-in-qmb-slmb-qi",
       "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicaid Buy-In Programs",
-      "tagline": "If your disabled child needs comprehensive health coverage or your parent struggles with Medicare costs, these programs provide full Medicaid benefits or pay Medicare premiums.",
+      "tagline": "If your disabled child needs comprehensive health coverage or your loved one struggles with Medicare costs, these programs provide full Medicaid benefits or pay Medicare premiums.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly parent struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level — that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly parents on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits — typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
+      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level — that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits — typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
       "savingsRange": "$1,500 – $4,000/year in 2026",
       "savingsSource": "Medicare Part B premium ($174.70/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
       "savingsVerified": true,
@@ -175,7 +175,7 @@
       "applicationNotes": [
         "MBIC applications require proof of SSI-level disability — having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
         "QI program funding is limited and allocated first-come, first-served each year — apply early in the calendar year for best chances",
-        "If your elderly parent has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles — keep your approval letter handy",
+        "If your elderly loved one has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles — keep your approval letter handy",
         "Premium amounts for MBIC vary based on family income and employer insurance availability — HHSC calculates this during approval process"
       ],
       "relatedPrograms": [
@@ -218,12 +218,12 @@
           "answer": "No, $70,000 exceeds the 300% federal poverty level limit for most family sizes. For a family of four, the limit is approximately $66,700 annually. However, income limits increase with larger household sizes, so check the current federal poverty guidelines if you have 5+ family members."
         },
         {
-          "question": "What happens if my parent's income is just over the QMB limit but they can't afford Medicare costs?",
+          "question": "What happens if my loved one's income is just over the QMB limit but they can't afford Medicare costs?",
           "answer": "Check if they qualify for SLMB (income up to $1,526/month) or QI (up to $1,718/month), which at least cover the Medicare Part B premium. They may also qualify for Medicare's Extra Help program for prescription drug costs, which has higher income limits."
         },
         {
-          "question": "Does my parent's home count toward the $9,660 asset limit?",
-          "answer": "No, your parent's primary residence is exempt regardless of value, along with one vehicle, burial plots, and pre-paid burial contracts. Only countable assets like cash, bank accounts, and investments count toward the limit."
+          "question": "Does my loved one's home count toward the $9,660 asset limit?",
+          "answer": "No, your loved one's primary residence is exempt regardless of value, along with one vehicle, burial plots, and pre-paid burial contracts. Only countable assets like cash, bank accounts, and investments count toward the limit."
         },
         {
           "question": "How long does the MBIC disability determination take?",
@@ -234,8 +234,8 @@
           "answer": "You should apply for the highest benefit level you think you qualify for. If approved for QMB, you automatically get the most comprehensive coverage. If denied, HHSC will consider you for SLMB or QI based on the same application."
         },
         {
-          "question": "What if my elderly parent lives in assisted living - can they still get these Medicare programs?",
-          "answer": "Yes, assisted living residents can qualify for QMB, SLMB, or QI since these are not considered institutional care. However, if your parent moves to a nursing home and gets Medicaid coverage there, they may lose these Medicare programs since Medicaid becomes primary."
+          "question": "What if my elderly loved one lives in assisted living - can they still get these Medicare programs?",
+          "answer": "Yes, assisted living residents can qualify for QMB, SLMB, or QI since these are not considered institutional care. However, if your loved one moves to a nursing home and gets Medicaid coverage there, they may lose these Medicare programs since Medicaid becomes primary."
         },
         {
           "question": "Will getting MBIC affect my family's taxes or other benefits?",
@@ -276,7 +276,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your parent's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your parent must need significant daily assistance — not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
+      "intro": "If your loved one is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your loved one's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your loved one must need significant daily assistance — not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -428,36 +428,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes. The $2,000 asset limit doesn't include your parent's primary home as long as the equity is $730,000 or less and they live there or intend to return. The home is also exempt if a spouse or disabled child lives there."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes. The $2,000 asset limit doesn't include your loved one's primary home as long as the equity is $730,000 or less and they live there or intend to return. The home is also exempt if a spouse or disabled child lives there."
         },
         {
           "question": "How long is the waitlist really for home services?",
           "answer": "Several years in most areas, though this varies by region and priority level. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services."
         },
         {
-          "question": "Can I apply for my parent who has dementia?",
-          "answer": "Yes. Family members can apply on behalf of aging parents, especially those with cognitive impairment. You may need to become an authorized representative through the application process or provide legal guardianship documentation."
+          "question": "Can I apply for my loved one who has dementia?",
+          "answer": "Yes. Family members can apply on behalf of aging loved ones, especially those with cognitive impairment. You may need to become an authorized representative through the application process or provide legal guardianship documentation."
         },
         {
           "question": "What's the difference between the MCO plans?",
           "answer": "All plans provide the same basic Medicaid and HCBS services, but extras vary. Some offer Weight Watchers subscriptions, camp allowances, or additional medical supplies. Service areas also differ — Community First serves central Texas while Superior operates in Dallas, Hidalgo, and Travis counties."
         },
         {
-          "question": "Can my parent have STAR+PLUS and Medicare at the same time?",
+          "question": "Can my loved one have STAR+PLUS and Medicare at the same time?",
           "answer": "Yes. STAR+PLUS works alongside Medicare coverage. The program coordinates with Medicare to cover gaps and provide additional services Medicare doesn't cover, like personal attendant services and minor home modifications."
         },
         {
-          "question": "What happens if my parent's income increases after enrollment?",
-          "answer": "Report income changes immediately to your MCO and local HHS office. If monthly income exceeds $2,901, your parent may lose STAR+PLUS eligibility. Some temporary increases may be exempt, so discuss the situation with your caseworker before assuming disqualification."
+          "question": "What happens if my loved one's income increases after enrollment?",
+          "answer": "Report income changes immediately to your MCO and local HHS office. If monthly income exceeds $2,901, your loved one may lose STAR+PLUS eligibility. Some temporary increases may be exempt, so discuss the situation with your caseworker before assuming disqualification."
         },
         {
           "question": "Can couples both be on STAR+PLUS?",
           "answer": "Yes, but each spouse applies individually with the same $2,901 monthly income limit. There's no household scaling — both must meet individual income and asset requirements. Asset limits also apply individually at $2,000 each."
         },
         {
-          "question": "What if my parent needs nursing home care while on the waitlist?",
-          "answer": "STAR+PLUS covers nursing facility care immediately upon Medicaid approval — you don't need to wait for HCBS services. Your parent can later transition from nursing home to community services when home care slots become available."
+          "question": "What if my loved one needs nursing home care while on the waitlist?",
+          "answer": "STAR+PLUS covers nursing facility care immediately upon Medicaid approval — you don't need to wait for HCBS services. Your loved one can later transition from nursing home to community services when home care slots become available."
         }
       ],
       "layoutIntent": {
@@ -477,7 +477,7 @@
       "id": "pace-eldercare",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All medical care, adult day center, and home support coordinated under one team — no copays if your parent has Medicaid.",
+      "tagline": "All medical care, adult day center, and home support coordinated under one team — no copays if your loved one has Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -490,7 +490,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your parent won't need to coordinate between separate doctors, pharmacies, and care agencies — one team handles everything.\n\nYour parent must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your parent doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your parent lives outside these service areas, PACE is not available.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your loved one won't need to coordinate between separate doctors, pharmacies, and care agencies — one team handles everything.\n\nYour loved one must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your loved one doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your loved one lives outside these service areas, PACE is not available.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care coordination service",
       "savingsVerified": false,
@@ -539,7 +539,7 @@
           {
             "step": 2,
             "title": "Complete eligibility assessment",
-            "description": "Provider conducts comprehensive health and functional assessment to determine if your parent meets nursing home level of care criteria."
+            "description": "Provider conducts comprehensive health and functional assessment to determine if your loved one meets nursing home level of care criteria."
           },
           {
             "step": 3,
@@ -599,10 +599,10 @@
         }
       ],
       "applicationNotes": [
-        "Most participants are dually eligible for Medicare and Medicaid — the PACE provider can help determine Medicaid eligibility if your parent doesn't already have it",
-        "Your parent must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE — the provider will guide you through this process",
+        "Most participants are dually eligible for Medicare and Medicaid — the PACE provider can help determine Medicaid eligibility if your loved one doesn't already have it",
+        "Your loved one must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE — the provider will guide you through this process",
         "PACE providers conduct the nursing home level of care assessment as part of enrollment — you don't need to get this done separately",
-        "Private pay is possible if your parent needs comprehensive care coordination but doesn't qualify for Medicaid, though costs can be substantial"
+        "Private pay is possible if your loved one needs comprehensive care coordination but doesn't qualify for Medicaid, though costs can be substantial"
       ],
       "relatedPrograms": [
         "Texas Medicaid STAR+PLUS",
@@ -612,27 +612,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctors under PACE?",
-          "answer": "No — PACE uses its own network of providers and care team. Your parent will be assigned new primary care physicians, specialists, and therapists within the PACE program. All care is coordinated through the PACE team to ensure comprehensive management."
+          "question": "Can my loved one keep seeing their current doctors under PACE?",
+          "answer": "No — PACE uses its own network of providers and care team. Your loved one will be assigned new primary care physicians, specialists, and therapists within the PACE program. All care is coordinated through the PACE team to ensure comprehensive management."
         },
         {
-          "question": "What if my parent lives outside El Paso — are there other PACE programs in Texas?",
-          "answer": "Currently, Bienvivir in El Paso is the only active PACE provider we found in Texas. If your parent lives elsewhere in Texas, PACE is not available. Consider Texas Medicaid STAR+PLUS or Home and Community-based Services waivers as alternatives."
+          "question": "What if my loved one lives outside El Paso — are there other PACE programs in Texas?",
+          "answer": "Currently, Bienvivir in El Paso is the only active PACE provider we found in Texas. If your loved one lives elsewhere in Texas, PACE is not available. Consider Texas Medicaid STAR+PLUS or Home and Community-based Services waivers as alternatives."
         },
         {
-          "question": "Can my parent try PACE and switch back to regular Medicare if they don't like it?",
-          "answer": "Yes — PACE enrollment is voluntary and your parent can disenroll at any time. They would return to original Medicare and could re-enroll in Medicare Advantage or prescription drug plans during the next open enrollment period."
+          "question": "Can my loved one try PACE and switch back to regular Medicare if they don't like it?",
+          "answer": "Yes — PACE enrollment is voluntary and your loved one can disenroll at any time. They would return to original Medicare and could re-enroll in Medicare Advantage or prescription drug plans during the next open enrollment period."
         },
         {
-          "question": "How much does PACE cost if my parent has Medicare but not Medicaid?",
+          "question": "How much does PACE cost if my loved one has Medicare but not Medicaid?",
           "answer": "PACE accepts private pay participants, but specific costs aren't published. The program is designed to be cost-neutral to nursing home care, so expect substantial monthly fees. Contact the provider directly at (915) 562-3444 ext. 1442 for pricing."
         },
         {
-          "question": "What happens if my parent's health improves and they no longer need nursing home level care?",
-          "answer": "PACE conducts regular reassessments. If your parent no longer meets the nursing home level of care criteria, they would need to transition out of PACE and return to regular Medicare. The care team helps plan this transition."
+          "question": "What happens if my loved one's health improves and they no longer need nursing home level care?",
+          "answer": "PACE conducts regular reassessments. If your loved one no longer meets the nursing home level of care criteria, they would need to transition out of PACE and return to regular Medicare. The care team helps plan this transition."
         },
         {
-          "question": "Can I apply for PACE while my parent is in the hospital?",
+          "question": "Can I apply for PACE while my loved one is in the hospital?",
           "answer": "Yes — hospital discharge planners often initiate PACE referrals for patients who need comprehensive care coordination upon discharge. This can help ensure continuity of care when leaving the hospital."
         },
         {
@@ -640,8 +640,8 @@
           "answer": "Yes — PACE includes transportation to the adult day health center and medical appointments within the program. This is part of the comprehensive service package with no additional charge for participants with Medicaid."
         },
         {
-          "question": "What if my parent needs emergency care or hospitalization while in PACE?",
-          "answer": "PACE covers all medical care including emergency services and hospitalizations. The PACE care team coordinates with hospitals and manages all aspects of emergency care to ensure continuity when your parent returns home."
+          "question": "What if my loved one needs emergency care or hospitalization while in PACE?",
+          "answer": "PACE covers all medical care including emergency services and hospitalizations. The PACE care team coordinates with hospitals and manages all aspects of emergency care to ensure continuity when your loved one returns home."
         }
       ],
       "layoutIntent": {
@@ -661,7 +661,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Up to $298/month on an EBT card to help your parent buy groceries if they're 60+ with limited income",
+      "tagline": "Up to $298/month on an EBT card to help your loved one buy groceries if they're 60+ with limited income",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -674,7 +674,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your parent is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,255/month for one person or $1,703/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your parent can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($2,000 limit for individuals), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The EBT card works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your loved one is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,255/month for one person or $1,703/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your loved one can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($2,000 limit for individuals), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The EBT card works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
       "savingsRange": "$2,256 – $3,576/year",
       "savingsSource": "Average senior benefit of $188/month to maximum benefit of $298/month",
       "savingsVerified": true,
@@ -793,7 +793,7 @@
       ],
       "applicationNotes": [
         "Medical expense deductions are crucial for seniors — include Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
-        "If your parent lives with family but buys and prepares food separately, they can apply as a household of one",
+        "If your loved one lives with family but buys and prepares food separately, they can apply as a household of one",
         "Expedited processing available if monthly income is under $150 and assets under $100, or if facing utility shutoff",
         "Social Security and pension income count toward income limits, but high medical or shelter costs can reduce net income below limits"
       ],
@@ -806,27 +806,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home where your parent lives is completely exempt from SNAP asset limits, regardless of value. Texas only counts liquid assets like bank accounts, stocks, and accessible retirement savings toward the $2,000 limit."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home where your loved one lives is completely exempt from SNAP asset limits, regardless of value. Texas only counts liquid assets like bank accounts, stocks, and accessible retirement savings toward the $2,000 limit."
         },
         {
-          "question": "Does Social Security income disqualify my parent from SNAP?",
-          "answer": "Not necessarily. Social Security counts as income, but seniors get to deduct medical expenses over $35/month and high shelter costs first. If your parent has significant medical bills or housing costs, their net income may fall below the $1,255/month limit even with Social Security."
+          "question": "Does Social Security income disqualify my loved one from SNAP?",
+          "answer": "Not necessarily. Social Security counts as income, but seniors get to deduct medical expenses over $35/month and high shelter costs first. If your loved one has significant medical bills or housing costs, their net income may fall below the $1,255/month limit even with Social Security."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, family members can apply as an authorized representative if your parent cannot apply themselves due to age, disability, or other barriers. You'll need to complete additional paperwork during the application process to establish this relationship."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, family members can apply as an authorized representative if your loved one cannot apply themselves due to age, disability, or other barriers. You'll need to complete additional paperwork during the application process to establish this relationship."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
+          "question": "What happens if my loved one's income changes after approval?",
           "answer": "Report income changes to HHSC within 10 days by calling (877) 541-7905 or logging into YourTexasBenefits.com. Benefits are recertified every 12 months for seniors, and HHSC will adjust the benefit amount based on new income information."
         },
         {
-          "question": "Can my parent use SNAP benefits to buy groceries online?",
-          "answer": "Yes, Texas participates in SNAP online purchasing. Your parent can use their EBT card to buy eligible groceries for delivery or pickup from participating retailers like Amazon, Walmart, and H-E-B through their websites or apps."
+          "question": "Can my loved one use SNAP benefits to buy groceries online?",
+          "answer": "Yes, Texas participates in SNAP online purchasing. Your loved one can use their EBT card to buy eligible groceries for delivery or pickup from participating retailers like Amazon, Walmart, and H-E-B through their websites or apps."
         },
         {
-          "question": "What if my parent owns a car worth more than $2,000?",
+          "question": "What if my loved one owns a car worth more than $2,000?",
           "answer": "One vehicle per household is exempt regardless of value if used for transportation. Additional vehicles may count toward the asset limit, but Texas has exceptions for work vehicles, vehicles needed for medical transportation, and vehicles being used to produce income."
         }
       ],
@@ -847,7 +847,7 @@
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Get $1,000–12,300 paid directly to your parent's utility company to cover heating and cooling bills.",
+      "tagline": "Get $1,000–12,300 paid directly to your loved one's utility company to cover heating and cooling bills.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -860,7 +860,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour parent qualifies if their household income is at or below 150% of the federal poverty level — that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your parent, and may include weatherization services like insulation or heating system repairs.",
+      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour loved one qualifies if their household income is at or below 150% of the federal poverty level — that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your loved one, and may include weatherization services like insulation or heating system repairs.",
       "savingsRange": "$1 – $12,300/year in 2026",
       "savingsSource": "Texas Department of Housing and Community Affairs CEAP guidelines",
       "savingsVerified": true,
@@ -993,7 +993,7 @@
         {
           "type": "callout",
           "title": "Crisis Assistance Available",
-          "content": "If your parent received a shutoff notice or is facing an energy emergency, mention this when applying. Crisis assistance provides up to $2,400 in emergency payments and may receive faster processing, though you'll still join a waitlist."
+          "content": "If your loved one received a shutoff notice or is facing an energy emergency, mention this when applying. Crisis assistance provides up to $2,400 in emergency payments and may receive faster processing, though you'll still join a waitlist."
         }
       ],
       "faqs": [
@@ -1002,31 +1002,31 @@
           "answer": "Wait times vary significantly by county and available funding. Some areas process applications within a few weeks, while others have waitlists lasting several months. Crisis cases with shutoff notices typically get priority, but even they face delays when funding is low."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled parents. You'll need to provide all required documentation and may need to sign as their authorized representative with the local Community Action Agency."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
+          "question": "What if my loved one's income is slightly over the limit?",
           "answer": "If gross monthly income exceeds 150% of the federal poverty level ($2,815 for one person), they don't qualify. However, if they receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible regardless of other income."
         },
         {
-          "question": "Can my parent get LIHEAP and apply for other energy programs at the same time?",
+          "question": "Can my loved one get LIHEAP and apply for other energy programs at the same time?",
           "answer": "Yes, LIHEAP doesn't prevent eligibility for other programs. They can also apply for the Weatherization Assistance Program, which provides free home energy improvements, and utility company assistance programs simultaneously."
         },
         {
-          "question": "What happens if my parent moves to a different county after applying?",
-          "answer": "Each county has its own Community Action Agency and waitlist. If your parent moves, they'll need to start over with a new application in their new county. Benefits don't transfer between agencies."
+          "question": "What happens if my loved one moves to a different county after applying?",
+          "answer": "Each county has its own Community Action Agency and waitlist. If your loved one moves, they'll need to start over with a new application in their new county. Benefits don't transfer between agencies."
         },
         {
           "question": "Does the program cover propane or only electric and gas?",
-          "answer": "LIHEAP covers all home heating and cooling costs, including propane, fuel oil, wood, coal, and electricity. You'll need to provide recent bills for whatever energy source your parent uses for heating or cooling."
+          "answer": "LIHEAP covers all home heating and cooling costs, including propane, fuel oil, wood, coal, and electricity. You'll need to provide recent bills for whatever energy source your loved one uses for heating or cooling."
         },
         {
-          "question": "What if my parent rents and utilities are included in rent?",
-          "answer": "If utilities are included in rent, your parent typically isn't eligible since they don't receive direct utility bills. However, some agencies may accept a landlord statement showing the utility portion of rent. Contact your local CAA to ask about their specific policy."
+          "question": "What if my loved one rents and utilities are included in rent?",
+          "answer": "If utilities are included in rent, your loved one typically isn't eligible since they don't receive direct utility bills. However, some agencies may accept a landlord statement showing the utility portion of rent. Contact your local CAA to ask about their specific policy."
         },
         {
-          "question": "How often can my parent receive LIHEAP benefits?",
+          "question": "How often can my loved one receive LIHEAP benefits?",
           "answer": "Regular LIHEAP benefits are limited to once per federal fiscal year (October 1 to September 30). However, if they face a crisis like a shutoff notice, they may be eligible for additional crisis assistance funds in the same year."
         }
       ],
@@ -1047,7 +1047,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy efficiency improvements that can cut your parent's utility bills by hundreds of dollars annually.",
+      "tagline": "Free home energy efficiency improvements that can cut your loved one's utility bills by hundreds of dollars annually.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1064,7 +1064,7 @@
           }
         ]
       },
-      "intro": "If your parent's household income is at or below 200% of the federal poverty level, they may qualify for free home weatherization services that can significantly reduce monthly utility bills. The program provides a professional energy audit followed by improvements like insulation installation, air leak sealing, duct work repairs, and heating/cooling system tune-ups or replacements.\n\nBecause Texas administers this program through approximately 30 regional agencies rather than one state office, you'll need to contact the specific subrecipient that serves your parent's county. Priority goes to households with elderly residents, people with disabilities, or families with children under 6, though waitlists are common due to funding limits.",
+      "intro": "If your loved one's household income is at or below 200% of the federal poverty level, they may qualify for free home weatherization services that can significantly reduce monthly utility bills. The program provides a professional energy audit followed by improvements like insulation installation, air leak sealing, duct work repairs, and heating/cooling system tune-ups or replacements.\n\nBecause Texas administers this program through approximately 30 regional agencies rather than one state office, you'll need to contact the specific subrecipient that serves your loved one's county. Priority goes to households with elderly residents, people with disabilities, or families with children under 6, though waitlists are common due to funding limits.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1160,7 +1160,7 @@
         "You must contact the correct regional subrecipient for your county — the state does not accept direct applications",
         "Income documentation is strictly limited to the last 30 days and gets annualized — older pay stubs or tax returns will not be accepted",
         "Every household member needs citizenship verification, including children, which can delay applications if documents are missing",
-        "If your parent is elderly, disabled, or lives with young children, mention this when applying as it may improve their priority score"
+        "If your loved one is elderly, disabled, or lives with young children, mention this when applying as it may improve their priority score"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1171,12 +1171,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's mobile home isn't eligible in their region?",
+          "question": "What if my loved one's mobile home isn't eligible in their region?",
           "answer": "Mobile home eligibility varies by regional agency. Some exclude them entirely (like ATCog), while others include them. Call your regional subrecipient directly to confirm whether mobile homes qualify in your area, as this rule isn't consistent statewide."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. However, your parent will need to sign forms and provide their personal documentation. Some agencies may require your parent to be present for the initial energy audit scheduling."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. However, your loved one will need to sign forms and provide their personal documentation. Some agencies may require your loved one to be present for the initial energy audit scheduling."
         },
         {
           "question": "How long is the waitlist really?",
@@ -1187,19 +1187,19 @@
           "answer": "Landlord permission is required for renters, and there's no workaround if they refuse. Try explaining that weatherization improvements increase property value and reduce utility costs for tenants. Some landlords may be more willing if you provide details about the specific improvements planned."
         },
         {
-          "question": "Can my parent apply if they received weatherization services 8 years ago?",
+          "question": "Can my loved one apply if they received weatherization services 8 years ago?",
           "answer": "It depends on your region. Some areas require a 10-year gap between weatherization services, while others have different timeframes. Contact your regional agency with the approximate date of previous service to confirm eligibility."
         },
         {
-          "question": "What happens if the energy audit shows my parent's home doesn't need weatherization?",
+          "question": "What happens if the energy audit shows my loved one's home doesn't need weatherization?",
           "answer": "No services will be provided if the audit determines the home doesn't meet energy-savings requirements. The audit itself is free, but weatherization work only proceeds if it meets Department of Energy efficiency standards for cost-effectiveness."
         },
         {
-          "question": "Can my parent apply for both weatherization and LIHEAP at the same time?",
+          "question": "Can my loved one apply for both weatherization and LIHEAP at the same time?",
           "answer": "Yes, these are separate programs and you can apply for both simultaneously. In fact, some regional agencies coordinate these services or may suggest applying for LIHEAP while on the weatherization waitlist for immediate utility bill help."
         },
         {
-          "question": "What if my parent's income includes irregular Social Security or pension payments?",
+          "question": "What if my loved one's income includes irregular Social Security or pension payments?",
           "answer": "You must document the exact income received in the 30 days prior to application, even if payments were irregular. The agency will annualize this amount. If a regular payment was missed in those 30 days, bring documentation showing the typical payment schedule."
         }
       ],
@@ -1233,7 +1233,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medicare or turning 65, Texas SHIP provides free counseling to help them choose the right health and prescription drug plans. Because Medicare has dozens of plan options that change every year, a trained counselor can review your parent's specific medications and doctors to find the plan that saves the most money.\n\nSHIP counselors also help apply for Medicare Savings Programs and Extra Help (Low-Income Subsidy) that can reduce prescription drug costs to $4-$10 per month. In Texas, this program is called the Health Information, Counseling, and Advocacy Program (HICAP). Anyone with Medicare can use this service regardless of income — no eligibility requirements beyond having Medicare.",
+      "intro": "If your loved one is on Medicare or turning 65, Texas SHIP provides free counseling to help them choose the right health and prescription drug plans. Because Medicare has dozens of plan options that change every year, a trained counselor can review your loved one's specific medications and doctors to find the plan that saves the most money.\n\nSHIP counselors also help apply for Medicare Savings Programs and Extra Help (Low-Income Subsidy) that can reduce prescription drug costs to $4-$10 per month. In Texas, this program is called the Health Information, Counseling, and Advocacy Program (HICAP). Anyone with Medicare can use this service regardless of income — no eligibility requirements beyond having Medicare.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1307,7 +1307,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help even if my parent already has Medicare coverage?",
+          "question": "Can I get help even if my loved one already has Medicare coverage?",
           "answer": "Yes. SHIP counselors help review existing plans during Open Enrollment (October 15 - December 7) to see if switching could save money. They can also help apply for Extra Help or Medicare Savings Programs that reduce costs for current coverage."
         },
         {
@@ -1315,8 +1315,8 @@
           "answer": "SHIP counselors are local, unbiased volunteers who don't sell insurance. Because they know Texas-specific programs and can meet in person, they often catch savings opportunities that Medicare's national hotline might miss. Both services are free."
         },
         {
-          "question": "Can a family member call on behalf of an elderly parent?",
-          "answer": "Yes, family caregivers can get counseling about Medicare options for their parents. However, the Medicare beneficiary will need to be present or give permission for plan enrollment changes."
+          "question": "Can a family member call on behalf of an elderly loved one?",
+          "answer": "Yes, family caregivers can get counseling about Medicare options for their loved ones. However, the Medicare beneficiary will need to be present or give permission for plan enrollment changes."
         }
       ],
       "layoutIntent": {
@@ -1365,7 +1365,7 @@
           }
         ]
       },
-      "intro": "If your parent is homebound and struggling to prepare nutritious meals, Meals on Wheels delivers hot, ready-to-eat meals directly to their door on weekdays. Because volunteers also provide a brief safety check during each delivery, you get peace of mind knowing someone is checking on your parent daily. Many programs also offer frozen weekend meals and can tailor meals for specific medical conditions like diabetes or heart disease.\n\nThe program serves anyone 60+ who is primarily homebound and unable to prepare nutritious meals without consistent help. Because there are no income limits, your parent can qualify regardless of their financial situation — voluntary contributions are requested but no one is denied for inability to pay.\n\nMeals on Wheels operates through independent local providers across Texas, so you must contact the specific program serving your parent's area. Processing time varies from within a week to longer if there's a waitlist, depending on the local provider.",
+      "intro": "If your loved one is homebound and struggling to prepare nutritious meals, Meals on Wheels delivers hot, ready-to-eat meals directly to their door on weekdays. Because volunteers also provide a brief safety check during each delivery, you get peace of mind knowing someone is checking on your loved one daily. Many programs also offer frozen weekend meals and can tailor meals for specific medical conditions like diabetes or heart disease.\n\nThe program serves anyone 60+ who is primarily homebound and unable to prepare nutritious meals without consistent help. Because there are no income limits, your loved one can qualify regardless of their financial situation — voluntary contributions are requested but no one is denied for inability to pay.\n\nMeals on Wheels operates through independent local providers across Texas, so you must contact the specific program serving your loved one's area. Processing time varies from within a week to longer if there's a waitlist, depending on the local provider.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1395,7 +1395,7 @@
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Use the Meals on Wheels America finder at mealsonwheelsamerica.org/find-meals-and-services/ to locate the program serving your parent's area."
+            "description": "Use the Meals on Wheels America finder at mealsonwheelsamerica.org/find-meals-and-services/ to locate the program serving your loved one's area."
           },
           {
             "step": 2,
@@ -1405,7 +1405,7 @@
           {
             "step": 3,
             "title": "Schedule assessment",
-            "description": "A case manager or social worker will contact you to schedule an in-person home visit to assess your parent's needs and eligibility."
+            "description": "A case manager or social worker will contact you to schedule an in-person home visit to assess your loved one's needs and eligibility."
           },
           {
             "step": 4,
@@ -1415,7 +1415,7 @@
         ],
         "processingTime": "Varies by location — some within a week, others longer if waitlist exists. Tarrant County schedules caseworker appointments within 2 working days.",
         "waitlist": "Possible in some programs, leading to longer processing times",
-        "tip": "Anyone can make the referral — you don't need to wait for your parent to call themselves.",
+        "tip": "Anyone can make the referral — you don't need to wait for your loved one to call themselves.",
         "urls": [
           {
             "label": "Find Local Provider",
@@ -1458,7 +1458,7 @@
         }
       ],
       "applicationNotes": [
-        "Car ownership or ability to leave home easily may disqualify your parent from the program",
+        "Car ownership or ability to leave home easily may disqualify your loved one from the program",
         "Short-term service is available for recovery periods but typically limited to 6 weeks",
         "Some programs offer trial meals for a fee if you want to skip the full assessment process",
         "Priority is often given to those with the greatest need, including dementia or severe disabilities"
@@ -1472,28 +1472,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent who lives in a different county than me?",
-          "answer": "Yes, but you must contact the Meals on Wheels provider that serves your parent's specific area, not yours. Each program only delivers within their designated service zone, so location determines which provider to call."
+          "question": "Can I apply for my loved one who lives in a different county than me?",
+          "answer": "Yes, but you must contact the Meals on Wheels provider that serves your loved one's specific area, not yours. Each program only delivers within their designated service zone, so location determines which provider to call."
         },
         {
-          "question": "What if my parent can still drive but has trouble cooking?",
-          "answer": "Your parent may not qualify if they can easily leave home and access other meal options. The program prioritizes those who are homebound — meaning they rarely leave home without significant assistance or difficulty."
+          "question": "What if my loved one can still drive but has trouble cooking?",
+          "answer": "Your loved one may not qualify if they can easily leave home and access other meal options. The program prioritizes those who are homebound — meaning they rarely leave home without significant assistance or difficulty."
         },
         {
           "question": "How long is the waitlist in most Texas areas?",
-          "answer": "Waitlist length varies dramatically by location and isn't publicly reported by most providers. Some areas start service within a week, while others have longer waits. Priority is given to those with the greatest need, so severe disabilities or dementia may move your parent up the list."
+          "answer": "Waitlist length varies dramatically by location and isn't publicly reported by most providers. Some areas start service within a week, while others have longer waits. Priority is given to those with the greatest need, so severe disabilities or dementia may move your loved one up the list."
         },
         {
-          "question": "What happens if my parent can't afford the suggested donation?",
-          "answer": "No one is denied service for inability to pay. Donations are voluntary and requested to help sustain the program, but your parent will receive meals regardless of whether they can contribute financially."
+          "question": "What happens if my loved one can't afford the suggested donation?",
+          "answer": "No one is denied service for inability to pay. Donations are voluntary and requested to help sustain the program, but your loved one will receive meals regardless of whether they can contribute financially."
         },
         {
-          "question": "Can my parent get meals temporarily while recovering from surgery?",
-          "answer": "Yes, many programs offer short-term service for recovery periods, typically limited to about 6 weeks. Contact your local provider to discuss temporary meal delivery options during your parent's recovery."
+          "question": "Can my loved one get meals temporarily while recovering from surgery?",
+          "answer": "Yes, many programs offer short-term service for recovery periods, typically limited to about 6 weeks. Contact your local provider to discuss temporary meal delivery options during your loved one's recovery."
         },
         {
-          "question": "What if my parent has special dietary needs like diabetes?",
-          "answer": "Many programs can accommodate medical dietary restrictions and may offer medically-tailored meals. Provide information about your parent's health conditions and dietary needs during the referral process so they can plan appropriate meals."
+          "question": "What if my loved one has special dietary needs like diabetes?",
+          "answer": "Many programs can accommodate medical dietary restrictions and may offer medically-tailored meals. Provide information about your loved one's health conditions and dietary needs during the referral process so they can plan appropriate meals."
         }
       ],
       "layoutIntent": {
@@ -1513,7 +1513,7 @@
       "id": "cba-waiver",
       "name": "Community Based Alternatives (CBA) Waiver",
       "shortName": "CBA Waiver",
-      "tagline": "Help your parent avoid nursing home placement and receive care at home through this Texas Medicaid waiver program",
+      "tagline": "Help your loved one avoid nursing home placement and receive care at home through this Texas Medicaid waiver program",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1534,7 +1534,7 @@
           }
         ]
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, the Community Based Alternatives (CBA) Waiver can make that possible. This Texas Medicaid program pays for personal care attendants, home modifications, respite care, and nursing services — essentially bringing nursing home services to your parent's house. Your parent must qualify for Medicaid and meet nursing facility level of care (meaning they need daily help with activities like bathing, dressing, or medication management).\n\nBecause this waiver covers comprehensive home care services under one coordinated plan, your parent won't need to piece together care from multiple providers — one team manages everything from personal attendants to therapy services. The total cost of your parent's service plan cannot exceed what Texas would pay for nursing home care, but there's no fixed dollar limit or hour cap — services are tailored to their specific needs.\n\nThere is a waitlist for this program. Wait times vary by region and your parent's priority level, with those at highest risk of nursing home placement typically served first. Income limit: $2,829/month for a single person (2025). Asset limit: $2,000 for an individual, $3,000 for a couple.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, the Community Based Alternatives (CBA) Waiver can make that possible. This Texas Medicaid program pays for personal care attendants, home modifications, respite care, and nursing services — essentially bringing nursing home services to your loved one's house. Your loved one must qualify for Medicaid and meet nursing facility level of care (meaning they need daily help with activities like bathing, dressing, or medication management).\n\nBecause this waiver covers comprehensive home care services under one coordinated plan, your loved one won't need to piece together care from multiple providers — one team manages everything from personal attendants to therapy services. The total cost of your loved one's service plan cannot exceed what Texas would pay for nursing home care, but there's no fixed dollar limit or hour cap — services are tailored to their specific needs.\n\nThere is a waitlist for this program. Wait times vary by region and your loved one's priority level, with those at highest risk of nursing home placement typically served first. Income limit: $2,829/month for a single person (2025). Asset limit: $2,000 for an individual, $3,000 for a couple.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1591,7 +1591,7 @@
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "Once called from the waitlist, a clinical team will assess whether your parent meets nursing facility level of care requirements through in-person evaluation."
+            "description": "Once called from the waitlist, a clinical team will assess whether your loved one meets nursing facility level of care requirements through in-person evaluation."
           },
           {
             "step": 4,
@@ -1601,7 +1601,7 @@
         ],
         "processingTime": "Medicaid eligibility determination typically 45 days, but waiver interest list placement is immediate",
         "waitlist": "Yes, waitlists are common and can extend from several months to multiple years depending on region and priority level",
-        "tip": "Apply to the interest list as soon as you think your parent might need services, even if they're not ready now — you can decline when called if the timing isn't right.",
+        "tip": "Apply to the interest list as soon as you think your loved one might need services, even if they're not ready now — you can decline when called if the timing isn't right.",
         "urls": [
           {
             "label": "Your Texas Benefits",
@@ -1644,7 +1644,7 @@
         "You can apply for Medicaid and request waiver interest list placement simultaneously — don't wait for Medicaid approval to get on the waitlist",
         "Wait times vary significantly by region — urban areas like Houston and Dallas typically have longer waits than rural areas",
         "Priority is given to those at highest risk of nursing home placement — emergency situations may receive expedited consideration",
-        "Your parent cannot be enrolled in both CBA waiver and nursing facility care at the same time — it's an either/or choice"
+        "Your loved one cannot be enrolled in both CBA waiver and nursing facility care at the same time — it's an either/or choice"
       ],
       "relatedPrograms": [
         "STAR+PLUS HCBS",
@@ -1676,36 +1676,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, your parent's primary home is exempt from the $2,000 asset limit as long as they live there or intend to return, and the home equity doesn't exceed $730,000. The home remains exempt even if your spouse or disabled child lives there."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, your loved one's primary home is exempt from the $2,000 asset limit as long as they live there or intend to return, and the home equity doesn't exceed $730,000. The home remains exempt even if your spouse or disabled child lives there."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Wait times vary from several months to multiple years depending on your region and your parent's priority level. Urban areas like Houston and Dallas typically have longer waits than rural areas. Those at highest risk of immediate nursing home placement get priority."
+          "answer": "Wait times vary from several months to multiple years depending on your region and your loved one's priority level. Urban areas like Houston and Dallas typically have longer waits than rural areas. Those at highest risk of immediate nursing home placement get priority."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as your parent's authorized representative if they cannot apply themselves due to physical or cognitive limitations. You'll need to complete additional paperwork establishing your authority to act on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as your loved one's authorized representative if they cannot apply themselves due to physical or cognitive limitations. You'll need to complete additional paperwork establishing your authority to act on their behalf."
         },
         {
-          "question": "What if my parent's income is slightly over the $2,829 limit?",
-          "answer": "Your parent may still qualify through a Medicaid spend-down process, where they pay the excess income toward medical expenses each month. Contact HHSC at (877) 541-7905 to discuss spend-down options for your parent's specific situation."
+          "question": "What if my loved one's income is slightly over the $2,829 limit?",
+          "answer": "Your loved one may still qualify through a Medicaid spend-down process, where they pay the excess income toward medical expenses each month. Contact HHSC at (877) 541-7905 to discuss spend-down options for your loved one's specific situation."
         },
         {
-          "question": "Can my parent receive CBA waiver services and still live in assisted living?",
-          "answer": "Yes, CBA waiver services can be provided in various community settings including assisted living facilities, as long as your parent isn't in a nursing facility. The services complement rather than replace the assisted living care."
+          "question": "Can my loved one receive CBA waiver services and still live in assisted living?",
+          "answer": "Yes, CBA waiver services can be provided in various community settings including assisted living facilities, as long as your loved one isn't in a nursing facility. The services complement rather than replace the assisted living care."
         },
         {
-          "question": "What happens if my parent's needs increase after they're enrolled?",
-          "answer": "The care coordinator will reassess your parent's needs and can modify the service plan accordingly, as long as the total cost doesn't exceed the nursing facility payment rate. Regular reassessments ensure services match current needs."
+          "question": "What happens if my loved one's needs increase after they're enrolled?",
+          "answer": "The care coordinator will reassess your loved one's needs and can modify the service plan accordingly, as long as the total cost doesn't exceed the nursing facility payment rate. Regular reassessments ensure services match current needs."
         },
         {
-          "question": "Can my parent choose their own personal care attendant?",
-          "answer": "In many cases, yes. Your parent may be able to hire family members or friends as personal attendants, though specific rules vary by the managed care organization. The attendant must meet training and background check requirements."
+          "question": "Can my loved one choose their own personal care attendant?",
+          "answer": "In many cases, yes. Your loved one may be able to hire family members or friends as personal attendants, though specific rules vary by the managed care organization. The attendant must meet training and background check requirements."
         },
         {
           "question": "What if we move to a different part of Texas after enrollment?",
-          "answer": "Your parent can maintain CBA waiver services when moving within Texas, but you'll need to transfer to the new region's STAR+PLUS managed care organization. Contact your current care coordinator to initiate the transfer process before moving."
+          "answer": "Your loved one can maintain CBA waiver services when moving within Texas, but you'll need to transfer to the new region's STAR+PLUS managed care organization. Contact your current care coordinator to initiate the transfer process before moving."
         }
       ],
       "layoutIntent": {
@@ -1725,7 +1725,7 @@
       "id": "community-caregiver-support",
       "name": "Community Caregiver Support Program",
       "shortName": "Caregiver Support",
-      "tagline": "Get help coordinating care for your aging parent through local support centers across Texas.",
+      "tagline": "Get help coordinating care for your aging loved one through local support centers across Texas.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1738,7 +1738,7 @@
           }
         ]
       },
-      "intro": "If your parent needs help with daily tasks like bathing, meal preparation, or getting to appointments, Texas's community caregiver programs can connect you to local services and support. These programs work through your local Aging and Disability Resource Center (ADRC) to help older adults stay in their homes longer.\n\nThe main program, Community Care for Aged/Disabled (CCAD), provides non-medical support services for people who need help with everyday activities but don't qualify for full Medicaid. Income limits are $2,829/month for a single person and $5,658 for couples (2024 figures). Asset limits are $5,000 for individuals and $6,000 for couples.\n\nBecause services are coordinated through local ADRCs, your parent gets one point of contact instead of calling multiple agencies. Wait times and available services vary by region depending on local capacity.",
+      "intro": "If your loved one needs help with daily tasks like bathing, meal preparation, or getting to appointments, Texas's community caregiver programs can connect you to local services and support. These programs work through your local Aging and Disability Resource Center (ADRC) to help older adults stay in their homes longer.\n\nThe main program, Community Care for Aged/Disabled (CCAD), provides non-medical support services for people who need help with everyday activities but don't qualify for full Medicaid. Income limits are $2,829/month for a single person and $5,658 for couples (2024 figures). Asset limits are $5,000 for individuals and $6,000 for couples.\n\nBecause services are coordinated through local ADRCs, your loved one gets one point of contact instead of calling multiple agencies. Wait times and available services vary by region depending on local capacity.",
       "savingsRange": "",
       "savingsSource": "Free service coordination and connection to local resources",
       "savingsVerified": false,
@@ -1780,12 +1780,12 @@
           {
             "step": 1,
             "title": "Call the statewide ADRC line",
-            "description": "Call 1-855-937-2372 to be connected to your local Aging and Disability Resource Center. They'll assess your parent's needs over the phone."
+            "description": "Call 1-855-937-2372 to be connected to your local Aging and Disability Resource Center. They'll assess your loved one's needs over the phone."
           },
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Answer questions about your parent's daily living needs, income, assets, and current living situation. This helps determine which services they qualify for."
+            "description": "Answer questions about your loved one's daily living needs, income, assets, and current living situation. This helps determine which services they qualify for."
           },
           {
             "step": 3,
@@ -1795,16 +1795,16 @@
           {
             "step": 4,
             "title": "Wait for service coordination",
-            "description": "Your ADRC will match your parent with available local providers. Wait times vary by region and service type."
+            "description": "Your ADRC will match your loved one with available local providers. Wait times vary by region and service type."
           }
         ],
         "processingTime": null,
         "waitlist": "Varies by region and service type",
-        "tip": "Call early in the day (before 10am) when ADRC staff have more time for detailed conversations about your parent's specific needs.",
+        "tip": "Call early in the day (before 10am) when ADRC staff have more time for detailed conversations about your loved one's specific needs.",
         "urls": []
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for your parent",
+        "Valid government-issued photo ID for your loved one",
         "Proof of Texas residency (utility bill, lease, or driver's license)",
         "Social Security award letter or pension statements",
         "Bank statements for all accounts (last 3 months)",
@@ -1839,28 +1839,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can initiate the application process by calling the ADRC. However, your parent will need to participate in the assessment interview, or you'll need legal authority (power of attorney) to act on their behalf. The ADRC staff will guide you through what's required."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can initiate the application process by calling the ADRC. However, your loved one will need to participate in the assessment interview, or you'll need legal authority (power of attorney) to act on their behalf. The ADRC staff will guide you through what's required."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
-          "answer": "Income limits are $2,829/month for single people and $5,658 for couples in 2024. If your parent is over these amounts, they may still qualify for other programs like STAR+PLUS or private-pay services coordinated through the ADRC. Don't assume they're ineligible without calling."
+          "question": "What if my loved one's income is slightly over the limit?",
+          "answer": "Income limits are $2,829/month for single people and $5,658 for couples in 2024. If your loved one is over these amounts, they may still qualify for other programs like STAR+PLUS or private-pay services coordinated through the ADRC. Don't assume they're ineligible without calling."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Wait times vary significantly by region and service type. Rural areas often have shorter waits but fewer service options. Urban areas may have longer waits but more providers. When you call your ADRC, ask for honest wait time estimates for the specific services your parent needs."
+          "answer": "Wait times vary significantly by region and service type. Rural areas often have shorter waits but fewer service options. Urban areas may have longer waits but more providers. When you call your ADRC, ask for honest wait time estimates for the specific services your loved one needs."
         },
         {
-          "question": "Can my parent get both this program and Medicaid services?",
-          "answer": "No, your parent cannot receive CCAD services and Medicaid services for the same needs. However, they might qualify for STAR+PLUS (Medicaid waiver) instead, which provides more comprehensive coverage. Your ADRC will help determine which program offers better benefits for your parent's situation."
+          "question": "Can my loved one get both this program and Medicaid services?",
+          "answer": "No, your loved one cannot receive CCAD services and Medicaid services for the same needs. However, they might qualify for STAR+PLUS (Medicaid waiver) instead, which provides more comprehensive coverage. Your ADRC will help determine which program offers better benefits for your loved one's situation."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "The ADRC will reassess your parent's needs periodically, usually annually or when you request it. If their care needs increase, they may qualify for additional services or need to transition to a different program like STAR+PLUS. Call your ADRC whenever your parent's situation changes significantly."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "The ADRC will reassess your loved one's needs periodically, usually annually or when you request it. If their care needs increase, they may qualify for additional services or need to transition to a different program like STAR+PLUS. Call your ADRC whenever your loved one's situation changes significantly."
         },
         {
-          "question": "Does my parent's house count toward the asset limit?",
-          "answer": "No, your parent's primary home is exempt from the $5,000 individual or $6,000 couple asset limits. One vehicle is also exempt. The limits apply mainly to bank accounts, investments, and cash. If your parent has significant non-exempt assets, ask the ADRC about spend-down options."
+          "question": "Does my loved one's house count toward the asset limit?",
+          "answer": "No, your loved one's primary home is exempt from the $5,000 individual or $6,000 couple asset limits. One vehicle is also exempt. The limits apply mainly to bank accounts, investments, and cash. If your loved one has significant non-exempt assets, ask the ADRC about spend-down options."
         }
       ],
       "layoutIntent": {
@@ -1893,7 +1893,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal issues with Medicare benefits, nursing home complaints, or housing problems, Texas's 28 Area Agencies on Aging provide free legal counseling and advocacy. Because these services are provided through AAAs rather than traditional legal aid organizations, your parent can get help regardless of income level — though priority goes to those with the greatest need.\n\nThe program covers civil legal matters only: Medicare and Medicaid benefits counseling, ombudsman advocacy for nursing homes and assisted living facilities, consumer protection issues, and housing disputes. Your parent will get one-on-one counseling from trained staff, plus referrals to specialized legal aid organizations when needed. Because all 254 Texas counties are covered by the 28 regional AAAs, there's a local office that serves your parent's area.",
+      "intro": "If your loved one is 60+ and facing legal issues with Medicare benefits, nursing home complaints, or housing problems, Texas's 28 Area Agencies on Aging provide free legal counseling and advocacy. Because these services are provided through AAAs rather than traditional legal aid organizations, your loved one can get help regardless of income level — though priority goes to those with the greatest need.\n\nThe program covers civil legal matters only: Medicare and Medicaid benefits counseling, ombudsman advocacy for nursing homes and assisted living facilities, consumer protection issues, and housing disputes. Your loved one will get one-on-one counseling from trained staff, plus referrals to specialized legal aid organizations when needed. Because all 254 Texas counties are covered by the 28 regional AAAs, there's a local office that serves your loved one's area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1928,7 +1928,7 @@
           {
             "step": 2,
             "title": "Call for intake screening",
-            "description": "Explain your parent's legal issue during the phone call. Staff will provide immediate counseling for benefits questions or nursing home advocacy, or refer to appropriate legal aid organizations for complex matters."
+            "description": "Explain your loved one's legal issue during the phone call. Staff will provide immediate counseling for benefits questions or nursing home advocacy, or refer to appropriate legal aid organizations for complex matters."
           },
           {
             "step": 3,
@@ -1994,11 +1994,11 @@
           "answer": "AAA legal services have no income limits and focus on counseling, benefits help, and nursing home advocacy. Traditional legal aid organizations like Legal Aid of NorthWest Texas require income below 125-200% of Federal Poverty Guidelines but provide full legal representation in court. AAAs often refer to legal aid when court representation is needed."
         },
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
+          "question": "Can I call on behalf of my loved one who has dementia?",
           "answer": "Yes, family members and caregivers can contact AAAs on behalf of seniors. You'll need details about the legal issue and may need to provide documentation showing your authority to act (like power of attorney) depending on the situation."
         },
         {
-          "question": "Will my parent get priority if they're low-income?",
+          "question": "Will my loved one get priority if they're low-income?",
           "answer": "Yes, AAAs prioritize services for seniors with the greatest need, including those with low income, functional impairments, social isolation, or high nutritional risk. However, services are available to all eligible seniors regardless of income level."
         },
         {
@@ -2023,7 +2023,7 @@
       "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy and complaint resolution when your parent faces problems in their nursing home or assisted living facility.",
+      "tagline": "Free advocacy and complaint resolution when your loved one faces problems in their nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2036,7 +2036,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes — and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your parent in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
+      "intro": "If your loved one lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes — and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your loved one in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2068,7 +2068,7 @@
           {
             "step": 2,
             "title": "Provide facility and concern details",
-            "description": "Give the ombudsman your parent's name, facility name and location, and specific details about the problem or complaint."
+            "description": "Give the ombudsman your loved one's name, facility name and location, and specific details about the problem or complaint."
           },
           {
             "step": 3,
@@ -2110,16 +2110,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can file complaints and request ombudsman assistance for residents who cannot advocate for themselves. The ombudsman will still visit your parent and assess their situation directly, but they understand that family involvement is often necessary for residents with cognitive impairments."
+          "question": "Can I file a complaint on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can file complaints and request ombudsman assistance for residents who cannot advocate for themselves. The ombudsman will still visit your loved one and assess their situation directly, but they understand that family involvement is often necessary for residents with cognitive impairments."
         },
         {
-          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "question": "Will the facility retaliate against my loved one if I file a complaint?",
           "answer": "Retaliation is illegal and ombudsmen specifically monitor for it. All complaints are kept confidential, and ombudsmen are trained to protect residents from reprisal. If retaliation occurs, contact your ombudsman immediately — they have authority to pursue remedies and escalate to regulatory agencies."
         },
         {
-          "question": "What if my parent wants to leave the facility but the facility won't discharge them?",
-          "answer": "Ombudsmen can help with discharge disputes and transfer issues. They know facility regulations about discharge procedures and can advocate for your parent's right to leave when medically appropriate. Call 800-252-2412 to discuss the specific circumstances."
+          "question": "What if my loved one wants to leave the facility but the facility won't discharge them?",
+          "answer": "Ombudsmen can help with discharge disputes and transfer issues. They know facility regulations about discharge procedures and can advocate for your loved one's right to leave when medically appropriate. Call 800-252-2412 to discuss the specific circumstances."
         },
         {
           "question": "Does the ombudsman program help with billing or payment disputes?",
@@ -2141,12 +2141,12 @@
     }
   ],
   "stateOverview": {
-    "intro": "Texas offers 12 major programs to help your aging parent — 9 provide direct financial benefits or services, while 3 offer free guidance and advocacy. The financial help ranges from $298/month for groceries through SNAP to comprehensive healthcare coverage through STAR+PLUS that includes home care services. Free resources include one-on-one Medicare counseling, legal aid for seniors 60+, and nursing home advocacy. Most benefit programs have income limits around $2,000-3,000/month for a single person, but several valuable resources are available regardless of income. Start by checking if your parent qualifies for Medicaid programs — these provide the most comprehensive coverage and can coordinate multiple types of care under one system.",
+    "intro": "Texas offers 12 major programs to help your aging loved one — 9 provide direct financial benefits or services, while 3 offer free guidance and advocacy. The financial help ranges from $298/month for groceries through SNAP to comprehensive healthcare coverage through STAR+PLUS that includes home care services. Free resources include one-on-one Medicare counseling, legal aid for seniors 60+, and nursing home advocacy. Most benefit programs have income limits around $2,000-3,000/month for a single person, but several valuable resources are available regardless of income. Start by checking if your loved one qualifies for Medicaid programs — these provide the most comprehensive coverage and can coordinate multiple types of care under one system.",
     "startHere": [
       {
         "name": "STAR+PLUS",
         "programId": "star-plus",
-        "why": "Combines full healthcare coverage with home care services if your parent needs nursing home level care but wants to stay home."
+        "why": "Combines full healthcare coverage with home care services if your loved one needs nursing home level care but wants to stay home."
       },
       {
         "name": "SNAP",
@@ -2167,7 +2167,7 @@
           "PACE",
           "Community Based Alternatives (CBA) Waiver"
         ],
-        "description": "Medicaid programs that provide full healthcare plus services to help your parent stay at home instead of moving to a nursing facility."
+        "description": "Medicaid programs that provide full healthcare plus services to help your loved one stay at home instead of moving to a nursing facility."
       },
       {
         "need": "Help with daily expenses",
@@ -2205,9 +2205,9 @@
     ],
     "quickFacts": [
       "Texas uses YourTexasBenefits.com for SNAP and LIHEAP applications",
-      "PACE operates in limited Texas counties — availability depends on your parent's location",
-      "Most Medicaid waiver programs in Texas have waiting lists, so apply early even if your parent doesn't need services immediately"
+      "PACE operates in limited Texas counties — availability depends on your loved one's location",
+      "Most Medicaid waiver programs in Texas have waiting lists, so apply early even if your loved one doesn't need services immediately"
     ],
-    "resourcesVsBenefits": "Benefits like STAR+PLUS and SNAP require your parent to meet specific income and asset limits — typically around $2,000-3,000/month income for a single person. Resources like Texas SHIP Medicare counseling, legal aid through Area Agencies on Aging, and the Long-Term Care Ombudsman are free to all Texas seniors regardless of income, making them good starting points while you determine benefit eligibility."
+    "resourcesVsBenefits": "Benefits like STAR+PLUS and SNAP require your loved one to meet specific income and asset limits — typically around $2,000-3,000/month income for a single person. Resources like Texas SHIP Medicare counseling, legal aid through Area Agencies on Aging, and the Long-Term Care Ombudsman are free to all Texas seniors regardless of income, making them good starting points while you determine benefit eligibility."
   }
 }

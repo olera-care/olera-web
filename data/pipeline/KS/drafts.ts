@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.904Z
+ * Last updated: 2026-04-20T22:05:18.088Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "kancare-frail-elderly-waiver",
       "name": "KanCare Frail Elderly Waiver (FE Waiver)",
       "shortName": "FE Waiver",
-      "tagline": "Home care services for your parent instead of nursing home placement — if they qualify for daily assistance needs.",
+      "tagline": "Home care services for your loved one instead of nursing home placement — if they qualify for daily assistance needs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing facility, the KanCare Frail Elderly Waiver covers home care services. This program serves as an alternative to nursing home care for Kansas residents 65+ who meet nursing facility level of care requirements.\n\nBecause the waiver covers home and community-based services through individualized care plans, your parent can receive professional support while remaining in their own home. The program requires KanCare Medicaid eligibility first, and your parent can keep $2,982 per month of their income (2026 amount).\n\nLimited slots mean waitlists exist statewide. The program does not cover room and board or basic living expenses — only authorized services like personal care, case management, and other supports determined through clinical assessment.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing facility, the KanCare Frail Elderly Waiver covers home care services. This program serves as an alternative to nursing home care for Kansas residents 65+ who meet nursing facility level of care requirements.\n\nBecause the waiver covers home and community-based services through individualized care plans, your loved one can receive professional support while remaining in their own home. The program requires KanCare Medicaid eligibility first, and your loved one can keep $2,982 per month of their income (2026 amount).\n\nLimited slots mean waitlists exist statewide. The program does not cover room and board or basic living expenses — only authorized services like personal care, case management, and other supports determined through clinical assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -58,7 +58,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care through Functional Assessment Instrument (FAI) — clinical evaluation of whether your parent needs daily help with activities like toileting, bathing, dressing, transferring, mobility, eating, plus cognitive or behavioral issues",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through Functional Assessment Instrument (FAI) — clinical evaluation of whether your loved one needs daily help with activities like toileting, bathing, dressing, transferring, mobility, eating, plus cognitive or behavioral issues",
         "otherRequirements": [
           "Kansas resident",
           "Eligible for KanCare (Kansas Medicaid)",
@@ -73,7 +73,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Apply for KanCare Medicaid",
-            "description": "Your parent must qualify for Kansas Medicaid before waiver eligibility. Apply online at KanCare.ks.gov or call the KanCare Clearinghouse."
+            "description": "Your loved one must qualify for Kansas Medicaid before waiver eligibility. Apply online at KanCare.ks.gov or call the KanCare Clearinghouse."
           },
           {
             "step": 2,
@@ -83,12 +83,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete Functional Assessment Instrument (FAI)",
-            "description": "Clinical assessment determines if your parent meets nursing facility level of care requirements for activities of daily living and cognitive needs."
+            "description": "Clinical assessment determines if your loved one meets nursing facility level of care requirements for activities of daily living and cognitive needs."
           },
           {
             "step": 4,
             "title": "Wait for slot availability",
-            "description": "If assessed as eligible but no slots available, your parent joins the waitlist (proposed recipient list) until an opening occurs."
+            "description": "If assessed as eligible but no slots available, your loved one joins the waitlist (proposed recipient list) until an opening occurs."
           },
           {
             "step": 5,
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         "Documentation of current medications and medical conditions",
         "Proof of any pension or retirement income",
         "Pre-need burial contracts or irrevocable burial trusts",
-        "Legal documents if someone applies on your parent's behalf"
+        "Legal documents if someone applies on your loved one's behalf"
       ],
       "contacts": [
         {
@@ -143,9 +143,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Waiver denial is automatic if your parent doesn't qualify for KanCare Medicaid first — complete that application before requesting functional assessment",
+        "Waiver denial is automatic if your loved one doesn't qualify for KanCare Medicaid first — complete that application before requesting functional assessment",
         "Wait times vary regionally due to limited slots and local provider availability — ask about current waitlist length in your area",
-        "The 60-month Look-Back Rule can create penalty periods if your parent transferred assets below fair market value — consult elder law attorney if transfers occurred",
+        "The 60-month Look-Back Rule can create penalty periods if your loved one transferred assets below fair market value — consult elder law attorney if transfers occurred",
         "Services require prior authorization through Plan of Care process — emergency services may need retroactive approval"
       ],
       "relatedPrograms": [
@@ -157,36 +157,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $752,000?",
-          "answer": "No, if your parent's home equity exceeds $752,000 (2026 limit), they won't qualify for KanCare Medicaid, which is required for the waiver. The home is exempt only if equity is at or below this cap and your parent lives there or intends to return."
+          "question": "Can my loved one keep their house if it's worth more than $752,000?",
+          "answer": "No, if your loved one's home equity exceeds $752,000 (2026 limit), they won't qualify for KanCare Medicaid, which is required for the waiver. The home is exempt only if equity is at or below this cap and your loved one lives there or intends to return."
         },
         {
-          "question": "What if my parent needs nursing home care now but wants to get on the waiver waitlist?",
-          "answer": "Your parent can apply for the waiver while already in a nursing facility. If a waiver slot opens and they still prefer home care, they can transition back to community living with waiver services."
+          "question": "What if my loved one needs nursing home care now but wants to get on the waiver waitlist?",
+          "answer": "Your loved one can apply for the waiver while already in a nursing facility. If a waiver slot opens and they still prefer home care, they can transition back to community living with waiver services."
         },
         {
           "question": "How long is the waitlist really in Kansas?",
           "answer": "Wait times aren't specified in official sources and likely vary by region and individual needs. Contact your local waiver program manager through KDADS for current waitlist estimates in your area."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need legal documentation showing your authority to act for your parent, such as power of attorney or guardianship papers."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need legal documentation showing your authority to act for your loved one, such as power of attorney or guardianship papers."
         },
         {
-          "question": "Can my parent apply for both the FE Waiver and other Kansas waivers?",
+          "question": "Can my loved one apply for both the FE Waiver and other Kansas waivers?",
           "answer": "No, individuals can only be enrolled in one Medicaid waiver at a time. However, they can be assessed for multiple waivers to determine the best fit for their needs."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "The waiver program conducts re-assessments to adjust services based on changing needs. The Plan of Care can be modified to add or reduce services as your parent's condition changes."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "The waiver program conducts re-assessments to adjust services based on changing needs. The Plan of Care can be modified to add or reduce services as your loved one's condition changes."
         },
         {
           "question": "Does the waiver cover private duty nursing or just personal care?",
-          "answer": "The waiver covers various home and community-based services authorized through the Plan of Care process, but specific services aren't exhaustively listed in available sources. Discuss your parent's specific needs during the assessment."
+          "answer": "The waiver covers various home and community-based services authorized through the Plan of Care process, but specific services aren't exhaustively listed in available sources. Discuss your loved one's specific needs during the assessment."
         },
         {
-          "question": "What if my parent's income is too high for regular Medicaid?",
-          "answer": "Kansas has Medically Needy spend-down options that may allow qualification even with higher income. Your parent can keep $2,982 per month (2026) and may qualify through spend-down of excess income on medical expenses."
+          "question": "What if my loved one's income is too high for regular Medicaid?",
+          "answer": "Kansas has Medically Needy spend-down options that may allow qualification even with higher income. Your loved one can keep $2,982 per month (2026) and may qualify through spend-down of excess income on medical expenses."
         }
       ],
       "layoutIntent": {
@@ -228,7 +228,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs nursing home level care but wants to stay at home, PACE provides everything under one roof — primary care, specialists, therapy, medications, transportation, meals, and even adult day programs. Because PACE coordinates all services through one team, your parent won't juggle multiple doctors, insurance approvals, or care gaps that leave families scrambling.\n\nPACE is only available in three Kansas regions: Wichita (Sedgwick County), Topeka area (9+ counties), and McPherson area (6 counties). Your parent must be 55+ and certified as needing nursing home level care (clinical assessment of whether they need daily help with bathing, dressing, or medication management). Most participants are dual-eligible for Medicare and Medicaid — private pay averages $7,000+ per month.\n\nThe average PACE participant is 76 years old with multiple complex conditions. All participants receive identical comprehensive services regardless of how they pay — Medicare covers medical services, Medicaid covers long-term care, and PACE fills every gap in between.",
+      "intro": "If your loved one needs nursing home level care but wants to stay at home, PACE provides everything under one roof — primary care, specialists, therapy, medications, transportation, meals, and even adult day programs. Because PACE coordinates all services through one team, your loved one won't juggle multiple doctors, insurance approvals, or care gaps that leave families scrambling.\n\nPACE is only available in three Kansas regions: Wichita (Sedgwick County), Topeka area (9+ counties), and McPherson area (6 counties). Your loved one must be 55+ and certified as needing nursing home level care (clinical assessment of whether they need daily help with bathing, dressing, or medication management). Most participants are dual-eligible for Medicare and Medicaid — private pay averages $7,000+ per month.\n\nThe average PACE participant is 76 years old with multiple complex conditions. All participants receive identical comprehensive services regardless of how they pay — Medicare covers medical services, Medicaid covers long-term care, and PACE fills every gap in between.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service package",
       "savingsVerified": false,
@@ -256,7 +256,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by the state as needing nursing home level care (clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)",
+        "functionalRequirement": "Must be certified by the state as needing nursing home level care (clinical assessment of whether your loved one needs daily help with bathing, dressing, or medication management)",
         "otherRequirements": [
           "Must live in service area of approved PACE provider",
           "Must be able to live safely in community with PACE services",
@@ -277,7 +277,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete clinical assessment",
-            "description": "PACE team evaluates whether your parent needs nursing home level care and can live safely at home with services."
+            "description": "PACE team evaluates whether your loved one needs nursing home level care and can live safely at home with services."
           },
           {
             "step": 3,
@@ -358,27 +358,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes. Your parent's primary home is completely exempt from the $2,000 asset limit for Medicaid-funded PACE. Secondary properties or rental real estate would count toward the limit, but the family home does not matter regardless of value."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. Your loved one's primary home is completely exempt from the $2,000 asset limit for Medicaid-funded PACE. Secondary properties or rental real estate would count toward the limit, but the family home does not matter regardless of value."
         },
         {
-          "question": "What if my parent is already in Medicare Advantage — do they have to switch?",
-          "answer": "Yes. PACE participants cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or standalone prescription drug plans. Your parent would need to disenroll from Medicare Advantage during the next open enrollment period or qualify for a special enrollment period."
+          "question": "What if my loved one is already in Medicare Advantage — do they have to switch?",
+          "answer": "Yes. PACE participants cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or standalone prescription drug plans. Your loved one would need to disenroll from Medicare Advantage during the next open enrollment period or qualify for a special enrollment period."
         },
         {
-          "question": "How much does PACE cost if my parent's income is too high for Medicaid?",
+          "question": "How much does PACE cost if my loved one's income is too high for Medicaid?",
           "answer": "Private pay PACE typically costs $7,000+ per month, though some participants may qualify for Medicaid with a share of cost between $200-900 monthly. Contact a Medicaid planning professional — there may be pathways to Medicaid eligibility even with higher income."
         },
         {
-          "question": "Can my parent try PACE and switch back to regular Medicare if they don't like it?",
+          "question": "Can my loved one try PACE and switch back to regular Medicare if they don't like it?",
           "answer": "Yes. PACE participants can disenroll at any time and return to Original Medicare or Medicare Advantage. However, you'll need to coordinate new primary care physicians and specialists since PACE providers may not accept regular Medicare patients."
         },
         {
-          "question": "What happens if my parent needs to move to a nursing home while in PACE?",
+          "question": "What happens if my loved one needs to move to a nursing home while in PACE?",
           "answer": "PACE continues coordinating and paying for nursing home care. Because PACE covers all levels of care, there's no gap in coverage or need to find new funding sources when care needs increase."
         },
         {
-          "question": "My parent lives just outside the PACE service area — can they still enroll?",
+          "question": "My loved one lives just outside the PACE service area — can they still enroll?",
           "answer": "No. PACE has strict geographic boundaries and you must live within the approved service area of a PACE provider. Moving into a service area specifically for PACE is possible but requires establishing new residency."
         },
         {
@@ -386,8 +386,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Processing times vary by provider and aren't publicly available. Contact your regional PACE provider directly for current timelines. The clinical assessment to determine nursing home level of care can take several weeks to complete."
         },
         {
-          "question": "Can family members help make medical decisions if my parent has dementia?",
-          "answer": "Yes. PACE works with families and legal representatives. If your parent has power of attorney documents or guardianship, provide these during enrollment. PACE teams are experienced with dementia care and family involvement in care planning."
+          "question": "Can family members help make medical decisions if my loved one has dementia?",
+          "answer": "Yes. PACE works with families and legal representatives. If your loved one has power of attorney documents or guardianship, provide these during enrollment. PACE teams are experienced with dementia care and family involvement in care planning."
         }
       ],
       "layoutIntent": {
@@ -408,7 +408,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Get help paying Medicare premiums, deductibles, and copays — could save your parent $2,000+ per year.",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays — could save your loved one $2,000+ per year.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -421,7 +421,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or copays, Kansas Medicare Savings Programs can help cover these costs. Because these programs pay Medicare expenses directly to providers, your parent won't receive bills for Medicare-covered services — the state handles payment automatically.\n\nThere are three tiers based on income: QMB covers all Medicare costs including premiums and copays, SLMB covers Part B premiums only, and QI also covers Part B premiums with annual reapplication required. All three programs automatically qualify your parent for Extra Help with prescription drug costs, capping medication copays at $12.65 per drug in 2026.\n\nBecause income and asset limits are updated annually and QI funding is limited with first-come, first-served enrollment, it's important to apply as soon as your parent appears eligible.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Kansas Medicare Savings Programs can help cover these costs. Because these programs pay Medicare expenses directly to providers, your loved one won't receive bills for Medicare-covered services — the state handles payment automatically.\n\nThere are three tiers based on income: QMB covers all Medicare costs including premiums and copays, SLMB covers Part B premiums only, and QI also covers Part B premiums with annual reapplication required. All three programs automatically qualify your loved one for Extra Help with prescription drug costs, capping medication copays at $12.65 per drug in 2026.\n\nBecause income and asset limits are updated annually and QI funding is limited with first-come, first-served enrollment, it's important to apply as soon as your loved one appears eligible.",
       "savingsRange": "$2,000+/year",
       "savingsSource": "Medicare premiums, deductibles, and cost-sharing covered by state",
       "savingsVerified": true,
@@ -583,24 +583,24 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "title": "Automatic Extra Help",
-          "content": "Because all Medicare Savings Programs automatically qualify your parent for Extra Help with prescription drug costs, medication copays will be capped at $12.65 per drug in 2026. This benefit applies even if you're only enrolled in SLMB or QI, which don't cover other Medicare costs."
+          "content": "Because all Medicare Savings Programs automatically qualify your loved one for Extra Help with prescription drug costs, medication copays will be capped at $12.65 per drug in 2026. This benefit applies even if you're only enrolled in SLMB or QI, which don't cover other Medicare costs."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is exempt from asset limits regardless of value. The $9,430 individual asset limit only applies to countable resources like bank accounts, stocks, and bonds."
         },
         {
           "question": "What's the real difference between these three programs?",
-          "answer": "QMB covers all Medicare costs and protects from provider billing. SLMB and QI only cover Part B premiums — your parent still pays deductibles and copays. All three get Extra Help for prescriptions, but QI requires annual reapplication and may have waitlists."
+          "answer": "QMB covers all Medicare costs and protects from provider billing. SLMB and QI only cover Part B premiums — your loved one still pays deductibles and copays. All three get Extra Help for prescriptions, but QI requires annual reapplication and may have waitlists."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all required documents and may need to establish legal authority to act on their behalf for ongoing program communications."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to provide all required documents and may need to establish legal authority to act on their behalf for ongoing program communications."
         },
         {
-          "question": "What happens if my parent's income changes after enrollment?",
+          "question": "What happens if my loved one's income changes after enrollment?",
           "answer": "You must report income changes to DCF promptly. Increases might affect eligibility, while decreases could qualify them for a higher benefit tier. Changes are processed monthly, so report as soon as possible."
         },
         {
@@ -608,16 +608,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "QI has federal funding caps, so Kansas may reach limits during the year. Prior recipients get priority when reapplying, but new applicants could face waitlists. Apply early in the year for best chances."
         },
         {
-          "question": "Can my parent have Medicare Savings Programs and regular Medicaid?",
-          "answer": "No, these are for people whose income is too high for full Medicaid but still need help with Medicare costs. If your parent qualifies for full Medicaid, they'll get those benefits instead, which typically provide more comprehensive coverage."
+          "question": "Can my loved one have Medicare Savings Programs and regular Medicaid?",
+          "answer": "No, these are for people whose income is too high for full Medicaid but still need help with Medicare costs. If your loved one qualifies for full Medicaid, they'll get those benefits instead, which typically provide more comprehensive coverage."
         },
         {
           "question": "Will providers actually stop billing us with QMB?",
-          "answer": "Yes, QMB legally prohibits providers from billing beneficiaries for Medicare-covered services. If you receive bills, contact DCF at 1-800-792-4884 — providers may not realize your parent has QMB coverage and need education."
+          "answer": "Yes, QMB legally prohibits providers from billing beneficiaries for Medicare-covered services. If you receive bills, contact DCF at 1-800-792-4884 — providers may not realize your loved one has QMB coverage and need education."
         },
         {
           "question": "Do we need to reapply every year for all three programs?",
-          "answer": "Only QI requires annual reapplication. QMB and SLMB have periodic reviews but don't require yearly reapplication unless your parent's circumstances change significantly."
+          "answer": "Only QI requires annual reapplication. QMB and SLMB have periodic reviews but don't require yearly reapplication unless your loved one's circumstances change significantly."
         }
       ],
       "layoutIntent": {
@@ -638,7 +638,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-assistance",
       "name": "Food Assistance (SNAP)",
       "shortName": "SNAP Benefits",
-      "tagline": "Up to $298 monthly for groceries if your parent is on a fixed income.",
+      "tagline": "Up to $298 monthly for groceries if your loved one is on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -651,7 +651,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Benefits range from $298/month for a single person up to $1,789+ for larger households, based on income and expenses. Because your parent is over 60, they qualify for higher asset limits ($4,250 instead of $2,750) and can deduct uncapped medical expenses over $35/month.\n\nThe application requires detailed financial documentation, but Kansas allows authorized representatives to apply on behalf of elderly parents who have mobility issues. Processing typically takes 30 days, though expedited approval within 7 days is available for households with very low income and less than $100 in liquid assets.\n\nYou'll apply through your parent's county DCF office, either online through the Kansas Benefits Portal or by phone. Social Security and pension income count toward eligibility, but the program excludes the primary home and retirement savings when calculating assets.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Benefits range from $298/month for a single person up to $1,789+ for larger households, based on income and expenses. Because your loved one is over 60, they qualify for higher asset limits ($4,250 instead of $2,750) and can deduct uncapped medical expenses over $35/month.\n\nThe application requires detailed financial documentation, but Kansas allows authorized representatives to apply on behalf of elderly loved ones who have mobility issues. Processing typically takes 30 days, though expedited approval within 7 days is available for households with very low income and less than $100 in liquid assets.\n\nYou'll apply through your loved one's county DCF office, either online through the Kansas Benefits Portal or by phone. Social Security and pension income count toward eligibility, but the program excludes the primary home and retirement savings when calculating assets.",
       "savingsRange": "$298 – $1,789/month in 2026",
       "savingsSource": "Maximum SNAP allotments for household sizes 1-8, October 2025-September 2026",
       "savingsVerified": true,
@@ -697,7 +697,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose application method",
-            "description": "Apply online at benefitsparkansas.org, call your county DCF Economic and Employment Services office, or visit in person. Authorized representatives can apply for elderly parents."
+            "description": "Apply online at benefitsparkansas.org, call your county DCF Economic and Employment Services office, or visit in person. Authorized representatives can apply for elderly loved ones."
           },
           {
             "step": 2,
@@ -774,7 +774,7 @@ export const drafts: PipelineStateDrafts = {
         "Elderly households are exempt from gross income limits and only need to meet net income requirements after deductions",
         "Medical expenses over $35/month and shelter costs exceeding 50% of income have no cap for elderly households",
         "Kansas does not have broad-based categorical eligibility, making it stricter than some neighboring states",
-        "Authorized representatives can complete the entire application process for elderly parents with mobility limitations"
+        "Authorized representatives can complete the entire application process for elderly loved ones with mobility limitations"
       ],
       "relatedPrograms": [
         "Energy Assistance (LIHEAP)",
@@ -785,36 +785,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is completely exempt from SNAP asset limits regardless of value. Only countable assets like cash, bank accounts, and non-exempt property count toward the $4,250 limit for elderly households."
         },
         {
-          "question": "Does my parent's Social Security income disqualify them from SNAP?",
+          "question": "Does my loved one's Social Security income disqualify them from SNAP?",
           "answer": "No, but Social Security counts as income in the calculation. However, elderly households get special deductions and are exempt from gross income limits, which often makes them eligible even with Social Security benefits."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
           "answer": "Yes, Kansas allows authorized representatives to apply for elderly or disabled individuals. You'll need documentation showing your authority to act on their behalf, such as power of attorney or court appointment."
         },
         {
-          "question": "What medical expenses can my parent deduct to increase their SNAP benefits?",
-          "answer": "Any medical expenses over $35/month that your parent pays out-of-pocket can be deducted with no cap for elderly households. This includes prescription copays, medical equipment, insurance premiums, and uncovered medical services."
+          "question": "What medical expenses can my loved one deduct to increase their SNAP benefits?",
+          "answer": "Any medical expenses over $35/month that your loved one pays out-of-pocket can be deducted with no cap for elderly households. This includes prescription copays, medical equipment, insurance premiums, and uncovered medical services."
         },
         {
-          "question": "Can my parent get expedited SNAP benefits in an emergency?",
-          "answer": "Yes, if your parent's household has less than $100 in liquid assets and very low monthly income, they may qualify for expedited processing within 7 days instead of the usual 30-day timeframe."
+          "question": "Can my loved one get expedited SNAP benefits in an emergency?",
+          "answer": "Yes, if your loved one's household has less than $100 in liquid assets and very low monthly income, they may qualify for expedited processing within 7 days instead of the usual 30-day timeframe."
         },
         {
-          "question": "What happens if my parent lives in assisted living?",
-          "answer": "SNAP eligibility depends on whether your parent purchases and prepares their own food. If the facility provides all meals, they typically cannot receive SNAP. If they have a kitchenette and buy their own groceries, they may still qualify."
+          "question": "What happens if my loved one lives in assisted living?",
+          "answer": "SNAP eligibility depends on whether your loved one purchases and prepares their own food. If the facility provides all meals, they typically cannot receive SNAP. If they have a kitchenette and buy their own groceries, they may still qualify."
         },
         {
-          "question": "Can my parent use SNAP benefits to buy groceries online?",
+          "question": "Can my loved one use SNAP benefits to buy groceries online?",
           "answer": "Yes, Kansas participates in SNAP online purchasing, allowing EBT cards to be used for grocery delivery from approved retailers. However, delivery fees cannot be paid with SNAP benefits."
         },
         {
-          "question": "What if my parent's income changes after they're approved for SNAP?",
-          "answer": "Your parent must report significant income changes within 10 days. This includes starting or stopping Social Security, pensions, or other income sources. Benefits will be recalculated and may increase or decrease based on the change."
+          "question": "What if my loved one's income changes after they're approved for SNAP?",
+          "answer": "Your loved one must report significant income changes within 10 days. This includes starting or stopping Social Security, pensions, or other income sources. Benefits will be recalculated and may increase or decrease based on the change."
         }
       ],
       "layoutIntent": {
@@ -835,7 +835,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low-Income Energy Assistance Program (LIHEAP)",
       "shortName": "LIEAP Kansas",
-      "tagline": "One-time payment to help cover heating bills if your parent's income is below $1,956/month",
+      "tagline": "One-time payment to help cover heating bills if your loved one's income is below $1,956/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -848,7 +848,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills, Kansas LIEAP provides a one-time payment directly to their utility company or fuel vendor. The payment amount varies based on household income, size, type of heating fuel, and current utility rates — but it's designed to help offset winter energy costs for families earning below 150% of the federal poverty level.\n\nYour parent must be personally responsible for paying their own heating costs (not included in subsidized rent) and live in Kansas. Everyone at the same address must apply together, and their combined income determines eligibility. The program runs annually from January through March, so timing matters.\n\nBecause LIEAP is federally funded, the exact payment amount depends on how much funding Kansas receives each year. Applications are processed through regional DCF offices, and you'll need recent utility bills, income documentation, and proof of heating responsibility.",
+      "intro": "If your loved one struggles to pay heating bills, Kansas LIEAP provides a one-time payment directly to their utility company or fuel vendor. The payment amount varies based on household income, size, type of heating fuel, and current utility rates — but it's designed to help offset winter energy costs for families earning below 150% of the federal poverty level.\n\nYour loved one must be personally responsible for paying their own heating costs (not included in subsidized rent) and live in Kansas. Everyone at the same address must apply together, and their combined income determines eligibility. The program runs annually from January through March, so timing matters.\n\nBecause LIEAP is federally funded, the exact payment amount depends on how much funding Kansas receives each year. Applications are processed through regional DCF offices, and you'll need recent utility bills, income documentation, and proof of heating responsibility.",
       "savingsRange": "",
       "savingsSource": "One-time payment amount varies by household factors and available federal funding",
       "savingsVerified": false,
@@ -972,7 +972,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Everyone living at the same utility address must apply together — you cannot exclude household members from the application",
         "Tribal members should contact United Tribes of Kansas/Southeast Nebraska or Kickapoo Tribe instead of applying through state LIEAP",
-        "If heating costs are fully included in subsidized rent with no separate payment responsibility, your parent is not eligible",
+        "If heating costs are fully included in subsidized rent with no separate payment responsibility, your loved one is not eligible",
         "College students living in dorms or apartments cannot be counted as household members unless they live at home full-time"
       ],
       "relatedPrograms": [
@@ -983,36 +983,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they live in subsidized housing?",
+          "question": "Can my loved one apply if they live in subsidized housing?",
           "answer": "It depends on whether they personally pay heating costs. If heating is completely included in their subsidized rent with no separate payment, they're not eligible. But if they pay heating bills directly to the utility company or landlord, even in subsidized housing, they can apply."
         },
         {
-          "question": "What if my parent's income changes between application and approval?",
+          "question": "What if my loved one's income changes between application and approval?",
           "answer": "Report income changes to your DCF processing office immediately. Since LIEAP uses income at the time of application, small changes may not affect eligibility, but significant increases could disqualify the application."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
-          "answer": "Only if you're their legal guardian or conservator. If your parent is legally incapacitated, DCF requires guardianship documentation. Adult children cannot apply without legal authority, even for parents with cognitive decline."
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
+          "answer": "Only if you're their legal guardian or conservator. If your loved one is legally incapacitated, DCF requires guardianship documentation. Adult children cannot apply without legal authority, even for parents with cognitive decline."
         },
         {
           "question": "What happens if we miss the application period?",
           "answer": "You must wait until the next program year. LIEAP has strict application windows (typically January-March) and no exceptions are made. Mark your calendar for the following year and apply as early as possible when the period opens."
         },
         {
-          "question": "Can my parent get LIEAP and help from their tribal program?",
+          "question": "Can my loved one get LIEAP and help from their tribal program?",
           "answer": "No, federal rules prohibit receiving both state LIEAP and tribal LIHEAP benefits in the same program year. Tribal members should contact their tribe first, as tribal programs often provide more comprehensive assistance."
         },
         {
-          "question": "How much money will my parent actually receive?",
+          "question": "How much money will my loved one actually receive?",
           "answer": "The payment amount varies based on household income, size, type of heating fuel, dwelling type, and current utility rates. Payment amounts are not predetermined — DCF calculates each case individually based on these factors and available federal funding."
         },
         {
-          "question": "What if my parent uses propane or wood for heating instead of natural gas?",
-          "answer": "LIEAP covers all heating fuel types including propane, wood, coal, and heating oil. Bring bills or receipts showing your parent's responsibility for purchasing these fuels, plus any delivery or service agreements."
+          "question": "What if my loved one uses propane or wood for heating instead of natural gas?",
+          "answer": "LIEAP covers all heating fuel types including propane, wood, coal, and heating oil. Bring bills or receipts showing your loved one's responsibility for purchasing these fuels, plus any delivery or service agreements."
         },
         {
           "question": "Can we apply for LIEAP and SNAP at the same time?",
-          "answer": "Yes, you can apply for multiple DCF programs simultaneously. However, LIEAP requires a separate application even if your parent already receives SNAP, Medicaid, or other benefits. Being approved for other programs doesn't automatically qualify them for LIEAP."
+          "answer": "Yes, you can apply for multiple DCF programs simultaneously. However, LIEAP requires a separate application even if your loved one already receives SNAP, Medicaid, or other benefits. Being approved for other programs doesn't automatically qualify them for LIEAP."
         }
       ],
       "layoutIntent": {
@@ -1033,7 +1033,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills year-round.",
+      "tagline": "Free home energy upgrades that can cut your loved one's heating and cooling bills year-round.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1062,7 +1062,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high energy bills, Kansas's Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, and heating system improvements. Your parent pays nothing — trained professionals perform a certified energy audit and install weatherization measures at no cost.\n\nThe program prioritizes households where someone receives SSI, TANF, or LIEAP, but also serves families with incomes up to 200% of Federal Poverty Guidelines. Because the program covers all materials and professional installation, your parent gets energy efficiency improvements they might not otherwise afford. Homeowners and renters both qualify, though renters need landlord permission.",
+      "intro": "If your loved one struggles with high energy bills, Kansas's Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, and heating system improvements. Your loved one pays nothing — trained professionals perform a certified energy audit and install weatherization measures at no cost.\n\nThe program prioritizes households where someone receives SSI, TANF, or LIEAP, but also serves families with incomes up to 200% of Federal Poverty Guidelines. Because the program covers all materials and professional installation, your loved one gets energy efficiency improvements they might not otherwise afford. Homeowners and renters both qualify, though renters need landlord permission.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1118,7 +1118,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Priority goes to households already receiving SSI, TANF, or LIEAP — mention these benefits prominently if your parent receives them.",
+        "tip": "Priority goes to households already receiving SSI, TANF, or LIEAP — mention these benefits prominently if your loved one receives them.",
         "urls": [
           {
             "label": "Standardized Application Form",
@@ -1161,10 +1161,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each region has different providers — you must apply through the agency serving your parent's county, not directly to the state",
+        "Each region has different providers — you must apply through the agency serving your loved one's county, not directly to the state",
         "Households receiving SSI, TANF, or LIEAP get priority processing over income-qualified applicants",
         "Renters need landlord agreement not to raise rent for 2 years after weatherization — this can be a deal-breaker",
-        "If your parent's home was weatherized more than 15 years ago, they may qualify again, but previous measures won't be repeated"
+        "If your loved one's home was weatherized more than 15 years ago, they may qualify again, but previous measures won't be repeated"
       ],
       "relatedPrograms": [
         "LIEAP (Low Income Energy Assistance Program)",
@@ -1174,24 +1174,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're a renter?",
+          "question": "Can my loved one apply if they're a renter?",
           "answer": "Yes, but the landlord must give written permission and agree not to raise rent for 2 years after weatherization. Many landlords refuse this requirement, so get their agreement in writing before applying."
         },
         {
-          "question": "What if my parent's home was weatherized 10 years ago?",
+          "question": "What if my loved one's home was weatherized 10 years ago?",
           "answer": "They cannot get weatherized again until 15 years have passed since the original work, unless there was disaster damage not covered by insurance. The program also won't repeat any measures that were previously installed."
         },
         {
-          "question": "Will this affect my parent's other benefits like Medicaid or SNAP?",
+          "question": "Will this affect my loved one's other benefits like Medicaid or SNAP?",
           "answer": "No. Weatherization services don't count as income and won't affect eligibility for other government programs. The energy savings may actually help stretch their monthly budget."
         },
         {
-          "question": "What if my parent has both electric and gas heat but only electric is active?",
-          "answer": "Both electric and gas utilities must be active to qualify. If gas service is disconnected or never connected, your parent won't be eligible until both utilities are working."
+          "question": "What if my loved one has both electric and gas heat but only electric is active?",
+          "answer": "Both electric and gas utilities must be active to qualify. If gas service is disconnected or never connected, your loved one won't be eligible until both utilities are working."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can complete the application, but your parent must occupy the home and you'll need their signature on forms. The income verification must be in your parent's name."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can complete the application, but your loved one must occupy the home and you'll need their signature on forms. The income verification must be in your loved one's name."
         },
         {
           "question": "How long is the wait after being approved?",
@@ -1199,11 +1199,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if the energy auditor finds safety problems like mold or asbestos?",
-          "answer": "Major health and safety issues disqualify the home from weatherization services. The program won't address these problems — your parent would need to resolve them first through other means before reapplying."
+          "answer": "Major health and safety issues disqualify the home from weatherization services. The program won't address these problems — your loved one would need to resolve them first through other means before reapplying."
         },
         {
-          "question": "Can my parent get weatherization if they're planning to move in the next year?",
-          "answer": "No. The home cannot be designated for acquisition or clearance within 12 months. Your parent must plan to continue living there to qualify for the free improvements."
+          "question": "Can my loved one get weatherization if they're planning to move in the next year?",
+          "answer": "No. The home cannot be designated for acquisition or clearance within 12 months. Your loved one must plan to continue living there to qualify for the free improvements."
         }
       ],
       "layoutIntent": {
@@ -1224,7 +1224,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "shick-medicare-counseling",
       "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
       "shortName": "SHICK",
-      "tagline": "Free one-on-one Medicare counseling to help your parent navigate insurance options and avoid costly mistakes.",
+      "tagline": "Free one-on-one Medicare counseling to help your loved one navigate insurance options and avoid costly mistakes.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1241,7 +1241,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare or is approaching Medicare eligibility, SHICK provides free, confidential counseling to help them understand their options and make informed decisions. Trained volunteer counselors explain Medicare Parts A-D, Medicare Supplement (Medigap), Medicare Advantage, prescription drug coverage, and Extra Help programs through one-on-one sessions by phone or in-person.\n\nBecause Medicare decisions can be overwhelming and costly mistakes are common, SHICK counselors are independent volunteers with no ties to insurance companies — they provide unbiased guidance tailored to your parent's specific health needs and budget. The service is available to anyone with Medicare questions, including caregivers helping their parents navigate the system.\n\nSHICK operates statewide through local Area Agencies on Aging, with counselors available Monday through Friday, typically 8:30 a.m. to 5 p.m. No income limits or eligibility requirements apply — the service is completely free.",
+      "intro": "If your loved one has Medicare or is approaching Medicare eligibility, SHICK provides free, confidential counseling to help them understand their options and make informed decisions. Trained volunteer counselors explain Medicare Parts A-D, Medicare Supplement (Medigap), Medicare Advantage, prescription drug coverage, and Extra Help programs through one-on-one sessions by phone or in-person.\n\nBecause Medicare decisions can be overwhelming and costly mistakes are common, SHICK counselors are independent volunteers with no ties to insurance companies — they provide unbiased guidance tailored to your loved one's specific health needs and budget. The service is available to anyone with Medicare questions, including caregivers helping their loved ones navigate the system.\n\nSHICK operates statewide through local Area Agencies on Aging, with counselors available Monday through Friday, typically 8:30 a.m. to 5 p.m. No income limits or eligibility requirements apply — the service is completely free.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1328,15 +1328,15 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I get help choosing between different Medicare Advantage plans?",
-          "answer": "Yes, SHICK counselors specialize in comparing Medicare Advantage plans available in your parent's area. They'll review plan networks, prescription coverage, and costs to help identify options that match your parent's doctors and medications. Call 1-800-860-5260 to schedule a comparison session."
+          "answer": "Yes, SHICK counselors specialize in comparing Medicare Advantage plans available in your loved one's area. They'll review plan networks, prescription coverage, and costs to help identify options that match your loved one's doctors and medications. Call 1-800-860-5260 to schedule a comparison session."
         },
         {
           "question": "Will the counselor try to sell us insurance?",
           "answer": "No, SHICK counselors are independent volunteers with no ties to insurance companies. They don't sell plans or receive commissions. Their role is purely educational — to explain options and help you understand the pros and cons of different coverage choices."
         },
         {
-          "question": "Can a family member call on behalf of an elderly parent?",
-          "answer": "Yes, caregivers and family members can call SHICK for guidance on helping their parents with Medicare decisions. However, for specific plan enrollment or changes, your parent may need to be present or provide verbal consent during the call."
+          "question": "Can a family member call on behalf of an elderly loved one?",
+          "answer": "Yes, caregivers and family members can call SHICK for guidance on helping their loved ones with Medicare decisions. However, for specific plan enrollment or changes, your loved one may need to be present or provide verbal consent during the call."
         },
         {
           "question": "What if we miss the Medicare Open Enrollment deadline?",
@@ -1361,7 +1361,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-nutrition-program",
       "name": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
       "shortName": "Senior Nutrition Program",
-      "tagline": "Free nutritious meals delivered to your parent's home or served at local centers for adults 60 and older",
+      "tagline": "Free nutritious meals delivered to your loved one's home or served at local centers for adults 60 and older",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1374,7 +1374,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older, they can get nutritious meals delivered to their home or served at local community centers at no cost. The Kansas Senior Nutrition Program provides hot, balanced meals plus nutrition education to help aging adults maintain their health and independence.\n\nBecause the program has no income limits, your parent qualifies based on age alone — whether they're homebound and need meals delivered, or able to join group dining at a senior center. Spouses qualify regardless of age, so if your 58-year-old stepparent is married to your 62-year-old parent, both can participate.\n\nHome-delivered meals typically require an assessment to confirm your parent needs help due to mobility issues, illness, or inability to prepare meals safely. Local providers handle enrollment and determine exact eligibility, so availability and wait times vary by region.",
+      "intro": "If your loved one is 60 or older, they can get nutritious meals delivered to their home or served at local community centers at no cost. The Kansas Senior Nutrition Program provides hot, balanced meals plus nutrition education to help aging adults maintain their health and independence.\n\nBecause the program has no income limits, your loved one qualifies based on age alone — whether they're homebound and need meals delivered, or able to join group dining at a senior center. Spouses qualify regardless of age, so if your 58-year-old stepparent is married to your 62-year-old loved one, both can participate.\n\nHome-delivered meals typically require an assessment to confirm your loved one needs help due to mobility issues, illness, or inability to prepare meals safely. Local providers handle enrollment and determine exact eligibility, so availability and wait times vary by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1407,22 +1407,22 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete registration",
-            "description": "Provide basic information about your parent's age, address, and meal delivery needs during the initial call."
+            "description": "Provide basic information about your loved one's age, address, and meal delivery needs during the initial call."
           },
           {
             "step": 3,
             "title": "Schedule assessment",
-            "description": "For home-delivered meals, a provider will assess your parent's homebound status and functional needs — this may be done over the phone or in person."
+            "description": "For home-delivered meals, a provider will assess your loved one's homebound status and functional needs — this may be done over the phone or in person."
           },
           {
             "step": 4,
             "title": "Confirm enrollment",
-            "description": "Once approved, the provider will schedule meal delivery or congregate dining based on local capacity and your parent's preferences."
+            "description": "Once approved, the provider will schedule meal delivery or congregate dining based on local capacity and your loved one's preferences."
           }
         ],
         "processingTime": "Varies by local provider capacity and assessment scheduling",
         "waitlist": "Possible depending on local capacity — contact your provider for current availability",
-        "tip": "Have your parent's address ready when you call, as meal delivery routes and congregate sites are organized geographically.",
+        "tip": "Have your loved one's address ready when you call, as meal delivery routes and congregate sites are organized geographically.",
         "urls": [
           {
             "label": "Kansas Senior Nutrition Program",
@@ -1467,36 +1467,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they're unable to make the call themselves?",
-          "answer": "Yes, adult children can contact the Aging and Disability Resource Center on behalf of their parents. Have your parent's basic information ready, including their address, birth date, and any mobility or health concerns that affect meal preparation."
+          "question": "Can I apply for my loved one if they're unable to make the call themselves?",
+          "answer": "Yes, adult children can contact the Aging and Disability Resource Center on behalf of their loved ones. Have your loved one's basic information ready, including their address, birth date, and any mobility or health concerns that affect meal preparation."
         },
         {
-          "question": "What if my parent lives in assisted living — can they still get meals?",
-          "answer": "This depends on your parent's specific living situation and what meals their facility provides. Contact your local provider at 855-200-ADRC to discuss whether additional nutrition services are available or appropriate."
+          "question": "What if my loved one lives in assisted living — can they still get meals?",
+          "answer": "This depends on your loved one's specific living situation and what meals their facility provides. Contact your local provider at 855-200-ADRC to discuss whether additional nutrition services are available or appropriate."
         },
         {
           "question": "How long is the waitlist for home-delivered meals?",
-          "answer": "Wait times vary significantly by region and local provider capacity. Some areas have immediate availability while others may have waitlists. Rural areas often have different availability than urban centers — call 855-200-ADRC for current wait times in your parent's specific area."
+          "answer": "Wait times vary significantly by region and local provider capacity. Some areas have immediate availability while others may have waitlists. Rural areas often have different availability than urban centers — call 855-200-ADRC for current wait times in your loved one's specific area."
         },
         {
-          "question": "Can my parent do both home-delivered meals and congregate dining?",
-          "answer": "Most providers focus on one type of service based on your parent's assessment and needs. If your parent's mobility changes over time, you can contact the provider to reassess and potentially switch from congregate to home-delivered meals."
+          "question": "Can my loved one do both home-delivered meals and congregate dining?",
+          "answer": "Most providers focus on one type of service based on your loved one's assessment and needs. If your loved one's mobility changes over time, you can contact the provider to reassess and potentially switch from congregate to home-delivered meals."
         },
         {
-          "question": "What happens if my parent doesn't like the meals or has special dietary needs?",
-          "answer": "Providers work to accommodate dietary restrictions, allergies, and cultural preferences when possible. Discuss your parent's specific needs during enrollment, and contact the provider if issues arise after meals begin."
+          "question": "What happens if my loved one doesn't like the meals or has special dietary needs?",
+          "answer": "Providers work to accommodate dietary restrictions, allergies, and cultural preferences when possible. Discuss your loved one's specific needs during enrollment, and contact the provider if issues arise after meals begin."
         },
         {
-          "question": "Is there a limit to how many meals my parent can receive?",
+          "question": "Is there a limit to how many meals my loved one can receive?",
           "answer": "Meal frequency depends on your local provider's capacity and funding. Some offer daily meals, others may provide several times per week. The provider will explain their specific schedule during enrollment."
         },
         {
-          "question": "Can my parent receive meals temporarily while recovering from surgery or illness?",
+          "question": "Can my loved one receive meals temporarily while recovering from surgery or illness?",
           "answer": "Yes, many providers can arrange short-term meal delivery during recovery periods. Contact your local provider at 855-200-ADRC to discuss temporary services and any assessment requirements."
         },
         {
           "question": "What if we move to a different county in Kansas?",
-          "answer": "You'll need to re-enroll with the new county's provider since services are organized locally. Call 855-200-ADRC to find the provider in your parent's new area and transfer services."
+          "answer": "You'll need to re-enroll with the new county's provider since services are organized locally. Call 855-200-ADRC to find the provider in your loved one's new area and transfer services."
         }
       ],
       "layoutIntent": {
@@ -1517,7 +1517,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "caregiver-support-programs",
       "name": "Caregiver Support Programs",
       "shortName": "Caregiver Support",
-      "tagline": "Get respite care and support services when you're caring for an aging parent or family member with disabilities.",
+      "tagline": "Get respite care and support services when you're caring for an aging loved one or family member with disabilities.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1538,7 +1538,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a parent who needs daily help with bathing, dressing, or medication management, Kansas offers respite care and support services to give you a break. These programs provide temporary care for your parent so you can work, run errands, or simply rest. The Kansas Relief for Alzheimer's and Dementia (K-RAD) program subsidizes up to $1,000 per year for respite care if your parent has Alzheimer's or dementia.\n\nBecause these programs operate through local Area Agencies on Aging, services vary by county. Your parent typically needs to qualify for nursing home level of care (meaning they need daily assistance with basic activities) and may need to be enrolled in Medicaid or KanCare. Services include respite care, personal care assistance, homemaker services, and other support to help your parent stay at home.\n\nFunding is limited and distributed first-come, first-served. Many programs have waiting lists, so apply as soon as your parent meets the care requirements.",
+      "intro": "If you're caring for a loved one who needs daily help with bathing, dressing, or medication management, Kansas offers respite care and support services to give you a break. These programs provide temporary care for your loved one so you can work, run errands, or simply rest. The Kansas Relief for Alzheimer's and Dementia (K-RAD) program subsidizes up to $1,000 per year for respite care if your loved one has Alzheimer's or dementia.\n\nBecause these programs operate through local Area Agencies on Aging, services vary by county. Your loved one typically needs to qualify for nursing home level of care (meaning they need daily assistance with basic activities) and may need to be enrolled in Medicaid or KanCare. Services include respite care, personal care assistance, homemaker services, and other support to help your loved one stay at home.\n\nFunding is limited and distributed first-come, first-served. Many programs have waiting lists, so apply as soon as your loved one meets the care requirements.",
       "savingsRange": "Up to $1,000/year",
       "savingsSource": "K-RAD respite care subsidy maximum",
       "savingsVerified": true,
@@ -1573,12 +1573,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact your local Area Agency on Aging",
-            "description": "Your local AAA will assess your parent's care needs and determine which programs are available in your area. For example, Northeast Kansas residents can visit nekaaa.org, while East Central Kansas residents can call 785-242-7200."
+            "description": "Your local AAA will assess your loved one's care needs and determine which programs are available in your area. For example, Northeast Kansas residents can visit nekaaa.org, while East Central Kansas residents can call 785-242-7200."
           },
           {
             "step": 3,
             "title": "Complete care assessment",
-            "description": "A care coordinator will evaluate whether your parent meets nursing facility level of care requirements through an in-home or phone assessment."
+            "description": "A care coordinator will evaluate whether your loved one meets nursing facility level of care requirements through an in-home or phone assessment."
           },
           {
             "step": 4,
@@ -1640,7 +1640,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "K-RAD funding operates on fiscal year July-June, so apply early in the fiscal year for best chance of funding",
         "Each county has different providers and service availability - ask your local AAA about specific options in your area",
-        "Some programs require your parent to be enrolled in Medicaid first, which can take 45-90 days to process",
+        "Some programs require your loved one to be enrolled in Medicaid first, which can take 45-90 days to process",
         "Background checks may be required if you want to be paid as a formal caregiver through certain waiver programs"
       ],
       "relatedPrograms": [
@@ -1652,12 +1652,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get paid to care for my own parent through these programs?",
-          "answer": "Yes, some Home and Community-Based Services waivers allow family members to be paid caregivers, but you must pass background checks and meet provider qualifications. You typically need to live with your parent and the care recipient must be enrolled in Medicaid. Contact your local Area Agency on Aging for specific requirements in your county."
+          "question": "Can I get paid to care for my own loved one through these programs?",
+          "answer": "Yes, some Home and Community-Based Services waivers allow family members to be paid caregivers, but you must pass background checks and meet provider qualifications. You typically need to live with your loved one and the care recipient must be enrolled in Medicaid. Contact your local Area Agency on Aging for specific requirements in your county."
         },
         {
-          "question": "What if my parent doesn't have Alzheimer's but still needs daily help?",
-          "answer": "K-RAD is specifically for Alzheimer's and dementia, but other caregiver support programs exist for frail elderly adults who need nursing facility level of care. These include the Frail Elderly waiver and other HCBS programs. Call 1-855-200-2372 to discuss options based on your parent's specific conditions."
+          "question": "What if my loved one doesn't have Alzheimer's but still needs daily help?",
+          "answer": "K-RAD is specifically for Alzheimer's and dementia, but other caregiver support programs exist for frail elderly adults who need nursing facility level of care. These include the Frail Elderly waiver and other HCBS programs. Call 1-855-200-2372 to discuss options based on your loved one's specific conditions."
         },
         {
           "question": "How long is the waiting list really?",
@@ -1668,8 +1668,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, you can apply for multiple programs simultaneously since they serve different needs. For example, you might apply for K-RAD respite funding and also seek personal care services through a Medicaid waiver. Your local Area Agency on Aging can help coordinate applications to avoid conflicts."
         },
         {
-          "question": "What happens if my parent's care needs change after enrollment?",
-          "answer": "Programs require periodic reassessments, typically annually or when care needs significantly change. If your parent needs more care, you can request an assessment update. If they need less care or move to a facility, you must notify the program as benefits may change or end."
+          "question": "What happens if my loved one's care needs change after enrollment?",
+          "answer": "Programs require periodic reassessments, typically annually or when care needs significantly change. If your loved one needs more care, you can request an assessment update. If they need less care or move to a facility, you must notify the program as benefits may change or end."
         },
         {
           "question": "Do I need to choose between this and hiring private caregivers?",
@@ -1719,7 +1719,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with poor job prospects, SCSEP provides paid work experience at minimum wage for about 20 hours per week. Your parent earns money while learning new skills like computer literacy, gets help building their resume, and receives professional job placement assistance to transition to permanent employment.\n\nIncome must not exceed 125% of the federal poverty level (specific dollar amounts vary by household size — contact local providers for exact thresholds). The program prioritizes veterans, people over 65, those with disabilities, and rural residents. This is subsidized training designed as a bridge to unsubsidized employment, not permanent work.\n\nSCSEP operates statewide through multiple providers including SER Jobs for Progress, AARP Foundation, and the Kansas WorkforceONE system. Participants also receive supportive services like dental, vision, clothing, and transportation assistance during the program.",
+      "intro": "If your loved one is 55+ and unemployed with poor job prospects, SCSEP provides paid work experience at minimum wage for about 20 hours per week. Your loved one earns money while learning new skills like computer literacy, gets help building their resume, and receives professional job placement assistance to transition to permanent employment.\n\nIncome must not exceed 125% of the federal poverty level (specific dollar amounts vary by household size — contact local providers for exact thresholds). The program prioritizes veterans, people over 65, those with disabilities, and rural residents. This is subsidized training designed as a bridge to unsubsidized employment, not permanent work.\n\nSCSEP operates statewide through multiple providers including SER Jobs for Progress, AARP Foundation, and the Kansas WorkforceONE system. Participants also receive supportive services like dental, vision, clothing, and transportation assistance during the program.",
       "savingsRange": "",
       "savingsSource": "Paid work experience program",
       "savingsVerified": false,
@@ -1810,19 +1810,19 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work SCSEP if they're already receiving Social Security benefits?",
+          "question": "Can my loved one work SCSEP if they're already receiving Social Security benefits?",
           "answer": "Yes, but the SCSEP wages plus other income cannot exceed 125% of the federal poverty level. Social Security benefits count toward this income limit, so check with your local provider to verify total household income stays within guidelines."
         },
         {
-          "question": "What happens if my parent has recent work experience — do they still qualify as having 'poor employment prospects'?",
+          "question": "What happens if my loved one has recent work experience — do they still qualify as having 'poor employment prospects'?",
           "answer": "This depends on the type of work, how recent it was, and current barriers to employment like age discrimination or outdated skills. Your local SCSEP provider will assess employment prospects case-by-case, considering factors like long-term unemployment, limited skills, or barriers specific to older workers."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is designed as temporary training to transition participants to permanent employment, not long-term employment. The exact duration varies by individual circumstances and local provider policies, but the goal is to move participants into unsubsidized jobs after gaining skills and work experience."
         },
         {
-          "question": "Can my parent choose which local provider to work with if multiple ones serve our area?",
+          "question": "Can my loved one choose which local provider to work with if multiple ones serve our area?",
           "answer": "Yes, if multiple providers serve your area (SER, AARP Foundation, or WorkforceONE contractors), you can contact different ones to compare availability, wait times, and specific services offered. Each may have different placement opportunities or training focuses."
         },
         {
@@ -1830,7 +1830,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "SCSEP provides dental, vision, clothing, and transportation assistance to help participants succeed in their work placements. The specific services and amounts vary by local provider, so ask about what's available when you apply."
         },
         {
-          "question": "Does my parent get priority if they're a veteran's spouse rather than a veteran themselves?",
+          "question": "Does my loved one get priority if they're a veteran's spouse rather than a veteran themselves?",
           "answer": "Yes, qualified spouses of veterans receive the same enrollment priority as veterans themselves. This includes spouses of deceased veterans and spouses of disabled veterans, but verify the specific qualification criteria with your local provider."
         }
       ],
@@ -1865,7 +1865,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help with wills, powers of attorney, or protection from elder abuse, Kansas Legal Services provides free legal assistance to seniors 60 and older across the state. The program offers document preparation, legal advice, and limited case representation for estate planning, advance directives, consumer protection, and public benefits issues — with priority given to the most vulnerable elderly.\n\nThe Elder Law Hotline (1-888-353-5337) provides immediate legal advice statewide without income requirements. Because the service focuses on civil legal matters only, your parent can get help with estate planning, living wills, and elder abuse prevention but not criminal cases. Most consultations and document preparation are handled by phone or online, though Johnson County residents can schedule in-person appointments at three community centers.",
+      "intro": "If your loved one needs help with wills, powers of attorney, or protection from elder abuse, Kansas Legal Services provides free legal assistance to seniors 60 and older across the state. The program offers document preparation, legal advice, and limited case representation for estate planning, advance directives, consumer protection, and public benefits issues — with priority given to the most vulnerable elderly.\n\nThe Elder Law Hotline (1-888-353-5337) provides immediate legal advice statewide without income requirements. Because the service focuses on civil legal matters only, your loved one can get help with estate planning, living wills, and elder abuse prevention but not criminal cases. Most consultations and document preparation are handled by phone or online, though Johnson County residents can schedule in-person appointments at three community centers.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1899,17 +1899,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete phone intake",
-            "description": "An intake specialist will call you back within 24 hours to 2-3 business days. They'll ask about household size, income details, housing costs, and the specific legal issue your parent needs help with."
+            "description": "An intake specialist will call you back within 24 hours to 2-3 business days. They'll ask about household size, income details, housing costs, and the specific legal issue your loved one needs help with."
           },
           {
             "step": 3,
             "title": "Get matched to services",
-            "description": "Based on your parent's needs and the program's availability, you'll be connected to appropriate legal assistance — either advice through the hotline or document preparation and limited representation if eligible."
+            "description": "Based on your loved one's needs and the program's availability, you'll be connected to appropriate legal assistance — either advice through the hotline or document preparation and limited representation if eligible."
           }
         ],
         "processingTime": "Intake specialist contacts within 24 hours to 2-3 business days",
         "waitlist": "Services are subject to funding availability with priority given to the most vulnerable",
-        "tip": "The Elder Law Hotline provides advice only — if your parent needs documents drafted or court representation, ask during intake about full legal services eligibility.",
+        "tip": "The Elder Law Hotline provides advice only — if your loved one needs documents drafted or court representation, ask during intake about full legal services eligibility.",
         "urls": [
           {
             "label": "Online Application",
@@ -1924,7 +1924,7 @@ export const drafts: PipelineStateDrafts = {
         "Information about fixed debts and monthly expenses",
         "Medical debt information if applicable",
         "Details about the legal issue or opposing party involved",
-        "Identification information for your parent"
+        "Identification information for your loved one"
       ],
       "contacts": [
         {
@@ -1961,15 +1961,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for legal services on behalf of my elderly parent?",
-          "answer": "Yes, family members can call the Elder Law Hotline on behalf of their parent. During intake, you'll need to provide your parent's information and details about their legal needs. If document preparation or representation is needed, your parent may need to sign authorization forms allowing you to act on their behalf."
+          "question": "Can I apply for legal services on behalf of my elderly loved one?",
+          "answer": "Yes, family members can call the Elder Law Hotline on behalf of their loved one. During intake, you'll need to provide your loved one's information and details about their legal needs. If document preparation or representation is needed, your loved one may need to sign authorization forms allowing you to act on their behalf."
         },
         {
           "question": "What's the difference between the Elder Law Hotline and full legal services?",
-          "answer": "The Elder Law Hotline provides free legal advice and consultation but cannot draft legal documents or represent your parent in court. For document preparation, powers of attorney, wills, or court representation, you'll need to apply for full legal services through the general intake process at 1-800-723-6953."
+          "answer": "The Elder Law Hotline provides free legal advice and consultation but cannot draft legal documents or represent your loved one in court. For document preparation, powers of attorney, wills, or court representation, you'll need to apply for full legal services through the general intake process at 1-800-723-6953."
         },
         {
-          "question": "Will my parent qualify if they own their home?",
+          "question": "Will my loved one qualify if they own their home?",
           "answer": "Yes, homeownership does not disqualify seniors from Kansas Legal Services. The program prioritizes vulnerable elderly in greatest social and economic need but does not have strict asset limits like some government benefit programs."
         }
       ],
@@ -1991,7 +1991,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy to resolve problems with your parent's nursing home or assisted living care",
+      "tagline": "Free advocacy to resolve problems with your loved one's nursing home or assisted living care",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2004,7 +2004,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or other long-term care setting in Kansas, the Long-Term Care Ombudsman can investigate and resolve complaints about their care at no cost. This includes issues with daily care, food service, billing, staff behavior, or violations of your parent's rights.\n\nThe program serves all residents and prospective residents of long-term care facilities statewide, regardless of income or how they pay for care. Anyone can contact the ombudsman — residents, family members, or facility staff — without needing to qualify or fill out applications. Services are delivered through regional offices across Kansas with trained advocates who understand facility regulations and resident rights.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care setting in Kansas, the Long-Term Care Ombudsman can investigate and resolve complaints about their care at no cost. This includes issues with daily care, food service, billing, staff behavior, or violations of your loved one's rights.\n\nThe program serves all residents and prospective residents of long-term care facilities statewide, regardless of income or how they pay for care. Anyone can contact the ombudsman — residents, family members, or facility staff — without needing to qualify or fill out applications. Services are delivered through regional offices across Kansas with trained advocates who understand facility regulations and resident rights.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2040,7 +2040,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Get connected to regional advocate",
-            "description": "The state office will connect you with your regional ombudsman who knows your parent's facility and local regulations"
+            "description": "The state office will connect you with your regional ombudsman who knows your loved one's facility and local regulations"
           }
         ],
         "processingTime": "Services provided as needed without formal processing time",
@@ -2087,16 +2087,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman if my parent is afraid of retaliation from facility staff?",
-          "answer": "Yes — ombudsmen are required to protect privacy and confidentiality. They can investigate without revealing who made the complaint if your parent is concerned about retaliation. The ombudsman will work with you to handle the situation safely while still addressing the problem."
+          "question": "Can I contact the ombudsman if my loved one is afraid of retaliation from facility staff?",
+          "answer": "Yes — ombudsmen are required to protect privacy and confidentiality. They can investigate without revealing who made the complaint if your loved one is concerned about retaliation. The ombudsman will work with you to handle the situation safely while still addressing the problem."
         },
         {
           "question": "What's the difference between the Long-Term Care Ombudsman and the KanCare Ombudsman?",
-          "answer": "The Long-Term Care Ombudsman handles problems with care quality, facility conditions, and resident rights in nursing homes and assisted living. The KanCare Ombudsman deals with Medicaid insurance issues like denied claims or benefits. If your parent has both facility problems and Medicaid issues, you may need to contact both programs."
+          "answer": "The Long-Term Care Ombudsman handles problems with care quality, facility conditions, and resident rights in nursing homes and assisted living. The KanCare Ombudsman deals with Medicaid insurance issues like denied claims or benefits. If your loved one has both facility problems and Medicaid issues, you may need to contact both programs."
         },
         {
           "question": "Can the ombudsman help if we're just looking at facilities, not living in one yet?",
-          "answer": "Yes — the program serves prospective residents too. The ombudsman can provide information about facility quality, resident rights, and what to look for during tours. This can help you make better decisions before your parent moves in."
+          "answer": "Yes — the program serves prospective residents too. The ombudsman can provide information about facility quality, resident rights, and what to look for during tours. This can help you make better decisions before your loved one moves in."
         }
       ],
       "layoutIntent": {
@@ -2130,7 +2130,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with daily tasks like bathing, meal prep, or shopping but can still live at home with support, Kansas Senior Care Act Services provides in-home care on a sliding fee scale. This includes attendant care, homemaker services, respite care, and adult day care — with the unique option to hire family members or friends as paid caregivers.\n\nUnlike Medicaid waiver programs, SCA Services focus on early intervention before your parent needs nursing home-level care. You'll pay based on income and assets (from a small donation to full cost), and services vary significantly by county. Income limits are adjusted every July, and your parent must pass a functional assessment that evaluates their ability to perform daily activities and live independently.",
+      "intro": "If your loved one is 60+ and needs help with daily tasks like bathing, meal prep, or shopping but can still live at home with support, Kansas Senior Care Act Services provides in-home care on a sliding fee scale. This includes attendant care, homemaker services, respite care, and adult day care — with the unique option to hire family members or friends as paid caregivers.\n\nUnlike Medicaid waiver programs, SCA Services focus on early intervention before your loved one needs nursing home-level care. You'll pay based on income and assets (from a small donation to full cost), and services vary significantly by county. Income limits are adjusted every July, and your loved one must pass a functional assessment that evaluates their ability to perform daily activities and live independently.",
       "savingsRange": "",
       "savingsSource": "Sliding fee scale service",
       "savingsVerified": false,
@@ -2164,7 +2164,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule functional assessment",
-            "description": "Your AAA will arrange an in-person or phone assessment to evaluate your parent's daily living abilities and cognitive function."
+            "description": "Your AAA will arrange an in-person or phone assessment to evaluate your loved one's daily living abilities and cognitive function."
           },
           {
             "step": 3,
@@ -2216,7 +2216,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Services and availability vary dramatically by county — some areas may have waitlists while others have immediate openings",
         "Income guidelines change every July, so if you applied before and were denied for income, you may want to reapply after July 1st",
-        "Having a dementia diagnosis alone doesn't automatically qualify your parent — they must still pass the functional assessment",
+        "Having a dementia diagnosis alone doesn't automatically qualify your loved one — they must still pass the functional assessment",
         "Self-direction for attendant care allows you to hire family members or friends, but this option isn't available through every AAA"
       ],
       "relatedPrograms": [
@@ -2231,15 +2231,15 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, SCA Services allow self-direction for attendant care and homemaker services, meaning you can choose to hire family members or friends as paid caregivers. However, this option varies by county and AAA, so ask specifically about self-direction when you call 855-200-2372."
         },
         {
-          "question": "How much will my parent have to pay for services?",
-          "answer": "Payment is based on a sliding fee scale using income and assets, ranging from a small donation to 100% of the service cost. The exact amount depends on your parent's financial situation and is determined during the application process. This is not a free program like some Medicaid services."
+          "question": "How much will my loved one have to pay for services?",
+          "answer": "Payment is based on a sliding fee scale using income and assets, ranging from a small donation to 100% of the service cost. The exact amount depends on your loved one's financial situation and is determined during the application process. This is not a free program like some Medicaid services."
         },
         {
-          "question": "What if my parent has dementia but can still do some daily tasks independently?",
-          "answer": "Having a dementia diagnosis doesn't automatically qualify for SCA Services. Your parent must pass a functional assessment that evaluates their actual ability to perform daily activities like bathing, meal preparation, and shopping, plus cognitive deficits. The assessment determines if they meet the SCA functional threshold score."
+          "question": "What if my loved one has dementia but can still do some daily tasks independently?",
+          "answer": "Having a dementia diagnosis doesn't automatically qualify for SCA Services. Your loved one must pass a functional assessment that evaluates their actual ability to perform daily activities like bathing, meal preparation, and shopping, plus cognitive deficits. The assessment determines if they meet the SCA functional threshold score."
         },
         {
-          "question": "Can my parent get SCA Services and Medicaid waiver services at the same time?",
+          "question": "Can my loved one get SCA Services and Medicaid waiver services at the same time?",
           "answer": "No, these programs serve different populations. SCA Services focus on early intervention for people who need some help but don't require nursing home-level care. Medicaid waiver programs are for people who need more intensive, long-term care services."
         },
         {
@@ -2247,16 +2247,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Services vary significantly by county because SCA is administered through 11 different Area Agencies on Aging. Some counties offer adult day care, others focus on in-home services, and availability changes. You must call 855-200-2372 to learn what's specifically available in your area."
         },
         {
-          "question": "What happens if my parent's needs increase while receiving SCA Services?",
-          "answer": "SCA Services are designed for early intervention, not long-term care like Medicaid waivers. If your parent's needs increase significantly, they may need to transition to Medicaid waiver programs or other long-term care options. Your case manager can help with this transition."
+          "question": "What happens if my loved one's needs increase while receiving SCA Services?",
+          "answer": "SCA Services are designed for early intervention, not long-term care like Medicaid waivers. If your loved one's needs increase significantly, they may need to transition to Medicaid waiver programs or other long-term care options. Your case manager can help with this transition."
         },
         {
           "question": "How long does it take to start receiving services after applying?",
           "answer": "Processing time varies by county and isn't specified in program guidelines. Some AAAs may have immediate openings while others have waitlists. When you call your local AAA at 855-200-2372, ask specifically about current wait times and service availability in your area."
         },
         {
-          "question": "What if my parent's income changes after we're enrolled in the program?",
-          "answer": "Since payment is based on a sliding fee scale tied to income and assets, changes in financial situation will affect the amount your parent pays. Contact your local AAA to report income changes. Remember that income guidelines are also adjusted annually every July."
+          "question": "What if my loved one's income changes after we're enrolled in the program?",
+          "answer": "Since payment is based on a sliding fee scale tied to income and assets, changes in financial situation will affect the amount your loved one pays. Contact your local AAA to report income changes. Remember that income guidelines are also adjusted annually every July."
         }
       ],
       "layoutIntent": {
@@ -2284,7 +2284,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is being financially abused, denied government benefits, or facing eviction, Kansas's Senior Citizen Law Project provides free legal counseling and representation. This statewide program serves Kansas residents age 60+ who need help with elder rights issues, benefit applications, and protection from abuse.\n\nSCLP attorneys can visit your parent at home, represent them in court hearings, draft legal documents, and negotiate with government agencies. The program prioritizes low-income seniors and those who are isolated or institutionalized, but consultation is available regardless of income through the Elder Law Hotline.",
+      "intro": "If your loved one is being financially abused, denied government benefits, or facing eviction, Kansas's Senior Citizen Law Project provides free legal counseling and representation. This statewide program serves Kansas residents age 60+ who need help with elder rights issues, benefit applications, and protection from abuse.\n\nSCLP attorneys can visit your loved one at home, represent them in court hearings, draft legal documents, and negotiate with government agencies. The program prioritizes low-income seniors and those who are isolated or institutionalized, but consultation is available regardless of income through the Elder Law Hotline.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2360,11 +2360,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help even if my parent's income is too high for other programs?",
-          "answer": "Yes. The Elder Law Hotline has no income eligibility requirement and provides consultation to all Kansas seniors age 60+. Even if your parent doesn't qualify for full representation, they can get legal advice and referrals."
+          "question": "Can I get help even if my loved one's income is too high for other programs?",
+          "answer": "Yes. The Elder Law Hotline has no income eligibility requirement and provides consultation to all Kansas seniors age 60+. Even if your loved one doesn't qualify for full representation, they can get legal advice and referrals."
         },
         {
-          "question": "Will an attorney come to my parent's home?",
+          "question": "Will an attorney come to my loved one's home?",
           "answer": "Yes. SCLP attorneys can arrange at-home visits for homebound seniors and regularly visit communities throughout Kansas. This is especially helpful for seniors who can't travel to legal offices."
         },
         {
@@ -2388,12 +2388,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Kansas offers 13 programs that can help your aging parent — 8 provide direct financial benefits or services, 4 offer free resources and advocacy, and 1 provides employment opportunities. These range from monthly grocery assistance ($298 maximum through SNAP) to comprehensive medical care (PACE) to free legal help for seniors 60+. Most financial programs have income limits around $1,900-$2,100 per month for a single person, while resources like Medicare counseling and legal aid are available regardless of income. Start by checking if your parent qualifies for the highest-value programs first — Medicare Savings Programs alone can save $2,000+ annually, and home care waivers can cost thousands less than nursing home placement.",
+    "intro": "Kansas offers 13 programs that can help your aging loved one — 8 provide direct financial benefits or services, 4 offer free resources and advocacy, and 1 provides employment opportunities. These range from monthly grocery assistance ($298 maximum through SNAP) to comprehensive medical care (PACE) to free legal help for seniors 60+. Most financial programs have income limits around $1,900-$2,100 per month for a single person, while resources like Medicare counseling and legal aid are available regardless of income. Start by checking if your loved one qualifies for the highest-value programs first — Medicare Savings Programs alone can save $2,000+ annually, and home care waivers can cost thousands less than nursing home placement.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
         "programId": "medicare-savings-programs-msp",
-        "why": "Can save your parent $2,000+ per year on Medicare costs and has the highest income limits of Kansas's major benefit programs."
+        "why": "Can save your loved one $2,000+ per year on Medicare costs and has the highest income limits of Kansas's major benefit programs."
       },
       {
         "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
@@ -2452,7 +2452,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "Caregiver Support Programs"
         ],
-        "description": "Respite care and support services when you're caring for an aging parent."
+        "description": "Respite care and support services when you're caring for an aging loved one."
       },
       {
         "need": "Employment for active seniors",
@@ -2468,6 +2468,6 @@ export const drafts: PipelineStateDrafts = {
       "Four programs offer completely free services regardless of income: SHICK, Legal Services, Ombudsman, and Senior Citizen Law Project",
       "Kansas participates in all major federal senior programs plus offers state-specific Senior Care Act services"
     ],
-    "resourcesVsBenefits": "Kansas programs fall into two categories: benefits that require income qualification (like SNAP food assistance, KanCare waivers, and Medicare Savings Programs) and free resources available to all seniors (like SHICK Medicare counseling and Legal Services). Even if your parent's income is too high for financial benefits, they can still access free legal help, Medicare guidance, and advocacy services throughout Kansas."
+    "resourcesVsBenefits": "Kansas programs fall into two categories: benefits that require income qualification (like SNAP food assistance, KanCare waivers, and Medicare Savings Programs) and free resources available to all seniors (like SHICK Medicare counseling and Legal Services). Even if your loved one's income is too high for financial benefits, they can still access free legal help, Medicare guidance, and advocacy services throughout Kansas."
   }
 };

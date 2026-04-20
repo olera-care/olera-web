@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.894Z
+ * Last updated: 2026-04-20T22:05:18.078Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and lives on a fixed income, Alaska Medicaid can cover their complete healthcare costs — including nursing home care, home health services, prescription drugs, and Medicare premiums. The program has different pathways depending on whether your parent needs long-term care: income limits range from $1,845/month for basic coverage to $2,982/month for nursing home or home-based waiver services.\n\nBecause Alaska Medicaid coordinates with Medicare for dual-eligible seniors, your parent won't pay Medicare premiums, deductibles, or copays. The program also covers services Medicare doesn't — like personal care, home modifications, and adult day programs through Home and Community Based Services (HCBS) waivers. Asset limits are strict: $2,000 for single applicants, $3,000 for couples, though the family home is exempt (subject to estate recovery after death).\n\nThe application process is lengthy and complex, with multiple program pathways and functional assessments required for long-term care services. HCBS waivers may have waitlists due to limited slots, while nursing home placement typically has no waitlist but depends on provider availability.",
+      "intro": "If your loved one is 65+ or disabled and lives on a fixed income, Alaska Medicaid can cover their complete healthcare costs — including nursing home care, home health services, prescription drugs, and Medicare premiums. The program has different pathways depending on whether your loved one needs long-term care: income limits range from $1,845/month for basic coverage to $2,982/month for nursing home or home-based waiver services.\n\nBecause Alaska Medicaid coordinates with Medicare for dual-eligible seniors, your loved one won't pay Medicare premiums, deductibles, or copays. The program also covers services Medicare doesn't — like personal care, home modifications, and adult day programs through Home and Community Based Services (HCBS) waivers. Asset limits are strict: $2,000 for single applicants, $3,000 for couples, though the family home is exempt (subject to estate recovery after death).\n\nThe application process is lengthy and complex, with multiple program pathways and functional assessments required for long-term care services. HCBS waivers may have waitlists due to limited slots, while nursing home placement typically has no waitlist but depends on provider availability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -75,7 +75,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Use the pre-screening tool",
-            "description": "Visit health.alaska.gov to determine which Medicaid pathway fits your parent's situation and get the correct phone number for your area."
+            "description": "Visit health.alaska.gov to determine which Medicaid pathway fits your loved one's situation and get the correct phone number for your area."
           },
           {
             "step": 2,
@@ -90,7 +90,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete level of care assessment",
-            "description": "If applying for long-term care services, a clinical assessment will determine if your parent meets Nursing Facility Level of Care requirements."
+            "description": "If applying for long-term care services, a clinical assessment will determine if your loved one meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 5,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Lengthy and complicated process that can take weeks to months",
         "waitlist": "HCBS Waivers may have waitlists due to limited slots; Nursing Home placement typically has no waitlist but depends on provider availability",
-        "tip": "Use the pre-screening tool at health.alaska.gov first to identify which program pathway applies to your parent's situation — this can save significant time.",
+        "tip": "Use the pre-screening tool at health.alaska.gov first to identify which program pathway applies to your loved one's situation — this can save significant time.",
         "urls": [
           {
             "label": "Alaska Medicaid Online Application",
@@ -145,7 +145,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Multiple Medicaid pathways exist with different income, asset, and functional requirements — use the pre-screening tool to identify the right program before applying",
-        "Asset limits are very low ($2,000 individual) — consider Medicaid planning strategies if your parent has excess resources",
+        "Asset limits are very low ($2,000 individual) — consider Medicaid planning strategies if your loved one has excess resources",
         "The family home is exempt from asset limits but subject to estate recovery after death — consult an elder law attorney about protections",
         "Working disabled individuals have a separate Buy-In program with higher income allowances but may require premium payments"
       ],
@@ -185,41 +185,41 @@ export const drafts: PipelineStateDrafts = {
           "type": "callout",
           "style": "warning",
           "title": "Estate Recovery",
-          "content": "Alaska Medicaid may recover costs from your parent's estate after death, including placing a lien on their home. Consult an elder law attorney about protections for the family home and other assets."
+          "content": "Alaska Medicaid may recover costs from your loved one's estate after death, including placing a lien on their home. Consult an elder law attorney about protections for the family home and other assets."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, the primary home is exempt from Medicaid's asset limits regardless of value. However, Alaska may recover Medicaid costs from the home's sale after your parent's death through estate recovery."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is exempt from Medicaid's asset limits regardless of value. However, Alaska may recover Medicaid costs from the home's sale after your loved one's death through estate recovery."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
-          "answer": "Your parent may still qualify through a spend-down process, paying medical expenses until their income falls below the limit. Long-term care Medicaid also has higher income limits ($2,982/month) than regular Medicaid ($1,845/month)."
+          "question": "What if my loved one's income is slightly over the limit?",
+          "answer": "Your loved one may still qualify through a spend-down process, paying medical expenses until their income falls below the limit. Long-term care Medicaid also has higher income limits ($2,982/month) than regular Medicaid ($1,845/month)."
         },
         {
           "question": "How long is the waitlist for home-based services really?",
           "answer": "HCBS waiver waitlists vary by program type and region, potentially lasting several months to years. Nursing home placement typically has no waitlist, but finding an available bed in a preferred facility may take time."
         },
         {
-          "question": "Can I apply for Medicaid on behalf of my elderly parent?",
+          "question": "Can I apply for Medicaid on behalf of my elderly loved one?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled relatives. You may need to provide legal documentation showing you have authority to act on their behalf, such as power of attorney."
         },
         {
-          "question": "Can my parent have both Medicare and Medicaid?",
+          "question": "Can my loved one have both Medicare and Medicaid?",
           "answer": "Yes, many Alaska seniors are 'dual eligible' for both programs. Medicaid pays Medicare premiums, deductibles, and copays, plus covers services Medicare doesn't, like long-term care and personal care services."
         },
         {
-          "question": "What happens if my parent gets better and no longer needs nursing home level care?",
-          "answer": "Medicaid eligibility is reviewed annually, and more frequently if circumstances change. If your parent's functional status improves, they may transition from long-term care Medicaid to regular Medicaid, which has lower income limits."
+          "question": "What happens if my loved one gets better and no longer needs nursing home level care?",
+          "answer": "Medicaid eligibility is reviewed annually, and more frequently if circumstances change. If your loved one's functional status improves, they may transition from long-term care Medicaid to regular Medicaid, which has lower income limits."
         },
         {
-          "question": "Can my parent apply for Medicaid and Adult Public Assistance at the same time?",
-          "answer": "Yes, and in many cases getting approved for APA automatically qualifies your parent for Medicaid. The programs are closely linked and can be applied for together through the same process."
+          "question": "Can my loved one apply for Medicaid and Adult Public Assistance at the same time?",
+          "answer": "Yes, and in many cases getting approved for APA automatically qualifies your loved one for Medicaid. The programs are closely linked and can be applied for together through the same process."
         },
         {
-          "question": "What if my parent owns a second car or vacation property?",
-          "answer": "Medicaid counts second vehicles and vacation homes as countable assets toward the $2,000 limit. Your parent would need to sell these assets or convert them to exempt resources before qualifying."
+          "question": "What if my loved one owns a second car or vacation property?",
+          "answer": "Medicaid counts second vehicles and vacation homes as countable assets toward the $2,000 limit. Your loved one would need to sell these assets or convert them to exempt resources before qualifying."
         }
       ],
       "layoutIntent": {
@@ -240,7 +240,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "hcbs-waiver",
       "name": "Home and Community-Based Services Waiver",
       "shortName": "HCBS Waiver",
-      "tagline": "Comprehensive home care services to help your parent avoid nursing home placement while staying Medicaid-eligible.",
+      "tagline": "Comprehensive home care services to help your loved one avoid nursing home placement while staying Medicaid-eligible.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -253,7 +253,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, medication management, or has dementia but wants to stay home, Alaska's Home and Community-Based Services Waiver can provide comprehensive care coordination, adult day services, respite care, home modifications, specialized medical equipment, and even residential supported living — all while keeping them Medicaid-eligible.\n\nBecause the waiver covers coordinated services under one program, your parent won't need to piece together care from multiple providers — one care coordination team manages everything from nursing visits to meal delivery to transportation. The state operates five different waivers: ALI serves adults 65+ or those 21-64 with physical disabilities, while other waivers focus on developmental disabilities or children with complex medical needs.\n\nYour parent must qualify for both Medicaid income limits and meet Nursing Facility Level of Care (a clinical assessment confirming they need substantial daily assistance). Some waivers have waitlists, with IDD selecting only 50 people annually from their waitlist.",
+      "intro": "If your loved one needs daily help with bathing, dressing, medication management, or has dementia but wants to stay home, Alaska's Home and Community-Based Services Waiver can provide comprehensive care coordination, adult day services, respite care, home modifications, specialized medical equipment, and even residential supported living — all while keeping them Medicaid-eligible.\n\nBecause the waiver covers coordinated services under one program, your loved one won't need to piece together care from multiple providers — one care coordination team manages everything from nursing visits to meal delivery to transportation. The state operates five different waivers: ALI serves adults 65+ or those 21-64 with physical disabilities, while other waivers focus on developmental disabilities or children with complex medical needs.\n\nYour loved one must qualify for both Medicaid income limits and meet Nursing Facility Level of Care (a clinical assessment confirming they need substantial daily assistance). Some waivers have waitlists, with IDD selecting only 50 people annually from their waitlist.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -363,8 +363,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for the waiver?",
-          "answer": "Yes, the primary residence is exempt from asset limits if your parent intends to return home. However, if they transferred the house for less than fair market value within the past 60 months, this triggers the Look-Back Rule and creates a penalty period that delays eligibility."
+          "question": "Can my loved one keep their house and still qualify for the waiver?",
+          "answer": "Yes, the primary residence is exempt from asset limits if your loved one intends to return home. However, if they transferred the house for less than fair market value within the past 60 months, this triggers the Look-Back Rule and creates a penalty period that delays eligibility."
         },
         {
           "question": "What's the difference between the ALI waiver and other waivers?",
@@ -375,8 +375,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "ALI and APDD waivers typically have no waitlist. IDD waiver selects only 50 people annually from their waitlist, creating potentially years-long waits. ISW waiver creates a waitlist when participant limits are reached. Waitlist length varies significantly by waiver type."
         },
         {
-          "question": "Can I apply for the waiver while my parent is in the hospital?",
-          "answer": "Yes, you can start the Medicaid application process while your parent is hospitalized. Hospital discharge planners often help initiate waiver applications. Contact Division of Public Assistance immediately to begin Medicaid eligibility determination."
+          "question": "Can I apply for the waiver while my loved one is in the hospital?",
+          "answer": "Yes, you can start the Medicaid application process while your loved one is hospitalized. Hospital discharge planners often help initiate waiver applications. Contact Division of Public Assistance immediately to begin Medicaid eligibility determination."
         },
         {
           "question": "What if we live in a rural area with limited providers?",
@@ -387,11 +387,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The waiver covers formal services through approved providers, but family caregivers can continue providing informal care alongside waiver services. Respite services specifically give family caregivers breaks from caregiving responsibilities."
         },
         {
-          "question": "What happens if my parent's care needs change after enrollment?",
-          "answer": "Your care coordination team regularly reviews and updates the support plan based on changing needs. Services can be added, modified, or reduced as your parent's functional abilities or medical conditions change over time."
+          "question": "What happens if my loved one's care needs change after enrollment?",
+          "answer": "Your care coordination team regularly reviews and updates the support plan based on changing needs. Services can be added, modified, or reduced as your loved one's functional abilities or medical conditions change over time."
         },
         {
-          "question": "Can my parent have both Medicare and waiver services?",
+          "question": "Can my loved one have both Medicare and waiver services?",
           "answer": "Yes, the waiver works alongside Medicare and Medicaid. Medicare covers medical services while the waiver covers long-term care services like personal care, respite, and home modifications that Medicare doesn't provide."
         }
       ],
@@ -413,7 +413,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All-in-one medical care and support services to keep your parent out of a nursing home — if a provider operated in Alaska.",
+      "tagline": "All-in-one medical care and support services to keep your loved one out of a nursing home — if a provider operated in Alaska.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -426,7 +426,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs extensive daily help with bathing, dressing, or medication management, PACE would provide all their medical care, prescription drugs, adult day programs, home care, and social services under one coordinated team — with no copays or deductibles. Because PACE covers everything from primary care to hospitalization to personal care aides, your parent wouldn't need to coordinate between separate doctors, insurance plans, or service providers.\n\nThe major barrier: No PACE programs currently operate in Alaska. While PACE serves over 50,000 seniors nationally and prevents nursing home placement for 90% of participants, Alaska families cannot access this program. You'll need to explore Alaska's Medicaid waiver programs or private care coordination instead.",
+      "intro": "If your loved one is 55+ and needs extensive daily help with bathing, dressing, or medication management, PACE would provide all their medical care, prescription drugs, adult day programs, home care, and social services under one coordinated team — with no copays or deductibles. Because PACE covers everything from primary care to hospitalization to personal care aides, your loved one wouldn't need to coordinate between separate doctors, insurance plans, or service providers.\n\nThe major barrier: No PACE programs currently operate in Alaska. While PACE serves over 50,000 seniors nationally and prevents nursing home placement for 90% of participants, Alaska families cannot access this program. You'll need to explore Alaska's Medicaid waiver programs or private care coordination instead.",
       "savingsRange": "",
       "savingsSource": "Comprehensive care service with no copays for enrollees",
       "savingsVerified": false,
@@ -482,7 +482,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Get nursing home assessment",
-            "description": "If your parent needs extensive care, request a Nursing Facility Level of Care assessment through Alaska Medicaid"
+            "description": "If your loved one needs extensive care, request a Nursing Facility Level of Care assessment through Alaska Medicaid"
           }
         ],
         "processingTime": "Not applicable — no programs available",
@@ -527,15 +527,15 @@ export const drafts: PipelineStateDrafts = {
           "answer": "PACE requires significant upfront investment and a large enough population to be financially viable. Alaska's geographic spread and smaller senior population make it challenging for organizations to establish sustainable PACE centers. Contact Alaska Medicaid at (907) 465-3300 to ask about future development plans."
         },
         {
-          "question": "Can my parent get similar services through other Alaska programs?",
+          "question": "Can my loved one get similar services through other Alaska programs?",
           "answer": "Yes, Alaska's Medicaid Home and Community-Based Services waivers provide some similar supports like personal care, adult day services, and care coordination. However, these don't include the comprehensive medical integration that makes PACE unique. Call (907) 465-3300 to explore waiver options."
         },
         {
           "question": "What if we moved to another state with PACE?",
-          "answer": "Your parent would need to establish residency in a PACE service area and go through the enrollment process in that state. Each PACE organization serves a specific geographic area, so you'd need to research which programs serve your target location and have availability."
+          "answer": "Your loved one would need to establish residency in a PACE service area and go through the enrollment process in that state. Each PACE organization serves a specific geographic area, so you'd need to research which programs serve your target location and have availability."
         },
         {
-          "question": "How much would PACE cost if my parent paid privately?",
+          "question": "How much would PACE cost if my loved one paid privately?",
           "answer": "Nationally, private pay PACE enrollment averages $4,000-$6,000 per month, which covers all medical care, prescriptions, adult day programs, and home services. This is often less expensive than coordinating separate private services, but no Alaska providers exist to offer this option."
         },
         {
@@ -544,7 +544,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the nursing home level of care assessment like?",
-          "answer": "A state assessor evaluates whether your parent needs extensive help with activities of daily living like bathing, dressing, eating, toileting, transferring, or walking. This same assessment qualifies for both PACE (if available) and Medicaid long-term care waivers. Request one through Alaska Medicaid at (907) 465-3300."
+          "answer": "A state assessor evaluates whether your loved one needs extensive help with activities of daily living like bathing, dressing, eating, toileting, transferring, or walking. This same assessment qualifies for both PACE (if available) and Medicaid long-term care waivers. Request one through Alaska Medicaid at (907) 465-3300."
         }
       ],
       "layoutIntent": {
@@ -565,7 +565,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is below $2,245/month",
+      "tagline": "Help paying Medicare premiums, deductibles, and copays if your loved one's income is below $2,245/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -578,7 +578,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay Medicare premiums, deductibles, or copays, three Medicare Savings Programs can help. QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for individuals earning up to $1,663/month. SLMB and QI programs cover Medicare Part B premiums ($202.90/month in 2026) for those with slightly higher incomes up to $2,245/month.\n\nAlaska residents get higher income limits than the lower 48 states because of the higher cost of living. All three programs automatically qualify your parent for Extra Help with prescription drug costs — paying no more than $12.65 per medication in 2026. Because these programs coordinate all Medicare payments, your parent won't receive separate bills for covered services.\n\nQI has limited annual funding and fills up on a first-come, first-served basis. Your parent must already be enrolled in Medicare Part A to apply.",
+      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or copays, three Medicare Savings Programs can help. QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for individuals earning up to $1,663/month. SLMB and QI programs cover Medicare Part B premiums ($202.90/month in 2026) for those with slightly higher incomes up to $2,245/month.\n\nAlaska residents get higher income limits than the lower 48 states because of the higher cost of living. All three programs automatically qualify your loved one for Extra Help with prescription drug costs — paying no more than $12.65 per medication in 2026. Because these programs coordinate all Medicare payments, your loved one won't receive separate bills for covered services.\n\nQI has limited annual funding and fills up on a first-come, first-served basis. Your loved one must already be enrolled in Medicare Part A to apply.",
       "savingsRange": "$2,435 – $4,870/year in 2026",
       "savingsSource": "Part B premiums plus potential deductibles and copays coverage",
       "savingsVerified": true,
@@ -736,15 +736,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent apply for QMB and SLMB at the same time?",
-          "answer": "No, these are three separate programs with different income tiers. Your parent will be evaluated for the highest benefit level they qualify for. If their income is below $1,663/month, they'll get QMB which covers the most costs."
+          "question": "Can my loved one apply for QMB and SLMB at the same time?",
+          "answer": "No, these are three separate programs with different income tiers. Your loved one will be evaluated for the highest benefit level they qualify for. If their income is below $1,663/month, they'll get QMB which covers the most costs."
         },
         {
-          "question": "What if my parent's income is just over the limit one month?",
-          "answer": "Alaska evaluates income monthly and includes a $20 general income disregard. The income limits shown already include this disregard. Temporary income spikes may not disqualify your parent permanently."
+          "question": "What if my loved one's income is just over the limit one month?",
+          "answer": "Alaska evaluates income monthly and includes a $20 general income disregard. The income limits shown already include this disregard. Temporary income spikes may not disqualify your loved one permanently."
         },
         {
-          "question": "Does my parent's house count toward the $9,950 asset limit?",
+          "question": "Does my loved one's house count toward the $9,950 asset limit?",
           "answer": "No, the primary home or mobile home is completely exempt from asset limits. One vehicle, household items, wedding rings, and burial plots up to $1,500 also don't count."
         },
         {
@@ -752,19 +752,19 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Apply in January or February. QI has limited annual funding and operates first-come, first-served. Once the money runs out, even eligible people are denied until the next year."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes, family members can apply on behalf of Medicare beneficiaries. Contact the local medical assistance office at 1-877-486-2048 to discuss the process and any additional authorization needed."
         },
         {
-          "question": "What happens to Extra Help if my parent loses Medicare Savings Program eligibility?",
-          "answer": "Extra Help with prescription drug costs is tied to Medicare Savings Program enrollment. If your parent loses eligibility, they'll need to reapply for Extra Help separately or face higher prescription costs."
+          "question": "What happens to Extra Help if my loved one loses Medicare Savings Program eligibility?",
+          "answer": "Extra Help with prescription drug costs is tied to Medicare Savings Program enrollment. If your loved one loses eligibility, they'll need to reapply for Extra Help separately or face higher prescription costs."
         },
         {
           "question": "Are Alaska Native corporation dividends counted as income?",
           "answer": "Some Native corporation stocks held by Alaska Native people are exempt from asset limits, but dividend payments may count as income. Contact your local medical assistance office for specific guidance on Alaska Native benefits."
         },
         {
-          "question": "What if my parent qualifies for Medicaid — can they still get QI?",
+          "question": "What if my loved one qualifies for Medicaid — can they still get QI?",
           "answer": "No, QI program specifically excludes people who qualify for Medicaid. However, QMB and SLMB may still be available. Medicaid may provide more comprehensive coverage than QI anyway."
         }
       ],
@@ -799,7 +799,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is on a fixed income, SNAP can provide monthly grocery money loaded onto an EBT card that works like a debit card at most stores and farmers markets. Because Alaska has expanded beyond federal rules, seniors and disabled adults can qualify with higher incomes than other states — up to $3,258/month for a single person.\n\nThe benefit amount depends on your parent's net income after deductions for medical expenses over $35/month and housing costs. Households with all adults 60+ or disabled get simplified rules: higher asset limits ($4,500 instead of $3,000), longer certification periods (36 months), and no recertification interviews unless there's a problem.\n\nBecause this is a federal program, your parent keeps SNAP benefits if they move between states. Alaska administers the program through local Division of Public Assistance offices statewide.",
+      "intro": "If your loved one is on a fixed income, SNAP can provide monthly grocery money loaded onto an EBT card that works like a debit card at most stores and farmers markets. Because Alaska has expanded beyond federal rules, seniors and disabled adults can qualify with higher incomes than other states — up to $3,258/month for a single person.\n\nThe benefit amount depends on your loved one's net income after deductions for medical expenses over $35/month and housing costs. Households with all adults 60+ or disabled get simplified rules: higher asset limits ($4,500 instead of $3,000), longer certification periods (36 months), and no recertification interviews unless there's a problem.\n\nBecause this is a federal program, your loved one keeps SNAP benefits if they move between states. Alaska administers the program through local Division of Public Assistance offices statewide.",
       "savingsRange": "$100 – $300/month in 2026",
       "savingsSource": "Monthly EBT benefits vary by household size and net income",
       "savingsVerified": false,
@@ -954,27 +954,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes. The primary home and lot are completely exempt from SNAP asset limits, regardless of value. Your parent can own a million-dollar home and still qualify if their income and other assets meet the limits."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. The primary home and lot are completely exempt from SNAP asset limits, regardless of value. Your loved one can own a million-dollar home and still qualify if their income and other assets meet the limits."
         },
         {
-          "question": "What if my parent is over the income limit but has high medical expenses?",
+          "question": "What if my loved one is over the income limit but has high medical expenses?",
           "answer": "They may still qualify. Alaska allows households with members 60+ or disabled to deduct medical expenses over $35/month from their income. High prescription costs, insurance premiums, or medical bills can bring them under the income threshold."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, if your parent authorizes you as their representative. You'll need to complete an authorized representative form during the application process. DPA can conduct the eligibility interview with you instead of your parent."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, if your loved one authorizes you as their representative. You'll need to complete an authorized representative form during the application process. DPA can conduct the eligibility interview with you instead of your loved one."
         },
         {
-          "question": "How much will my parent actually receive each month?",
+          "question": "How much will my loved one actually receive each month?",
           "answer": "It depends on their net income after deductions. Generally, every $100 increase in net income reduces benefits by about $30. Minimum benefit amounts vary by household size, and seniors often receive more due to medical and shelter deductions."
         },
         {
-          "question": "What happens if my parent moves to assisted living?",
-          "answer": "SNAP eligibility depends on how meals are provided. If the facility provides all meals as part of the fee, your parent likely won't qualify. If they prepare their own meals or buy their own food, they can usually keep SNAP benefits."
+          "question": "What happens if my loved one moves to assisted living?",
+          "answer": "SNAP eligibility depends on how meals are provided. If the facility provides all meals as part of the fee, your loved one likely won't qualify. If they prepare their own meals or buy their own food, they can usually keep SNAP benefits."
         },
         {
-          "question": "Can my parent use SNAP for grocery delivery or meal kit services?",
+          "question": "Can my loved one use SNAP for grocery delivery or meal kit services?",
           "answer": "Yes, many grocery stores that accept SNAP now offer delivery services that work with EBT cards. Some meal kit services also accept SNAP. However, prepared hot foods and restaurant meals generally aren't covered."
         },
         {
@@ -1004,7 +1004,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Alaska",
-      "tagline": "Get help paying heating bills and preventing utility shut-offs if your parent is on a fixed income.",
+      "tagline": "Get help paying heating bills and preventing utility shut-offs if your loved one is on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1037,7 +1037,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills or electric bills in Alaska, LIHEAP provides direct payment to energy vendors and crisis assistance when utilities are shut off or fuel runs low. The program helps with heating fuel, firewood, electric bills, and emergency situations when households have less than 5 gallons of heating fuel or face shut-off notices.\n\nTo qualify, your parent's household income must be at or below $2,443/month for one person or $3,303/month for two people (150% of Federal Poverty Level in 2026). They must also have at least $200 in out-of-pocket heating costs per year. Because Alaska has multiple program providers including state offices and tribal organizations, eligibility rules and benefit amounts can vary significantly by location and provider — some tribal programs exclude Social Security income from calculations, potentially increasing benefits for seniors.",
+      "intro": "If your loved one struggles to pay heating bills or electric bills in Alaska, LIHEAP provides direct payment to energy vendors and crisis assistance when utilities are shut off or fuel runs low. The program helps with heating fuel, firewood, electric bills, and emergency situations when households have less than 5 gallons of heating fuel or face shut-off notices.\n\nTo qualify, your loved one's household income must be at or below $2,443/month for one person or $3,303/month for two people (150% of Federal Poverty Level in 2026). They must also have at least $200 in out-of-pocket heating costs per year. Because Alaska has multiple program providers including state offices and tribal organizations, eligibility rules and benefit amounts can vary significantly by location and provider — some tribal programs exclude Social Security income from calculations, potentially increasing benefits for seniors.",
       "savingsRange": "",
       "savingsSource": "Financial assistance varies by household income, size, housing type, and geographic location",
       "savingsVerified": false,
@@ -1112,7 +1112,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "45 days for complete applications (30 days for Sitka Tribe of Alaska)",
         "waitlist": "Application windows are time-limited and vary by provider — seniors 60+ and disabled individuals may have priority application periods starting November 1st",
-        "tip": "If your parent receives SNAP benefits, bring the award letter showing countable income — this can speed up income verification.",
+        "tip": "If your loved one receives SNAP benefits, bring the award letter showing countable income — this can speed up income verification.",
         "urls": [
           {
             "label": "Alaska LIHEAP Application",
@@ -1156,7 +1156,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Seniors 60+ and disabled individuals often get priority application windows starting November 1st, while general public applications may not open until December",
         "Some tribal providers exclude Social Security income from calculations, which can significantly increase benefit eligibility for seniors — ask about this when choosing between state and tribal applications",
-        "If your parent lives in subsidized housing through ASHA, AVCP, or BNC, they may be ineligible for some provider programs",
+        "If your loved one lives in subsidized housing through ASHA, AVCP, or BNC, they may be ineligible for some provider programs",
         "Crisis assistance for shut-off notices or households with less than 5 gallons of heating fuel may be available outside regular application windows"
       ],
       "relatedPrograms": [
@@ -1167,36 +1167,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply through both the state and tribal providers to get more assistance?",
+          "question": "Can my loved one apply through both the state and tribal providers to get more assistance?",
           "answer": "No, households can only receive LIHEAP assistance from one provider per program year. However, you should compare options because tribal providers may have different income calculation methods that could result in higher benefits."
         },
         {
-          "question": "What if my parent's Social Security income puts them over the income limit?",
+          "question": "What if my loved one's Social Security income puts them over the income limit?",
           "answer": "Some tribal providers like the Aleutian Pribilof Islands Association exclude Social Security income from their calculations, while the state program counts it. If your community has both options, check with the tribal provider first."
         },
         {
-          "question": "My parent lives in subsidized housing — are they automatically ineligible?",
+          "question": "My loved one lives in subsidized housing — are they automatically ineligible?",
           "answer": "Not necessarily, but it depends on the provider and housing type. Some programs exclude residents in ASHA, AVCP, or BNC housing, while others may still provide assistance. Contact your local provider to verify eligibility."
         },
         {
-          "question": "What counts as the required $200 in annual heating costs if my parent lives in an apartment?",
+          "question": "What counts as the required $200 in annual heating costs if my loved one lives in an apartment?",
           "answer": "This includes electric bills used for heating, payments for heating fuel, firewood purchases, or any out-of-pocket costs for keeping the home warm. Even apartment dwellers usually meet this requirement through electric heating or space heaters."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage their own affairs. You'll need to provide your parent's documents and may need to show legal authority to act on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage their own affairs. You'll need to provide your loved one's documents and may need to show legal authority to act on their behalf."
         },
         {
-          "question": "What happens if my parent gets a utility shut-off notice after the application deadline?",
+          "question": "What happens if my loved one gets a utility shut-off notice after the application deadline?",
           "answer": "Contact your provider immediately about crisis assistance, which may be available outside regular application windows for emergencies like shut-off notices, medical needs, or households with less than 5 gallons of heating fuel."
         },
         {
-          "question": "How much assistance will my parent actually receive?",
+          "question": "How much assistance will my loved one actually receive?",
           "answer": "Benefit amounts vary based on household income, size, housing type, heating vendor, and geographic location. The program doesn't publish specific dollar amounts because they're calculated individually for each household's situation."
         },
         {
-          "question": "My parent is Alaska Native but not enrolled in a tribe — which provider should we use?",
-          "answer": "Non-enrolled tribal citizens in some communities must apply through the State of Alaska rather than tribal providers. Contact both to determine which option is available and offers better benefits for your parent's situation."
+          "question": "My loved one is Alaska Native but not enrolled in a tribe — which provider should we use?",
+          "answer": "Non-enrolled tribal citizens in some communities must apply through the State of Alaska rather than tribal providers. Contact both to determine which option is available and offers better benefits for your loved one's situation."
         }
       ],
       "layoutIntent": {
@@ -1217,7 +1217,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Get up to $4,000 in free home weatherization services to reduce your parent's energy bills",
+      "tagline": "Get up to $4,000 in free home weatherization services to reduce your loved one's energy bills",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1250,7 +1250,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent's household income is below $39,100 (single person) or $52,860 (couple), they may qualify for up to $4,000 in free weatherization services to reduce energy costs. The program provides furnace repairs or replacement, insulation, new windows and doors, programmable thermostats, and other energy-saving improvements at no cost.\n\nBecause the program gives priority to households with someone 60+ or disabled, your parent may move ahead of other applicants. However, homes that received weatherization services in the last 15 years are not eligible. You must apply through your regional provider — RurAL CAP in Anchorage, Tlingit-Haida Regional Housing Authority in Juneau, or other local agencies — not directly through the state.\n\nThe work can include everything from basic caulking and weather stripping to complete furnace replacement, depending on what your parent's home needs most. Both homeowners and renters qualify, and there are no asset limits.",
+      "intro": "If your loved one's household income is below $39,100 (single person) or $52,860 (couple), they may qualify for up to $4,000 in free weatherization services to reduce energy costs. The program provides furnace repairs or replacement, insulation, new windows and doors, programmable thermostats, and other energy-saving improvements at no cost.\n\nBecause the program gives priority to households with someone 60+ or disabled, your loved one may move ahead of other applicants. However, homes that received weatherization services in the last 15 years are not eligible. You must apply through your regional provider — RurAL CAP in Anchorage, Tlingit-Haida Regional Housing Authority in Juneau, or other local agencies — not directly through the state.\n\nThe work can include everything from basic caulking and weather stripping to complete furnace replacement, depending on what your loved one's home needs most. Both homeowners and renters qualify, and there are no asset limits.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1332,7 +1332,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified - varies by provider and priority level",
         "waitlist": "Priority-based selection may result in wait times for non-priority households",
-        "tip": "Emphasize if your parent is 60+, disabled, or has high energy costs relative to income — these factors increase priority for selection.",
+        "tip": "Emphasize if your loved one is 60+, disabled, or has high energy costs relative to income — these factors increase priority for selection.",
         "urls": [
           {
             "label": "Find Alaska Weatherization Providers",
@@ -1368,7 +1368,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Each regional provider has slightly different application forms and processing procedures — contact the provider in your area",
         "Priority goes to elderly (60+), disabled individuals, and families with children under 6 — mention these factors when applying",
-        "If your parent received any weatherization services since 2009, they may be ineligible — check with the provider about previous work",
+        "If your loved one received any weatherization services since 2009, they may be ineligible — check with the provider about previous work",
         "All adults in the household must sign the application and provide Social Security numbers — missing signatures delay processing"
       ],
       "relatedPrograms": [
@@ -1379,28 +1379,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they had some weatherization work done years ago but aren't sure when?",
-          "answer": "Contact your regional provider with your parent's address and they can check their records. If any weatherization work was done through a government program in the last 15 years, your parent won't qualify. However, work done by private contractors or utility companies doesn't count against this rule."
+          "question": "Can my loved one apply if they had some weatherization work done years ago but aren't sure when?",
+          "answer": "Contact your regional provider with your loved one's address and they can check their records. If any weatherization work was done through a government program in the last 15 years, your loved one won't qualify. However, work done by private contractors or utility companies doesn't count against this rule."
         },
         {
-          "question": "What if my parent rents and the landlord won't give permission?",
-          "answer": "Renters need landlord permission for weatherization work, but landlords often agree because the improvements increase property value at no cost to them. Your regional provider can help explain the benefits to reluctant landlords. If the landlord still refuses, your parent unfortunately cannot participate."
+          "question": "What if my loved one rents and the landlord won't give permission?",
+          "answer": "Renters need landlord permission for weatherization work, but landlords often agree because the improvements increase property value at no cost to them. Your regional provider can help explain the benefits to reluctant landlords. If the landlord still refuses, your loved one unfortunately cannot participate."
         },
         {
-          "question": "How do I know if my parent will get selected since it's priority-based?",
-          "answer": "Households with members 60+, disabled individuals, or children under 6 get priority, followed by those with the highest energy burden relative to income. Your regional provider can give you a better sense of wait times and your parent's likelihood of selection based on their specific situation."
+          "question": "How do I know if my loved one will get selected since it's priority-based?",
+          "answer": "Households with members 60+, disabled individuals, or children under 6 get priority, followed by those with the highest energy burden relative to income. Your regional provider can give you a better sense of wait times and your loved one's likelihood of selection based on their specific situation."
         },
         {
-          "question": "Can my parent get both weatherization and LIHEAP energy assistance?",
-          "answer": "Yes, these are separate programs and your parent can receive both. However, they cannot get weatherization if they received an AHFC Home Energy Rebate after May 1, 2008. Check with your provider about any other program conflicts."
+          "question": "Can my loved one get both weatherization and LIHEAP energy assistance?",
+          "answer": "Yes, these are separate programs and your loved one can receive both. However, they cannot get weatherization if they received an AHFC Home Energy Rebate after May 1, 2008. Check with your provider about any other program conflicts."
         },
         {
-          "question": "What exactly will they do to my parent's home?",
+          "question": "What exactly will they do to my loved one's home?",
           "answer": "The contractor will first do an energy assessment to identify the most cost-effective improvements. This could include furnace repairs or replacement, insulation, caulking, weather stripping, programmable thermostats, door and window repairs, or ventilation improvements. The work is limited to $4,000 per unit for buildings with 1-4 units."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Your parent must be involved in the application process and sign the forms, but you can help them complete the paperwork and communicate with the provider. If your parent has cognitive issues, contact the provider about accommodations or whether a power of attorney allows you to sign on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Your loved one must be involved in the application process and sign the forms, but you can help them complete the paperwork and communicate with the provider. If your loved one has cognitive issues, contact the provider about accommodations or whether a power of attorney allows you to sign on their behalf."
         }
       ],
       "layoutIntent": {
@@ -1421,7 +1421,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP Counseling",
-      "tagline": "Free one-on-one help navigating your parent's Medicare options, appeals, and cost-saving programs.",
+      "tagline": "Free one-on-one help navigating your loved one's Medicare options, appeals, and cost-saving programs.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1438,7 +1438,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is approaching Medicare eligibility or struggling to understand their current coverage, Alaska's SHIP program provides free, personalized counseling to help them make informed decisions. Trained counselors help with Medicare Parts A, B, C, and D, Medigap policies, Medicare Savings Programs, Extra Help for prescription costs, and Medicaid applications.\n\nBecause SHIP counselors are not affiliated with insurance companies, they provide unbiased guidance tailored to your parent's specific health and financial situation. The service is available to anyone eligible for Medicare (typically age 65+ or under 65 with certain disabilities), plus family members and caregivers who need help understanding options on their loved one's behalf.",
+      "intro": "If your loved one is approaching Medicare eligibility or struggling to understand their current coverage, Alaska's SHIP program provides free, personalized counseling to help them make informed decisions. Trained counselors help with Medicare Parts A, B, C, and D, Medigap policies, Medicare Savings Programs, Extra Help for prescription costs, and Medicaid applications.\n\nBecause SHIP counselors are not affiliated with insurance companies, they provide unbiased guidance tailored to your loved one's specific health and financial situation. The service is available to anyone eligible for Medicare (typically age 65+ or under 65 with certain disabilities), plus family members and caregivers who need help understanding options on their loved one's behalf.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1471,12 +1471,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule your session",
-            "description": "Choose in-person, phone, or virtual counseling. Sessions are one-on-one and tailored to your parent's specific Medicare questions."
+            "description": "Choose in-person, phone, or virtual counseling. Sessions are one-on-one and tailored to your loved one's specific Medicare questions."
           },
           {
             "step": 3,
             "title": "Gather Medicare documents",
-            "description": "Have your parent's Medicare card, current plan details, prescription list, and income information ready if discussing cost-saving programs."
+            "description": "Have your loved one's Medicare card, current plan details, prescription list, and income information ready if discussing cost-saving programs."
           },
           {
             "step": 4,
@@ -1486,7 +1486,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate counseling available upon contact",
         "waitlist": null,
-        "tip": "Contact SHIP counselors 3 months before your parent becomes Medicare eligible to explore all options before enrollment deadlines.",
+        "tip": "Contact SHIP counselors 3 months before your loved one becomes Medicare eligible to explore all options before enrollment deadlines.",
         "urls": [
           {
             "label": "Alaska Medicare Information Office",
@@ -1529,12 +1529,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get SHIP counseling for my parent even if I'm not on Medicare myself?",
-          "answer": "Yes, family members and caregivers can access SHIP counseling to get help understanding Medicare options for their loved ones. Counselors will explain coverage options, costs, and enrollment procedures so you can help your parent make informed decisions."
+          "question": "Can I get SHIP counseling for my loved one even if I'm not on Medicare myself?",
+          "answer": "Yes, family members and caregivers can access SHIP counseling to get help understanding Medicare options for their loved ones. Counselors will explain coverage options, costs, and enrollment procedures so you can help your loved one make informed decisions."
         },
         {
-          "question": "Will SHIP counselors help if my parent already has Medicare and wants to switch plans?",
-          "answer": "Absolutely. SHIP counselors help with plan comparisons during Open Enrollment (October 15 - December 7) and can explain Special Enrollment Periods if your parent qualifies due to life changes. They'll review your parent's current coverage against available options based on their specific medications and doctors."
+          "question": "Will SHIP counselors help if my loved one already has Medicare and wants to switch plans?",
+          "answer": "Absolutely. SHIP counselors help with plan comparisons during Open Enrollment (October 15 - December 7) and can explain Special Enrollment Periods if your loved one qualifies due to life changes. They'll review your loved one's current coverage against available options based on their specific medications and doctors."
         },
         {
           "question": "How is SHIP different from talking to insurance company representatives?",
@@ -1559,7 +1559,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "meals-on-wheels",
       "name": "Meals on Wheels (Senior Meals Program)",
       "shortName": "Meals on Wheels",
-      "tagline": "Free daily hot meals delivered to your parent's home if they have trouble shopping or cooking independently.",
+      "tagline": "Free daily hot meals delivered to your loved one's home if they have trouble shopping or cooking independently.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1588,7 +1588,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and has difficulty shopping for groceries or preparing meals due to mobility challenges, they may qualify for free daily hot meals delivered to their home. Each meal provides one-third of daily nutritional requirements, with frozen meals for weekends and holidays in some areas.\n\nUnlike many senior programs, Meals on Wheels has no income limits — eligibility is based on age and physical need, not financial status. Because each meal is nutritionally balanced by dietitians, your parent gets consistent nutrition even when cooking becomes difficult.\n\nAvailability varies significantly by region in Alaska. Home delivery requires a doctor's note in some areas like North Slope Borough, while other regions like Anchorage through Salvation Army have simpler intake processes.",
+      "intro": "If your loved one is 60+ and has difficulty shopping for groceries or preparing meals due to mobility challenges, they may qualify for free daily hot meals delivered to their home. Each meal provides one-third of daily nutritional requirements, with frozen meals for weekends and holidays in some areas.\n\nUnlike many senior programs, Meals on Wheels has no income limits — eligibility is based on age and physical need, not financial status. Because each meal is nutritionally balanced by dietitians, your loved one gets consistent nutrition even when cooking becomes difficult.\n\nAvailability varies significantly by region in Alaska. Home delivery requires a doctor's note in some areas like North Slope Borough, while other regions like Anchorage through Salvation Army have simpler intake processes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1621,7 +1621,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Provider will assess your parent's physical limitations and need for meal assistance. Some areas require doctor's note for home delivery."
+            "description": "Provider will assess your loved one's physical limitations and need for meal assistance. Some areas require doctor's note for home delivery."
           },
           {
             "step": 3,
@@ -1672,7 +1672,7 @@ export const drafts: PipelineStateDrafts = {
         "Requirements vary significantly by region — North Slope requires doctor's note for home delivery while other areas may not",
         "Most programs accept suggested donations but meals remain free regardless of ability to pay",
         "Congregate meal sites offer social interaction in addition to nutrition — ask about both options",
-        "If your parent needs immediate assistance, mention this during intake as some areas prioritize urgent cases"
+        "If your loved one needs immediate assistance, mention this during intake as some areas prioritize urgent cases"
       ],
       "relatedPrograms": [
         "SNAP (Food Benefits)",
@@ -1682,28 +1682,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if there's no Meals on Wheels provider in my parent's area?",
+          "question": "What if there's no Meals on Wheels provider in my loved one's area?",
           "answer": "Contact the Alaska State Unit on Aging for referrals to nearby meal programs or alternative food assistance. Some areas may have food pantries or senior centers with meal programs that aren't officially Meals on Wheels. Rural areas often have limited options, but the state office maintains a directory of available services."
         },
         {
-          "question": "Can my parent get both home-delivered meals and go to congregate meal sites?",
-          "answer": "This depends on your local provider's policies and your parent's assessed need. Most programs prioritize home delivery for those who cannot leave home safely, while encouraging mobile seniors to attend group meal sites for social interaction. Ask your provider about combining services or transitioning between them as needs change."
+          "question": "Can my loved one get both home-delivered meals and go to congregate meal sites?",
+          "answer": "This depends on your local provider's policies and your loved one's assessed need. Most programs prioritize home delivery for those who cannot leave home safely, while encouraging mobile seniors to attend group meal sites for social interaction. Ask your provider about combining services or transitioning between them as needs change."
         },
         {
-          "question": "Does my parent have to pay for meals if they have retirement income?",
-          "answer": "No income limits apply to Meals on Wheels in Alaska. Meals are provided regardless of your parent's financial situation. Most programs accept voluntary donations but never require payment. This makes it different from programs like SNAP that have strict income requirements."
+          "question": "Does my loved one have to pay for meals if they have retirement income?",
+          "answer": "No income limits apply to Meals on Wheels in Alaska. Meals are provided regardless of your loved one's financial situation. Most programs accept voluntary donations but never require payment. This makes it different from programs like SNAP that have strict income requirements."
         },
         {
-          "question": "What happens if my parent is temporarily hospitalized or travels?",
-          "answer": "Contact your provider immediately to pause meal delivery. Most programs can hold your parent's spot and resume service when they return home. Don't let meals pile up or go to waste — providers need advance notice for scheduling and food safety. Some programs require re-assessment after extended absences."
+          "question": "What happens if my loved one is temporarily hospitalized or travels?",
+          "answer": "Contact your provider immediately to pause meal delivery. Most programs can hold your loved one's spot and resume service when they return home. Don't let meals pile up or go to waste — providers need advance notice for scheduling and food safety. Some programs require re-assessment after extended absences."
         },
         {
           "question": "How quickly can meal delivery start after approval?",
-          "answer": "This varies by provider and current capacity. Some areas like Anchorage through Salvation Army may start within days of completing intake, while rural areas might have longer wait times due to limited delivery routes. Ask about timeline during your initial call and mention if your parent has urgent nutritional needs."
+          "answer": "This varies by provider and current capacity. Some areas like Anchorage through Salvation Army may start within days of completing intake, while rural areas might have longer wait times due to limited delivery routes. Ask about timeline during your initial call and mention if your loved one has urgent nutritional needs."
         },
         {
-          "question": "Can I apply for my parent if they have dementia or can't make phone calls?",
-          "answer": "Yes, family members can initiate the application process. However, the provider will likely need to assess your parent directly or speak with their doctor about care needs and safety. Bring documentation of your authority to act on their behalf, such as power of attorney, to streamline the process."
+          "question": "Can I apply for my loved one if they have dementia or can't make phone calls?",
+          "answer": "Yes, family members can initiate the application process. However, the provider will likely need to assess your loved one directly or speak with their doctor about care needs and safety. Bring documentation of your authority to act on their behalf, such as power of attorney, to streamline the process."
         }
       ],
       "layoutIntent": {
@@ -1724,7 +1724,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "alzheimers-family-caregiver-support",
       "name": "Alzheimer's Family Caregiver Support Program",
       "shortName": "Alzheimer's Caregiver Support",
-      "tagline": "Get respite care, counseling, and training when you're caring for a parent with Alzheimer's or dementia.",
+      "tagline": "Get respite care, counseling, and training when you're caring for a loved one with Alzheimer's or dementia.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1741,7 +1741,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a parent with Alzheimer's disease or related dementia in Alaska, you can access free respite care, counseling, training, and support services. The program provides both adult day care and in-home respite with no service caps, plus individual counseling, support groups, and help with home modifications or transportation.\n\nAlaska operates two tracks: one specifically for Alzheimer's caregivers (requires diagnosis proof and income limits) and a broader program for families caring for anyone 60+ or grandparents raising grandchildren. Both provide the same core services — respite care, caregiver training, and emotional support — administered through local grantees across all Alaska communities.",
+      "intro": "If you're caring for a loved one with Alzheimer's disease or related dementia in Alaska, you can access free respite care, counseling, training, and support services. The program provides both adult day care and in-home respite with no service caps, plus individual counseling, support groups, and help with home modifications or transportation.\n\nAlaska operates two tracks: one specifically for Alzheimer's caregivers (requires diagnosis proof and income limits) and a broader program for families caring for anyone 60+ or grandparents raising grandchildren. Both provide the same core services — respite care, caregiver training, and emotional support — administered through local grantees across all Alaska communities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1843,8 +1843,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, you'll be enrolled in whichever program you qualify for first. The Alzheimer's-specific track (CSRCP) has income and asset limits but serves all ages with dementia. The broader track (NFCSP) serves families where the care recipient is 60+ or other age-based criteria, without financial limits."
         },
         {
-          "question": "What if my parent has dementia but not a formal Alzheimer's diagnosis?",
-          "answer": "Related dementias qualify for the CSRCP track, but you need official medical documentation. If you can't get formal diagnosis documentation, you may still qualify through the broader NFCSP track if your parent is 60+ or you meet other age requirements."
+          "question": "What if my loved one has dementia but not a formal Alzheimer's diagnosis?",
+          "answer": "Related dementias qualify for the CSRCP track, but you need official medical documentation. If you can't get formal diagnosis documentation, you may still qualify through the broader NFCSP track if your loved one is 60+ or you meet other age requirements."
         },
         {
           "question": "Is there a limit on how much respite care we can get?",
@@ -1863,8 +1863,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The program operates in 12 communities statewide through local grantees, with Alzheimer's Resource Agency in four locations. Contact the Division of Senior and Disabilities Services to find the closest grantee serving your area."
         },
         {
-          "question": "Can I apply while my parent is in the hospital or nursing home?",
-          "answer": "Yes, you can apply regardless of where your parent currently receives care. The program is designed to support family caregivers and can help with transition planning and ongoing support even if care settings change."
+          "question": "Can I apply while my loved one is in the hospital or nursing home?",
+          "answer": "Yes, you can apply regardless of where your loved one currently receives care. The program is designed to support family caregivers and can help with transition planning and ongoing support even if care settings change."
         },
         {
           "question": "What happens if our income changes after we're approved?",
@@ -1910,7 +1910,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and struggling to find work, MASST provides part-time paid employment (averaging 20 hours per week at minimum wage) while they train for permanent jobs. Your parent works at community organizations — nonprofits, government agencies, or Native organizations — while receiving job search assistance and skills training.\n\nBecause this is a training program, not permanent employment, your parent has a 48-month lifetime limit to participate. The program requires family income below 125% of the federal poverty level and prioritizes veterans, those over 65, people with disabilities, and rural residents.\n\nMost participants transition to unsubsidized employment before their time limit expires. The program operates statewide through regional coordinators who match participants with local placements.",
+      "intro": "If your loved one is 55+ and struggling to find work, MASST provides part-time paid employment (averaging 20 hours per week at minimum wage) while they train for permanent jobs. Your loved one works at community organizations — nonprofits, government agencies, or Native organizations — while receiving job search assistance and skills training.\n\nBecause this is a training program, not permanent employment, your loved one has a 48-month lifetime limit to participate. The program requires family income below 125% of the federal poverty level and prioritizes veterans, those over 65, people with disabilities, and rural residents.\n\nMost participants transition to unsubsidized employment before their time limit expires. The program operates statewide through regional coordinators who match participants with local placements.",
       "savingsRange": "",
       "savingsSource": "Part-time employment program",
       "savingsVerified": false,
@@ -2008,15 +2008,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent participate in MASST more than once?",
-          "answer": "No. There is a 48-month lifetime participation limit with no exceptions or waivers. Once your parent uses their 48 months, they cannot re-enroll in the program at any point in the future."
+          "question": "Can my loved one participate in MASST more than once?",
+          "answer": "No. There is a 48-month lifetime participation limit with no exceptions or waivers. Once your loved one uses their 48 months, they cannot re-enroll in the program at any point in the future."
         },
         {
-          "question": "What happens if my parent can't find regular employment before the 48-month limit?",
+          "question": "What happens if my loved one can't find regular employment before the 48-month limit?",
           "answer": "The program requires participants to actively seek unsubsidized employment throughout their participation. Job placement assistance is provided to help transition before the limit expires. However, there are no extensions available."
         },
         {
-          "question": "How much will my parent earn in the MASST program?",
+          "question": "How much will my loved one earn in the MASST program?",
           "answer": "Participants earn the highest of federal, state, or local minimum wage for an average of 20 hours per week. The exact amount depends on current minimum wage rates in Alaska and the specific number of hours worked each week."
         },
         {
@@ -2024,8 +2024,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. Veterans and qualified spouses receive enrollment priority along with those over 65, people with disabilities, and several other categories. Make sure to bring DD-214 discharge papers when applying."
         },
         {
-          "question": "Can my parent apply for MASST while receiving Social Security or other benefits?",
-          "answer": "Possibly, but the income from those benefits counts toward the 125% federal poverty level limit. Your parent must meet the total household income requirement regardless of benefit sources."
+          "question": "Can my loved one apply for MASST while receiving Social Security or other benefits?",
+          "answer": "Possibly, but the income from those benefits counts toward the 125% federal poverty level limit. Your loved one must meet the total household income requirement regardless of benefit sources."
         },
         {
           "question": "What kind of work placements are available through MASST?",
@@ -2036,7 +2036,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. The program provides on-the-job training in computer and vocational skills, plus job search assistance and professional placement help. Training is designed to prepare participants for unsubsidized employment."
         },
         {
-          "question": "What if my parent lives in rural Alaska — is MASST available?",
+          "question": "What if my loved one lives in rural Alaska — is MASST available?",
           "answer": "MASST operates statewide and rural residents actually receive priority consideration for enrollment. Regional coordinators work to arrange placements throughout Alaska, including rural areas."
         }
       ],
@@ -2083,7 +2083,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older and facing legal problems with housing, benefits, or healthcare, Alaska Legal Services Corporation provides free legal assistance through their Elder Advocacy program. They handle landlord-tenant disputes, Social Security appeals, Medicaid issues, and help with nursing home problems — civil legal matters that can cost thousands in attorney fees.\n\nSeniors 60+ get priority access regardless of income, though the program focuses on those in social or economic need. ALSC provides legal advice, court representation, and referrals across Alaska through offices in Anchorage, Bethel, Dillingham, and Juneau. Because resources are limited, not all cases can be accepted — priority goes to urgent situations involving housing, income maintenance, and healthcare access.",
+      "intro": "If your loved one is 60 or older and facing legal problems with housing, benefits, or healthcare, Alaska Legal Services Corporation provides free legal assistance through their Elder Advocacy program. They handle landlord-tenant disputes, Social Security appeals, Medicaid issues, and help with nursing home problems — civil legal matters that can cost thousands in attorney fees.\n\nSeniors 60+ get priority access regardless of income, though the program focuses on those in social or economic need. ALSC provides legal advice, court representation, and referrals across Alaska through offices in Anchorage, Bethel, Dillingham, and Juneau. Because resources are limited, not all cases can be accepted — priority goes to urgent situations involving housing, income maintenance, and healthcare access.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2211,16 +2211,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's income is too high for the general income limits?",
+          "question": "What if my loved one's income is too high for the general income limits?",
           "answer": "Seniors 60+ may receive assistance regardless of income through the Elder Advocacy program, with priority given to those in social or economic need. Income limits only apply if general ALSC services are needed."
         },
         {
-          "question": "Will ALSC definitely take my parent's case?",
+          "question": "Will ALSC definitely take my loved one's case?",
           "answer": "No — ALSC has limited resources and cannot accept all cases. Priority goes to urgent situations involving housing, income maintenance, and healthcare access. Cases involving basic needs like eviction or benefit denials are more likely to be accepted."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help with the intake process, but your parent will need to be involved since it's their legal matter. If your parent cannot communicate due to dementia or other conditions, mention this during intake — ALSC may be able to help with guardianship issues."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help with the intake process, but your loved one will need to be involved since it's their legal matter. If your loved one cannot communicate due to dementia or other conditions, mention this during intake — ALSC may be able to help with guardianship issues."
         }
       ],
       "layoutIntent": {
@@ -2241,7 +2241,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
-      "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
+      "tagline": "Free advocacy when your loved one faces problems in their nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2258,7 +2258,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and living in a nursing home or assisted living facility in Alaska, the Long-Term Care Ombudsman Program provides free advocacy when problems arise. Certified ombudsmen investigate complaints about health, safety, welfare, or rights violations — from poor care to billing disputes to facility policies that seem unfair.\n\nBecause this is an independent advocacy program, ombudsmen can take action on your parent's behalf without conflicts of interest. They visit all skilled nursing facilities and licensed assisted living homes at least once per year and respond to specific complaints promptly. The program covers all of Alaska through a central office in Anchorage and trained volunteers statewide.\n\nNo income limits apply — any resident or family member can contact the program for help with facility-related issues.",
+      "intro": "If your loved one is 60+ and living in a nursing home or assisted living facility in Alaska, the Long-Term Care Ombudsman Program provides free advocacy when problems arise. Certified ombudsmen investigate complaints about health, safety, welfare, or rights violations — from poor care to billing disputes to facility policies that seem unfair.\n\nBecause this is an independent advocacy program, ombudsmen can take action on your loved one's behalf without conflicts of interest. They visit all skilled nursing facilities and licensed assisted living homes at least once per year and respond to specific complaints promptly. The program covers all of Alaska through a central office in Anchorage and trained volunteers statewide.\n\nNo income limits apply — any resident or family member can contact the program for help with facility-related issues.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2291,7 +2291,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the issue",
-            "description": "Provide the facility name, your parent's name, and a description of the complaint or concern"
+            "description": "Provide the facility name, your loved one's name, and a description of the complaint or concern"
           },
           {
             "step": 3,
@@ -2333,12 +2333,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint if my parent doesn't want me to?",
-          "answer": "Yes, family members can contact the ombudsman with concerns. However, the ombudsman must get your parent's permission before investigating on their behalf, unless there are immediate safety concerns that require intervention."
+          "question": "Can I file a complaint if my loved one doesn't want me to?",
+          "answer": "Yes, family members can contact the ombudsman with concerns. However, the ombudsman must get your loved one's permission before investigating on their behalf, unless there are immediate safety concerns that require intervention."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
-          "answer": "Retaliation is illegal and a serious violation. Contact the ombudsman immediately at 907-334-4480 if you suspect retaliation. They can investigate retaliation claims and take action to protect your parent's rights."
+          "question": "What if the facility retaliates against my loved one for filing a complaint?",
+          "answer": "Retaliation is illegal and a serious violation. Contact the ombudsman immediately at 907-334-4480 if you suspect retaliation. They can investigate retaliation claims and take action to protect your loved one's rights."
         },
         {
           "question": "Will filing a complaint with the ombudsman affect other legal action?",
@@ -2361,17 +2361,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "If you're helping an aging parent in Alaska, 12 state and federal programs can provide financial assistance, health coverage, and support services. These range from Medicaid covering comprehensive health care and nursing home costs, to SNAP providing $100-300+ monthly for groceries, to free daily meal delivery through Meals on Wheels. Alaska administers most benefits through the Division of Public Assistance, with additional support through the Alaska Commission on Aging. Start by checking the highest-value programs first — Medicaid for health coverage, Medicare Savings Programs to reduce Medicare costs, and SNAP for food assistance — then explore specialized services like home care waivers or caregiver support programs.",
+    "intro": "If you're helping an aging loved one in Alaska, 12 state and federal programs can provide financial assistance, health coverage, and support services. These range from Medicaid covering comprehensive health care and nursing home costs, to SNAP providing $100-300+ monthly for groceries, to free daily meal delivery through Meals on Wheels. Alaska administers most benefits through the Division of Public Assistance, with additional support through the Alaska Commission on Aging. Start by checking the highest-value programs first — Medicaid for health coverage, Medicare Savings Programs to reduce Medicare costs, and SNAP for food assistance — then explore specialized services like home care waivers or caregiver support programs.",
     "startHere": [
       {
         "name": "Medicaid for Seniors/Disabled",
         "programId": "alaska-medicaid-seniors",
-        "why": "Covers comprehensive health care including nursing home care and home-based services for the highest medical costs your parent faces."
+        "why": "Covers comprehensive health care including nursing home care and home-based services for the highest medical costs your loved one faces."
       },
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI)",
         "programId": "alaska-medicare-savings-programs",
-        "why": "Reduces Medicare premiums, deductibles, and copays if your parent's income is below $2,245/month."
+        "why": "Reduces Medicare premiums, deductibles, and copays if your loved one's income is below $2,245/month."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
@@ -2395,7 +2395,7 @@ export const drafts: PipelineStateDrafts = {
           "Home and Community-Based Services Waiver",
           "Program of All-Inclusive Care for the Elderly (PACE)"
         ],
-        "description": "Services that provide home care, medical coordination, and support to help your parent remain in their own home."
+        "description": "Services that provide home care, medical coordination, and support to help your loved one remain in their own home."
       },
       {
         "need": "Food and daily living assistance",
@@ -2435,6 +2435,6 @@ export const drafts: PipelineStateDrafts = {
       "Alaska's high cost of living may mean higher benefit amounts for programs like SNAP compared to other states",
       "The Alaska Commission on Aging coordinates many senior services and can help connect you to local Area Agencies on Aging"
     ],
-    "resourcesVsBenefits": "Nine programs require qualifying based on your parent's income, assets, or medical needs — like Medicaid (income limits), SNAP (fixed income requirements), or Home and Community-Based Services (needing daily care assistance). Three programs are free resources available to any Alaska senior: SHIP provides free Medicare counseling regardless of income, and the Long-Term Care Ombudsman offers free advocacy in care facilities. The Alzheimer's Family Caregiver Support Program provides respite and training when you're caring for a parent with dementia."
+    "resourcesVsBenefits": "Nine programs require qualifying based on your loved one's income, assets, or medical needs — like Medicaid (income limits), SNAP (fixed income requirements), or Home and Community-Based Services (needing daily care assistance). Three programs are free resources available to any Alaska senior: SHIP provides free Medicare counseling regardless of income, and the Long-Term Care Ombudsman offers free advocacy in care facilities. The Alzheimer's Family Caregiver Support Program provides respite and training when you're caring for a loved one with dementia."
   }
 };

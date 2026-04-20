@@ -52,6 +52,7 @@ export const AUTHORS: Author[] = [
     name: "Cecille Chavez",
     role: "Analyst & Customer Support Specialist",
     bio: "Cecille Chavez is an Analyst and Customer Support Specialist at Olera, where she verifies senior benefits program eligibility and caregiver-facing guidance. She focuses on translating complex program rules into actionable next steps for families.",
+    avatar: "/images/for-providers/team/cecille.webp",
   },
 ];
 

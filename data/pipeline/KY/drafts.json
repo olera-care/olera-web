@@ -15,7 +15,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid — it's specifically for long-term care when your loved one needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your loved one can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584–$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care — that your loved one needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
+      "intro": "If your loved one is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid, it's specifically for long-term care when your loved one needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your loved one can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584–$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care, that your loved one needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -58,12 +58,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at kynect.ky.gov or call 1-855-306-8959, then complete a medical assessment — takes 45-90 days total.",
+        "summary": "Apply online at kynect.ky.gov or call 1-855-306-8959, then complete a medical assessment, takes 45-90 days total.",
         "steps": [
           {
             "step": 1,
             "title": "Start your application",
-            "description": "Apply online at kynect.ky.gov (use the prescreening tool first) or call 1-855-306-8959. You can also visit your local DCBS office — find locations at chfs.ky.gov."
+            "description": "Apply online at kynect.ky.gov (use the prescreening tool first) or call 1-855-306-8959. You can also visit your local DCBS office, find locations at chfs.ky.gov."
           },
           {
             "step": 2,
@@ -82,8 +82,8 @@
           }
         ],
         "processingTime": "45-90 days typical, varies by completeness of application and assessment scheduling",
-        "waitlist": "Possible waitlist for home-based waiver services — varies by region and specific waiver program",
-        "tip": "If your loved one's income exceeds $2,982/month, you'll need to set up a Qualified Income Trust (Miller Trust) — consult an elder law attorney before applying.",
+        "waitlist": "Possible waitlist for home-based waiver services, varies by region and specific waiver program",
+        "tip": "If your loved one's income exceeds $2,982/month, you'll need to set up a Qualified Income Trust (Miller Trust), consult an elder law attorney before applying.",
         "urls": [
           {
             "label": "Kentucky Medicaid Application",
@@ -125,10 +125,10 @@
         }
       ],
       "applicationNotes": [
-        "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods — gather records of all transfers",
-        "Community spouse asset protection varies from $31,584 to $162,660 — higher amounts require a fair hearing but are often approved",
+        "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods, gather records of all transfers",
+        "Community spouse asset protection varies from $31,584 to $162,660, higher amounts require a fair hearing but are often approved",
         "Home-based waiver services are assessed one-at-a-time based on need, unlike nursing home care which provides comprehensive services immediately",
-        "Many families unknowingly spend down assets when they might already qualify — apply even if you think assets are too high"
+        "Many families unknowingly spend down assets when they might already qualify, apply even if you think assets are too high"
       ],
       "relatedPrograms": [
         "Kentucky SNAP (Food Benefits)",
@@ -143,12 +143,12 @@
           "answer": "Yes, the primary home is exempt from asset limits as long as your loved one intends to return and the home equity is under $713,000. Even if your loved one moves to a nursing home, the house remains protected if there's intent to return or if a spouse, disabled child, or caregiver child lives there."
         },
         {
-          "question": "What if my loved one's Social Security is $3,200/month — over the $2,982 limit?",
+          "question": "What if my loved one's Social Security is $3,200/month, over the $2,982 limit?",
           "answer": "Your loved one can still qualify by setting up a Qualified Income Trust (also called a Miller Trust). The excess income ($218 in this case) goes into the trust, and your loved one pays it toward their care costs. You'll need an elder law attorney to set this up properly."
         },
         {
           "question": "How long is the waitlist for home-based services really?",
-          "answer": "Waitlist length varies significantly by region and specific waiver program — some areas have immediate openings while others may have several months' wait. Nursing home coverage is available immediately if a bed is open. Ask your DCBS office about current wait times in your area."
+          "answer": "Waitlist length varies significantly by region and specific waiver program, some areas have immediate openings while others may have several months' wait. Nursing home coverage is available immediately if a bed is open. Ask your DCBS office about current wait times in your area."
         },
         {
           "question": "Can I apply for my loved one if they have dementia and can't manage paperwork?",
@@ -187,7 +187,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCBS Waivers can provide personal care assistance, homemaker services, and adult day health programs through Medicaid. This program serves people who would otherwise need nursing home level care — a physician must certify in writing that nursing facility admission would occur without these services.\n\nServices are individualized based on your loved one's needs and can include respite care for family caregivers, home modifications, meal delivery, and emergency response systems. Your loved one may need to pay part of the cost based on their income after allowing $694 for personal needs and deductions for medical expenses. Income limit: $2,152/month gross, though a Qualifying Income Trust can help if income exceeds this amount.\n\nCritical: There is currently a waiting list for services. Placement is determined by when the completed application is received, so apply immediately even if services aren't needed right now.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCBS Waivers can provide personal care assistance, homemaker services, and adult day health programs through Medicaid. This program serves people who would otherwise need nursing home level care, a physician must certify in writing that nursing facility admission would occur without these services.\n\nServices are individualized based on your loved one's needs and can include respite care for family caregivers, home modifications, meal delivery, and emergency response systems. Your loved one may need to pay part of the cost based on their income after allowing $694 for personal needs and deductions for medical expenses. Income limit: $2,152/month gross, though a Qualifying Income Trust can help if income exceeds this amount.\n\nCritical: There is currently a waiting list for services. Placement is determined by when the completed application is received, so apply immediately even if services aren't needed right now.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -202,7 +202,7 @@
         "ageRequirement": "65+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must meet nursing facility level of care requirements — a physician must certify in writing that nursing facility services would be needed without waiver services. Assessed based on medical diagnosis, age-related dependencies, and daily care needs.",
+        "functionalRequirement": "Must meet nursing facility level of care requirements, a physician must certify in writing that nursing facility services would be needed without waiver services. Assessed based on medical diagnosis, age-related dependencies, and daily care needs.",
         "otherRequirements": [
           "Must be eligible for Medicaid",
           "5-year lookback period applies to asset transfers"
@@ -211,7 +211,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for Medicaid first, then the waiver — total process can be done online at kynect or by calling (855) 306-8959.",
+        "summary": "Apply for Medicaid first, then the waiver, total process can be done online at kynect or by calling (855) 306-8959.",
         "steps": [
           {
             "step": 1,
@@ -235,7 +235,7 @@
           }
         ],
         "processingTime": "Processing time not specified in available sources",
-        "waitlist": "Currently has a waiting list — placement determined by date completed application is received",
+        "waitlist": "Currently has a waiting list, placement determined by date completed application is received",
         "tip": "Apply immediately even if services aren't needed right now, since there's a waiting list and placement goes by application date.",
         "urls": [
           {
@@ -282,10 +282,10 @@
         }
       ],
       "applicationNotes": [
-        "You must apply at the DCBS office in the county where your loved one lives — applications cannot be processed across county lines",
-        "The physician certification requirement is strict — make sure the doctor understands they must certify that nursing facility admission would happen without waiver services",
-        "If income exceeds $2,152/month, you'll need to establish a Qualifying Income Trust before approval — this adds time and complexity to the process",
-        "Patient liability (cost-sharing) will be calculated after approval based on income minus deductions — this amount must be paid to the waiver provider monthly"
+        "You must apply at the DCBS office in the county where your loved one lives, applications cannot be processed across county lines",
+        "The physician certification requirement is strict, make sure the doctor understands they must certify that nursing facility admission would happen without waiver services",
+        "If income exceeds $2,152/month, you'll need to establish a Qualifying Income Trust before approval, this adds time and complexity to the process",
+        "Patient liability (cost-sharing) will be calculated after approval based on income minus deductions, this amount must be paid to the waiver provider monthly"
       ],
       "relatedPrograms": [
         "Kentucky Medicaid",
@@ -300,7 +300,7 @@
           "answer": "Yes, the family home is generally exempt from asset limits while your loved one lives there. However, Kentucky has a 5-year lookback period for asset transfers, so be cautious about transferring property before applying. The state's Estate Recovery program may seek repayment from the home after death."
         },
         {
-          "question": "What if my loved one's income is $2,200/month — just over the limit?",
+          "question": "What if my loved one's income is $2,200/month, just over the limit?",
           "answer": "Your loved one can still qualify by establishing a Qualifying Income Trust (QIT), which redirects excess income to meet the $2,152 limit. This adds complexity to the application process, so consider working with an elder law attorney to set this up properly."
         },
         {
@@ -344,7 +344,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay at home, Kentucky PACE provides everything under one roof — primary care, specialists, prescriptions, therapies, home care, meals, and transportation. Because PACE covers all medical care through one coordinated team, your loved one won't juggle multiple doctors or insurance approvals.\n\nPACE is only available in select Kentucky counties through three regional providers. If your loved one has both Medicare and Medicaid, all services are free. Medicare-only participants pay monthly fees ranging from $200-900 or more depending on their care needs.\n\nThe catch: PACE becomes your loved one's sole source of Medicare and Medicaid services. All non-emergency care must go through their PACE center, or your family pays out-of-pocket.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay at home, Kentucky PACE provides everything under one roof, primary care, specialists, prescriptions, therapies, home care, meals, and transportation. Because PACE covers all medical care through one coordinated team, your loved one won't juggle multiple doctors or insurance approvals.\n\nPACE is only available in select Kentucky counties through three regional providers. If your loved one has both Medicare and Medicaid, all services are free. Medicare-only participants pay monthly fees ranging from $200-900 or more depending on their care needs.\n\nThe catch: PACE becomes your loved one's sole source of Medicare and Medicaid services. All non-emergency care must go through their PACE center, or your family pays out-of-pocket.",
       "savingsRange": "",
       "savingsSource": "Free service for dual-eligible participants",
       "savingsVerified": false,
@@ -368,7 +368,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional PACE provider directly — they handle intake, assessment, and enrollment paperwork.",
+        "summary": "Call your regional PACE provider directly, they handle intake, assessment, and enrollment paperwork.",
         "steps": [
           {
             "step": 1,
@@ -378,7 +378,7 @@
           {
             "step": 2,
             "title": "Call for intake",
-            "description": "Contact your provider directly — Senior CommUnity Care at (502) 676-7550, or call (800) 807-1301 to verify Medicaid eligibility and get provider contact info."
+            "description": "Contact your provider directly, Senior CommUnity Care at (502) 676-7550, or call (800) 807-1301 to verify Medicaid eligibility and get provider contact info."
           },
           {
             "step": 3,
@@ -393,7 +393,7 @@
         ],
         "processingTime": "Processing time varies by provider and involves intake, clinical assessment, care plan development, and enrollment coordination",
         "waitlist": null,
-        "tip": "If your loved one has both Medicare and Medicaid, verify their Medicaid status before calling — dual eligibility means free PACE services.",
+        "tip": "If your loved one has both Medicare and Medicaid, verify their Medicaid status before calling, dual eligibility means free PACE services.",
         "urls": [
           {
             "label": "Kentucky PACE Program Information",
@@ -433,8 +433,8 @@
         }
       ],
       "applicationNotes": [
-        "Only available in select counties — confirm your loved one lives in a PACE service area before applying",
-        "PACE becomes the sole source of Medicare/Medicaid services — your loved one cannot use outside providers for covered services",
+        "Only available in select counties, confirm your loved one lives in a PACE service area before applying",
+        "PACE becomes the sole source of Medicare/Medicaid services, your loved one cannot use outside providers for covered services",
         "Medicare-only participants pay monthly fees while dual-eligible (Medicare + Medicaid) participants receive all services at no cost"
       ],
       "relatedPrograms": [
@@ -483,13 +483,13 @@
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your loved one has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs — up to thousands per year in savings.",
+      "tagline": "If your loved one has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs, up to thousands per year in savings.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your Medicare-enrolled loved one struggles with monthly premiums, deductibles, and copays, Kentucky's Medicare Savings Programs can eliminate these costs entirely. The three programs — QMB, SLMB, and QI — cover different portions of Medicare expenses based on your loved one's income level, with potential savings of hundreds to thousands of dollars per year.\n\nThe most comprehensive program, QMB (Qualified Medicare Beneficiary), covers all Medicare premiums, deductibles, and copayments for people with incomes up to $1,325/month for singles or $1,783/month for couples. SLMB and QI programs have higher income limits but only cover Medicare Part B premiums. Because QMB operates like a free Medicare Supplement policy, it provides the greatest financial relief for families dealing with high medical costs.\n\nAll three programs require assets below $9,660 for individuals or $14,470 for couples. Income limits change every April 1st, and the QI program has finite funding that can run out during the year — so applying early matters.",
+      "intro": "If your Medicare-enrolled loved one struggles with monthly premiums, deductibles, and copays, Kentucky's Medicare Savings Programs can eliminate these costs entirely. The three programs, QMB, SLMB, and QI, cover different portions of Medicare expenses based on your loved one's income level, with potential savings of hundreds to thousands of dollars per year.\n\nThe most comprehensive program, QMB (Qualified Medicare Beneficiary), covers all Medicare premiums, deductibles, and copayments for people with incomes up to $1,325/month for singles or $1,783/month for couples. SLMB and QI programs have higher income limits but only cover Medicare Part B premiums. Because QMB operates like a free Medicare Supplement policy, it provides the greatest financial relief for families dealing with high medical costs.\n\nAll three programs require assets below $9,660 for individuals or $14,470 for couples. Income limits change every April 1st, and the QI program has finite funding that can run out during the year, so applying early matters.",
       "savingsRange": "$100 – $3,000+/year in 2026",
       "savingsSource": "Medicare premium and cost-sharing elimination based on program tier",
       "savingsVerified": false,
@@ -558,7 +558,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Kentucky Cabinet for Health and Family Services in person or by mail — processing time varies.",
+        "summary": "Apply through Kentucky Cabinet for Health and Family Services in person or by mail, processing time varies.",
         "steps": [
           {
             "step": 1,
@@ -588,7 +588,7 @@
         ],
         "processingTime": null,
         "waitlist": "QI program may have delays once block-grant funds are exhausted",
-        "tip": "Apply for QI early in the calendar year — funding is limited and runs out",
+        "tip": "Apply for QI early in the calendar year, funding is limited and runs out",
         "urls": [
           {
             "label": "Kentucky Medicare Savings Programs",
@@ -623,10 +623,10 @@
         }
       ],
       "applicationNotes": [
-        "QI program funding comes from a finite federal block grant — once exhausted, even eligible applicants cannot receive benefits until the next funding cycle",
+        "QI program funding comes from a finite federal block grant, once exhausted, even eligible applicants cannot receive benefits until the next funding cycle",
         "QMB automatically qualifies your loved one for Medicare Part D Extra Help prescription drug assistance",
         "Income limits include a $20 disregard that's already factored into the stated amounts",
-        "Providers cannot legally bill QMB beneficiaries for Medicare deductibles or coinsurance — if this happens, contact Kentucky Medicaid Services"
+        "Providers cannot legally bill QMB beneficiaries for Medicare deductibles or coinsurance, if this happens, contact Kentucky Medicaid Services"
       ],
       "relatedPrograms": [
         "Kentucky Medicaid",
@@ -644,7 +644,7 @@
       "faqs": [
         {
           "question": "Can my loved one have all three programs at once?",
-          "answer": "No — these are three income tiers of the same program. Your loved one will qualify for the highest tier their income allows. QMB provides the most benefits, QI provides the least."
+          "answer": "No, these are three income tiers of the same program. Your loved one will qualify for the highest tier their income allows. QMB provides the most benefits, QI provides the least."
         },
         {
           "question": "What happens if my loved one's house is worth more than the asset limit?",
@@ -652,7 +652,7 @@
         },
         {
           "question": "Will SLMB or QI help with Medicare deductibles and copays?",
-          "answer": "No — only QMB covers deductibles and copayments. SLMB and QI only pay the Medicare Part B premium ($174.70/month in 2026). If your loved one has high medical costs, QMB provides much greater value."
+          "answer": "No, only QMB covers deductibles and copayments. SLMB and QI only pay the Medicare Part B premium ($174.70/month in 2026). If your loved one has high medical costs, QMB provides much greater value."
         },
         {
           "question": "How often does my loved one need to reapply?",
@@ -691,7 +691,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, Kentucky SNAP provides monthly assistance loaded onto an EBT card. Your loved one could receive $100-400+ per month for groceries, depending on household income and size. The average single senior gets around $188 monthly.\n\nKentucky has simplified rules for seniors and disabled adults — your loved one can qualify even with higher income if they have significant medical or housing expenses. Because Kentucky waives the standard asset test for most households, your loved one can keep their home, car, and retirement savings while still receiving food assistance.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, Kentucky SNAP provides monthly assistance loaded onto an EBT card. Your loved one could receive $100-400+ per month for groceries, depending on household income and size. The average single senior gets around $188 monthly.\n\nKentucky has simplified rules for seniors and disabled adults, your loved one can qualify even with higher income if they have significant medical or housing expenses. Because Kentucky waives the standard asset test for most households, your loved one can keep their home, car, and retirement savings while still receiving food assistance.",
       "savingsRange": "$2,256 - $4,980/year in 2026",
       "savingsSource": "Average monthly SNAP benefit of $188 to maximum benefit amounts based on household size",
       "savingsVerified": true,
@@ -756,7 +756,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at kybenefits.ky.gov or call 1-855-306-8959 — processing typically takes 30 days with an interview required.",
+        "summary": "Apply online at kybenefits.ky.gov or call 1-855-306-8959, processing typically takes 30 days with an interview required.",
         "steps": [
           {
             "step": 1,
@@ -786,7 +786,7 @@
         ],
         "processingTime": "30 days standard processing, expedited benefits available for crisis situations",
         "waitlist": null,
-        "tip": "Track medical expenses like Medicare premiums and prescription costs — these deductions can significantly increase your loved one's benefit amount.",
+        "tip": "Track medical expenses like Medicare premiums and prescription costs, these deductions can significantly increase your loved one's benefit amount.",
         "urls": [
           {
             "label": "Kentucky Benefits Portal",
@@ -827,9 +827,9 @@
         }
       ],
       "applicationNotes": [
-        "ESAP (simplified process) available for elderly/disabled households with no earned income — fewer documents required and less frequent recertification",
+        "ESAP (simplified process) available for elderly/disabled households with no earned income, fewer documents required and less frequent recertification",
         "Adult children over 21 can be counted as separate households if they prepare their own meals, which may increase your loved one's benefits",
-        "Medical deductions include Medicare premiums, prescription costs, and other out-of-pocket medical expenses — keep receipts",
+        "Medical deductions include Medicare premiums, prescription costs, and other out-of-pocket medical expenses, keep receipts",
         "Kentucky doesn't count your home, vehicles, or most retirement savings as assets, unlike some other states"
       ],
       "relatedPrograms": [
@@ -928,7 +928,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your county's Community Action Agency by phone or visit their office — funds are distributed first-come, first-served.",
+        "summary": "Contact your county's Community Action Agency by phone or visit their office, funds are distributed first-come, first-served.",
         "steps": [
           {
             "step": 1,
@@ -951,7 +951,7 @@
             "description": "Provide proof of Social Security numbers, income from the previous month, current utility bills, and crisis documentation if applying for emergency assistance."
           }
         ],
-        "processingTime": "Not specified — applications processed first-come, first-served until funds are depleted",
+        "processingTime": "Not specified, applications processed first-come, first-served until funds are depleted",
         "waitlist": null,
         "tip": "Apply as early as possible when the program opens each season since funds are limited and distributed on a first-come, first-served basis.",
         "urls": [
@@ -985,7 +985,7 @@
         }
       ],
       "applicationNotes": [
-        "Crisis assistance has different eligibility requirements — you must have a disconnect notice, be within 4 days of running out of fuel, or face eviction if heat is included in rent",
+        "Crisis assistance has different eligibility requirements, you must have a disconnect notice, be within 4 days of running out of fuel, or face eviction if heat is included in rent",
         "Previous LIHEAP assistance does not disqualify your loved one from receiving crisis assistance in the same year",
         "Some agencies use 130% of Federal Poverty Level for subsidy assistance during November-December rather than the standard 150%",
         "If a household member has a catastrophic illness, liquid asset limit increases to $4,000 if assets are being used for medical expenses"
@@ -1047,7 +1047,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one struggles with high energy bills, Kentucky's Weatherization Assistance Program provides free home improvements that can significantly reduce heating and cooling costs. The program covers everything from sealing ductwork to insulation upgrades, with all work determined by a professional energy audit of your loved one's home.\n\nYour loved one may qualify if household income is at or below 200% of the federal poverty level ($48,240 annually for a single person in recent guidelines) or if they received TANF or K-TAP cash assistance in the past 12 months. The program prioritizes elderly applicants, disabled individuals, and households with young children — meaning your loved one may move up the waitlist faster.\n\nApplications are handled through local Community Action Agencies across Kentucky's 20-22 regions. Because this is a federal energy conservation program, availability and wait times vary by area, but all eligible work is completed at no cost to your loved one.",
+      "intro": "If your loved one struggles with high energy bills, Kentucky's Weatherization Assistance Program provides free home improvements that can significantly reduce heating and cooling costs. The program covers everything from sealing ductwork to insulation upgrades, with all work determined by a professional energy audit of your loved one's home.\n\nYour loved one may qualify if household income is at or below 200% of the federal poverty level ($48,240 annually for a single person in recent guidelines) or if they received TANF or K-TAP cash assistance in the past 12 months. The program prioritizes elderly applicants, disabled individuals, and households with young children, meaning your loved one may move up the waitlist faster.\n\nApplications are handled through local Community Action Agencies across Kentucky's 20-22 regions. Because this is a federal energy conservation program, availability and wait times vary by area, but all eligible work is completed at no cost to your loved one.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1105,7 +1105,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply in person at your local Community Action Agency office — processing is prioritized every six months based on need.",
+        "summary": "Apply in person at your local Community Action Agency office, processing is prioritized every six months based on need.",
         "steps": [
           {
             "step": 1,
@@ -1134,7 +1134,7 @@
           }
         ],
         "processingTime": "Applications are prioritized at least every six months, but specific processing timeline varies by region",
-        "waitlist": "Applications remain active until services are provided or applicant is no longer eligible — wait times vary significantly by region",
+        "waitlist": "Applications remain active until services are provided or applicant is no longer eligible, wait times vary significantly by region",
         "tip": "If your loved one receives TANF or K-TAP benefits, bring that documentation as it provides an alternative way to qualify regardless of income level.",
         "urls": [
           {
@@ -1177,8 +1177,8 @@
         }
       ],
       "applicationNotes": [
-        "Income limits vary by local Community Action Agency — some use 125% of poverty level instead of 200%, so verify with your specific regional office",
-        "Eligibility expires after 12 months if work hasn't begun — you'll need to re-verify income and eligibility to continue",
+        "Income limits vary by local Community Action Agency, some use 125% of poverty level instead of 200%, so verify with your specific regional office",
+        "Eligibility expires after 12 months if work hasn't begun, you'll need to re-verify income and eligibility to continue",
         "Emergency priority is given to households with children at risk of removal due to substandard dwelling conditions",
         "Renters must have landlord sign permission documents before any work can begin on the property"
       ],
@@ -1238,7 +1238,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is struggling with Medicare decisions — comparing Part D plans, understanding Medigap options, or figuring out if Medicare Advantage makes sense — Kentucky SHIP provides free, personalized counseling from trained volunteers who don't sell insurance.\n\nSHIP counselors help with Medicare Parts A, B, C, and D questions, Medicare Savings Programs that can reduce premiums and copays, prescription drug assistance programs, and long-term care insurance guidance. Because counselors are unbiased and represent no insurance companies, they focus solely on finding the best coverage for your loved one's specific health needs and budget.\n\nThe service is available to all Medicare beneficiaries, their families, and caregivers statewide with no income or asset limits. Counseling is provided by phone or in-person through local partners across all 120 Kentucky counties.",
+      "intro": "If your loved one is struggling with Medicare decisions, comparing Part D plans, understanding Medigap options, or figuring out if Medicare Advantage makes sense, Kentucky SHIP provides free, personalized counseling from trained volunteers who don't sell insurance.\n\nSHIP counselors help with Medicare Parts A, B, C, and D questions, Medicare Savings Programs that can reduce premiums and copays, prescription drug assistance programs, and long-term care insurance guidance. Because counselors are unbiased and represent no insurance companies, they focus solely on finding the best coverage for your loved one's specific health needs and budget.\n\nThe service is available to all Medicare beneficiaries, their families, and caregivers statewide with no income or asset limits. Counseling is provided by phone or in-person through local partners across all 120 Kentucky counties.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1260,7 +1260,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline — no application needed, counseling provided immediately when you contact them.",
+        "summary": "Call the statewide hotline, no application needed, counseling provided immediately when you contact them.",
         "steps": [
           {
             "step": 1,
@@ -1275,7 +1275,7 @@
           {
             "step": 3,
             "title": "Discuss your Medicare questions",
-            "description": "Explain what Medicare decisions you need help with — plan comparisons, cost concerns, coverage changes, or enrollment deadlines."
+            "description": "Explain what Medicare decisions you need help with, plan comparisons, cost concerns, coverage changes, or enrollment deadlines."
           },
           {
             "step": 4,
@@ -1283,7 +1283,7 @@
             "description": "The counselor will review your loved one's specific situation and provide unbiased recommendations tailored to their health needs and budget."
           }
         ],
-        "processingTime": "No processing time — counseling provided immediately during your phone call",
+        "processingTime": "No processing time, counseling provided immediately during your phone call",
         "waitlist": null,
         "tip": "Have your loved one's Medicare card, current prescription list, and preferred doctors/hospitals ready when you call for the most personalized advice.",
         "urls": [
@@ -1316,7 +1316,7 @@
       ],
       "applicationNotes": [
         "Counselors will refer you to local in-person meetings if you prefer face-to-face assistance",
-        "SHIP counselors cannot enroll you in plans directly — they provide guidance so you can make informed decisions",
+        "SHIP counselors cannot enroll you in plans directly, they provide guidance so you can make informed decisions",
         "Services rely on trained volunteers, so availability may vary during peak enrollment periods (October-December)"
       ],
       "relatedPrograms": [
@@ -1348,7 +1348,7 @@
           "answer": "Absolutely. SHIP counselors help with ongoing Medicare issues including claim denials, coverage gaps, premium payment problems, and understanding Medicare rights. They can also help you find programs that reduce Medicare costs if your loved one qualifies."
         },
         {
-          "question": "What if I live in a rural area — is SHIP available throughout Kentucky?",
+          "question": "What if I live in a rural area, is SHIP available throughout Kentucky?",
           "answer": "Yes, SHIP serves all 120 Kentucky counties. The statewide hotline connects you with counselors familiar with your area. For in-person meetings, they'll refer you to local partners or arrange visits through regional agencies."
         }
       ],
@@ -1376,7 +1376,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 60+ and struggling to prepare meals due to illness, disability, or homebound status, Kentucky Meals on Wheels delivers one nutritionally balanced meal to their door Monday through Friday. Some providers deliver two meals daily for $30 per week ($6 per day).\n\nThis isn't a single statewide program — each region operates independently with different costs, service areas, and requirements. Your loved one's spouse of any age and disabled dependents may also qualify. Because providers focus on homebound seniors, your loved one typically can't own a car or easily leave home to qualify.\n\nMost programs require a home visit assessment to determine eligibility and may re-evaluate every 6 months. Income isn't always a factor, though some providers adjust fees based on ability to pay.",
+      "intro": "If your loved one is 60+ and struggling to prepare meals due to illness, disability, or homebound status, Kentucky Meals on Wheels delivers one nutritionally balanced meal to their door Monday through Friday. Some providers deliver two meals daily for $30 per week ($6 per day).\n\nThis isn't a single statewide program, each region operates independently with different costs, service areas, and requirements. Your loved one's spouse of any age and disabled dependents may also qualify. Because providers focus on homebound seniors, your loved one typically can't own a car or easily leave home to qualify.\n\nMost programs require a home visit assessment to determine eligibility and may re-evaluate every 6 months. Income isn't always a factor, though some providers adjust fees based on ability to pay.",
       "savingsRange": "$1,560 – $3,120/year in 2026",
       "savingsSource": "Based on $30/week cost reported by Lexington provider for two meals daily",
       "savingsVerified": true,
@@ -1400,7 +1400,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider — most require a home visit within a week to assess eligibility.",
+        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider, most require a home visit within a week to assess eligibility.",
         "steps": [
           {
             "step": 1,
@@ -1425,7 +1425,7 @@
         ],
         "processingTime": "Within a week for some providers, longer if waitlist exists",
         "waitlist": "Some programs have waitlists that extend processing time",
-        "tip": "Call multiple providers if you're near regional boundaries — service areas vary and one may have immediate availability.",
+        "tip": "Call multiple providers if you're near regional boundaries, service areas vary and one may have immediate availability.",
         "urls": [
           {
             "label": "Kentucky Nutrition Services Directory",
@@ -1456,9 +1456,9 @@
         }
       ],
       "applicationNotes": [
-        "Each region has different costs — some are free while others charge up to $30 per week for enhanced service",
+        "Each region has different costs, some are free while others charge up to $30 per week for enhanced service",
         "Car ownership or ability to easily leave home may disqualify your loved one from home-delivered meals",
-        "Some areas don't accommodate special diets — ask about dietary restrictions during initial call",
+        "Some areas don't accommodate special diets, ask about dietary restrictions during initial call",
         "Programs typically re-evaluate eligibility every 6 months to ensure continued need"
       ],
       "relatedPrograms": [
@@ -1517,7 +1517,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If you're caring for an aging loved one or raising a grandchild, Kentucky offers two programs that provide respite care, support groups, and caregiver training at no cost. The National Family Caregiver Support Program serves any family caregiver — with no income limits — while the Kentucky Family Caregiver Program specifically helps grandparents and relatives with limited income (under $2,128/month for a single household in 2026).\n\nBoth programs provide temporary relief from caregiving (respite care), help connecting to other services, educational workshops, and support group matching. Because these are service programs rather than cash benefits, families receive direct support like a few hours of respite care per week or connections to other caregivers in similar situations.\n\nThe key difference: if your household income exceeds 150% of the federal poverty level, you can only access the National program. If you're a grandparent raising grandchildren and earn less than the income limit, you may qualify for additional targeted support through the Kentucky program.",
+      "intro": "If you're caring for an aging loved one or raising a grandchild, Kentucky offers two programs that provide respite care, support groups, and caregiver training at no cost. The National Family Caregiver Support Program serves any family caregiver, with no income limits, while the Kentucky Family Caregiver Program specifically helps grandparents and relatives with limited income (under $2,128/month for a single household in 2026).\n\nBoth programs provide temporary relief from caregiving (respite care), help connecting to other services, educational workshops, and support group matching. Because these are service programs rather than cash benefits, families receive direct support like a few hours of respite care per week or connections to other caregivers in similar situations.\n\nThe key difference: if your household income exceeds 150% of the federal poverty level, you can only access the National program. If you're a grandparent raising grandchildren and earn less than the income limit, you may qualify for additional targeted support through the Kentucky program.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1559,7 +1559,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your regional Area Agency on Aging by phone — no formal application required for initial services.",
+        "summary": "Contact your regional Area Agency on Aging by phone, no formal application required for initial services.",
         "steps": [
           {
             "step": 1,
@@ -1584,7 +1584,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start with the National program if you're unsure about income limits — it has broader eligibility and no income restrictions.",
+        "tip": "Start with the National program if you're unsure about income limits, it has broader eligibility and no income restrictions.",
         "urls": [
           {
             "label": "Kentucky Cabinet for Health and Family Services",
@@ -1621,10 +1621,10 @@
         }
       ],
       "applicationNotes": [
-        "Two separate programs with different rules — National has no income limit, Kentucky program limited to 150% poverty level for grandparent/relative caregivers",
+        "Two separate programs with different rules, National has no income limit, Kentucky program limited to 150% poverty level for grandparent/relative caregivers",
         "Cannot receive Kentucky Family Caregiver Program benefits if already getting Kinship Care payments",
         "Biological or adoptive parents cannot live in the home for grandparent caregivers to qualify for Kentucky program",
-        "Respite care hours and specific service amounts vary by region — ask your local AAA what's available in your area"
+        "Respite care hours and specific service amounts vary by region, ask your local AAA what's available in your area"
       ],
       "relatedPrograms": [
         "Kinship Care Program",
@@ -1644,7 +1644,7 @@
         },
         {
           "question": "How many hours of respite care can I actually get per week?",
-          "answer": "The research shows respite care is available but doesn't specify exact hours per week — this varies by region and your local Area Agency on Aging's resources. When you call your AAA, ask specifically about respite care availability and whether there are waiting lists in your area."
+          "answer": "The research shows respite care is available but doesn't specify exact hours per week, this varies by region and your local Area Agency on Aging's resources. When you call your AAA, ask specifically about respite care availability and whether there are waiting lists in your area."
         },
         {
           "question": "What's the difference between Activities of Daily Living and Instrumental Activities of Daily Living?",
@@ -1733,8 +1733,8 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Possible waitlist due to limited slots — providers enroll about 2 participants per month",
-        "tip": "Ask about priority status if your loved one is a veteran, over 65, has a disability, or lives in a rural area — this can reduce wait times.",
+        "waitlist": "Possible waitlist due to limited slots, providers enroll about 2 participants per month",
+        "tip": "Ask about priority status if your loved one is a veteran, over 65, has a disability, or lives in a rural area, this can reduce wait times.",
         "urls": [
           {
             "label": "NKCAC Pre-Application",
@@ -1783,10 +1783,10 @@
         }
       ],
       "applicationNotes": [
-        "Not all Kentucky counties are served — contact providers to confirm coverage in your loved one's area",
+        "Not all Kentucky counties are served, contact providers to confirm coverage in your loved one's area",
         "Priority applicants (veterans, over 65, disabled, rural residents) typically get faster placement than general applicants",
         "This is a temporary training program designed to lead to permanent employment elsewhere, not long-term SCSEP work",
-        "Income limits are updated annually based on federal poverty guidelines — verify current amounts when applying"
+        "Income limits are updated annually based on federal poverty guidelines, verify current amounts when applying"
       ],
       "relatedPrograms": [
         "SNAP (Food Benefits)",
@@ -1845,7 +1845,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 60+ and needs help navigating Medicaid long-term care eligibility, asset transfers, or other elder law issues, Kentucky's regional legal aid programs provide free civil legal assistance. Because these programs prioritize seniors with the greatest need — including low-income elderly, rural residents, and caregivers of dementia patients — your loved one may qualify for one-on-one legal services without paying attorney fees.\n\nFour regional organizations serve different counties across Kentucky, with income limits typically ranging from 125% to 200% of federal poverty guidelines depending on your location. Services include help with Medicaid applications, asset protection strategies, undue hardship waivers, and housing or safety issues. Legal aid attorneys can visit your loved one at home, meet by phone, or provide services at local centers.",
+      "intro": "If your loved one is 60+ and needs help navigating Medicaid long-term care eligibility, asset transfers, or other elder law issues, Kentucky's regional legal aid programs provide free civil legal assistance. Because these programs prioritize seniors with the greatest need, including low-income elderly, rural residents, and caregivers of dementia patients, your loved one may qualify for one-on-one legal services without paying attorney fees.\n\nFour regional organizations serve different counties across Kentucky, with income limits typically ranging from 125% to 200% of federal poverty guidelines depending on your location. Services include help with Medicaid applications, asset protection strategies, undue hardship waivers, and housing or safety issues. Legal aid attorneys can visit your loved one at home, meet by phone, or provide services at local centers.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1868,7 +1868,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your regional legal aid office for intake — no formal application required, and income disclosure is not mandatory.",
+        "summary": "Call your regional legal aid office for intake, no formal application required, and income disclosure is not mandatory.",
         "steps": [
           {
             "step": 1,
@@ -1878,7 +1878,7 @@
           {
             "step": 2,
             "title": "Call for intake screening",
-            "description": "Explain your loved one's legal issue — Medicaid eligibility, asset transfers, housing problems, or other civil matters. Staff will determine if your case fits their service area and priorities."
+            "description": "Explain your loved one's legal issue, Medicaid eligibility, asset transfers, housing problems, or other civil matters. Staff will determine if your case fits their service area and priorities."
           },
           {
             "step": 3,
@@ -1888,7 +1888,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Even if your loved one's income seems too high, call anyway — income disclosure is not required for eligibility determination, and programs may have flexibility.",
+        "tip": "Even if your loved one's income seems too high, call anyway, income disclosure is not required for eligibility determination, and programs may have flexibility.",
         "urls": [
           {
             "label": "Kentucky Legal Aid eligibility screening",
@@ -1941,9 +1941,9 @@
         }
       ],
       "applicationNotes": [
-        "Your loved one cannot be denied services for refusing to disclose income or resources — financial information helps but isn't required",
+        "Your loved one cannot be denied services for refusing to disclose income or resources, financial information helps but isn't required",
         "Institutionalized seniors (in nursing homes or hospitals) receive priority for legal services",
-        "If your loved one made asset transfers within the last 5 years, contact legal aid before applying for Medicaid — they may help obtain undue hardship waivers"
+        "If your loved one made asset transfers within the last 5 years, contact legal aid before applying for Medicaid, they may help obtain undue hardship waivers"
       ],
       "relatedPrograms": [
         "Kentucky Medicaid",
@@ -1959,15 +1959,15 @@
         },
         {
           "question": "What if my loved one's income seems too high for legal aid?",
-          "answer": "Income limits vary by county and legal aid organization (125-200% of poverty level), but seniors cannot be denied for refusing to disclose financial information. Call your regional office anyway — programs have flexibility for seniors with greatest need, and income disclosure is not mandatory."
+          "answer": "Income limits vary by county and legal aid organization (125-200% of poverty level), but seniors cannot be denied for refusing to disclose financial information. Call your regional office anyway, programs have flexibility for seniors with greatest need, and income disclosure is not mandatory."
         },
         {
-          "question": "My loved one transferred money to family members — can legal aid still help with Medicaid?",
+          "question": "My loved one transferred money to family members, can legal aid still help with Medicaid?",
           "answer": "Yes, this is exactly what legal aid attorneys handle. Asset transfers within 5 years can create Medicaid ineligibility periods, but legal aid can help apply for undue hardship waivers or develop strategies to minimize penalties. Contact them before applying for Medicaid."
         },
         {
           "question": "Does legal aid serve all counties in Kentucky?",
-          "answer": "Legal aid serves most but not all Kentucky counties through four regional organizations. Call the office closest to your loved one's county — Bowling Green for western Kentucky, Louisville for metro area, Lexington for central Kentucky, or Prestonsburg for eastern Kentucky. They'll tell you if your county is covered."
+          "answer": "Legal aid serves most but not all Kentucky counties through four regional organizations. Call the office closest to your loved one's county, Bowling Green for western Kentucky, Louisville for metro area, Lexington for central Kentucky, or Prestonsburg for eastern Kentucky. They'll tell you if your county is covered."
         },
         {
           "question": "How long does it take to get legal help once I call?",
@@ -2025,7 +2025,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's ombudsman directly — no formal application needed, and services begin immediately upon contact.",
+        "summary": "Call your county's ombudsman directly, no formal application needed, and services begin immediately upon contact.",
         "steps": [
           {
             "step": 1,
@@ -2035,7 +2035,7 @@
           {
             "step": 2,
             "title": "Call your local ombudsman",
-            "description": "Explain your loved one's situation and concerns. No forms required — the ombudsman will take your complaint over the phone and begin investigating with your loved one's permission."
+            "description": "Explain your loved one's situation and concerns. No forms required, the ombudsman will take your complaint over the phone and begin investigating with your loved one's permission."
           },
           {
             "step": 3,
@@ -2045,7 +2045,7 @@
         ],
         "processingTime": "Investigations begin immediately upon contact; timeline varies based on complaint complexity and required follow-up",
         "waitlist": null,
-        "tip": "Keep a written record of incidents with dates and names — this helps ombudsmen investigate more effectively.",
+        "tip": "Keep a written record of incidents with dates and names, this helps ombudsmen investigate more effectively.",
         "urls": [
           {
             "label": "Kentucky Ombudsman County Listings",
@@ -2075,8 +2075,8 @@
         }
       ],
       "applicationNotes": [
-        "Ombudsmen must have resident authorization to investigate — they cannot act against your loved one's wishes even if family requests help",
-        "Services are only for facility-based care (nursing homes, personal care homes, family care homes) — not for home-based or community care issues",
+        "Ombudsmen must have resident authorization to investigate, they cannot act against your loved one's wishes even if family requests help",
+        "Services are only for facility-based care (nursing homes, personal care homes, family care homes), not for home-based or community care issues",
         "All services are confidential, but ombudsmen work with facility administration to resolve problems, so complete anonymity may not be possible",
         "Contact your regional district office rather than the state office for faster local response"
       ],
@@ -2132,7 +2132,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCB Waiver covers the services that would otherwise require nursing home placement. The program provides attendant care, home-delivered meals, personal emergency response systems, and minor home modifications — all at no cost to families who qualify.\n\nYour loved one must first qualify for Medicaid (special financial rules apply that are more generous than regular Medicaid) and meet nursing facility level of care requirements. Because this waiver has a waitlist with priority given by application date, apply as early as possible even if you're not sure about timing.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCB Waiver covers the services that would otherwise require nursing home placement. The program provides attendant care, home-delivered meals, personal emergency response systems, and minor home modifications, all at no cost to families who qualify.\n\nYour loved one must first qualify for Medicaid (special financial rules apply that are more generous than regular Medicaid) and meet nursing facility level of care requirements. Because this waiver has a waitlist with priority given by application date, apply as early as possible even if you're not sure about timing.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2155,7 +2155,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for Medicaid first through kynect, then submit HCB waiver application — expect waitlist placement by application date.",
+        "summary": "Apply for Medicaid first through kynect, then submit HCB waiver application, expect waitlist placement by application date.",
         "steps": [
           {
             "step": 1,
@@ -2178,9 +2178,9 @@
             "description": "You'll be placed on waitlist by application date. Services begin when your slot becomes available."
           }
         ],
-        "processingTime": "Processing time not specified — placement on waitlist occurs after completed application",
+        "processingTime": "Processing time not specified, placement on waitlist occurs after completed application",
         "waitlist": "Currently has waitlist with priority given by application receipt date",
-        "tip": "Apply early even if you're not ready for services yet — waitlist position is determined by application date, not when you're ready to start services.",
+        "tip": "Apply early even if you're not ready for services yet, waitlist position is determined by application date, not when you're ready to start services.",
         "urls": [
           {
             "label": "kynect (Medicaid application)",
@@ -2227,9 +2227,9 @@
         }
       ],
       "applicationNotes": [
-        "You must be Medicaid-eligible before applying for HCB waiver — start with Medicaid application first",
+        "You must be Medicaid-eligible before applying for HCB waiver, start with Medicaid application first",
         "Waitlist priority is strictly by application date, so apply as soon as you think services might be needed",
-        "This waiver is specifically for physical disabilities and aging — different waivers exist for intellectual/developmental disabilities",
+        "This waiver is specifically for physical disabilities and aging, different waivers exist for intellectual/developmental disabilities",
         "Services are designed around your loved one's individual goals for staying in the community"
       ],
       "relatedPrograms": [
@@ -2250,7 +2250,7 @@
         },
         {
           "question": "What if my loved one doesn't need all the services offered?",
-          "answer": "Services are individualized based on your loved one's specific needs and goals. You don't have to use every available service — case management helps determine which combination works best for your situation."
+          "answer": "Services are individualized based on your loved one's specific needs and goals. You don't have to use every available service, case management helps determine which combination works best for your situation."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -2328,7 +2328,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Start with a referral to your local Area Agency on Aging — you, your loved one, or nursing home staff can make the referral.",
+        "summary": "Start with a referral to your local Area Agency on Aging, you, your loved one, or nursing home staff can make the referral.",
         "steps": [
           {
             "step": 1,
@@ -2352,7 +2352,7 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Possible waitlist — typical for Money Follows the Person programs, but no specific Kentucky wait times available",
+        "waitlist": "Possible waitlist, typical for Money Follows the Person programs, but no specific Kentucky wait times available",
         "tip": "Nursing home discharge planners often know about this program and can help initiate the referral process.",
         "urls": [
           {
@@ -2386,10 +2386,10 @@
         }
       ],
       "applicationNotes": [
-        "The program is officially called 'Kentucky Transitions' — not generic Money Follows the Person — when speaking with state agencies",
+        "The program is officially called 'Kentucky Transitions', not generic Money Follows the Person, when speaking with state agencies",
         "Enhanced federal funding lasts exactly 365 days from transition date, then services continue through standard Kentucky Medicaid waivers like ABI or HCBW",
         "Services after transition depend on available waiver slots, so waiver availability in your area may limit service options",
-        "Your loved one must already be Medicaid-enrolled and institutionalized — this program cannot prevent nursing home placement"
+        "Your loved one must already be Medicaid-enrolled and institutionalized, this program cannot prevent nursing home placement"
       ],
       "relatedPrograms": [
         "Kentucky Medicaid Home and Community-Based Waivers",
@@ -2413,7 +2413,7 @@
         },
         {
           "question": "What if my loved one has been in the nursing home for less than 60 days?",
-          "answer": "They don't qualify yet — the 60 consecutive days is a firm requirement. However, you can start the referral process before the 60 days are complete so everything is ready when they become eligible."
+          "answer": "They don't qualify yet, the 60 consecutive days is a firm requirement. However, you can start the referral process before the 60 days are complete so everything is ready when they become eligible."
         },
         {
           "question": "Does the program cover nursing home costs if my loved one needs to return to the facility?",
@@ -2448,7 +2448,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 60+ and struggling to prepare nutritious meals, Kentucky's Senior Meals Program provides one balanced meal per day — either delivered to their home or served at local senior centers. Because the program prioritizes homebound and isolated seniors, your loved one can get home-delivered meals if they're unable to attend congregate sites due to illness or disability and have no one at home to help prepare meals.\n\nThe program also includes monthly food boxes worth approximately $50 through the Commodity Supplemental Food Program (CSFP) — but this component has income limits of 130% of the federal poverty level. The main meal program has no income restrictions for anyone 60+. Because services are administered through local Area Agencies on Aging, availability and waitlists vary by region.",
+      "intro": "If your loved one is 60+ and struggling to prepare nutritious meals, Kentucky's Senior Meals Program provides one balanced meal per day, either delivered to their home or served at local senior centers. Because the program prioritizes homebound and isolated seniors, your loved one can get home-delivered meals if they're unable to attend congregate sites due to illness or disability and have no one at home to help prepare meals.\n\nThe program also includes monthly food boxes worth approximately $50 through the Commodity Supplemental Food Program (CSFP), but this component has income limits of 130% of the federal poverty level. The main meal program has no income restrictions for anyone 60+. Because services are administered through local Area Agencies on Aging, availability and waitlists vary by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2473,7 +2473,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline at 1-877-925-0037 to connect with your local Area Agency on Aging — no formal application needed.",
+        "summary": "Call the statewide hotline at 1-877-925-0037 to connect with your local Area Agency on Aging, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -2497,8 +2497,8 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Some areas may have waiting lists — availability varies by region",
-        "tip": "Call during business hours and have your loved one's address ready — services are organized by county and the hotline will route you to the right local office.",
+        "waitlist": "Some areas may have waiting lists, availability varies by region",
+        "tip": "Call during business hours and have your loved one's address ready, services are organized by county and the hotline will route you to the right local office.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2535,10 +2535,10 @@
         }
       ],
       "applicationNotes": [
-        "Not all counties offer both home-delivered and congregate meals — ask about what's available in your loved one's area",
+        "Not all counties offer both home-delivered and congregate meals, ask about what's available in your loved one's area",
         "Spouses of any age are eligible if their partner is 60+, but priority goes to the most frail and isolated seniors",
-        "CSFP food boxes supplement but don't replace all food needs — your loved one can use SNAP benefits alongside this program",
-        "Home-delivered meals have stricter eligibility than congregate meals — if your loved one can safely get to a senior center, they may need to choose that option"
+        "CSFP food boxes supplement but don't replace all food needs, your loved one can use SNAP benefits alongside this program",
+        "Home-delivered meals have stricter eligibility than congregate meals, if your loved one can safely get to a senior center, they may need to choose that option"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -2553,12 +2553,12 @@
           "answer": "Yes, if they qualify for both. The main meal program has no income limits for anyone 60+, but the CSFP food boxes require income below 130% of the federal poverty level. Contact your local Area Agency to apply for both programs separately."
         },
         {
-          "question": "What if my loved one can drive but doesn't like to cook — do they qualify for home delivery?",
+          "question": "What if my loved one can drive but doesn't like to cook, do they qualify for home delivery?",
           "answer": "Probably not. Home-delivered meals are reserved for seniors who are homebound due to illness or disability AND have no one in the home to help prepare meals. If your loved one can safely travel, they'd need to attend congregate meal sites at senior centers or other community locations."
         },
         {
           "question": "How long is the waitlist for home-delivered meals?",
-          "answer": "Waitlists vary significantly by county — some areas have immediate availability while others may have months-long waits. Call 1-877-925-0037 to check current availability in your loved one's specific area and ask about priority status for the most isolated seniors."
+          "answer": "Waitlists vary significantly by county, some areas have immediate availability while others may have months-long waits. Call 1-877-925-0037 to check current availability in your loved one's specific area and ask about priority status for the most isolated seniors."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one who has dementia?",
@@ -2589,7 +2589,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Kentucky offers 15 state and federal programs to help your aging loved one access healthcare, home care, food assistance, and financial support. These range from income-qualified benefits like SNAP (up to $300/month for groceries) and Medicaid waivers (covering thousands in home care costs) to free resources like Medicare counseling and legal aid available regardless of income. Most income-qualified programs use federal poverty guidelines — typically requiring income below $2,000-3,000/month for a single person, though limits vary by program. Start with the programs below based on your loved one's most urgent needs, then explore additional options that might provide unexpected savings or support.",
+    "intro": "Kentucky offers 15 state and federal programs to help your aging loved one access healthcare, home care, food assistance, and financial support. These range from income-qualified benefits like SNAP (up to $300/month for groceries) and Medicaid waivers (covering thousands in home care costs) to free resources like Medicare counseling and legal aid available regardless of income. Most income-qualified programs use federal poverty guidelines, typically requiring income below $2,000-3,000/month for a single person, though limits vary by program. Start with the programs below based on your loved one's most urgent needs, then explore additional options that might provide unexpected savings or support.",
     "startHere": [
       {
         "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
@@ -2609,7 +2609,7 @@
       {
         "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
         "programId": "kentucky-ship",
-        "why": "Free Medicare counseling available to everyone — can identify coverage gaps and savings opportunities."
+        "why": "Free Medicare counseling available to everyone, can identify coverage gaps and savings opportunities."
       }
     ],
     "byNeed": [
@@ -2666,7 +2666,7 @@
       }
     ],
     "quickFacts": [
-      "Most income-qualified Kentucky programs follow federal poverty guidelines — typically requiring income below $2,000-3,000/month for a single person",
+      "Most income-qualified Kentucky programs follow federal poverty guidelines, typically requiring income below $2,000-3,000/month for a single person",
       "Kentucky participates in Money Follows the Person, helping seniors transition from nursing homes back to community living",
       "Free resources like SHIP Medicare counseling and legal aid are available to all Kentucky seniors regardless of income"
     ],

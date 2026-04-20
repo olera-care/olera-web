@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65 or older, legally blind, or disabled with limited income and savings, Ohio's Medicaid ABD program provides comprehensive health coverage at no cost. This includes all medical care, prescription drugs, hospital stays, and nursing home care if needed — with no premiums, deductibles, or copays.\n\nThe program covers parents with monthly income under $794 (single) or $1,191 (couple) and savings under $2,000 (single) or $3,000 (couple) in 2024. If your loved one's income is higher, they may still qualify through a spend-down process where they pay medical bills equal to the excess income each month. Because this is full Medicaid coverage, it also pays Medicare premiums and covers services Medicare doesn't, like long-term care.",
+      "intro": "If your loved one is 65 or older, legally blind, or disabled with limited income and savings, Ohio's Medicaid ABD program provides comprehensive health coverage at no cost. This includes all medical care, prescription drugs, hospital stays, and nursing home care if needed, with no premiums, deductibles, or copays.\n\nThe program covers parents with monthly income under $794 (single) or $1,191 (couple) and savings under $2,000 (single) or $3,000 (couple) in 2024. If your loved one's income is higher, they may still qualify through a spend-down process where they pay medical bills equal to the excess income each month. Because this is full Medicaid coverage, it also pays Medicare premiums and covers services Medicare doesn't, like long-term care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -75,7 +75,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your local county Job and Family Services office online, by phone, or in person — processing time varies by county.",
+        "summary": "Apply through your local county Job and Family Services office online, by phone, or in person, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -95,7 +95,7 @@
           {
             "step": 4,
             "title": "Complete disability determination (if applicable)",
-            "description": "If applying based on disability, Social Security Administration will evaluate your loved one's condition — this can extend processing time up to 90 days."
+            "description": "If applying based on disability, Social Security Administration will evaluate your loved one's condition, this can extend processing time up to 90 days."
           },
           {
             "step": 5,
@@ -105,7 +105,7 @@
         ],
         "processingTime": "Varies by county and complexity; up to 90 days if disability determination needed",
         "waitlist": null,
-        "tip": "If your loved one has high medical expenses, ask about spend-down — they may qualify even if income exceeds limits by paying medical bills equal to the excess each month.",
+        "tip": "If your loved one has high medical expenses, ask about spend-down, they may qualify even if income exceeds limits by paying medical bills equal to the excess each month.",
         "urls": [
           {
             "label": "Ohio Medicaid ABD Information",
@@ -144,7 +144,7 @@
         }
       ],
       "applicationNotes": [
-        "Income limits vary by county and update annually — always verify current limits with your local JFS office",
+        "Income limits vary by county and update annually, always verify current limits with your local JFS office",
         "SSI income is often excluded from countable income calculations, but this must be verified during application",
         "If your loved one's home equity exceeds $752,000, they may still qualify if a spouse, disabled child, or caregiver child lives there",
         "Retroactive coverage up to 90 days is available if your loved one had qualifying medical expenses before approval"
@@ -175,7 +175,7 @@
         },
         {
           "question": "How is disability determined for ABD Medicaid?",
-          "answer": "Your loved one must meet Social Security Administration disability criteria — a condition expected to last 12+ months that prevents substantial work. If they already receive Social Security Disability, they automatically meet this requirement."
+          "answer": "Your loved one must meet Social Security Administration disability criteria, a condition expected to last 12+ months that prevents substantial work. If they already receive Social Security Disability, they automatically meet this requirement."
         },
         {
           "question": "Can my loved one have a car and still qualify?",
@@ -221,7 +221,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your loved one receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems — all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your loved one won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, which means live-in family members (including spouses) can now be paid to provide care. Your loved one must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
+      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your loved one receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems, all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your loved one won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, which means live-in family members (including spouses) can now be paid to provide care. Your loved one must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Ohio Medicaid",
       "savingsVerified": false,
@@ -248,7 +248,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for a phone screening, followed by an in-home assessment — processing time varies by complexity.",
+        "summary": "Call your local Area Agency on Aging for a phone screening, followed by an in-home assessment, processing time varies by complexity.",
         "steps": [
           {
             "step": 1,
@@ -273,7 +273,7 @@
         ],
         "processingTime": "Varies by assessment complexity and Medicaid eligibility determination",
         "waitlist": null,
-        "tip": "Have your loved one's primary care physician ready to confirm they need home care services — medical approval is required for program entry.",
+        "tip": "Have your loved one's primary care physician ready to confirm they need home care services, medical approval is required for program entry.",
         "urls": [
           {
             "label": "Ohio Department of Aging PASSPORT page",
@@ -325,10 +325,10 @@
         }
       ],
       "applicationNotes": [
-        "Each of Ohio's 12 Area Agencies on Aging has different local providers and contact numbers — make sure you're calling the right region",
-        "Structured Family Caregiving is new as of October 2024 — ask specifically about paying family members to provide care",
-        "The nursing home level of care assessment is strict — your loved one must need significant daily assistance, not just occasional help",
-        "Services are customized but capped at 60% of nursing home costs — higher-need individuals may hit this limit and need additional private care"
+        "Each of Ohio's 12 Area Agencies on Aging has different local providers and contact numbers, make sure you're calling the right region",
+        "Structured Family Caregiving is new as of October 2024, ask specifically about paying family members to provide care",
+        "The nursing home level of care assessment is strict, your loved one must need significant daily assistance, not just occasional help",
+        "Services are customized but capped at 60% of nursing home costs, higher-need individuals may hit this limit and need additional private care"
       ],
       "relatedPrograms": [
         "Assisted Living Waiver",
@@ -360,7 +360,7 @@
         },
         {
           "question": "What happens if my loved one's needs change after enrollment?",
-          "answer": "PASSPORT includes ongoing monitoring and care plan updates. Contact your assigned care coordinator when your loved one's condition changes — they can reassess and modify services. Plans are typically reviewed annually or when needs significantly change."
+          "answer": "PASSPORT includes ongoing monitoring and care plan updates. Contact your assigned care coordinator when your loved one's condition changes, they can reassess and modify services. Plans are typically reviewed annually or when needs significantly change."
         },
         {
           "question": "Can my loved one have PASSPORT and still go to adult day care?",
@@ -406,7 +406,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Ohio PACE coordinates all their medical care under one team. PACE covers all Medicare and Medicaid services — doctor visits, specialists, prescription drugs, adult day care, home care, hospital stays, and transportation — without limits on hours or services.\n\nYour loved one must live in Hamilton, Cuyahoga, Lorain, or Summit County and be certified as needing intermediate or skilled nursing facility care. Because PACE becomes your loved one's sole provider for all Medicare and Medicaid services (except emergencies), they cannot use other doctors or programs. If your loved one has Medicaid, PACE is free. Private pay typically costs $7,000+ per month.\n\nPACE replaces Medicare Advantage, traditional Medicare supplements, and other programs like Ohio's PASSPORT waiver — your loved one must disenroll from these before joining PACE.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Ohio PACE coordinates all their medical care under one team. PACE covers all Medicare and Medicaid services, doctor visits, specialists, prescription drugs, adult day care, home care, hospital stays, and transportation, without limits on hours or services.\n\nYour loved one must live in Hamilton, Cuyahoga, Lorain, or Summit County and be certified as needing intermediate or skilled nursing facility care. Because PACE becomes your loved one's sole provider for all Medicare and Medicaid services (except emergencies), they cannot use other doctors or programs. If your loved one has Medicaid, PACE is free. Private pay typically costs $7,000+ per month.\n\nPACE replaces Medicare Advantage, traditional Medicare supplements, and other programs like Ohio's PASSPORT waiver, your loved one must disenroll from these before joining PACE.",
       "savingsRange": "",
       "savingsSource": "Free service with Medicaid coverage",
       "savingsVerified": false,
@@ -432,7 +432,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact the PACE provider in your county directly — they handle enrollment and assessment scheduling.",
+        "summary": "Contact the PACE provider in your county directly, they handle enrollment and assessment scheduling.",
         "steps": [
           {
             "step": 1,
@@ -457,7 +457,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Gather all medical records before the assessment — PACE needs to document that your loved one requires nursing home-level care to qualify.",
+        "tip": "Gather all medical records before the assessment, PACE needs to document that your loved one requires nursing home-level care to qualify.",
         "urls": [
           {
             "label": "PACE of Cincinnati",
@@ -511,7 +511,7 @@
         }
       ],
       "applicationNotes": [
-        "PACE becomes your loved one's sole medical provider — personal liability applies for any out-of-network care except emergencies",
+        "PACE becomes your loved one's sole medical provider, personal liability applies for any out-of-network care except emergencies",
         "Without Medicaid coverage, private pay typically exceeds $7,000 per month for comprehensive PACE services",
         "Your loved one must be safe to live in the community at enrollment, even if they need nursing home-level care",
         "Enrollment requires disenrolling from PASSPORT waiver, Medicare Advantage, and other conflicting programs first"
@@ -587,7 +587,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with Medicare costs, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premiums ($185/month in 2025) and potentially all Medicare copayments and deductibles. These federal programs have three tiers based on income: QMB covers the most costs for those with income up to $1,350/month, SLMB covers Part B premiums for income up to $1,620/month, and QI-1 also covers premiums for income up to $1,824/month.\n\nBecause these programs work with Medicare, your loved one keeps their current doctors and coverage — the program simply pays what Medicare doesn't cover. For someone on QMB, this eliminates all out-of-pocket costs for Medicare-covered services, which can save thousands annually.\n\nQI-1 has limited federal funding and operates first-come, first-served, so slots can fill up. The program reopens each January with priority for current recipients who reapply.",
+      "intro": "If your loved one struggles with Medicare costs, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premiums ($185/month in 2025) and potentially all Medicare copayments and deductibles. These federal programs have three tiers based on income: QMB covers the most costs for those with income up to $1,350/month, SLMB covers Part B premiums for income up to $1,620/month, and QI-1 also covers premiums for income up to $1,824/month.\n\nBecause these programs work with Medicare, your loved one keeps their current doctors and coverage, the program simply pays what Medicare doesn't cover. For someone on QMB, this eliminates all out-of-pocket costs for Medicare-covered services, which can save thousands annually.\n\nQI-1 has limited federal funding and operates first-come, first-served, so slots can fill up. The program reopens each January with priority for current recipients who reapply.",
       "savingsRange": "$2,220 – $5,000+/year in 2025",
       "savingsSource": "Part B premiums ($2,220/year) plus potential elimination of all Medicare deductibles and copayments for QMB recipients",
       "savingsVerified": true,
@@ -661,7 +661,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Ohio's benefits portal online, by phone at 1-800-324-8680, or at your local county office — processing takes up to 45 days",
+        "summary": "Apply through Ohio's benefits portal online, by phone at 1-800-324-8680, or at your local county office, processing takes up to 45 days",
         "steps": [
           {
             "step": 1,
@@ -734,10 +734,10 @@
         }
       ],
       "applicationNotes": [
-        "QI-1 applications should be submitted early in January when federal funding resets — slots are limited and allocated first-come, first-served",
+        "QI-1 applications should be submitted early in January when federal funding resets, slots are limited and allocated first-come, first-served",
         "Income is calculated after standard disregards: $20 general income exclusion plus $65 earned income exclusion and half of remaining wages",
         "SLMB and QI-1 can provide retroactive coverage up to 3 months, but you must have met all eligibility requirements for each of those months",
-        "QMB has no retroactive coverage — benefits start the first of the month after approval"
+        "QMB has no retroactive coverage, benefits start the first of the month after approval"
       ],
       "relatedPrograms": [
         "Ohio Medicaid",
@@ -823,7 +823,7 @@
       "id": "snap-food-benefits",
       "name": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Ohio SNAP",
-      "tagline": "Monthly grocery assistance for adults 60+ — up to hundreds of dollars per month on an EBT card",
+      "tagline": "Monthly grocery assistance for adults 60+, up to hundreds of dollars per month on an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -836,7 +836,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, Ohio SNAP provides monthly money on an EBT card they can use at any grocery store. Benefits range from a minimum of $23/month up to $415/month for a 2-person household, depending on income and expenses like rent and medical costs.\n\nYour loved one gets special protections as an older adult — higher asset limits ($4,500 vs. $2,500 for younger people), no gross income cap if their net income qualifies after subtracting expenses, and exemption from work requirements at 65+. However, if they're 55-64, new work requirements now apply unless they're disabled or caring for a young child.\n\nOnly about 50% of eligible older adults actually enroll in SNAP, often because they don't realize they qualify or think the process is too complicated. The application takes about 30 days to process, and benefits are loaded monthly onto an EBT card that works like a debit card at grocery stores.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, Ohio SNAP provides monthly money on an EBT card they can use at any grocery store. Benefits range from a minimum of $23/month up to $415/month for a 2-person household, depending on income and expenses like rent and medical costs.\n\nYour loved one gets special protections as an older adult, higher asset limits ($4,500 vs. $2,500 for younger people), no gross income cap if their net income qualifies after subtracting expenses, and exemption from work requirements at 65+. However, if they're 55-64, new work requirements now apply unless they're disabled or caring for a young child.\n\nOnly about 50% of eligible older adults actually enroll in SNAP, often because they don't realize they qualify or think the process is too complicated. The application takes about 30 days to process, and benefits are loaded monthly onto an EBT card that works like a debit card at grocery stores.",
       "savingsRange": "$276 – $4,980/year in 2026",
       "savingsSource": "Based on minimum $23/month to maximum $415/month for elderly households from Ohio Benefits",
       "savingsVerified": true,
@@ -877,7 +877,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at benefits.ohio.gov or call 866-663-3225 — typically takes 30 days to process.",
+        "summary": "Apply online at benefits.ohio.gov or call 866-663-3225, typically takes 30 days to process.",
         "steps": [
           {
             "step": 1,
@@ -902,7 +902,7 @@
         ],
         "processingTime": "Typically 30 days; expedited processing if gross income under $150 and cash under $100",
         "waitlist": null,
-        "tip": "Keep receipts for medical expenses over $35/month — they're subtracted from income and can help you qualify.",
+        "tip": "Keep receipts for medical expenses over $35/month, they're subtracted from income and can help you qualify.",
         "urls": [
           {
             "label": "Ohio Benefits Online Application",
@@ -947,7 +947,7 @@
       "applicationNotes": [
         "If your loved one is 55-64, they must work, volunteer, or train 80 hours/month unless they're disabled, pregnant, or caring for a child under 14",
         "Separate household rules may apply if your loved one is 60+ and unable to prepare meals with other household members",
-        "Medical expenses over $35/month are subtracted from income — keep all receipts and bills",
+        "Medical expenses over $35/month are subtracted from income, keep all receipts and bills",
         "You'll need to recertify every 6-12 months to continue receiving benefits"
       ],
       "relatedPrograms": [
@@ -972,11 +972,11 @@
         },
         {
           "question": "How do medical expenses help with SNAP eligibility?",
-          "answer": "Medical expenses over $35/month are subtracted from your loved one's income when calculating SNAP eligibility. This includes Medicare premiums, prescription costs, doctor visits, and medical equipment. Keep all receipts — these deductions often make the difference between qualifying and not qualifying."
+          "answer": "Medical expenses over $35/month are subtracted from your loved one's income when calculating SNAP eligibility. This includes Medicare premiums, prescription costs, doctor visits, and medical equipment. Keep all receipts, these deductions often make the difference between qualifying and not qualifying."
         },
         {
           "question": "What happens if my loved one's income is slightly over the limit?",
-          "answer": "For households with someone 60+, there's no gross income limit — only net income matters after subtracting allowable expenses like rent, utilities, and medical costs. A parent earning $2,608/month might still qualify if they have high medical or housing expenses."
+          "answer": "For households with someone 60+, there's no gross income limit, only net income matters after subtracting allowable expenses like rent, utilities, and medical costs. A parent earning $2,608/month might still qualify if they have high medical or housing expenses."
         },
         {
           "question": "Can my 62-year-old loved one avoid the work requirements?",
@@ -1016,7 +1016,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is struggling with heating bills, Ohio's Home Energy Assistance Program (HEAP) provides one-time assistance of $41–$811 applied directly to their utility or fuel bill. This federally-funded program helps families with household incomes up to $60,590/year for single people or $81,797/year for couples pay for heating costs during the winter months.\n\nBecause HEAP benefits go straight to the utility company or fuel provider, your loved one won't handle any cash — the assistance reduces what they owe on their next bill. Both homeowners and renters qualify, and the program covers all heating sources including natural gas, electric, propane, oil, and even coal or wood. Applications are accepted until May 31, 2026, but benefits aren't applied to bills until after January 1.",
+      "intro": "If your loved one is struggling with heating bills, Ohio's Home Energy Assistance Program (HEAP) provides one-time assistance of $41–$811 applied directly to their utility or fuel bill. This federally-funded program helps families with household incomes up to $60,590/year for single people or $81,797/year for couples pay for heating costs during the winter months.\n\nBecause HEAP benefits go straight to the utility company or fuel provider, your loved one won't handle any cash, the assistance reduces what they owe on their next bill. Both homeowners and renters qualify, and the program covers all heating sources including natural gas, electric, propane, oil, and even coal or wood. Applications are accepted until May 31, 2026, but benefits aren't applied to bills until after January 1.",
       "savingsRange": "$41 – $811/year in 2026",
       "savingsSource": "Ohio HEAP benefit amounts",
       "savingsVerified": true,
@@ -1149,10 +1149,10 @@
         }
       ],
       "applicationNotes": [
-        "Hard deadline: Applications must be received by May 31, 2026 — no exceptions for late submissions",
+        "Hard deadline: Applications must be received by May 31, 2026, no exceptions for late submissions",
         "Benefits only show on bills after January 1, 2026, even if you apply earlier",
         "If enrolled in PIPP (Percentage of Income Payment Plan), your HEAP benefit is reduced by 75%",
-        "Crisis assistance available for utility shutoffs or broken heating equipment — call immediately for emergency help up to $1,200"
+        "Crisis assistance available for utility shutoffs or broken heating equipment, call immediately for emergency help up to $1,200"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1283,7 +1283,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's weatherization provider directly — each county has its own agency and application process.",
+        "summary": "Contact your county's weatherization provider directly, each county has its own agency and application process.",
         "steps": [
           {
             "step": 1,
@@ -1442,7 +1442,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare or is turning 65, they need objective guidance through a complex system where one wrong choice can cost thousands. OSHIIP provides free, one-on-one counseling from trained volunteers who aren't trying to sell anything — they'll explain Medicare options, compare Part D prescription plans, review Medicare Advantage vs. supplement insurance, and help with enrollment.\n\nBecause OSHIIP counselors are unbiased (funded by federal grants, not insurance companies), your loved one gets honest answers about which plans actually fit their needs and budget. The service includes help with claims problems, understanding benefits explanations, and connecting to cost-saving programs for people with limited income.\n\nAvailable to all Ohio Medicare beneficiaries regardless of age or income — whether your loved one is 65+ or under 65 with a disability. No appointment needed for the hotline; local counselors available statewide.",
+      "intro": "If your loved one has Medicare or is turning 65, they need objective guidance through a complex system where one wrong choice can cost thousands. OSHIIP provides free, one-on-one counseling from trained volunteers who aren't trying to sell anything, they'll explain Medicare options, compare Part D prescription plans, review Medicare Advantage vs. supplement insurance, and help with enrollment.\n\nBecause OSHIIP counselors are unbiased (funded by federal grants, not insurance companies), your loved one gets honest answers about which plans actually fit their needs and budget. The service includes help with claims problems, understanding benefits explanations, and connecting to cost-saving programs for people with limited income.\n\nAvailable to all Ohio Medicare beneficiaries regardless of age or income, whether your loved one is 65+ or under 65 with a disability. No appointment needed for the hotline; local counselors available statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1464,7 +1464,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the hotline for immediate counseling — no application or paperwork required.",
+        "summary": "Call the hotline for immediate counseling, no application or paperwork required.",
         "steps": [
           {
             "step": 1,
@@ -1575,7 +1575,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and homebound or unable to prepare meals due to health issues, Ohio's Aging Network delivers hot, nutritious meals directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs, with options for diabetic, renal, kosher, and vegetarian diets.\n\nThe program serves all 88 Ohio counties through 33 local Area Agencies on Aging. Most areas offer meals free or on a sliding fee scale based on income — some counties like Franklin charge co-pays, while others like Geauga accept donations only. Your loved one also gets a friendly volunteer visit for socialization with each delivery.\n\nBecause this program requires functional need (not just age), your loved one must be assessed as unable to shop or cook independently due to disability, health condition, or homebound status. Contact your local Area Agency on Aging — not a centralized state office — to apply.",
+      "intro": "If your loved one is 60+ and homebound or unable to prepare meals due to health issues, Ohio's Aging Network delivers hot, nutritious meals directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs, with options for diabetic, renal, kosher, and vegetarian diets.\n\nThe program serves all 88 Ohio counties through 33 local Area Agencies on Aging. Most areas offer meals free or on a sliding fee scale based on income, some counties like Franklin charge co-pays, while others like Geauga accept donations only. Your loved one also gets a friendly volunteer visit for socialization with each delivery.\n\nBecause this program requires functional need (not just age), your loved one must be assessed as unable to shop or cook independently due to disability, health condition, or homebound status. Contact your local Area Agency on Aging, not a centralized state office, to apply.",
       "savingsRange": "",
       "savingsSource": "Free or low-cost service",
       "savingsVerified": false,
@@ -1589,7 +1589,7 @@
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be homebound or unable to prepare own meals due to age, disability, or health condition — requires functional assessment",
+        "functionalRequirement": "Must be homebound or unable to prepare own meals due to age, disability, or health condition, requires functional assessment",
         "otherRequirements": [
           "Must be resident of the service area/county",
           "Person-Centered Service Plan required for delivery parameters"
@@ -1598,7 +1598,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging — processing time varies by county and no statewide application exists.",
+        "summary": "Call your local Area Agency on Aging, processing time varies by county and no statewide application exists.",
         "steps": [
           {
             "step": 1,
@@ -1628,7 +1628,7 @@
         ],
         "processingTime": null,
         "waitlist": "Possible regional waitlists depending on local provider capacity",
-        "tip": "Have your loved one's medical information ready — providers need to understand their functional limitations and any dietary restrictions.",
+        "tip": "Have your loved one's medical information ready, providers need to understand their functional limitations and any dietary restrictions.",
         "urls": [
           {
             "label": "Ohio Department of Aging",
@@ -1667,10 +1667,10 @@
         }
       ],
       "applicationNotes": [
-        "Each county has different providers and fee structures — Franklin County has sliding fee co-pays while Geauga County requests donations only",
+        "Each county has different providers and fee structures, Franklin County has sliding fee co-pays while Geauga County requests donations only",
         "Therapeutic diets like diabetic or renal meals require a doctor's order and may have limited availability",
         "If your loved one has PASSPORT Medicaid waiver, meal delivery may be covered as part of their waiver services",
-        "Some providers offer both hot daily meals and weekly frozen meal deliveries — ask about options when you call"
+        "Some providers offer both hot daily meals and weekly frozen meal deliveries, ask about options when you call"
       ],
       "relatedPrograms": [
         "PASSPORT Medicaid Waiver",
@@ -1685,7 +1685,7 @@
           "answer": "Yes, adult children can contact the Area Agency on Aging on behalf of their loved one. You'll need to provide your loved one's personal information and may need their consent during the assessment process. Have their medical and income information ready."
         },
         {
-          "question": "What if my loved one lives in assisted living — can they still get meal delivery?",
+          "question": "What if my loved one lives in assisted living, can they still get meal delivery?",
           "answer": "It depends on the facility and local provider policies. Most assisted living facilities provide meals, so your loved one may not qualify as 'unable to prepare meals.' Contact your local AAA to discuss your loved one's specific situation and care needs."
         },
         {
@@ -1744,7 +1744,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a loved one 60+ or a family member with Alzheimer's, Ohio's National Family Caregiver Support Program provides free respite care, counseling, and training to help you manage caregiving stress. Because services are delivered through your local Area Agency on Aging, you'll work with counselors and respite providers in your community who understand your region's resources.\n\nThe program serves unpaid family caregivers in four situations: caring for someone 60+, caring for someone with Alzheimer's or dementia (any age), grandparents 55+ raising children under 18, or relatives 55+ caring for disabled adults 18-59. No income limits apply — eligibility focuses entirely on your caregiving role.\n\nServices include individual counseling, caregiver support groups, respite care to give you breaks, help accessing other services, and limited supplemental services like emergency supplies. Because funding and providers vary by county, available services and wait times differ across Ohio.",
+      "intro": "If you're caring for a loved one 60+ or a family member with Alzheimer's, Ohio's National Family Caregiver Support Program provides free respite care, counseling, and training to help you manage caregiving stress. Because services are delivered through your local Area Agency on Aging, you'll work with counselors and respite providers in your community who understand your region's resources.\n\nThe program serves unpaid family caregivers in four situations: caring for someone 60+, caring for someone with Alzheimer's or dementia (any age), grandparents 55+ raising children under 18, or relatives 55+ caring for disabled adults 18-59. No income limits apply, eligibility focuses entirely on your caregiving role.\n\nServices include individual counseling, caregiver support groups, respite care to give you breaks, help accessing other services, and limited supplemental services like emergency supplies. Because funding and providers vary by county, available services and wait times differ across Ohio.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1769,7 +1769,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging by phone — no formal application required.",
+        "summary": "Contact your local Area Agency on Aging by phone, no formal application required.",
         "steps": [
           {
             "step": 1,
@@ -1784,7 +1784,7 @@
           {
             "step": 3,
             "title": "Describe your needs",
-            "description": "Staff will assess what services might help — respite care, support groups, counseling, or assistance finding other resources."
+            "description": "Staff will assess what services might help, respite care, support groups, counseling, or assistance finding other resources."
           },
           {
             "step": 4,
@@ -1794,7 +1794,7 @@
         ],
         "processingTime": "Services typically begin within 2-4 weeks of initial contact",
         "waitlist": "Varies by county and service type based on local funding and provider availability",
-        "tip": "Call even if you're not sure you qualify — AAAs can help connect you to other caregiver resources if NFCSP isn't the right fit.",
+        "tip": "Call even if you're not sure you qualify, AAAs can help connect you to other caregiver resources if NFCSP isn't the right fit.",
         "urls": [
           {
             "label": "Ohio Department of Aging Caregiver Support",
@@ -1825,8 +1825,8 @@
         }
       ],
       "applicationNotes": [
-        "Services vary significantly by county — some areas have extensive respite programs while others focus on support groups and counseling",
-        "Grandparents and relatives raising children often don't realize they qualify — the program isn't just for elderly care",
+        "Services vary significantly by county, some areas have extensive respite programs while others focus on support groups and counseling",
+        "Grandparents and relatives raising children often don't realize they qualify, the program isn't just for elderly care",
         "You don't need a formal diagnosis for the care recipient, but describing their specific needs helps AAAs match appropriate services",
         "Some counties have immediate openings while others maintain waitlists for popular services like respite care"
       ],
@@ -1844,7 +1844,7 @@
         },
         {
           "question": "What if I'm caring for my spouse with dementia who is only 58?",
-          "answer": "You qualify because the program covers caregivers of people with Alzheimer's disease and related disorders at any age. Call your local Area Agency on Aging and specifically mention the dementia diagnosis — they'll connect you with appropriate services regardless of your spouse's age."
+          "answer": "You qualify because the program covers caregivers of people with Alzheimer's disease and related disorders at any age. Call your local Area Agency on Aging and specifically mention the dementia diagnosis, they'll connect you with appropriate services regardless of your spouse's age."
         },
         {
           "question": "How many hours of respite care can I actually get?",
@@ -1852,7 +1852,7 @@
         },
         {
           "question": "Can I apply for this program and PASSPORT Medicaid waiver at the same time?",
-          "answer": "Yes, and you should. NFCSP provides caregiver support services while PASSPORT provides direct care services for your loved one. They complement each other — NFCSP helps you cope with caregiving stress while PASSPORT funds home care aides, adult day programs, and other services for your loved one. Contact your local AAA about both programs."
+          "answer": "Yes, and you should. NFCSP provides caregiver support services while PASSPORT provides direct care services for your loved one. They complement each other, NFCSP helps you cope with caregiving stress while PASSPORT funds home care aides, adult day programs, and other services for your loved one. Contact your local AAA about both programs."
         },
         {
           "question": "What happens if my local Area Agency on Aging doesn't have the services I need?",
@@ -1943,7 +1943,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's SCSEP provider for eligibility screening — processing time varies by provider and demand.",
+        "summary": "Contact your county's SCSEP provider for eligibility screening, processing time varies by provider and demand.",
         "steps": [
           {
             "step": 1,
@@ -1966,9 +1966,9 @@
             "description": "If eligible and slots are available, get matched to a training position at a nonprofit or public organization in your area."
           }
         ],
-        "processingTime": "Varies by provider and availability — contact local provider for current timeline",
-        "waitlist": "Possible due to limited funding — priority applicants (veterans, 65+, disabilities) get preference",
-        "tip": "Gather all income documentation for every household member before calling — the 125% poverty limit applies to total family income, not just the applicant.",
+        "processingTime": "Varies by provider and availability, contact local provider for current timeline",
+        "waitlist": "Possible due to limited funding, priority applicants (veterans, 65+, disabilities) get preference",
+        "tip": "Gather all income documentation for every household member before calling, the 125% poverty limit applies to total family income, not just the applicant.",
         "urls": [
           {
             "label": "Ohio SCSEP Provider Directory",
@@ -2018,14 +2018,14 @@
         {
           "label": "Ohio Department of Aging",
           "phone": "(614) 466-5500",
-          "description": "State agency overseeing SCSEP — can help identify county providers",
+          "description": "State agency overseeing SCSEP, can help identify county providers",
           "hours": "Mon-Fri 8am-5pm"
         }
       ],
       "applicationNotes": [
-        "Priority applicants (veterans, 65+, disabilities, rural residents) get first access when slots open — non-priority may wait longer",
-        "The 125% poverty limit applies to all household income, not just the applicant — include spouse, adult children, or anyone else living in the home",
-        "Federal funding changes can affect availability — some providers may have immediate openings while others maintain waitlists",
+        "Priority applicants (veterans, 65+, disabilities, rural residents) get first access when slots open, non-priority may wait longer",
+        "The 125% poverty limit applies to all household income, not just the applicant, include spouse, adult children, or anyone else living in the home",
+        "Federal funding changes can affect availability, some providers may have immediate openings while others maintain waitlists",
         "Work assignments average 20 hours/week but exact schedules depend on the host organization's needs"
       ],
       "relatedPrograms": [
@@ -2042,7 +2042,7 @@
         },
         {
           "question": "What if my loved one lives in a rural county with limited job training opportunities?",
-          "answer": "Rural residents get priority for SCSEP slots specifically because of limited local employment options. The program places participants at rural nonprofits, schools, and government offices. Contact your county provider — rural areas often have shorter waitlists than urban counties."
+          "answer": "Rural residents get priority for SCSEP slots specifically because of limited local employment options. The program places participants at rural nonprofits, schools, and government offices. Contact your county provider, rural areas often have shorter waitlists than urban counties."
         },
         {
           "question": "How long does the job training really last, and what happens after?",
@@ -2054,7 +2054,7 @@
         },
         {
           "question": "What if my loved one gets a job offer while in SCSEP training?",
-          "answer": "That's the program's goal. Your loved one should take permanent employment immediately — SCSEP provides job placement assistance to help evaluate offers and transition successfully. The training position ends when permanent work begins."
+          "answer": "That's the program's goal. Your loved one should take permanent employment immediately, SCSEP provides job placement assistance to help evaluate offers and transition successfully. The training position ends when permanent work begins."
         },
         {
           "question": "Does participating in SCSEP affect other benefits like SNAP or Medicaid?",
@@ -2112,7 +2112,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs legal help with Medicare problems, housing issues, estate planning, or elder abuse, Ohio provides free legal advice and services specifically for seniors. The Pro Seniors Legal Helpline offers immediate phone consultations with attorneys statewide — no income requirements for advice and referrals.\n\nFor more complex cases requiring full legal representation, low-income seniors can access free attorneys through regional legal aid organizations across Ohio. These services handle civil legal matters including Medicaid appeals, powers of attorney, simple wills, consumer protection, and nursing home advocacy.",
+      "intro": "If your loved one is 60+ and needs legal help with Medicare problems, housing issues, estate planning, or elder abuse, Ohio provides free legal advice and services specifically for seniors. The Pro Seniors Legal Helpline offers immediate phone consultations with attorneys statewide, no income requirements for advice and referrals.\n\nFor more complex cases requiring full legal representation, low-income seniors can access free attorneys through regional legal aid organizations across Ohio. These services handle civil legal matters including Medicaid appeals, powers of attorney, simple wills, consumer protection, and nursing home advocacy.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2136,7 +2136,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Pro Seniors Legal Helpline to schedule a 30-minute attorney consultation — available statewide with no income requirements.",
+        "summary": "Call the Pro Seniors Legal Helpline to schedule a 30-minute attorney consultation, available statewide with no income requirements.",
         "steps": [
           {
             "step": 1,
@@ -2156,7 +2156,7 @@
         ],
         "processingTime": "Intake immediate, attorney callback scheduled in 30-minute blocks",
         "waitlist": null,
-        "tip": "For representation beyond advice, you'll need to apply separately through your regional legal aid provider — Pro Seniors can refer you to the right organization.",
+        "tip": "For representation beyond advice, you'll need to apply separately through your regional legal aid provider, Pro Seniors can refer you to the right organization.",
         "urls": [
           {
             "label": "Pro Seniors Legal Services",
@@ -2202,7 +2202,7 @@
           "answer": "The Pro Seniors hotline provides 30-minute consultations, document preparation guidance, and referrals with no income requirements statewide. Full representation (where an attorney handles your case) requires low-income qualification and is provided by regional legal aid organizations that vary by county."
         },
         {
-          "question": "My loved one lives in rural Ohio — are services available outside major cities?",
+          "question": "My loved one lives in rural Ohio, are services available outside major cities?",
           "answer": "Yes, the Pro Seniors hotline serves all Ohio counties for advice and referrals. For representation, Legal Aid of Western Ohio covers northwest counties including rural areas like Henry, Paulding, and Williams counties. Other regions have their own legal aid providers."
         }
       ],
@@ -2222,7 +2222,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Ohio offers 11 major programs to help your aging loved one — from free health coverage to grocery assistance to home care services. Most require income below $1,500–$3,000/month, but several resources are available regardless of income. The programs range from monthly cash-like benefits (SNAP provides up to hundreds per month for groceries) to comprehensive care coordination (PACE manages all medical and home care through one team). Start by checking the highest-value programs first: Medicaid can eliminate all health insurance costs, while PASSPORT Waiver can provide thousands in home care services to avoid nursing home placement. Most applications go through your local Area Agency on Aging or Ohio Benefits portal.",
+    "intro": "Ohio offers 11 major programs to help your aging loved one, from free health coverage to grocery assistance to home care services. Most require income below $1,500–$3,000/month, but several resources are available regardless of income. The programs range from monthly cash-like benefits (SNAP provides up to hundreds per month for groceries) to comprehensive care coordination (PACE manages all medical and home care through one team). Start by checking the highest-value programs first: Medicaid can eliminate all health insurance costs, while PASSPORT Waiver can provide thousands in home care services to avoid nursing home placement. Most applications go through your local Area Agency on Aging or Ohio Benefits portal.",
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
@@ -2294,6 +2294,6 @@
       "HEAP applications open October 1st each year and assistance is applied directly to utility bills",
       "Ohio has 12 Area Agencies on Aging that coordinate most senior services and applications"
     ],
-    "resourcesVsBenefits": "Most Ohio programs require income and asset limits — like SNAP (grocery assistance) or PASSPORT (home care) which have strict financial requirements. However, Ohio Senior Health Insurance Information Program (OSHIIP) provides free Medicare counseling to any Ohio senior regardless of income, and some meal programs serve anyone 60+ without income testing."
+    "resourcesVsBenefits": "Most Ohio programs require income and asset limits, like SNAP (grocery assistance) or PASSPORT (home care) which have strict financial requirements. However, Ohio Senior Health Insurance Information Program (OSHIIP) provides free Medicare counseling to any Ohio senior regardless of income, and some meal programs serve anyone 60+ without income testing."
   }
 }

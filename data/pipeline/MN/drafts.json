@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs nursing home care, home health services, or comprehensive medical coverage, Medical Assistance (Minnesota's Medicaid program) covers all costs when they qualify. For long-term care needs, this includes full nursing home costs, personal care assistance at home, assisted living support through the Elderly Waiver, plus all doctor visits, hospital stays, and prescription drugs.\n\nIncome limits depend on what your loved one needs: $1,305/month for long-term care services, or up to 138% of federal poverty level for general medical coverage. Asset limits for long-term care are strict — $3,000 for a single person, $6,000 for couples — but your loved one's home and one car typically don't count.\n\nThe program is administered through county offices statewide, but some waiver services like assisted living support have waitlists due to funding caps. Estate recovery applies to the home after death for long-term care recipients.",
+      "intro": "If your loved one needs nursing home care, home health services, or comprehensive medical coverage, Medical Assistance (Minnesota's Medicaid program) covers all costs when they qualify. For long-term care needs, this includes full nursing home costs, personal care assistance at home, assisted living support through the Elderly Waiver, plus all doctor visits, hospital stays, and prescription drugs.\n\nIncome limits depend on what your loved one needs: $1,305/month for long-term care services, or up to 138% of federal poverty level for general medical coverage. Asset limits for long-term care are strict, $3,000 for a single person, $6,000 for couples, but your loved one's home and one car typically don't count.\n\nThe program is administered through county offices statewide, but some waiver services like assisted living support have waitlists due to funding caps. Estate recovery applies to the home after death for long-term care recipients.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -64,7 +64,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at MNsure.org or call 1-855-366-7873 — processing typically takes 45-90 days depending on disability determination needs.",
+        "summary": "Apply online at MNsure.org or call 1-855-366-7873, processing typically takes 45-90 days depending on disability determination needs.",
         "steps": [
           {
             "step": 1,
@@ -93,7 +93,7 @@
           }
         ],
         "processingTime": "45 days for standard applications, up to 90 days if disability determination needed",
-        "waitlist": "Elderly Waiver services may have waitlists due to funding caps — availability varies by county",
+        "waitlist": "Elderly Waiver services may have waitlists due to funding caps, availability varies by county",
         "tip": "SSI recipients are often automatically eligible for Medical Assistance without additional asset testing.",
         "urls": [
           {
@@ -133,7 +133,7 @@
         {
           "label": "County Human Services",
           "phone": null,
-          "description": "Local offices handle applications and long-term care assessments — contact your county directly",
+          "description": "Local offices handle applications and long-term care assessments, contact your county directly",
           "hours": "Varies by county"
         },
         {
@@ -145,7 +145,7 @@
       ],
       "applicationNotes": [
         "If your loved one is already receiving SSI, they may be automatically eligible for Medical Assistance without the standard asset test",
-        "Married couples have spousal impoverishment protections — the community spouse can keep more assets and income than the standard limits",
+        "Married couples have spousal impoverishment protections, the community spouse can keep more assets and income than the standard limits",
         "If income is slightly over the limit, ask about spend-down options or Medical Assistance for Employed Persons with Disabilities (MA-EPD)",
         "Estate recovery will claim your loved one's home after death if they received long-term care services, though exceptions exist for surviving spouses or disabled adult children"
       ],
@@ -175,7 +175,7 @@
         },
         {
           "question": "Can my loved one get both Medicare and Medical Assistance at the same time?",
-          "answer": "Yes, this is called being 'dual eligible.' Medical Assistance will cover Medicare premiums, deductibles, and services Medicare doesn't cover. Your loved one should keep both — they work together to provide comprehensive coverage."
+          "answer": "Yes, this is called being 'dual eligible.' Medical Assistance will cover Medicare premiums, deductibles, and services Medicare doesn't cover. Your loved one should keep both, they work together to provide comprehensive coverage."
         },
         {
           "question": "What happens if my loved one needs more care after they're already enrolled?",
@@ -229,7 +229,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and qualifies for Medical Assistance long-term care, Elderly Waiver can provide home care services to help them avoid nursing home placement. The program covers personal care assistance, housekeeping, home modifications like grab bars and ramps, adult day programs, home-delivered meals, emergency response systems, and respite care for family caregivers. Services are individualized based on your loved one's care plan, with the total cost capped below what nursing home care would cost.\n\nTo qualify, your loved one must need nursing facility level of care (daily help with bathing, dressing, or medication management) but choose to stay in the community instead. They must already be eligible for Medical Assistance long-term care services, which has strict income and asset limits. If their income is too high, they may still qualify through a monthly spenddown or waiver obligation payment.\n\nBecause this waiver prioritizes keeping people in their homes over institutional care, the range of services can be comprehensive — from 24-hour customized living support in assisted living facilities to part-time personal care assistance at home. Your county human services office administers the program and conducts the required assessment to determine both Medical Assistance eligibility and the level of care needed.",
+      "intro": "If your loved one is 65+ and qualifies for Medical Assistance long-term care, Elderly Waiver can provide home care services to help them avoid nursing home placement. The program covers personal care assistance, housekeeping, home modifications like grab bars and ramps, adult day programs, home-delivered meals, emergency response systems, and respite care for family caregivers. Services are individualized based on your loved one's care plan, with the total cost capped below what nursing home care would cost.\n\nTo qualify, your loved one must need nursing facility level of care (daily help with bathing, dressing, or medication management) but choose to stay in the community instead. They must already be eligible for Medical Assistance long-term care services, which has strict income and asset limits. If their income is too high, they may still qualify through a monthly spenddown or waiver obligation payment.\n\nBecause this waiver prioritizes keeping people in their homes over institutional care, the range of services can be comprehensive, from 24-hour customized living support in assisted living facilities to part-time personal care assistance at home. Your county human services office administers the program and conducts the required assessment to determine both Medical Assistance eligibility and the level of care needed.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -261,7 +261,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county human services office for a Long-Term Care Consultation assessment and Medical Assistance application — processing time varies by county.",
+        "summary": "Contact your county human services office for a Long-Term Care Consultation assessment and Medical Assistance application, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -276,7 +276,7 @@
           {
             "step": 3,
             "title": "Apply for Medical Assistance long-term care",
-            "description": "Complete MA application at your county office. A face-to-face interview is encouraged but not required — you can apply by phone, mail, or in-person."
+            "description": "Complete MA application at your county office. A face-to-face interview is encouraged but not required, you can apply by phone, mail, or in-person."
           },
           {
             "step": 4,
@@ -289,9 +289,9 @@
             "description": "County completes LTCC assessment, develops care plan, and determines MA LTC eligibility. Elderly Waiver eligibility cannot begin until all steps are complete."
           }
         ],
-        "processingTime": "Not specified — eligibility cannot begin before LTCC assessment is completed, care plan is developed, and Medical Assistance long-term care eligibility is determined",
+        "processingTime": "Not specified, eligibility cannot begin before LTCC assessment is completed, care plan is developed, and Medical Assistance long-term care eligibility is determined",
         "waitlist": null,
-        "tip": "Start with a face-to-face interview at your county office if possible — the process is complex and having help can prevent delays from missing documentation.",
+        "tip": "Start with a face-to-face interview at your county office if possible, the process is complex and having help can prevent delays from missing documentation.",
         "urls": [
           {
             "label": "Find Long-Term Care Consultation contacts",
@@ -331,10 +331,10 @@
         }
       ],
       "applicationNotes": [
-        "People with income above Medical Assistance limits may still qualify through monthly spenddown or waiver obligation payments — don't assume high income disqualifies",
+        "People with income above Medical Assistance limits may still qualify through monthly spenddown or waiver obligation payments, don't assume high income disqualifies",
         "If your loved one has income at or below 120% of federal poverty guidelines and assets under $3,000, they may need to apply for Alternative Care instead of Elderly Waiver",
-        "The cost of your loved one's community services must be less than nursing home costs, or they won't qualify — this is determined during the assessment",
-        "Different counties may have different wait times and provider availability — ask about current capacity when you apply"
+        "The cost of your loved one's community services must be less than nursing home costs, or they won't qualify, this is determined during the assessment",
+        "Different counties may have different wait times and provider availability, ask about current capacity when you apply"
       ],
       "relatedPrograms": [
         "Alternative Care (AC)",
@@ -346,11 +346,11 @@
       "faqs": [
         {
           "question": "Can my loved one keep their house if it's worth more than $3,000?",
-          "answer": "Yes, the home where your loved one lives is typically exempt from the $3,000 asset limit under Medical Assistance rules. However, there may be limits on home equity value — check current MA long-term care guidelines for specific amounts."
+          "answer": "Yes, the home where your loved one lives is typically exempt from the $3,000 asset limit under Medical Assistance rules. However, there may be limits on home equity value, check current MA long-term care guidelines for specific amounts."
         },
         {
           "question": "What if my loved one's income is too high for Medical Assistance?",
-          "answer": "They may still qualify through spenddown (paying medical expenses to reduce countable income) or waiver obligation (monthly payment toward care costs). People who meet the Special Income Standard may qualify without spenddown — your county can explain these options."
+          "answer": "They may still qualify through spenddown (paying medical expenses to reduce countable income) or waiver obligation (monthly payment toward care costs). People who meet the Special Income Standard may qualify without spenddown, your county can explain these options."
         },
         {
           "question": "How do I know if my loved one needs 'nursing facility level of care'?",
@@ -395,7 +395,7 @@
       "id": "msho-senior-health-options",
       "name": "Minnesota Senior Health Options (MSHO)",
       "shortName": "MSHO",
-      "tagline": "One health plan combining Medicare and Medicaid for seniors with low income — simplified billing and extra benefits like dental and transportation.",
+      "tagline": "One health plan combining Medicare and Medicaid for seniors with low income, simplified billing and extra benefits like dental and transportation.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -408,7 +408,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ with Medicare and qualifies for Medicaid, MSHO combines both programs into one managed care plan. Instead of dealing with separate Medicare and Medicaid providers, one health plan coordinates all medical care, prescription drugs, and additional services like dental, transportation, and care coordination.\n\nMSHO covers everything standard Medicare and Medicaid provide, plus extra benefits that vary by health plan — things like over-the-counter allowances, wellness programs like SilverSneakers, and in-home personal care services. Prescription copays are low (based on income level), and most medical and dental services at in-network providers cost $0.\n\nThe catch: your loved one must first qualify for Minnesota Medical Assistance (Medicaid), and MSHO is only available in certain counties where participating health plans operate. Because this requires dual eligibility for both Medicare and Medicaid, the application process involves proving both age/Medicare status and low income/assets for Medicaid.",
+      "intro": "If your loved one is 65+ with Medicare and qualifies for Medicaid, MSHO combines both programs into one managed care plan. Instead of dealing with separate Medicare and Medicaid providers, one health plan coordinates all medical care, prescription drugs, and additional services like dental, transportation, and care coordination.\n\nMSHO covers everything standard Medicare and Medicaid provide, plus extra benefits that vary by health plan, things like over-the-counter allowances, wellness programs like SilverSneakers, and in-home personal care services. Prescription copays are low (based on income level), and most medical and dental services at in-network providers cost $0.\n\nThe catch: your loved one must first qualify for Minnesota Medical Assistance (Medicaid), and MSHO is only available in certain counties where participating health plans operate. Because this requires dual eligibility for both Medicare and Medicaid, the application process involves proving both age/Medicare status and low income/assets for Medicaid.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -426,16 +426,16 @@
         "functionalRequirement": "Some services like personal care assistance require help with daily activities like bathing or dressing, but no functional requirement for basic MSHO enrollment",
         "otherRequirements": [
           "Must be eligible for Minnesota Medical Assistance (Medicaid)",
-          "Must have Medicare Parts A and B (not just eligible — must be enrolled)",
+          "Must have Medicare Parts A and B (not just eligible, must be enrolled)",
           "Must be US citizen or lawfully present",
           "Must live in a county where an MSHO health plan operates",
-          "Voluntary enrollment — you can choose other options"
+          "Voluntary enrollment, you can choose other options"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "First apply for Medical Assistance through your county, then choose an MSHO health plan — total process typically takes 30-45 days.",
+        "summary": "First apply for Medical Assistance through your county, then choose an MSHO health plan, total process typically takes 30-45 days.",
         "steps": [
           {
             "step": 1,
@@ -460,7 +460,7 @@
         ],
         "processingTime": "30-45 days for Medical Assistance approval, then additional time for MSHO plan enrollment",
         "waitlist": null,
-        "tip": "Don't wait — you can research MSHO health plans in your county while your MA application is being processed.",
+        "tip": "Don't wait, you can research MSHO health plans in your county while your MA application is being processed.",
         "urls": [
           {
             "label": "Apply for Medical Assistance at MNsure",
@@ -499,7 +499,7 @@
         {
           "label": "County Human Services Offices",
           "phone": null,
-          "description": "Apply for Medical Assistance in your county — find your local office at mn.gov/dhs",
+          "description": "Apply for Medical Assistance in your county, find your local office at mn.gov/dhs",
           "hours": "Varies by county"
         },
         {
@@ -510,8 +510,8 @@
         }
       ],
       "applicationNotes": [
-        "You cannot apply directly for MSHO — you must first qualify for Medical Assistance through your county",
-        "MSHO is only available in counties where participating health plans operate — check which plans serve your county before applying",
+        "You cannot apply directly for MSHO, you must first qualify for Medical Assistance through your county",
+        "MSHO is only available in counties where participating health plans operate, check which plans serve your county before applying",
         "If you're already in a nursing facility when you enroll, MSHO will not cover your nursing facility costs (only covers 180 days for people entering facilities after enrollment)",
         "If you don't choose MSHO, you'll automatically be enrolled in MSC or MSC+ programs, which are similar but don't integrate Medicare benefits as seamlessly"
       ],
@@ -533,7 +533,7 @@
         },
         {
           "question": "What if my loved one is denied Medical Assistance but I think they should qualify?",
-          "answer": "You can appeal the MA denial within 90 days. Contact your county human services office to request an appeal hearing. Common denial reasons include income slightly over limits or missing documentation — sometimes these can be resolved. Without MA approval, your loved one cannot enroll in MSHO."
+          "answer": "You can appeal the MA denial within 90 days. Contact your county human services office to request an appeal hearing. Common denial reasons include income slightly over limits or missing documentation, sometimes these can be resolved. Without MA approval, your loved one cannot enroll in MSHO."
         },
         {
           "question": "How much will prescription drugs cost under MSHO?",
@@ -587,7 +587,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare but struggles to pay premiums, deductibles, and copays, Medicare Savings Programs can eliminate these costs entirely. These programs come in three tiers based on income: QMB covers all Medicare costs including deductibles and copays, while SLMB and QI cover Medicare Part B premiums ($170.10/month in 2025). Because Minnesota has higher asset limits than federal standards ($10,000 for singles vs. $9,430 federally), your loved one may qualify even if they wouldn't in other states.\n\nThe programs work differently than supplements — they pay providers directly, so your loved one never sees a bill for covered Medicare services. QMB provides the most comprehensive coverage, paying all Medicare-approved costs. However, QI has limited funding and operates first-come, first-served, creating potential waitlists during busy application periods.",
+      "intro": "If your loved one has Medicare but struggles to pay premiums, deductibles, and copays, Medicare Savings Programs can eliminate these costs entirely. These programs come in three tiers based on income: QMB covers all Medicare costs including deductibles and copays, while SLMB and QI cover Medicare Part B premiums ($170.10/month in 2025). Because Minnesota has higher asset limits than federal standards ($10,000 for singles vs. $9,430 federally), your loved one may qualify even if they wouldn't in other states.\n\nThe programs work differently than supplements, they pay providers directly, so your loved one never sees a bill for covered Medicare services. QMB provides the most comprehensive coverage, paying all Medicare-approved costs. However, QI has limited funding and operates first-come, first-served, creating potential waitlists during busy application periods.",
       "savingsRange": "$1,700 – $3,500/year",
       "savingsSource": "Medicare Part B premiums plus deductibles and copays for QMB tier",
       "savingsVerified": true,
@@ -659,7 +659,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Minnesota's health care programs portal or at your local county office — processing typically takes 30-45 days.",
+        "summary": "Apply online through Minnesota's health care programs portal or at your local county office, processing typically takes 30-45 days.",
         "steps": [
           {
             "step": 1,
@@ -683,7 +683,7 @@
           }
         ],
         "processingTime": "30-45 days, varies by county",
-        "waitlist": "QI program has limited funding — apply early in fiscal year as funds may run out",
+        "waitlist": "QI program has limited funding, apply early in fiscal year as funds may run out",
         "tip": "Income is calculated after standard disregards ($20 general plus half of earned income), so your loved one may qualify even if gross income appears too high.",
         "urls": [
           {
@@ -732,10 +732,10 @@
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited and awarded first-come, first-served — apply as early in the fiscal year as possible to avoid waitlists",
+        "QI program funding is limited and awarded first-come, first-served, apply as early in the fiscal year as possible to avoid waitlists",
         "Income limits change annually (typically July 1) and Minnesota often exceeds federal minimums, so recheck eligibility if previously denied",
-        "Standard income disregards ($20 plus half of earned income) are applied before determining eligibility — this can make you eligible even if gross income appears too high",
-        "Processing times vary significantly by county due to staffing — follow up if you haven't heard back within 45 days"
+        "Standard income disregards ($20 plus half of earned income) are applied before determining eligibility, this can make you eligible even if gross income appears too high",
+        "Processing times vary significantly by county due to staffing, follow up if you haven't heard back within 45 days"
       ],
       "relatedPrograms": [
         "Extra Help (Medicare Part D Low-Income Subsidy)",
@@ -747,7 +747,7 @@
         {
           "type": "tier-comparison",
           "title": "Program Tiers: What Each Level Covers",
-          "content": "**QMB (Qualified Medicare Beneficiary)**: Covers all Medicare costs — Part A and B premiums, deductibles, coinsurance, and copays. Providers cannot bill you for any Medicare-covered services. Income limit: $1,325/month single, $1,783/month married.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**: Covers Medicare Part B premiums only ($170.10/month in 2025). You're still responsible for deductibles and copays. Income limit: $1,585/month single, $2,135/month married.\n\n**QI (Qualifying Individual)**: Covers Medicare Part B premiums only, same as SLMB. Automatically qualifies you for Extra Help prescription drug coverage. Income limit: $1,781/month single, $2,400/month married. Limited funding — may have waitlist."
+          "content": "**QMB (Qualified Medicare Beneficiary)**: Covers all Medicare costs, Part A and B premiums, deductibles, coinsurance, and copays. Providers cannot bill you for any Medicare-covered services. Income limit: $1,325/month single, $1,783/month married.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**: Covers Medicare Part B premiums only ($170.10/month in 2025). You're still responsible for deductibles and copays. Income limit: $1,585/month single, $2,135/month married.\n\n**QI (Qualifying Individual)**: Covers Medicare Part B premiums only, same as SLMB. Automatically qualifies you for Extra Help prescription drug coverage. Income limit: $1,781/month single, $2,400/month married. Limited funding, may have waitlist."
         }
       ],
       "faqs": [
@@ -773,7 +773,7 @@
         },
         {
           "question": "What if my loved one gets QMB but a doctor still sends them a bill?",
-          "answer": "Contact the provider immediately — QMB beneficiaries cannot be billed for Medicare-covered services. Providers who bill QMB patients are violating federal law. If the provider won't remove charges, contact your county human services office for assistance."
+          "answer": "Contact the provider immediately, QMB beneficiaries cannot be billed for Medicare-covered services. Providers who bill QMB patients are violating federal law. If the provider won't remove charges, contact your county human services office for assistance."
         },
         {
           "question": "Do we need to report changes in my loved one's income or assets?",
@@ -781,7 +781,7 @@
         },
         {
           "question": "Can my loved one apply for all three programs at once to see which they qualify for?",
-          "answer": "You only submit one application — the county will determine which program tier your loved one qualifies for based on their income level. They'll automatically place your loved one in the highest benefit level they're eligible for."
+          "answer": "You only submit one application, the county will determine which program tier your loved one qualifies for based on their income level. They'll automatically place your loved one in the highest benefit level they're eligible for."
         }
       ],
       "layoutIntent": {
@@ -802,7 +802,7 @@
       "id": "snap-food-benefits",
       "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Minnesota SNAP",
-      "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes — up to $546/month with no gross income limits",
+      "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes, up to $546/month with no gross income limits",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -815,7 +815,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $100-546 per month on an EBT card for food purchases. Because your loved one is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000) — making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your loved one can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
+      "intro": "If your loved one is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $100-546 per month on an EBT card for food purchases. Because your loved one is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000), making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your loved one can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
       "savingsRange": "$1,200 – $6,552/year in 2026",
       "savingsSource": "Maximum monthly SNAP allotments for 1-person ($546) and 2-person households, Minnesota DHS 2025-2026",
       "savingsVerified": true,
@@ -888,7 +888,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through your county portal, by phone to your county office, or use the Senior SNAP Application form — processing time varies by county.",
+        "summary": "Apply online through your county portal, by phone to your county office, or use the Senior SNAP Application form, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -916,9 +916,9 @@
             "description": "If approved, you'll receive a Minnesota EBT card loaded with monthly benefits. Benefits are added on the same date each month."
           }
         ],
-        "processingTime": "Varies by county — contact your local office for specific timelines",
+        "processingTime": "Varies by county, contact your local office for specific timelines",
         "waitlist": null,
-        "tip": "Seniors 60+ should use the Senior SNAP Application rather than the standard Combined Application Form — it's designed specifically for older adults.",
+        "tip": "Seniors 60+ should use the Senior SNAP Application rather than the standard Combined Application Form, it's designed specifically for older adults.",
         "urls": [
           {
             "label": "Find County Office",
@@ -965,7 +965,7 @@
       ],
       "applicationNotes": [
         "Seniors 60+ can form a separate SNAP household even if living with family, as long as they buy and prepare their own food",
-        "No gross income test applies to households with members 60+ or disabled — only net income matters after deductions",
+        "No gross income test applies to households with members 60+ or disabled, only net income matters after deductions",
         "Medical expenses over $35/month and shelter costs significantly reduce countable income, potentially increasing benefits",
         "If you're already receiving SSI, MSA, or General Assistance, you're automatically eligible and should mention this when applying"
       ],
@@ -983,7 +983,7 @@
         },
         {
           "question": "Will my loved one's house count against the $4,500 asset limit?",
-          "answer": "No. The primary home is typically exempt from asset limits for SNAP. The $4,500 limit applies to countable assets like cash, bank accounts, and investments — not the home they live in."
+          "answer": "No. The primary home is typically exempt from asset limits for SNAP. The $4,500 limit applies to countable assets like cash, bank accounts, and investments, not the home they live in."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -1003,7 +1003,7 @@
         },
         {
           "question": "How quickly do SNAP benefits start after approval?",
-          "answer": "Benefits typically start the month after approval, loaded onto an EBT card on the same date each month. Emergency cases may receive expedited processing, but timelines vary by county — ask about expedited service when applying."
+          "answer": "Benefits typically start the month after approval, loaded onto an EBT card on the same date each month. Emergency cases may receive expedited processing, but timelines vary by county, ask about expedited service when applying."
         },
         {
           "question": "Can SNAP benefits be used for any food items?",
@@ -1041,7 +1041,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand all their choices. Because Medicare has multiple parts (A, B, C, D) plus Medigap and various savings programs, a trained counselor can walk through your loved one's specific situation and explain which options might save them money.\n\nSHIP counselors help with Medicare plan comparisons, appeals when coverage is denied, spotting Medicare fraud, and connecting your loved one to programs that help pay premiums or prescription costs. No income limits apply — any Medicare beneficiary or their family can get help.\n\nCounseling is available immediately by phone at (800) 333-2433 or through over 2,200 local sites statewide. The service is completely free and unbiased — counselors don't sell insurance.",
+      "intro": "If your loved one has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand all their choices. Because Medicare has multiple parts (A, B, C, D) plus Medigap and various savings programs, a trained counselor can walk through your loved one's specific situation and explain which options might save them money.\n\nSHIP counselors help with Medicare plan comparisons, appeals when coverage is denied, spotting Medicare fraud, and connecting your loved one to programs that help pay premiums or prescription costs. No income limits apply, any Medicare beneficiary or their family can get help.\n\nCounseling is available immediately by phone at (800) 333-2433 or through over 2,200 local sites statewide. The service is completely free and unbiased, counselors don't sell insurance.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1062,7 +1062,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call (800) 333-2433 for immediate counseling — no forms or applications needed.",
+        "summary": "Call (800) 333-2433 for immediate counseling, no forms or applications needed.",
         "steps": [
           {
             "step": 1,
@@ -1082,7 +1082,7 @@
         ],
         "processingTime": "Immediate counseling available via phone or in-person",
         "waitlist": null,
-        "tip": "Have your loved one's Medicare card and current prescription list ready when you call — this helps counselors give more specific advice about plan options.",
+        "tip": "Have your loved one's Medicare card and current prescription list ready when you call, this helps counselors give more specific advice about plan options.",
         "urls": [
           {
             "label": "Minnesota Board on Aging",
@@ -1126,7 +1126,7 @@
           "answer": "No, SHIP counselors are completely unbiased and don't sell any insurance products. They provide free education about all available options so you and your loved one can make informed decisions about Medicare coverage."
         },
         {
-          "question": "My loved one already has Medicare — can SHIP still help if we just have questions about coverage?",
+          "question": "My loved one already has Medicare, can SHIP still help if we just have questions about coverage?",
           "answer": "Absolutely. SHIP helps with ongoing Medicare questions like understanding what's covered, appealing denied claims, comparing plans during open enrollment, and identifying programs that might help pay premiums or prescription costs."
         }
       ],
@@ -1197,12 +1197,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider directly — no universal application exists statewide.",
+        "summary": "Call your local provider directly, no universal application exists statewide.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Contact varies by region: Three Rivers CAP serves southeast MN at (507) 316-0610 or (800) 277-8418. Meals on Wheels of Ramsey County serves the Twin Cities metro. Other areas served by local providers — call 2-1-1 to find yours."
+            "description": "Contact varies by region: Three Rivers CAP serves southeast MN at (507) 316-0610 or (800) 277-8418. Meals on Wheels of Ramsey County serves the Twin Cities metro. Other areas served by local providers, call 2-1-1 to find yours."
           },
           {
             "step": 2,
@@ -1249,9 +1249,9 @@
         }
       ],
       "applicationNotes": [
-        "Rural residents outside city limits may face delivery restrictions — ask your local provider about service boundaries",
+        "Rural residents outside city limits may face delivery restrictions, ask your local provider about service boundaries",
         "Severe weather may cancel deliveries, so have backup meal options available",
-        "Donations are requested monthly but completely optional — no one is turned away for inability to pay",
+        "Donations are requested monthly but completely optional, no one is turned away for inability to pay",
         "Some providers emphasize no turn-away policy while others may have capacity limits"
       ],
       "relatedPrograms": [
@@ -1324,7 +1324,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Minnesota's Family Adult Assistance Program may cover personal care assistance, homemaker services, and respite care. This county-administered program provides home and community-based services specifically designed to prevent nursing home placement for adults who would otherwise need facility-level care.\n\nBecause FAA operates through your local county human services office, eligibility requirements, available services, and wait times vary significantly by location. Your loved one will need a clinical assessment to determine if they require nursing facility level of care — meaning they need substantial daily assistance with basic activities like eating, bathing, or managing medications.\n\nUnlike many state programs, FAA doesn't publish statewide income or asset limits. Each county handles applications differently, making direct contact with your local office essential for current availability and requirements.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Minnesota's Family Adult Assistance Program may cover personal care assistance, homemaker services, and respite care. This county-administered program provides home and community-based services specifically designed to prevent nursing home placement for adults who would otherwise need facility-level care.\n\nBecause FAA operates through your local county human services office, eligibility requirements, available services, and wait times vary significantly by location. Your loved one will need a clinical assessment to determine if they require nursing facility level of care, meaning they need substantial daily assistance with basic activities like eating, bathing, or managing medications.\n\nUnlike many state programs, FAA doesn't publish statewide income or asset limits. Each county handles applications differently, making direct contact with your local office essential for current availability and requirements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1348,7 +1348,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your local county human services office directly — no statewide application process exists.",
+        "summary": "Contact your local county human services office directly, no statewide application process exists.",
         "steps": [
           {
             "step": 1,
@@ -1368,7 +1368,7 @@
           {
             "step": 4,
             "title": "Submit financial documentation",
-            "description": "Provide income and asset verification as requested by your county office — requirements vary by location."
+            "description": "Provide income and asset verification as requested by your county office, requirements vary by location."
           },
           {
             "step": 5,
@@ -1376,9 +1376,9 @@
             "description": "County reviews application and notifies you of approval status and available services if eligible."
           }
         ],
-        "processingTime": "Varies by county — contact local office for current timeline",
+        "processingTime": "Varies by county, contact local office for current timeline",
         "waitlist": "Varies by county and service type",
-        "tip": "Call your county office before gathering documents — each county has different paperwork requirements and may expedite processing for urgent situations.",
+        "tip": "Call your county office before gathering documents, each county has different paperwork requirements and may expedite processing for urgent situations.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1402,7 +1402,7 @@
         {
           "label": "Minnesota Department of Human Services",
           "phone": null,
-          "description": "State agency overseeing FAA — directs callers to local county offices",
+          "description": "State agency overseeing FAA, directs callers to local county offices",
           "hours": null
         },
         {
@@ -1413,10 +1413,10 @@
         }
       ],
       "applicationNotes": [
-        "Each county sets its own income and asset limits — what disqualifies your loved one in one county may be acceptable in another",
-        "Some counties have immediate openings while others maintain multi-month waitlists — ask about current availability when calling",
+        "Each county sets its own income and asset limits, what disqualifies your loved one in one county may be acceptable in another",
+        "Some counties have immediate openings while others maintain multi-month waitlists, ask about current availability when calling",
         "If your loved one is being discharged from a hospital, contact the county office immediately as crisis situations may receive expedited processing",
-        "Counties often confuse FAA with MFIP (Minnesota Family Investment Program) which serves families with children — specifically ask for adult disability services"
+        "Counties often confuse FAA with MFIP (Minnesota Family Investment Program) which serves families with children, specifically ask for adult disability services"
       ],
       "relatedPrograms": [
         "Minnesota Senior LinkAge Line",
@@ -1436,7 +1436,7 @@
         },
         {
           "question": "How long is the waitlist really, and are there ways to get priority?",
-          "answer": "Wait times vary dramatically by county — some have immediate openings while others have 6+ month waits. Crisis situations (like hospital discharge with no family support) often receive priority placement. Ask your county about their prioritization criteria."
+          "answer": "Wait times vary dramatically by county, some have immediate openings while others have 6+ month waits. Crisis situations (like hospital discharge with no family support) often receive priority placement. Ask your county about their prioritization criteria."
         },
         {
           "question": "Can my loved one receive both FAA services and Medical Assistance at the same time?",
@@ -1498,7 +1498,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and struggling to find work on a limited income, SCSEP provides paid part-time training positions while helping them transition to permanent employment. Your loved one works about 20 hours per week at minimum wage ($10.85/hour in Minnesota) at nonprofits, schools, hospitals, or senior centers while receiving job coaching and placement assistance.\n\nBecause this is a federal training program, your loved one must be unemployed and have family income at or below 125% of the federal poverty level (approximately $18,600 per year for a single person in 2026). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. The program is not available in all Minnesota counties — you'll need to contact the specific provider serving your loved one's area.",
+      "intro": "If your loved one is 55+ and struggling to find work on a limited income, SCSEP provides paid part-time training positions while helping them transition to permanent employment. Your loved one works about 20 hours per week at minimum wage ($10.85/hour in Minnesota) at nonprofits, schools, hospitals, or senior centers while receiving job coaching and placement assistance.\n\nBecause this is a federal training program, your loved one must be unemployed and have family income at or below 125% of the federal poverty level (approximately $18,600 per year for a single person in 2026). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. The program is not available in all Minnesota counties, you'll need to contact the specific provider serving your loved one's area.",
       "savingsRange": "$11,284/year in 2026",
       "savingsSource": "20 hours/week at $10.85/hour minimum wage",
       "savingsVerified": true,
@@ -1541,7 +1541,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's SCSEP provider directly — wait times vary by area and priority level.",
+        "summary": "Call your county's SCSEP provider directly, wait times vary by area and priority level.",
         "steps": [
           {
             "step": 1,
@@ -1564,9 +1564,9 @@
             "description": "If approved, you'll be matched with a community service worksite based on your skills and interests. Priority applicants get preference for available slots."
           }
         ],
-        "processingTime": "Not specified — depends on available openings",
+        "processingTime": "Not specified, depends on available openings",
         "waitlist": "Possible waitlists in some counties due to limited federal funding slots and priority system",
-        "tip": "Veterans and adults over 65 get priority placement — mention this status when calling.",
+        "tip": "Veterans and adults over 65 get priority placement, mention this status when calling.",
         "urls": [
           {
             "label": "Minnesota DEED SCSEP Overview",
@@ -1607,9 +1607,9 @@
         }
       ],
       "applicationNotes": [
-        "Coverage varies by county — some counties may not currently have SCSEP providers or may have waitlists due to federal funding limits",
+        "Coverage varies by county, some counties may not currently have SCSEP providers or may have waitlists due to federal funding limits",
         "Priority enrollment goes to veterans, adults 65+, those with disabilities, limited English proficiency, rural residents, and homeless individuals",
-        "This is temporary training employment — the goal is to transition to permanent unsubsidized work within the training period",
+        "This is temporary training employment, the goal is to transition to permanent unsubsidized work within the training period",
         "Program funding comes from federal grants which can experience pauses or furloughs that temporarily suspend new enrollments"
       ],
       "relatedPrograms": [
@@ -1696,7 +1696,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal issues like elder abuse, wrongful nursing home discharge, or denied benefits, they may qualify for free civil legal services regardless of income. Legal assistance covers everything from elder abuse protection and housing discrimination to appealing denied Social Security or Medical Assistance claims.\n\nServices include advice, consultation, and full representation for civil cases only (no criminal or personal injury cases). Your loved one gets priority based on their greatest social and economic need, and income doesn't disqualify seniors 60+ from getting help.\n\nCoverage varies by county — Mid-Minnesota Legal Aid serves 26 counties for seniors, while other providers like Central Minnesota Legal Services and Justice North cover different regions across the state.",
+      "intro": "If your loved one is 60+ and facing legal issues like elder abuse, wrongful nursing home discharge, or denied benefits, they may qualify for free civil legal services regardless of income. Legal assistance covers everything from elder abuse protection and housing discrimination to appealing denied Social Security or Medical Assistance claims.\n\nServices include advice, consultation, and full representation for civil cases only (no criminal or personal injury cases). Your loved one gets priority based on their greatest social and economic need, and income doesn't disqualify seniors 60+ from getting help.\n\nCoverage varies by county, Mid-Minnesota Legal Aid serves 26 counties for seniors, while other providers like Central Minnesota Legal Services and Justice North cover different regions across the state.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1713,7 +1713,7 @@
         "functionalRequirement": null,
         "otherRequirements": [
           "Must reside in or have case venued in the service area counties",
-          "Civil cases only — excludes criminal, personal injury, or cases awarding damages",
+          "Civil cases only, excludes criminal, personal injury, or cases awarding damages",
           "Case prioritized based on social and economic need"
         ],
         "povertyLevelReference": null
@@ -1835,7 +1835,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or receives home care services in Minnesota, the Long-Term Care Ombudsman provides free advocacy when problems arise. Regional ombudsmen and trained volunteers investigate complaints about care quality, resident rights violations, billing disputes, and safety concerns.\n\nBecause ombudsmen are independent advocates, they can resolve issues that families struggle to address directly with facilities or providers. They visit facilities regularly (at least 6 hours monthly), know the regulations, and have authority to investigate complaints and push for solutions. No income limits apply — services are free to anyone needing or receiving long-term care in Minnesota.\n\nThe program serves current residents, family members, and anyone seeking information about long-term care options. Regional offices coordinate services statewide, with local ombudsmen handling individual cases and systemic advocacy for policy improvements.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or receives home care services in Minnesota, the Long-Term Care Ombudsman provides free advocacy when problems arise. Regional ombudsmen and trained volunteers investigate complaints about care quality, resident rights violations, billing disputes, and safety concerns.\n\nBecause ombudsmen are independent advocates, they can resolve issues that families struggle to address directly with facilities or providers. They visit facilities regularly (at least 6 hours monthly), know the regulations, and have authority to investigate complaints and push for solutions. No income limits apply, services are free to anyone needing or receiving long-term care in Minnesota.\n\nThe program serves current residents, family members, and anyone seeking information about long-term care options. Regional offices coordinate services statewide, with local ombudsmen handling individual cases and systemic advocacy for policy improvements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1860,7 +1860,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free helpline to file a complaint or request assistance — no application forms required.",
+        "summary": "Call the toll-free helpline to file a complaint or request assistance, no application forms required.",
         "steps": [
           {
             "step": 1,
@@ -1883,9 +1883,9 @@
             "description": "The assigned ombudsman will investigate the complaint, visit the facility if needed, and work to resolve the issue while protecting your loved one's rights."
           }
         ],
-        "processingTime": "Response time varies by case complexity — complaints receive prompt attention",
+        "processingTime": "Response time varies by case complexity, complaints receive prompt attention",
         "waitlist": null,
-        "tip": "Keep detailed records of specific incidents, dates, and staff names involved before calling — this helps ombudsmen investigate more effectively.",
+        "tip": "Keep detailed records of specific incidents, dates, and staff names involved before calling, this helps ombudsmen investigate more effectively.",
         "urls": [
           {
             "label": "Minnesota Long-Term Care Ombudsman",
@@ -1929,7 +1929,7 @@
         },
         {
           "question": "What if the nursing home retaliates against my loved one for filing a complaint?",
-          "answer": "Retaliation is illegal and a serious violation. Ombudsmen are trained to handle complaints confidentially when possible and can investigate retaliation as a separate complaint. Contact the ombudsman immediately if you suspect retaliation — they have authority to address this directly with facility administrators."
+          "answer": "Retaliation is illegal and a serious violation. Ombudsmen are trained to handle complaints confidentially when possible and can investigate retaliation as a separate complaint. Contact the ombudsman immediately if you suspect retaliation, they have authority to address this directly with facility administrators."
         },
         {
           "question": "Can the ombudsman help if my loved one is being discharged from their facility?",
@@ -1983,7 +1983,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your loved one won't need to navigate multiple providers or coordinate between separate systems — one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your loved one needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties — if your loved one is eligible for Medicaid and lives in a county-based purchasing (CBP) area, they'll automatically be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
+      "intro": "If your loved one is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your loved one won't need to navigate multiple providers or coordinate between separate systems, one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your loved one needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties, if your loved one is eligible for Medicaid and lives in a county-based purchasing (CBP) area, they'll automatically be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2008,7 +2008,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for Medical Assistance first through your county office, then you'll be automatically enrolled in MSC+ if eligible — processing time varies by county.",
+        "summary": "Apply for Medical Assistance first through your county office, then you'll be automatically enrolled in MSC+ if eligible, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -2028,7 +2028,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Check if your county uses CBP (county-based purchasing) or PMAP system — MSC+ is only available in CBP counties.",
+        "tip": "Check if your county uses CBP (county-based purchasing) or PMAP system, MSC+ is only available in CBP counties.",
         "urls": [
           {
             "label": "Minnesota DHS Medical Assistance Application",
@@ -2069,8 +2069,8 @@
         }
       ],
       "applicationNotes": [
-        "MSC+ is mandatory enrollment — if you're eligible and live in a CBP county, you'll be automatically enrolled unless you choose MSHO",
-        "Different managed care organizations have different provider networks — make sure your loved one's current doctors accept the MCO you choose"
+        "MSC+ is mandatory enrollment, if you're eligible and live in a CBP county, you'll be automatically enrolled unless you choose MSHO",
+        "Different managed care organizations have different provider networks, make sure your loved one's current doctors accept the MCO you choose"
       ],
       "relatedPrograms": [
         "Minnesota Medical Assistance (Medicaid)",
@@ -2119,7 +2119,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs help understanding Medicare options, finding home care services, or planning a move to assisted living, Minnesota Aging Pathways provides free counseling and referrals statewide. The service connects families to local resources and is required for anyone considering nursing home or assisted living placement.\n\nBecause Aging Pathways counselors are SHINE-certified Medicare specialists, your loved one can get personalized guidance on Medicare enrollment, plan comparisons, and coverage questions. The service also handles preadmission screening (PAS) — the mandatory assessment required before nursing facility admission regardless of how you plan to pay.\n\nThere are no income limits or costs for the counseling itself. However, any services they refer you to (like county home care programs or Medicaid) will have their own eligibility requirements and may involve separate applications.",
+      "intro": "If your loved one needs help understanding Medicare options, finding home care services, or planning a move to assisted living, Minnesota Aging Pathways provides free counseling and referrals statewide. The service connects families to local resources and is required for anyone considering nursing home or assisted living placement.\n\nBecause Aging Pathways counselors are SHINE-certified Medicare specialists, your loved one can get personalized guidance on Medicare enrollment, plan comparisons, and coverage questions. The service also handles preadmission screening (PAS), the mandatory assessment required before nursing facility admission regardless of how you plan to pay.\n\nThere are no income limits or costs for the counseling itself. However, any services they refer you to (like county home care programs or Medicaid) will have their own eligibility requirements and may involve separate applications.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2142,7 +2142,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-333-2433 for immediate phone assistance — no forms or appointments needed.",
+        "summary": "Call 800-333-2433 for immediate phone assistance, no forms or appointments needed.",
         "steps": [
           {
             "step": 1,
@@ -2162,7 +2162,7 @@
         ],
         "processingTime": "Phone assistance immediate; resource coordination and referrals typically involve prompt follow-up after initial call",
         "waitlist": null,
-        "tip": "Have your loved one's Medicare card and a list of their current medications ready when you call — this helps counselors give more specific guidance.",
+        "tip": "Have your loved one's Medicare card and a list of their current medications ready when you call, this helps counselors give more specific guidance.",
         "urls": [
           {
             "label": "Online referral form",
@@ -2223,7 +2223,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Minnesota offers 12 major programs for seniors — 6 provide direct financial benefits or services, while 4 offer free resources available to any caregiver. The financial help ranges from Medical Assistance covering all health costs to SNAP providing up to $546/month for groceries. Free resources include Medicare counseling, legal help, and advocacy for nursing home issues. Minnesota's advantage: programs like MSHO and MSC+ combine Medicare and Medicaid under one plan, reducing paperwork and coordination hassles. Start by checking if your loved one qualifies for Medical Assistance — it's the foundation that unlocks home care services, nursing home coverage, and simplified health plans.",
+    "intro": "Minnesota offers 12 major programs for seniors, 6 provide direct financial benefits or services, while 4 offer free resources available to any caregiver. The financial help ranges from Medical Assistance covering all health costs to SNAP providing up to $546/month for groceries. Free resources include Medicare counseling, legal help, and advocacy for nursing home issues. Minnesota's advantage: programs like MSHO and MSC+ combine Medicare and Medicaid under one plan, reducing paperwork and coordination hassles. Start by checking if your loved one qualifies for Medical Assistance, it's the foundation that unlocks home care services, nursing home coverage, and simplified health plans.",
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid)",
@@ -2292,10 +2292,10 @@
     ],
     "quickFacts": [
       "Minnesota combines Medicare and Medicaid through special plans (MSHO and MSC+) that simplify billing and add benefits like dental and transportation.",
-      "SNAP has no gross income limits for seniors 60+ in Minnesota — only net income matters after deductions.",
+      "SNAP has no gross income limits for seniors 60+ in Minnesota, only net income matters after deductions.",
       "Medical Assistance is Minnesota's Medicaid program and the gateway to home care waivers and nursing home coverage.",
       "All counseling and advocacy resources are free regardless of your loved one's income or assets."
     ],
-    "resourcesVsBenefits": "Six programs require qualification based on income, assets, or care needs — these provide direct financial benefits like Medical Assistance covering health costs or SNAP providing grocery money. Four programs are free resources available to any Minnesota caregiver: SHIP for Medicare help, Legal Assistance for elder law issues, the Ombudsman for nursing home problems, and Aging Pathways for general guidance. Start with free resources to understand options, then apply for benefits your loved one qualifies for."
+    "resourcesVsBenefits": "Six programs require qualification based on income, assets, or care needs, these provide direct financial benefits like Medical Assistance covering health costs or SNAP providing grocery money. Four programs are free resources available to any Minnesota caregiver: SHIP for Medicare help, Legal Assistance for elder law issues, the Ombudsman for nursing home problems, and Aging Pathways for general guidance. Start with free resources to understand options, then apply for benefits your loved one qualifies for."
   }
 }

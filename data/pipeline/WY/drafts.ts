@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.109Z
+ * Last updated: 2026-04-20T23:39:07.880Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your Wyoming loved one is 62 or older, they automatically qualify for reduced fees at all Wyoming state parks and historic sites — no application needed. They'll pay less for day-use passes, camping spots, cabin rentals, and entry to historic sites like Fort Laramie and Devils Tower.\n\nBecause there's no formal senior pass to purchase, your loved one simply shows their photo ID and proof of Wyoming residency at the park entrance to receive the discount. This works at all 35+ state parks and historic sites across Wyoming, from Curt Gowdy State Park to Hot Springs State Park.\n\nThis discount is separate from the federal Senior Pass for national parks like Yellowstone — that's a different program with different requirements. Wyoming's program is specifically for state-run parks and historic sites.",
+      "intro": "If your Wyoming loved one is 62 or older, they automatically qualify for reduced fees at all Wyoming state parks and historic sites, no application needed. They'll pay less for day-use passes, camping spots, cabin rentals, and entry to historic sites like Fort Laramie and Devils Tower.\n\nBecause there's no formal senior pass to purchase, your loved one simply shows their photo ID and proof of Wyoming residency at the park entrance to receive the discount. This works at all 35+ state parks and historic sites across Wyoming, from Curt Gowdy State Park to Hot Springs State Park.\n\nThis discount is separate from the federal Senior Pass for national parks like Yellowstone, that's a different program with different requirements. Wyoming's program is specifically for state-run parks and historic sites.",
       "savingsRange": "",
       "savingsSource": "Discount amount varies by park and activity type",
       "savingsVerified": false,
@@ -49,7 +49,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Show ID and proof of Wyoming residency at any park entrance — discount applied immediately.",
+        "summary": "Show ID and proof of Wyoming residency at any park entrance, discount applied immediately.",
         "steps": [
           {
             "step": 1,
@@ -74,7 +74,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate at park entrance",
         "waitlist": null,
-        "tip": "The discount isn't automatic — you must ask for it and show proof each time you visit.",
+        "tip": "The discount isn't automatic, you must ask for it and show proof each time you visit.",
         "urls": [
           {
             "label": "Wyoming State Parks Reservations",
@@ -99,9 +99,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must request the discount each time you visit — it's not automatically applied to your reservation or entry",
+        "You must request the discount each time you visit, it's not automatically applied to your reservation or entry",
         "Online reservations require bringing proof to the park for discount adjustment upon arrival",
-        "This discount is different from annual resident passes — seniors get immediate reductions instead of purchasing a pass"
+        "This discount is different from annual resident passes, seniors get immediate reductions instead of purchasing a pass"
       ],
       "relatedPrograms": [
         "Federal Senior Pass (for national parks)",
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one is a Wyoming resident but doesn't have a Wyoming driver's license?",
-          "answer": "Any proof of Wyoming residency works — utility bills, bank statements, lease agreements, or voter registration cards. The park staff needs to verify both age (62+) and that your loved one lives in Wyoming."
+          "answer": "Any proof of Wyoming residency works, utility bills, bank statements, lease agreements, or voter registration cards. The park staff needs to verify both age (62+) and that your loved one lives in Wyoming."
         },
         {
           "question": "How much money will this actually save?",
@@ -153,7 +153,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low Income Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Help paying winter heating bills — up to $2,176 per year for qualifying Wyoming families.",
+      "tagline": "Help paying winter heating bills, up to $2,176 per year for qualifying Wyoming families.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -215,7 +215,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (800) 246-4221 to start your application — processing varies but funding is limited so apply early in October.",
+        "summary": "Call (800) 246-4221 to start your application, processing varies but funding is limited so apply early in October.",
         "steps": [
           {
             "step": 1,
@@ -239,7 +239,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified; funding is limited and may close early",
-        "waitlist": "No formal waitlist — applications stop when funds are exhausted",
+        "waitlist": "No formal waitlist, applications stop when funds are exhausted",
         "tip": "Apply as early as possible after October 1st since funding runs out and the program closes before the April 30th deadline most years.",
         "urls": []
       },
@@ -301,7 +301,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if we miss the application deadline because the program closes early?",
-          "answer": "If LIEAP funding runs out before April 30th, there's no additional funding until the next heating season starting October 1st. This is why applying as early as possible in October is crucial — waiting until winter arrives often means missing out entirely."
+          "answer": "If LIEAP funding runs out before April 30th, there's no additional funding until the next heating season starting October 1st. This is why applying as early as possible in October is crucial, waiting until winter arrives often means missing out entirely."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one who has trouble with paperwork?",
@@ -388,7 +388,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete annual application",
-            "description": "Fill out the application completely. Remember you must submit a new application every year — previous approvals don't carry over."
+            "description": "Fill out the application completely. Remember you must submit a new application every year, previous approvals don't carry over."
           },
           {
             "step": 4,
@@ -426,9 +426,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits and refund amounts may have changed since 2013 data — verify current amounts before applying",
+        "Income limits and refund amounts may have changed since 2013 data, verify current amounts before applying",
         "Asset limit applies per adult household member, so married couples can have up to $59,900 in combined assets",
-        "Totally (100%) disabled means completely unable to work — partial disability doesn't qualify",
+        "Totally (100%) disabled means completely unable to work, partial disability doesn't qualify",
         "Don't confuse this with Wyoming's separate Property Tax Refund Program, which has different eligibility requirements"
       ],
       "relatedPrograms": [
@@ -480,12 +480,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Wyoming offers 3 key programs to help seniors with living costs — from reducing state park fees to covering heating bills and providing tax relief. These programs can save your loved one $250–2,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your loved one's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
+    "intro": "Wyoming offers 3 key programs to help seniors with living costs, from reducing state park fees to covering heating bills and providing tax relief. These programs can save your loved one $250–2,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your loved one's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
     "startHere": [
       {
         "name": "Low Income Energy Assistance Program (LIHEAP)",
         "programId": "wyoming-liheap",
-        "why": "Wyoming winters are expensive — this covers up to $2,176 in heating bills for qualifying families."
+        "why": "Wyoming winters are expensive, this covers up to $2,176 in heating bills for qualifying families."
       },
       {
         "name": "Wyoming Tax Refund for Elderly & Disabled",

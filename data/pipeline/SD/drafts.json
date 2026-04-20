@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ or disabled and needs long-term care, South Dakota Medicaid covers services Medicare doesn't — including nursing home care, home health aides, personal attendant services, and home modifications. Because this program covers both medical care and long-term supports under one umbrella, your loved one won't need to coordinate between separate providers or worry about coverage gaps.\n\nIncome limit: $2,901/month for a single person, $5,802/month for married couples both applying (2026). Asset limit: $2,000 for singles, with spousal protections up to $148,620 for the community spouse. Your loved one must also meet Nursing Home Level of Care (a clinical assessment of whether they need daily help with bathing, dressing, medication management, or other activities of daily living).\n\nIf your loved one receives SSI, they automatically qualify for basic Medicaid. However, long-term care services require the separate clinical assessment and may have different income thresholds.",
+      "intro": "If your loved one is 65+ or disabled and needs long-term care, South Dakota Medicaid covers services Medicare doesn't, including nursing home care, home health aides, personal attendant services, and home modifications. Because this program covers both medical care and long-term supports under one umbrella, your loved one won't need to coordinate between separate providers or worry about coverage gaps.\n\nIncome limit: $2,901/month for a single person, $5,802/month for married couples both applying (2026). Asset limit: $2,000 for singles, with spousal protections up to $148,620 for the community spouse. Your loved one must also meet Nursing Home Level of Care (a clinical assessment of whether they need daily help with bathing, dressing, medication management, or other activities of daily living).\n\nIf your loved one receives SSI, they automatically qualify for basic Medicaid. However, long-term care services require the separate clinical assessment and may have different income thresholds.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -66,7 +66,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at dss.sd.gov/applyonline or call 1-855-256-6742 — processing takes 45 days, or up to 90 days if disability determination is needed.",
+        "summary": "Apply online at dss.sd.gov/applyonline or call 1-855-256-6742, processing takes 45 days, or up to 90 days if disability determination is needed.",
         "steps": [
           {
             "step": 1,
@@ -91,7 +91,7 @@
         ],
         "processingTime": "45 days for most applications; 90 days if disability determination required",
         "waitlist": null,
-        "tip": "If your loved one is already receiving SSI, mention this upfront — they automatically qualify for basic Medicaid and the process may be faster.",
+        "tip": "If your loved one is already receiving SSI, mention this upfront, they automatically qualify for basic Medicaid and the process may be faster.",
         "urls": [
           {
             "label": "Apply Online",
@@ -132,9 +132,9 @@
       ],
       "applicationNotes": [
         "SSI recipients automatically qualify for basic Medicaid but still need the clinical assessment for long-term care services",
-        "If your loved one's income is slightly over the limit, they may still qualify through medical spend-down — DSS will calculate this",
-        "Spousal impoverishment rules protect the community spouse's income and assets — married couples should ask about these protections",
-        "Applications can be delayed if medical records are incomplete — submit all relevant doctor visits and hospital stays"
+        "If your loved one's income is slightly over the limit, they may still qualify through medical spend-down, DSS will calculate this",
+        "Spousal impoverishment rules protect the community spouse's income and assets, married couples should ask about these protections",
+        "Applications can be delayed if medical records are incomplete, submit all relevant doctor visits and hospital stays"
       ],
       "relatedPrograms": [
         "South Dakota SNAP (Food Benefits)",
@@ -149,7 +149,7 @@
           "answer": "Yes, the primary home is exempt up to $713,000 in equity if your loved one intends to return home. The house doesn't count toward the $2,000 asset limit even if they're currently in a nursing home."
         },
         {
-          "question": "What if my loved one's income is $3,000/month — just over the $2,901 limit?",
+          "question": "What if my loved one's income is $3,000/month, just over the $2,901 limit?",
           "answer": "They may still qualify through medical spend-down. DSS calculates how much of their medical expenses bring their 'countable income' below the limit. Call 855-256-6742 to have DSS run this calculation."
         },
         {
@@ -169,8 +169,8 @@
           "answer": "Medicaid covers both nursing home care and home-based services like personal attendants, home health aides, and home modifications. The same clinical assessment qualifies your loved one for either setting based on their preference and safety."
         },
         {
-          "question": "What if my loved one already has Medicare — do they need both?",
-          "answer": "Yes, Medicaid covers services Medicare doesn't — especially long-term care, personal attendants, and extended nursing home stays. Your loved one keeps their Medicare and Medicaid pays for what Medicare doesn't cover."
+          "question": "What if my loved one already has Medicare, do they need both?",
+          "answer": "Yes, Medicaid covers services Medicare doesn't, especially long-term care, personal attendants, and extended nursing home stays. Your loved one keeps their Medicare and Medicaid pays for what Medicare doesn't cover."
         },
         {
           "question": "How long does coverage last once approved?",
@@ -202,7 +202,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, the HOPE Waiver covers in-home care, adult day services, respite care, and assisted living as alternatives to nursing facility placement. Your loved one must qualify for nursing home level of care and meet strict income limits ($2,901/month for 2025) and asset limits ($2,000 for singles).\n\nBecause South Dakota caps enrollment at 1,834 people statewide, there may be a waitlist. Services are individualized based on your loved one's support plan — there are no fixed dollar amounts or hour limits. The program covers everything from personal care to meal delivery to adult day programs, all coordinated through one team instead of managing multiple providers separately.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, the HOPE Waiver covers in-home care, adult day services, respite care, and assisted living as alternatives to nursing facility placement. Your loved one must qualify for nursing home level of care and meet strict income limits ($2,901/month for 2025) and asset limits ($2,000 for singles).\n\nBecause South Dakota caps enrollment at 1,834 people statewide, there may be a waitlist. Services are individualized based on your loved one's support plan, there are no fixed dollar amounts or hour limits. The program covers everything from personal care to meal delivery to adult day programs, all coordinated through one team instead of managing multiple providers separately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -242,7 +242,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Dakota at Home at (833) 663-9673 to start the assessment process — no specific processing timeline provided.",
+        "summary": "Call Dakota at Home at (833) 663-9673 to start the assessment process, no specific processing timeline provided.",
         "steps": [
           {
             "step": 1,
@@ -270,9 +270,9 @@
             "description": "Begin receiving at least one waiver service monthly to maintain eligibility"
           }
         ],
-        "processingTime": "Not specified — contact Dakota at Home for current timeline",
-        "waitlist": "Program capped at 1,834 concurrent recipients statewide — current waitlist status unknown",
-        "tip": "Call as soon as possible if your loved one needs nursing home level care — the enrollment cap means earlier applications have better chances.",
+        "processingTime": "Not specified, contact Dakota at Home for current timeline",
+        "waitlist": "Program capped at 1,834 concurrent recipients statewide, current waitlist status unknown",
+        "tip": "Call as soon as possible if your loved one needs nursing home level care, the enrollment cap means earlier applications have better chances.",
         "urls": [
           {
             "label": "Dakota at Home Referral Form",
@@ -311,10 +311,10 @@
         }
       ],
       "applicationNotes": [
-        "You cannot apply if your loved one currently lives in a nursing home, hospital, or ICF/MR facility — this is only for community-based care",
-        "Income limits adjust annually in January — verify current year limits before applying to avoid automatic denial",
-        "The $730,000 home equity limit applies even if the home is otherwise exempt — high-value homes may disqualify applicants",
-        "Program approval expires September 30, 2026 — verify renewal status if applying close to this date"
+        "You cannot apply if your loved one currently lives in a nursing home, hospital, or ICF/MR facility, this is only for community-based care",
+        "Income limits adjust annually in January, verify current year limits before applying to avoid automatic denial",
+        "The $730,000 home equity limit applies even if the home is otherwise exempt, high-value homes may disqualify applicants",
+        "Program approval expires September 30, 2026, verify renewal status if applying close to this date"
       ],
       "relatedPrograms": [
         "South Dakota Medicaid",
@@ -382,7 +382,7 @@
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay in their community, PACE provides everything under one roof — primary care, specialists, adult day care, home care, transportation, meals, and even hospital care when needed. Because PACE coordinates all services through one interdisciplinary team (doctor, nurse, therapists, social worker, dietician), your loved one won't juggle multiple providers or insurance approvals.\n\nPACE has no income limits and serves anyone 55+ who qualifies medically, though most participants have both Medicare and Medicaid. The program is designed to keep 95% of participants living in the community rather than nursing homes.\n\nPACE is not currently available in South Dakota. The state has conducted feasibility studies but has no active PACE providers or service areas yet.",
+      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay in their community, PACE provides everything under one roof, primary care, specialists, adult day care, home care, transportation, meals, and even hospital care when needed. Because PACE coordinates all services through one interdisciplinary team (doctor, nurse, therapists, social worker, dietician), your loved one won't juggle multiple providers or insurance approvals.\n\nPACE has no income limits and serves anyone 55+ who qualifies medically, though most participants have both Medicare and Medicaid. The program is designed to keep 95% of participants living in the community rather than nursing homes.\n\nPACE is not currently available in South Dakota. The state has conducted feasibility studies but has no active PACE providers or service areas yet.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service package",
       "savingsVerified": false,
@@ -525,7 +525,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay Medicare premiums or copays, Medicare Savings Programs can cover these costs entirely. These three programs — QMB, SLMB, and QI — pay Medicare Part B premiums (around $185/month in 2026) directly to Medicare, and QMB also covers all deductibles and copays your loved one would normally pay at the doctor or hospital.\n\nTo qualify, your loved one must have Medicare and meet income limits: $1,350/month for QMB (the most comprehensive), up to $1,715/month for QI (premium help only). Because enrollment automatically qualifies your loved one for Extra Help with prescription drug costs (copays as low as $12.65 per medication), the total savings can exceed $3,000 annually.\n\nThe QI program has limited funding and operates first-come, first-served, so applying early in the year improves chances of approval. All three programs require annual income and asset verification.",
+      "intro": "If your loved one struggles to pay Medicare premiums or copays, Medicare Savings Programs can cover these costs entirely. These three programs, QMB, SLMB, and QI, pay Medicare Part B premiums (around $185/month in 2026) directly to Medicare, and QMB also covers all deductibles and copays your loved one would normally pay at the doctor or hospital.\n\nTo qualify, your loved one must have Medicare and meet income limits: $1,350/month for QMB (the most comprehensive), up to $1,715/month for QI (premium help only). Because enrollment automatically qualifies your loved one for Extra Help with prescription drug costs (copays as low as $12.65 per medication), the total savings can exceed $3,000 annually.\n\nThe QI program has limited funding and operates first-come, first-served, so applying early in the year improves chances of approval. All three programs require annual income and asset verification.",
       "savingsRange": "$2,220 – $3,600/year in 2026",
       "savingsSource": "Medicare Part B premiums ($2,220/year) plus potential deductibles, copays, and Extra Help prescription savings",
       "savingsVerified": true,
@@ -573,7 +573,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply by phone at 1-877-999-5612 or download the application form — processing typically takes 45 days",
+        "summary": "Apply by phone at 1-877-999-5612 or download the application form, processing typically takes 45 days",
         "steps": [
           {
             "step": 1,
@@ -647,7 +647,7 @@
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited — apply early in the calendar year for best chance of approval",
+        "QI program funding is limited, apply early in the calendar year for best chance of approval",
         "Income limits use 'countable income' after standard disregards like the first $20 of monthly income",
         "Previous QI recipients get priority for the following year, but must still reapply annually",
         "Approval for any Medicare Savings Program automatically enrolls your loved one in Extra Help for prescription drug coverage"
@@ -693,7 +693,7 @@
         },
         {
           "question": "What's the real difference between these three programs?",
-          "answer": "QMB covers everything Medicare doesn't pay — premiums, deductibles, copays at doctors and hospitals. SLMB and QI only cover the monthly Medicare Part B premium (around $185 in 2026). QMB has the lowest income limit but provides the most comprehensive coverage."
+          "answer": "QMB covers everything Medicare doesn't pay, premiums, deductibles, copays at doctors and hospitals. SLMB and QI only cover the monthly Medicare Part B premium (around $185 in 2026). QMB has the lowest income limit but provides the most comprehensive coverage."
         },
         {
           "question": "How likely is my loved one to get into the QI program?",
@@ -755,7 +755,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives on a fixed income in South Dakota, they can receive a free monthly box of USDA foods through the Commodity Supplemental Food Program (CSFP). Each box contains non-perishable items like cheese, juice, oats, cereal, rice, pasta, peanut butter, beans, canned meat or fish, fruits, vegetables, and often a canned entree like beef stew. Income must be at or below 150% of federal poverty guidelines — higher than SNAP's 130% limit.\n\nThis program is separate from SNAP benefits, so your loved one can receive both simultaneously if they qualify for each. Because CSFP uses local distribution sites with varying schedules, you'll need to call your regional agency to find pickup locations and times in your area.\n\nUnlike regular food stamps, CSFP provides a fixed monthly box rather than a card for grocery shopping. The program is designed specifically for seniors and has no asset limits — only income matters for qualification.",
+      "intro": "If your loved one is 60+ and lives on a fixed income in South Dakota, they can receive a free monthly box of USDA foods through the Commodity Supplemental Food Program (CSFP). Each box contains non-perishable items like cheese, juice, oats, cereal, rice, pasta, peanut butter, beans, canned meat or fish, fruits, vegetables, and often a canned entree like beef stew. Income must be at or below 150% of federal poverty guidelines, higher than SNAP's 130% limit.\n\nThis program is separate from SNAP benefits, so your loved one can receive both simultaneously if they qualify for each. Because CSFP uses local distribution sites with varying schedules, you'll need to call your regional agency to find pickup locations and times in your area.\n\nUnlike regular food stamps, CSFP provides a fixed monthly box rather than a card for grocery shopping. The program is designed specifically for seniors and has no asset limits, only income matters for qualification.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -778,7 +778,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local distribution agency to apply — no online application available.",
+        "summary": "Call your local distribution agency to apply, no online application available.",
         "steps": [
           {
             "step": 1,
@@ -803,7 +803,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Call ahead to confirm your local agency has boxes available and to get exact pickup times — distribution schedules vary by location.",
+        "tip": "Call ahead to confirm your local agency has boxes available and to get exact pickup times, distribution schedules vary by location.",
         "urls": []
       },
       "documentsNeeded": [
@@ -819,7 +819,7 @@
         {
           "label": "Feeding South Dakota (Miller)",
           "phone": "(605) 853-3656",
-          "description": "Example local distribution site — call for Miller area service",
+          "description": "Example local distribution site, call for Miller area service",
           "hours": "Call for distribution schedule"
         },
         {
@@ -836,10 +836,10 @@
         }
       ],
       "applicationNotes": [
-        "Income is calculated as gross monthly amount before taxes — this includes Social Security, pensions, and any part-time work",
+        "Income is calculated as gross monthly amount before taxes, this includes Social Security, pensions, and any part-time work",
         "South Dakota uses 150% of federal poverty guidelines rather than the typical 130% limit used for SNAP benefits",
-        "Availability depends on local agency stock levels — some areas may have waiting periods during high-demand months",
-        "All household members must be 60+ since 2014 — the program no longer serves women, infants, and children"
+        "Availability depends on local agency stock levels, some areas may have waiting periods during high-demand months",
+        "All household members must be 60+ since 2014, the program no longer serves women, infants, and children"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -854,7 +854,7 @@
           "answer": "Yes, these are separate programs and your loved one can receive both simultaneously if they qualify for each. CSFP has higher income limits (150% of poverty level) than SNAP (130%), so some seniors who don't qualify for SNAP may still get the food box."
         },
         {
-          "question": "What if my loved one lives in assisted living — can they still get the food box?",
+          "question": "What if my loved one lives in assisted living, can they still get the food box?",
           "answer": "Yes, as long as they live in a participating service area and meet income requirements. They'll need to arrange their own transportation to the pickup site or have someone collect the box for them on their behalf."
         },
         {
@@ -862,7 +862,7 @@
           "answer": "The research doesn't specify recertification periods for South Dakota. Contact your local agency at the time of application to understand how long the approval lasts and when you'll need to provide updated income information."
         },
         {
-          "question": "What happens if my loved one's income goes up slightly — do they immediately lose benefits?",
+          "question": "What happens if my loved one's income goes up slightly, do they immediately lose benefits?",
           "answer": "Income changes should be reported to your local agency, but minor fluctuations may not affect eligibility since the program uses 150% of federal poverty guidelines. Call your distribution site to discuss specific income changes."
         },
         {
@@ -917,7 +917,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating bills, South Dakota's Low Income Energy Assistance Program (LIEAP) provides a one-time payment directly to their utility company or energy supplier. The program helps households earning up to 200% of the federal poverty level — that's roughly $2,152/month for a single person or $2,904 for a couple in 2026.\n\nBecause LIEAP pays the utility company directly, your loved one won't handle cash — the benefit goes straight toward reducing their heating bill. Households already receiving SNAP automatically qualify without additional income verification. The program also offers related services: $1,025 cooling assistance for LIEAP recipients who pay their own electric bill, emergency crisis assistance for families facing shutoffs, and weatherization services to reduce future energy costs.\n\nFunding is limited each year, so applications may close when money runs out. Apply early in fall or winter when the program opens to ensure your loved one gets help with heating costs.",
+      "intro": "If your loved one struggles with high heating bills, South Dakota's Low Income Energy Assistance Program (LIEAP) provides a one-time payment directly to their utility company or energy supplier. The program helps households earning up to 200% of the federal poverty level, that's roughly $2,152/month for a single person or $2,904 for a couple in 2026.\n\nBecause LIEAP pays the utility company directly, your loved one won't handle cash, the benefit goes straight toward reducing their heating bill. Households already receiving SNAP automatically qualify without additional income verification. The program also offers related services: $1,025 cooling assistance for LIEAP recipients who pay their own electric bill, emergency crisis assistance for families facing shutoffs, and weatherization services to reduce future energy costs.\n\nFunding is limited each year, so applications may close when money runs out. Apply early in fall or winter when the program opens to ensure your loved one gets help with heating costs.",
       "savingsRange": "",
       "savingsSource": "One-time supplemental payment varies by household income, size, and fuel type",
       "savingsVerified": false,
@@ -958,7 +958,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at SD.gov, by mail, or email — processing time varies but apply early as funding is limited.",
+        "summary": "Apply online at SD.gov, by mail, or email, processing time varies but apply early as funding is limited.",
         "steps": [
           {
             "step": 1,
@@ -981,9 +981,9 @@
             "description": "DSS will review your application and contact you if additional information is needed. Payment goes directly to your energy supplier if approved."
           }
         ],
-        "processingTime": "Not specified — apply early as funding is limited and may close when depleted",
+        "processingTime": "Not specified, apply early as funding is limited and may close when depleted",
         "waitlist": "Possible for Weatherization due to limited funds",
-        "tip": "If your loved one receives SNAP, mention this on the application — they're automatically eligible without additional income verification.",
+        "tip": "If your loved one receives SNAP, mention this on the application, they're automatically eligible without additional income verification.",
         "urls": [
           {
             "label": "Apply Online for LIEAP",
@@ -1018,7 +1018,7 @@
         }
       ],
       "applicationNotes": [
-        "Households where all members receive SNAP are automatically categorically eligible — no separate income verification needed",
+        "Households where all members receive SNAP are automatically categorically eligible, no separate income verification needed",
         "Roommates sharing a utility bill count as one household for application purposes",
         "Crisis assistance (ECIP) requires an active LIEAP case plus an emergency like shutoff notice",
         "Weatherization services require landlord permission for renters and may require landlord contribution"
@@ -1041,7 +1041,7 @@
         },
         {
           "question": "How much money will my loved one receive?",
-          "answer": "LIEAP provides a one-time payment that varies by household income, size, and fuel type. The exact amount isn't fixed — it depends on available funding and your loved one's specific situation. Payment goes directly to the utility or energy supplier."
+          "answer": "LIEAP provides a one-time payment that varies by household income, size, and fuel type. The exact amount isn't fixed, it depends on available funding and your loved one's specific situation. Payment goes directly to the utility or energy supplier."
         },
         {
           "question": "What happens if the program runs out of money before my loved one applies?",
@@ -1074,7 +1074,7 @@
       "id": "weatherization-assistance",
       "name": "Weatherization Assistance",
       "shortName": "Weatherization Help",
-      "tagline": "Free home weatherization services that can save your loved one $372 annually on energy bills — insulation, air sealing, and heating system repairs.",
+      "tagline": "Free home weatherization services that can save your loved one $372 annually on energy bills, insulation, air sealing, and heating system repairs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1091,7 +1091,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating bills, they may qualify for free home weatherization services that save an average of $372 per year on energy costs. The program provides weather-stripping, caulking, insulation, and heating system repairs or replacements — all at no cost to families earning up to 200% of the federal poverty level.\n\nPriority goes to seniors, people with disabilities, and families with children under 19. Because this is a one-time service with limited funding, waiting lists are common, and homes cannot receive services if they were weatherized within the past 15 years.\n\nThe program operates through four Community Action Agencies across South Dakota — you must contact the specific agency serving your loved one's county, not the state office directly.",
+      "intro": "If your loved one struggles with high heating bills, they may qualify for free home weatherization services that save an average of $372 per year on energy costs. The program provides weather-stripping, caulking, insulation, and heating system repairs or replacements, all at no cost to families earning up to 200% of the federal poverty level.\n\nPriority goes to seniors, people with disabilities, and families with children under 19. Because this is a one-time service with limited funding, waiting lists are common, and homes cannot receive services if they were weatherized within the past 15 years.\n\nThe program operates through four Community Action Agencies across South Dakota, you must contact the specific agency serving your loved one's county, not the state office directly.",
       "savingsRange": "$372/year in 2026",
       "savingsSource": "Average annual household energy savings from South Dakota Department of Social Services",
       "savingsVerified": true,
@@ -1141,7 +1141,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact the Community Action Agency serving your loved one's county — each county has a specific agency that handles applications.",
+        "summary": "Contact the Community Action Agency serving your loved one's county, each county has a specific agency that handles applications.",
         "steps": [
           {
             "step": 1,
@@ -1209,15 +1209,15 @@
         {
           "label": "SD Department of Social Services",
           "phone": "Contact county agency directly",
-          "description": "State office does not process applications — must contact county agency",
+          "description": "State office does not process applications, must contact county agency",
           "hours": "Varies by agency"
         }
       ],
       "applicationNotes": [
-        "Each county is served by a different Community Action Agency — you cannot apply to the state office directly",
+        "Each county is served by a different Community Action Agency, you cannot apply to the state office directly",
         "Renters must get written landlord permission before applying, and landlords typically contribute 1/3 of project costs",
         "If your loved one already receives LIEAP energy assistance, include their Customer ID to streamline income verification",
-        "Applications are denied if incomplete or missing required documentation — submit everything together"
+        "Applications are denied if incomplete or missing required documentation, submit everything together"
       ],
       "relatedPrograms": [
         "LIEAP (Low Income Energy Assistance Program)",
@@ -1251,7 +1251,7 @@
           "answer": "Yes, and it's actually helpful. LIEAP recipients are automatically income-eligible for weatherization, which can speed up processing. Include the LIEAP Customer ID on the weatherization application if your loved one receives energy assistance."
         },
         {
-          "question": "What if we live right on the county border — which agency do we contact?",
+          "question": "What if we live right on the county border, which agency do we contact?",
           "answer": "Contact the agency serving the county where your loved one's home is located, not where they receive mail or have other services. Check the county map at dss.sd.gov to confirm which Community Action Agency serves that specific county."
         },
         {
@@ -1290,7 +1290,7 @@
           }
         ]
       },
-      "intro": "If your loved one is confused by Medicare choices or worried they're paying too much for prescription coverage, SHIINE provides free, unbiased counseling to help them compare plans and save money. Trained volunteer counselors help with Medicare Parts A/B, Part D prescription drugs, Medicare Advantage plans, Medigap policies, and Medicare Savings Programs that can reduce premiums and copays.\n\nBecause SHIINE counselors aren't affiliated with insurance companies, they can give honest advice about which plans actually fit your loved one's needs and budget. The service is available to all Medicare beneficiaries in South Dakota, those approaching Medicare eligibility at 65, and their family caregivers — no income limits or paperwork required.\n\nSHIINE also helps with Low Income Subsidy enrollment for prescription drug help and provides fraud prevention education through the Senior Medicare Patrol program. During Medicare Open Enrollment (October 15 - December 7), expect higher demand for appointments as people review their Part D and Medicare Advantage options.",
+      "intro": "If your loved one is confused by Medicare choices or worried they're paying too much for prescription coverage, SHIINE provides free, unbiased counseling to help them compare plans and save money. Trained volunteer counselors help with Medicare Parts A/B, Part D prescription drugs, Medicare Advantage plans, Medigap policies, and Medicare Savings Programs that can reduce premiums and copays.\n\nBecause SHIINE counselors aren't affiliated with insurance companies, they can give honest advice about which plans actually fit your loved one's needs and budget. The service is available to all Medicare beneficiaries in South Dakota, those approaching Medicare eligibility at 65, and their family caregivers, no income limits or paperwork required.\n\nSHIINE also helps with Low Income Subsidy enrollment for prescription drug help and provides fraud prevention education through the Senior Medicare Patrol program. During Medicare Open Enrollment (October 15 - December 7), expect higher demand for appointments as people review their Part D and Medicare Advantage options.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1312,7 +1312,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free number to schedule a counseling appointment — no forms or documents required.",
+        "summary": "Call the toll-free number to schedule a counseling appointment, no forms or documents required.",
         "steps": [
           {
             "step": 1,
@@ -1430,7 +1430,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and has trouble cooking or shopping for themselves, Meals on Wheels delivers one hot, nutritious meal to their home Monday through Friday. The suggested donation is $4.25–$5.25 per meal, but no one is denied for inability to pay.\n\nBecause South Dakota operates Meals on Wheels through local providers rather than one statewide system, you'll need to contact the specific organization serving your loved one's community. The key requirement is that your loved one must be homebound — unable to cook or shop independently — not just age alone. Coverage varies by area, with some communities offering private pay options at around $15 per meal if donation-based slots are full.\n\nIf your loved one is under 60, they cannot access standard Meals on Wheels but may qualify for similar services through Dakota at Home, which requires a separate eligibility assessment for disability or other qualifying conditions.",
+      "intro": "If your loved one is 60+ and has trouble cooking or shopping for themselves, Meals on Wheels delivers one hot, nutritious meal to their home Monday through Friday. The suggested donation is $4.25–$5.25 per meal, but no one is denied for inability to pay.\n\nBecause South Dakota operates Meals on Wheels through local providers rather than one statewide system, you'll need to contact the specific organization serving your loved one's community. The key requirement is that your loved one must be homebound, unable to cook or shop independently, not just age alone. Coverage varies by area, with some communities offering private pay options at around $15 per meal if donation-based slots are full.\n\nIf your loved one is under 60, they cannot access standard Meals on Wheels but may qualify for similar services through Dakota at Home, which requires a separate eligibility assessment for disability or other qualifying conditions.",
       "savingsRange": "",
       "savingsSource": "Free service with suggested donations",
       "savingsVerified": false,
@@ -1453,7 +1453,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Meals on Wheels provider directly — enrollment can often begin immediately if meals are available in your area.",
+        "summary": "Call your local Meals on Wheels provider directly, enrollment can often begin immediately if meals are available in your area.",
         "steps": [
           {
             "step": 1,
@@ -1510,7 +1510,7 @@
         }
       ],
       "applicationNotes": [
-        "Each community has different providers — Active Generations serves Sioux Falls area, while western SD has separate Meals on Wheels organizations",
+        "Each community has different providers, Active Generations serves Sioux Falls area, while western SD has separate Meals on Wheels organizations",
         "Limited meals available in each area means some communities may have waiting periods or offer private pay options first",
         "If your loved one is under 60, they must go through Dakota at Home for disability assessment rather than standard Meals on Wheels eligibility"
       ],
@@ -1616,7 +1616,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Dakota at Home at (833) 663-9673 to start the application — processing time varies based on assessment scheduling.",
+        "summary": "Call Dakota at Home at (833) 663-9673 to start the application, processing time varies based on assessment scheduling.",
         "steps": [
           {
             "step": 1,
@@ -1645,8 +1645,8 @@
           }
         ],
         "processingTime": "Not specified in sources",
-        "waitlist": "Program capped at 1,834 concurrent recipients statewide — waitlists occur when full",
-        "tip": "Apply even if you expect a waitlist — your loved one's priority level and regional availability can affect wait times significantly.",
+        "waitlist": "Program capped at 1,834 concurrent recipients statewide, waitlists occur when full",
+        "tip": "Apply even if you expect a waitlist, your loved one's priority level and regional availability can affect wait times significantly.",
         "urls": [
           {
             "label": "South Dakota DSS Long Term Services",
@@ -1685,9 +1685,9 @@
         }
       ],
       "applicationNotes": [
-        "The program has strict slot limits — apply as soon as your loved one meets eligibility to join any waitlist early",
+        "The program has strict slot limits, apply as soon as your loved one meets eligibility to join any waitlist early",
         "You must use at least one waiver service monthly or risk losing eligibility, even during waitlist periods",
-        "Income and asset limits update annually based on Federal Benefit Rate changes — verify current limits before applying",
+        "Income and asset limits update annually based on Federal Benefit Rate changes, verify current limits before applying",
         "Home equity over $730,000 disqualifies unless spouse, minor child, or disabled child lives there"
       ],
       "relatedPrograms": [
@@ -1860,9 +1860,9 @@
       ],
       "applicationNotes": [
         "Priority enrollment goes to veterans/qualified spouses first, then those 65+, disabled, rural residents, homeless/at-risk, low literacy, or with low employment prospects",
-        "Income limits are based on total family income and update annually — verify current Federal Poverty Level amounts",
-        "This is workforce transition assistance, not permanent employment — the goal is to move to unsubsidized employment",
-        "You must be completely unemployed to qualify — cannot have any current employment"
+        "Income limits are based on total family income and update annually, verify current Federal Poverty Level amounts",
+        "This is workforce transition assistance, not permanent employment, the goal is to move to unsubsidized employment",
+        "You must be completely unemployed to qualify, cannot have any current employment"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -1874,10 +1874,10 @@
       "faqs": [
         {
           "question": "Can my loved one apply if they live in Sioux Falls or Rapid City?",
-          "answer": "Only if they're in the covered service areas. SCSEP is limited to West River, East River, and Central regions — not all of South Dakota. Check the coverage map on the DLR website to see if their specific location qualifies."
+          "answer": "Only if they're in the covered service areas. SCSEP is limited to West River, East River, and Central regions, not all of South Dakota. Check the coverage map on the DLR website to see if their specific location qualifies."
         },
         {
-          "question": "What if my loved one has been unemployed for years — does that hurt their chances?",
+          "question": "What if my loved one has been unemployed for years, does that hurt their chances?",
           "answer": "No, long-term unemployment actually helps. People with low employment prospects are in the priority category for enrollment, along with veterans, those 65+, and rural residents."
         },
         {
@@ -1886,7 +1886,7 @@
         },
         {
           "question": "How long can my loved one stay in the SCSEP program?",
-          "answer": "SCSEP is designed as workforce transition — the goal is to move participants into regular employment. The program provides training and job placement assistance to help participants find permanent work."
+          "answer": "SCSEP is designed as workforce transition, the goal is to move participants into regular employment. The program provides training and job placement assistance to help participants find permanent work."
         },
         {
           "question": "What type of community service work would my loved one do?",
@@ -1894,7 +1894,7 @@
         },
         {
           "question": "Does my loved one's house or savings count toward the income limit?",
-          "answer": "No asset limits are mentioned in South Dakota's SCSEP guidelines — only the annual family income limit of 125% of Federal Poverty Level matters for eligibility."
+          "answer": "No asset limits are mentioned in South Dakota's SCSEP guidelines, only the annual family income limit of 125% of Federal Poverty Level matters for eligibility."
         }
       ],
       "layoutIntent": {
@@ -1940,7 +1940,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal problems like elder abuse, guardianship disputes, or long-term care issues, they may qualify for free legal assistance in South Dakota. Because seniors 60 and older bypass income requirements at most providers, your loved one can get help regardless of their financial situation.\n\nThe program provides three levels of service: legal advice over the phone, brief services like document preparation, or full court representation depending on the case. Your loved one's location determines which provider serves them — Dakota Plains Legal Services covers western and central counties, while East River Legal Services handles 33 eastern counties including Minnehaha and Lincoln.",
+      "intro": "If your loved one is 60+ and facing legal problems like elder abuse, guardianship disputes, or long-term care issues, they may qualify for free legal assistance in South Dakota. Because seniors 60 and older bypass income requirements at most providers, your loved one can get help regardless of their financial situation.\n\nThe program provides three levels of service: legal advice over the phone, brief services like document preparation, or full court representation depending on the case. Your loved one's location determines which provider serves them, Dakota Plains Legal Services covers western and central counties, while East River Legal Services handles 33 eastern counties including Minnehaha and Lincoln.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1964,7 +1964,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at sdlawhelp.org or call your regional provider — initial screening determines if you qualify.",
+        "summary": "Apply online at sdlawhelp.org or call your regional provider, initial screening determines if you qualify.",
         "steps": [
           {
             "step": 1,
@@ -1983,8 +1983,8 @@
           }
         ],
         "processingTime": "Initial screening completed during intake, attorney referral depends on staff availability",
-        "waitlist": "Subject to staff and volunteer availability — no formal waitlist system",
-        "tip": "Apply even if you're unsure about eligibility — the screening process determines if your case qualifies.",
+        "waitlist": "Subject to staff and volunteer availability, no formal waitlist system",
+        "tip": "Apply even if you're unsure about eligibility, the screening process determines if your case qualifies.",
         "urls": [
           {
             "label": "Apply Online",
@@ -2044,7 +2044,7 @@
         },
         {
           "question": "What if my loved one lives in a county not served by these providers?",
-          "answer": "Contact Access to Justice at (855) 287-3510 for statewide referrals, or apply online at sdlawhelp.org — they'll direct you to the correct provider or give you a referral to private attorneys if no legal aid is available in your area."
+          "answer": "Contact Access to Justice at (855) 287-3510 for statewide referrals, or apply online at sdlawhelp.org, they'll direct you to the correct provider or give you a referral to private attorneys if no legal aid is available in your area."
         },
         {
           "question": "Will the attorney go to court with my loved one or just give advice?",
@@ -2082,7 +2082,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a South Dakota nursing home, assisted living facility, or community living home and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman provides free advocacy to resolve conflicts. The ombudsman investigates complaints, educates families about residents' rights, and mediates disputes to ensure your loved one receives fair treatment.\n\nThis service is available to any family member or resident in long-term care facilities statewide. Because ombudsmen are trained advocates who understand facility regulations, they can often resolve issues faster than families working alone. No income limits apply — the service is completely free regardless of your loved one's financial situation.",
+      "intro": "If your loved one lives in a South Dakota nursing home, assisted living facility, or community living home and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman provides free advocacy to resolve conflicts. The ombudsman investigates complaints, educates families about residents' rights, and mediates disputes to ensure your loved one receives fair treatment.\n\nThis service is available to any family member or resident in long-term care facilities statewide. Because ombudsmen are trained advocates who understand facility regulations, they can often resolve issues faster than families working alone. No income limits apply, the service is completely free regardless of your loved one's financial situation.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2104,7 +2104,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the ombudsman hotline for immediate assistance — no forms or applications required.",
+        "summary": "Call the ombudsman hotline for immediate assistance, no forms or applications required.",
         "steps": [
           {
             "step": 1,
@@ -2114,7 +2114,7 @@
           {
             "step": 2,
             "title": "Describe the problem",
-            "description": "Explain what's happening at your loved one's facility — whether it's care issues, billing disputes, or other concerns."
+            "description": "Explain what's happening at your loved one's facility, whether it's care issues, billing disputes, or other concerns."
           },
           {
             "step": 3,
@@ -2124,7 +2124,7 @@
         ],
         "processingTime": "Immediate assistance upon contact",
         "waitlist": null,
-        "tip": "You don't need to wait for a crisis — ombudsmen also provide education about residents' rights and can answer questions about what to expect from your loved one's facility.",
+        "tip": "You don't need to wait for a crisis, ombudsmen also provide education about residents' rights and can answer questions about what to expect from your loved one's facility.",
         "urls": [
           {
             "label": "South Dakota Ombudsman Program",
@@ -2205,7 +2205,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives alone, is recovering from a hospital stay, or you need respite as their caregiver, Senior Companions provides free friendship visits and light assistance. Trained volunteers visit 10-15 hours per week to provide companionship, help with daily activities like meal preparation and light housekeeping, and transportation to medical appointments or grocery shopping.\n\nThis program specifically serves people with disabilities, those lacking other assistance, people living alone, or those recovering from hospital or nursing home stays. Because volunteers are matched based on availability and your loved one's needs, there's no income test for your loved one — the program focuses on need-based criteria like living situation and health status.",
+      "intro": "If your loved one lives alone, is recovering from a hospital stay, or you need respite as their caregiver, Senior Companions provides free friendship visits and light assistance. Trained volunteers visit 10-15 hours per week to provide companionship, help with daily activities like meal preparation and light housekeeping, and transportation to medical appointments or grocery shopping.\n\nThis program specifically serves people with disabilities, those lacking other assistance, people living alone, or those recovering from hospital or nursing home stays. Because volunteers are matched based on availability and your loved one's needs, there's no income test for your loved one, the program focuses on need-based criteria like living situation and health status.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2228,7 +2228,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional office for a needs assessment — no formal application required.",
+        "summary": "Call your regional office for a needs assessment, no formal application required.",
         "steps": [
           {
             "step": 1,
@@ -2246,9 +2246,9 @@
             "description": "If accepted, your loved one will be matched with a trained volunteer companion based on availability and compatibility."
           }
         ],
-        "processingTime": "Not specified — depends on volunteer availability in your area",
+        "processingTime": "Not specified, depends on volunteer availability in your area",
         "waitlist": null,
-        "tip": "Ask about volunteer availability in your specific area when you call — service depends on having trained volunteers nearby.",
+        "tip": "Ask about volunteer availability in your specific area when you call, service depends on having trained volunteers nearby.",
         "urls": [
           {
             "label": "Official Program Information",
@@ -2361,7 +2361,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the program director to register — no documents required and you can start receiving meals immediately.",
+        "summary": "Call the program director to register, no documents required and you can start receiving meals immediately.",
         "steps": [
           {
             "step": 1,
@@ -2384,7 +2384,7 @@
             "description": "Visit sixtiesplusdining.com/contact/ to find meal sites and delivery areas in your county."
           }
         ],
-        "processingTime": "Immediate enrollment — meals can start right away",
+        "processingTime": "Immediate enrollment, meals can start right away",
         "waitlist": null,
         "tip": "If your loved one is homebound, mention this during registration to arrange home delivery rather than expecting them to travel to meal sites.",
         "urls": [
@@ -2414,9 +2414,9 @@
         }
       ],
       "applicationNotes": [
-        "Spouses and caregivers under 60 can also receive meals — useful if you're caring for your loved one on-site",
-        "Home delivery is only available if your loved one is homebound due to illness or frailty — they'll assess this during registration",
-        "The program operates only in 10 counties — don't confuse with statewide programs like Senior Food Box which has income requirements"
+        "Spouses and caregivers under 60 can also receive meals, useful if you're caring for your loved one on-site",
+        "Home delivery is only available if your loved one is homebound due to illness or frailty, they'll assess this during registration",
+        "The program operates only in 10 counties, don't confuse with statewide programs like Senior Food Box which has income requirements"
       ],
       "relatedPrograms": [
         "SNAP (Supplemental Nutrition Assistance Program)",
@@ -2493,7 +2493,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives in select South Dakota counties, they can receive a free monthly box of groceries through the Senior Box Program. Each box contains about 40 pounds of USDA foods including cereals, canned meat, fruits, vegetables, instant milk, peanut butter, pasta, rice, and cheese — delivered at no cost for 6-12 months.\n\nBecause this program is run by local agencies rather than the state, your loved one must live in a participating county to qualify. Income must be at or below 130-150% of federal poverty guidelines (exact limits vary by provider). Unlike some food programs, there are no asset limits — only age, income, and location matter.\n\nYour loved one cannot participate in both this program and WIC, but they can combine it with SNAP benefits. Some providers offer home delivery for homebound seniors.",
+      "intro": "If your loved one is 60+ and lives in select South Dakota counties, they can receive a free monthly box of groceries through the Senior Box Program. Each box contains about 40 pounds of USDA foods including cereals, canned meat, fruits, vegetables, instant milk, peanut butter, pasta, rice, and cheese, delivered at no cost for 6-12 months.\n\nBecause this program is run by local agencies rather than the state, your loved one must live in a participating county to qualify. Income must be at or below 130-150% of federal poverty guidelines (exact limits vary by provider). Unlike some food programs, there are no asset limits, only age, income, and location matter.\n\nYour loved one cannot participate in both this program and WIC, but they can combine it with SNAP benefits. Some providers offer home delivery for homebound seniors.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2516,7 +2516,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider during distribution hours or office hours — no statewide application.",
+        "summary": "Call your local provider during distribution hours or office hours, no statewide application.",
         "steps": [
           {
             "step": 1,
@@ -2535,7 +2535,7 @@
           }
         ],
         "processingTime": "Same-day enrollment during distribution hours if documentation is complete",
-        "waitlist": "Possible due to local capacity limits — varies by county and provider",
+        "waitlist": "Possible due to local capacity limits, varies by county and provider",
         "tip": "Call before the distribution day to confirm requirements and avoid waiting in line with incomplete documentation.",
         "urls": []
       },
@@ -2602,7 +2602,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "South Dakota offers 14 programs that can help your aging loved one stay independent and reduce your family's care costs. These range from financial benefits like Medicaid and SNAP food assistance to free resources like Medicare counseling and companionship visits. The state's HOPE Waiver program is particularly valuable — it can pay for home care services that cost thousands monthly out-of-pocket, keeping your loved one home instead of moving to a nursing facility.\n\nMost benefit programs have income limits around $1,500-2,000/month for a single person, but several free resources are available regardless of income. Start by checking if your loved one qualifies for Medicaid — it opens the door to the most comprehensive coverage and home care services.",
+    "intro": "South Dakota offers 14 programs that can help your aging loved one stay independent and reduce your family's care costs. These range from financial benefits like Medicaid and SNAP food assistance to free resources like Medicare counseling and companionship visits. The state's HOPE Waiver program is particularly valuable, it can pay for home care services that cost thousands monthly out-of-pocket, keeping your loved one home instead of moving to a nursing facility.\n\nMost benefit programs have income limits around $1,500-2,000/month for a single person, but several free resources are available regardless of income. Start by checking if your loved one qualifies for Medicaid, it opens the door to the most comprehensive coverage and home care services.",
     "startHere": [
       {
         "name": "South Dakota Medicaid for Seniors/Disabled",
@@ -2622,7 +2622,7 @@
       {
         "name": "Senior Health Information and Insurance Education (SHIINE)",
         "programId": "shiine",
-        "why": "Free help choosing Medicare plans — available to all seniors regardless of income."
+        "why": "Free help choosing Medicare plans, available to all seniors regardless of income."
       }
     ],
     "byNeed": [
@@ -2676,7 +2676,7 @@
     ],
     "quickFacts": [
       "Most South Dakota benefit programs have income limits between $1,500-2,000/month for a single person",
-      "The Senior Box Program and some dining programs only operate in select counties — coverage varies by location",
+      "The Senior Box Program and some dining programs only operate in select counties, coverage varies by location",
       "Several free resources like SHIINE and Senior Companions are available regardless of your loved one's income",
       "PACE is available statewide and combines medical care with home services under one program"
     ],

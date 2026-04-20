@@ -62,7 +62,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for NC Medicaid first through ePASS, then contact the appropriate waiver agency for assessment — processing includes both Medicaid approval and clinical evaluation.",
+        "summary": "Apply for NC Medicaid first through ePASS, then contact the appropriate waiver agency for assessment, processing includes both Medicaid approval and clinical evaluation.",
         "steps": [
           {
             "step": 1,
@@ -85,9 +85,9 @@
             "description": "Most waivers have limited slots. You may be placed on a waitlist (called 'Registry of Unmet Needs' for Innovations) until funding becomes available in your area."
           }
         ],
-        "processingTime": "Varies — includes Medicaid approval time plus waiver-specific assessment and slot availability",
-        "waitlist": "Yes for most waivers — waitlist length varies by waiver type and region, with some areas having immediate openings while others have extended waits",
-        "tip": "Start with Medicaid application immediately even if you're unsure which waiver fits — you need Medicaid approval before any waiver assessment can begin.",
+        "processingTime": "Varies, includes Medicaid approval time plus waiver-specific assessment and slot availability",
+        "waitlist": "Yes for most waivers, waitlist length varies by waiver type and region, with some areas having immediate openings while others have extended waits",
+        "tip": "Start with Medicaid application immediately even if you're unsure which waiver fits, you need Medicaid approval before any waiver assessment can begin.",
         "urls": [
           {
             "label": "NC ePASS (Medicaid Application)",
@@ -130,10 +130,10 @@
         }
       ],
       "applicationNotes": [
-        "Each waiver serves different populations — make sure you're contacting the right one for your loved one's specific condition and age",
-        "Waitlist times vary dramatically by region and waiver type — ask about current wait times in your specific county when applying",
+        "Each waiver serves different populations, make sure you're contacting the right one for your loved one's specific condition and age",
+        "Waitlist times vary dramatically by region and waiver type, ask about current wait times in your specific county when applying",
         "You can appeal Medicaid denials or functional assessments if you disagree with the determination",
-        "Some areas use different Case Management Agencies or LME/MCOs — verify you're working with the correct local entity for your county"
+        "Some areas use different Case Management Agencies or LME/MCOs, verify you're working with the correct local entity for your county"
       ],
       "relatedPrograms": [
         "NC Medicaid",
@@ -176,11 +176,11 @@
         },
         {
           "question": "What if my loved one's income is slightly over the Medicaid limit?",
-          "answer": "Your loved one may still qualify through a spend-down process or by setting up a Miller Trust (Qualified Income Trust). Contact your local Department of Social Services to discuss options — many people who appear over-income can still qualify."
+          "answer": "Your loved one may still qualify through a spend-down process or by setting up a Miller Trust (Qualified Income Trust). Contact your local Department of Social Services to discuss options, many people who appear over-income can still qualify."
         },
         {
           "question": "How long are the waitlists really?",
-          "answer": "It varies dramatically by waiver and location. Some areas have immediate CAP/DA openings while Innovations waitlists can stretch years. Ask specifically about wait times in your county when you apply — don't rely on statewide averages."
+          "answer": "It varies dramatically by waiver and location. Some areas have immediate CAP/DA openings while Innovations waitlists can stretch years. Ask specifically about wait times in your county when you apply, don't rely on statewide averages."
         },
         {
           "question": "Can I apply on behalf of my loved one?",
@@ -188,7 +188,7 @@
         },
         {
           "question": "Can my loved one get both regular Medicaid and a waiver?",
-          "answer": "Yes — the waiver supplements regular Medicaid. Your loved one keeps all their regular Medicaid benefits (doctor visits, hospital care, prescriptions) plus gets the additional home and community services through the waiver."
+          "answer": "Yes, the waiver supplements regular Medicaid. Your loved one keeps all their regular Medicaid benefits (doctor visits, hospital care, prescriptions) plus gets the additional home and community services through the waiver."
         },
         {
           "question": "What happens if my loved one's needs change after enrollment?",
@@ -200,7 +200,7 @@
         },
         {
           "question": "What if we need services immediately due to a hospital discharge?",
-          "answer": "Contact the hospital discharge planner immediately — they often have direct connections to expedite waiver applications for people being discharged. Some emergency or crisis situations may qualify for expedited processing, but don't wait until discharge to start the Medicaid application."
+          "answer": "Contact the hospital discharge planner immediately, they often have direct connections to expedite waiver applications for people being discharged. Some emergency or crisis situations may qualify for expedited processing, but don't wait until discharge to start the Medicaid application."
         }
       ],
       "layoutIntent": {
@@ -221,7 +221,7 @@
       "id": "pace-comprehensive-care",
       "name": "NC Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "NC PACE",
-      "tagline": "All-in-one healthcare team that keeps your loved one at home instead of a nursing home — no copays or deductibles.",
+      "tagline": "All-in-one healthcare team that keeps your loved one at home instead of a nursing home, no copays or deductibles.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -238,7 +238,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay at home, NC PACE provides everything — doctors, specialists, medications, transportation, and daily support — under one coordinated program. Because PACE becomes both your loved one's insurance and their care provider, they won't juggle multiple doctors or worry about copays for approved services.\n\nYour loved one must be 55+ and certified as needing nursing facility level of care (extensive help with bathing, dressing, toileting, walking, transferring, or eating). Income limit: $2,901/month for Medicaid coverage, though higher-income families can still enroll by paying a monthly fee. Asset limit: $2,000 (excluding primary home).\n\nPACE is only available in certain North Carolina counties where PACE organizations operate — you must live in a designated service area to qualify.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay at home, NC PACE provides everything, doctors, specialists, medications, transportation, and daily support, under one coordinated program. Because PACE becomes both your loved one's insurance and their care provider, they won't juggle multiple doctors or worry about copays for approved services.\n\nYour loved one must be 55+ and certified as needing nursing facility level of care (extensive help with bathing, dressing, toileting, walking, transferring, or eating). Income limit: $2,901/month for Medicaid coverage, though higher-income families can still enroll by paying a monthly fee. Asset limit: $2,000 (excluding primary home).\n\nPACE is only available in certain North Carolina counties where PACE organizations operate, you must live in a designated service area to qualify.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive healthcare service",
       "savingsVerified": false,
@@ -266,7 +266,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by NC Medicaid as needing nursing facility level of care — extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
+        "functionalRequirement": "Must be certified by NC Medicaid as needing nursing facility level of care, extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
         "otherRequirements": [
           "Must live in a PACE organization's service area",
           "Cannot be enrolled in Medicare Advantage (Part C)",
@@ -278,7 +278,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE Center directly for enrollment — no standardized application timeline available.",
+        "summary": "Call your local PACE Center directly for enrollment, no standardized application timeline available.",
         "steps": [
           {
             "step": 1,
@@ -308,7 +308,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start the process early — the nursing facility level of care certification can take time, and you want to have PACE in place before a health crisis.",
+        "tip": "Start the process early, the nursing facility level of care certification can take time, and you want to have PACE in place before a health crisis.",
         "urls": [
           {
             "label": "NC PACE Association",
@@ -342,10 +342,10 @@
         }
       ],
       "applicationNotes": [
-        "PACE is only available in specific counties — confirm service area availability before starting the application process",
-        "If you have Medicare Advantage, you must disenroll before joining PACE — PACE becomes your sole insurance coverage",
+        "PACE is only available in specific counties, confirm service area availability before starting the application process",
+        "If you have Medicare Advantage, you must disenroll before joining PACE, PACE becomes your sole insurance coverage",
         "Higher-income families can still enroll by paying Patient Monthly Liability fees determined by Medicaid based on income and assets",
-        "All services except emergencies must be pre-approved by your PACE organization — using outside providers without approval means you pay full cost"
+        "All services except emergencies must be pre-approved by your PACE organization, using outside providers without approval means you pay full cost"
       ],
       "relatedPrograms": [
         "NC Innovations Waiver",
@@ -365,11 +365,11 @@
         },
         {
           "question": "Can my loved one see their current doctors after joining PACE?",
-          "answer": "No. PACE becomes both the insurer and care provider — your loved one will receive all care through the PACE team of doctors and specialists. All services except emergencies must be approved by PACE."
+          "answer": "No. PACE becomes both the insurer and care provider, your loved one will receive all care through the PACE team of doctors and specialists. All services except emergencies must be approved by PACE."
         },
         {
           "question": "How do I know if PACE is available in my loved one's area?",
-          "answer": "Call NC PACE Association at 919-855-4340 or visit ncpace.org. PACE is only available in specific counties where organizations operate — availability is limited across North Carolina."
+          "answer": "Call NC PACE Association at 919-855-4340 or visit ncpace.org. PACE is only available in specific counties where organizations operate, availability is limited across North Carolina."
         },
         {
           "question": "Can my loved one leave PACE if they don't like it?",
@@ -419,7 +419,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, and copays, North Carolina's Medicare Savings Programs can provide immediate relief. These programs pay some or all Medicare costs for people with income below $1,816/month (single) or $2,455/month (couple), plus assets under $9,950/$14,910.\n\nThere are three tiers: QMB covers all Medicare costs including the $202.90 monthly Part B premium, deductibles, and copays. SLMB and QI cover just the Part B premium ($2,435 yearly savings). All three automatically qualify your loved one for Extra Help with prescription drug costs. Because QI has limited federal funding, it operates first-come, first-served and may run out each year — apply early if your loved one's income is in the highest bracket.",
+      "intro": "If your loved one struggles to pay Medicare premiums, deductibles, and copays, North Carolina's Medicare Savings Programs can provide immediate relief. These programs pay some or all Medicare costs for people with income below $1,816/month (single) or $2,455/month (couple), plus assets under $9,950/$14,910.\n\nThere are three tiers: QMB covers all Medicare costs including the $202.90 monthly Part B premium, deductibles, and copays. SLMB and QI cover just the Part B premium ($2,435 yearly savings). All three automatically qualify your loved one for Extra Help with prescription drug costs. Because QI has limited federal funding, it operates first-come, first-served and may run out each year, apply early if your loved one's income is in the highest bracket.",
       "savingsRange": "$2,400 – $8,000/year in 2026",
       "savingsSource": "Medicare Part B premiums, deductibles, copays, and Extra Help prescription savings",
       "savingsVerified": true,
@@ -470,7 +470,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through NC ePASS or call your local county Department of Social Services — processing typically takes 45 days.",
+        "summary": "Apply online through NC ePASS or call your local county Department of Social Services, processing typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -499,7 +499,7 @@
           }
         ],
         "processingTime": "Typically 45 days, but varies by county",
-        "waitlist": "QI program only operates first-come, first-served with limited federal funding and may run out annually — reapply each year",
+        "waitlist": "QI program only operates first-come, first-served with limited federal funding and may run out annually, reapply each year",
         "tip": "If your loved one's income is close to the QI limit ($1,816/month), apply early in the year before funding runs out.",
         "urls": [
           {
@@ -550,9 +550,9 @@
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited and distributed first-come, first-served — if your loved one's income is between $1,585-$1,816/month, apply early in the calendar year",
+        "QI program funding is limited and distributed first-come, first-served, if your loved one's income is between $1,585-$1,816/month, apply early in the calendar year",
         "Income includes the standard $20 general disregard, so your loved one may qualify even if their gross income appears slightly over the limit",
-        "QMB beneficiaries cannot be billed by providers for covered Medicare services — make sure your loved one carries their MSP identification card",
+        "QMB beneficiaries cannot be billed by providers for covered Medicare services, make sure your loved one carries their MSP identification card",
         "All Medicare Savings Programs automatically trigger enrollment in Extra Help for prescription drugs, but confirm this benefit is active"
       ],
       "relatedPrograms": [
@@ -565,7 +565,7 @@
         {
           "type": "tier-comparison",
           "title": "QMB vs SLMB vs QI: Which Program Fits Your Parent?",
-          "content": "**QMB (Qualified Medicare Beneficiary)** — Income up to $1,350/month (single): Covers Part B premium ($202.90/month), all deductibles, copays, and coinsurance. Providers cannot bill your loved one for covered services.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)** — Income $1,350-$1,616/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings).\n\n**QI (Qualifying Individual)** — Income $1,616-$1,816/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings). Limited funding, first-come first-served."
+          "content": "**QMB (Qualified Medicare Beneficiary)**, Income up to $1,350/month (single): Covers Part B premium ($202.90/month), all deductibles, copays, and coinsurance. Providers cannot bill your loved one for covered services.\n\n**SLMB (Specified Low-Income Medicare Beneficiary)**, Income $1,350-$1,616/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings).\n\n**QI (Qualifying Individual)**, Income $1,616-$1,816/month (single): Covers Part B premium only ($202.90/month, $2,435/year savings). Limited funding, first-come first-served."
         },
         {
           "type": "callout",
@@ -625,7 +625,7 @@
       "id": "snap-food-benefits",
       "name": "NC Food and Nutrition Services (FNS)/SNAP",
       "shortName": "NC SNAP",
-      "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes — up to $281/month on an EBT card",
+      "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes, up to $281/month on an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -638,7 +638,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100–300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers — no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your loved one receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your loved one has very low income and urgent food needs.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100–300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers, no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your loved one receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your loved one has very low income and urgent food needs.",
       "savingsRange": "$1,400 – $3,400/year in 2026",
       "savingsSource": "Monthly benefits of $188 average for seniors, up to $281 maximum for single-person household",
       "savingsVerified": true,
@@ -696,7 +696,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at NC ePASS or call your local county DSS office — processing takes 30 days, or 7 days for expedited cases",
+        "summary": "Apply online at NC ePASS or call your local county DSS office, processing takes 30 days, or 7 days for expedited cases",
         "steps": [
           {
             "step": 1,
@@ -706,7 +706,7 @@
           {
             "step": 2,
             "title": "Submit required documents",
-            "description": "Provide proof of income, expenses, assets, and identity. Medical expenses over $35/month are crucial deductions for seniors — include doctor bills, prescription costs, and health insurance premiums."
+            "description": "Provide proof of income, expenses, assets, and identity. Medical expenses over $35/month are crucial deductions for seniors, include doctor bills, prescription costs, and health insurance premiums."
           },
           {
             "step": 3,
@@ -721,7 +721,7 @@
         ],
         "processingTime": "30 days standard; expedited within 7 days if income under $150/month and cash under $100, or if monthly income plus cash is less than rent plus utilities",
         "waitlist": null,
-        "tip": "Medical expenses are key for seniors — gather all receipts for medications, doctor visits, insurance premiums, and medical equipment from the past 3 months",
+        "tip": "Medical expenses are key for seniors, gather all receipts for medications, doctor visits, insurance premiums, and medical equipment from the past 3 months",
         "urls": [
           {
             "label": "NC ePASS Online Application",
@@ -764,7 +764,7 @@
       ],
       "applicationNotes": [
         "Expedited processing available if monthly income is under $150 and cash/bank accounts under $100, or if monthly income plus cash is less than rent plus utilities",
-        "Households with elderly (60+) members only need to meet net income limits — no gross income test applies",
+        "Households with elderly (60+) members only need to meet net income limits, no gross income test applies",
         "Medical expenses over $35/month count as deductions, including Medicare premiums, prescription costs, and ongoing medical bills",
         "Simplified SNAP for SSI recipients 65+ provides 3-year certification with minimal paperwork and automatic renewal"
       ],
@@ -782,7 +782,7 @@
         },
         {
           "question": "What medical expenses help my loved one qualify?",
-          "answer": "Medical expenses over $35/month count as deductions from income: Medicare premiums, prescription costs, doctor visits, medical equipment, and ongoing treatment costs. Gather receipts from the last 3 months — these deductions often make the difference for seniors on fixed incomes."
+          "answer": "Medical expenses over $35/month count as deductions from income: Medicare premiums, prescription costs, doctor visits, medical equipment, and ongoing treatment costs. Gather receipts from the last 3 months, these deductions often make the difference for seniors on fixed incomes."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -834,7 +834,7 @@
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one is 60+ and struggles to pay heating bills, NC LIHEAP provides a one-time payment of $300, $400, or $500 sent directly to their energy company. The exact amount depends on their household size and primary heating source. Last year, the program helped over 134,000 North Carolina households with approximately $48 million in assistance.\n\nPriority households (age 60+ or disabled receiving services through NC Division of Aging) can apply December 1–31 only. All other eligible households can apply January 1–March 31 or until funds run out. Because this operates on a first-come, first-served basis with limited federal funding, timing your application is critical.\n\nYour loved one doesn't need to be behind on their energy bills to qualify. The payment goes directly to their heating vendor — they cannot redirect the funds. This is a one-time benefit per funding cycle, not ongoing monthly assistance.",
+      "intro": "If your loved one is 60+ and struggles to pay heating bills, NC LIHEAP provides a one-time payment of $300, $400, or $500 sent directly to their energy company. The exact amount depends on their household size and primary heating source. Last year, the program helped over 134,000 North Carolina households with approximately $48 million in assistance.\n\nPriority households (age 60+ or disabled receiving services through NC Division of Aging) can apply December 1–31 only. All other eligible households can apply January 1–March 31 or until funds run out. Because this operates on a first-come, first-served basis with limited federal funding, timing your application is critical.\n\nYour loved one doesn't need to be behind on their energy bills to qualify. The payment goes directly to their heating vendor, they cannot redirect the funds. This is a one-time benefit per funding cycle, not ongoing monthly assistance.",
       "savingsRange": "$300 – $500 in 2026",
       "savingsSource": "One-time vendor payment based on NC DHHS program data",
       "savingsVerified": true,
@@ -886,7 +886,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through your county social services or call your local Department of Social Services — priority households (60+) must apply in December, all others January–March.",
+        "summary": "Apply online through your county social services or call your local Department of Social Services, priority households (60+) must apply in December, all others January–March.",
         "steps": [
           {
             "step": 1,
@@ -911,7 +911,7 @@
         ],
         "processingTime": "Varies by county; payments made until funds are exhausted",
         "waitlist": null,
-        "tip": "If your loved one received LIEAP last year and meets priority criteria, they may get automatic payment without reapplying — but only if they received an eligibility notice.",
+        "tip": "If your loved one received LIEAP last year and meets priority criteria, they may get automatic payment without reapplying, but only if they received an eligibility notice.",
         "urls": [
           {
             "label": "NC DHHS Energy Assistance",
@@ -946,8 +946,8 @@
       ],
       "applicationNotes": [
         "Income limits are based on gross (pre-tax) income, not what your loved one takes home",
-        "Asset limits are strict — even modest savings over $2,250 can disqualify your loved one ($3,000 in some counties)",
-        "Missing the December window for priority households means waiting until the next funding cycle — there are no exceptions",
+        "Asset limits are strict, even modest savings over $2,250 can disqualify your loved one ($3,000 in some counties)",
+        "Missing the December window for priority households means waiting until the next funding cycle, there are no exceptions",
         "The program provides only one payment per funding cycle, regardless of your loved one's ongoing energy costs"
       ],
       "relatedPrograms": [
@@ -959,20 +959,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my loved one has $3,000 in savings — are they automatically disqualified?",
-          "answer": "In most NC counties, yes — the asset limit is $2,250. However, Union County allows up to $3,000, suggesting some regional variation. Call your local social services office to confirm the exact limit in your county."
+          "question": "What if my loved one has $3,000 in savings, are they automatically disqualified?",
+          "answer": "In most NC counties, yes, the asset limit is $2,250. However, Union County allows up to $3,000, suggesting some regional variation. Call your local social services office to confirm the exact limit in your county."
         },
         {
           "question": "Can I apply in January if my loved one is 65 but missed the December priority window?",
           "answer": "No. Priority households (60+) can only apply December 1–31. If they miss this window, they must wait until the next funding cycle. There are no exceptions to this rule."
         },
         {
-          "question": "What if my loved one received LIHEAP last year — do they need to reapply?",
+          "question": "What if my loved one received LIHEAP last year, do they need to reapply?",
           "answer": "It depends. If they meet priority criteria and received an eligibility notice, they may get automatic payment. If they didn't receive a notice, they must apply manually during their designated window."
         },
         {
           "question": "Can my disabled loved one get priority status without being 60+?",
-          "answer": "Only if they're receiving services through the NC Division of Aging and Adult Services. Simply having a disability isn't enough — they must be actively enrolled in Division services."
+          "answer": "Only if they're receiving services through the NC Division of Aging and Adult Services. Simply having a disability isn't enough, they must be actively enrolled in Division services."
         },
         {
           "question": "What if my loved one rents and doesn't pay the heating bill directly?",
@@ -1022,7 +1022,7 @@
           }
         ]
       },
-      "intro": "If your loved one's utility bills are straining their budget, North Carolina's Weatherization Assistance Program provides free home energy improvements worth an average of $2,500. The program installs insulation, seals air leaks, and upgrades heating and cooling systems at no cost to eligible households.\n\nYour loved one may qualify if their household income is at or below 200% of federal poverty guidelines — that's $31,300/year for a single person or $42,300 for a couple in 2025. Households receiving SSI, TANF, or similar assistance automatically qualify. The program serves homeowners and renters (with landlord permission).\n\nBecause funding is limited and distributed first-come, first-served, elderly residents get priority when funds run low. The improvements typically save households $215-$372 annually on energy bills, with some seeing even greater savings depending on their home's condition.",
+      "intro": "If your loved one's utility bills are straining their budget, North Carolina's Weatherization Assistance Program provides free home energy improvements worth an average of $2,500. The program installs insulation, seals air leaks, and upgrades heating and cooling systems at no cost to eligible households.\n\nYour loved one may qualify if their household income is at or below 200% of federal poverty guidelines, that's $31,300/year for a single person or $42,300 for a couple in 2025. Households receiving SSI, TANF, or similar assistance automatically qualify. The program serves homeowners and renters (with landlord permission).\n\nBecause funding is limited and distributed first-come, first-served, elderly residents get priority when funds run low. The improvements typically save households $215-$372 annually on energy bills, with some seeing even greater savings depending on their home's condition.",
       "savingsRange": "$215 – $372/year",
       "savingsSource": "Average annual energy bill savings from NC DEQ Energy Office",
       "savingsVerified": true,
@@ -1080,7 +1080,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional provider by phone to request an application — processing includes income verification and home assessment.",
+        "summary": "Contact your regional provider by phone to request an application, processing includes income verification and home assessment.",
         "steps": [
           {
             "step": 1,
@@ -1108,8 +1108,8 @@
             "description": "If approved, contractors will conduct a detailed energy audit and install appropriate energy-saving measures like insulation, air sealing, and heating/cooling improvements."
           }
         ],
-        "processingTime": "Processing time varies by provider and funding availability — applications processed first-come, first-served until annual funds are exhausted",
-        "waitlist": "No formal waitlist — when annual funding runs out, applications typically resume the following program year with new federal allocation",
+        "processingTime": "Processing time varies by provider and funding availability, applications processed first-come, first-served until annual funds are exhausted",
+        "waitlist": "No formal waitlist, when annual funding runs out, applications typically resume the following program year with new federal allocation",
         "tip": "Apply early in the program year (typically starting in fall/winter) when funding is most available, and elderly households get priority if funds become limited.",
         "urls": [
           {
@@ -1153,7 +1153,7 @@
       "applicationNotes": [
         "Households receiving SSI, TANF, or Work First automatically qualify income-wise but still need home assessment",
         "Priority is given to elderly, disabled individuals, and families with children when funding becomes limited",
-        "Homes needing major structural repairs are ineligible — the program is for energy improvements, not general rehabilitation",
+        "Homes needing major structural repairs are ineligible, the program is for energy improvements, not general rehabilitation",
         "Each address can only receive weatherization services once, so if previous owners received services, your loved one may not qualify"
       ],
       "relatedPrograms": [
@@ -1244,7 +1244,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and homebound due to illness or disability, county meal delivery programs can bring nutritious meals directly to their door. Because your loved one can't shop or prepare food safely, these programs provide regular home-delivered meals at no cost to help them stay nourished and independent.\n\nEach county in North Carolina runs its own program independently — Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell counties have documented programs. Because there's no statewide system, eligibility requirements and application processes vary by county, though all require your loved one to be homebound and unable to obtain or prepare food.\n\nAll programs maintain waiting lists, so expect delays between application and meal delivery. Contact your county's Area Agency on Aging or Department of Social Services to find your local program and verify current availability.",
+      "intro": "If your loved one is 60+ and homebound due to illness or disability, county meal delivery programs can bring nutritious meals directly to their door. Because your loved one can't shop or prepare food safely, these programs provide regular home-delivered meals at no cost to help them stay nourished and independent.\n\nEach county in North Carolina runs its own program independently, Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell counties have documented programs. Because there's no statewide system, eligibility requirements and application processes vary by county, though all require your loved one to be homebound and unable to obtain or prepare food.\n\nAll programs maintain waiting lists, so expect delays between application and meal delivery. Contact your county's Area Agency on Aging or Department of Social Services to find your local program and verify current availability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1269,7 +1269,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's meal program for phone screening — most accept applications by phone and process based on waitlist availability.",
+        "summary": "Call your county's meal program for phone screening, most accept applications by phone and process based on waitlist availability.",
         "steps": [
           {
             "step": 1,
@@ -1293,7 +1293,7 @@
           }
         ],
         "processingTime": "Varies by county and waitlist status",
-        "waitlist": "Waiting lists exist in all documented programs — specific wait times not available from counties",
+        "waitlist": "Waiting lists exist in all documented programs, specific wait times not available from counties",
         "tip": "Apply as early as possible since all programs have waiting lists, and provide complete medical documentation to avoid delays.",
         "urls": []
       },
@@ -1326,9 +1326,9 @@
         }
       ],
       "applicationNotes": [
-        "Each county operates independently — contact information and eligibility requirements differ significantly between counties",
+        "Each county operates independently, contact information and eligibility requirements differ significantly between counties",
         "Waiting lists are standard across all programs, so apply early even if your loved one's needs aren't urgent yet",
-        "County residency is strictly enforced — you cannot receive meals from a neighboring county's program",
+        "County residency is strictly enforced, you cannot receive meals from a neighboring county's program",
         "Age requirements vary by county (60+ in most areas, 65+ in Brunswick County)"
       ],
       "relatedPrograms": [
@@ -1394,7 +1394,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a loved one 60+ or someone with disabilities who needs daily help, North Carolina provides up to $750 per year in vouchers to pay for temporary respite care. This means you can hire an agency, facility, or individual caregiver to watch your loved one while you take a break — whether for a few hours, overnight, or several days.\n\nYou must be referred by a professional (like a social worker, counselor, or senior center staff) — you cannot apply directly. Priority goes to caregivers with the greatest financial need who have been providing unpaid care for at least 3 months. The vouchers cover any type of short-term care you choose, but you pay upfront and get reimbursed later.",
+      "intro": "If you're caring for a loved one 60+ or someone with disabilities who needs daily help, North Carolina provides up to $750 per year in vouchers to pay for temporary respite care. This means you can hire an agency, facility, or individual caregiver to watch your loved one while you take a break, whether for a few hours, overnight, or several days.\n\nYou must be referred by a professional (like a social worker, counselor, or senior center staff), you cannot apply directly. Priority goes to caregivers with the greatest financial need who have been providing unpaid care for at least 3 months. The vouchers cover any type of short-term care you choose, but you pay upfront and get reimbursed later.",
       "savingsRange": "Up to $750/year",
       "savingsSource": "Reimbursement vouchers for respite care services",
       "savingsVerified": true,
@@ -1413,7 +1413,7 @@
         "otherRequirements": [
           "Must be North Carolina resident",
           "Cannot be receiving ongoing publicly-funded in-home care or respite care",
-          "Must be referred by an agency or professional — direct caregiver applications not accepted",
+          "Must be referred by an agency or professional, direct caregiver applications not accepted",
           "Voucher funds must be used within 90 days",
           "Priority to caregivers who have provided direct care for at least 3 months"
         ],
@@ -1421,7 +1421,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "A professional must refer you — call High Country Area Agency on Aging to find a referring agency near you.",
+        "summary": "A professional must refer you, call High Country Area Agency on Aging to find a referring agency near you.",
         "steps": [
           {
             "step": 1,
@@ -1445,8 +1445,8 @@
           }
         ],
         "processingTime": "Application takes only minutes; no specific processing timeline provided",
-        "waitlist": "Priority-based allocation — those with greatest economic need and 3+ months of caregiving get preference",
-        "tip": "Call ahead to confirm the referring agency serves your county — not all professionals can make referrals to this program.",
+        "waitlist": "Priority-based allocation, those with greatest economic need and 3+ months of caregiving get preference",
+        "tip": "Call ahead to confirm the referring agency serves your county, not all professionals can make referrals to this program.",
         "urls": [
           {
             "label": "Lifespan Respite Program",
@@ -1492,7 +1492,7 @@
       "applicationNotes": [
         "Emergency or extenuating circumstances may qualify for priority even without 3 months of prior caregiving",
         "You must have provided no publicly-funded respite care in the last 3 months to be eligible",
-        "Vouchers are reimbursement-based — you pay the respite provider first, then submit receipts",
+        "Vouchers are reimbursement-based, you pay the respite provider first, then submit receipts",
         "Funds expire 90 days after approval, so plan your respite care timing carefully"
       ],
       "relatedPrograms": [
@@ -1505,10 +1505,10 @@
       "faqs": [
         {
           "question": "Can I apply directly or do I really need a professional referral?",
-          "answer": "You cannot apply directly — all applications must come through a referring agency or professional like a counselor, social worker, or senior center staff. Call 828-265-5434 ext. 139 to find approved referring agencies in your area."
+          "answer": "You cannot apply directly, all applications must come through a referring agency or professional like a counselor, social worker, or senior center staff. Call 828-265-5434 ext. 139 to find approved referring agencies in your area."
         },
         {
-          "question": "What if my loved one gets some help from Medicaid — are we still eligible?",
+          "question": "What if my loved one gets some help from Medicaid, are we still eligible?",
           "answer": "You cannot receive ongoing publicly-funded in-home care or respite care to be eligible. If your loved one gets Medicaid personal care services or other regular government-funded assistance, you likely won't qualify. Check with the program coordinator about your specific situation."
         },
         {
@@ -1517,7 +1517,7 @@
         },
         {
           "question": "Can I hire a family member or friend with these vouchers?",
-          "answer": "Yes, the vouchers are flexible — you can hire an agency, facility, or individual for respite care. The program doesn't restrict who you choose as long as they provide the temporary caregiving services."
+          "answer": "Yes, the vouchers are flexible, you can hire an agency, facility, or individual for respite care. The program doesn't restrict who you choose as long as they provide the temporary caregiving services."
         },
         {
           "question": "What counts as 'greatest economic need' for priority consideration?",
@@ -1694,9 +1694,9 @@
         }
       ],
       "applicationNotes": [
-        "Multiple grantee organizations serve different regions of NC — make sure you contact the one serving your county",
-        "Priority is strictly enforced: veterans first, then 65+, then other qualifying categories — non-priority applicants may face longer waits",
-        "This is temporary employment (average 6 months) designed to lead to permanent jobs — not ongoing income support",
+        "Multiple grantee organizations serve different regions of NC, make sure you contact the one serving your county",
+        "Priority is strictly enforced: veterans first, then 65+, then other qualifying categories, non-priority applicants may face longer waits",
+        "This is temporary employment (average 6 months) designed to lead to permanent jobs, not ongoing income support",
         "Participants must be actively seeking unsubsidized employment and willing to leave the program when placed in regular work"
       ],
       "relatedPrograms": [
@@ -1771,7 +1771,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60 or older in North Carolina, they can get free civil legal help with essential issues like writing wills, obtaining benefits, preventing eviction, and stopping financial abuse. Legal Aid of North Carolina's Senior Law Project provides legal advice, document review, advocacy letters, and referrals to local attorneys at no cost — regardless of your loved one's income or assets.\n\nThe program handles the legal issues that most threaten seniors' safety and independence: Medicaid and SNAP applications, wrongful evictions, consumer scams, unemployment compensation, and powers of attorney. Because seniors 60+ are exempt from all income limits, your loved one qualifies for help based on age alone, though priority goes to those with the greatest economic or social need.",
+      "intro": "If your loved one is 60 or older in North Carolina, they can get free civil legal help with essential issues like writing wills, obtaining benefits, preventing eviction, and stopping financial abuse. Legal Aid of North Carolina's Senior Law Project provides legal advice, document review, advocacy letters, and referrals to local attorneys at no cost, regardless of your loved one's income or assets.\n\nThe program handles the legal issues that most threaten seniors' safety and independence: Medicaid and SNAP applications, wrongful evictions, consumer scams, unemployment compensation, and powers of attorney. Because seniors 60+ are exempt from all income limits, your loved one qualifies for help based on age alone, though priority goes to those with the greatest economic or social need.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1795,7 +1795,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Senior Legal Helpline at 1-877-579-7562 during intake hours — no application needed.",
+        "summary": "Call the Senior Legal Helpline at 1-877-579-7562 during intake hours, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1815,7 +1815,7 @@
         ],
         "processingTime": "Immediate phone advice; follow-up services vary by case priority",
         "waitlist": null,
-        "tip": "Call exactly during the intake hours — 9-11 AM or 1-3 PM weekdays. Have details about your loved one's legal issue ready to explain.",
+        "tip": "Call exactly during the intake hours, 9-11 AM or 1-3 PM weekdays. Have details about your loved one's legal issue ready to explain.",
         "urls": [
           {
             "label": "Senior Law Project",
@@ -1852,7 +1852,7 @@
         },
         {
           "question": "What if my loved one has money but still needs legal help?",
-          "answer": "Your loved one still qualifies regardless of income or assets — seniors 60+ are exempt from financial eligibility requirements. However, priority goes to those with the greatest economic need, so wealthy seniors may receive referrals to private attorneys rather than direct representation."
+          "answer": "Your loved one still qualifies regardless of income or assets, seniors 60+ are exempt from financial eligibility requirements. However, priority goes to those with the greatest economic need, so wealthy seniors may receive referrals to private attorneys rather than direct representation."
         },
         {
           "question": "Will they represent my loved one in court?",
@@ -1902,7 +1902,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a North Carolina nursing home, assisted living, or other long-term care facility and you're concerned about their treatment, care quality, or rights, the NC Long-Term Care Ombudsman Program provides free advocacy. Trained ombudsmen investigate complaints, mediate disputes with facilities, and work to resolve issues confidentially at no cost to families.\n\nThe program serves residents in nursing homes, adult care homes, family care homes, assisted housing communities, continuing care retirement communities (CCRCs), and independent living rental communities for seniors. No income or age requirements apply — any current resident, former resident, family member, or concerned party can request help. North Carolina operates 16 regional ombudsman offices covering all 100 counties, with local volunteers conducting regular facility visits and monitoring compliance with federal and state long-term care laws.",
+      "intro": "If your loved one lives in a North Carolina nursing home, assisted living, or other long-term care facility and you're concerned about their treatment, care quality, or rights, the NC Long-Term Care Ombudsman Program provides free advocacy. Trained ombudsmen investigate complaints, mediate disputes with facilities, and work to resolve issues confidentially at no cost to families.\n\nThe program serves residents in nursing homes, adult care homes, family care homes, assisted housing communities, continuing care retirement communities (CCRCs), and independent living rental communities for seniors. No income or age requirements apply, any current resident, former resident, family member, or concerned party can request help. North Carolina operates 16 regional ombudsman offices covering all 100 counties, with local volunteers conducting regular facility visits and monitoring compliance with federal and state long-term care laws.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1925,22 +1925,22 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional ombudsman office directly — no forms required and initial consultation starts immediately.",
+        "summary": "Call your regional ombudsman office directly, no forms required and initial consultation starts immediately.",
         "steps": [
           {
             "step": 1,
             "title": "Find your regional office",
-            "description": "Locate your county's ombudsman office using the NC DHHS directory — each of the 16 regional offices serves specific counties and has direct phone numbers listed."
+            "description": "Locate your county's ombudsman office using the NC DHHS directory, each of the 16 regional offices serves specific counties and has direct phone numbers listed."
           },
           {
             "step": 2,
             "title": "Call with complaint details",
-            "description": "Provide the resident's name, facility address, your relationship to the resident, and description of the concern — ombudsmen can accept complaints verbally with no paperwork required."
+            "description": "Provide the resident's name, facility address, your relationship to the resident, and description of the concern, ombudsmen can accept complaints verbally with no paperwork required."
           },
           {
             "step": 3,
             "title": "Work with ombudsman",
-            "description": "The ombudsman will investigate, visit the facility if needed, and work to resolve the issue through mediation or advocacy — all services remain confidential unless you request otherwise."
+            "description": "The ombudsman will investigate, visit the facility if needed, and work to resolve the issue through mediation or advocacy, all services remain confidential unless you request otherwise."
           }
         ],
         "processingTime": "Initial consultation provided promptly upon contact",
@@ -1958,7 +1958,7 @@
         {
           "label": "Regional Ombudsman Offices",
           "phone": "See county directory",
-          "description": "Direct complaint line for your area — 16 offices serving all NC counties",
+          "description": "Direct complaint line for your area, 16 offices serving all NC counties",
           "hours": "Varies by region"
         },
         {
@@ -1978,11 +1978,11 @@
       "faqs": [
         {
           "question": "Can the ombudsman help if my loved one refuses to let them get involved?",
-          "answer": "No — ombudsmen cannot act on behalf of a resident who refuses their involvement. The resident must consent to ombudsman services, though family members can still receive information about rights and options. If your loved one has cognitive impairment and you have legal authority, discuss this with the ombudsman directly."
+          "answer": "No, ombudsmen cannot act on behalf of a resident who refuses their involvement. The resident must consent to ombudsman services, though family members can still receive information about rights and options. If your loved one has cognitive impairment and you have legal authority, discuss this with the ombudsman directly."
         },
         {
           "question": "What's the difference between calling the ombudsman versus reporting abuse to the state?",
-          "answer": "Ombudsmen handle quality of care complaints and advocacy, while suspected abuse or neglect must be reported to the NC Division of Health Service Regulation or local law enforcement. For serious safety concerns like physical abuse, financial exploitation, or medical neglect, call both — the ombudsman can advocate while regulators investigate. You can file abuse reports at (800) 624-3004."
+          "answer": "Ombudsmen handle quality of care complaints and advocacy, while suspected abuse or neglect must be reported to the NC Division of Health Service Regulation or local law enforcement. For serious safety concerns like physical abuse, financial exploitation, or medical neglect, call both, the ombudsman can advocate while regulators investigate. You can file abuse reports at (800) 624-3004."
         },
         {
           "question": "Will the facility know I complained if I call the ombudsman?",
@@ -1990,7 +1990,7 @@
         },
         {
           "question": "Can the ombudsman help us choose a facility before admission?",
-          "answer": "Yes — ombudsmen provide education about resident rights, facility selection guidance, and can explain what to look for in admission agreements. They cannot approve or disapprove specific facilities, but can help you understand inspection reports, resident rights, and warning signs. They cannot help with Medicaid applications or funding — contact your local Department of Social Services for financial assistance."
+          "answer": "Yes, ombudsmen provide education about resident rights, facility selection guidance, and can explain what to look for in admission agreements. They cannot approve or disapprove specific facilities, but can help you understand inspection reports, resident rights, and warning signs. They cannot help with Medicaid applications or funding, contact your local Department of Social Services for financial assistance."
         }
       ],
       "layoutIntent": {
@@ -2024,7 +2024,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and owns their North Carolina home, they may qualify to exclude a significant portion of their property value from taxation. The Elderly and Disabled Homestead Exclusion removes either $25,000 or 50% of the home's appraised value from their tax bill — whichever is greater. For a $100,000 home, this means paying taxes on only $50,000 of value.\n\nTo qualify, your loved one's total income from the previous year must be below $38,800 (2025 limit), and they must own and live in the home as their permanent residence. Because this is a one-time application with a June 1 deadline, missing the window means waiting until the next tax year. The savings can be substantial — often $500 to $2,000+ annually depending on local tax rates and property values.\n\nThis program is separate from North Carolina's bankruptcy homestead exemption and cannot be combined with other property tax relief programs. Each county administers applications locally, so you'll work directly with your loved one's county tax assessor's office.",
+      "intro": "If your loved one is 65+ and owns their North Carolina home, they may qualify to exclude a significant portion of their property value from taxation. The Elderly and Disabled Homestead Exclusion removes either $25,000 or 50% of the home's appraised value from their tax bill, whichever is greater. For a $100,000 home, this means paying taxes on only $50,000 of value.\n\nTo qualify, your loved one's total income from the previous year must be below $38,800 (2025 limit), and they must own and live in the home as their permanent residence. Because this is a one-time application with a June 1 deadline, missing the window means waiting until the next tax year. The savings can be substantial, often $500 to $2,000+ annually depending on local tax rates and property values.\n\nThis program is separate from North Carolina's bankruptcy homestead exemption and cannot be combined with other property tax relief programs. Each county administers applications locally, so you'll work directly with your loved one's county tax assessor's office.",
       "savingsRange": "$500 – $2,000+/year",
       "savingsSource": "Property tax reduction based on exclusion of $25,000 or 50% of appraised value, whichever is greater",
       "savingsVerified": false,
@@ -2079,7 +2079,7 @@
         ],
         "processingTime": "Varies by county; notification provided if application is denied",
         "waitlist": null,
-        "tip": "This is a one-time application — once approved, the exemption continues automatically as long as your loved one remains eligible. Don't wait until the last minute, as June 1 is a hard deadline.",
+        "tip": "This is a one-time application, once approved, the exemption continues automatically as long as your loved one remains eligible. Don't wait until the last minute, as June 1 is a hard deadline.",
         "urls": [
           {
             "label": "NC General Statute 105-277.1",
@@ -2112,10 +2112,10 @@
         }
       ],
       "applicationNotes": [
-        "Income is based on the full previous calendar year — if your loved one exceeded $38,800 even briefly, they're ineligible for that year",
+        "Income is based on the full previous calendar year, if your loved one exceeded $38,800 even briefly, they're ineligible for that year",
         "Temporary nursing home stays for health reasons don't disqualify your loved one if the home remains unoccupied or is occupied by a spouse or dependent",
-        "The exemption applies to the home plus up to 1 acre of land — larger properties may have portions that remain taxable",
-        "Cannot combine with Circuit Breaker tax relief or other property tax programs — choose the one that provides greater savings"
+        "The exemption applies to the home plus up to 1 acre of land, larger properties may have portions that remain taxable",
+        "Cannot combine with Circuit Breaker tax relief or other property tax programs, choose the one that provides greater savings"
       ],
       "relatedPrograms": [
         "North Carolina Property Tax Circuit Breaker",
@@ -2129,11 +2129,11 @@
           "answer": "No, the income limit is strict. Income of $38,801 or more for the previous calendar year disqualifies them. However, they can apply in future years if their income drops below the limit."
         },
         {
-          "question": "What if my loved one's house is worth $300,000 — how much would they save?",
+          "question": "What if my loved one's house is worth $300,000, how much would they save?",
           "answer": "They would exclude 50% of the appraised value (since 50% of $300,000 exceeds the $25,000 minimum), meaning they'd pay taxes on only $150,000. With typical county tax rates of 0.5-1.0%, this could save $750-$1,500 annually."
         },
         {
-          "question": "My loved one is in assisted living but still owns their home — do they qualify?",
+          "question": "My loved one is in assisted living but still owns their home, do they qualify?",
           "answer": "Only if the home remains their permanent residence and is unoccupied or occupied by a spouse or dependent. If they've moved permanently to assisted living and rent or sell the home, they're no longer eligible."
         },
         {
@@ -2149,7 +2149,7 @@
           "answer": "Compare both options. The homestead exemption is often better for lower-value homes, while Circuit Breaker (4-5% income cap) may save more on expensive properties. You cannot use both simultaneously."
         },
         {
-          "question": "My loved one is a disabled veteran — is there a better option?",
+          "question": "My loved one is a disabled veteran, is there a better option?",
           "answer": "Veterans may qualify for the separate Disabled Veteran exclusion of $45,000 with no income limits. Compare this to the standard elderly exemption to see which provides greater savings based on your loved one's property value and income."
         },
         {
@@ -2188,7 +2188,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, North Carolina Long-Term Care Medicaid can cover the full cost of nursing home care, assisted living, or home-based services. Your loved one pays most of their income toward care costs (keeping only $70/month for personal needs), and Medicaid covers the remainder — which can be $8,000–$11,000/month for nursing home care depending on the facility.\n\nTo qualify, your loved one must have less than $2,000 in countable assets (singles) or $3,000 (married couples both needing care), plus income below the regional nursing home pay rate (estimated $7,898–$11,218/month in 2026). They can keep their home if equity is under $730,000 and they intend to return, or if a spouse or disabled child lives there. Because this program requires a clinical assessment proving need for daily care, the application takes 45–90 days including the functional evaluation.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, North Carolina Long-Term Care Medicaid can cover the full cost of nursing home care, assisted living, or home-based services. Your loved one pays most of their income toward care costs (keeping only $70/month for personal needs), and Medicaid covers the remainder, which can be $8,000–$11,000/month for nursing home care depending on the facility.\n\nTo qualify, your loved one must have less than $2,000 in countable assets (singles) or $3,000 (married couples both needing care), plus income below the regional nursing home pay rate (estimated $7,898–$11,218/month in 2026). They can keep their home if equity is under $730,000 and they intend to return, or if a spouse or disabled child lives there. Because this program requires a clinical assessment proving need for daily care, the application takes 45–90 days including the functional evaluation.",
       "savingsRange": "$8,000 – $11,000/month in 2026",
       "savingsSource": "Regional nursing home pay rates covered by Medicaid minus patient liability",
       "savingsVerified": true,
@@ -2230,7 +2230,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at epass.nc.gov or call your local county DSS office — processing takes 45–90 days including the required clinical assessment.",
+        "summary": "Apply online at epass.nc.gov or call your local county DSS office, processing takes 45–90 days including the required clinical assessment.",
         "steps": [
           {
             "step": 1,
@@ -2255,7 +2255,7 @@
         ],
         "processingTime": "45–90 days for full determination, including NFLOC assessment",
         "waitlist": "HCBS waivers have waitlists; nursing home Medicaid generally no waitlist but bed availability varies by facility",
-        "tip": "Start the application while your loved one is still in the hospital — discharge planners can often initiate the process and help coordinate the required assessments.",
+        "tip": "Start the application while your loved one is still in the hospital, discharge planners can often initiate the process and help coordinate the required assessments.",
         "urls": [
           {
             "label": "NC ePASS Online Application",
@@ -2305,10 +2305,10 @@
         }
       ],
       "applicationNotes": [
-        "There's a 5-year look-back period for asset transfers — any gifts or asset sales for less than fair market value can result in penalty periods delaying coverage",
+        "There's a 5-year look-back period for asset transfers, any gifts or asset sales for less than fair market value can result in penalty periods delaying coverage",
         "If your loved one's income exceeds the facility pay rate, they may still qualify through medically needy spend-down by applying medical expenses toward the excess income",
         "Home and community-based services waivers have longer waitlists in high-demand areas, but nursing home placement typically has shorter waits",
-        "Spousal impoverishment protections allow the community spouse to retain up to half of joint assets up to $162,660 (2026) — complex rules apply"
+        "Spousal impoverishment protections allow the community spouse to retain up to half of joint assets up to $162,660 (2026), complex rules apply"
       ],
       "relatedPrograms": [
         "North Carolina SNAP (Food Assistance)",
@@ -2402,7 +2402,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a loved one with Alzheimer's disease or related dementia in North Carolina, you may qualify for free care consultation and limited respite care vouchers through Project C.A.R.E. This state-funded program provides dementia-specific support services including professional consultation, caregiver education, and connections to community resources.\n\nThe program serves unpaid family caregivers and friends who are North Carolina residents. Because Project C.A.R.E. gives priority to low-income families, minorities, and those in rural areas, higher-income families may face longer waits. Respite care vouchers are explicitly limited in availability — not all eligible caregivers will receive them.\n\nProject C.A.R.E. operates through regional Area Agencies on Aging, so availability depends on which agency serves your county. The program is not available statewide and contact information varies by region.",
+      "intro": "If you're caring for a loved one with Alzheimer's disease or related dementia in North Carolina, you may qualify for free care consultation and limited respite care vouchers through Project C.A.R.E. This state-funded program provides dementia-specific support services including professional consultation, caregiver education, and connections to community resources.\n\nThe program serves unpaid family caregivers and friends who are North Carolina residents. Because Project C.A.R.E. gives priority to low-income families, minorities, and those in rural areas, higher-income families may face longer waits. Respite care vouchers are explicitly limited in availability, not all eligible caregivers will receive them.\n\nProject C.A.R.E. operates through regional Area Agencies on Aging, so availability depends on which agency serves your county. The program is not available statewide and contact information varies by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2427,7 +2427,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your regional Area Agency on Aging or Just1Call intake line — processing time not publicly available.",
+        "summary": "Call your regional Area Agency on Aging or Just1Call intake line, processing time not publicly available.",
         "steps": [
           {
             "step": 1,
@@ -2472,7 +2472,7 @@
         {
           "label": "High Country Aging",
           "phone": "828-265-5434",
-          "description": "Project C.A.R.E. services for mountain region — press ext. 139",
+          "description": "Project C.A.R.E. services for mountain region, press ext. 139",
           "hours": "Business hours (specific hours not listed)"
         },
         {
@@ -2484,9 +2484,9 @@
       ],
       "applicationNotes": [
         "If your loved one is currently receiving Medicaid CAP/DA Waiver services, you cannot get care consultation but can still receive dementia education and referrals",
-        "Processing times and waitlist status are not publicly documented — ask your regional provider for current timelines",
+        "Processing times and waitlist status are not publicly documented, ask your regional provider for current timelines",
         "Priority is given to low-income, minority, and rural families, which may affect how quickly you receive services",
-        "Respite care vouchers are limited — ask specifically about availability when you apply"
+        "Respite care vouchers are limited, ask specifically about availability when you apply"
       ],
       "relatedPrograms": [
         "NC Medicaid CAP/DA Waiver",
@@ -2578,7 +2578,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county Department of Social Services office — processing takes up to 45 days for seniors 65+.",
+        "summary": "Contact your county Department of Social Services office, processing takes up to 45 days for seniors 65+.",
         "steps": [
           {
             "step": 1,
@@ -2603,7 +2603,7 @@
         ],
         "processingTime": "Up to 45 days for applicants 65+; up to 60 days for applicants 18-64",
         "waitlist": null,
-        "tip": "Start with the FL-2 form early — having your loved one's doctor complete this verification form is often the longest part of the process.",
+        "tip": "Start with the FL-2 form early, having your loved one's doctor complete this verification form is often the longest part of the process.",
         "urls": [
           {
             "label": "NC DHHS Special Assistance Program",
@@ -2647,7 +2647,7 @@
         }
       ],
       "applicationNotes": [
-        "Eligibility is determined case-by-case — meeting the basic criteria doesn't guarantee approval",
+        "Eligibility is determined case-by-case, meeting the basic criteria doesn't guarantee approval",
         "Your spouse's income and assets do not affect your loved one's eligibility for this program",
         "Enhanced rate ($1,700/month) requires valid FL-2 form specifically documenting Alzheimer's or dementia diagnosis",
         "Case management is mandatory and includes monthly contact, quarterly home visits, and annual assessments"
@@ -2699,7 +2699,7 @@
         },
         {
           "question": "What if the doctor won't complete the FL-2 form?",
-          "answer": "The FL-2 form is required — without it, your loved one cannot qualify. If their current doctor won't complete it, consider getting a second medical opinion or asking for a referral to a geriatrician who is familiar with these assessments."
+          "answer": "The FL-2 form is required, without it, your loved one cannot qualify. If their current doctor won't complete it, consider getting a second medical opinion or asking for a referral to a geriatrician who is familiar with these assessments."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -2723,7 +2723,7 @@
         },
         {
           "question": "What does 'adult care home level of care' actually mean?",
-          "answer": "This means your loved one needs daily help with activities like bathing, dressing, medication management, or mobility — the same level of assistance provided in licensed adult care homes. A doctor must verify this on the FL-2 form based on clinical assessment."
+          "answer": "This means your loved one needs daily help with activities like bathing, dressing, medication management, or mobility, the same level of assistance provided in licensed adult care homes. A doctor must verify this on the FL-2 form based on clinical assessment."
         }
       ],
       "layoutIntent": {
@@ -2742,7 +2742,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "North Carolina offers 15 programs to help seniors and their families — 12 provide direct financial benefits like monthly payments, reduced bills, or covered services, plus 2 free resources available to anyone. Your loved one could potentially access multiple programs simultaneously, from $281/month in grocery assistance to thousands in yearly savings on Medicare costs and property taxes. The state coordinates many services through county offices, and several programs specifically support family caregivers with respite funding and consultation.\n\nStart by checking the highest-value programs first — Medicare Savings Programs and Long-Term Care Medicaid can save thousands annually, while SNAP provides immediate monthly grocery relief. Most benefit programs have income limits around $2,000-$3,000/month for a single person, but free resources like legal assistance and ombudsman services are available regardless of income.",
+    "intro": "North Carolina offers 15 programs to help seniors and their families, 12 provide direct financial benefits like monthly payments, reduced bills, or covered services, plus 2 free resources available to anyone. Your loved one could potentially access multiple programs simultaneously, from $281/month in grocery assistance to thousands in yearly savings on Medicare costs and property taxes. The state coordinates many services through county offices, and several programs specifically support family caregivers with respite funding and consultation.\n\nStart by checking the highest-value programs first, Medicare Savings Programs and Long-Term Care Medicaid can save thousands annually, while SNAP provides immediate monthly grocery relief. Most benefit programs have income limits around $2,000-$3,000/month for a single person, but free resources like legal assistance and ombudsman services are available regardless of income.",
     "startHere": [
       {
         "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
@@ -2817,11 +2817,11 @@
       }
     ],
     "quickFacts": [
-      "North Carolina coordinates many senior services through county Departments of Social Services — your local office handles applications for multiple programs.",
+      "North Carolina coordinates many senior services through county Departments of Social Services, your local office handles applications for multiple programs.",
       "Most financial benefit programs require income below approximately $2,000-$3,000/month for a single person, but limits vary by program.",
       "Several programs provide same-day or next-day responses: SNAP applications process within days, and ombudsman services respond to urgent care facility issues immediately.",
       "North Carolina offers specific support for dementia caregivers through Project C.A.R.E., separate from general caregiver assistance programs."
     ],
-    "resourcesVsBenefits": "Benefits like SNAP, Medicaid waivers, and energy assistance require your loved one to meet income and asset limits — typically under $2,000-$3,000/month income. Resources like Legal Assistance for Older Adults and the Long-Term Care Ombudsman are free to all North Carolina seniors regardless of income, assets, or insurance status. You can access free resources immediately while waiting for benefit applications to process."
+    "resourcesVsBenefits": "Benefits like SNAP, Medicaid waivers, and energy assistance require your loved one to meet income and asset limits, typically under $2,000-$3,000/month income. Resources like Legal Assistance for Older Adults and the Long-Term Care Ombudsman are free to all North Carolina seniors regardless of income, assets, or insurance status. You can access free resources immediately while waiting for benefit applications to process."
   }
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ND/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.095Z
+ * Last updated: 2026-04-20T23:39:07.865Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -197,7 +197,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "aging-in-community-project",
       "name": "North Dakota Aging in Community (AIC) Project",
       "shortName": "AIC Project",
-      "tagline": "Community volunteers help your loved one stay safely at home in rural North Dakota — transportation, fall prevention, and local connections.",
+      "tagline": "Community volunteers help your loved one stay safely at home in rural North Dakota, transportation, fall prevention, and local connections.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -214,7 +214,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in rural North Dakota and wants to stay at home but needs help with transportation, learning about technology, or connecting with local resources, the Aging in Community Project may provide volunteer assistance at no cost. Because this is a community-based pilot program, it's only available in select rural areas like Lisbon and western Morton Counties.\n\nThe program focuses on practical daily support — volunteer drivers for medical appointments, nutrition and fall prevention classes, help learning to use smartphones or tablets, and connections to other local services. Because it relies on volunteers and local partnerships rather than paid staff, the specific services vary by location but all aim to help older adults remain safely independent in their rural homes.",
+      "intro": "If your loved one lives in rural North Dakota and wants to stay at home but needs help with transportation, learning about technology, or connecting with local resources, the Aging in Community Project may provide volunteer assistance at no cost. Because this is a community-based pilot program, it's only available in select rural areas like Lisbon and western Morton Counties.\n\nThe program focuses on practical daily support, volunteer drivers for medical appointments, nutrition and fall prevention classes, help learning to use smartphones or tablets, and connections to other local services. Because it relies on volunteers and local partnerships rather than paid staff, the specific services vary by location but all aim to help older adults remain safely independent in their rural homes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -238,7 +238,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact NDSU Extension Service in your area to connect with local AIC project coordinators — no formal application required.",
+        "summary": "Contact NDSU Extension Service in your area to connect with local AIC project coordinators, no formal application required.",
         "steps": [
           {
             "step": 1,
@@ -263,7 +263,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Because services depend on local volunteers, ask specifically what's currently available in your loved one's community — offerings can change based on volunteer capacity.",
+        "tip": "Because services depend on local volunteers, ask specifically what's currently available in your loved one's community, offerings can change based on volunteer capacity.",
         "urls": [
           {
             "label": "NDSU Extension Programs",
@@ -287,7 +287,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This is a pilot program in select rural communities only — not available statewide",
+        "This is a pilot program in select rural communities only, not available statewide",
         "Services depend on local volunteer availability and may vary by season or community capacity",
         "Success is measured in community connections and confidence building rather than guaranteed hours of service"
       ],
@@ -350,7 +350,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs safety devices to remain at home, North Dakota provides free assistive equipment with professional installation. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment — plus setup assistance to ensure everything works properly.\n\nThis is a last-resort program — your loved one must first be denied coverage through insurance, Medicare, or Medicaid. Because the program prioritizes requests, you'll rank devices in order of importance on your application. Income guidelines apply, but specific limits are detailed in the current year's application form.",
+      "intro": "If your loved one is 60+ and needs safety devices to remain at home, North Dakota provides free assistive equipment with professional installation. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment, plus setup assistance to ensure everything works properly.\n\nThis is a last-resort program, your loved one must first be denied coverage through insurance, Medicare, or Medicaid. Because the program prioritizes requests, you'll rank devices in order of importance on your application. Income guidelines apply, but specific limits are detailed in the current year's application form.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -374,7 +374,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online or by mail with proof of income and device needs — typically takes 3-4 weeks to process.",
+        "summary": "Apply online or by mail with proof of income and device needs, typically takes 3-4 weeks to process.",
         "steps": [
           {
             "step": 1,
@@ -384,7 +384,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "List devices in priority order",
-            "description": "Rank the safety devices you need most — only one device per line on the application"
+            "description": "Rank the safety devices you need most, only one device per line on the application"
           },
           {
             "step": 3,
@@ -399,7 +399,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Typically 3-4 weeks",
         "waitlist": null,
-        "tip": "List devices in order of importance — the program may not approve everything you request, so prioritize what your loved one needs most.",
+        "tip": "List devices in order of importance, the program may not approve everything you request, so prioritize what your loved one needs most.",
         "urls": [
           {
             "label": "Online Application",
@@ -441,12 +441,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my loved one lives in assisted living — can they still get these devices?",
+          "question": "What if my loved one lives in assisted living, can they still get these devices?",
           "answer": "Yes, the program is available to seniors in assisted living facilities if they need additional safety devices beyond what the facility provides. The application process is the same."
         },
         {
           "question": "Can I apply if my loved one was denied by Medicare but we haven't tried Medicaid yet?",
-          "answer": "No — you must exhaust all other funding sources first, including Medicaid. The Senior Safety Program only serves as a last resort when insurance, Medicare, Medicaid, and other programs won't cover the devices."
+          "answer": "No, you must exhaust all other funding sources first, including Medicaid. The Senior Safety Program only serves as a last resort when insurance, Medicare, Medicaid, and other programs won't cover the devices."
         },
         {
           "question": "How many devices can my loved one receive through this program?",
@@ -469,7 +469,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "North Dakota offers 3 key programs to help your aging loved one stay safe and supported. Two provide direct financial assistance for care services, while one offers free safety resources for any North Dakota senior. The Basic Care Assistance Program helps cover facility care costs, the Aging in Community Project provides volunteer support specifically in rural areas, and the Assistive Senior Safety Program delivers free safety devices with professional installation. Start by identifying your loved one's most immediate need — whether that's paying for care, staying connected in a rural community, or making their home safer.",
+    "intro": "North Dakota offers 3 key programs to help your aging loved one stay safe and supported. Two provide direct financial assistance for care services, while one offers free safety resources for any North Dakota senior. The Basic Care Assistance Program helps cover facility care costs, the Aging in Community Project provides volunteer support specifically in rural areas, and the Assistive Senior Safety Program delivers free safety devices with professional installation. Start by identifying your loved one's most immediate need, whether that's paying for care, staying connected in a rural community, or making their home safer.",
     "startHere": [
       {
         "name": "ND Assistive Senior Safety Program",
@@ -515,6 +515,6 @@ export const drafts: PipelineStateDrafts = {
       "The state offers both income-qualified benefits and universal free safety resources",
       "Two programs require eligibility screening while one is available to all North Dakota seniors"
     ],
-    "resourcesVsBenefits": "North Dakota offers both types of help: qualification-based benefits like BCAP that require income and asset screening to help pay for care, and free resources like the Assistive Senior Safety Program that any North Dakota senior can access regardless of income. The AIC Project falls in between — it's free but specifically serves rural communities where volunteer networks are available."
+    "resourcesVsBenefits": "North Dakota offers both types of help: qualification-based benefits like BCAP that require income and asset screening to help pay for care, and free resources like the Assistive Senior Safety Program that any North Dakota senior can access regardless of income. The AIC Project falls in between, it's free but specifically serves rural communities where volunteer networks are available."
   }
 };

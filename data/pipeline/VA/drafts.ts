@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.107Z
+ * Last updated: 2026-04-20T23:39:07.877Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -31,7 +31,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Virginia's CCC+ Waiver can cover in-home care services to help them avoid nursing home placement. The program provides respite care (up to 480 hours per year), home modifications (up to $5,000), private duty nursing (up to 112 hours per week), and assistive technology to support aging at home.\n\nTo qualify, your loved one must be eligible for Virginia Medicaid, meet Nursing Facility Level of Care (assessed through Virginia's clinical screening tool), and be at imminent risk of nursing home placement without these services. Because this waiver has no current waiting list, approved applicants can begin receiving services relatively quickly compared to other state programs.\n\nBecause CCC+ covers comprehensive home-based care under one coordinated program, your loved one won't need to manage separate providers for different services — one care team coordinates everything from nursing visits to home safety modifications.",
+      "intro": "If your loved one is 65+ or disabled and needs daily help with bathing, dressing, or medication management, Virginia's CCC+ Waiver can cover in-home care services to help them avoid nursing home placement. The program provides respite care (up to 480 hours per year), home modifications (up to $5,000), private duty nursing (up to 112 hours per week), and assistive technology to support aging at home.\n\nTo qualify, your loved one must be eligible for Virginia Medicaid, meet Nursing Facility Level of Care (assessed through Virginia's clinical screening tool), and be at imminent risk of nursing home placement without these services. Because this waiver has no current waiting list, approved applicants can begin receiving services relatively quickly compared to other state programs.\n\nBecause CCC+ covers comprehensive home-based care under one coordinated program, your loved one won't need to manage separate providers for different services, one care team coordinates everything from nursing visits to home safety modifications.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -136,10 +136,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must meet Virginia Medicaid financial eligibility first — applying over income/asset limits leads to automatic denial",
-        "A dementia diagnosis alone does not qualify — your loved one must meet clinical level of care through the assessment process",
+        "You must meet Virginia Medicaid financial eligibility first, applying over income/asset limits leads to automatic denial",
+        "A dementia diagnosis alone does not qualify, your loved one must meet clinical level of care through the assessment process",
         "You can apply for CCC+ while on developmental disability waiver waitlists, as services are more limited but available immediately",
-        "Spousal impoverishment protections apply if your loved one is married — only the applicant's income counts toward eligibility"
+        "Spousal impoverishment protections apply if your loved one is married, only the applicant's income counts toward eligibility"
       ],
       "relatedPrograms": [
         "Virginia Medicaid",
@@ -200,7 +200,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "adult-services-program",
       "name": "Virginia Adult Services Program",
       "shortName": "Adult Services Program",
-      "tagline": "Free homemaker services, chore help, and protective services for at-risk Virginia seniors — up to 15 hours per week in some counties.",
+      "tagline": "Free homemaker services, chore help, and protective services for at-risk Virginia seniors, up to 15 hours per week in some counties.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -213,7 +213,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with daily tasks like housekeeping, meal preparation, or money management, Virginia's Adult Services Program provides free homemaker services, chore assistance, and companionship services. Because this program targets at-risk elderly adults, your loved one gets priority if they're vulnerable to abuse, neglect, or exploitation.\n\nUnlike Medicaid home care programs, Adult Services has no strict statewide income limits — eligibility is assessed locally based on functional need and risk factors. Services include up to 15 hours per week of homemaker help in some counties, adult day center referrals, and Adult Protective Services coordination.\n\nThe program operates through your local Department of Social Services office. Because funding varies by county, service availability and hours differ across Virginia — some areas may have waitlists while others can start services within 45 days of approval.",
+      "intro": "If your loved one is 60+ and struggling with daily tasks like housekeeping, meal preparation, or money management, Virginia's Adult Services Program provides free homemaker services, chore assistance, and companionship services. Because this program targets at-risk elderly adults, your loved one gets priority if they're vulnerable to abuse, neglect, or exploitation.\n\nUnlike Medicaid home care programs, Adult Services has no strict statewide income limits, eligibility is assessed locally based on functional need and risk factors. Services include up to 15 hours per week of homemaker help in some counties, adult day center referrals, and Adult Protective Services coordination.\n\nThe program operates through your local Department of Social Services office. Because funding varies by county, service availability and hours differ across Virginia, some areas may have waitlists while others can start services within 45 days of approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -238,7 +238,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply in-person or by mail at your local Department of Social Services office — eligibility decision within 45 days.",
+        "summary": "Apply in-person or by mail at your local Department of Social Services office, eligibility decision within 45 days.",
         "steps": [
           {
             "step": 1,
@@ -262,8 +262,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "45 days for eligibility decision; services begin within 45 days if approved",
-        "waitlist": "Depends on local funding availability — some counties have immediate openings while others may have waitlists",
-        "tip": "Emphasize any safety concerns or risk factors in your application — Adult Protective Services cases often get priority processing.",
+        "waitlist": "Depends on local funding availability, some counties have immediate openings while others may have waitlists",
+        "tip": "Emphasize any safety concerns or risk factors in your application, Adult Protective Services cases often get priority processing.",
         "urls": [
           {
             "label": "Virginia Department of Social Services",
@@ -288,7 +288,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Virginia DSS Adult Services",
           "phone": null,
           "description": "Contact your local Department of Social Services office for Adult Services applications",
-          "hours": "Varies by county — typically Mon-Fri 8am-5pm"
+          "hours": "Varies by county, typically Mon-Fri 8am-5pm"
         },
         {
           "label": "Adult Protective Services Hotline",
@@ -298,8 +298,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must report any changes in income or living situation within 10 days of approval — failure to report changes accurately can result in prosecution",
-        "Services are subject to local funding availability — optional services may have longer waits than protective services",
+        "You must report any changes in income or living situation within 10 days of approval, failure to report changes accurately can result in prosecution",
+        "Services are subject to local funding availability, optional services may have longer waits than protective services",
         "Provider approval requirements vary by county: homemaker providers must be 18+, while chore/companion providers can be 16+ with competency verification",
         "Anyone can apply, but priority goes to adults at risk of abuse, neglect, or exploitation"
       ],
@@ -387,7 +387,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is confused by Medicare options or paying too much for prescription drugs, VICAP provides free, unbiased counseling to help them choose the right plan. Because VICAP counselors cannot sell insurance or receive commissions, they give honest advice about Medicare Part D, Medicare Advantage, Medigap, and Medicare Savings Programs without pushing any particular company.\n\nThe program serves any Medicare beneficiary in Virginia, including those under 65 with disabilities, plus their family caregivers. Services include one-on-one plan comparisons, help with enrollment during Open Enrollment (October 15–December 7), appeals assistance when Medicare denies a claim, and referrals to prescription drug assistance programs. VICAP counselors are specially trained and certified in Medicare rules — they're not general financial advisors.\n\nYou access VICAP through your local Area Agency on Aging, not directly through the state office. Each region has its own phone number and office location, but all provide the same free counseling services statewide.",
+      "intro": "If your loved one is confused by Medicare options or paying too much for prescription drugs, VICAP provides free, unbiased counseling to help them choose the right plan. Because VICAP counselors cannot sell insurance or receive commissions, they give honest advice about Medicare Part D, Medicare Advantage, Medigap, and Medicare Savings Programs without pushing any particular company.\n\nThe program serves any Medicare beneficiary in Virginia, including those under 65 with disabilities, plus their family caregivers. Services include one-on-one plan comparisons, help with enrollment during Open Enrollment (October 15–December 7), appeals assistance when Medicare denies a claim, and referrals to prescription drug assistance programs. VICAP counselors are specially trained and certified in Medicare rules, they're not general financial advisors.\n\nYou access VICAP through your local Area Agency on Aging, not directly through the state office. Each region has its own phone number and office location, but all provide the same free counseling services statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -430,7 +430,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Counseling appointments typically scheduled within 1-2 weeks of calling",
         "waitlist": null,
-        "tip": "Call during Medicare Open Enrollment (October 15–December 7) as early as possible — counselors get busiest closer to the December 7 deadline.",
+        "tip": "Call during Medicare Open Enrollment (October 15–December 7) as early as possible, counselors get busiest closer to the December 7 deadline.",
         "urls": [
           {
             "label": "Virginia Department for Aging and Rehabilitative Services",
@@ -529,7 +529,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're helping your loved one navigate Virginia's maze of services, SeniorNavigator gives you a searchable database of over 27,000 programs covering health care, housing, transportation, employment, and financial planning. Because it's organized by city and county, you can find exactly what's available in your loved one's specific area — from local food pantries to specialized geriatricians to transportation services.\n\nThe platform includes eligibility criteria, application processes, costs, and contact information for each program, plus an 'Ask an Expert' feature for personalized guidance. You can search specialized portals for seniors, people with disabilities, veterans, and caregivers. Over 1 million people use SeniorNavigator annually to connect with local services across Virginia.",
+      "intro": "If you're helping your loved one navigate Virginia's maze of services, SeniorNavigator gives you a searchable database of over 27,000 programs covering health care, housing, transportation, employment, and financial planning. Because it's organized by city and county, you can find exactly what's available in your loved one's specific area, from local food pantries to specialized geriatricians to transportation services.\n\nThe platform includes eligibility criteria, application processes, costs, and contact information for each program, plus an 'Ask an Expert' feature for personalized guidance. You can search specialized portals for seniors, people with disabilities, veterans, and caregivers. Over 1 million people use SeniorNavigator annually to connect with local services across Virginia.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -551,7 +551,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Search immediately online at virginianavigator.org — no application required.",
+        "summary": "Search immediately online at virginianavigator.org, no application required.",
         "steps": [
           {
             "step": 1,
@@ -571,12 +571,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Contact programs directly",
-            "description": "Call or apply to the individual programs that match your loved one's needs — each has its own application process and requirements."
+            "description": "Call or apply to the individual programs that match your loved one's needs, each has its own application process and requirements."
           }
         ],
         "processingTime": "Immediate access to directory",
         "waitlist": null,
-        "tip": "Use the 'Ask an Expert' feature if you're overwhelmed by options — they can help narrow down programs that fit your loved one's specific situation.",
+        "tip": "Use the 'Ask an Expert' feature if you're overwhelmed by options, they can help narrow down programs that fit your loved one's specific situation.",
         "urls": [
           {
             "label": "SeniorNavigator Main Site",
@@ -600,9 +600,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "SeniorNavigator is a directory tool — you'll still need to apply separately to each program you find",
+        "SeniorNavigator is a directory tool, you'll still need to apply separately to each program you find",
         "Programs listed may have their own waitlists, eligibility requirements, and application processes",
-        "Success depends on following through with the individual services — save contact information for programs that interest you"
+        "Success depends on following through with the individual services, save contact information for programs that interest you"
       ],
       "relatedPrograms": [
         "Virginia Department for Aging and Rehabilitative Services",
@@ -622,7 +622,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for programs directly through SeniorNavigator?",
-          "answer": "No, SeniorNavigator is a directory that connects you to programs — you must apply directly to each individual program. Each listing includes the specific application process and contact information for that service."
+          "answer": "No, SeniorNavigator is a directory that connects you to programs, you must apply directly to each individual program. Each listing includes the specific application process and contact information for that service."
         },
         {
           "question": "What if I can't find programs in my loved one's rural county?",
@@ -680,7 +680,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides paid job training through community service work at nonprofits and government agencies. Your loved one can work up to 29 hours per week (average 20 hours) at sites like senior centers, libraries, schools, and hospitals, earning minimum wage while developing skills for permanent employment.\n\nThe program covers roles like teacher's aide, librarian assistant, clerical work, customer service, and maintenance. Because SCSEP includes computer training and job placement assistance, participants gain marketable skills while earning income. Family income must be at or below 125% of federal poverty level — for example, $16,988 per year for a single person in Northern Virginia (2023).\n\nYour loved one must be completely unemployed to qualify — any paid work hours disqualify them. Regular Social Security income counts toward the income limit, but SSI and SSDI do not count. The goal is transitioning to permanent unsubsidized employment after gaining experience and training.",
+      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides paid job training through community service work at nonprofits and government agencies. Your loved one can work up to 29 hours per week (average 20 hours) at sites like senior centers, libraries, schools, and hospitals, earning minimum wage while developing skills for permanent employment.\n\nThe program covers roles like teacher's aide, librarian assistant, clerical work, customer service, and maintenance. Because SCSEP includes computer training and job placement assistance, participants gain marketable skills while earning income. Family income must be at or below 125% of federal poverty level, for example, $16,988 per year for a single person in Northern Virginia (2023).\n\nYour loved one must be completely unemployed to qualify, any paid work hours disqualify them. Regular Social Security income counts toward the income limit, but SSI and SSDI do not count. The goal is transitioning to permanent unsubsidized employment after gaining experience and training.",
       "savingsRange": "$8,000 – $11,000/year",
       "savingsSource": "Part-time wages at minimum wage for 20-29 hours/week",
       "savingsVerified": true,
@@ -725,7 +725,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional SCSEP provider directly — enrollment happens by phone or in-person with immediate placement if no waitlist.",
+        "summary": "Call your regional SCSEP provider directly, enrollment happens by phone or in-person with immediate placement if no waitlist.",
         "steps": [
           {
             "step": 1,
@@ -744,8 +744,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Immediate enrollment if eligible and positions available",
-        "waitlist": "Possible waitlist depending on local funding and availability — apply now as positions fluctuate regularly",
-        "tip": "Have all income documentation ready when you call — regular Social Security counts toward income limits but SSI/SSDI does not.",
+        "waitlist": "Possible waitlist depending on local funding and availability, apply now as positions fluctuate regularly",
+        "tip": "Have all income documentation ready when you call, regular Social Security counts toward income limits but SSI/SSDI does not.",
         "urls": [
           {
             "label": "DARS Senior Employment Program",
@@ -788,9 +788,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Priority given to veterans, people 65+, disabled individuals, rural residents, homeless people, and those with low literacy — but this doesn't guarantee immediate placement",
-        "You must be completely unemployed — even one hour of paid work per week disqualifies you from the program",
-        "Different regions have different availability and waitlist times — Northern Virginia may have different wait times than Richmond or rural areas",
+        "Priority given to veterans, people 65+, disabled individuals, rural residents, homeless people, and those with low literacy, but this doesn't guarantee immediate placement",
+        "You must be completely unemployed, even one hour of paid work per week disqualifies you from the program",
+        "Different regions have different availability and waitlist times, Northern Virginia may have different wait times than Richmond or rural areas",
         "Regular Social Security income counts toward the income limit, but SSI and SSDI payments do not count as income"
       ],
       "relatedPrograms": [

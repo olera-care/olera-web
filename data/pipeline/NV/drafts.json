@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Nevada Medicaid can cover their long-term care costs — whether in a nursing home or at home through community-based services. Your loved one must meet strict income and asset limits, plus qualify for Nursing Facility Level of Care (a clinical assessment confirming they need daily assistance with basic activities).\n\nBecause Nevada Medicaid covers ongoing care costs as long as your loved one remains eligible, this can provide financial protection for families facing potentially unlimited care expenses. Income limits for 2026: $2,982/month for single applicants, $2,523/month for married applicants whose spouse doesn't need care. Asset limits: $2,000 for single applicants, with higher limits for married couples.\n\nYour loved one will contribute most of their income toward care costs, keeping only $163/month for personal needs if in a nursing home. Home and Community-Based Services waivers allow care at home but often have waitlists due to limited slots.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Nevada Medicaid can cover their long-term care costs, whether in a nursing home or at home through community-based services. Your loved one must meet strict income and asset limits, plus qualify for Nursing Facility Level of Care (a clinical assessment confirming they need daily assistance with basic activities).\n\nBecause Nevada Medicaid covers ongoing care costs as long as your loved one remains eligible, this can provide financial protection for families facing potentially unlimited care expenses. Income limits for 2026: $2,982/month for single applicants, $2,523/month for married applicants whose spouse doesn't need care. Asset limits: $2,000 for single applicants, with higher limits for married couples.\n\nYour loved one will contribute most of their income toward care costs, keeping only $163/month for personal needs if in a nursing home. Home and Community-Based Services waivers allow care at home but often have waitlists due to limited slots.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -53,7 +53,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must qualify for Nursing Facility Level of Care — a clinical assessment determining your loved one needs daily help with activities like bathing, dressing, eating, toileting, or medication management",
+        "functionalRequirement": "Must qualify for Nursing Facility Level of Care, a clinical assessment determining your loved one needs daily help with activities like bathing, dressing, eating, toileting, or medication management",
         "otherRequirements": [
           "Nevada resident",
           "U.S. citizen or qualified legal resident"
@@ -62,7 +62,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Access Nevada or call (775) 684-3600 — processing times vary but coverage can be retroactive up to 3 months.",
+        "summary": "Apply online through Access Nevada or call (775) 684-3600, processing times vary but coverage can be retroactive up to 3 months.",
         "steps": [
           {
             "step": 1,
@@ -143,7 +143,7 @@
       ],
       "applicationNotes": [
         "Coverage can be retroactive up to 3 months before approval, so apply as soon as you think your loved one might qualify",
-        "Home and Community-Based Services waivers have limited slots — ask about current waitlist length for your region when applying",
+        "Home and Community-Based Services waivers have limited slots, ask about current waitlist length for your region when applying",
         "Your loved one's primary home is exempt from asset limits but subject to estate recovery after death",
         "Even if your loved one enters a nursing home temporarily, maintain the Medicaid application as they may need ongoing coverage"
       ],
@@ -260,7 +260,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local ADSD Regional Center to start intake — processing time varies but waitlists are common due to limited slots.",
+        "summary": "Call your local ADSD Regional Center to start intake, processing time varies but waitlists are common due to limited slots.",
         "steps": [
           {
             "step": 1,
@@ -288,9 +288,9 @@
             "description": "If eligible, you'll be placed on waitlist until funding slot becomes available in your region."
           }
         ],
-        "processingTime": "Not specified — varies by region and funding availability",
+        "processingTime": "Not specified, varies by region and funding availability",
         "waitlist": "Limited slots available; waitlists common due to funding caps",
-        "tip": "Apply as early as possible even if your loved one doesn't need services immediately — waitlists can be lengthy and you'll maintain your place in line.",
+        "tip": "Apply as early as possible even if your loved one doesn't need services immediately, waitlists can be lengthy and you'll maintain your place in line.",
         "urls": [
           {
             "label": "Nevada ADSD Physical Disability Waiver",
@@ -328,10 +328,10 @@
         }
       ],
       "applicationNotes": [
-        "Multiple HCBS waivers exist — confirm you're applying for the correct one (PD Waiver for physical disabilities, FE Waiver for frail elderly)",
-        "Must meet both financial eligibility (Medicaid) AND functional eligibility (nursing home level of care) — both assessments required",
-        "Home equity limit is $752,000 in 2026 — exemptions apply if spouse or disabled child lives there",
-        "Services are not guaranteed even if eligible — limited by available funding slots in your region"
+        "Multiple HCBS waivers exist, confirm you're applying for the correct one (PD Waiver for physical disabilities, FE Waiver for frail elderly)",
+        "Must meet both financial eligibility (Medicaid) AND functional eligibility (nursing home level of care), both assessments required",
+        "Home equity limit is $752,000 in 2026, exemptions apply if spouse or disabled child lives there",
+        "Services are not guaranteed even if eligible, limited by available funding slots in your region"
       ],
       "relatedPrograms": [
         "Nevada Medicaid",
@@ -399,7 +399,7 @@
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one is 55+ and has been certified as needing nursing home-level care, Nevada PACE provides all their medical and social services through one coordinated team. This means your loved one gets primary care, specialists, prescription drugs, physical therapy, transportation, and social services with no deductibles or copays — while staying in their own home or community.\n\nBecause PACE covers all Medicare and Medicaid services plus additional long-term care under one program, your loved one won't need to coordinate between separate doctors, pharmacies, or insurance plans. One team manages everything from preventive care to transportation to and from appointments.\n\nNevada's PACE program launched in July 2025 under Senate Bill 207, but providers are still setting up service areas. Your loved one must live in a designated PACE service area once providers begin operations — the program is not available statewide.",
+      "intro": "If your loved one is 55+ and has been certified as needing nursing home-level care, Nevada PACE provides all their medical and social services through one coordinated team. This means your loved one gets primary care, specialists, prescription drugs, physical therapy, transportation, and social services with no deductibles or copays, while staying in their own home or community.\n\nBecause PACE covers all Medicare and Medicaid services plus additional long-term care under one program, your loved one won't need to coordinate between separate doctors, pharmacies, or insurance plans. One team manages everything from preventive care to transportation to and from appointments.\n\nNevada's PACE program launched in July 2025 under Senate Bill 207, but providers are still setting up service areas. Your loved one must live in a designated PACE service area once providers begin operations, the program is not available statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -565,7 +565,7 @@
           }
         ]
       },
-      "intro": "If your loved one is on Medicare and struggling with premiums, deductibles, or copays, Nevada's Medicare Savings Programs can eliminate most or all of these costs. The three programs cover different income levels: QMB (up to $1,235/month for singles) covers all Medicare costs, SLMB (up to $1,478/month) covers Part B premiums, and QI (up to $1,660/month) covers Part B premiums plus prescription drug savings.\n\nBecause these programs work directly with Medicare, your loved one won't get bills for covered services — the state pays providers directly. QMB provides the most comprehensive coverage, paying Medicare premiums, deductibles, and all copays for Medicare-approved services. All three programs also qualify your loved one for Extra Help with prescription drug costs, reducing copays to $12.65 or less per medication.\n\nIncome limits change every April, and QI has limited federal funding that can run out during the year. Your loved one must be enrolled in both Medicare Parts A and B, and asset limits are $9,090 for singles or $13,630 for married couples.",
+      "intro": "If your loved one is on Medicare and struggling with premiums, deductibles, or copays, Nevada's Medicare Savings Programs can eliminate most or all of these costs. The three programs cover different income levels: QMB (up to $1,235/month for singles) covers all Medicare costs, SLMB (up to $1,478/month) covers Part B premiums, and QI (up to $1,660/month) covers Part B premiums plus prescription drug savings.\n\nBecause these programs work directly with Medicare, your loved one won't get bills for covered services, the state pays providers directly. QMB provides the most comprehensive coverage, paying Medicare premiums, deductibles, and all copays for Medicare-approved services. All three programs also qualify your loved one for Extra Help with prescription drug costs, reducing copays to $12.65 or less per medication.\n\nIncome limits change every April, and QI has limited federal funding that can run out during the year. Your loved one must be enrolled in both Medicare Parts A and B, and asset limits are $9,090 for singles or $13,630 for married couples.",
       "savingsRange": "$1,800 – $7,200/year",
       "savingsSource": "Medicare Part B premiums ($174.70/month in 2026) plus potential deductibles and copays",
       "savingsVerified": false,
@@ -632,7 +632,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Nevada's Division of Welfare and Supportive Services by phone, online, or in person — processing takes about one month.",
+        "summary": "Apply through Nevada's Division of Welfare and Supportive Services by phone, online, or in person, processing takes about one month.",
         "steps": [
           {
             "step": 1,
@@ -764,7 +764,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery money for seniors 60+ on fixed incomes — typically $100–400/month on an EBT card",
+      "tagline": "Monthly grocery money for seniors 60+ on fixed incomes, typically $100–400/month on an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -777,7 +777,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card — like a debit card for food purchases. Most Nevada seniors get $100–400 per month, with the exact amount based on income and household size. Because Nevada expanded income limits beyond federal minimums, many seniors who wouldn't qualify elsewhere can get help here.\n\nThe program uses special rules for seniors that make qualifying easier. Your loved one doesn't face the strict gross income test that younger adults do, and medical expenses over $35/month actually increase their benefit amount. Nevada has no waitlist — if your loved one qualifies, benefits start within 30 days of approval.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card, like a debit card for food purchases. Most Nevada seniors get $100–400 per month, with the exact amount based on income and household size. Because Nevada expanded income limits beyond federal minimums, many seniors who wouldn't qualify elsewhere can get help here.\n\nThe program uses special rules for seniors that make qualifying easier. Your loved one doesn't face the strict gross income test that younger adults do, and medical expenses over $35/month actually increase their benefit amount. Nevada has no waitlist, if your loved one qualifies, benefits start within 30 days of approval.",
       "savingsRange": "$1,200 – $4,800/year in 2026",
       "savingsSource": "Based on typical monthly benefits of $100–400 for Nevada seniors",
       "savingsVerified": true,
@@ -834,7 +834,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Access Nevada or call your local Social Services office — processing takes up to 30 days.",
+        "summary": "Apply online at Access Nevada or call your local Social Services office, processing takes up to 30 days.",
         "steps": [
           {
             "step": 1,
@@ -859,7 +859,7 @@
         ],
         "processingTime": "30 days standard, expedited processing within 7 days if household has less than $100 in liquid resources",
         "waitlist": null,
-        "tip": "Medical expenses over $35/month increase benefit amounts — include Medicare premiums, prescription costs, and out-of-pocket medical bills.",
+        "tip": "Medical expenses over $35/month increase benefit amounts, include Medicare premiums, prescription costs, and out-of-pocket medical bills.",
         "urls": [
           {
             "label": "Access Nevada Online Application",
@@ -907,8 +907,8 @@
         }
       ],
       "applicationNotes": [
-        "Seniors 60+ skip the gross income test that trips up younger applicants — focus on net income and assets instead",
-        "Medical expenses over $35/month are deductible and increase your benefit amount — many families miss this",
+        "Seniors 60+ skip the gross income test that trips up younger applicants, focus on net income and assets instead",
+        "Medical expenses over $35/month are deductible and increase your benefit amount, many families miss this",
         "If your loved one gets SSI, they may automatically qualify or get streamlined processing",
         "Households with less than $100 in resources can get expedited processing within 7 days instead of 30"
       ],
@@ -971,14 +971,14 @@
       "id": "energy-assistance-eap-liheap",
       "name": "Nevada Energy Assistance Program (EAP) / LIHEAP",
       "shortName": "Nevada Energy Assistance",
-      "tagline": "Help your loved one pay heating bills with up to $3,136/year in assistance — no savings limits.",
+      "tagline": "Help your loved one pay heating bills with up to $3,136/year in assistance, no savings limits.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles to pay heating bills, Nevada's Energy Assistance Program can provide $360–$3,136 per year toward their energy costs. The program helps Nevada residents with household incomes below $1,956/month for a single person or $2,644/month for a couple pay utility bills, avoid shutoffs, and handle heating emergencies like broken furnaces.\n\nUnlike many programs, there's no asset limit — your loved one can own their home, have savings, and still qualify based solely on income. The program operates seasonally (heating assistance in fall and winter only), and cooling assistance is not available in Nevada. Because funding is limited and distributed first-come, first-served by local agencies, apply as early as possible during enrollment periods.",
+      "intro": "If your loved one struggles to pay heating bills, Nevada's Energy Assistance Program can provide $360–$3,136 per year toward their energy costs. The program helps Nevada residents with household incomes below $1,956/month for a single person or $2,644/month for a couple pay utility bills, avoid shutoffs, and handle heating emergencies like broken furnaces.\n\nUnlike many programs, there's no asset limit, your loved one can own their home, have savings, and still qualify based solely on income. The program operates seasonally (heating assistance in fall and winter only), and cooling assistance is not available in Nevada. Because funding is limited and distributed first-come, first-served by local agencies, apply as early as possible during enrollment periods.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1027,7 +1027,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at dss.nv.gov or at local intake sites — processing time varies by office.",
+        "summary": "Apply online at dss.nv.gov or at local intake sites, processing time varies by office.",
         "steps": [
           {
             "step": 1,
@@ -1042,7 +1042,7 @@
           {
             "step": 3,
             "title": "Wait for processing",
-            "description": "Your local agency will review your application and contact you about approval status. Processing times vary by office — contact your local EAP office for timeline."
+            "description": "Your local agency will review your application and contact you about approval status. Processing times vary by office, contact your local EAP office for timeline."
           },
           {
             "step": 4,
@@ -1052,7 +1052,7 @@
         ],
         "processingTime": "Contact your local EAP office for processing timeline",
         "waitlist": "Funding is limited and some local agencies may stop accepting applications if funds run out",
-        "tip": "Apply early in the enrollment period — funding operates first-come, first-served and may run out before the deadline.",
+        "tip": "Apply early in the enrollment period, funding operates first-come, first-served and may run out before the deadline.",
         "urls": [
           {
             "label": "Nevada EAP Online Application",
@@ -1084,7 +1084,7 @@
       ],
       "applicationNotes": [
         "Crisis assistance for emergency situations (broken furnace, shutoff notice) may be processed faster than regular heating assistance",
-        "If your household income exceeds limits but you have high out-of-pocket medical expenses, you may still qualify — submit verification of those expenses"
+        "If your household income exceeds limits but you have high out-of-pocket medical expenses, you may still qualify, submit verification of those expenses"
       ],
       "relatedPrograms": [
         "Nevada Weatherization Assistance Program",
@@ -1100,7 +1100,7 @@
         },
         {
           "question": "What if my loved one's income is slightly over the limit but they have high medical expenses?",
-          "answer": "They may still qualify if out-of-pocket medical expenses are high enough to bring their effective income below the limit. Submit verification of medical expenses with the application — the agency will calculate whether these expenses make them eligible."
+          "answer": "They may still qualify if out-of-pocket medical expenses are high enough to bring their effective income below the limit. Submit verification of medical expenses with the application, the agency will calculate whether these expenses make them eligible."
         },
         {
           "question": "Can my loved one get both heating assistance and crisis assistance in the same year?",
@@ -1142,7 +1142,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades — no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,500/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada — you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
+      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades, no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,500/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada, you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1199,7 +1199,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional provider by phone or online — applications are reviewed in order received and eligible households are contacted for energy audits.",
+        "summary": "Contact your regional provider by phone or online, applications are reviewed in order received and eligible households are contacted for energy audits.",
         "steps": [
           {
             "step": 1,
@@ -1224,12 +1224,12 @@
           {
             "step": 5,
             "title": "Schedule improvements",
-            "description": "If approved, licensed contractors perform all work at no cost — typically insulation, air sealing, window/door replacement, and HVAC work as needed."
+            "description": "If approved, licensed contractors perform all work at no cost, typically insulation, air sealing, window/door replacement, and HVAC work as needed."
           }
         ],
-        "processingTime": "Applications reviewed in order received; no statewide timeline specified — varies by provider",
+        "processingTime": "Applications reviewed in order received; no statewide timeline specified, varies by provider",
         "waitlist": "Processing is order-based which may create delays during high-demand periods",
-        "tip": "Gather all required documents before applying — incomplete applications cause delays in processing.",
+        "tip": "Gather all required documents before applying, incomplete applications cause delays in processing.",
         "urls": [
           {
             "label": "Nevada Housing Division Weatherization",
@@ -1280,9 +1280,9 @@
         }
       ],
       "applicationNotes": [
-        "Renters must get written landlord approval before applying — rental property owners may be required to pay 50% of capital improvement costs",
+        "Renters must get written landlord approval before applying, rental property owners may be required to pay 50% of capital improvement costs",
         "Priority is given to households with elderly, disabled, or young children, but all income-eligible homes are served in order",
-        "The energy audit determines which improvements are approved — not all homes qualify for all types of upgrades",
+        "The energy audit determines which improvements are approved, not all homes qualify for all types of upgrades",
         "Different regional providers may have slightly different income thresholds (150-200% FPL) and document requirements"
       ],
       "relatedPrograms": [
@@ -1302,7 +1302,7 @@
         },
         {
           "question": "How long is the actual waiting list in Nevada?",
-          "answer": "Applications are processed in order received, but there's no statewide timeline published. Wait times vary significantly by region and provider — CSA Reno, HELP of Southern Nevada, and rural providers each manage their own queues and contractor schedules."
+          "answer": "Applications are processed in order received, but there's no statewide timeline published. Wait times vary significantly by region and provider, CSA Reno, HELP of Southern Nevada, and rural providers each manage their own queues and contractor schedules."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1310,7 +1310,7 @@
         },
         {
           "question": "Which regional provider should we contact if we're not sure about our service area?",
-          "answer": "Call the Nevada Housing Division at (702) 486-4311 first — they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Washoe County, and Nevada Rural Housing covers rural areas."
+          "answer": "Call the Nevada Housing Division at (702) 486-4311 first, they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Washoe County, and Nevada Rural Housing covers rural areas."
         },
         {
           "question": "What happens if my loved one's income changes after they're approved?",
@@ -1322,7 +1322,7 @@
         },
         {
           "question": "What if my loved one needs emergency weatherization due to broken heating or cooling?",
-          "answer": "Emergency situations receive priority processing. Contact your regional provider immediately and mention the emergency status — you'll need to provide a statement of crisis along with your application documents."
+          "answer": "Emergency situations receive priority processing. Contact your regional provider immediately and mention the emergency status, you'll need to provide a statement of crisis along with your application documents."
         }
       ],
       "layoutIntent": {
@@ -1364,7 +1364,7 @@
           }
         ]
       },
-      "intro": "If your loved one is struggling with Medicare choices or billing problems, Nevada SHIP provides free, unbiased counseling to help them navigate their options. Trained counselors explain Medicare Advantage plans, prescription drug coverage, and supplement insurance in plain English — without trying to sell anything.\n\nBecause SHIP counselors are not insurance agents, they focus entirely on what's best for your loved one's situation. They help resolve claims disputes, spot Medicare fraud, and connect families to programs that reduce prescription costs. The service is available by phone, video call, or in-person at senior centers statewide.\n\nNo income limits, no age restrictions beyond Medicare eligibility, and no appointment fees. Your loved one gets personalized guidance on one of the most confusing aspects of aging.",
+      "intro": "If your loved one is struggling with Medicare choices or billing problems, Nevada SHIP provides free, unbiased counseling to help them navigate their options. Trained counselors explain Medicare Advantage plans, prescription drug coverage, and supplement insurance in plain English, without trying to sell anything.\n\nBecause SHIP counselors are not insurance agents, they focus entirely on what's best for your loved one's situation. They help resolve claims disputes, spot Medicare fraud, and connect families to programs that reduce prescription costs. The service is available by phone, video call, or in-person at senior centers statewide.\n\nNo income limits, no age restrictions beyond Medicare eligibility, and no appointment fees. Your loved one gets personalized guidance on one of the most confusing aspects of aging.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1380,13 +1380,13 @@
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Anyone needing Medicare assistance can use this service — no formal restrictions"
+          "Anyone needing Medicare assistance can use this service, no formal restrictions"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-307-4444 to speak with a counselor — no application needed, service starts immediately.",
+        "summary": "Call 1-800-307-4444 to speak with a counselor, no application needed, service starts immediately.",
         "steps": [
           {
             "step": 1,
@@ -1404,7 +1404,7 @@
             "description": "Have your loved one's Medicare card, current plan documents, and any billing statements ready for the counseling session."
           }
         ],
-        "processingTime": "Immediate — counseling begins as soon as you contact the program",
+        "processingTime": "Immediate, counseling begins as soon as you contact the program",
         "waitlist": null,
         "tip": "Call during Medicare Open Enrollment (October 15 - December 7) for help comparing next year's plan options before the deadline.",
         "urls": [
@@ -1474,7 +1474,7 @@
       "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
-      "tagline": "If your loved one is homebound and 60+, they can get free nutritious meals delivered to their door — 7 meals per week in most areas.",
+      "tagline": "If your loved one is homebound and 60+, they can get free nutritious meals delivered to their door, 7 meals per week in most areas.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1499,7 +1499,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and homebound due to illness, disability, or isolation, they can receive free home-delivered meals that meet federal nutrition standards. The program typically provides 7 meals per week: one hot meal plus up to 6 frozen meals per delivery, plus 2 emergency shelf-stable meals annually.\n\nBecause this is managed locally rather than statewide, you'll need to contact your county's Area Agency on Aging or designated provider. In Washoe County (Reno), call Senior Services directly. In Southern Nevada (Las Vegas area), Catholic Charities handles delivery. Your loved one may also qualify through Nevada Medicaid's Frail Elderly waiver if they're already enrolled.\n\nThe key requirement is being homebound — unable to attend congregate meal sites due to illness, disability, or geographic isolation. Most programs require an in-home assessment to confirm eligibility, not just a phone application.",
+      "intro": "If your loved one is 60+ and homebound due to illness, disability, or isolation, they can receive free home-delivered meals that meet federal nutrition standards. The program typically provides 7 meals per week: one hot meal plus up to 6 frozen meals per delivery, plus 2 emergency shelf-stable meals annually.\n\nBecause this is managed locally rather than statewide, you'll need to contact your county's Area Agency on Aging or designated provider. In Washoe County (Reno), call Senior Services directly. In Southern Nevada (Las Vegas area), Catholic Charities handles delivery. Your loved one may also qualify through Nevada Medicaid's Frail Elderly waiver if they're already enrolled.\n\nThe key requirement is being homebound, unable to attend congregate meal sites due to illness, disability, or geographic isolation. Most programs require an in-home assessment to confirm eligibility, not just a phone application.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1522,7 +1522,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for an eligibility assessment — most programs require an in-home visit to confirm homebound status.",
+        "summary": "Call your local Area Agency on Aging for an eligibility assessment, most programs require an in-home visit to confirm homebound status.",
         "steps": [
           {
             "step": 1,
@@ -1542,12 +1542,12 @@
           {
             "step": 4,
             "title": "If on Medicaid waiver",
-            "description": "Contact your loved one's case manager if they're enrolled in Frail Elderly, Physical Disabilities, or IDD waiver — meals may be available through Mom's Meals or other waiver providers."
+            "description": "Contact your loved one's case manager if they're enrolled in Frail Elderly, Physical Disabilities, or IDD waiver, meals may be available through Mom's Meals or other waiver providers."
           }
         ],
         "processingTime": "Eligibility confirmed during in-home visit; service typically starts within days of approval",
         "waitlist": null,
-        "tip": "Be specific about why your loved one can't attend congregate sites — illness, mobility issues, lack of transportation, or geographic isolation all qualify.",
+        "tip": "Be specific about why your loved one can't attend congregate sites, illness, mobility issues, lack of transportation, or geographic isolation all qualify.",
         "urls": [
           {
             "label": "Washoe County Senior Services",
@@ -1589,7 +1589,7 @@
         }
       ],
       "applicationNotes": [
-        "Each county has different providers — Washoe County requires recertification through periodic home visits",
+        "Each county has different providers, Washoe County requires recertification through periodic home visits",
         "Catholic Charities in Southern Nevada also serves disabled adults living with eligible seniors",
         "Medicaid waiver participants may access additional meals through case management beyond the standard 7 per week",
         "Geographic isolation counts as homebound status in rural counties where meal sites aren't accessible"
@@ -1628,7 +1628,7 @@
         },
         {
           "question": "Are there any foods my loved one can't get due to dietary restrictions?",
-          "answer": "Most providers accommodate common dietary needs like diabetic, low-sodium, or soft diets, but options vary by local provider. Discuss specific requirements during the assessment — some areas have limited meal variety."
+          "answer": "Most providers accommodate common dietary needs like diabetic, low-sodium, or soft diets, but options vary by local provider. Discuss specific requirements during the assessment, some areas have limited meal variety."
         },
         {
           "question": "What if my loved one lives in assisted living or senior housing?",
@@ -1692,7 +1692,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call (775) 358-2768 to check qualifications — no formal application required upfront.",
+        "summary": "Call (775) 358-2768 to check qualifications, no formal application required upfront.",
         "steps": [
           {
             "step": 1,
@@ -1716,7 +1716,7 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Limited by fund availability — approval depends on remaining budget",
+        "waitlist": "Limited by fund availability, approval depends on remaining budget",
         "tip": "Call early in the fiscal year when funds are most likely to be available.",
         "urls": []
       },
@@ -1743,8 +1743,8 @@
         }
       ],
       "applicationNotes": [
-        "Funds are limited and distributed on a first-come, first-served basis — call as early in the year as possible",
-        "The live-in caregiver requirement is strictly enforced — you must actually reside in the same home as your loved one",
+        "Funds are limited and distributed on a first-come, first-served basis, call as early in the year as possible",
+        "The live-in caregiver requirement is strictly enforced, you must actually reside in the same home as your loved one",
         "If your loved one has dementia or Alzheimer's, you'll be referred to the Alzheimer's Association for specialized respite services instead of vouchers",
         "Legally responsible relatives or guardians cannot be paid to provide respite care under related Medicaid waiver programs"
       ],
@@ -1766,7 +1766,7 @@
         },
         {
           "question": "How do I know if our income is too high?",
-          "answer": "Priority goes to families at 300% of federal poverty guidelines, but higher-income families can still qualify if funds remain available. Call (775) 358-2768 to discuss your specific situation — income alone may not disqualify you."
+          "answer": "Priority goes to families at 300% of federal poverty guidelines, but higher-income families can still qualify if funds remain available. Call (775) 358-2768 to discuss your specific situation, income alone may not disqualify you."
         },
         {
           "question": "What if we live in Las Vegas or Southern Nevada?",
@@ -1828,7 +1828,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid work experience (average 20 hours per week) at community service sites like schools, hospitals, and senior centers. Participants earn at least minimum wage while gaining job skills and receiving placement assistance to find permanent employment. Income must be at or below 125% of the federal poverty level (exact dollar amounts vary by household size and update annually).\n\nBecause SCSEP is designed as a bridge to permanent employment, placements typically last about 6 months and include on-the-job training plus supportive services like transportation assistance. Veterans, people over 65, and those with disabilities get priority enrollment, but limited slots mean waitlists are common in high-demand areas.\n\nYour loved one must live in a county served by a local SCSEP provider — in northern Nevada, that's AARP Foundation, while other areas are served by NAPCA (National Asian Pacific Center on Aging). Each provider manages their own enrollment and job placements within their service area.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid work experience (average 20 hours per week) at community service sites like schools, hospitals, and senior centers. Participants earn at least minimum wage while gaining job skills and receiving placement assistance to find permanent employment. Income must be at or below 125% of the federal poverty level (exact dollar amounts vary by household size and update annually).\n\nBecause SCSEP is designed as a bridge to permanent employment, placements typically last about 6 months and include on-the-job training plus supportive services like transportation assistance. Veterans, people over 65, and those with disabilities get priority enrollment, but limited slots mean waitlists are common in high-demand areas.\n\nYour loved one must live in a county served by a local SCSEP provider, in northern Nevada, that's AARP Foundation, while other areas are served by NAPCA (National Asian Pacific Center on Aging). Each provider manages their own enrollment and job placements within their service area.",
       "savingsRange": "",
       "savingsSource": "Part-time employment program with wages",
       "savingsVerified": false,
@@ -1851,7 +1851,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local SCSEP provider to check availability and schedule an intake appointment — if eligible with no waitlist, enrollment can happen promptly.",
+        "summary": "Call your local SCSEP provider to check availability and schedule an intake appointment, if eligible with no waitlist, enrollment can happen promptly.",
         "steps": [
           {
             "step": 1,
@@ -1920,10 +1920,10 @@
         }
       ],
       "applicationNotes": [
-        "Veterans and their qualified spouses get priority enrollment ahead of other applicants — mention this status when calling",
-        "Income limits are based on 125% of federal poverty level and update annually — contact local office for current dollar amounts based on household size",
-        "You must live in the specific county served by each provider — AARP covers northern Nevada while NAPCA serves other areas",
-        "Waitlist length varies significantly by location and provider capacity — some areas have immediate openings while others have extended waits"
+        "Veterans and their qualified spouses get priority enrollment ahead of other applicants, mention this status when calling",
+        "Income limits are based on 125% of federal poverty level and update annually, contact local office for current dollar amounts based on household size",
+        "You must live in the specific county served by each provider, AARP covers northern Nevada while NAPCA serves other areas",
+        "Waitlist length varies significantly by location and provider capacity, some areas have immediate openings while others have extended waits"
       ],
       "relatedPrograms": [
         "Nevada JobConnect (American Job Centers)",
@@ -1938,7 +1938,7 @@
           "answer": "SCSEP is designed as a temporary bridge to permanent employment, with placements averaging about 6 months. The goal is to provide enough training and work experience for your loved one to transition to an unsubsidized job in the community."
         },
         {
-          "question": "What if my loved one is a veteran — does that help with getting in faster?",
+          "question": "What if my loved one is a veteran, does that help with getting in faster?",
           "answer": "Yes, veterans and their qualified spouses get first priority for enrollment, ahead of all other applicants. Make sure to mention veteran status when calling and bring DD-214 discharge papers to the intake appointment."
         },
         {
@@ -1963,7 +1963,7 @@
         },
         {
           "question": "How long is the waitlist in Nevada?",
-          "answer": "Waitlist times vary significantly by provider and location — some areas have immediate openings while others have extended waits depending on local capacity. Priority applicants (veterans, over 65, disabled) move to the front of any waitlist."
+          "answer": "Waitlist times vary significantly by provider and location, some areas have immediate openings while others have extended waits depending on local capacity. Priority applicants (veterans, over 65, disabled) move to the front of any waitlist."
         }
       ],
       "layoutIntent": {
@@ -1991,7 +1991,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your aging loved one in Nevada wants to remain in their home but needs help coordinating care or making their house safer, Nevada Advocates for Seniors provides professional care management services. Their Registered Nurse Advocates perform home safety assessments, coordinate necessary home modifications and repairs, and vet and supervise in-home care providers.\n\nThe program focuses on helping seniors age in place through comprehensive oversight — including both announced and unannounced visits to ensure quality care and adherence to care plans. Because this is a private service rather than a government benefit program, there are no income restrictions, but families typically pay for services.",
+      "intro": "If your aging loved one in Nevada wants to remain in their home but needs help coordinating care or making their house safer, Nevada Advocates for Seniors provides professional care management services. Their Registered Nurse Advocates perform home safety assessments, coordinate necessary home modifications and repairs, and vet and supervise in-home care providers.\n\nThe program focuses on helping seniors age in place through comprehensive oversight, including both announced and unannounced visits to ensure quality care and adherence to care plans. Because this is a private service rather than a government benefit program, there are no income restrictions, but families typically pay for services.",
       "savingsRange": "",
       "savingsSource": "Private service",
       "savingsVerified": false,
@@ -2063,7 +2063,7 @@
         }
       ],
       "applicationNotes": [
-        "This is a private care management service, not a free government benefit — families pay for services directly",
+        "This is a private care management service, not a free government benefit, families pay for services directly",
         "Different from free legal advocacy programs like Nevada Legal Services Senior Law Project",
         "Services focus on care coordination and supervision rather than direct healthcare or financial assistance"
       ],
@@ -2162,7 +2162,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 1-888-282-1155 to file a complaint or request advocacy services — no paperwork required.",
+        "summary": "Call the statewide helpline at 1-888-282-1155 to file a complaint or request advocacy services, no paperwork required.",
         "steps": [
           {
             "step": 1,
@@ -2256,7 +2256,7 @@
       "id": "senior-rx-program",
       "name": "Nevada Senior Rx Program",
       "shortName": "Nevada Senior Rx",
-      "tagline": "This prescription assistance program ended December 31, 2023 — families should contact Nevada MAP for current alternatives.",
+      "tagline": "This prescription assistance program ended December 31, 2023, families should contact Nevada MAP for current alternatives.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2303,7 +2303,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "This program ended December 31, 2023 — no new applications accepted.",
+        "summary": "This program ended December 31, 2023, no new applications accepted.",
         "steps": [
           {
             "step": 1,
@@ -2321,9 +2321,9 @@
             "description": "MAP can help compare Medicare Part D plans during open enrollment to find the best prescription coverage."
           }
         ],
-        "processingTime": "Program ended — no processing available",
+        "processingTime": "Program ended, no processing available",
         "waitlist": null,
-        "tip": "Keep any documentation from the former Senior Rx program when exploring new options — it may help establish eligibility for other programs.",
+        "tip": "Keep any documentation from the former Senior Rx program when exploring new options, it may help establish eligibility for other programs.",
         "urls": [
           {
             "label": "Nevada Care Connection",
@@ -2342,7 +2342,7 @@
         {
           "label": "Former Senior Rx Program Line",
           "phone": "(866) 303-6323",
-          "description": "No longer accepting applications — redirects to current resources",
+          "description": "No longer accepting applications, redirects to current resources",
           "hours": "May not be operational"
         },
         {
@@ -2353,10 +2353,10 @@
         }
       ],
       "applicationNotes": [
-        "Program ended December 31, 2023 — no new applications being processed",
+        "Program ended December 31, 2023, no new applications being processed",
         "Former participants should have received notice about program termination and alternative resources",
-        "Extra Help through Medicare often provided better coverage than Senior Rx — ask MAP about current eligibility",
-        "Income limits changed annually on July 1st when program was active — current programs may have different thresholds"
+        "Extra Help through Medicare often provided better coverage than Senior Rx, ask MAP about current eligibility",
+        "Income limits changed annually on July 1st when program was active, current programs may have different thresholds"
       ],
       "relatedPrograms": [
         "Nevada Medicaid",
@@ -2368,7 +2368,7 @@
       "faqs": [
         {
           "question": "What should families do now that Nevada Senior Rx has ended?",
-          "answer": "Contact Nevada Medicare Assistance Program (MAP) at 800-307-4444 immediately. MAP can help identify current prescription assistance options including federal Extra Help, which often provides more comprehensive coverage than the former Senior Rx program. Don't wait — prescription costs can add up quickly without assistance."
+          "answer": "Contact Nevada Medicare Assistance Program (MAP) at 800-307-4444 immediately. MAP can help identify current prescription assistance options including federal Extra Help, which often provides more comprehensive coverage than the former Senior Rx program. Don't wait, prescription costs can add up quickly without assistance."
         },
         {
           "question": "Will Nevada create a replacement prescription assistance program?",
@@ -2388,7 +2388,7 @@
         },
         {
           "question": "Are there any Nevada-specific programs still available for prescription help?",
-          "answer": "While the state-specific Senior Rx program ended, Nevada MAP can connect families to federal programs, pharmaceutical company patient assistance programs, and local resources. Some county health departments and nonprofits may also offer prescription assistance — MAP maintains the most current list."
+          "answer": "While the state-specific Senior Rx program ended, Nevada MAP can connect families to federal programs, pharmaceutical company patient assistance programs, and local resources. Some county health departments and nonprofits may also offer prescription assistance, MAP maintains the most current list."
         },
         {
           "question": "Should I keep my loved one's old Senior Rx paperwork?",
@@ -2469,7 +2469,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Complete the OCL Program Application through Nevada's Aging and Disability Services Division — processing time varies based on assessment scheduling.",
+        "summary": "Complete the OCL Program Application through Nevada's Aging and Disability Services Division, processing time varies based on assessment scheduling.",
         "steps": [
           {
             "step": 1,
@@ -2497,9 +2497,9 @@
             "description": "Wait for approval and waiver slot availability. Priority given to urgent cases at immediate risk of nursing home placement."
           }
         ],
-        "processingTime": "Processing time not specified — depends on assessment scheduling and waiver slot availability",
-        "waitlist": "Likely waitlist exists due to waiver enrollment caps — common for HCBS waiver programs",
-        "tip": "Emphasize immediate risk of nursing home placement in your application — urgent cases get priority for available waiver slots.",
+        "processingTime": "Processing time not specified, depends on assessment scheduling and waiver slot availability",
+        "waitlist": "Likely waitlist exists due to waiver enrollment caps, common for HCBS waiver programs",
+        "tip": "Emphasize immediate risk of nursing home placement in your application, urgent cases get priority for available waiver slots.",
         "urls": [
           {
             "label": "Nevada ADSD",
@@ -2538,10 +2538,10 @@
         }
       ],
       "applicationNotes": [
-        "Home ownership doesn't disqualify you, but home equity over $752,000 does — and your home may be subject to Medicaid estate recovery after death",
-        "A dementia diagnosis alone doesn't automatically qualify — you still must score 3+ functional deficits on the formal assessment",
+        "Home ownership doesn't disqualify you, but home equity over $752,000 does, and your home may be subject to Medicaid estate recovery after death",
+        "A dementia diagnosis alone doesn't automatically qualify, you still must score 3+ functional deficits on the formal assessment",
         "If married and only one spouse applies, both spouses' assets are counted jointly against the $2,000 individual limit",
-        "You must demonstrate need for institutional care within 30 days without waiver services — document current care gaps and safety risks"
+        "You must demonstrate need for institutional care within 30 days without waiver services, document current care gaps and safety risks"
       ],
       "relatedPrograms": [
         "Nevada Medicaid",
@@ -2615,7 +2615,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs help with daily activities like bathing, dressing, or meal preparation, Nevada's Personal Care Services Program can provide professional caregivers at no cost. This Medicaid program covers in-home personal care services tailored to your loved one's specific needs — whether that's assistance with toileting and mobility or light housekeeping and medication reminders.\n\nThe program serves Nevada residents who are already enrolled in Medicaid and need help with at least two activities of daily living. A state-approved assessor (like a physical or occupational therapist) will evaluate your loved one's needs and create a personalized care plan. Your loved one can choose to self-direct their care or work with an agency provider.\n\nBecause this program prevents the need for nursing home placement, it helps families keep their loved ones at home while ensuring they receive professional care. The amount and type of services depend entirely on the functional assessment — there's no fixed hour limit or dollar cap.",
+      "intro": "If your loved one needs help with daily activities like bathing, dressing, or meal preparation, Nevada's Personal Care Services Program can provide professional caregivers at no cost. This Medicaid program covers in-home personal care services tailored to your loved one's specific needs, whether that's assistance with toileting and mobility or light housekeeping and medication reminders.\n\nThe program serves Nevada residents who are already enrolled in Medicaid and need help with at least two activities of daily living. A state-approved assessor (like a physical or occupational therapist) will evaluate your loved one's needs and create a personalized care plan. Your loved one can choose to self-direct their care or work with an agency provider.\n\nBecause this program prevents the need for nursing home placement, it helps families keep their loved ones at home while ensuring they receive professional care. The amount and type of services depend entirely on the functional assessment, there's no fixed hour limit or dollar cap.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2687,7 +2687,7 @@
         ],
         "processingTime": "Intake case manager contacts after complete application; assessment scheduled; no specific timeline provided",
         "waitlist": null,
-        "tip": "The application is incomplete without the CBC-423 Medical Diagnosis form — make sure your loved one's doctor completes this before submitting.",
+        "tip": "The application is incomplete without the CBC-423 Medical Diagnosis form, make sure your loved one's doctor completes this before submitting.",
         "urls": [
           {
             "label": "Nevada Medicaid Application",
@@ -2735,9 +2735,9 @@
         }
       ],
       "applicationNotes": [
-        "Having Nevada Medicaid does not automatically enroll your loved one in PCS — a separate assessment and application are required",
-        "Documentation delays are common if medical forms are missing — ensure the CBC-423 is completed before submitting",
-        "Regional ADSD offices may have different providers and intake processes — call your local office for area-specific details",
+        "Having Nevada Medicaid does not automatically enroll your loved one in PCS, a separate assessment and application are required",
+        "Documentation delays are common if medical forms are missing, ensure the CBC-423 is completed before submitting",
+        "Regional ADSD offices may have different providers and intake processes, call your local office for area-specific details",
         "If your loved one needs nursing home level care, they may also qualify for Physical Disability Waiver or Frail Elderly Waiver programs with additional services"
       ],
       "relatedPrograms": [
@@ -2838,7 +2838,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your regional ADSD office to start the application — an intake case manager will contact you after receipt.",
+        "summary": "Call your regional ADSD office to start the application, an intake case manager will contact you after receipt.",
         "steps": [
           {
             "step": 1,
@@ -2867,8 +2867,8 @@
           }
         ],
         "processingTime": "Intake case manager contacts after receipt; assessment timeline varies by region and waitlist status",
-        "waitlist": "Possible waitlist depending on region — screening for appropriateness if waitlisted, full assessment if not",
-        "tip": "Download Spanish versions of forms if needed — they're available on the ADSD website.",
+        "waitlist": "Possible waitlist depending on region, screening for appropriateness if waitlisted, full assessment if not",
+        "tip": "Download Spanish versions of forms if needed, they're available on the ADSD website.",
         "urls": [
           {
             "label": "COPE Application Forms",
@@ -2907,10 +2907,10 @@
         }
       ],
       "applicationNotes": [
-        "This is a non-Medicaid program — you can apply even if your loved one doesn't qualify for Medicaid yet",
-        "Some regions have waitlists while others can start services immediately — ask about current availability in your area",
+        "This is a non-Medicaid program, you can apply even if your loved one doesn't qualify for Medicaid yet",
+        "Some regions have waitlists while others can start services immediately, ask about current availability in your area",
         "Family members (excluding spouses and guardians) may be paid to provide some care services, but confirm eligibility rules",
-        "Services only continue while your loved one lives at home in Nevada — nursing home admission ends COPE benefits"
+        "Services only continue while your loved one lives at home in Nevada, nursing home admission ends COPE benefits"
       ],
       "relatedPrograms": [
         "HCBS Frail Elderly Waiver",
@@ -2925,7 +2925,7 @@
           "answer": "COPE is a non-Medicaid program that serves as a bridge for seniors who need nursing home level care but don't yet qualify for Medicaid or are on Medicaid waitlists. You don't need to spend down assets to qualify for COPE, though income and asset limits still apply."
         },
         {
-          "question": "What if my loved one owns their home — does that disqualify them?",
+          "question": "What if my loved one owns their home, does that disqualify them?",
           "answer": "Home ownership typically doesn't disqualify applicants from COPE, but the program has asset guidelines that vary by situation. Call (775) 687-4210 to discuss your loved one's specific financial situation and current asset limits."
         },
         {
@@ -2934,7 +2934,7 @@
         },
         {
           "question": "How long is the waitlist really in Las Vegas versus rural areas?",
-          "answer": "Waitlist times vary significantly by region and aren't published publicly. When you call your regional ADSD office, ask specifically about current waitlist status and expected timeline for your area — this changes frequently based on funding and demand."
+          "answer": "Waitlist times vary significantly by region and aren't published publicly. When you call your regional ADSD office, ask specifically about current waitlist status and expected timeline for your area, this changes frequently based on funding and demand."
         },
         {
           "question": "What happens if my loved one's needs increase after enrollment?",
@@ -2942,7 +2942,7 @@
         },
         {
           "question": "Can family members be paid to provide care under COPE?",
-          "answer": "Certain family members may be eligible to receive payment for providing care services, but spouses and legal guardians are typically excluded. Rules vary by service type — confirm with your case manager during assessment what family caregiver arrangements are allowed."
+          "answer": "Certain family members may be eligible to receive payment for providing care services, but spouses and legal guardians are typically excluded. Rules vary by service type, confirm with your case manager during assessment what family caregiver arrangements are allowed."
         },
         {
           "question": "What exactly does 'at risk of institutionalization' mean for eligibility?",
@@ -2988,7 +2988,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and lives in Clark County (Las Vegas area), Nevada's Taxi Assistance Program cuts their taxi costs in half. They buy coupon books for $10 that provide $20 worth of taxi rides — accepted by all Clark County taxi companies.\n\nTo qualify, your loved one must have monthly income below 125% of Federal Poverty Guidelines and be a Nevada resident with full-time Clark County residence. People under 60 can also qualify if they have a permanent disability documented by a physician or Social Security.\n\nImportant: The program currently has no funding for new applicants, though they're still accepting applications. This means there's likely a waitlist, but staff will review applications as funding becomes available.",
+      "intro": "If your loved one is 60+ and lives in Clark County (Las Vegas area), Nevada's Taxi Assistance Program cuts their taxi costs in half. They buy coupon books for $10 that provide $20 worth of taxi rides, accepted by all Clark County taxi companies.\n\nTo qualify, your loved one must have monthly income below 125% of Federal Poverty Guidelines and be a Nevada resident with full-time Clark County residence. People under 60 can also qualify if they have a permanent disability documented by a physician or Social Security.\n\nImportant: The program currently has no funding for new applicants, though they're still accepting applications. This means there's likely a waitlist, but staff will review applications as funding becomes available.",
       "savingsRange": "$120/year",
       "savingsSource": "Based on purchasing one $10 coupon book monthly, saving $10 per book",
       "savingsVerified": true,
@@ -3037,7 +3037,7 @@
         ],
         "processingTime": null,
         "waitlist": "Program is at funding capacity with no additional funding available for new applicants. Applications are still being accepted and reviewed.",
-        "tip": "Apply now even though there's no current funding — you'll be first in line when money becomes available.",
+        "tip": "Apply now even though there's no current funding, you'll be first in line when money becomes available.",
         "urls": [
           {
             "label": "Official TAP Program Page",
@@ -3068,8 +3068,8 @@
         }
       ],
       "applicationNotes": [
-        "Appointments are required for in-person visits — drop-ins cannot be assisted",
-        "Payment for coupon books is cash (in-person only), personal checks, or money orders — credit and debit cards are NOT accepted"
+        "Appointments are required for in-person visits, drop-ins cannot be assisted",
+        "Payment for coupon books is cash (in-person only), personal checks, or money orders, credit and debit cards are NOT accepted"
       ],
       "relatedPrograms": [
         "Nevada SNAP (food benefits)",
@@ -3088,7 +3088,7 @@
         },
         {
           "question": "What if my loved one's income is slightly above 125% of Federal Poverty Level?",
-          "answer": "Income limits are strict — there's no exception for being slightly over. However, if their income changes due to reduced benefits or increased medical expenses, they can reapply."
+          "answer": "Income limits are strict, there's no exception for being slightly over. However, if their income changes due to reduced benefits or increased medical expenses, they can reapply."
         },
         {
           "question": "Do the taxi coupons expire?",
@@ -3111,7 +3111,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Nevada offers 17 programs to help your aging loved one stay home safely and afford basic needs. You'll find direct financial benefits — like $100–400/month for groceries through SNAP, up to $3,136/year for heating bills, and paid caregivers through multiple home care programs — plus free resources like Medicare counseling and ombudsman advocacy. The state prioritizes keeping seniors at home rather than in nursing facilities, with several waiver programs that can cover personal care, meals, and household help. Start by checking the highest-impact programs first, then explore additional support based on your loved one's specific needs.",
+    "intro": "Nevada offers 17 programs to help your aging loved one stay home safely and afford basic needs. You'll find direct financial benefits, like $100–400/month for groceries through SNAP, up to $3,136/year for heating bills, and paid caregivers through multiple home care programs, plus free resources like Medicare counseling and ombudsman advocacy. The state prioritizes keeping seniors at home rather than in nursing facilities, with several waiver programs that can cover personal care, meals, and household help. Start by checking the highest-impact programs first, then explore additional support based on your loved one's specific needs.",
     "startHere": [
       {
         "name": "Nevada Medicare Savings Programs",
@@ -3188,10 +3188,10 @@
     ],
     "quickFacts": [
       "Nevada has multiple home care waiver programs (HCBS, HCBW-FE, COPE, PCS) that can keep your loved one out of nursing homes",
-      "Most Nevada benefit programs use federal income limits — typically around $1,600–2,500/month for a single person depending on the program",
+      "Most Nevada benefit programs use federal income limits, typically around $1,600–2,500/month for a single person depending on the program",
       "Northern Nevada residents get additional respite care support ($1,000/year vouchers), while Las Vegas offers half-price taxi assistance",
-      "The Nevada Senior Rx prescription program ended in 2023 — contact Nevada MAP for current alternatives"
+      "The Nevada Senior Rx prescription program ended in 2023, contact Nevada MAP for current alternatives"
     ],
-    "resourcesVsBenefits": "Nevada offers both income-qualified benefits and free resources for all seniors. Benefits like SNAP, energy assistance, and Medicare Savings Programs require your loved one to meet specific income limits (usually $1,600–2,500/month). Free resources like SHIP Medicare counseling, ombudsman advocacy, and Senior Community Service Employment are available to all Nevada seniors regardless of income — no qualification process needed."
+    "resourcesVsBenefits": "Nevada offers both income-qualified benefits and free resources for all seniors. Benefits like SNAP, energy assistance, and Medicare Savings Programs require your loved one to meet specific income limits (usually $1,600–2,500/month). Free resources like SHIP Medicare counseling, ombudsman advocacy, and Senior Community Service Employment are available to all Nevada seniors regardless of income, no qualification process needed."
   }
 }

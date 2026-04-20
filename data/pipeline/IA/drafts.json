@@ -30,7 +30,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver can provide comprehensive care services at home instead of requiring nursing home placement. The program covers everything from personal care and homemaker services to home modifications and emergency response systems — all coordinated by one care team.\n\nTo qualify, your loved one must meet nursing facility level of care requirements (a clinical assessment showing they need substantial daily assistance) and have monthly income of $2,901 or less for a single person. Assets must be $2,000 or less, though their home and one car don't count toward this limit.\n\nBecause this waiver serves as an alternative to institutional care, your loved one gets both the specialized home services and full Medicaid benefits including medical care, prescriptions, and emergency services. The specific services and hours are individualized based on an assessment of your loved one's needs.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver can provide comprehensive care services at home instead of requiring nursing home placement. The program covers everything from personal care and homemaker services to home modifications and emergency response systems, all coordinated by one care team.\n\nTo qualify, your loved one must meet nursing facility level of care requirements (a clinical assessment showing they need substantial daily assistance) and have monthly income of $2,901 or less for a single person. Assets must be $2,000 or less, though their home and one car don't count toward this limit.\n\nBecause this waiver serves as an alternative to institutional care, your loved one gets both the specialized home services and full Medicaid benefits including medical care, prescriptions, and emergency services. The specific services and hours are individualized based on an assessment of your loved one's needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -71,7 +71,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Iowa's Benefits Portal or call 1-855-889-7985 — processing includes a clinical assessment to determine level of care needs.",
+        "summary": "Apply online through Iowa's Benefits Portal or call 1-855-889-7985, processing includes a clinical assessment to determine level of care needs.",
         "steps": [
           {
             "step": 1,
@@ -99,9 +99,9 @@
             "description": "If approved, work with Home and Community Based Services Specialists to create individualized care plan with specific services and providers"
           }
         ],
-        "processingTime": "Processing time not specified — assessment scheduled after application submission",
+        "processingTime": "Processing time not specified, assessment scheduled after application submission",
         "waitlist": null,
-        "tip": "Have medical information from your loved one's doctor ready before applying — this speeds up the level of care assessment process.",
+        "tip": "Have medical information from your loved one's doctor ready before applying, this speeds up the level of care assessment process.",
         "urls": [
           {
             "label": "Iowa Benefits Portal",
@@ -138,9 +138,9 @@
         }
       ],
       "applicationNotes": [
-        "Your loved one can have income over $2,901/month and still qualify under certain conditions — Medicaid planning may be needed",
-        "Home equity limits apply following nursing home Medicaid rules — the home must be under specific equity caps",
-        "Service availability depends on having approved providers in your area — ask about provider availability when applying",
+        "Your loved one can have income over $2,901/month and still qualify under certain conditions, Medicaid planning may be needed",
+        "Home equity limits apply following nursing home Medicaid rules, the home must be under specific equity caps",
+        "Service availability depends on having approved providers in your area, ask about provider availability when applying",
         "Annual reviews are required with current medical information from your loved one's doctor to maintain eligibility"
       ],
       "relatedPrograms": [
@@ -201,7 +201,7 @@
       "id": "hcbs-waiver-services",
       "name": "Home and Community-Based Services (HCBS)",
       "shortName": "HCBS Waiver",
-      "tagline": "Medicaid services that keep your loved one at home instead of a nursing facility — medical care, personal assistance, and support coordination under one program.",
+      "tagline": "Medicaid services that keep your loved one at home instead of a nursing facility, medical care, personal assistance, and support coordination under one program.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -214,7 +214,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver may cover comprehensive care services to help them stay at home. The program provides medical care, personal assistance, and care coordination through Medicaid — but only if your loved one would otherwise qualify for nursing home placement.\n\nYour loved one must meet strict income limits ($2,982/month in 2026) and pass a clinical assessment proving they need \"Nursing Facility Level of Care.\" A dementia diagnosis alone won't qualify them — the state evaluates actual daily functioning through activities like bathing, eating, and decision-making. Because this is a Medicaid waiver program, your loved one's assets must also stay below Medicaid limits, though their home is exempt if equity is under $752,000.\n\nThe program covers the same services your loved one would receive in a nursing facility, but delivers them at home through certified providers. One care team coordinates everything, so your loved one won't need to manage multiple providers separately.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver may cover comprehensive care services to help them stay at home. The program provides medical care, personal assistance, and care coordination through Medicaid, but only if your loved one would otherwise qualify for nursing home placement.\n\nYour loved one must meet strict income limits ($2,982/month in 2026) and pass a clinical assessment proving they need \"Nursing Facility Level of Care.\" A dementia diagnosis alone won't qualify them, the state evaluates actual daily functioning through activities like bathing, eating, and decision-making. Because this is a Medicaid waiver program, your loved one's assets must also stay below Medicaid limits, though their home is exempt if equity is under $752,000.\n\nThe program covers the same services your loved one would receive in a nursing facility, but delivers them at home through certified providers. One care team coordinates everything, so your loved one won't need to manage multiple providers separately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -254,7 +254,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact Iowa Medicaid Enterprise to start the application and clinical assessment process — processing time not specified by the state.",
+        "summary": "Contact Iowa Medicaid Enterprise to start the application and clinical assessment process, processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
@@ -279,7 +279,7 @@
         ],
         "processingTime": "Not specified by the state",
         "waitlist": null,
-        "tip": "Apply for Medicaid first if your loved one isn't already enrolled — HCBS eligibility depends on Medicaid qualification.",
+        "tip": "Apply for Medicaid first if your loved one isn't already enrolled, HCBS eligibility depends on Medicaid qualification.",
         "urls": [
           {
             "label": "Iowa HCBS Waiver Programs",
@@ -318,9 +318,9 @@
         }
       ],
       "applicationNotes": [
-        "Iowa has 7 different HCBS waivers — make sure to specify the Elderly Waiver for applicants 65+ when calling",
+        "Iowa has 7 different HCBS waivers, make sure to specify the Elderly Waiver for applicants 65+ when calling",
         "The 60-month look-back period examines all asset transfers, so gather documentation of any gifts or property sales from the last 5 years",
-        "A dementia diagnosis alone won't qualify your loved one — the assessment focuses on actual daily functioning, not medical conditions",
+        "A dementia diagnosis alone won't qualify your loved one, the assessment focuses on actual daily functioning, not medical conditions",
         "Home equity up to $752,000 is exempt, but higher values may disqualify your loved one from Medicaid eligibility"
       ],
       "relatedPrograms": [
@@ -389,7 +389,7 @@
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your loved one needs extensive daily help with bathing, dressing, or medication management but wants to avoid nursing home placement, PACE provides all their medical care, prescriptions, transportation, and social services through one coordinated team. Your loved one gets a primary care doctor, specialists, therapists, and social workers who communicate with each other — eliminating the need for you to coordinate between separate providers.\n\nPACE is only available in select Iowa counties and requires your loved one to qualify for nursing facility level of care (a clinical assessment of whether they need daily help with basic activities). About 90% of participants are enrolled in both Medicare and Medicaid, though Medicare-only participants may also qualify.\n\nBecause PACE becomes your loved one's sole source of medical services, they cannot use other Medicare or Medicaid providers while enrolled. However, enrollment is voluntary and they can leave the program at any time for any reason.",
+      "intro": "If your loved one needs extensive daily help with bathing, dressing, or medication management but wants to avoid nursing home placement, PACE provides all their medical care, prescriptions, transportation, and social services through one coordinated team. Your loved one gets a primary care doctor, specialists, therapists, and social workers who communicate with each other, eliminating the need for you to coordinate between separate providers.\n\nPACE is only available in select Iowa counties and requires your loved one to qualify for nursing facility level of care (a clinical assessment of whether they need daily help with basic activities). About 90% of participants are enrolled in both Medicare and Medicaid, though Medicare-only participants may also qualify.\n\nBecause PACE becomes your loved one's sole source of medical services, they cannot use other Medicare or Medicaid providers while enrolled. However, enrollment is voluntary and they can leave the program at any time for any reason.",
       "savingsRange": "",
       "savingsSource": "Comprehensive coordinated care service",
       "savingsVerified": false,
@@ -418,7 +418,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by Iowa as meeting nursing facility level of care — typically requiring extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
+        "functionalRequirement": "Must be certified by Iowa as meeting nursing facility level of care, typically requiring extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
         "otherRequirements": [
           "Lives in a PACE service area county in Iowa",
           "Able to live safely in the community with PACE services",
@@ -430,7 +430,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE provider directly — processing time varies by provider and no specific timeline is published.",
+        "summary": "Call your local PACE provider directly, processing time varies by provider and no specific timeline is published.",
         "steps": [
           {
             "step": 1,
@@ -440,7 +440,7 @@
           {
             "step": 2,
             "title": "Contact PACE provider directly",
-            "description": "Each PACE organization serves specific counties. Call the PACE provider in your area to schedule an assessment — phone numbers vary by region."
+            "description": "Each PACE organization serves specific counties. Call the PACE provider in your area to schedule an assessment, phone numbers vary by region."
           },
           {
             "step": 3,
@@ -458,9 +458,9 @@
             "description": "If approved, meet with PACE social worker to review services, sign enrollment agreements, and begin care coordination."
           }
         ],
-        "processingTime": "Processing time varies by PACE provider — contact your local organization for current timelines",
+        "processingTime": "Processing time varies by PACE provider, contact your local organization for current timelines",
         "waitlist": null,
-        "tip": "If your loved one has Medicare Advantage (Part C), they must disenroll before joining PACE — this is a common barrier that delays enrollment",
+        "tip": "If your loved one has Medicare Advantage (Part C), they must disenroll before joining PACE, this is a common barrier that delays enrollment",
         "urls": [
           {
             "label": "Iowa Department of Human Services",
@@ -500,10 +500,10 @@
         }
       ],
       "applicationNotes": [
-        "PACE is not available statewide — verify your county has a PACE provider before beginning the application process",
+        "PACE is not available statewide, verify your county has a PACE provider before beginning the application process",
         "If your loved one is enrolled in Medicare Advantage (Part C), they must disenroll first, which can only happen during specific enrollment periods",
-        "Financial eligibility is complex and varies — not meeting standard Medicaid income limits doesn't automatically disqualify your loved one, as there are multiple pathways to eligibility",
-        "PACE becomes the sole source of medical services — your loved one cannot use other Medicare or Medicaid providers while enrolled, though they can leave the program at any time"
+        "Financial eligibility is complex and varies, not meeting standard Medicaid income limits doesn't automatically disqualify your loved one, as there are multiple pathways to eligibility",
+        "PACE becomes the sole source of medical services, your loved one cannot use other Medicare or Medicaid providers while enrolled, though they can leave the program at any time"
       ],
       "relatedPrograms": [
         "Iowa Medicaid HCBS Elderly Waiver",
@@ -564,7 +564,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
-      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — $100-300/month loaded onto an EBT card",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes, $100-300/month loaded onto an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -577,7 +577,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries through SNAP (formerly food stamps). Benefits are loaded monthly onto an EBT card that works like a debit card at most grocery stores and farmers markets.\n\nIowa has more generous income limits than most states — your loved one can earn up to $2,086/month (160% of federal poverty level) and still qualify if they're 60+. Because seniors get special deductions for medical expenses over $35/month and shelter costs, many qualify even when their initial income seems too high.\n\nMost Iowa seniors receiving SNAP get $50–200/month depending on their net income after deductions. The maximum benefit is $291/month for a single person, but actual amounts depend on income, household size, and allowable expenses like medical costs and housing.",
+      "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries through SNAP (formerly food stamps). Benefits are loaded monthly onto an EBT card that works like a debit card at most grocery stores and farmers markets.\n\nIowa has more generous income limits than most states, your loved one can earn up to $2,086/month (160% of federal poverty level) and still qualify if they're 60+. Because seniors get special deductions for medical expenses over $35/month and shelter costs, many qualify even when their initial income seems too high.\n\nMost Iowa seniors receiving SNAP get $50–200/month depending on their net income after deductions. The maximum benefit is $291/month for a single person, but actual amounts depend on income, household size, and allowable expenses like medical costs and housing.",
       "savingsRange": "$600 – $3,500/year in 2026",
       "savingsSource": "Based on typical SNAP benefits of $50-291/month for seniors",
       "savingsVerified": true,
@@ -642,7 +642,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Iowa's DHS portal or by phone — telephone interviews available for seniors, typically processed within 30 days",
+        "summary": "Apply online through Iowa's DHS portal or by phone, telephone interviews available for seniors, typically processed within 30 days",
         "steps": [
           {
             "step": 1,
@@ -652,7 +652,7 @@
           {
             "step": 2,
             "title": "Complete SNAP application",
-            "description": "Provide information about household members, income, expenses, and assets. Include medical expenses over $35/month — these can significantly increase your benefit amount."
+            "description": "Provide information about household members, income, expenses, and assets. Include medical expenses over $35/month, these can significantly increase your benefit amount."
           },
           {
             "step": 3,
@@ -672,7 +672,7 @@
         ],
         "processingTime": "30 days standard, expedited processing available for urgent cases",
         "waitlist": null,
-        "tip": "Seniors often qualify for higher deductions — include all medical expenses over $35/month, including Medicare premiums, prescription costs, and medical equipment.",
+        "tip": "Seniors often qualify for higher deductions, include all medical expenses over $35/month, including Medicare premiums, prescription costs, and medical equipment.",
         "urls": [
           {
             "label": "Iowa SNAP Application Portal",
@@ -718,9 +718,9 @@
         }
       ],
       "applicationNotes": [
-        "SSI recipients are often automatically eligible for SNAP — mention your SSI when applying to speed up the process",
-        "If you're over the gross income limit, you may still qualify through net income after deductions — don't assume you make too much",
-        "Medical expenses over $35/month can significantly increase your benefit amount — save all receipts including Medicare premiums and prescription costs",
+        "SSI recipients are often automatically eligible for SNAP, mention your SSI when applying to speed up the process",
+        "If you're over the gross income limit, you may still qualify through net income after deductions, don't assume you make too much",
+        "Medical expenses over $35/month can significantly increase your benefit amount, save all receipts including Medicare premiums and prescription costs",
         "New work requirements may apply to adults 55-64 without dependents, but those 60+ are typically exempt"
       ],
       "relatedPrograms": [
@@ -736,7 +736,7 @@
           "answer": "Yes, your loved one's home does not count as an asset for SNAP eligibility, regardless of value. Most retirement accounts (401k, IRA, pension funds) and one vehicle are also exempt from asset limits."
         },
         {
-          "question": "What if my loved one receives Social Security — can they still qualify?",
+          "question": "What if my loved one receives Social Security, can they still qualify?",
           "answer": "Yes, Social Security income is counted but Iowa allows income up to $2,086/month for a single person. Medical deductions (Medicare premiums, prescription costs over $35/month) often bring net income below qualifying limits."
         },
         {
@@ -760,7 +760,7 @@
           "answer": "Yes, many grocery stores that accept EBT now offer delivery services where you can pay with SNAP benefits. Online purchasing with EBT is expanding to major retailers like Amazon and Walmart in Iowa."
         },
         {
-          "question": "What if my loved one was denied SNAP before — can they reapply?",
+          "question": "What if my loved one was denied SNAP before, can they reapply?",
           "answer": "Yes, you can reapply at any time, especially if circumstances have changed. Previous denials don't affect new applications. If you disagree with a decision, you can request a fair hearing within 90 days."
         }
       ],
@@ -803,7 +803,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating bills on a fixed income, LIHEAP provides one-time payments sent directly to utility companies to help cover heating costs. This federal program helps Iowa households with incomes at or below 175% of federal poverty guidelines — that's $21,858 annually for a single person or $45,063 for a family of four in 2019.\n\nThe payment amount varies based on household size, income level, heating fuel type, and housing type. LIHEAP also includes crisis assistance for energy emergencies like broken heaters or utility shutoff notices. Priority applications open October 1 for households with someone age 60 or older, disabled individuals, or those facing disconnection. All other households can apply starting November 1.\n\nOnce approved, your loved one receives protection from heating service disconnection from November 1 through April 1. Both homeowners and renters qualify, and there are no asset limits to worry about.",
+      "intro": "If your loved one struggles to pay heating bills on a fixed income, LIHEAP provides one-time payments sent directly to utility companies to help cover heating costs. This federal program helps Iowa households with incomes at or below 175% of federal poverty guidelines, that's $21,858 annually for a single person or $45,063 for a family of four in 2019.\n\nThe payment amount varies based on household size, income level, heating fuel type, and housing type. LIHEAP also includes crisis assistance for energy emergencies like broken heaters or utility shutoff notices. Priority applications open October 1 for households with someone age 60 or older, disabled individuals, or those facing disconnection. All other households can apply starting November 1.\n\nOnce approved, your loved one receives protection from heating service disconnection from November 1 through April 1. Both homeowners and renters qualify, and there are no asset limits to worry about.",
       "savingsRange": "",
       "savingsSource": "One-time payment varies by household circumstances",
       "savingsVerified": false,
@@ -877,7 +877,7 @@
         ],
         "processingTime": "Processing time varies by local agency. Households with disconnection notices receive 30 days of protection from disconnection while applications are processed.",
         "waitlist": "Funding is limited and some local agencies may stop accepting applications if funds run out before the April 30, 2026 deadline.",
-        "tip": "Apply as early as possible after your priority period opens — funding runs out and agencies may close applications before the April 30 deadline.",
+        "tip": "Apply as early as possible after your priority period opens, funding runs out and agencies may close applications before the April 30 deadline.",
         "urls": [
           {
             "label": "Iowa LIHEAP Online Application",
@@ -922,9 +922,9 @@
         }
       ],
       "applicationNotes": [
-        "Income limits may be up to 200% of federal poverty guidelines at some agencies — verify current limits with your local community action agency since guidelines update annually",
+        "Income limits may be up to 200% of federal poverty guidelines at some agencies, verify current limits with your local community action agency since guidelines update annually",
         "If roommates share the same utility bill, they count as household members which may affect income limits",
-        "This is a one-time annual payment, not ongoing monthly assistance — budget accordingly for the rest of the heating season",
+        "This is a one-time annual payment, not ongoing monthly assistance, budget accordingly for the rest of the heating season",
         "Crisis LIHEAP provides separate emergency assistance for broken heaters, utility shutoffs, or running out of fuel"
       ],
       "relatedPrograms": [
@@ -976,7 +976,7 @@
     },
     {
       "id": "shiip-medicare-counseling",
-      "name": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
+      "name": "Senior Health Insurance Information Program (SHIIP), Iowa's implementation of the national SHIP program",
       "shortName": "SHIIP Iowa",
       "tagline": "Free one-on-one counseling to help your loved one navigate Medicare enrollment, supplements, and prescription drug plans.",
       "programType": "navigator",
@@ -1007,7 +1007,7 @@
           }
         ]
       },
-      "intro": "If your loved one is approaching 65 or already on Medicare, SHIIP provides free one-on-one counseling to help them understand their options. Because Medicare has multiple parts, supplements, and prescription drug plans with different costs and coverage, most people benefit from talking through their specific situation with a trained counselor.\n\nSHIIP counselors help with Medicare enrollment, Medicare Advantage plans, prescription drug coverage (Part D), and Medicare Savings Programs that can reduce premiums and copays. They also provide education on avoiding Medicare fraud and understanding long-term care coverage options. All counseling is free and unbiased — SHIIP counselors don't sell insurance products.",
+      "intro": "If your loved one is approaching 65 or already on Medicare, SHIIP provides free one-on-one counseling to help them understand their options. Because Medicare has multiple parts, supplements, and prescription drug plans with different costs and coverage, most people benefit from talking through their specific situation with a trained counselor.\n\nSHIIP counselors help with Medicare enrollment, Medicare Advantage plans, prescription drug coverage (Part D), and Medicare Savings Programs that can reduce premiums and copays. They also provide education on avoiding Medicare fraud and understanding long-term care coverage options. All counseling is free and unbiased, SHIIP counselors don't sell insurance products.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1032,7 +1032,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline at 1-800-351-4664 — no application needed, just schedule your free counseling session.",
+        "summary": "Call the statewide hotline at 1-800-351-4664, no application needed, just schedule your free counseling session.",
         "steps": [
           {
             "step": 1,
@@ -1159,7 +1159,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and can't safely leave home to shop or cook, Meals on Wheels delivers nutritious meals directly to their door at least 5 days a week. Each meal meets one-third of daily nutritional guidelines for older adults — and many programs provide meals free or for a small donation based on your loved one's ability to pay.\n\nBecause Iowa runs Meals on Wheels through local Area Agencies on Aging rather than one statewide system, the exact process varies by county. Some areas prioritize seniors in greatest economic need, while others offer immediate service for a fee ($8.10–$9.50 per meal if ineligible for free service). Your loved one's spouse can also receive meals if it helps support your loved one's care at home.",
+      "intro": "If your loved one is 60+ and can't safely leave home to shop or cook, Meals on Wheels delivers nutritious meals directly to their door at least 5 days a week. Each meal meets one-third of daily nutritional guidelines for older adults, and many programs provide meals free or for a small donation based on your loved one's ability to pay.\n\nBecause Iowa runs Meals on Wheels through local Area Agencies on Aging rather than one statewide system, the exact process varies by county. Some areas prioritize seniors in greatest economic need, while others offer immediate service for a fee ($8.10–$9.50 per meal if ineligible for free service). Your loved one's spouse can also receive meals if it helps support your loved one's care at home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1182,7 +1182,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for an assessment — no forms required, and service can start within days.",
+        "summary": "Call your local Area Agency on Aging for an assessment, no forms required, and service can start within days.",
         "steps": [
           {
             "step": 1,
@@ -1242,7 +1242,7 @@
         }
       ],
       "applicationNotes": [
-        "No statewide application — you must contact the provider serving your loved one's specific address",
+        "No statewide application, you must contact the provider serving your loved one's specific address",
         "If your loved one doesn't qualify for free meals due to income, many programs offer paid meals at $8.10-$9.50 each",
         "Veterans of any age may qualify through some providers regardless of other age requirements",
         "Temporary homebound status (recovering from surgery) may still qualify for short-term meal delivery"
@@ -1260,7 +1260,7 @@
         },
         {
           "question": "Can my loved one get meals if they're temporarily homebound after surgery?",
-          "answer": "Yes, many providers offer short-term meal delivery during recovery periods. Call your local provider to discuss temporary service — they can often start meals quickly for post-hospital situations."
+          "answer": "Yes, many providers offer short-term meal delivery during recovery periods. Call your local provider to discuss temporary service, they can often start meals quickly for post-hospital situations."
         },
         {
           "question": "What happens if my loved one's income is too high for free meals?",
@@ -1318,7 +1318,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal issues with housing, public benefits, or elder abuse, Iowa Legal Aid provides free legal advice, counseling, and representation. Because they prioritize seniors with the greatest need — those who are frail, rural, at risk of losing housing, or facing guardianship — your loved one may get help even if their income is slightly above typical limits.\n\nThe program covers elder law issues including Medicaid planning, benefits screening, housing disputes, and abuse prevention. They serve all 99 Iowa counties and cannot deny services to seniors 60+ based solely on finances, though they do prioritize based on income and vulnerability.",
+      "intro": "If your loved one is 60+ and facing legal issues with housing, public benefits, or elder abuse, Iowa Legal Aid provides free legal advice, counseling, and representation. Because they prioritize seniors with the greatest need, those who are frail, rural, at risk of losing housing, or facing guardianship, your loved one may get help even if their income is slightly above typical limits.\n\nThe program covers elder law issues including Medicaid planning, benefits screening, housing disputes, and abuse prevention. They serve all 99 Iowa counties and cannot deny services to seniors 60+ based solely on finances, though they do prioritize based on income and vulnerability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1341,7 +1341,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the seniors hotline at 800-992-8161 or apply online at iowalegalaid.org — no processing time specified.",
+        "summary": "Call the seniors hotline at 800-992-8161 or apply online at iowalegalaid.org, no processing time specified.",
         "steps": [
           {
             "step": 1,
@@ -1351,7 +1351,7 @@
           {
             "step": 2,
             "title": "Describe the legal issue",
-            "description": "Explain your loved one's situation — housing problems, benefits denials, abuse concerns, or Medicaid planning needs."
+            "description": "Explain your loved one's situation, housing problems, benefits denials, abuse concerns, or Medicaid planning needs."
           },
           {
             "step": 3,
@@ -1360,8 +1360,8 @@
           }
         ],
         "processingTime": null,
-        "waitlist": "Priority system — greatest need cases get immediate help, others may be waitlisted or referred elsewhere",
-        "tip": "Even if your loved one's income seems too high, call anyway — they make exceptions for seniors with urgent legal needs.",
+        "waitlist": "Priority system, greatest need cases get immediate help, others may be waitlisted or referred elsewhere",
+        "tip": "Even if your loved one's income seems too high, call anyway, they make exceptions for seniors with urgent legal needs.",
         "urls": [
           {
             "label": "Apply Online",
@@ -1467,7 +1467,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline or contact the local ombudsman posted at your loved one's facility — no formal application needed.",
+        "summary": "Call the statewide hotline or contact the local ombudsman posted at your loved one's facility, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -1482,12 +1482,12 @@
           {
             "step": 3,
             "title": "Describe your concern",
-            "description": "Explain the issue or complaint — no formal paperwork required. The ombudsman will determine next steps based on the situation."
+            "description": "Explain the issue or complaint, no formal paperwork required. The ombudsman will determine next steps based on the situation."
           }
         ],
         "processingTime": "Timely response required, but timeline depends on complaint urgency",
         "waitlist": null,
-        "tip": "You can contact the ombudsman before problems become serious — they provide education and prevention services, not just crisis intervention.",
+        "tip": "You can contact the ombudsman before problems become serious, they provide education and prevention services, not just crisis intervention.",
         "urls": [
           {
             "label": "Iowa LTC Ombudsman Official Page",
@@ -1566,7 +1566,7 @@
           }
         ]
       },
-      "intro": "If your loved one receives SSI or has income just above SSI limits, Iowa's State Supplementary Assistance provides additional monthly cash to help cover special needs. This includes extra money for blind individuals, residential care facility costs, family-life homes, and in-home health-related care.\n\nBecause SSA supplements federal SSI payments, your loved one must either receive SSI or meet all SSI criteria except for having slightly too much income. Asset limits are $2,000 for individuals or $3,000 for couples — the same as SSI.\n\nThe exact payment amount varies based on your loved one's living situation and countable income, with different categories like Special Blind Allowance (up to $22 less if income exceeds SSI limits) and residential care assistance for those in licensed facilities.",
+      "intro": "If your loved one receives SSI or has income just above SSI limits, Iowa's State Supplementary Assistance provides additional monthly cash to help cover special needs. This includes extra money for blind individuals, residential care facility costs, family-life homes, and in-home health-related care.\n\nBecause SSA supplements federal SSI payments, your loved one must either receive SSI or meet all SSI criteria except for having slightly too much income. Asset limits are $2,000 for individuals or $3,000 for couples, the same as SSI.\n\nThe exact payment amount varies based on your loved one's living situation and countable income, with different categories like Special Blind Allowance (up to $22 less if income exceeds SSI limits) and residential care assistance for those in licensed facilities.",
       "savingsRange": "",
       "savingsSource": "Monthly cash supplement amount varies by category and income",
       "savingsVerified": false,
@@ -1622,7 +1622,7 @@
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Visit your local SSA or HHS office serving your county, or call the appropriate number. No specific form number is required — use the SSI application process for SSA-administered cases or HHS application for state-administered categories."
+            "description": "Visit your local SSA or HHS office serving your county, or call the appropriate number. No specific form number is required, use the SSI application process for SSA-administered cases or HHS application for state-administered categories."
           },
           {
             "step": 4,
@@ -1632,7 +1632,7 @@
         ],
         "processingTime": "Processing time not specified by the program",
         "waitlist": null,
-        "tip": "Apply to the correct office from the start — SSA handles most cases, but HHS handles residential and in-home care, and going to the wrong office will delay your application.",
+        "tip": "Apply to the correct office from the start, SSA handles most cases, but HHS handles residential and in-home care, and going to the wrong office will delay your application.",
         "urls": [
           {
             "label": "Find your local SSA office",
@@ -1680,9 +1680,9 @@
         }
       ],
       "applicationNotes": [
-        "Being denied for SSI due to excess income doesn't automatically qualify you for SSA — you must still complete full verification if your income is over SSI limits",
-        "Different categories are administered by different agencies — most go through Social Security offices, but residential care and in-home health care go through Iowa HHS local offices",
-        "You must apply for all other benefits you're eligible for before SSA approval — this includes federal programs and any state programs",
+        "Being denied for SSI due to excess income doesn't automatically qualify you for SSA, you must still complete full verification if your income is over SSI limits",
+        "Different categories are administered by different agencies, most go through Social Security offices, but residential care and in-home health care go through Iowa HHS local offices",
+        "You must apply for all other benefits you're eligible for before SSA approval, this includes federal programs and any state programs",
         "Children can qualify in limited circumstances: blind children in their own home or dependent relative home, disabled children only with a dependent relative"
       ],
       "relatedPrograms": [
@@ -1738,7 +1738,7 @@
         },
         {
           "question": "What happens if my loved one lives in a nursing home or emergency shelter?",
-          "answer": "People in medical facilities or emergency shelters are not eligible for SSA. The program is designed for people living in their own homes, residential care facilities, or family-life homes — not institutional medical settings."
+          "answer": "People in medical facilities or emergency shelters are not eligible for SSA. The program is designed for people living in their own homes, residential care facilities, or family-life homes, not institutional medical settings."
         },
         {
           "question": "Do we need a doctor's note for all SSA categories?",
@@ -1746,7 +1746,7 @@
         },
         {
           "question": "Can I apply for SSA and other benefits at the same time?",
-          "answer": "Yes, but you must apply for ALL other eligible benefits before SSA approval. This is a requirement — SSA is supplemental assistance, so you need to exhaust other options first."
+          "answer": "Yes, but you must apply for ALL other eligible benefits before SSA approval. This is a requirement, SSA is supplemental assistance, so you need to exhaust other options first."
         },
         {
           "question": "What if my loved one's income changes after they're approved for SSA?",
@@ -1773,12 +1773,12 @@
     }
   ],
   "stateOverview": {
-    "intro": "Iowa offers 10 major programs to help seniors stay independent and reduce family caregiving costs. Seven provide direct financial benefits — from $100-300/month in grocery assistance to comprehensive home care coverage worth thousands monthly. Three are free resources available to all Iowa families, including legal aid and advocacy services. Most income-based benefits use similar thresholds: around $2,152/month for single seniors, $2,901 for couples. Start with the programs that address your biggest expense or safety concern — home care, medical costs, or basic needs like food and utilities.",
+    "intro": "Iowa offers 10 major programs to help seniors stay independent and reduce family caregiving costs. Seven provide direct financial benefits, from $100-300/month in grocery assistance to comprehensive home care coverage worth thousands monthly. Three are free resources available to all Iowa families, including legal aid and advocacy services. Most income-based benefits use similar thresholds: around $2,152/month for single seniors, $2,901 for couples. Start with the programs that address your biggest expense or safety concern, home care, medical costs, or basic needs like food and utilities.",
     "startHere": [
       {
         "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
         "programId": "iowa-medicaid-hcbs-elderly-waiver",
-        "why": "Covers the highest-cost caregiving expenses — personal care, medical equipment, and coordination services to keep your loved one safely at home."
+        "why": "Covers the highest-cost caregiving expenses, personal care, medical equipment, and coordination services to keep your loved one safely at home."
       },
       {
         "name": "Senior Health Insurance Information Program (SHIIP)",
@@ -1788,7 +1788,7 @@
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
         "programId": "iowa-snap",
-        "why": "Quick application process for immediate monthly grocery assistance — often the fastest benefit to secure."
+        "why": "Quick application process for immediate monthly grocery assistance, often the fastest benefit to secure."
       }
     ],
     "byNeed": [
@@ -1836,9 +1836,9 @@
     "quickFacts": [
       "Most Iowa benefit programs use income limits around $2,152/month for single seniors, $2,901 for couples",
       "Two programs are available to all Iowa seniors regardless of income: SHIIP counseling and Legal Aid services",
-      "Iowa's Elderly Waiver has waiting lists in some areas — apply early even if your loved one doesn't need services immediately",
+      "Iowa's Elderly Waiver has waiting lists in some areas, apply early even if your loved one doesn't need services immediately",
       "SNAP benefits load onto an EBT card that works at most Iowa grocery stores and farmers markets"
     ],
-    "resourcesVsBenefits": "Iowa's programs fall into two categories: income-qualified benefits and free resources. Benefits like SNAP, LIHEAP, and Medicaid waivers require your loved one to meet specific income limits (typically around $2,152/month for singles). Free resources like SHIIP Medicare counseling, Iowa Legal Aid, and the Long-Term Care Ombudsman are available to all Iowa seniors regardless of income — use these first for guidance, then apply for financial benefits based on their recommendations."
+    "resourcesVsBenefits": "Iowa's programs fall into two categories: income-qualified benefits and free resources. Benefits like SNAP, LIHEAP, and Medicaid waivers require your loved one to meet specific income limits (typically around $2,152/month for singles). Free resources like SHIIP Medicare counseling, Iowa Legal Aid, and the Long-Term Care Ombudsman are available to all Iowa seniors regardless of income, use these first for guidance, then apply for financial benefits based on their recommendations."
   }
 }

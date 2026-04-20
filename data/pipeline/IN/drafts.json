@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is under 60, blind or disabled, and not eligible for Medicare, Hoosier Care Connect provides comprehensive medical coverage through Indiana Medicaid. Because this is managed care, your loved one gets all their healthcare coordinated through one team — no juggling between separate providers or worrying about coverage gaps.\n\nThe program covers all standard Indiana Medicaid benefits plus individualized care coordination based on your loved one's specific health needs. Your loved one must select from one of three managed care organizations (Anthem, Managed Health Services, or UnitedHealthcare) that will coordinate all their care through a Primary Medical Provider network.\n\nIncome limits vary significantly by situation: $994/month for individuals in the standard program, but up to $2,982/month for those needing institutional or waiver services (though higher-income participants may have patient liability costs). Most eligible individuals are already receiving Supplemental Security Income (SSI) or enrolled through M.E.D. Works.",
+      "intro": "If your loved one is under 60, blind or disabled, and not eligible for Medicare, Hoosier Care Connect provides comprehensive medical coverage through Indiana Medicaid. Because this is managed care, your loved one gets all their healthcare coordinated through one team, no juggling between separate providers or worrying about coverage gaps.\n\nThe program covers all standard Indiana Medicaid benefits plus individualized care coordination based on your loved one's specific health needs. Your loved one must select from one of three managed care organizations (Anthem, Managed Health Services, or UnitedHealthcare) that will coordinate all their care through a Primary Medical Provider network.\n\nIncome limits vary significantly by situation: $994/month for individuals in the standard program, but up to $2,982/month for those needing institutional or waiver services (though higher-income participants may have patient liability costs). Most eligible individuals are already receiving Supplemental Security Income (SSI) or enrolled through M.E.D. Works.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -48,7 +48,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at IndianaMedicaid.com or at your local FSSA office — processing time varies but you'll need to select a managed care organization.",
+        "summary": "Apply online at IndianaMedicaid.com or at your local FSSA office, processing time varies but you'll need to select a managed care organization.",
         "steps": [
           {
             "step": 1,
@@ -78,7 +78,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your loved one receives SSI, they're likely already eligible — check their current status before starting a new application.",
+        "tip": "If your loved one receives SSI, they're likely already eligible, check their current status before starting a new application.",
         "urls": [
           {
             "label": "Apply Online",
@@ -117,8 +117,8 @@
         }
       ],
       "applicationNotes": [
-        "You must stay with your chosen managed care organization (Anthem, MHS, or UnitedHealthcare) through the calendar year — choose carefully based on provider networks",
-        "All services require medical necessity and must go through your Primary Medical Provider or their referrals — you cannot see specialists directly",
+        "You must stay with your chosen managed care organization (Anthem, MHS, or UnitedHealthcare) through the calendar year, choose carefully based on provider networks",
+        "All services require medical necessity and must go through your Primary Medical Provider or their referrals, you cannot see specialists directly",
         "Higher income individuals may qualify through M.E.D. Works but will have premium payments or patient liability costs",
         "Some services may require prior approval or doctor's orders, and coverage limits may apply even within the Medicaid benefit package"
       ],
@@ -148,7 +148,7 @@
         },
         {
           "question": "Can my loved one switch managed care organizations if they don't like their provider network?",
-          "answer": "Generally no — you must stay with your chosen MCE (Anthem, MHS, or UnitedHealthcare) through the calendar year. You can only switch during open enrollment periods or for specific qualifying events. Choose carefully by comparing provider networks upfront."
+          "answer": "Generally no, you must stay with your chosen MCE (Anthem, MHS, or UnitedHealthcare) through the calendar year. You can only switch during open enrollment periods or for specific qualifying events. Choose carefully by comparing provider networks upfront."
         },
         {
           "question": "What if my loved one turns 60 while enrolled in Hoosier Care Connect?",
@@ -156,7 +156,7 @@
         },
         {
           "question": "Does Hoosier Care Connect cover dental and vision care?",
-          "answer": "Coverage includes all standard Indiana Medicaid Package A benefits, which typically includes limited dental and vision services. Your specific MCE may offer enhanced benefits beyond the standard package — ask about additional coverage when selecting your plan."
+          "answer": "Coverage includes all standard Indiana Medicaid Package A benefits, which typically includes limited dental and vision services. Your specific MCE may offer enhanced benefits beyond the standard package, ask about additional coverage when selecting your plan."
         },
         {
           "question": "What if my loved one needs long-term care services?",
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, eating, or medication management, Indiana PathWays for Aging provides home care services as an alternative to nursing home placement. This Medicaid waiver program covers meal preparation, transportation to medical appointments, home health visits, adult day center services, and other supports based on your loved one's assessed needs.\n\nTo qualify, your loved one must be Medicaid-eligible (income under $2,901/month for a single person in 2025) and meet Nursing Facility Level of Care through a clinical assessment. Because this program has limited slots, there is typically a waitlist — priority goes to those at highest risk of immediate nursing home placement. Services are individualized rather than offering fixed dollar amounts or hours.",
+      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, eating, or medication management, Indiana PathWays for Aging provides home care services as an alternative to nursing home placement. This Medicaid waiver program covers meal preparation, transportation to medical appointments, home health visits, adult day center services, and other supports based on your loved one's assessed needs.\n\nTo qualify, your loved one must be Medicaid-eligible (income under $2,901/month for a single person in 2025) and meet Nursing Facility Level of Care through a clinical assessment. Because this program has limited slots, there is typically a waitlist, priority goes to those at highest risk of immediate nursing home placement. Services are individualized rather than offering fixed dollar amounts or hours.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -270,7 +270,7 @@
         ],
         "processingTime": "Functional assessment timeline varies by region; managed care enrollment effective January following open enrollment",
         "waitlist": "Waitlist exists with priority tiers; wait time varies by region and risk level",
-        "tip": "Start the Medicaid application process early — you can request the functional assessment while Medicaid eligibility is being processed.",
+        "tip": "Start the Medicaid application process early, you can request the functional assessment while Medicaid eligibility is being processed.",
         "urls": [
           {
             "label": "Indiana PathWays Portal",
@@ -316,7 +316,7 @@
         }
       ],
       "applicationNotes": [
-        "Assessment process is transitioning from Area Agencies on Aging to Maximus Health Services in July 2025 — current applicants may experience process changes",
+        "Assessment process is transitioning from Area Agencies on Aging to Maximus Health Services in July 2025, current applicants may experience process changes",
         "Those currently in nursing facilities, hospitals, or at immediate risk of placement receive priority for available slots",
         "You cannot be enrolled in other Indiana waivers (Family Support, Community Integration, TBI, ESRD) while receiving PathWays services",
         "Home equity over $730,000 disqualifies your loved one unless their spouse or disabled child lives in the home"
@@ -359,7 +359,7 @@
         },
         {
           "question": "Can I help my loved one apply if they have dementia?",
-          "answer": "Yes, family members can assist with applications and serve as representatives. However, dementia alone doesn't qualify for services — your loved one must still meet the functional requirement of needing help with 3+ daily activities."
+          "answer": "Yes, family members can assist with applications and serve as representatives. However, dementia alone doesn't qualify for services, your loved one must still meet the functional requirement of needing help with 3+ daily activities."
         }
       ],
       "layoutIntent": {
@@ -393,7 +393,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and already on Indiana Medicaid, PathWays for Aging provides coordinated long-term services and supports through one managed care team. Because all care is coordinated under one program, your loved one won't need to navigate between separate providers — one team manages home health visits, meal preparation help, transportation to medical appointments, adult day centers, and other supports based on their needs.\n\nThis program aims to keep 75% of participants living at home or in the community rather than nursing facilities. Your loved one must qualify for Nursing Facility Level of Care (needing daily help with at least 3 activities like bathing, dressing, mobility, eating, or toileting) to access home and community-based services.\n\nPathWays operates through three managed care entities statewide: Anthem, Humana, and UnitedHealthcare. If your loved one is already eligible for Indiana Medicaid under aged, blind, or disabled categories, enrollment may be automatic.",
+      "intro": "If your loved one is 60+ and already on Indiana Medicaid, PathWays for Aging provides coordinated long-term services and supports through one managed care team. Because all care is coordinated under one program, your loved one won't need to navigate between separate providers, one team manages home health visits, meal preparation help, transportation to medical appointments, adult day centers, and other supports based on their needs.\n\nThis program aims to keep 75% of participants living at home or in the community rather than nursing facilities. Your loved one must qualify for Nursing Facility Level of Care (needing daily help with at least 3 activities like bathing, dressing, mobility, eating, or toileting) to access home and community-based services.\n\nPathWays operates through three managed care entities statewide: Anthem, Humana, and UnitedHealthcare. If your loved one is already eligible for Indiana Medicaid under aged, blind, or disabled categories, enrollment may be automatic.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -461,7 +461,7 @@
         ],
         "processingTime": "Automatic enrollment for eligible members with 90-day continuity of care window for plan changes",
         "waitlist": null,
-        "tip": "Keep all prior authorizations and service documentation during the transition — you have 90 days of continuity of care protection.",
+        "tip": "Keep all prior authorizations and service documentation during the transition, you have 90 days of continuity of care protection.",
         "urls": [
           {
             "label": "PathWays for Aging Information",
@@ -509,7 +509,7 @@
         "If your loved one was previously on the Aged & Disabled Waiver or in a nursing facility, they were automatically transitioned on July 1, 2024",
         "You have 90 days from enrollment to change managed care entities without penalty",
         "Dual-eligible participants (Medicare + Medicaid) can enroll in D-SNP plans with their chosen managed care entity for better coordination",
-        "Assessment for Nursing Facility Level of Care is required for home and community-based services — a dementia diagnosis alone is not sufficient"
+        "Assessment for Nursing Facility Level of Care is required for home and community-based services, a dementia diagnosis alone is not sufficient"
       ],
       "relatedPrograms": [
         "Indiana Medicaid",
@@ -582,7 +582,7 @@
           }
         ]
       },
-      "intro": "If your loved one has Medicare and struggles to pay premiums, deductibles, or copays, Indiana's Medicare Savings Programs can help. These programs pay Medicare costs for people with income up to $2,433/month (single) or $3,281/month (married couple) — higher limits than most states offer.\n\nThere are three tiers: QMB pays all Medicare costs including premiums, deductibles, and copays. SLMB and QI pay only the Medicare Part B premium (about $185/month in 2026). Because QMB covers the most costs, your loved one cannot be balance-billed by providers — they handle Medicare costs completely.\n\nIncome limits update each April. Asset limits are $9,950 for a single person or $14,910 for a married couple, not counting the home, one car, or burial funds up to $1,500.",
+      "intro": "If your loved one has Medicare and struggles to pay premiums, deductibles, or copays, Indiana's Medicare Savings Programs can help. These programs pay Medicare costs for people with income up to $2,433/month (single) or $3,281/month (married couple), higher limits than most states offer.\n\nThere are three tiers: QMB pays all Medicare costs including premiums, deductibles, and copays. SLMB and QI pay only the Medicare Part B premium (about $185/month in 2026). Because QMB covers the most costs, your loved one cannot be balance-billed by providers, they handle Medicare costs completely.\n\nIncome limits update each April. Asset limits are $9,950 for a single person or $14,910 for a married couple, not counting the home, one car, or burial funds up to $1,500.",
       "savingsRange": "$185 – $3,000/year in 2026",
       "savingsSource": "Medicare Part B premium plus potential deductibles and copays",
       "savingsVerified": false,
@@ -649,7 +649,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Indiana Medicaid ACCESS portal or call 1-800-403-0864 — processing takes 45-90 days.",
+        "summary": "Apply online through Indiana Medicaid ACCESS portal or call 1-800-403-0864, processing takes 45-90 days.",
         "steps": [
           {
             "step": 1,
@@ -679,7 +679,7 @@
         ],
         "processingTime": "45-90 days typical for Medicaid programs in Indiana",
         "waitlist": "QI has federal funding caps and potential waitlists (first-come, first-served); QMB and SLMB do not have waitlists",
-        "tip": "Indiana's income limits are higher than federal minimums — many people who think they don't qualify actually do.",
+        "tip": "Indiana's income limits are higher than federal minimums, many people who think they don't qualify actually do.",
         "urls": [
           {
             "label": "Indiana Medicaid ACCESS Portal",
@@ -721,8 +721,8 @@
         }
       ],
       "applicationNotes": [
-        "QI has limited federal funding and may have waitlists — apply early in the calendar year for best chance",
-        "If you qualify for QMB, providers cannot balance-bill your loved one for Medicare-covered services — report violations to the state",
+        "QI has limited federal funding and may have waitlists, apply early in the calendar year for best chance",
+        "If you qualify for QMB, providers cannot balance-bill your loved one for Medicare-covered services, report violations to the state",
         "QMB-Also and SLMB-Also categories provide full Medicaid benefits in addition to Medicare cost assistance if income and assets allow",
         "Benefits apply retroactively to your application date if approved, so don't delay applying"
       ],
@@ -740,7 +740,7 @@
         },
         {
           "question": "What's the difference between QMB, SLMB, and QI?",
-          "answer": "QMB has the lowest income limit ($1,977/month single) but pays all Medicare costs — premiums, deductibles, and copays. SLMB and QI only pay the Medicare Part B premium (about $185/month) but allow higher incomes — up to $2,238/month for SLMB and $2,433/month for QI."
+          "answer": "QMB has the lowest income limit ($1,977/month single) but pays all Medicare costs, premiums, deductibles, and copays. SLMB and QI only pay the Medicare Part B premium (about $185/month) but allow higher incomes, up to $2,238/month for SLMB and $2,433/month for QI."
         },
         {
           "question": "Can I apply for my loved one if they have dementia?",
@@ -798,7 +798,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to afford nutritious food on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card to buy groceries at most stores. Benefits range from $100–400+ per month depending on income and household size — a 2-person elderly household with $1,200 in monthly income might receive $415/month.\n\nBecause your loved one is 60+, they skip the gross income test and work requirements that apply to younger people. Indiana focuses on net income after subtracting medical expenses over $35/month and high shelter costs. Social Security, pensions, and VA benefits count as income, but the primary home and household goods don't count toward asset limits.\n\nAsset limits are $4,500 for households with someone 60+ or disabled. Bank accounts, non-primary real estate, and vehicles count, but retirement accounts and life insurance are exempt. You apply through your loved one's county Division of Family Resources office, and benefits typically start within 30 days.",
+      "intro": "If your loved one struggles to afford nutritious food on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card to buy groceries at most stores. Benefits range from $100–400+ per month depending on income and household size, a 2-person elderly household with $1,200 in monthly income might receive $415/month.\n\nBecause your loved one is 60+, they skip the gross income test and work requirements that apply to younger people. Indiana focuses on net income after subtracting medical expenses over $35/month and high shelter costs. Social Security, pensions, and VA benefits count as income, but the primary home and household goods don't count toward asset limits.\n\nAsset limits are $4,500 for households with someone 60+ or disabled. Bank accounts, non-primary real estate, and vehicles count, but retirement accounts and life insurance are exempt. You apply through your loved one's county Division of Family Resources office, and benefits typically start within 30 days.",
       "savingsRange": "$1,200 – $4,800/year",
       "savingsSource": "Based on typical monthly SNAP benefits of $100-400 for elderly households",
       "savingsVerified": false,
@@ -866,7 +866,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through ACCESS Indiana portal or at your local county office — processing takes 30 days (7 days if urgent).",
+        "summary": "Apply online through ACCESS Indiana portal or at your local county office, processing takes 30 days (7 days if urgent).",
         "steps": [
           {
             "step": 1,
@@ -937,7 +937,7 @@
       "applicationNotes": [
         "Expedited processing available if household has less than $150 gross monthly income and $100 or less in liquid resources",
         "Elderly or disabled members can apply as separate household if both qualify under 165% poverty level even if living with others",
-        "Medical expenses must exceed $35/month to count as deductions — save all receipts for prescription drugs, medical supplies, and health insurance premiums",
+        "Medical expenses must exceed $35/month to count as deductions, save all receipts for prescription drugs, medical supplies, and health insurance premiums",
         "Social Security, pensions, and VA benefits all count as income but some deductions may significantly reduce your net income calculation"
       ],
       "relatedPrograms": [
@@ -961,7 +961,7 @@
           "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to be designated as an authorized representative during the application process and may need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "What if my loved one lives with adult children — do their incomes count?",
+          "question": "What if my loved one lives with adult children, do their incomes count?",
           "answer": "Only people who buy and prepare food together count as the same household. If your loved one is 60+ and buys/prepares food separately, they can apply as a one-person household even if living with family members."
         },
         {
@@ -1020,7 +1020,7 @@
           }
         ]
       },
-      "intro": "If your loved one is struggling with high heating and cooling bills, Indiana's Weatherization Assistance Program provides free energy efficiency upgrades to their home. The program covers weatherstripping, insulation installation, heating system tune-ups, water heater repairs, and air sealing — services that typically cost hundreds to thousands of dollars out of pocket.\n\nYour loved one qualifies if their household income is at or below 200% of the Federal Poverty Level — $28,660 for a single person or $38,680 for a couple in 2026. They're automatically eligible if they receive Energy Assistance Program (EAP), SSI, or TANF benefits. The program serves both homeowners and renters statewide, though renters need written landlord permission before any permanent installations.\n\nBecause 2026 program funds are limited and available on a first-come, first-served basis, early application is critical. After income verification, applicants join a waitlist until a Local Service Provider can schedule the 1-2 hour home assessment that determines which specific upgrades their home receives.",
+      "intro": "If your loved one is struggling with high heating and cooling bills, Indiana's Weatherization Assistance Program provides free energy efficiency upgrades to their home. The program covers weatherstripping, insulation installation, heating system tune-ups, water heater repairs, and air sealing, services that typically cost hundreds to thousands of dollars out of pocket.\n\nYour loved one qualifies if their household income is at or below 200% of the Federal Poverty Level, $28,660 for a single person or $38,680 for a couple in 2026. They're automatically eligible if they receive Energy Assistance Program (EAP), SSI, or TANF benefits. The program serves both homeowners and renters statewide, though renters need written landlord permission before any permanent installations.\n\nBecause 2026 program funds are limited and available on a first-come, first-served basis, early application is critical. After income verification, applicants join a waitlist until a Local Service Provider can schedule the 1-2 hour home assessment that determines which specific upgrades their home receives.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1062,7 +1062,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your Local Service Provider directly or call TRC at 1-800-721-7385 if you're a NIPSCO customer — processing time varies by provider waitlist.",
+        "summary": "Contact your Local Service Provider directly or call TRC at 1-800-721-7385 if you're a NIPSCO customer, processing time varies by provider waitlist.",
         "steps": [
           {
             "step": 1,
@@ -1090,8 +1090,8 @@
             "description": "If your home qualifies as safe to weatherize, the provider will schedule installation of approved energy efficiency upgrades at no cost."
           }
         ],
-        "processingTime": "Not specified — varies by Local Service Provider and regional waitlist length",
-        "waitlist": "Yes — after income eligibility is determined, applicants are placed on waiting list. LSP contacts when ready to schedule inspection. 2026 program funds are limited and available first-come, first-served.",
+        "processingTime": "Not specified, varies by Local Service Provider and regional waitlist length",
+        "waitlist": "Yes, after income eligibility is determined, applicants are placed on waiting list. LSP contacts when ready to schedule inspection. 2026 program funds are limited and available first-come, first-served.",
         "tip": "Apply early in the year since 2026 funds are limited and distributed first-come, first-served.",
         "urls": [
           {
@@ -1131,10 +1131,10 @@
         }
       ],
       "applicationNotes": [
-        "2026 program funds are limited and distributed first-come, first-served — apply as early as possible in the year",
-        "If your loved one previously received weatherization through this program, they may be ineligible — contact your Local Service Provider to verify",
+        "2026 program funds are limited and distributed first-come, first-served, apply as early as possible in the year",
+        "If your loved one previously received weatherization through this program, they may be ineligible, contact your Local Service Provider to verify",
         "NIPSCO customers who don't qualify for free weatherization may still be eligible for a discounted Home Energy Assessment",
-        "Renters must obtain written landlord permission before applying — the Property Owner Authorization Form is required before any permanent installations"
+        "Renters must obtain written landlord permission before applying, the Property Owner Authorization Form is required before any permanent installations"
       ],
       "relatedPrograms": [
         "Indiana Energy Assistance Program (EAP)",
@@ -1158,7 +1158,7 @@
         },
         {
           "question": "What if my loved one's home needs major repairs?",
-          "answer": "This program does NOT cover major home repairs like window/door replacement, roofing, siding, most plumbing, carpet/flooring, or access ramps. The home must be deemed 'safe to weatherize' by the Local Service Provider — homes requiring significant structural repairs may not qualify for the program."
+          "answer": "This program does NOT cover major home repairs like window/door replacement, roofing, siding, most plumbing, carpet/flooring, or access ramps. The home must be deemed 'safe to weatherize' by the Local Service Provider, homes requiring significant structural repairs may not qualify for the program."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1166,7 +1166,7 @@
         },
         {
           "question": "What happens if my loved one receives SSI but their income seems too high?",
-          "answer": "If your loved one receives Supplemental Security Income (SSI), Energy Assistance Program (EAP), or TANF benefits, they're categorically eligible regardless of their total household income. You don't need to meet the 200% Federal Poverty Level income limits — just provide proof of these benefits instead of tax returns."
+          "answer": "If your loved one receives Supplemental Security Income (SSI), Energy Assistance Program (EAP), or TANF benefits, they're categorically eligible regardless of their total household income. You don't need to meet the 200% Federal Poverty Level income limits, just provide proof of these benefits instead of tax returns."
         },
         {
           "question": "Can my loved one apply for weatherization and energy assistance at the same time?",
@@ -1212,7 +1212,7 @@
           }
         ]
       },
-      "intro": "If your loved one is approaching Medicare eligibility or already enrolled, Indiana SHIP provides free one-on-one counseling to help them understand their options. Trained volunteer counselors explain Medicare Parts A, B, and D, Medicare Supplement (Medigap) plans, Medicare Advantage options, and prescription drug coverage — helping your loved one choose the right plan and avoid costly mistakes.\n\nSHIP counselors also help with Medicare Savings Programs, Low-Income Subsidy (Extra Help) applications, claims filing, appeals, and plan comparisons. Because Medicare decisions can save or cost thousands per year, this free counseling is available to anyone eligible for Medicare, plus their family members and caregivers. No income limits apply for counseling services.",
+      "intro": "If your loved one is approaching Medicare eligibility or already enrolled, Indiana SHIP provides free one-on-one counseling to help them understand their options. Trained volunteer counselors explain Medicare Parts A, B, and D, Medicare Supplement (Medigap) plans, Medicare Advantage options, and prescription drug coverage, helping your loved one choose the right plan and avoid costly mistakes.\n\nSHIP counselors also help with Medicare Savings Programs, Low-Income Subsidy (Extra Help) applications, claims filing, appeals, and plan comparisons. Because Medicare decisions can save or cost thousands per year, this free counseling is available to anyone eligible for Medicare, plus their family members and caregivers. No income limits apply for counseling services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1233,7 +1233,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional SHIP office to schedule free counseling — no forms or applications required.",
+        "summary": "Call your regional SHIP office to schedule free counseling, no forms or applications required.",
         "steps": [
           {
             "step": 1,
@@ -1290,7 +1290,7 @@
         },
         {
           "question": "Is there a difference between SHIP counselors and insurance agents?",
-          "answer": "Yes — SHIP counselors are trained volunteers who provide impartial advice and don't sell insurance. They're not paid commissions, so they help you find the best plan for your loved one's specific needs rather than promoting particular companies."
+          "answer": "Yes, SHIP counselors are trained volunteers who provide impartial advice and don't sell insurance. They're not paid commissions, so they help you find the best plan for your loved one's specific needs rather than promoting particular companies."
         },
         {
           "question": "What if my loved one qualifies for extra help with medical costs?",
@@ -1340,7 +1340,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to prepare meals due to illness, disability, or mobility challenges, Meals on Wheels delivers hot, nutritious meals directly to their door. Most providers offer 5 meals per week, with options for medically tailored diets (diabetes-friendly, heart healthy, low-sodium, renal). Each delivery includes a friendly visit and wellness check.\n\nThis is not a single statewide program—each county operates independently with different rules and costs. Some providers have no age requirements and serve anyone who needs meal assistance, while others focus on seniors. You'll need a minimum 2-week commitment and upfront payment including a $5 application fee. Because eligibility depends entirely on your loved one's address, you must contact the local provider for their specific delivery zone.",
+      "intro": "If your loved one struggles to prepare meals due to illness, disability, or mobility challenges, Meals on Wheels delivers hot, nutritious meals directly to their door. Most providers offer 5 meals per week, with options for medically tailored diets (diabetes-friendly, heart healthy, low-sodium, renal). Each delivery includes a friendly visit and wellness check.\n\nThis is not a single statewide program, each county operates independently with different rules and costs. Some providers have no age requirements and serve anyone who needs meal assistance, while others focus on seniors. You'll need a minimum 2-week commitment and upfront payment including a $5 application fee. Because eligibility depends entirely on your loved one's address, you must contact the local provider for their specific delivery zone.",
       "savingsRange": "",
       "savingsSource": "Fee-based service with local subsidies available",
       "savingsVerified": false,
@@ -1433,7 +1433,7 @@
       ],
       "applicationNotes": [
         "The $5 application fee and first 2 weeks payment are non-refundable, even if service is discontinued early",
-        "Some providers offer reduced rates for recipients of SNAP, SSDI, Medicaid Disability, SSI, Energy Assistance, or Veterans benefits—ask when applying",
+        "Some providers offer reduced rates for recipients of SNAP, SSDI, Medicaid Disability, SSI, Energy Assistance, or Veterans benefits, ask when applying",
         "Car ownership or ability to leave home independently may disqualify applicants in some service areas",
         "If your loved one lives near county lines, check multiple providers as delivery zones may overlap or exclude border areas"
       ],
@@ -1509,7 +1509,7 @@
           }
         ]
       },
-      "intro": "If you're caring for an aging loved one or disabled family member who needs help with daily activities, Indiana's Caregiver Respite Services can provide temporary relief through professional in-home care. Your loved one must be 60+ (or any age with disability) and Medicaid-eligible through one of Indiana's Home and Community Based Services (HCBS) waivers.\n\nThe program covers assistance with bathing, dressing, meal preparation, light housekeeping, companionship, and supervision — giving you scheduled breaks from caregiving duties. For the Structured Family Caregiving variant, you may even receive payment for providing care to your loved one, along with required training and oversight.\n\nBecause this isn't a standalone program but part of various Medicaid waivers (CHOICE, Pathways for Aging, A&D, TBI), you'll work with your local Area Agency on Aging to determine which waiver fits your loved one's needs and complete the required functional assessment.",
+      "intro": "If you're caring for an aging loved one or disabled family member who needs help with daily activities, Indiana's Caregiver Respite Services can provide temporary relief through professional in-home care. Your loved one must be 60+ (or any age with disability) and Medicaid-eligible through one of Indiana's Home and Community Based Services (HCBS) waivers.\n\nThe program covers assistance with bathing, dressing, meal preparation, light housekeeping, companionship, and supervision, giving you scheduled breaks from caregiving duties. For the Structured Family Caregiving variant, you may even receive payment for providing care to your loved one, along with required training and oversight.\n\nBecause this isn't a standalone program but part of various Medicaid waivers (CHOICE, Pathways for Aging, A&D, TBI), you'll work with your local Area Agency on Aging to determine which waiver fits your loved one's needs and complete the required functional assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1536,7 +1536,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Area Agency on Aging for assessment and enrollment — processing time varies by region and waiver type.",
+        "summary": "Contact your local Area Agency on Aging for assessment and enrollment, processing time varies by region and waiver type.",
         "steps": [
           {
             "step": 1,
@@ -1599,9 +1599,9 @@
         }
       ],
       "applicationNotes": [
-        "This is not a single program — respite services are embedded within multiple HCBS waivers, so you must first identify which waiver your loved one qualifies for",
+        "This is not a single program, respite services are embedded within multiple HCBS waivers, so you must first identify which waiver your loved one qualifies for",
         "Medicaid eligibility is required first, with strict income and asset limits that may require spend-down strategies",
-        "Some waivers have different ADL requirements — CHOICE requires inability to perform 2+ activities while others require 3+",
+        "Some waivers have different ADL requirements, CHOICE requires inability to perform 2+ activities while others require 3+",
         "Structured Family Caregiving allows payment to family member caregivers but excludes spouses in some programs"
       ],
       "relatedPrograms": [
@@ -1614,7 +1614,7 @@
       "faqs": [
         {
           "question": "Can I get paid to care for my loved one through this program?",
-          "answer": "Yes, through the Structured Family Caregiving (SFC) variant. You must be 18+, live with your loved one, pass a background check, and complete required training. However, spouses are excluded from some SFC programs — check with your Area Agency on Aging about specific rules for your situation."
+          "answer": "Yes, through the Structured Family Caregiving (SFC) variant. You must be 18+, live with your loved one, pass a background check, and complete required training. However, spouses are excluded from some SFC programs, check with your Area Agency on Aging about specific rules for your situation."
         },
         {
           "question": "What if my loved one has assets over the Medicaid limit but still needs help?",
@@ -1622,7 +1622,7 @@
         },
         {
           "question": "How many hours of respite care will my loved one receive?",
-          "answer": "There are no predetermined hours — respite services are included in your loved one's individualized Plan of Care based on assessed needs. The amount varies depending on your loved one's functional limitations and your family's caregiving situation."
+          "answer": "There are no predetermined hours, respite services are included in your loved one's individualized Plan of Care based on assessed needs. The amount varies depending on your loved one's functional limitations and your family's caregiving situation."
         },
         {
           "question": "Can my loved one receive respite services if they're already getting other Medicaid services?",
@@ -1634,7 +1634,7 @@
         },
         {
           "question": "Does my loved one need to be homebound to receive respite services?",
-          "answer": "No, but your loved one must reside in a family home or with a legal guardian — not in an institutional setting. The services are designed to help people remain in their homes rather than move to nursing facilities."
+          "answer": "No, but your loved one must reside in a family home or with a legal guardian, not in an institutional setting. The services are designed to help people remain in their homes rather than move to nursing facilities."
         },
         {
           "question": "What happens if my loved one's needs change after we're enrolled?",
@@ -1719,7 +1719,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional provider directly — each covers specific counties and maintains their own waitlists.",
+        "summary": "Contact your regional provider directly, each covers specific counties and maintains their own waitlists.",
         "steps": [
           {
             "step": 1,
@@ -1742,9 +1742,9 @@
             "description": "Start working 20 hours/week at host site while receiving job search support and skills development toward unsubsidized employment."
           }
         ],
-        "processingTime": "Processing time varies by provider — eligibility determination after application review and staff approval",
-        "waitlist": "Waitlists common if no immediate openings in your service area — enrollment depends on funding availability",
-        "tip": "Call multiple providers to check availability — some regions have shorter waits than others.",
+        "processingTime": "Processing time varies by provider, eligibility determination after application review and staff approval",
+        "waitlist": "Waitlists common if no immediate openings in your service area, enrollment depends on funding availability",
+        "tip": "Call multiple providers to check availability, some regions have shorter waits than others.",
         "urls": [
           {
             "label": "Eastern Indiana Works SCSEP",
@@ -1793,10 +1793,10 @@
         }
       ],
       "applicationNotes": [
-        "Priority given to veterans, adults 65+, those with disabilities, and rural residents — others may wait longer for openings",
-        "Some providers like Goodwill Indy temporarily pause applications when fully enrolled — check current status",
+        "Priority given to veterans, adults 65+, those with disabilities, and rural residents, others may wait longer for openings",
+        "Some providers like Goodwill Indy temporarily pause applications when fully enrolled, check current status",
         "Must recertify eligibility annually to continue in program",
-        "Income limits are family-based at 125% of Federal Poverty Level — verify current thresholds as they update yearly"
+        "Income limits are family-based at 125% of Federal Poverty Level, verify current thresholds as they update yearly"
       ],
       "relatedPrograms": [
         "WIOA Adult Program",
@@ -1820,7 +1820,7 @@
         },
         {
           "question": "What happens if my loved one gets sick during their SCSEP placement?",
-          "answer": "SCSEP provides support services and referrals to help remove barriers to employment, including connecting participants with health resources. Extended absences may require program reassessment — contact your provider immediately to discuss options."
+          "answer": "SCSEP provides support services and referrals to help remove barriers to employment, including connecting participants with health resources. Extended absences may require program reassessment, contact your provider immediately to discuss options."
         },
         {
           "question": "Can I apply for SCSEP and unemployment benefits at the same time?",
@@ -1832,7 +1832,7 @@
         },
         {
           "question": "Do SCSEP participants get any benefits besides wages?",
-          "answer": "Participants receive minimum wage pay, skills training including computer use, job search assistance, and support service referrals. The program doesn't provide health insurance or other traditional employee benefits — it's designed as temporary paid training toward permanent employment."
+          "answer": "Participants receive minimum wage pay, skills training including computer use, job search assistance, and support service referrals. The program doesn't provide health insurance or other traditional employee benefits, it's designed as temporary paid training toward permanent employment."
         },
         {
           "question": "What types of community service jobs are actually available?",
@@ -1940,7 +1940,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Senior projects often have more flexible income and asset limits than general legal aid — mention your age when calling.",
+        "tip": "Senior projects often have more flexible income and asset limits than general legal aid, mention your age when calling.",
         "urls": [
           {
             "label": "Indiana Legal Services",
@@ -1971,7 +1971,7 @@
         }
       ],
       "applicationNotes": [
-        "LAVA Project for abuse victims has no income limits — all seniors who've experienced financial exploitation or abuse qualify",
+        "LAVA Project for abuse victims has no income limits, all seniors who've experienced financial exploitation or abuse qualify",
         "If your legal issue could generate attorney fees (like personal injury), you may be referred to private attorneys instead"
       ],
       "relatedPrograms": [
@@ -2025,7 +2025,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in an Indiana nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to protect their rights. Trained ombudsmen investigate complaints, represent residents at discharge hearings, and work to resolve issues directly with facility staff.\n\nBecause ombudsmen visit facilities regularly and understand state and federal regulations, they can address problems that families often struggle to resolve alone — from medication errors to billing disputes to quality of care concerns. The service is completely free and confidential, with no income or asset requirements.\n\nThe program serves residents of all Indiana nursing homes and licensed assisted living facilities through a network of local offices statewide. Anyone can contact the ombudsman on behalf of a resident, but all advocacy focuses on what the resident wants.",
+      "intro": "If your loved one lives in an Indiana nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to protect their rights. Trained ombudsmen investigate complaints, represent residents at discharge hearings, and work to resolve issues directly with facility staff.\n\nBecause ombudsmen visit facilities regularly and understand state and federal regulations, they can address problems that families often struggle to resolve alone, from medication errors to billing disputes to quality of care concerns. The service is completely free and confidential, with no income or asset requirements.\n\nThe program serves residents of all Indiana nursing homes and licensed assisted living facilities through a network of local offices statewide. Anyone can contact the ombudsman on behalf of a resident, but all advocacy focuses on what the resident wants.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2046,7 +2046,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-622-4484 to report concerns — no application needed and service begins immediately.",
+        "summary": "Call 1-800-622-4484 to report concerns, no application needed and service begins immediately.",
         "steps": [
           {
             "step": 1,
@@ -2056,7 +2056,7 @@
           {
             "step": 2,
             "title": "Describe the concern",
-            "description": "Explain the problem — care issues, billing disputes, discharge concerns, or other facility-related problems. No forms required."
+            "description": "Explain the problem, care issues, billing disputes, discharge concerns, or other facility-related problems. No forms required."
           },
           {
             "step": 3,
@@ -2103,11 +2103,11 @@
         },
         {
           "question": "What if my loved one is being threatened with discharge from their facility?",
-          "answer": "The ombudsman can represent your loved one at involuntary discharge hearings and help ensure proper procedures are followed. Call immediately if you receive State Form 49669 (Notice of Transfer or Discharge) — time limits apply for requesting hearings."
+          "answer": "The ombudsman can represent your loved one at involuntary discharge hearings and help ensure proper procedures are followed. Call immediately if you receive State Form 49669 (Notice of Transfer or Discharge), time limits apply for requesting hearings."
         },
         {
           "question": "Does this program help with home care problems?",
-          "answer": "No, the ombudsman program only covers residents of nursing homes and licensed assisted living facilities. Home care services are not included, even though state law requires it — federal funding limits the program to facility residents only."
+          "answer": "No, the ombudsman program only covers residents of nursing homes and licensed assisted living facilities. Home care services are not included, even though state law requires it, federal funding limits the program to facility residents only."
         }
       ],
       "layoutIntent": {
@@ -2126,7 +2126,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Indiana offers 12 programs to help your aging loved one — 8 direct benefits they can qualify for plus 3 free resources available to all seniors. These range from $100–400/month for groceries through SNAP to comprehensive medical care through Hoosier Care Connect, plus home weatherization worth thousands in energy savings. Most benefits require income verification, but resources like Indiana SHIP Medicare counseling and Senior Legal Aid are free regardless of income.\n\nStart by checking if your loved one qualifies for the PathWays for Aging programs if they need daily care help, or Medicare Savings Programs if they're struggling with Medicare costs. Then explore the free resources — even high-income families can use Indiana SHIP for Medicare guidance and the Ombudsman Program for nursing home advocacy.",
+    "intro": "Indiana offers 12 programs to help your aging loved one, 8 direct benefits they can qualify for plus 3 free resources available to all seniors. These range from $100–400/month for groceries through SNAP to comprehensive medical care through Hoosier Care Connect, plus home weatherization worth thousands in energy savings. Most benefits require income verification, but resources like Indiana SHIP Medicare counseling and Senior Legal Aid are free regardless of income.\n\nStart by checking if your loved one qualifies for the PathWays for Aging programs if they need daily care help, or Medicare Savings Programs if they're struggling with Medicare costs. Then explore the free resources, even high-income families can use Indiana SHIP for Medicare guidance and the Ombudsman Program for nursing home advocacy.",
     "startHere": [
       {
         "name": "Indiana PathWays for Aging Waiver",
@@ -2146,7 +2146,7 @@
       {
         "name": "Indiana SHIP",
         "programId": "indiana-ship",
-        "why": "Free Medicare counseling that can save thousands by avoiding wrong plan choices — available to all income levels."
+        "why": "Free Medicare counseling that can save thousands by avoiding wrong plan choices, available to all income levels."
       }
     ],
     "byNeed": [
@@ -2198,6 +2198,6 @@
       "Indiana SHIP, Senior Legal Aid, and Ombudsman services are free to all seniors regardless of income",
       "Indiana PathWays for Aging programs require clinical assessment showing your loved one needs daily help with bathing, dressing, or medication management"
     ],
-    "resourcesVsBenefits": "Indiana's benefit programs require qualifying based on income, age, or disability level — like SNAP requiring income verification or PathWays for Aging requiring clinical assessment of daily care needs. But three programs are free resources available to any Indiana senior: SHIP provides Medicare counseling, Senior Legal Aid offers legal help for anyone 60+, and the Long-Term Care Ombudsman advocates for nursing home residents regardless of how they pay."
+    "resourcesVsBenefits": "Indiana's benefit programs require qualifying based on income, age, or disability level, like SNAP requiring income verification or PathWays for Aging requiring clinical assessment of daily care needs. But three programs are free resources available to any Indiana senior: SHIP provides Medicare counseling, Senior Legal Aid offers legal help for anyone 60+, and the Long-Term Care Ombudsman advocates for nursing home residents regardless of how they pay."
   }
 }

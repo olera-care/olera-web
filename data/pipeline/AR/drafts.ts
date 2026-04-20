@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.080Z
+ * Last updated: 2026-04-20T23:39:07.847Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -59,12 +59,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply first at your local DHS county office for Medicaid financial eligibility, then get referred for functional assessment — processing begins on approval date.",
+        "summary": "Apply first at your local DHS county office for Medicaid financial eligibility, then get referred for functional assessment, processing begins on approval date.",
         "steps": [
           {
             "step": 1,
             "title": "Contact your local DHS county office",
-            "description": "Visit or call your county DHS Division of County Operations office to apply for Medicaid financial eligibility. You cannot apply directly to the waiver program — this step must come first."
+            "description": "Visit or call your county DHS Division of County Operations office to apply for Medicaid financial eligibility. You cannot apply directly to the waiver program, this step must come first."
           },
           {
             "step": 2,
@@ -89,7 +89,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Eligibility begins on DCO approval date unless provisional plan of care is needed",
         "waitlist": null,
-        "tip": "Start with financial eligibility first — many families spend time researching the waiver only to discover their loved one doesn't meet Medicaid income limits.",
+        "tip": "Start with financial eligibility first, many families spend time researching the waiver only to discover their loved one doesn't meet Medicaid income limits.",
         "urls": [
           {
             "label": "Arkansas DHS ARChoices Overview",
@@ -129,9 +129,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must apply at your county DHS office first — you cannot apply directly to the ARChoices program",
-        "The ARIA assessment is very specific — scoring Tier 1 or Tier 3 will disqualify your loved one, only Tier 2 qualifies",
-        "Financial eligibility follows standard Medicaid rules — spend-down planning may be needed if income is too high",
+        "You must apply at your county DHS office first, you cannot apply directly to the ARChoices program",
+        "The ARIA assessment is very specific, scoring Tier 1 or Tier 3 will disqualify your loved one, only Tier 2 qualifies",
+        "Financial eligibility follows standard Medicaid rules, spend-down planning may be needed if income is too high",
         "If approved, you can choose the self-direction option (Independent Choices) to hire and manage caregivers yourself, including family members"
       ],
       "relatedPrograms": [
@@ -159,7 +159,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between ARChoices and regular Medicaid?",
-          "answer": "Regular Medicaid covers medical care but not long-term personal care at home. ARChoices is a waiver that covers nursing home level care delivered in your loved one's home — personal care assistants, housekeeping, meal preparation, and other daily living support."
+          "answer": "Regular Medicaid covers medical care but not long-term personal care at home. ARChoices is a waiver that covers nursing home level care delivered in your loved one's home, personal care assistants, housekeeping, meal preparation, and other daily living support."
         },
         {
           "question": "How long does the functional assessment take?",
@@ -192,7 +192,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All your loved one's medical care, transportation, and daily support through one team — available in select Arkansas counties.",
+      "tagline": "All your loved one's medical care, transportation, and daily support through one team, available in select Arkansas counties.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -213,7 +213,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical services, transportation, and daily support through one coordinated team. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers — one team manages everything from doctor visits to home care to transportation.\n\nPACE is only available in specific Arkansas counties through three providers. Your loved one must be 55+ and certified by the state as needing nursing facility level of care (daily help with bathing, dressing, or medication management). The average PACE participant is 76 years old with multiple complex medical conditions. Most participants qualify for both Medicare and Medicaid funding, but private pay options exist for those who don't meet Medicaid income limits.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical services, transportation, and daily support through one coordinated team. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers, one team manages everything from doctor visits to home care to transportation.\n\nPACE is only available in specific Arkansas counties through three providers. Your loved one must be 55+ and certified by the state as needing nursing facility level of care (daily help with bathing, dressing, or medication management). The average PACE participant is 76 years old with multiple complex medical conditions. Most participants qualify for both Medicare and Medicaid funding, but private pay options exist for those who don't meet Medicaid income limits.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical service",
       "savingsVerified": false,
@@ -252,7 +252,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your regional PACE provider directly for assessment — processing time varies by provider.",
+        "summary": "Contact your regional PACE provider directly for assessment, processing time varies by provider.",
         "steps": [
           {
             "step": 1,
@@ -277,7 +277,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your loved one's income exceeds Medicaid limits, ask about Income Trust options — many families miss this planning tool.",
+        "tip": "If your loved one's income exceeds Medicaid limits, ask about Income Trust options, many families miss this planning tool.",
         "urls": [
           {
             "label": "Arkansas DHS PACE Information",
@@ -323,8 +323,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE is not available statewide — verify your loved one lives in a participating county before applying",
-        "Income Trusts are available for those exceeding Medicaid income limits of approximately $2,901/month — contact DHS caseworkers for details",
+        "PACE is not available statewide, verify your loved one lives in a participating county before applying",
+        "Income Trusts are available for those exceeding Medicaid income limits of approximately $2,901/month, contact DHS caseworkers for details",
         "Your loved one must disenroll from Medicare Advantage, prescription drug plans, or hospice before PACE enrollment",
         "Private pay options exist for those meeting medical criteria but not financial criteria for Medicaid funding"
       ],
@@ -392,7 +392,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay Medicare premiums and medical bills, three programs can reduce their costs by hundreds or thousands of dollars per year. The Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs pay Medicare premiums, deductibles, and copayments for eligible Arkansas residents.\n\nQMB provides the most coverage — paying Medicare Part B premiums (~$202.90/month in 2026), deductibles, and all copayments for Medicare-covered services. SLMB and QI cover Part B premiums only. All three programs automatically qualify your loved one for Extra Help with prescription drug costs. Income limits range from $1,235/month for QMB to $1,660/month for QI (single person).\n\nBecause these programs coordinate with Medicare rather than replacing it, your loved one keeps their existing Medicare coverage while gaining financial protection. No premiums, no network restrictions, no change in doctors — just lower out-of-pocket costs.",
+      "intro": "If your loved one struggles to pay Medicare premiums and medical bills, three programs can reduce their costs by hundreds or thousands of dollars per year. The Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs pay Medicare premiums, deductibles, and copayments for eligible Arkansas residents.\n\nQMB provides the most coverage, paying Medicare Part B premiums (~$202.90/month in 2026), deductibles, and all copayments for Medicare-covered services. SLMB and QI cover Part B premiums only. All three programs automatically qualify your loved one for Extra Help with prescription drug costs. Income limits range from $1,235/month for QMB to $1,660/month for QI (single person).\n\nBecause these programs coordinate with Medicare rather than replacing it, your loved one keeps their existing Medicare coverage while gaining financial protection. No premiums, no network restrictions, no change in doctors, just lower out-of-pocket costs.",
       "savingsRange": "$1,200 – $2,400/year",
       "savingsSource": "Medicare Part B premiums alone ($202.90/month), plus deductibles and copayments for QMB",
       "savingsVerified": true,
@@ -442,7 +442,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Arkansas DHS ACCESS portal or call 1-800-482-8988 — processing takes up to 45 days.",
+        "summary": "Apply online through Arkansas DHS ACCESS portal or call 1-800-482-8988, processing takes up to 45 days.",
         "steps": [
           {
             "step": 1,
@@ -466,7 +466,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Up to 45 days, effective first of month after all information received",
-        "waitlist": "QI program operates first-come, first-served with limited federal funding — apply early in the year for best chance",
+        "waitlist": "QI program operates first-come, first-served with limited federal funding, apply early in the year for best chance",
         "tip": "QI requires annual reapplication and has funding limits, so apply in January when the budget resets.",
         "urls": [
           {
@@ -503,7 +503,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income and asset limits update every April — verify current figures with DHS before applying",
+        "Income and asset limits update every April, verify current figures with DHS before applying",
         "QI program excludes people eligible for full Medicaid, but you can have QMB or SLMB with Medicaid",
         "Working disabled individuals may qualify with higher income under special earnings rules",
         "All three programs automatically enroll you in Extra Help for prescription drugs, but confirm enrollment"
@@ -607,7 +607,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card. Your loved one could receive $298/month for a single person household, or up to $546/month for two people — the exact amount depends on income after deductions like medical expenses over $35/month.\n\nSeniors get important advantages: no work requirements, no gross income limit (only net income after deductions must be below $1,305/month for one person), and higher asset limits of $4,500. Because Arkansas uses strict federal rules without expansions, meeting these exact thresholds is critical.\n\nBenefits work at grocery stores and some restaurants through the Restaurant Meals Program for eligible elderly or disabled participants. The EBT card cannot be used for alcohol, tobacco, or prepared hot foods at most locations.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card. Your loved one could receive $298/month for a single person household, or up to $546/month for two people, the exact amount depends on income after deductions like medical expenses over $35/month.\n\nSeniors get important advantages: no work requirements, no gross income limit (only net income after deductions must be below $1,305/month for one person), and higher asset limits of $4,500. Because Arkansas uses strict federal rules without expansions, meeting these exact thresholds is critical.\n\nBenefits work at grocery stores and some restaurants through the Restaurant Meals Program for eligible elderly or disabled participants. The EBT card cannot be used for alcohol, tobacco, or prepared hot foods at most locations.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Based on maximum monthly SNAP benefits of $298 for 1 person, $546 for 2 people (Oct 2025-Sept 2026 rates)",
       "savingsVerified": true,
@@ -667,7 +667,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Access Arkansas or call 1-800-482-8988 — benefits are issued back to your application date if approved.",
+        "summary": "Apply online at Access Arkansas or call 1-800-482-8988, benefits are issued back to your application date if approved.",
         "steps": [
           {
             "step": 1,
@@ -677,7 +677,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete application with income details",
-            "description": "Report all income including Social Security, pensions, VA benefits. List monthly medical expenses over $35 (insurance premiums, prescriptions, doctor visits) — these reduce your countable income."
+            "description": "Report all income including Social Security, pensions, VA benefits. List monthly medical expenses over $35 (insurance premiums, prescriptions, doctor visits), these reduce your countable income."
           },
           {
             "step": 3,
@@ -697,7 +697,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days typical processing, expedited for urgent cases",
         "waitlist": null,
-        "tip": "Gather all medical expense receipts before applying — prescriptions, Medicare premiums, and out-of-pocket costs over $35/month significantly reduce countable income for seniors.",
+        "tip": "Gather all medical expense receipts before applying, prescriptions, Medicare premiums, and out-of-pocket costs over $35/month significantly reduce countable income for seniors.",
         "urls": [
           {
             "label": "Access Arkansas Online Application",
@@ -745,9 +745,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Arkansas does not offer broad-based categorical eligibility — you must meet strict federal income and asset limits even if receiving other benefits",
+        "Arkansas does not offer broad-based categorical eligibility, you must meet strict federal income and asset limits even if receiving other benefits",
         "Asset limits increase to $5,500 for first 12 months once every 5 years, then revert to $4,500",
-        "Medical expense deduction is crucial for seniors — gather receipts for Medicare premiums, prescriptions, dental work, and any out-of-pocket medical costs over $35/month",
+        "Medical expense deduction is crucial for seniors, gather receipts for Medicare premiums, prescriptions, dental work, and any out-of-pocket medical costs over $35/month",
         "If all household members receive SSI or your household gets Temporary Assistance for Needy Families (TEA), you're categorically eligible with no income or asset test"
       ],
       "relatedPrograms": [
@@ -822,7 +822,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct payments to utility companies to reduce their energy burden. The program pays between $50-$475 for regular seasonal assistance (heating in winter, cooling in summer), plus up to $500 in crisis situations when utilities face disconnection or fuel runs out.\n\nBecause LIHEAP is administered through local community organizations across Arkansas, income limits and benefit amounts vary slightly by county — but most single-person households earning under $2,251 per month qualify. The program covers electricity, gas, propane, wood, and pellets, making payments directly to energy providers so your loved one never handles the money directly.\n\nFunding is limited each season, so programs often close early when money runs out. Heating assistance typically runs January through March, cooling assistance July through August, and crisis assistance is available during both periods for emergency situations.",
+      "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct payments to utility companies to reduce their energy burden. The program pays between $50-$475 for regular seasonal assistance (heating in winter, cooling in summer), plus up to $500 in crisis situations when utilities face disconnection or fuel runs out.\n\nBecause LIHEAP is administered through local community organizations across Arkansas, income limits and benefit amounts vary slightly by county, but most single-person households earning under $2,251 per month qualify. The program covers electricity, gas, propane, wood, and pellets, making payments directly to energy providers so your loved one never handles the money directly.\n\nFunding is limited each season, so programs often close early when money runs out. Heating assistance typically runs January through March, cooling assistance July through August, and crisis assistance is available during both periods for emergency situations.",
       "savingsRange": "$100 – $975/year in 2026",
       "savingsSource": "Regular heating assistance up to $475 plus cooling assistance up to $287 plus crisis assistance up to $500 maximum per season",
       "savingsVerified": true,
@@ -875,7 +875,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact the Community-Based Organization serving your county to schedule an appointment — processing times vary due to high demand.",
+        "summary": "Contact the Community-Based Organization serving your county to schedule an appointment, processing times vary due to high demand.",
         "steps": [
           {
             "step": 1,
@@ -885,7 +885,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Call your local CBO to schedule an appointment",
-            "description": "Each CBO has different procedures — some accept walk-ins, others require appointments, and some accept applications by mail."
+            "description": "Each CBO has different procedures, some accept walk-ins, others require appointments, and some accept applications by mail."
           },
           {
             "step": 3,
@@ -900,11 +900,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Wait for benefit determination",
-            "description": "If approved, LIHEAP pays your energy provider directly — you won't receive cash. Crisis applications for shut-offs may process faster."
+            "description": "If approved, LIHEAP pays your energy provider directly, you won't receive cash. Crisis applications for shut-offs may process faster."
           }
         ],
-        "processingTime": "Varies by local organization and application volume — some CBOs report longer processing times due to high demand",
-        "waitlist": "Funding is limited each season — applications may close early when funds are exhausted, typically heating season January-March and cooling season July-August",
+        "processingTime": "Varies by local organization and application volume, some CBOs report longer processing times due to high demand",
+        "waitlist": "Funding is limited each season, applications may close early when funds are exhausted, typically heating season January-March and cooling season July-August",
         "tip": "Apply as early as possible when each season opens, as funding runs out quickly and programs close until the next season.",
         "urls": [
           {
@@ -940,7 +940,7 @@ export const drafts: PipelineStateDrafts = {
         "Crisis assistance for utility shut-offs or fuel depletion may be processed faster than regular seasonal assistance",
         "Each household can receive only one regular heating benefit, one cooling benefit, and one crisis benefit per season",
         "If your loved one rents and utilities are included in rent, you'll need the lease agreement showing energy burden requirements",
-        "Income charts vary slightly between CBOs — verify the exact limits with your local organization before applying"
+        "Income charts vary slightly between CBOs, verify the exact limits with your local organization before applying"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -956,11 +956,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's utilities get shut off while waiting for LIHEAP approval?",
-          "answer": "Apply for crisis assistance immediately — this is separate from regular seasonal benefits and specifically covers disconnections, shut-off notices, and fuel depletion. Crisis benefits provide up to $500 and may be processed faster than regular applications."
+          "answer": "Apply for crisis assistance immediately, this is separate from regular seasonal benefits and specifically covers disconnections, shut-off notices, and fuel depletion. Crisis benefits provide up to $500 and may be processed faster than regular applications."
         },
         {
           "question": "Does my adult child living at home affect my loved one's LIHEAP application?",
-          "answer": "Yes, everyone living under the same roof and utility meter must apply together as one household, even if they don't share expenses. This includes adult children, roommates, and other residents — their income counts toward the household total."
+          "answer": "Yes, everyone living under the same roof and utility meter must apply together as one household, even if they don't share expenses. This includes adult children, roommates, and other residents, their income counts toward the household total."
         },
         {
           "question": "Can I apply for my loved one if they can't get to the local office?",
@@ -968,11 +968,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's income is slightly over the limit one month?",
-          "answer": "LIHEAP uses gross countable income from the previous month only, so temporary income spikes may affect eligibility. However, income limits vary between CBOs — if one organization's limit is too low, check if a neighboring county's CBO has higher limits."
+          "answer": "LIHEAP uses gross countable income from the previous month only, so temporary income spikes may affect eligibility. However, income limits vary between CBOs, if one organization's limit is too low, check if a neighboring county's CBO has higher limits."
         },
         {
           "question": "How long do LIHEAP benefits last once approved?",
-          "answer": "LIHEAP makes a one-time payment directly to your loved one's energy provider for that season. Benefits don't continue automatically — you must reapply for heating assistance (winter), cooling assistance (summer), and crisis assistance as needed throughout the year."
+          "answer": "LIHEAP makes a one-time payment directly to your loved one's energy provider for that season. Benefits don't continue automatically, you must reapply for heating assistance (winter), cooling assistance (summer), and crisis assistance as needed throughout the year."
         },
         {
           "question": "Can my loved one apply for LIHEAP and Weatherization Assistance at the same time?",
@@ -1018,7 +1018,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills and earns less than $23,760/year (or $32,040 for a couple), they may qualify for free home weatherization services. Arkansas provides professional energy audits, insulation installation, heating system repairs, and window sealing — all at no cost to reduce monthly utility bills permanently.\n\nThe program covers everything from attic insulation to furnace tune-ups to storm window installation. Because all work is performed by state-certified contractors using Department of Energy standards, the improvements typically last 15-20 years. Priority goes to households with seniors over 60, people with disabilities, or families receiving SSI.\n\nAll 75 Arkansas counties are served through six Community Action Agencies, but funding is limited so there may be a waitlist. Renters can qualify if their landlord signs a permission agreement.",
+      "intro": "If your loved one struggles with high energy bills and earns less than $23,760/year (or $32,040 for a couple), they may qualify for free home weatherization services. Arkansas provides professional energy audits, insulation installation, heating system repairs, and window sealing, all at no cost to reduce monthly utility bills permanently.\n\nThe program covers everything from attic insulation to furnace tune-ups to storm window installation. Because all work is performed by state-certified contractors using Department of Energy standards, the improvements typically last 15-20 years. Priority goes to households with seniors over 60, people with disabilities, or families receiving SSI.\n\nAll 75 Arkansas counties are served through six Community Action Agencies, but funding is limited so there may be a waitlist. Renters can qualify if their landlord signs a permission agreement.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1075,7 +1075,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Community Action Agency for a weatherization application — processing includes an energy audit before work begins.",
+        "summary": "Contact your local Community Action Agency for a weatherization application, processing includes an energy audit before work begins.",
         "steps": [
           {
             "step": 1,
@@ -1108,8 +1108,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "State-certified crews or contractors will perform all approved weatherization work at no cost to you."
           }
         ],
-        "processingTime": "Timeline varies by region and current workload — energy audit scheduled after eligibility determination",
-        "waitlist": "Possible due to limited funding — priority given to elderly, disabled, and households with children under 7",
+        "processingTime": "Timeline varies by region and current workload, energy audit scheduled after eligibility determination",
+        "waitlist": "Possible due to limited funding, priority given to elderly, disabled, and households with children under 7",
         "tip": "If your loved one receives SSI, mention this upfront as it makes them automatically eligible regardless of other income.",
         "urls": [
           {
@@ -1155,10 +1155,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "SSI recipients bypass income verification — bring your SSI award letter for automatic qualification",
-        "Renters cannot proceed without landlord permission — some landlords refuse because they benefit from tenant-paid improvements",
-        "Energy audit determines actual work needed — not all homes receive every service, only what the audit recommends",
-        "Wait times vary significantly by region due to limited federal funding — ask your local CAA about current timeline"
+        "SSI recipients bypass income verification, bring your SSI award letter for automatic qualification",
+        "Renters cannot proceed without landlord permission, some landlords refuse because they benefit from tenant-paid improvements",
+        "Energy audit determines actual work needed, not all homes receive every service, only what the audit recommends",
+        "Wait times vary significantly by region due to limited federal funding, ask your local CAA about current timeline"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1218,7 +1218,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-medicare-patrol-ship",
       "name": "Senior Medicare Patrol (SMP) / SHIP",
       "shortName": "SMP/SHIP Arkansas",
-      "tagline": "Free help spotting Medicare fraud and getting answers about Medicare coverage — protecting your loved one from scams and billing errors.",
+      "tagline": "Free help spotting Medicare fraud and getting answers about Medicare coverage, protecting your loved one from scams and billing errors.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1231,7 +1231,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Medicare, they can get free one-on-one help detecting billing fraud, understanding coverage options, and avoiding Medicare scams. Arkansas Senior Medicare Patrol (SMP) and State Health Insurance Assistance Program (SHIP) provide trained volunteers who review Medicare statements, explain benefits, and help report suspicious charges — all at no cost.\n\nBecause Medicare fraud costs beneficiaries an average of $60 billion annually through inflated premiums and reduced benefits, these programs help protect both your loved one's finances and their Medicare coverage. The service is available statewide to all Medicare beneficiaries, family members, and caregivers with no income limits or application process.\n\nVolunteers can meet by phone, email, or in person to review Explanation of Benefits statements, explain Medicare Advantage vs. Original Medicare, help choose prescription drug plans during Open Enrollment, and teach your loved one to spot common scams like fake medical equipment offers or unnecessary genetic testing.",
+      "intro": "If your loved one has Medicare, they can get free one-on-one help detecting billing fraud, understanding coverage options, and avoiding Medicare scams. Arkansas Senior Medicare Patrol (SMP) and State Health Insurance Assistance Program (SHIP) provide trained volunteers who review Medicare statements, explain benefits, and help report suspicious charges, all at no cost.\n\nBecause Medicare fraud costs beneficiaries an average of $60 billion annually through inflated premiums and reduced benefits, these programs help protect both your loved one's finances and their Medicare coverage. The service is available statewide to all Medicare beneficiaries, family members, and caregivers with no income limits or application process.\n\nVolunteers can meet by phone, email, or in person to review Explanation of Benefits statements, explain Medicare Advantage vs. Original Medicare, help choose prescription drug plans during Open Enrollment, and teach your loved one to spot common scams like fake medical equipment offers or unnecessary genetic testing.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1253,7 +1253,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call either program directly for immediate assistance — no forms or waiting period.",
+        "summary": "Call either program directly for immediate assistance, no forms or waiting period.",
         "steps": [
           {
             "step": 1,
@@ -1273,7 +1273,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate assistance available via phone or email",
         "waitlist": null,
-        "tip": "Keep all Medicare statements and Explanation of Benefits letters — volunteers can review them to catch errors your loved one might miss.",
+        "tip": "Keep all Medicare statements and Explanation of Benefits letters, volunteers can review them to catch errors your loved one might miss.",
         "urls": [
           {
             "label": "Arkansas SMP Official Page",
@@ -1310,7 +1310,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No enrollment process required — services are available immediately when you call",
+        "No enrollment process required, services are available immediately when you call",
         "Volunteers are trained but not paid staff, so some complex issues may require referral to other resources",
         "Services focus on education and advocacy, not direct financial assistance or healthcare provision"
       ],
@@ -1327,7 +1327,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between SMP and SHIP services?",
-          "answer": "SMP focuses specifically on Medicare fraud prevention — spotting billing errors, reporting suspicious charges, and education about common scams. SHIP provides broader Medicare counseling including plan comparisons, enrollment help, and general coverage questions. Both are free and you can use both services."
+          "answer": "SMP focuses specifically on Medicare fraud prevention, spotting billing errors, reporting suspicious charges, and education about common scams. SHIP provides broader Medicare counseling including plan comparisons, enrollment help, and general coverage questions. Both are free and you can use both services."
         },
         {
           "question": "How quickly can someone help if I think my loved one is being scammed right now?",
@@ -1402,7 +1402,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for a phone assessment — most decisions are made within a week unless there's a waitlist.",
+        "summary": "Contact your local Area Agency on Aging for a phone assessment, most decisions are made within a week unless there's a waitlist.",
         "steps": [
           {
             "step": 1,
@@ -1427,7 +1427,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies; some within a week, longer if waitlist",
         "waitlist": "Possible in some programs, especially high-demand areas; varies by local provider",
-        "tip": "Have your loved one's medication list and doctor's contact information ready when you call — this speeds up the assessment process.",
+        "tip": "Have your loved one's medication list and doctor's contact information ready when you call, this speeds up the assessment process.",
         "urls": [
           {
             "label": "Arkansas Division of Aging",
@@ -1462,7 +1462,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Some local programs require a doctor's referral while others accept direct family requests — ask about requirements when you call",
+        "Some local programs require a doctor's referral while others accept direct family requests, ask about requirements when you call",
         "If your loved one can drive or regularly leaves home for activities, they may only qualify for congregate meals at senior centers, not home delivery",
         "Spouses under 60 may qualify if they live with an eligible participant, but require separate assessment",
         "Programs prioritize seniors with greatest economic and social needs, so mention if your loved one is low-income or socially isolated"
@@ -1477,7 +1477,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one get Meals on Wheels if they have too much money or own their home?",
-          "answer": "Yes, in most cases. The primary funding source has no income or asset limits — eligibility is based on being homebound and unable to prepare meals safely. Some programs may apply income tests for certain funding sources, but home ownership typically doesn't disqualify anyone."
+          "answer": "Yes, in most cases. The primary funding source has no income or asset limits, eligibility is based on being homebound and unable to prepare meals safely. Some programs may apply income tests for certain funding sources, but home ownership typically doesn't disqualify anyone."
         },
         {
           "question": "What if my loved one lives outside the delivery area?",
@@ -1543,7 +1543,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a loved one who needs help with daily activities like bathing, dressing, or managing medications, Arkansas can provide respite care and support services at no cost. The Family Caregiver Support Program offers temporary care relief, transportation help, meal preparation, and other services so you can work, run errands, or simply take a break.\n\nYour loved one must be 60 or older (any age if they have dementia) and need substantial help with at least 2 activities of daily living. Because this program has no income or asset limits, families who earn too much for Medicaid may still qualify. Services vary by region and are delivered through 9 Area Agencies on Aging across Arkansas.\n\nThis is not paid caregiving — it's free support services to help family caregivers. Your loved one cannot receive duplicate services from Medicare, Medicaid, or insurance for the same care needs.",
+      "intro": "If you're caring for a loved one who needs help with daily activities like bathing, dressing, or managing medications, Arkansas can provide respite care and support services at no cost. The Family Caregiver Support Program offers temporary care relief, transportation help, meal preparation, and other services so you can work, run errands, or simply take a break.\n\nYour loved one must be 60 or older (any age if they have dementia) and need substantial help with at least 2 activities of daily living. Because this program has no income or asset limits, families who earn too much for Medicaid may still qualify. Services vary by region and are delivered through 9 Area Agencies on Aging across Arkansas.\n\nThis is not paid caregiving, it's free support services to help family caregivers. Your loved one cannot receive duplicate services from Medicare, Medicaid, or insurance for the same care needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1567,7 +1567,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional Area Agency on Aging — application process and wait times vary by region.",
+        "summary": "Contact your regional Area Agency on Aging, application process and wait times vary by region.",
         "steps": [
           {
             "step": 1,
@@ -1592,7 +1592,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your loved one has dementia, there's no age requirement — even parents under 60 can qualify.",
+        "tip": "If your loved one has dementia, there's no age requirement, even parents under 60 can qualify.",
         "urls": [
           {
             "label": "Arkansas Area Agencies on Aging",
@@ -1625,10 +1625,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each of the 9 regional Area Agencies on Aging has different providers and application processes — what's available in your area may differ significantly from other counties",
-        "The program focuses on supplemental services, not replacing medical care — coordinate with your loved one's existing healthcare team",
+        "Each of the 9 regional Area Agencies on Aging has different providers and application processes, what's available in your area may differ significantly from other counties",
+        "The program focuses on supplemental services, not replacing medical care, coordinate with your loved one's existing healthcare team",
         "Grandparents age 55+ raising grandchildren may also qualify under special provisions if parents are unable or unwilling to provide care",
-        "Services cannot duplicate what Medicare, Medicaid, or insurance already covers — be specific about what gaps you need filled"
+        "Services cannot duplicate what Medicare, Medicaid, or insurance already covers, be specific about what gaps you need filled"
       ],
       "relatedPrograms": [
         "Arkansas Independent Choices (Medicaid waiver)",
@@ -1648,7 +1648,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How do I prove my loved one needs help with 2 activities of daily living?",
-          "answer": "The Area Agency on Aging will conduct a functional assessment to determine if your loved one needs substantial assistance with bathing, dressing, eating, transferring, toileting, or walking. This includes verbal reminding, physical cueing, or direct supervision — not just occasional help."
+          "answer": "The Area Agency on Aging will conduct a functional assessment to determine if your loved one needs substantial assistance with bathing, dressing, eating, transferring, toileting, or walking. This includes verbal reminding, physical cueing, or direct supervision, not just occasional help."
         },
         {
           "question": "Can I apply for this program and Arkansas Independent Choices at the same time?",
@@ -1668,7 +1668,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between respite care and regular home care services?",
-          "answer": "Respite care is temporary relief specifically for family caregivers — someone comes to stay with your loved one so you can leave for a few hours or days. Regular home care might include ongoing meal preparation, medication reminders, or transportation that supplements your caregiving but doesn't necessarily give you time off."
+          "answer": "Respite care is temporary relief specifically for family caregivers, someone comes to stay with your loved one so you can leave for a few hours or days. Regular home care might include ongoing meal preparation, medication reminders, or transportation that supplements your caregiving but doesn't necessarily give you time off."
         }
       ],
       "layoutIntent": {
@@ -1702,7 +1702,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55 or older, unemployed, and struggling financially, SCSEP provides paid part-time work (average 20 hours per week) at nonprofits and government agencies like schools, hospitals, and senior centers. Because participants work while receiving on-the-job training and job search assistance, this program bridges the gap to permanent employment rather than providing long-term income support.\n\nYour loved one must have household income at or below 125% of the federal poverty level — roughly $1,715/month for a single person in 2026. They'll earn minimum wage (whichever is higher: federal, state, or local) while an Employment and Training Coordinator helps them find permanent unsubsidized work. Priority enrollment goes to veterans, those over 65, people with disabilities, rural residents, and those with limited English or poor employment prospects.",
+      "intro": "If your loved one is 55 or older, unemployed, and struggling financially, SCSEP provides paid part-time work (average 20 hours per week) at nonprofits and government agencies like schools, hospitals, and senior centers. Because participants work while receiving on-the-job training and job search assistance, this program bridges the gap to permanent employment rather than providing long-term income support.\n\nYour loved one must have household income at or below 125% of the federal poverty level, roughly $1,715/month for a single person in 2026. They'll earn minimum wage (whichever is higher: federal, state, or local) while an Employment and Training Coordinator helps them find permanent unsubsidized work. Priority enrollment goes to veterans, those over 65, people with disabilities, rural residents, and those with limited English or poor employment prospects.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1726,7 +1726,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (501) 320-6586 to start the application process — if eligible and no waiting list exists, enrollment follows application approval.",
+        "summary": "Call (501) 320-6586 to start the application process, if eligible and no waiting list exists, enrollment follows application approval.",
         "steps": [
           {
             "step": 1,
@@ -1749,9 +1749,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Once enrolled, you'll be matched with a local nonprofit or government host agency for part-time work while receiving job training and employment assistance."
           }
         ],
-        "processingTime": "Not specified — depends on eligibility determination and program capacity",
+        "processingTime": "Not specified, depends on eligibility determination and program capacity",
         "waitlist": "Possible waiting list if program capacity is full due to federal funding limits",
-        "tip": "Gather all income documentation for your household before calling — the 125% federal poverty threshold changes annually and varies by household size.",
+        "tip": "Gather all income documentation for your household before calling, the 125% federal poverty threshold changes annually and varies by household size.",
         "urls": [
           {
             "label": "Arkansas SCSEP Program Page",
@@ -1785,7 +1785,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority enrollment for veterans/qualified spouses, those over 65, people with disabilities, rural residents, homeless/at-risk individuals, those with low literacy/limited English, poor employment prospects, or American Job Center users",
-        "This is a temporary program designed to bridge participants to permanent employment — not a long-term income source",
+        "This is a temporary program designed to bridge participants to permanent employment, not a long-term income source",
         "Federal funding limits mean waiting lists are common when program capacity is full"
       ],
       "relatedPrograms": [
@@ -1813,7 +1813,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does my loved one need to have specific job skills to qualify?",
-          "answer": "No — the program is designed for people with low employment prospects and provides on-the-job training. Having limited work experience or skills can actually qualify someone for priority enrollment rather than disqualify them."
+          "answer": "No, the program is designed for people with low employment prospects and provides on-the-job training. Having limited work experience or skills can actually qualify someone for priority enrollment rather than disqualify them."
         },
         {
           "question": "Can I apply for SCSEP and other programs like SNAP at the same time?",
@@ -1845,7 +1845,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one needs legal help but can't afford an attorney, Arkansas has multiple organizations providing free civil legal services to low-income seniors. These programs handle common issues like debt collection, eviction prevention, Social Security appeals, Medicare problems, wills, powers of attorney, and guardianship. Legal Aid of Arkansas serves the entire state, while Arkansas Volunteer Lawyers for the Elderly covers most counties except Central Arkansas.\n\nBecause Arkansas doesn't have a single unified legal aid system for seniors, you'll need to identify which organization serves your loved one's county first. All services are completely free for qualifying low-income individuals, with income limits generally set at 125% of Federal Poverty Guidelines (around $1,575/month for a single person in 2024).\n\nNote that these programs only handle civil legal matters — they cannot help with criminal cases. Most services focus on preventing financial exploitation, securing benefits, and helping with end-of-life planning.",
+      "intro": "If your loved one needs legal help but can't afford an attorney, Arkansas has multiple organizations providing free civil legal services to low-income seniors. These programs handle common issues like debt collection, eviction prevention, Social Security appeals, Medicare problems, wills, powers of attorney, and guardianship. Legal Aid of Arkansas serves the entire state, while Arkansas Volunteer Lawyers for the Elderly covers most counties except Central Arkansas.\n\nBecause Arkansas doesn't have a single unified legal aid system for seniors, you'll need to identify which organization serves your loved one's county first. All services are completely free for qualifying low-income individuals, with income limits generally set at 125% of Federal Poverty Guidelines (around $1,575/month for a single person in 2024).\n\nNote that these programs only handle civil legal matters, they cannot help with criminal cases. Most services focus on preventing financial exploitation, securing benefits, and helping with end-of-life planning.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1894,7 +1894,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have your loved one's income information ready when you call — they'll need to verify eligibility based on Federal Poverty Guidelines before scheduling an appointment.",
+        "tip": "Have your loved one's income information ready when you call, they'll need to verify eligibility based on Federal Poverty Guidelines before scheduling an appointment.",
         "urls": [
           {
             "label": "Legal Aid of Arkansas",
@@ -1952,7 +1952,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's income is slightly above 125% of poverty guidelines?",
-          "answer": "Each organization may have some flexibility for cases involving urgent legal issues or special circumstances. Call the intake line to discuss your loved one's situation — they may still qualify if the legal issue involves protecting basic needs like housing or essential benefits."
+          "answer": "Each organization may have some flexibility for cases involving urgent legal issues or special circumstances. Call the intake line to discuss your loved one's situation, they may still qualify if the legal issue involves protecting basic needs like housing or essential benefits."
         },
         {
           "question": "Can I call on behalf of my elderly loved one who has memory problems?",
@@ -1984,7 +1984,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care facility in Arkansas and faces problems with their care, food quality, finances, or rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. This is not a program to help your loved one get into a facility — it's specifically for residents already living in facilities who need someone to investigate problems and work toward solutions.\n\nOmbudsmen help with issues ranging from poor care quality and unsafe conditions to problems with Medicaid eligibility, room temperature complaints, restrictions on visitors, and discharge disputes. Any resident, family member, or friend can contact an ombudsman — no paperwork or eligibility requirements needed. The service is completely free and available statewide through regional ombudsmen who work with your local Area Agency on Aging.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care facility in Arkansas and faces problems with their care, food quality, finances, or rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. This is not a program to help your loved one get into a facility, it's specifically for residents already living in facilities who need someone to investigate problems and work toward solutions.\n\nOmbudsmen help with issues ranging from poor care quality and unsafe conditions to problems with Medicaid eligibility, room temperature complaints, restrictions on visitors, and discharge disputes. Any resident, family member, or friend can contact an ombudsman, no paperwork or eligibility requirements needed. The service is completely free and available statewide through regional ombudsmen who work with your local Area Agency on Aging.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2005,7 +2005,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the ombudsman number posted in your loved one's facility or contact your local Area Agency on Aging — no application needed.",
+        "summary": "Call the ombudsman number posted in your loved one's facility or contact your local Area Agency on Aging, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -2025,7 +2025,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Keep notes about specific incidents, including dates, times, and who was involved — this helps the ombudsman investigate more effectively.",
+        "tip": "Keep notes about specific incidents, including dates, times, and who was involved, this helps the ombudsman investigate more effectively.",
         "urls": []
       },
       "documentsNeeded": null,
@@ -2078,7 +2078,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Arkansas offers 12 programs that can help your aging loved one — 9 provide direct financial benefits or services, 1 offers employment opportunities, and 2 provide free advocacy and legal help. These programs can cover everything from $100-$300/month for groceries (SNAP) to comprehensive medical care through one team (PACE), to free home energy improvements that permanently cut utility bills by 20-30% (Weatherization Assistance). Most benefit programs have income limits around $1,500-$2,200/month for a single person, but several resources like Senior Medicare Patrol and Legal Aid are available regardless of income. Start by checking the programs below that address your loved one's most urgent needs — many can be applied for simultaneously.",
+    "intro": "Arkansas offers 12 programs that can help your aging loved one, 9 provide direct financial benefits or services, 1 offers employment opportunities, and 2 provide free advocacy and legal help. These programs can cover everything from $100-$300/month for groceries (SNAP) to comprehensive medical care through one team (PACE), to free home energy improvements that permanently cut utility bills by 20-30% (Weatherization Assistance). Most benefit programs have income limits around $1,500-$2,200/month for a single person, but several resources like Senior Medicare Patrol and Legal Aid are available regardless of income. Start by checking the programs below that address your loved one's most urgent needs, many can be applied for simultaneously.",
     "startHere": [
       {
         "name": "Medicare Savings Programs",
@@ -2146,11 +2146,11 @@ export const drafts: PipelineStateDrafts = {
       }
     ],
     "quickFacts": [
-      "PACE comprehensive care is only available in select Arkansas counties — check availability in your area first",
+      "PACE comprehensive care is only available in select Arkansas counties, check availability in your area first",
       "Most Arkansas benefit programs require income below $1,500-$2,200/month for a single person",
       "Free resources like Senior Medicare Patrol and Legal Aid have no income requirements",
-      "Weatherization improvements are permanent — once completed, energy savings continue for years"
+      "Weatherization improvements are permanent, once completed, energy savings continue for years"
     ],
-    "resourcesVsBenefits": "Benefits like SNAP, LIHEAP, and ARChoices require your loved one to meet specific income and asset limits — typically income below $1,500-$2,200/month. Free resources like Senior Medicare Patrol (Medicare fraud protection), Legal Aid for Seniors, and the Long-Term Care Ombudsman are available to any Arkansas senior regardless of income, assets, or insurance status."
+    "resourcesVsBenefits": "Benefits like SNAP, LIHEAP, and ARChoices require your loved one to meet specific income and asset limits, typically income below $1,500-$2,200/month. Free resources like Senior Medicare Patrol (Medicare fraud protection), Legal Aid for Seniors, and the Long-Term Care Ombudsman are available to any Arkansas senior regardless of income, assets, or insurance status."
   }
 };

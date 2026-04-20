@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T22:05:18.103Z
+ * Last updated: 2026-04-20T23:39:07.875Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level — that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits — typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
+      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level, that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits, typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
       "savingsRange": "$1,500 – $4,000/year in 2026",
       "savingsSource": "Medicare Part B premium ($174.70/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
       "savingsVerified": true,
@@ -124,7 +124,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "45-90 days, longer if disability determination needed for MBIC",
         "waitlist": "QI program may have waitlists due to limited annual funding",
-        "tip": "For MBIC, have your child's SSI determination letter ready — this speeds up the disability verification process significantly.",
+        "tip": "For MBIC, have your child's SSI determination letter ready, this speeds up the disability verification process significantly.",
         "urls": [
           {
             "label": "MBIC Application Form",
@@ -178,10 +178,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "MBIC applications require proof of SSI-level disability — having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
-        "QI program funding is limited and allocated first-come, first-served each year — apply early in the calendar year for best chances",
-        "If your elderly loved one has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles — keep your approval letter handy",
-        "Premium amounts for MBIC vary based on family income and employer insurance availability — HHSC calculates this during approval process"
+        "MBIC applications require proof of SSI-level disability, having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
+        "QI program funding is limited and allocated first-come, first-served each year, apply early in the calendar year for best chances",
+        "If your elderly loved one has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles, keep your approval letter handy",
+        "Premium amounts for MBIC vary based on family income and employer insurance availability, HHSC calculates this during approval process"
       ],
       "relatedPrograms": [
         "Texas CHIP (Children's Health Insurance Program)",
@@ -281,7 +281,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your loved one's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your loved one must need significant daily assistance — not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
+      "intro": "If your loved one is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your loved one's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your loved one must need significant daily assistance, not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -312,7 +312,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must need nursing facility level of care — daily assistance with bathing, dressing, medication management, or other activities of daily living. Requires physician-signed assessment and state approval.",
+        "functionalRequirement": "Must need nursing facility level of care, daily assistance with bathing, dressing, medication management, or other activities of daily living. Requires physician-signed assessment and state approval.",
         "otherRequirements": [
           "Texas resident",
           "Medicaid eligible",
@@ -323,12 +323,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Join the interest list first by calling 2-1-1, then apply for Medicaid when invited — several years wait for home services.",
+        "summary": "Join the interest list first by calling 2-1-1, then apply for Medicaid when invited, several years wait for home services.",
         "steps": [
           {
             "step": 1,
             "title": "Join the interest list",
-            "description": "Call 2-1-1 or (877) 541-7905 to get on the STAR+PLUS Home and Community-Based Services waitlist. This is required — you cannot apply directly."
+            "description": "Call 2-1-1 or (877) 541-7905 to get on the STAR+PLUS Home and Community-Based Services waitlist. This is required, you cannot apply directly."
           },
           {
             "step": 2,
@@ -353,7 +353,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Medicaid approval varies; HCBS assessment completed by MCO after Medicaid approval",
         "waitlist": "Several years wait for home and community-based services invitation; wait times vary by region",
-        "tip": "Apply for basic Medicaid immediately if eligible — you'll get medical coverage while waiting for home services.",
+        "tip": "Apply for basic Medicaid immediately if eligible, you'll get medical coverage while waiting for home services.",
         "urls": [
           {
             "label": "Your Texas Benefits",
@@ -392,9 +392,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each spouse applies individually with the same $2,901 income limit — no household scaling",
+        "Each spouse applies individually with the same $2,901 income limit, no household scaling",
         "You can remain on other program interest lists while enrolled in STAR+PLUS",
-        "MCO selection matters — extras like Weight Watchers subscriptions vary by plan and county",
+        "MCO selection matters, extras like Weight Watchers subscriptions vary by plan and county",
         "Nursing home residents can transition to community services through STAR+PLUS"
       ],
       "relatedPrograms": [
@@ -446,7 +446,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between the MCO plans?",
-          "answer": "All plans provide the same basic Medicaid and HCBS services, but extras vary. Some offer Weight Watchers subscriptions, camp allowances, or additional medical supplies. Service areas also differ — Community First serves central Texas while Superior operates in Dallas, Hidalgo, and Travis counties."
+          "answer": "All plans provide the same basic Medicaid and HCBS services, but extras vary. Some offer Weight Watchers subscriptions, camp allowances, or additional medical supplies. Service areas also differ, Community First serves central Texas while Superior operates in Dallas, Hidalgo, and Travis counties."
         },
         {
           "question": "Can my loved one have STAR+PLUS and Medicare at the same time?",
@@ -458,11 +458,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can couples both be on STAR+PLUS?",
-          "answer": "Yes, but each spouse applies individually with the same $2,901 monthly income limit. There's no household scaling — both must meet individual income and asset requirements. Asset limits also apply individually at $2,000 each."
+          "answer": "Yes, but each spouse applies individually with the same $2,901 monthly income limit. There's no household scaling, both must meet individual income and asset requirements. Asset limits also apply individually at $2,000 each."
         },
         {
           "question": "What if my loved one needs nursing home care while on the waitlist?",
-          "answer": "STAR+PLUS covers nursing facility care immediately upon Medicaid approval — you don't need to wait for HCBS services. Your loved one can later transition from nursing home to community services when home care slots become available."
+          "answer": "STAR+PLUS covers nursing facility care immediately upon Medicaid approval, you don't need to wait for HCBS services. Your loved one can later transition from nursing home to community services when home care slots become available."
         }
       ],
       "layoutIntent": {
@@ -482,7 +482,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-eldercare",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All medical care, adult day center, and home support coordinated under one team — no copays if your loved one has Medicaid.",
+      "tagline": "All medical care, adult day center, and home support coordinated under one team, no copays if your loved one has Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -495,7 +495,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your loved one won't need to coordinate between separate doctors, pharmacies, and care agencies — one team handles everything.\n\nYour loved one must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your loved one doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your loved one lives outside these service areas, PACE is not available.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your loved one won't need to coordinate between separate doctors, pharmacies, and care agencies, one team handles everything.\n\nYour loved one must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your loved one doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your loved one lives outside these service areas, PACE is not available.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care coordination service",
       "savingsVerified": false,
@@ -534,7 +534,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE provider for intake assessment — they handle the entire enrollment process including state certification.",
+        "summary": "Call your local PACE provider for intake assessment, they handle the entire enrollment process including state certification.",
         "steps": [
           {
             "step": 1,
@@ -558,8 +558,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": null,
-        "waitlist": "Possible — some providers may have waitlists depending on capacity",
-        "tip": "PACE providers handle most of the paperwork and state certification process for you — they're motivated to help because they want to enroll eligible participants.",
+        "waitlist": "Possible, some providers may have waitlists depending on capacity",
+        "tip": "PACE providers handle most of the paperwork and state certification process for you, they're motivated to help because they want to enroll eligible participants.",
         "urls": [
           {
             "label": "Bienvivir eligibility form",
@@ -604,9 +604,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Most participants are dually eligible for Medicare and Medicaid — the PACE provider can help determine Medicaid eligibility if your loved one doesn't already have it",
-        "Your loved one must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE — the provider will guide you through this process",
-        "PACE providers conduct the nursing home level of care assessment as part of enrollment — you don't need to get this done separately",
+        "Most participants are dually eligible for Medicare and Medicaid, the PACE provider can help determine Medicaid eligibility if your loved one doesn't already have it",
+        "Your loved one must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE, the provider will guide you through this process",
+        "PACE providers conduct the nursing home level of care assessment as part of enrollment, you don't need to get this done separately",
         "Private pay is possible if your loved one needs comprehensive care coordination but doesn't qualify for Medicaid, though costs can be substantial"
       ],
       "relatedPrograms": [
@@ -618,15 +618,15 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one keep seeing their current doctors under PACE?",
-          "answer": "No — PACE uses its own network of providers and care team. Your loved one will be assigned new primary care physicians, specialists, and therapists within the PACE program. All care is coordinated through the PACE team to ensure comprehensive management."
+          "answer": "No, PACE uses its own network of providers and care team. Your loved one will be assigned new primary care physicians, specialists, and therapists within the PACE program. All care is coordinated through the PACE team to ensure comprehensive management."
         },
         {
-          "question": "What if my loved one lives outside El Paso — are there other PACE programs in Texas?",
+          "question": "What if my loved one lives outside El Paso, are there other PACE programs in Texas?",
           "answer": "Currently, Bienvivir in El Paso is the only active PACE provider we found in Texas. If your loved one lives elsewhere in Texas, PACE is not available. Consider Texas Medicaid STAR+PLUS or Home and Community-based Services waivers as alternatives."
         },
         {
           "question": "Can my loved one try PACE and switch back to regular Medicare if they don't like it?",
-          "answer": "Yes — PACE enrollment is voluntary and your loved one can disenroll at any time. They would return to original Medicare and could re-enroll in Medicare Advantage or prescription drug plans during the next open enrollment period."
+          "answer": "Yes, PACE enrollment is voluntary and your loved one can disenroll at any time. They would return to original Medicare and could re-enroll in Medicare Advantage or prescription drug plans during the next open enrollment period."
         },
         {
           "question": "How much does PACE cost if my loved one has Medicare but not Medicaid?",
@@ -638,11 +638,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for PACE while my loved one is in the hospital?",
-          "answer": "Yes — hospital discharge planners often initiate PACE referrals for patients who need comprehensive care coordination upon discharge. This can help ensure continuity of care when leaving the hospital."
+          "answer": "Yes, hospital discharge planners often initiate PACE referrals for patients who need comprehensive care coordination upon discharge. This can help ensure continuity of care when leaving the hospital."
         },
         {
           "question": "Does PACE provide transportation to medical appointments?",
-          "answer": "Yes — PACE includes transportation to the adult day health center and medical appointments within the program. This is part of the comprehensive service package with no additional charge for participants with Medicaid."
+          "answer": "Yes, PACE includes transportation to the adult day health center and medical appointments within the program. This is part of the comprehensive service package with no additional charge for participants with Medicaid."
         },
         {
           "question": "What if my loved one needs emergency care or hospitalization while in PACE?",
@@ -731,7 +731,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at YourTexasBenefits.com or call 2-1-1 for assistance — processing typically takes 30 days.",
+        "summary": "Apply online at YourTexasBenefits.com or call 2-1-1 for assistance, processing typically takes 30 days.",
         "steps": [
           {
             "step": 1,
@@ -761,7 +761,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days standard, 7 days expedited if income under $150/month and assets under $100",
         "waitlist": null,
-        "tip": "Seniors get expedited processing if facing immediate food insecurity — mention this during your interview if applicable.",
+        "tip": "Seniors get expedited processing if facing immediate food insecurity, mention this during your interview if applicable.",
         "urls": [
           {
             "label": "Apply Online",
@@ -797,7 +797,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Medical expense deductions are crucial for seniors — include Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
+        "Medical expense deductions are crucial for seniors, include Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
         "If your loved one lives with family but buys and prepares food separately, they can apply as a household of one",
         "Expedited processing available if monthly income is under $150 and assets under $100, or if facing utility shutoff",
         "Social Security and pension income count toward income limits, but high medical or shelter costs can reduce net income below limits"
@@ -865,7 +865,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour loved one qualifies if their household income is at or below 150% of the federal poverty level — that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your loved one, and may include weatherization services like insulation or heating system repairs.",
+      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour loved one qualifies if their household income is at or below 150% of the federal poverty level, that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your loved one, and may include weatherization services like insulation or heating system repairs.",
       "savingsRange": "$1 – $12,300/year in 2026",
       "savingsSource": "Texas Department of Housing and Community Affairs CEAP guidelines",
       "savingsVerified": true,
@@ -914,7 +914,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 2-1-1 to find your local Community Action Agency and get placed on the waitlist — processing time varies by region and funding availability.",
+        "summary": "Call 2-1-1 to find your local Community Action Agency and get placed on the waitlist, processing time varies by region and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -939,7 +939,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by region; placed on waitlist after submission, caseworker calls when turn arrives",
         "waitlist": "Yes, common; applications placed in line by site, funding-dependent",
-        "tip": "If you have an online account with your utility company (like Texas Gas Service), set it up before applying — it speeds up the documentation process.",
+        "tip": "If you have an online account with your utility company (like Texas Gas Service), set it up before applying, it speeds up the documentation process.",
         "urls": [
           {
             "label": "Find Local CEAP Agency",
@@ -985,7 +985,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Crisis cases with active disconnection notices may receive expedited processing, but you're still placed on a waitlist",
         "Household size includes everyone living at the address who shares utility bills, not just family members",
-        "Benefits are paid directly to your utility company — you won't receive a check or cash payment",
+        "Benefits are paid directly to your utility company, you won't receive a check or cash payment",
         "Funding runs out quickly each year, so apply as early as possible when applications open"
       ],
       "relatedPrograms": [
@@ -1095,7 +1095,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional subrecipient agency by phone or mail — processing times vary widely by region and funding availability.",
+        "summary": "Contact your regional subrecipient agency by phone or mail, processing times vary widely by region and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -1118,9 +1118,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "You'll receive an eligibility memo by mail after processing. Due to high demand, most regions have waitlists and use priority scoring that favors elderly, disabled, or families with young children."
           }
         ],
-        "processingTime": "Varies widely by region, number of clients, and funding availability — no fixed statewide timeline",
+        "processingTime": "Varies widely by region, number of clients, and funding availability, no fixed statewide timeline",
         "waitlist": "Common due to funding limits; prioritization matrix used (e.g., points for elderly, disabled, children under 6)",
-        "tip": "Apply even if you think there might be a waitlist — priority scoring often helps elderly households move up the list faster.",
+        "tip": "Apply even if you think there might be a waitlist, priority scoring often helps elderly households move up the list faster.",
         "urls": [
           {
             "label": "TDHCA Weatherization Program",
@@ -1162,8 +1162,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must contact the correct regional subrecipient for your county — the state does not accept direct applications",
-        "Income documentation is strictly limited to the last 30 days and gets annualized — older pay stubs or tax returns will not be accepted",
+        "You must contact the correct regional subrecipient for your county, the state does not accept direct applications",
+        "Income documentation is strictly limited to the last 30 days and gets annualized, older pay stubs or tax returns will not be accepted",
         "Every household member needs citizenship verification, including children, which can delay applications if documents are missing",
         "If your loved one is elderly, disabled, or lives with young children, mention this when applying as it may improve their priority score"
       ],
@@ -1238,7 +1238,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is on Medicare or turning 65, Texas SHIP provides free counseling to help them choose the right health and prescription drug plans. Because Medicare has dozens of plan options that change every year, a trained counselor can review your loved one's specific medications and doctors to find the plan that saves the most money.\n\nSHIP counselors also help apply for Medicare Savings Programs and Extra Help (Low-Income Subsidy) that can reduce prescription drug costs to $4-$10 per month. In Texas, this program is called the Health Information, Counseling, and Advocacy Program (HICAP). Anyone with Medicare can use this service regardless of income — no eligibility requirements beyond having Medicare.",
+      "intro": "If your loved one is on Medicare or turning 65, Texas SHIP provides free counseling to help them choose the right health and prescription drug plans. Because Medicare has dozens of plan options that change every year, a trained counselor can review your loved one's specific medications and doctors to find the plan that saves the most money.\n\nSHIP counselors also help apply for Medicare Savings Programs and Extra Help (Low-Income Subsidy) that can reduce prescription drug costs to $4-$10 per month. In Texas, this program is called the Health Information, Counseling, and Advocacy Program (HICAP). Anyone with Medicare can use this service regardless of income, no eligibility requirements beyond having Medicare.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1260,7 +1260,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-252-9240 to schedule free counseling — typically available within days.",
+        "summary": "Call 1-800-252-9240 to schedule free counseling, typically available within days.",
         "steps": [
           {
             "step": 1,
@@ -1278,7 +1278,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "Counseling available in-person, by phone, or through group presentations. Sessions are free and confidential."
           }
         ],
-        "processingTime": "No formal application processing — counseling provided upon contact, typically immediate or by appointment",
+        "processingTime": "No formal application processing, counseling provided upon contact, typically immediate or by appointment",
         "waitlist": null,
         "tip": "Schedule counseling during Medicare Open Enrollment (October 15 - December 7) early, as this is the busiest time.",
         "urls": [
@@ -1370,7 +1370,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is homebound and struggling to prepare nutritious meals, Meals on Wheels delivers hot, ready-to-eat meals directly to their door on weekdays. Because volunteers also provide a brief safety check during each delivery, you get peace of mind knowing someone is checking on your loved one daily. Many programs also offer frozen weekend meals and can tailor meals for specific medical conditions like diabetes or heart disease.\n\nThe program serves anyone 60+ who is primarily homebound and unable to prepare nutritious meals without consistent help. Because there are no income limits, your loved one can qualify regardless of their financial situation — voluntary contributions are requested but no one is denied for inability to pay.\n\nMeals on Wheels operates through independent local providers across Texas, so you must contact the specific program serving your loved one's area. Processing time varies from within a week to longer if there's a waitlist, depending on the local provider.",
+      "intro": "If your loved one is homebound and struggling to prepare nutritious meals, Meals on Wheels delivers hot, ready-to-eat meals directly to their door on weekdays. Because volunteers also provide a brief safety check during each delivery, you get peace of mind knowing someone is checking on your loved one daily. Many programs also offer frozen weekend meals and can tailor meals for specific medical conditions like diabetes or heart disease.\n\nThe program serves anyone 60+ who is primarily homebound and unable to prepare nutritious meals without consistent help. Because there are no income limits, your loved one can qualify regardless of their financial situation, voluntary contributions are requested but no one is denied for inability to pay.\n\nMeals on Wheels operates through independent local providers across Texas, so you must contact the specific program serving your loved one's area. Processing time varies from within a week to longer if there's a waitlist, depending on the local provider.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1395,7 +1395,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Meals on Wheels provider by phone or online referral form — anyone can refer including family members.",
+        "summary": "Contact your local Meals on Wheels provider by phone or online referral form, anyone can refer including family members.",
         "steps": [
           {
             "step": 1,
@@ -1418,9 +1418,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, meal delivery typically begins within days of the assessment, though some areas have waitlists."
           }
         ],
-        "processingTime": "Varies by location — some within a week, others longer if waitlist exists. Tarrant County schedules caseworker appointments within 2 working days.",
+        "processingTime": "Varies by location, some within a week, others longer if waitlist exists. Tarrant County schedules caseworker appointments within 2 working days.",
         "waitlist": "Possible in some programs, leading to longer processing times",
-        "tip": "Anyone can make the referral — you don't need to wait for your loved one to call themselves.",
+        "tip": "Anyone can make the referral, you don't need to wait for your loved one to call themselves.",
         "urls": [
           {
             "label": "Find Local Provider",
@@ -1482,7 +1482,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one can still drive but has trouble cooking?",
-          "answer": "Your loved one may not qualify if they can easily leave home and access other meal options. The program prioritizes those who are homebound — meaning they rarely leave home without significant assistance or difficulty."
+          "answer": "Your loved one may not qualify if they can easily leave home and access other meal options. The program prioritizes those who are homebound, meaning they rarely leave home without significant assistance or difficulty."
         },
         {
           "question": "How long is the waitlist in most Texas areas?",
@@ -1539,7 +1539,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, the Community Based Alternatives (CBA) Waiver can make that possible. This Texas Medicaid program pays for personal care attendants, home modifications, respite care, and nursing services — essentially bringing nursing home services to your loved one's house. Your loved one must qualify for Medicaid and meet nursing facility level of care (meaning they need daily help with activities like bathing, dressing, or medication management).\n\nBecause this waiver covers comprehensive home care services under one coordinated plan, your loved one won't need to piece together care from multiple providers — one team manages everything from personal attendants to therapy services. The total cost of your loved one's service plan cannot exceed what Texas would pay for nursing home care, but there's no fixed dollar limit or hour cap — services are tailored to their specific needs.\n\nThere is a waitlist for this program. Wait times vary by region and your loved one's priority level, with those at highest risk of nursing home placement typically served first. Income limit: $2,829/month for a single person (2025). Asset limit: $2,000 for an individual, $3,000 for a couple.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, the Community Based Alternatives (CBA) Waiver can make that possible. This Texas Medicaid program pays for personal care attendants, home modifications, respite care, and nursing services, essentially bringing nursing home services to your loved one's house. Your loved one must qualify for Medicaid and meet nursing facility level of care (meaning they need daily help with activities like bathing, dressing, or medication management).\n\nBecause this waiver covers comprehensive home care services under one coordinated plan, your loved one won't need to piece together care from multiple providers, one team manages everything from personal attendants to therapy services. The total cost of your loved one's service plan cannot exceed what Texas would pay for nursing home care, but there's no fixed dollar limit or hour cap, services are tailored to their specific needs.\n\nThere is a waitlist for this program. Wait times vary by region and your loved one's priority level, with those at highest risk of nursing home placement typically served first. Income limit: $2,829/month for a single person (2025). Asset limit: $2,000 for an individual, $3,000 for a couple.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1581,7 +1581,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply for Medicaid first through Your Texas Benefits online portal, then contact local providers for waiver services — total process typically takes 45 days.",
+        "summary": "Apply for Medicaid first through Your Texas Benefits online portal, then contact local providers for waiver services, total process typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -1606,7 +1606,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Medicaid eligibility determination typically 45 days, but waiver interest list placement is immediate",
         "waitlist": "Yes, waitlists are common and can extend from several months to multiple years depending on region and priority level",
-        "tip": "Apply to the interest list as soon as you think your loved one might need services, even if they're not ready now — you can decline when called if the timing isn't right.",
+        "tip": "Apply to the interest list as soon as you think your loved one might need services, even if they're not ready now, you can decline when called if the timing isn't right.",
         "urls": [
           {
             "label": "Your Texas Benefits",
@@ -1646,10 +1646,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You can apply for Medicaid and request waiver interest list placement simultaneously — don't wait for Medicaid approval to get on the waitlist",
-        "Wait times vary significantly by region — urban areas like Houston and Dallas typically have longer waits than rural areas",
-        "Priority is given to those at highest risk of nursing home placement — emergency situations may receive expedited consideration",
-        "Your loved one cannot be enrolled in both CBA waiver and nursing facility care at the same time — it's an either/or choice"
+        "You can apply for Medicaid and request waiver interest list placement simultaneously, don't wait for Medicaid approval to get on the waitlist",
+        "Wait times vary significantly by region, urban areas like Houston and Dallas typically have longer waits than rural areas",
+        "Priority is given to those at highest risk of nursing home placement, emergency situations may receive expedited consideration",
+        "Your loved one cannot be enrolled in both CBA waiver and nursing facility care at the same time, it's an either/or choice"
       ],
       "relatedPrograms": [
         "STAR+PLUS HCBS",
@@ -1831,8 +1831,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Program names can be confusing — when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
-        "Some regions have immediate openings while others maintain waitlists — ask about current availability in your area",
+        "Program names can be confusing, when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
+        "Some regions have immediate openings while others maintain waitlists, ask about current availability in your area",
         "Income and asset limits are adjusted annually, so 2025 limits may be slightly higher than current figures"
       ],
       "relatedPrograms": [
@@ -1898,7 +1898,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal issues with Medicare benefits, nursing home complaints, or housing problems, Texas's 28 Area Agencies on Aging provide free legal counseling and advocacy. Because these services are provided through AAAs rather than traditional legal aid organizations, your loved one can get help regardless of income level — though priority goes to those with the greatest need.\n\nThe program covers civil legal matters only: Medicare and Medicaid benefits counseling, ombudsman advocacy for nursing homes and assisted living facilities, consumer protection issues, and housing disputes. Your loved one will get one-on-one counseling from trained staff, plus referrals to specialized legal aid organizations when needed. Because all 254 Texas counties are covered by the 28 regional AAAs, there's a local office that serves your loved one's area.",
+      "intro": "If your loved one is 60+ and facing legal issues with Medicare benefits, nursing home complaints, or housing problems, Texas's 28 Area Agencies on Aging provide free legal counseling and advocacy. Because these services are provided through AAAs rather than traditional legal aid organizations, your loved one can get help regardless of income level, though priority goes to those with the greatest need.\n\nThe program covers civil legal matters only: Medicare and Medicaid benefits counseling, ombudsman advocacy for nursing homes and assisted living facilities, consumer protection issues, and housing disputes. Your loved one will get one-on-one counseling from trained staff, plus referrals to specialized legal aid organizations when needed. Because all 254 Texas counties are covered by the 28 regional AAAs, there's a local office that serves your loved one's area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1923,7 +1923,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local AAA directly for immediate counseling or referral — no forms required.",
+        "summary": "Call your local AAA directly for immediate counseling or referral, no forms required.",
         "steps": [
           {
             "step": 1,
@@ -1943,7 +1943,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate counseling or referral upon contact",
         "waitlist": null,
-        "tip": "Contact the AAA first, not the legal aid organizations directly — AAA staff can often resolve benefits and nursing home issues without needing a lawyer.",
+        "tip": "Contact the AAA first, not the legal aid organizations directly, AAA staff can often resolve benefits and nursing home issues without needing a lawyer.",
         "urls": [
           {
             "label": "Texas AAAs Directory",
@@ -2041,7 +2041,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes — and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your loved one in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
+      "intro": "If your loved one lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes, and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your loved one in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2063,7 +2063,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 800-252-2412 to speak with a local ombudsman immediately — no application or paperwork required.",
+        "summary": "Call 800-252-2412 to speak with a local ombudsman immediately, no application or paperwork required.",
         "steps": [
           {
             "step": 1,
@@ -2120,7 +2120,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Will the facility retaliate against my loved one if I file a complaint?",
-          "answer": "Retaliation is illegal and ombudsmen specifically monitor for it. All complaints are kept confidential, and ombudsmen are trained to protect residents from reprisal. If retaliation occurs, contact your ombudsman immediately — they have authority to pursue remedies and escalate to regulatory agencies."
+          "answer": "Retaliation is illegal and ombudsmen specifically monitor for it. All complaints are kept confidential, and ombudsmen are trained to protect residents from reprisal. If retaliation occurs, contact your ombudsman immediately, they have authority to pursue remedies and escalate to regulatory agencies."
         },
         {
           "question": "What if my loved one wants to leave the facility but the facility won't discharge them?",
@@ -2146,7 +2146,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Texas offers 12 major programs to help your aging loved one — 9 provide direct financial benefits or services, while 3 offer free guidance and advocacy. The financial help ranges from $298/month for groceries through SNAP to comprehensive healthcare coverage through STAR+PLUS that includes home care services. Free resources include one-on-one Medicare counseling, legal aid for seniors 60+, and nursing home advocacy. Most benefit programs have income limits around $2,000-3,000/month for a single person, but several valuable resources are available regardless of income. Start by checking if your loved one qualifies for Medicaid programs — these provide the most comprehensive coverage and can coordinate multiple types of care under one system.",
+    "intro": "Texas offers 12 major programs to help your aging loved one, 9 provide direct financial benefits or services, while 3 offer free guidance and advocacy. The financial help ranges from $298/month for groceries through SNAP to comprehensive healthcare coverage through STAR+PLUS that includes home care services. Free resources include one-on-one Medicare counseling, legal aid for seniors 60+, and nursing home advocacy. Most benefit programs have income limits around $2,000-3,000/month for a single person, but several valuable resources are available regardless of income. Start by checking if your loved one qualifies for Medicaid programs, these provide the most comprehensive coverage and can coordinate multiple types of care under one system.",
     "startHere": [
       {
         "name": "STAR+PLUS",
@@ -2161,7 +2161,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Texas SHIP",
         "programId": "texas-ship",
-        "why": "Free expert help navigating Medicare options and finding prescription drug savings — no income requirements."
+        "why": "Free expert help navigating Medicare options and finding prescription drug savings, no income requirements."
       }
     ],
     "byNeed": [
@@ -2205,14 +2205,14 @@ export const drafts: PipelineStateDrafts = {
           "Legal Aid for Seniors",
           "Long-Term Care Ombudsman"
         ],
-        "description": "Expert help with Medicare decisions, legal issues, and nursing home problems — available regardless of income."
+        "description": "Expert help with Medicare decisions, legal issues, and nursing home problems, available regardless of income."
       }
     ],
     "quickFacts": [
       "Texas uses YourTexasBenefits.com for SNAP and LIHEAP applications",
-      "PACE operates in limited Texas counties — availability depends on your loved one's location",
+      "PACE operates in limited Texas counties, availability depends on your loved one's location",
       "Most Medicaid waiver programs in Texas have waiting lists, so apply early even if your loved one doesn't need services immediately"
     ],
-    "resourcesVsBenefits": "Benefits like STAR+PLUS and SNAP require your loved one to meet specific income and asset limits — typically around $2,000-3,000/month income for a single person. Resources like Texas SHIP Medicare counseling, legal aid through Area Agencies on Aging, and the Long-Term Care Ombudsman are free to all Texas seniors regardless of income, making them good starting points while you determine benefit eligibility."
+    "resourcesVsBenefits": "Benefits like STAR+PLUS and SNAP require your loved one to meet specific income and asset limits, typically around $2,000-3,000/month income for a single person. Resources like Texas SHIP Medicare counseling, legal aid through Area Agencies on Aging, and the Long-Term Care Ombudsman are free to all Texas seniors regardless of income, making them good starting points while you determine benefit eligibility."
   }
 };

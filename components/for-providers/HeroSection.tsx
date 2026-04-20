@@ -13,6 +13,8 @@ export default function HeroSection() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
+  // Track when user explicitly clicks "Create new" from autocomplete
+  const [createNewSelected, setCreateNewSelected] = useState(false);
 
   // Check if user already has a provider profile
   const hasProviderProfile = (profiles || []).some(
@@ -21,6 +23,8 @@ export default function HeroSection() {
 
   const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
     setSelectedOrg(org);
+    // Track if user explicitly clicked "Create new" (org is null)
+    setCreateNewSelected(org === null);
   }, []);
 
   const handleGetStarted = () => {
@@ -33,15 +37,17 @@ export default function HeroSection() {
           JSON.stringify({
             selectedOrg: selectedOrg,
             searchQuery: "",
+            createNewSelected: false,
           }),
         );
       } else if (searchInput.trim()) {
-        // User typed but didn't select - treat as org name search
+        // User typed but didn't select, OR explicitly clicked "Create new"
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
             searchQuery: searchInput.trim(),
             selectedOrg: null,
+            createNewSelected: createNewSelected, // Pass the flag!
           }),
         );
       }

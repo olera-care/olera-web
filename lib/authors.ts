@@ -47,6 +47,12 @@ export const AUTHORS: Author[] = [
     role: "Pediatric Hospitalist, MD, MPH",
     bio: "Jamie DuBose, MD, MPH, is a pediatric hospitalist at Children's National Hospital in Washington, D.C., and affiliated community sites, including Mary Washington and Stafford Hospitals. Her primary interests include newborn care, global health and hospital-to-community care transitions.",
   },
+  {
+    slug: "cecille-chavez",
+    name: "Cecille Chavez",
+    role: "Analyst & Customer Support Specialist",
+    bio: "Cecille Chavez is an Analyst and Customer Support Specialist at Olera, where she verifies senior benefits program eligibility and caregiver-facing guidance. She focuses on translating complex program rules into actionable next steps for families.",
+  },
 ];
 
 /** Look up an author by their display name (as stored in content_articles.author_name) */

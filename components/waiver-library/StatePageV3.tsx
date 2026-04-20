@@ -10,6 +10,7 @@ import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { getStateVerifier } from "@/data/benefits-verifiers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -397,16 +398,21 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
             {programs.length} programs to help your family
           </p>
 
-          <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
-            <span className="text-gray-400">Reviewed by</span>
-            <Link
-              href="/author/logan-dubose"
-              className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-            >
-              Dr. Logan DuBose
-            </Link>
-          </p>
+          {(() => {
+            const verifier = getStateVerifier(state.abbreviation);
+            return (
+              <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
+                <span className="text-gray-400">Reviewed by</span>
+                <Link
+                  href={`/author/${verifier.slug}`}
+                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  {verifier.name}
+                </Link>
+              </p>
+            );
+          })()}
         </div>
       </header>
 

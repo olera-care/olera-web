@@ -7,6 +7,45 @@
 
 ## Current Focus
 
+### 2026-04-20 (afternoon) — PR #603 reviewed_at merged to staging ✅
+
+Delivered the PR 2 scope promised in #601. Now live on staging at commit `5ff8d2a4`.
+
+**PR**: https://github.com/olera-care/olera-web/pull/603 (merged 2026-04-20 @ 19:11 UTC via squash + admin bypass)
+
+**What shipped:**
+- New `reviewed_at timestamptz` column on `content_articles` (migration `043_article_reviewed_at.sql`)
+- Admin **Dates** section in `/admin/content/[articleId]` — side-by-side Published/Verified pickers + "Mark reviewed" quick button that stamps `NOW()`
+- `reviewed_at` added to `EDITABLE_FIELDS` allowlist in PATCH route
+- Public byline on `/caregiver-support/[slug]` and `/texas/[slug]` shows `Verified [date]` when `reviewed_at` is non-null (pre-migration: renders clean with no claim)
+
+**Why the separate column (not reuse `updated_at`):** `updated_at` bumps on any admin save — it's a dirty signal, and was bulk-tainted on 2025-03-07. `reviewed_at` is set *only* by explicit admin action (button or picker), so the "Verified [date]" claim is truthful.
+
+**Pre-test review:** 0 bugs. Two non-blocking observations (both pre-existing):
+- 🟢 ISR 60s cache lag between admin save and public page (no `revalidatePath` on PATCH — pre-existing across all admin edits)
+- 🟢 Late-night "Mark reviewed" clicks in PT/ET produce tomorrow's UTC date (negligible during business hours)
+
+**Merge analysis:** zero file overlap with staging. 7 critical watchlist files verified unchanged post-merge (Footer discovery zone, AuthProvider 24hr cache, 108 permanent redirects in next.config, self-hosted fonts + GA4, Navbar, middleware, types/content).
+
+**Notion report:** https://www.notion.so/3485903a0ffe8101865dd333d00f0437
+
+### Blocked / Pending manual step
+
+⚠️ **Migration 043 not yet applied to Supabase.** TJ will apply via dashboard SQL editor when QA'ing. SQL is safe/additive:
+```sql
+ALTER TABLE content_articles ADD COLUMN IF NOT EXISTS reviewed_at timestamptz;
+```
+Public pages are null-safe pre-migration — no "Verified [date]" claim appears until admin stamps it.
+
+### Out of scope (deliberately deferred from #603)
+
+- `/admin/benefits` per-program `lastVerifiedDate` overrides — different plumbing (pipeline data, not DB column)
+- Making `updated_at` user-editable — leaving auto-managed-on-save intact
+- Optional backfill script to set `reviewed_at` on articles actually reviewed on Mar 7
+- Adding `revalidatePath` to admin PATCH route to eliminate the 60s lag — would affect every admin edit, scope for a separate PR
+
+---
+
 ### 2026-04-20 — Verified-by byline across editorial surfaces (PR #601, READY FOR QA)
 
 Recovered Chantel's orphan commit `0dd777b6` (Add verified-by reviewer support for articles) from the tip of `waiver-library-redesign` — single commit stranded when that long-lived branch merged in chunks and this one missed every PR. Extended it into a proper byline system across four surfaces.

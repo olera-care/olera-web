@@ -2247,37 +2247,124 @@ function ProviderOnboardingContent() {
                 />
               </div>
 
-              {/* Location (read-only display) - green completed state */}
+              {/* Location - editable if empty, read-only completed state if filled */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Location
                 </label>
-                <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="flex-1">{formData.city}, {formData.state}</span>
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+                {formData.city && formData.state ? (
+                  // Completed state - read-only display
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="flex-1">{formData.city}, {formData.state}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  // Editable state - city autocomplete input
+                  <div className="relative" ref={cityDropdownRef}>
+                    <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
+                      showCityDropdown
+                        ? "border-primary-400 ring-2 ring-primary-100 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                    }`}>
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input
+                        ref={cityInputRef}
+                        type="text"
+                        value={cityQuery}
+                        onChange={(e) => {
+                          setCityQuery(e.target.value);
+                          setShowCityDropdown(true);
+                          if (formData.city || formData.state) {
+                            setFormData(prev => ({ ...prev, city: "", state: "" }));
+                          }
+                        }}
+                        onFocus={() => {
+                          preloadCities();
+                          setShowCityDropdown(true);
+                        }}
+                        placeholder="e.g., Austin, TX"
+                        autoComplete="off"
+                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        required
+                      />
+                    </div>
+
+                    {/* City Dropdown */}
+                    {showCityDropdown && cityResults.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                        {!cityQuery.trim() && (
+                          <div className="px-4 pt-1 pb-2">
+                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                          </div>
+                        )}
+                        {cityResults.map((city, idx) => (
+                          <button
+                            key={`preview-${city.city}-${city.state}-${idx}`}
+                            type="button"
+                            onClick={() => handleCitySelect(city.city, city.state)}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>
+                              <span className="font-medium text-gray-700">{city.city}</span>
+                              <span className="text-gray-500">, {city.state}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Email (read-only display) - green completed state */}
+              {/* Email - editable if empty, read-only completed state if filled */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Business email
                 </label>
-                <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="flex-1">{formData.email}</span>
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+                {formData.email ? (
+                  // Completed state - read-only display
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-700">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="flex-1">{formData.email}</span>
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  // Editable state - email input
+                  <>
+                    <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="you@yourorganization.com"
+                        autoComplete="email"
+                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        required
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
+                  </>
+                )}
               </div>
 
               {/* Care Types (multi-select) */}

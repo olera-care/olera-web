@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { IntendedProfessionalSchool } from "@/lib/types";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
 import { ReactiveHint } from "@/components/medjobs/Tooltip";
@@ -180,10 +180,7 @@ export default function MedJobsApplyPage() {
 
   // Fetch universities (includes city/state for filtering)
   useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
     supabase.from("medjobs_universities").select("id, name, city, state").eq("is_active", true).order("name")
       .then(({ data }) => { if (data) setUniversityOptions(data); });
   }, []);
@@ -239,12 +236,10 @@ export default function MedJobsApplyPage() {
               if (data.existing) setPartialExisting(true);
 
               // Auto-sign-in: establish browser session silently
+              // Uses singleton client so AuthProvider's onAuthStateChange listener fires
               if (data.tokenHash) {
                 try {
-                  const supabase = createBrowserClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                  );
+                  const supabase = createClient();
                   await supabase.auth.verifyOtp({
                     token_hash: data.tokenHash,
                     type: "magiclink",
@@ -306,12 +301,11 @@ export default function MedJobsApplyPage() {
       setIsExisting(!!data.existing);
 
       // Auto-sign-in: establish browser session so dashboard works immediately
+      // Uses singleton client so AuthProvider's onAuthStateChange listener fires
+      // This makes navbar update instantly (same pattern as family/org accounts)
       if (data.tokenHash) {
         try {
-          const supabase = createBrowserClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-          );
+          const supabase = createClient();
           const { error: otpError } = await supabase.auth.verifyOtp({
             token_hash: data.tokenHash,
             type: "magiclink",

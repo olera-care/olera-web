@@ -7,6 +7,38 @@
 
 ## Current Focus
 
+### 2026-04-20 — Verified-by byline across editorial surfaces (PR #601, READY FOR QA)
+
+Recovered Chantel's orphan commit `0dd777b6` (Add verified-by reviewer support for articles) from the tip of `waiver-library-redesign` — single commit stranded when that long-lived branch merged in chunks and this one missed every PR. Extended it into a proper byline system across four surfaces.
+
+**PR**: https://github.com/olera-care/olera-web/pull/601 (branch: `feature/article-verified-by`)
+
+**Surfaces touched:**
+- `/caregiver-support/[slug]` (83 articles) — new byline with `Published by` / `Written by` / `Verified by` distinctions
+- `/texas/[slug]` — existing verifier (hardcoded Dr. DuBose) made DB-overridable with fallback
+- `StatePageV3` (50 state benefits pages) — new `Reviewed by Dr. Logan DuBose` strip
+- `ProgramPageV3` (~500 program pages) — strip with `lastVerifiedDate`/`reviewedAt` surfacing
+
+**Key decisions (honest > posturing):**
+- **Dropped "Medically reviewed by"** — felt like posturing. Settled on plain "Reviewed by" on state/program pages and "Verified by" on articles.
+- **Collapsed byline when author === reviewer** — `Dr. DuBose · Verified by Dr. DuBose` read as double-signature redundancy. Now shows single name via `lib/article-byline.ts::getBylineRules`.
+- **Added "Published by Olera team" explicit segment** when author is org-level — previously hidden via `showAuthorCard`, which left `[reviewer avatar] Verified by Dr. DuBose · Verified [date]` reading as "two Verifieds." Now: `Published by Olera team · Verified by Dr. DuBose · [date]`.
+- **Dropped the "Verified [date]" claim everywhere.** Our only signal was `content_articles.updated_at`, which got bulk-refreshed across all 83 articles on 2025-03-07 (CMS import or schema touch). Every article was falsely claiming "Verified Mar 7, 2025." Now shows only `published_at` naked on articles. Program pages show `lastVerifiedDate`/`reviewedAt` only when hand-curated in pipeline data (accurate). State pages: no date (no state-level verification signal exists).
+- **Migration `042_article_reviewer_fields.sql` not auto-applied** — nullable columns + scoped seed UPDATE. Preview works without it via hardcoded Dr. DuBose fallback. Apply via Supabase dashboard when happy with the look.
+
+**Pre-test catches this session:**
+- 🔴 Admin `EDITABLE_FIELDS` allowlist in `/api/admin/content/[articleId]/route.ts` didn't include `reviewer_name` / `reviewer_role` — dropdown would have silently dropped values on PATCH. Fixed before TJ tested.
+- 🟢 Unused `updatedAt` local in caregiver-support — removed.
+
+**Bonus diagnosis:**
+- Vercel mis-attributing Chantel's deploys to Logan = her git config has `chantelwright@chantels-MacBook-Air.local` as author email (macOS default when `user.email` was never set). `.local` emails don't match any Vercel team member, so fallback attribution kicks in. One-line fix on her side: `git config --global user.email <her-github-email>`.
+
+**Next up — PR 2 scope (admin editability):**
+- Add proper `reviewed_at timestamptz` column + "Mark as reviewed" button in `/admin/content/[articleId]`
+- Editable Published/Updated/Verified date inputs with smart server-side defaults (empty published_at → NOW() on publish; updated_at → NOW() on save)
+- Override `lastVerifiedDate` per program in `/admin/benefits`
+- Once shipped, reintroduce `Verified [date]` claim on articles — truthful because it'll only set when admin explicitly clicks
+
 ### 2026-04-19 — Benefits SEO day (all 4 P1s shipped)
 
 Four PRs in sequence, each unblocking the next. Entire benefits-SEO quadrant of the P1 roadmap closed.

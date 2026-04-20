@@ -15,6 +15,8 @@ const EDITABLE_FIELDS = new Set([
   "author_name",
   "author_role",
   "author_avatar",
+  "reviewer_name",
+  "reviewer_role",
   "status",
   "featured",
   "tags",

@@ -1079,7 +1079,7 @@ function ProviderOnboardingContent() {
                 Confirm your organization
               </h1>
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                {selectedOrg
+                {selectedOrg || createNewSelected
                   ? "Enter your email to continue."
                   : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>

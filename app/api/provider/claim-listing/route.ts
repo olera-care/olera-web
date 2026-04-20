@@ -20,16 +20,24 @@ function getAdminClient() {
 /**
  * POST /api/provider/claim-listing
  *
- * Claims an olera-providers listing by creating a business_profile linked to it.
- * Checks email match for auto-verification.
+ * Claims an olera-providers listing by creating a business_profile linked to it,
+ * OR creates a new listing (when isNewOrg=true).
  *
- * Request body:
+ * Request body for claiming existing listing:
  * - providerId: string (provider_id from olera-providers)
  * - providerName: string
  * - providerSlug?: string
  * - providerEmail?: string (email on file for the listing)
  * - city?: string
  * - state?: string
+ *
+ * Request body for creating new listing:
+ * - isNewOrg: true
+ * - orgName: string
+ * - city: string
+ * - state: string
+ * - phone?: string
+ * - careTypes?: string[]
  *
  * Returns:
  * - 200: { profileId: string, verificationState: string }
@@ -56,9 +64,15 @@ export async function POST(request: Request) {
       providerEmail,
       city,
       state,
+      // New org fields
+      isNewOrg,
+      orgName,
+      phone,
+      careTypes,
     } = body;
 
-    if (!providerId) {
+    // For new org creation, skip providerId requirement
+    if (!isNewOrg && !providerId) {
       return NextResponse.json({ error: "Provider ID is required" }, { status: 400 });
     }
 
@@ -79,7 +93,7 @@ export async function POST(request: Request) {
       accountId = existingAccount.id;
     } else {
       // Create account for new user
-      const displayName = providerName || user.email?.split("@")[0] || "Provider";
+      const displayName = (isNewOrg ? orgName : providerName) || user.email?.split("@")[0] || "Provider";
       const { data: newAccount, error: createAccountError } = await db
         .from("accounts")
         .insert({
@@ -97,6 +111,119 @@ export async function POST(request: Request) {
       accountId = newAccount.id;
       console.log("[claim-listing] created account for new user:", accountId);
     }
+
+    // ──────────────────────────────────────────────────────────
+    // NEW ORG CREATION FLOW (isNewOrg=true)
+    // Creates a new listing without linking to existing provider
+    // ──────────────────────────────────────────────────────────
+    if (isNewOrg) {
+      // Validation for new org
+      if (!orgName?.trim()) {
+        return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
+      }
+      if (!city?.trim() || !state?.trim()) {
+        return NextResponse.json({ error: "City and state are required" }, { status: 400 });
+      }
+
+      // Check if user already has a provider profile
+      const { data: existingOrgProfile } = await db
+        .from("business_profiles")
+        .select("id, type")
+        .eq("account_id", accountId)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingOrgProfile) {
+        if (existingOrgProfile.type !== "organization") {
+          return NextResponse.json(
+            {
+              error: "This email is already used for a different account type.",
+              code: "ACCOUNT_TYPE_MISMATCH"
+            },
+            { status: 409 }
+          );
+        }
+        // Already has a provider profile
+        return NextResponse.json(
+          {
+            error: "You already have a business profile.",
+            code: "PROFILE_EXISTS"
+          },
+          { status: 409 }
+        );
+      }
+
+      // Generate unique slug for the new profile
+      const slug = await generateUniqueSlug(db, orgName, city, state);
+
+      // Create the business_profile (no source_provider_id - self-created)
+      const { data: newProfile, error: insertErr } = await db
+        .from("business_profiles")
+        .insert({
+          account_id: accountId,
+          // No source_provider_id - this is a self-created listing
+          slug,
+          type: "organization",
+          display_name: orgName,
+          email: user.email || null,
+          phone: phone || null,
+          city: city,
+          state: state,
+          care_services: careTypes || [],
+          claim_state: "claimed",
+          verification_state: "verified",
+          source: "self_service",
+          is_active: true,
+          metadata: {},
+        })
+        .select("id")
+        .single();
+
+      if (insertErr) {
+        console.error("[claim-listing] Create new org profile error:", insertErr);
+        return NextResponse.json(
+          { error: `Failed to create listing: ${insertErr.message}` },
+          { status: 500 }
+        );
+      }
+
+      // Create membership for the new provider
+      const { data: existingMembership } = await db
+        .from("memberships")
+        .select("id")
+        .eq("account_id", accountId)
+        .limit(1);
+
+      if (!existingMembership || existingMembership.length === 0) {
+        await db.from("memberships").insert({
+          account_id: accountId,
+          plan: "free",
+          status: "free",
+        });
+      }
+
+      // Update account: mark onboarding complete + set active profile
+      await db
+        .from("accounts")
+        .update({
+          onboarding_completed: true,
+          active_profile_id: newProfile.id,
+        })
+        .eq("id", accountId);
+
+      console.log("[claim-listing] Created new org profile:", newProfile.id, "for account:", accountId);
+
+      return NextResponse.json({
+        profileId: newProfile.id,
+        verificationState: "verified",
+        isNewOrg: true,
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // EXISTING LISTING CLAIM FLOW (isNewOrg=false/undefined)
+    // ──────────────────────────────────────────────────────────
 
     // Check if this listing is already claimed (business_profile with this source_provider_id exists)
     const { data: existingClaim } = await db

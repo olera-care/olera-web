@@ -984,6 +984,63 @@ function ProviderOnboardingContent() {
     });
   }, [selectedResult, formData.city, formData.state, formData.email, openAuth]);
 
+  // Handle sign-in to create NEW organization (personal email - requires auth)
+  const handleSignInToCreateNewOrg = useCallback(() => {
+    // Validation first
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        return;
+      }
+    }
+
+    // Cache new org data for post-auth processing
+    const newOrgData = {
+      isNewOrg: true,
+      orgName: formData.orgName,
+      email: formData.email.trim().toLowerCase(),
+      city: formData.city,
+      state: formData.state,
+      phone: formData.phone || undefined,
+      careTypes: formData.careTypes,
+    };
+
+    try {
+      sessionStorage.setItem("olera_new_org_cache", JSON.stringify(newOrgData));
+    } catch {
+      console.warn("[handleSignInToCreateNewOrg] sessionStorage not available");
+    }
+
+    // Open auth modal with provider intent and deferred action
+    // Note: Using "claim-listing" action - after auth, user will be redirected to complete listing creation
+    openAuth({
+      intent: "provider",
+      providerType: "organization",
+      initialEmail: formData.email.trim(),
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
+  }, [formData, openAuth]);
+
   // ──────────────────────────────────────────────────────────
   // Screen 1: Search Form
   // ──────────────────────────────────────────────────────────
@@ -1635,63 +1692,6 @@ function ProviderOnboardingContent() {
       setActionLoading(null);
     }
   };
-
-  // Handle sign-in to create NEW organization (personal email - requires auth)
-  const handleSignInToCreateNewOrg = useCallback(() => {
-    // Validation first
-    if (!formData.orgName.trim()) {
-      setActionError("Organization name is required.");
-      return;
-    }
-    if (!formData.city.trim() || !formData.state.trim()) {
-      setActionError("City and state are required.");
-      return;
-    }
-    if (!formData.email.trim() || !formData.email.includes("@")) {
-      setActionError("A valid email is required.");
-      return;
-    }
-    if (formData.careTypes.length === 0) {
-      setActionError("Please select at least one care type.");
-      return;
-    }
-    if (formData.phone.trim()) {
-      const digitsOnly = formData.phone.replace(/\D/g, "");
-      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-        setActionError("Please enter a valid phone number (10-15 digits).");
-        return;
-      }
-    }
-
-    // Cache new org data for post-auth processing
-    const newOrgData = {
-      isNewOrg: true,
-      orgName: formData.orgName,
-      email: formData.email.trim().toLowerCase(),
-      city: formData.city,
-      state: formData.state,
-      phone: formData.phone || undefined,
-      careTypes: formData.careTypes,
-    };
-
-    try {
-      sessionStorage.setItem("olera_new_org_cache", JSON.stringify(newOrgData));
-    } catch {
-      console.warn("[handleSignInToCreateNewOrg] sessionStorage not available");
-    }
-
-    // Open auth modal with provider intent and deferred action
-    // Note: Using "claim-listing" action - after auth, user will be redirected to complete listing creation
-    openAuth({
-      intent: "provider",
-      providerType: "organization",
-      initialEmail: formData.email.trim(),
-      deferred: {
-        action: "claim-listing",
-        returnUrl: "/provider",
-      },
-    });
-  }, [formData, openAuth]);
 
   // Toggle care type selection
   const toggleCareType = (typeId: string) => {

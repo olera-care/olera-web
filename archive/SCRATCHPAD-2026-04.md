@@ -358,3 +358,131 @@ Step order was flipped mid-design: care situation first (tap = less friction tha
 - 2 in pipeline programs (programId mismatch in startHere, synthetic description=tagline hiding tagline)
 - 1 dead links (pipeline-only programs had no pages)
 
+
+---
+
+### 2026-04-17 (Session 81) — Two-table problem band-aids: org search + admin directory
+
+**Branches:** `clever-mirzakhani` (merged as PR #582), `admin-directory-union` (PR #583 open)
+
+**The big idea:** Follow up on the two-table diagnosis (TJ's 2026-04-16 Slack). Ship the first two band-aids so providers and admins can find each other while the structural unification P1 ramps up.
+
+**What shipped:**
+
+1. **PR #582 — Organization search union** (merged to staging, promoted path)
+   - Rewrote `/api/organization-search` as a true union across `olera-providers` + `business_profiles`, dedup by `source_provider_id`, claim state precedence, `Promise.allSettled` partial-failure tolerance
+   - Fixes MedJobs "Your organization" search for franchise locations (Home Instead Houston) + orphan BPs (Aggie Assisted Living)
+   - New helper: `lib/organization-search.ts`
+   - Real root cause (caught by pre-test review): `hero_image_url` column doesn't exist in `olera-providers` — every OP query was erroring silently. Effy's two prior fixes (aba9f23a, 28aefbbd) tweaked merge logic without touching the broken select
+
+2. **PR #583 — Admin directory union** (open, ready for QA)
+   - Surfaces orphan BPs in admin directory search so admins can find user-created providers (172 orphan BPs total, more than Esther's ~110 estimate)
+   - Scope locked to Option A: search-triggered union only. Browse-without-search stays OP-only. Detail/PATCH/POST unchanged (defer to unification)
+   - BP↔OP category mapping for filter + display (pre-test caught that `assisted_living` vs "Assisted Living" vocabulary mismatch would have silently broken the fix under category filter)
+   - UI: "User-created" badge (renamed from "BP-only" — internal jargon), click-through to `/provider/{slug}` new tab, Delete hidden on BP rows
+   - Bundled `/slack-notes` slash command for team updates in TJ's voice
+
+**Process improvements:**
+- `/slack-notes` slash command created and refined. First draft was too verbose (bulleted outcomes, root-cause paragraph, sign-off emoji). TJ's actual shipped Slack note was 3 sentences: name the problem, what shipped, ask for bug reports. Slash command rewritten with ✅/❌ examples from the actual PR #582 announcements.
+- Pre-test reviews caught 2 critical bugs across both PRs — both would have silently hidden the fix: hero_image_url in #582, snake_case categories in #583. Lesson: when a query returns empty, check for silently-swallowed column errors OR vocabulary mismatches before tweaking merge logic.
+- Memory `feedback_select_star_admin.md` flagged the `hero_image_url` issue months ago — reading memory at the start of #582 would have caught it before the first implementation attempt.
+
+**Design decisions (both PRs):**
+
+| Date | Decision | Rationale |
+| 2026-04-17 | Don't "mirror admin pattern" for org search (ticket's Option A) | Admin has the OPPOSITE bug (misses BP-only orphans). Mirroring would have regressed Aggie visibility. True union is the real fix. |
+| 2026-04-17 | Always set `source` field on merged results, even when collapsed | Consumer code in `/provider/onboarding/page.tsx` branches 10+ times on `source`. Preserve the enum even when BP is layered onto OP (set to "olera-providers" when OP is the display source). |
+| 2026-04-17 | Admin directory union: search-triggered only, not browse-mode | Admins always use search for specific providers. Browse mode without search is rare. Search-triggered keeps pagination simple and preserves existing fast path. |
+| 2026-04-17 | Admin directory: read-only for BP rows (no Delete/edit actions) | Full CRUD parity for BPs requires changes to PATCH endpoint, detail page UI, and navigation. Defer to structural unification P1. "User-created" badge + public-page click-through solves the "can't find" problem. |
+| 2026-04-17 | Badge label "User-created" not "BP-only" | "BP-only" is internal DB jargon. "User-created" tells the admin what's actually true — this provider signed up themselves instead of claiming a scraped listing. |
+| 2026-04-17 | Slack ship notes: problem-focused, not task- or detail-technical | TJ's voice frames ships by user problem, not code paths. 2-4 sentences, no bullets, no root-cause paragraphs. Captured in `/slack-notes` slash command. |
+
+**Companion Notion work:**
+- Filed [admin directory fix ticket](https://www.notion.so/3455903a0ffe81b49d43c73058359bbe) when exploring #582, then shipped it as #583 same day
+- PR #582 merge report logged to Product Development > PR Merge Reports
+
+**What's next:**
+1. TJ UI-tests PR #583 on Vercel preview (Aggie + Category=Assisted Living, Home Instead Houston regression)
+2. Merge #583 to staging → promote staging → main with #582 + #583 together
+3. Backfill ~110-172 orphan BPs with `source_provider_id` (separate P2 task per Esther's analysis)
+4. Structural unification of `olera-providers` + `business_profiles` (separate P1 — multi-week strangler-fig migration)
+
+### 2026-04-16 (Session 80) — Provider onboard front door: question → profile preview → reviews
+
+**Branch:** `humble-brahe` | **Merged:** PRs #568-575 → staging
+
+**The big idea:** Questions are the front door for providers. A provider who responds to a question on the onboard page should immediately see what their public profile looks like — creating ownership and revealing the reviews gap naturally.
+
+**What shipped (8 PRs merged to staging):**
+
+1. **PR #568 — Inline Q&A response.** Providers respond to questions directly on the onboard page without navigating to /provider/qna. Textarea + "Send Response" in the notification card. Retry-on-401 for the background auth race condition.
+
+2. **PR #569 — Single-card post-response CTA.** After responding, success state flows into "Get your first review" CTA inside the same card. No visual gap, no separate toolkit section to scroll past. "or browse caregiver candidates →" as quiet text link.
+
+3. **PR #570 — Tailwind fix.** `w-4.5` is not a valid Tailwind class. Changed to `w-5`.
+
+4. **PR #572 — 429 retry.** Vercel rate limits during rapid testing caused "Failed to send response." Added 429 to retry logic alongside 401.
+
+5. **PR #574 — Dissolve + Google reviews.** After responding, mascot header + question text dissolve. Reviews section shows real Google stars + count when available, falls back to empty stars for providers without reviews.
+
+6. **PR #575 — Profile preview always visible.** The profile preview (provider identity + Q&A + reviews gap) now renders in BOTH pre- and post-response states. Before answering: shows "1 unanswered question · 0 reviews" + provider identity + "Families searching for senior care in {city} can find this page." After answering: dissolves header, shows Q&A preview + reviews CTA. PlatformShowcase toolkit hidden for notification entries.
+
+**Also in this session (planning, no code):**
+- Thorough senior benefits architectural review (structure, SEO, scaling risks)
+- Reviewed marketer's Breadcrumb Structure doc (11 pages) — adopted category layer + subpages with refinements
+- Reviewed 2026-04-15 product dev meeting + Esther's PRs #547/#548
+- Created 15 Notion tickets on Web App Action Items/Roadmap board (11 benefits scaling + 2 provider front door + 1 suspicious sign-ins + 1 reviews messaging)
+
+**Bugs fixed during testing:**
+- `.single()` crash in PATCH /api/provider/questions when account has multiple org profiles (detached archived profiles)
+- VPN triggering Vercel Attack Challenge Mode (429 on entire domain) — not a code bug, resolved by disabling VPN
+- `tfalohun@gmail.com` account cluttered with test profiles causing wrong provider name on sign-in — cleaned up, display_name → "TJ"
+
+**Files changed:**
+- `components/provider-onboarding/ActionCard.tsx` — InlineQuestionResponse, ProfilePreviewCard, dissolve logic, Google reviews
+- `components/provider-onboarding/SmartDashboardShell.tsx` — hide PlatformShowcase for notification entries
+- `components/provider-onboarding/PlatformShowcase.tsx` — copy updates ("Your Olera toolkit", outcome-oriented subtext)
+
+**Design decisions:**
+
+| Date | Decision | Rationale |
+| 2026-04-16 | Inline response replaces "View and answer" redirect | Provider came to answer a question. Let them do it where they land. Same API, no context switch. |
+| 2026-04-16 | Don't show activity stats for low-traffic providers | 65K+ providers have <10 views/month. Showing small numbers destroys trust. Anchor to the specific moment instead. |
+| 2026-04-16 | Single-card CTA, not separate toolkit section | Momentum dies in visual gaps. One primary CTA inside the card preserves post-action energy. |
+| 2026-04-16 | "Get your first review" not "Get more reviews" | "More" assumes they have some. "First" meets them where they are. |
+| 2026-04-16 | Profile preview as the conversion bridge (mirror concept) | Showing a mirror of their public presence creates ownership. Empty reviews next to populated Q&A creates visual tension more motivating than any copy. |
+| 2026-04-16 | Show profile preview BEFORE answering too | Non-answerers (50%+) need trust and awareness. Seeing their own business on Olera creates "you exist here whether you know it or not." |
+| 2026-04-16 | Hide PlatformShowcase for notification entries, let the page end | Perena/Wispr principle: treat empty space as confidence, not waste. The profile preview does the conversion work; adding toolkit below dilutes it. |
+| 2026-04-16 | Show real Google reviews when available | Static "No reviews yet" is dishonest for providers with Google reviews. Two states: has reviews → amber stars + count + "Get more reviews"; no reviews → gray stars + gap + "Get your first review." |
+
+**What's next:**
+1. Test the full flow on staging (VPN off) — pre-response profile preview + response + post-response dissolve + reviews CTA
+2. Reviews landing page messaging (Notion ticket): answer "why Olera vs Google?", 3-step how-it-works, integrated suite framing
+3. Benefits scaling roadmap: partition pipeline-drafts.ts → state-suffixed names → noindex legacy → category pages
+
+### 2026-04-03 (Session 66) — Browse Card Image Fallback Fix + R2 Migration Plan
+
+**Branch:** `humble-euler` | **PR #475 merged to staging**
+
+**Root Cause Investigation:**
+- Provider images on browse pages flickering/broken — traced to `cdn-api.olera.care` CloudFront distribution being dead (DNS resolves to CNAME but CloudFront returns 0 A records)
+- ALL ~35K provider image URLs in DB point to this dead CDN
+- Some images still appeared to work due to Vercel `/_next/image` cache — ticking clock as caches expire
+- `BrowseCard.tsx` had broken fallback: `imgFailed` → logo mode (same broken URL) instead of placeholder
+
+**Fix (Move 1):**
+- `components/browse/BrowseCard.tsx`: `imgFailed` now triggers `showPlaceholder` directly instead of `showAsLogo`
+- `app/browse/BrowsePageClient.tsx`: Added `imgFailed` state + `onError` handlers (had none before)
+- Verified: `ProviderCard.tsx` and `ProviderHeroGallery.tsx` already had correct error handling
+- Staging verified: broken cards now show initials + category on gradient, no flickering
+
+**Move 2 (R2 Image Migration):**
+- Script: `scripts/migrate-images-to-r2.mjs` — installed `@aws-sdk/client-s3` as devDep
+- Optimizations: 20 concurrent workers (global rate limiter at ~30 QPS), direct photo download (follow redirect instead of 2-step), landscape-first photo ranking from API metadata
+- Test batch (10 providers): 17 photos → R2, 9 DB updates, 0 errors, all images 200 OK
+- Full migration: 72 min, 41,202 photos uploaded, 21,997 DB updated, 0 errors, 7,380 no photos
+- Notion backlog: custom domain `images.olera.care` for R2 bucket
+- **Next: run `classify-provider-images.mjs` for hero selection**
+
+**Key discovery:** `hero_image_url` column doesn't exist in production DB (TypeScript type has it but DB doesn't). Classification script would need the column created first.
+

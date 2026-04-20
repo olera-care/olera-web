@@ -56,9 +56,14 @@ export default function HeroSection() {
     }
 
     // Navigate directly to onboarding (auth moved to end of flow)
-    const targetUrl = (user && hasProviderProfile)
+    const baseUrl = (user && hasProviderProfile)
       ? "/provider/onboarding?adding=true"
       : "/provider/onboarding";
+
+    // Add returnTo param so Exit button returns here
+    const targetUrl = baseUrl.includes("?")
+      ? `${baseUrl}&returnTo=/for-providers`
+      : `${baseUrl}?returnTo=/for-providers`;
 
     router.push(targetUrl);
   };

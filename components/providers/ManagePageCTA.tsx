@@ -127,7 +127,8 @@ export default function ManagePageCTA({
   // User already knows which org they're claiming, so pre-fill it
   const handleClaimClick = useCallback(() => {
     setOpen(false);
-    router.push(`/provider/onboarding?org=${providerSlug}`);
+    // Add returnTo param so Exit button returns to this provider's page
+    router.push(`/provider/onboarding?org=${providerSlug}&returnTo=/providers/${providerSlug}`);
   }, [router, providerSlug]);
 
   // Dispute flow: go to dispute page

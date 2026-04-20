@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback, useEffect, Component, type ReactNode } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo, Component, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -258,56 +258,17 @@ function ProviderOnboardingContent() {
     otpSentForScreen.current = null;
   }, []);
 
-  // Exit URL - store referrer on initial load so Exit takes user back to where they came from
-  const [exitUrl, setExitUrl] = useState("/");
-
-  // Capture referrer on initial mount (before any internal navigation)
-  useEffect(() => {
-    const storageKey = "olera_onboarding_exit_url";
-
-    // Check if we already have a stored exit URL (user might be navigating within onboarding)
-    const storedUrl = sessionStorage.getItem(storageKey);
-    if (storedUrl) {
-      setExitUrl(storedUrl);
-      return;
+  // Exit URL - read from ?returnTo param, fallback to /for-providers
+  const exitUrl = useMemo(() => {
+    const returnTo = searchParams.get("returnTo");
+    if (returnTo && returnTo.startsWith("/")) {
+      // Only allow relative paths (no external URLs)
+      return returnTo;
     }
-
-    // First visit - capture the referrer
-    const referrer = document.referrer;
-    if (referrer) {
-      try {
-        const referrerUrl = new URL(referrer);
-        const currentUrl = new URL(window.location.href);
-
-        // Only use referrer if it's from our own domain (not external)
-        if (referrerUrl.origin === currentUrl.origin) {
-          // Don't use the onboarding page itself as exit URL
-          if (!referrerUrl.pathname.startsWith("/provider/onboarding")) {
-            sessionStorage.setItem(storageKey, referrerUrl.pathname);
-            setExitUrl(referrerUrl.pathname);
-            return;
-          }
-        }
-      } catch {
-        // Invalid URL, use default
-      }
-    }
-
-    // Fallback: store default
-    sessionStorage.setItem(storageKey, "/");
-  }, []);
-
-  // Clean up exit URL when leaving the onboarding flow
-  useEffect(() => {
-    return () => {
-      // Only clear if we're actually leaving (not just re-rendering)
-      // This will be called on unmount
-    };
-  }, []);
+    return "/for-providers";
+  }, [searchParams]);
 
   const handleExit = useCallback(() => {
-    // Clear the stored exit URL since user is intentionally leaving
-    sessionStorage.removeItem("olera_onboarding_exit_url");
     router.push(exitUrl);
   }, [exitUrl, router]);
 

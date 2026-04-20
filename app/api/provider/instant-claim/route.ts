@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     // ─── Check if listing is already claimed or has pending claim ───
     const { data: existingProfile } = await supabaseAdmin
       .from("business_profiles")
-      .select("id, account_id, claim_state, email, city, state")
+      .select("id, account_id, claim_state, email, city, state, slug")
       .eq("source_provider_id", actualSourceProviderId)
       .maybeSingle();
 
@@ -345,22 +345,29 @@ export async function POST(request: Request) {
     }
 
     // ─── Trust scoring ───
-    // Fetch provider website for domain extraction
+    // Fetch actual provider data from olera-providers for trust scoring
+    // IMPORTANT: Use the actual provider name from DB, not client-sent name (security)
     let providerWebsite: string | null = null;
+    let actualProviderName: string = displayName; // fallback to client-sent
     const { data: oleraProvider } = await supabaseAdmin
       .from("olera-providers")
-      .select("website")
+      .select("website, provider_name")
       .eq("provider_id", actualSourceProviderId)
       .maybeSingle();
-    if (oleraProvider?.website) {
-      providerWebsite = oleraProvider.website;
+    if (oleraProvider) {
+      providerWebsite = oleraProvider.website || null;
+      actualProviderName = oleraProvider.provider_name || displayName;
     }
+
+    // Determine the correct slug for provider_activity
+    // Use existing profile's slug if updating, otherwise use newly created slug
+    const profileSlug = existingProfile?.slug || slug;
 
     let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
     try {
       trustResult = await scoreClaimTrust({
         email: normalizedEmail,
-        providerName: displayName,
+        providerName: actualProviderName, // Use actual name from DB, not client-sent
         providerCity: city || null,
         providerState: state || null,
         providerDomain: extractDomainFromWebsite(providerWebsite),
@@ -383,7 +390,7 @@ export async function POST(request: Request) {
       const { data: existingAlert } = await supabaseAdmin
         .from("provider_activity")
         .select("id")
-        .eq("provider_id", slug)
+        .eq("provider_id", profileSlug)
         .eq("event_type", "suspicious_claim")
         .gte("created_at", oneDayAgo)
         .contains("metadata", { email: normalizedEmail, trust_level: "low" })
@@ -393,7 +400,7 @@ export async function POST(request: Request) {
       if (!existingAlert) {
         // Log to provider_activity for admin visibility
         await supabaseAdmin.from("provider_activity").insert({
-          provider_id: slug,
+          provider_id: profileSlug,
           event_type: "suspicious_claim",
           metadata: {
             email: normalizedEmail,
@@ -406,8 +413,8 @@ export async function POST(request: Request) {
         // Fire Slack alert
         try {
           const alert = slackSuspiciousClaim({
-            providerName: displayName,
-            providerSlug: slug,
+            providerName: actualProviderName,
+            providerSlug: profileSlug,
             claimedByEmail: normalizedEmail,
             trustLevel: trustResult.level,
             trustReason: trustResult.reason,

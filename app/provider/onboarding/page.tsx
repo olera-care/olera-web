@@ -1679,12 +1679,13 @@ function ProviderOnboardingContent() {
     }
 
     // Open auth modal with provider intent and deferred action
+    // Note: Using "claim-listing" action - after auth, user will be redirected to complete listing creation
     openAuth({
       intent: "provider",
       providerType: "organization",
       initialEmail: formData.email.trim(),
       deferred: {
-        action: "create-new-org",
+        action: "claim-listing",
         returnUrl: "/provider",
       },
     });

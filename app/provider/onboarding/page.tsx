@@ -1388,6 +1388,9 @@ function ProviderOnboardingContent() {
                   />
                 </div>
                 <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification code to this email</p>
+                <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
+                  Using your business email (e.g., you@yourcompany.com) speeds up verification.
+                </ReactiveHint>
                 {/* Warning: logged-in user with family/caregiver account using same email */}
                 {user &&
                  formData.email.trim().toLowerCase() === user.email?.toLowerCase() &&

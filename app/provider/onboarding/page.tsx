@@ -303,6 +303,28 @@ function ProviderOnboardingContent() {
     setOtpError("");
 
     try {
+      // 1. Check if email is already used for a different account type
+      const checkRes = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, intendedType: "organization" }),
+      });
+
+      const checkResult = await checkRes.json();
+
+      if (!checkResult.available) {
+        if (checkResult.alreadyHasProfile) {
+          setOtpError("This email is already associated with a provider account. Please sign in instead.");
+        } else {
+          setOtpError(
+            `This email is linked to a ${checkResult.existingType} account. Please use a different email for your provider account.`
+          );
+        }
+        setOtpSending(false);
+        return;
+      }
+
+      // 2. Send OTP
       const authClient = createAuthClient();
       const { error } = await authClient.auth.signInWithOtp({
         email,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect, Component, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +13,57 @@ import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
 // Note: We don't import the full Provider type - search only selects specific columns
 // to avoid JSONB fields that can cause React rendering errors
 import { useAuth } from "@/components/auth/AuthProvider";
+
+// Error boundary to catch and display rendering errors
+class OnboardingErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("[OnboardingErrorBoundary] Caught error:", error);
+    console.error("[OnboardingErrorBoundary] Component stack:", errorInfo.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8] p-4">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-gray-500 mb-4 text-sm">
+              {this.state.error?.message || "An unexpected error occurred"}
+            </p>
+            <pre className="text-left text-xs bg-gray-100 p-3 rounded-lg overflow-auto max-h-40 mb-4 text-red-600">
+              {this.state.error?.stack?.slice(0, 500)}
+            </pre>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors"
+            >
+              Reload page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // ============================================================
 // Types
@@ -172,13 +223,15 @@ const EMPTY_FORM: FormData = {
 
 export default function ProviderOnboardingPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
-      <ProviderOnboardingContent />
-    </Suspense>
+    <OnboardingErrorBoundary>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
+        <ProviderOnboardingContent />
+      </Suspense>
+    </OnboardingErrorBoundary>
   );
 }
 
@@ -412,7 +465,19 @@ function ProviderOnboardingContent() {
 
       // New format: selectedOrg from OrganizationSearch
       if (parsed.selectedOrg) {
-        const org = parsed.selectedOrg;
+        // Defensive: sanitize all fields to prevent React Error #310
+        // SessionStorage data might have unexpected object types from API
+        const org: SelectedOrg = {
+          name: String(parsed.selectedOrg.name || ""),
+          slug: String(parsed.selectedOrg.slug || ""),
+          city: parsed.selectedOrg.city ? String(parsed.selectedOrg.city) : null,
+          state: parsed.selectedOrg.state ? String(parsed.selectedOrg.state) : null,
+          email: parsed.selectedOrg.email ? String(parsed.selectedOrg.email) : null,
+          claimState: parsed.selectedOrg.claimState || null,
+          source: parsed.selectedOrg.source || "olera-providers",
+          providerId: parsed.selectedOrg.providerId ? String(parsed.selectedOrg.providerId) : undefined,
+          imageUrl: parsed.selectedOrg.imageUrl ? String(parsed.selectedOrg.imageUrl) : null,
+        };
         setSelectedOrg(org);
         setFormData(prev => ({
           ...prev,
@@ -622,30 +687,40 @@ function ProviderOnboardingContent() {
       const emailMatch = selectedOrg.email?.toLowerCase() === normalizedEmail;
       const isClaimed = selectedOrg.claimState === "claimed";
 
+      // Defensive: ensure all fields are proper primitives to prevent React Error #310
+      // Data from sessionStorage/API might have unexpected object types
+      const safeProviderId = String(selectedOrg.providerId || selectedOrg.slug || "");
+      const safeName = String(selectedOrg.name || "");
+      const safeSlug = String(selectedOrg.slug || "");
+      const safeCity = selectedOrg.city ? String(selectedOrg.city) : null;
+      const safeState = selectedOrg.state ? String(selectedOrg.state) : null;
+      const safeEmail = selectedOrg.email ? String(selectedOrg.email) : null;
+      const safeImageUrl = selectedOrg.imageUrl ? String(selectedOrg.imageUrl) : null;
+
       // Create a search result from the selected org
       const result: SearchResult = selectedOrg.source === "olera-providers"
         ? {
-            provider_id: selectedOrg.providerId || selectedOrg.slug,
-            provider_name: selectedOrg.name,
-            slug: selectedOrg.slug,
-            city: selectedOrg.city,
-            state: selectedOrg.state,
-            email: selectedOrg.email,
-            provider_images: selectedOrg.imageUrl || undefined, // For getProviderImage()
+            provider_id: safeProviderId,
+            provider_name: safeName,
+            slug: safeSlug,
+            city: safeCity,
+            state: safeState,
+            email: safeEmail,
+            provider_images: safeImageUrl || undefined, // For getProviderImage()
             _source: "olera-providers" as const,
             _claimed: isClaimed,
             _emailMatch: emailMatch,
           } as ProviderMatch
         : {
-            id: selectedOrg.providerId || selectedOrg.slug,
-            display_name: selectedOrg.name,
-            slug: selectedOrg.slug,
-            city: selectedOrg.city,
-            state: selectedOrg.state,
-            email: selectedOrg.email,
-            image_url: selectedOrg.imageUrl || null,
+            id: safeProviderId,
+            display_name: safeName,
+            slug: safeSlug,
+            city: safeCity,
+            state: safeState,
+            email: safeEmail,
+            image_url: safeImageUrl,
             account_id: isClaimed ? "claimed" : null, // Simplified - just need to know if claimed
-            source_provider_id: selectedOrg.providerId || null,
+            source_provider_id: safeProviderId || null,
             claim_state: selectedOrg.claimState,
             _source: "business_profiles" as const,
             _claimed: isClaimed,

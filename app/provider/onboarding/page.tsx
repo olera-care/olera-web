@@ -882,18 +882,12 @@ function ProviderOnboardingContent() {
             {/* Header - changes based on state */}
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                {createNewSelected
-                  ? "Create your listing"
-                  : selectedOrg
-                    ? "Confirm your organization"
-                    : "Find your organization"}
+                Confirm your organization
               </h1>
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                {createNewSelected
-                  ? "Enter your details to continue."
-                  : selectedOrg
-                    ? "Enter your email to continue."
-                    : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
+                {selectedOrg
+                  ? "Enter your email to continue."
+                  : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>
             </div>
 
@@ -1108,7 +1102,7 @@ function ProviderOnboardingContent() {
                     Searching...
                   </>
                 ) : (
-                  selectedOrg || createNewSelected ? "Continue" : "Find Your Organization"
+                  "Continue"
                 )}
               </button>
             </form>

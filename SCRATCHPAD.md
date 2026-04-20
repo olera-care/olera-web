@@ -7,6 +7,117 @@
 
 ## Current Focus
 
+### 2026-04-20 (evening) — Benefits review workflow operational + 3 FL programs shipped
+
+**End-of-day state. Post-compact continuation notes at the bottom.**
+
+**5 PRs merged to staging today (in order):**
+- **#602** FL SNAP remediation + Notion-based review workflow introduced (`335f9a8a`)
+- **#605** FL Weatherization (WAP) remediation (`f1dcc31b`)
+- **#606** Removed "Check if you qualify" widget globally (`37a6895d`)
+- **#607** System-wide "your parent" → "your loved one" framing sweep, ~7,900 replacements across 51 states + waiver-library (`9a65c34e`)
+- **#608** FL SMMC-LTC remediation + TJ attribution (`5c01f15d`)
+
+Staging head: `5c01f15d`.
+
+### Benefits review workflow — NOW OPERATIONAL
+
+Pivoted from the original state-row queue model to two program-level queues. Admin dashboard demoted to read-only auditor's viewer; reviewers compose findings in Notion Audit Results pages.
+
+**Notion DBs (IDs load-bearing for post-compact resume):**
+- **Program Review Queue** — `https://www.notion.so/fb03b87a9918460086ae728ee879b9e2` — data source ID `035ff597-d5ff-4813-b744-6f717e77dbe0`
+  - 14 FL program rows seeded (FL SNAP/WAP/SMMC-LTC = Approved; 11 others open)
+  - 50 other states NOT seeded yet (decision: seed JIT as TJ begins auditing each state)
+  - Columns: Program · State · Program Type · Severity · High-Sev/Total Flags · Flagged Fields · Reviewer · Status · 5 checkboxes (Numbers/Phones/URLs/Tone/FAQ fact-checked) · Live Page · Admin · Source URL · Program ID
+  - Row titles always prefixed with state: `FL — SNAP (Supplemental Nutrition Assistance Program)`
+- **State Overview Review Queue** — `https://www.notion.so/5c2c64faee88488eac7d04e620891f42` — data source ID `746f7dd0-edde-4e47-b342-24287aac7c03`
+  - All 51 states seeded (TX pre-marked Approved — Chantel's March review)
+  - 6 checkboxes (Overview copy / Start-here / ByNeed / Quick facts / Cross-program consistency / Tone)
+- **Process Guide** — `https://www.notion.so/3475903a0ffe81d0a4ddecf27a6a3fae` — updated to reflect new workflow
+- **Old Tier 1 Queue** — renamed to "Benefits QA — Tier 1 Review Queue (LEGACY)" with description pointing to new queues
+- **PR Merge Reports parent** — `3135903a-0ffe-81e1-bee6-c3cdabd61965` (publish reports here after every merge)
+
+**Reviewer attribution (critical):**
+- `data/benefits-verifiers.ts` — per-program `PROGRAM_VERIFIERS` registry. After each audit, add `"fl:program-id": { slug: "tj-falohun", reviewedAt: "YYYY-MM-DD" }` to surface "Reviewed by TJ Falohun" byline instead of default Dr. DuBose.
+- Currently attributed to TJ: `fl:snap-food-benefits`, `fl:weatherization-assistance-program`, `fl:smmc-ltc-hcbs-waivers`
+- `getProgramVerifier()` reads this; UI renders in `ProgramPageV3.tsx` byline.
+
+### FL audit progress
+
+| Program | Status | Notion row |
+|---------|--------|-----------|
+| SNAP | Approved (PR #602) | `3485903a-0ffe-81de-afe2-c1011ca8dea2` |
+| Weatherization | Approved (PR #605) | `3485903a-0ffe-816a-a538-c95fdc8f4870` |
+| SMMC-LTC | Approved (PR #608) | `3485903a-0ffe-8143-9de2-e471b25af74b` |
+| SMMC-LTC Medicare Savings | Not Started | `3485903a-0ffe-81b7-b512-c5fc816d7c9d` |
+| PACE | Not Started | `3485903a-0ffe-8177-b56c-e70577ec587d` |
+| LIHEAP | Not Started | `3485903a-0ffe-8107-93a9-d9ec605960a8` |
+| SHINE | Not Started | `3485903a-0ffe-8142-ab97-de2f71a95bb0` |
+| Meals on Wheels | Not Started | `3485903a-0ffe-8161-96d9-cde3df46f57a` |
+| ADI Respite | Not Started | `3485903a-0ffe-8185-bd07-ebc30441a576` |
+| SCSEP | Not Started | `3485903a-0ffe-81cd-b465-c4ad4fb0ab73` |
+| Legal Aid | Not Started | `3485903a-0ffe-8100-a74d-c6823abf64c5` |
+| HCE | Not Started | `3485903a-0ffe-8179-b2f4-ee51aee6ace9` |
+| CCE (phone flag) | Not Started | `3485903a-0ffe-815f-8bcd-ec210e84a2bf` |
+| Elder Options | Not Started | `3485903a-0ffe-811f-ba4d-fd023994e0a7` |
+
+### Workflow conventions locked in this session
+
+- **Audit flow:** TJ audits live page against pre-verified facts I stage in the Notion row → logs findings in Audit Results H2 with issue-type subsections (Numbers / Links / Phone / Copy / Structure / FAQs) → I process into drafts.json → regen drafts.ts → PR → /pr-merge → publish Notion report to PR Merge Reports
+- **Pre-verification pattern:** before TJ audits, I pull .gov sources and pre-populate "Pre-verified facts" section at top of each Notion row with income/asset/age/phone/URL/agency data as ground truth
+- **Copy rules TJ has flagged:**
+  - "What your parent can keep" → "What doesn't count" (GLOBAL, done in #602)
+  - "your parent" → "your loved one" (GLOBAL, done in #607 — ~7,900 replacements)
+  - **Em dashes are AI-tell, should be removed** (flagged #608 on SMMC-LTC; NOT yet swept globally)
+- **Audience framing:** works for adult children, spouses, siblings, self-applicants, friends. Default to "loved one" unless describing a specific relationship role.
+
+### IMMEDIATE NEXT UP — em-dash sweep (pending compact)
+
+**Scope:** Remove em dashes (`—` U+2014) across all benefits content. System-wide sweep analogous to PR #607's "loved one" sweep.
+
+**Files to sweep:**
+- `data/pipeline/*/drafts.json` (51 files)
+- `data/waiver-library.ts`
+- Regenerate drafts.ts via `node scripts/benefits-pipeline.js --regen-index`
+
+**Replacement strategy (from my analysis, TJ hasn't explicitly specified):**
+- `X — Y` → `X, Y` (most common; works in most contexts)
+- `X — Y.` → `X. Y.` (restructure to period when — introduces independent clause)
+- Use judgment per context: comma, colon, period, or restructure
+
+**Cautions:**
+- Em dashes inside legitimate program names / proper nouns should stay (rare but possible)
+- Some em dashes legitimately punctuate parenthetical asides — decide per occurrence (probably keep as `,` wrap)
+
+**Branch name:** `chore/em-dash-sweep`
+**Approach:** sed-based sweep like #607, validate JSON, regen, typecheck, PR
+
+### After em-dash sweep — continuing FL audits
+
+TJ's auditing pattern:
+1. Pick next FL program (suggest by traffic/severity — CCE has phone flag so touch it; otherwise PACE or MSP as next high-traffic programs)
+2. I pre-verify .gov sources → stage in Notion row
+3. TJ audits, logs findings
+4. I process, PR, merge, Notion report
+
+**After FL is done:** Tier 1 priority queue per Process Guide — OH HEAP (70% income error — worst single flag in queue) → IN → NC → NY. These 4 states need Program Review Queue rows seeded JIT when TJ's ready.
+
+### Other open items
+
+- **Admin dashboard counter gap** (non-blocking): admin/benefits state cards count `pipeline-draft` vs `approved/published`, but programs in `under-review` status fall through both counts. Per-program badge still renders correctly. Separate follow-up ticket if worth fixing.
+- **CTA Link buttons** elsewhere saying "Check if you qualify" (in shadow routes, ChecklistClient) still exist — PR #606 only removed the inline widget. TJ aware; separate decision if he wants those killed too.
+
+### Post-compact resume instructions
+
+If starting fresh post-compact, the key handoff points:
+1. **Context doc:** this SCRATCHPAD entry is the authoritative state
+2. **Next action:** em-dash sweep (branch `chore/em-dash-sweep` not yet created)
+3. **Branch convention:** off `origin/staging`, PR back to `staging`, merge with `--admin` flag
+4. **Worktree:** `/Users/tfalohun/.claude-worktrees/olera-web/sparky-bohr` (sparky-bohr branch merged but worktree persists)
+5. **Admin bypass pattern:** `gh pr merge <N> --merge --delete-branch --admin` — local checkout step fails because staging worktree is at `/speedy-jemison`, but server-side merge succeeds
+
+---
+
 ### 2026-04-20 (afternoon) — PR #603 reviewed_at merged to staging ✅
 
 Delivered the PR 2 scope promised in #601. Now live on staging at commit `5ff8d2a4`.

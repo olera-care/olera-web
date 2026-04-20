@@ -9,7 +9,7 @@
       "id": "medi-cal-medicare-savings-programs",
       "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "California pays your parent's Medicare premiums and out-of-pocket costs if their income is under $1,762/month",
+      "tagline": "California pays your loved one's Medicare premiums and out-of-pocket costs if their income is under $1,762/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,305/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,762/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your parent's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your parent won't get surprise medical bills — providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
+      "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,305/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,762/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills — providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
       "savingsRange": "$1,200 – $4,000/year",
       "savingsSource": "Medicare Part B premiums plus potential deductibles and copays",
       "savingsVerified": false,
@@ -168,36 +168,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house worth $300,000 and still qualify?",
+          "question": "Can my loved one keep their house worth $300,000 and still qualify?",
           "answer": "Yes. California allows up to $130,000 in countable assets for singles ($195,000 for couples), and your primary home doesn't count toward this limit regardless of value. Most personal belongings, one car, and burial plots are also exempt."
         },
         {
-          "question": "What if my parent is already on regular Medi-Cal?",
+          "question": "What if my loved one is already on regular Medi-Cal?",
           "answer": "They should still apply for Medicare Savings Programs. These programs specifically pay Medicare premiums and cost-sharing that regular Medi-Cal may not cover. You can have both programs simultaneously."
         },
         {
           "question": "What happens if the QI program runs out of money?",
-          "answer": "QI is funded by a limited federal block grant that can be exhausted. If denied due to lack of funds, reapply when the next federal fiscal year begins (October 1st). Consider SLMB as an alternative if your parent's income qualifies."
+          "answer": "QI is funded by a limited federal block grant that can be exhausted. If denied due to lack of funds, reapply when the next federal fiscal year begins (October 1st). Consider SLMB as an alternative if your loved one's income qualifies."
         },
         {
-          "question": "Does my parent need to be enrolled in Medicare Part B before applying?",
-          "answer": "Yes, Medicare Part B enrollment is required before you can apply. If your parent only has Part A, they need to enroll in Part B first through Social Security or Medicare.gov. QMB recipients get automatically enrolled in Part A as of 2025."
+          "question": "Does my loved one need to be enrolled in Medicare Part B before applying?",
+          "answer": "Yes, Medicare Part B enrollment is required before you can apply. If your loved one only has Part A, they need to enroll in Part B first through Social Security or Medicare.gov. QMB recipients get automatically enrolled in Part A as of 2025."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can apply as authorized representatives. You'll need to complete additional authorization forms with your county social services office and may need legal documentation depending on your parent's capacity."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can apply as authorized representatives. You'll need to complete additional authorization forms with your county social services office and may need legal documentation depending on your loved one's capacity."
         },
         {
           "question": "How far back can benefits be applied?",
           "answer": "QMB has no retroactive coverage — benefits start the first day of the month you're approved. SLMB and QI can be backdated up to 3 months if you were eligible during that period."
         },
         {
-          "question": "What if a doctor tries to bill my parent for Medicare copays?",
+          "question": "What if a doctor tries to bill my loved one for Medicare copays?",
           "answer": "Providers cannot legally bill QMB recipients for Medicare deductibles, copays, or coinsurance. If this happens, contact your county Medi-Cal office immediately. To prevent issues, choose providers who accept Medi-Cal patients."
         },
         {
           "question": "Do these programs affect Medicare Advantage or Medigap plans?",
-          "answer": "If your parent has QMB, they don't need Medigap since all Medicare costs are covered. They can still have Medicare Advantage, and the program will cover any Medicare-approved cost-sharing. SLMB and QI recipients may still benefit from Medigap for costs not covered by Medicare Savings Programs."
+          "answer": "If your loved one has QMB, they don't need Medigap since all Medicare costs are covered. They can still have Medicare Advantage, and the program will cover any Medicare-approved cost-sharing. SLMB and QI recipients may still benefit from Medigap for costs not covered by Medicare Savings Programs."
         }
       ],
       "layoutIntent": {
@@ -218,7 +218,7 @@
       "id": "mssp-waiver",
       "name": "Multipurpose Senior Services Program Waiver (MSSP)",
       "shortName": "MSSP Waiver",
-      "tagline": "If your parent needs daily care but wants to stay home, this California program provides nursing oversight, personal care, meals, and other services to avoid nursing home placement.",
+      "tagline": "If your loved one needs daily care but wants to stay home, this California program provides nursing oversight, personal care, meals, and other services to avoid nursing home placement.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -235,7 +235,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with daily activities like bathing, dressing, or medication management, California's MSSP Waiver can provide comprehensive home care services to help them avoid nursing home placement. The program combines nursing oversight, personal care assistance, home-delivered meals, adult day care, and transportation — all coordinated by one care team.\n\nYour parent must already qualify for Medi-Cal and pass a clinical assessment showing they need nursing facility-level care. Because MSSP serves only specific counties and has limited slots (11,940 statewide per year), eligibility doesn't guarantee enrollment. Services are tailored to each person's needs but must cost less than nursing home care to qualify.",
+      "intro": "If your loved one is 60+ and needs help with daily activities like bathing, dressing, or medication management, California's MSSP Waiver can provide comprehensive home care services to help them avoid nursing home placement. The program combines nursing oversight, personal care assistance, home-delivered meals, adult day care, and transportation — all coordinated by one care team.\n\nYour loved one must already qualify for Medi-Cal and pass a clinical assessment showing they need nursing facility-level care. Because MSSP serves only specific counties and has limited slots (11,940 statewide per year), eligibility doesn't guarantee enrollment. Services are tailored to each person's needs but must cost less than nursing home care to qualify.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -266,7 +266,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment by a registered nurse determining whether your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment by a registered nurse determining whether your loved one needs daily help with activities like bathing, dressing, eating, or medication management)",
         "otherRequirements": [
           "Must live in a county with an MSSP provider",
           "Cannot be enrolled in another HCBS waiver program",
@@ -282,17 +282,17 @@
           {
             "step": 1,
             "title": "Find your local MSSP provider",
-            "description": "MSSP is only available in certain counties. Contact the California Department of Aging or search their website to find if your parent's county has an MSSP provider and get their direct contact information."
+            "description": "MSSP is only available in certain counties. Contact the California Department of Aging or search their website to find if your loved one's county has an MSSP provider and get their direct contact information."
           },
           {
             "step": 2,
             "title": "Contact the local provider for screening",
-            "description": "Call your county's MSSP site directly to discuss your parent's situation and schedule an initial eligibility screening. They will verify Medi-Cal coverage and assess basic needs."
+            "description": "Call your county's MSSP site directly to discuss your loved one's situation and schedule an initial eligibility screening. They will verify Medi-Cal coverage and assess basic needs."
           },
           {
             "step": 3,
             "title": "Schedule nurse assessment",
-            "description": "If initially eligible, a registered nurse will visit your parent's home to complete the MSSP Level of Care Certification Form, evaluating their ability to perform daily activities and need for services."
+            "description": "If initially eligible, a registered nurse will visit your loved one's home to complete the MSSP Level of Care Certification Form, evaluating their ability to perform daily activities and need for services."
           },
           {
             "step": 4,
@@ -302,7 +302,7 @@
         ],
         "processingTime": null,
         "waitlist": "Limited to 11,940 slots statewide per year — eligible applicants may face waitlists even if they meet all requirements",
-        "tip": "Start the process before your parent's needs become urgent, as waitlists are common and the nurse assessment takes time to schedule.",
+        "tip": "Start the process before your loved one's needs become urgent, as waitlists are common and the nurse assessment takes time to schedule.",
         "urls": [
           {
             "label": "DHCS MSSP Information",
@@ -343,9 +343,9 @@
       ],
       "applicationNotes": [
         "Not all California counties have MSSP providers — Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, and Yuba are served by California Health Collaborative, while Los Angeles and Ventura have different arrangements",
-        "The nurse assessment is comprehensive and may take 2-3 hours — prepare a quiet space and have your parent's medications and medical records readily available",
-        "If your parent's proposed care plan would cost more than nursing home placement, they won't qualify regardless of their functional needs",
-        "Slots are limited and not guaranteed — even if your parent meets all eligibility requirements, they may be placed on a waitlist until capacity opens up"
+        "The nurse assessment is comprehensive and may take 2-3 hours — prepare a quiet space and have your loved one's medications and medical records readily available",
+        "If your loved one's proposed care plan would cost more than nursing home placement, they won't qualify regardless of their functional needs",
+        "Slots are limited and not guaranteed — even if your loved one meets all eligibility requirements, they may be placed on a waitlist until capacity opens up"
       ],
       "relatedPrograms": [
         "In-Home Supportive Services (IHSS)",
@@ -356,32 +356,32 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for MSSP if they live in any California county?",
-          "answer": "No — MSSP is only available in counties that have contracted providers. Counties like Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, Yuba, Los Angeles, and Ventura have providers, but many counties do not. Contact the California Department of Aging at (916) 419-7500 to verify availability in your parent's county."
+          "question": "Can my loved one apply for MSSP if they live in any California county?",
+          "answer": "No — MSSP is only available in counties that have contracted providers. Counties like Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, Yuba, Los Angeles, and Ventura have providers, but many counties do not. Contact the California Department of Aging at (916) 419-7500 to verify availability in your loved one's county."
         },
         {
-          "question": "What if my parent meets all requirements but there's a waitlist?",
+          "question": "What if my loved one meets all requirements but there's a waitlist?",
           "answer": "MSSP is capped at 11,940 slots statewide, so eligible applicants often wait months for enrollment. Ask your local provider about their current waitlist length and whether they offer any crisis prioritization. You can also explore In-Home Supportive Services (IHSS) as an alternative while waiting."
         },
         {
-          "question": "Can my parent get MSSP services if they're already receiving In-Home Supportive Services?",
-          "answer": "It depends on the specific services. MSSP cannot duplicate services your parent is already receiving through other Medi-Cal programs like Enhanced Care Management or Targeted Case Management. The MSSP provider will review all current services and coordinate to avoid duplication."
+          "question": "Can my loved one get MSSP services if they're already receiving In-Home Supportive Services?",
+          "answer": "It depends on the specific services. MSSP cannot duplicate services your loved one is already receiving through other Medi-Cal programs like Enhanced Care Management or Targeted Case Management. The MSSP provider will review all current services and coordinate to avoid duplication."
         },
         {
           "question": "How much care can MSSP provide compared to a nursing home?",
-          "answer": "MSSP can provide extensive services including 24/7 personal care if needed, but the total cost must remain below what nursing home care would cost in your area. If your parent needs very intensive medical supervision that would exceed nursing home costs, they may not qualify for MSSP."
+          "answer": "MSSP can provide extensive services including 24/7 personal care if needed, but the total cost must remain below what nursing home care would cost in your area. If your loved one needs very intensive medical supervision that would exceed nursing home costs, they may not qualify for MSSP."
         },
         {
-          "question": "What happens if my parent's Medi-Cal eligibility changes while enrolled in MSSP?",
-          "answer": "Your parent must maintain Medi-Cal eligibility to continue receiving MSSP services. If they lose Medi-Cal due to income or asset changes, MSSP services will end. Asset limits are tightening to $2,000 for individuals starting January 1, 2026, which may affect some current participants."
+          "question": "What happens if my loved one's Medi-Cal eligibility changes while enrolled in MSSP?",
+          "answer": "Your loved one must maintain Medi-Cal eligibility to continue receiving MSSP services. If they lose Medi-Cal due to income or asset changes, MSSP services will end. Asset limits are tightening to $2,000 for individuals starting January 1, 2026, which may affect some current participants."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can initiate the MSSP application process for parents with cognitive impairment. However, the registered nurse assessment must be conducted with your parent present, and you may need legal documentation like power of attorney to make healthcare decisions on their behalf."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can initiate the MSSP application process for parents with cognitive impairment. However, the registered nurse assessment must be conducted with your loved one present, and you may need legal documentation like power of attorney to make healthcare decisions on their behalf."
         },
         {
-          "question": "How long can my parent stay enrolled in MSSP?",
-          "answer": "MSSP enrollment continues as long as your parent remains Medi-Cal eligible, needs nursing facility level of care, and their service costs stay below nursing home rates. The care team conducts regular reassessments to ensure services still meet their needs and program requirements."
+          "question": "How long can my loved one stay enrolled in MSSP?",
+          "answer": "MSSP enrollment continues as long as your loved one remains Medi-Cal eligible, needs nursing facility level of care, and their service costs stay below nursing home rates. The care team conducts regular reassessments to ensure services still meet their needs and program requirements."
         },
         {
           "question": "What's the difference between MSSP and regular Medi-Cal managed care?",
@@ -413,7 +413,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent has dementia, chronic illness, or needs daily help with bathing or medication management, CBAS provides daytime supervision and health services at adult day centers — up to 7 days per week. This Medi-Cal program helps aging adults stay in their own homes instead of moving to nursing facilities, while giving family caregivers respite during the day.\n\nYour parent must be enrolled in a Medi-Cal Managed Care Plan and meet functional eligibility requirements through a face-to-face assessment with a registered nurse. The program operates in 28 California counties with 310 certified centers, but you must live within one hour's drive of a participating center.\n\nStarting January 1, 2026, new asset limits apply: $130,000 for individuals and $195,000 for couples. Income limits follow standard Medi-Cal thresholds, which vary by household size and are updated annually by the state.",
+      "intro": "If your loved one has dementia, chronic illness, or needs daily help with bathing or medication management, CBAS provides daytime supervision and health services at adult day centers — up to 7 days per week. This Medi-Cal program helps aging adults stay in their own homes instead of moving to nursing facilities, while giving family caregivers respite during the day.\n\nYour loved one must be enrolled in a Medi-Cal Managed Care Plan and meet functional eligibility requirements through a face-to-face assessment with a registered nurse. The program operates in 28 California counties with 310 certified centers, but you must live within one hour's drive of a participating center.\n\nStarting January 1, 2026, new asset limits apply: $130,000 for individuals and $195,000 for couples. Income limits follow standard Medi-Cal thresholds, which vary by household size and are updated annually by the state.",
       "savingsRange": "",
       "savingsSource": "Free service through Medi-Cal",
       "savingsVerified": false,
@@ -476,7 +476,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent has a dementia diagnosis, gather documentation showing functional impairment — the diagnosis alone doesn't guarantee eligibility.",
+        "tip": "If your loved one has a dementia diagnosis, gather documentation showing functional impairment — the diagnosis alone doesn't guarantee eligibility.",
         "urls": [
           {
             "label": "California Aging Department CBAS Information",
@@ -524,15 +524,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get CBAS if they're not enrolled in a Medi-Cal Managed Care Plan?",
-          "answer": "Very limited options exist. Most CBAS participants must be enrolled in a Medi-Cal Managed Care Plan. Los Angeles has a special field office for fee-for-service Medi-Cal beneficiaries exempt from managed care, but this is rare. Your parent would need to enroll in managed care first in most counties."
+          "question": "Can my loved one get CBAS if they're not enrolled in a Medi-Cal Managed Care Plan?",
+          "answer": "Very limited options exist. Most CBAS participants must be enrolled in a Medi-Cal Managed Care Plan. Los Angeles has a special field office for fee-for-service Medi-Cal beneficiaries exempt from managed care, but this is rare. Your loved one would need to enroll in managed care first in most counties."
         },
         {
           "question": "What if the nearest CBAS center is more than one hour away?",
-          "answer": "Your parent would not be eligible for CBAS. The program requires residence within one hour's drive of a certified center. Only 28 of California's 58 counties have CBAS centers. You might explore In-Home Supportive Services (IHSS) as an alternative."
+          "answer": "Your loved one would not be eligible for CBAS. The program requires residence within one hour's drive of a certified center. Only 28 of California's 58 counties have CBAS centers. You might explore In-Home Supportive Services (IHSS) as an alternative."
         },
         {
-          "question": "Will my parent's house count against the $130,000 asset limit?",
+          "question": "Will my loved one's house count against the $130,000 asset limit?",
           "answer": "No, the primary residence is exempt from CBAS asset limits. However, other property, bank accounts, and investments do count. The limits are $130,000 for individuals and $195,000 for couples as of January 1, 2026."
         },
         {
@@ -540,12 +540,12 @@
           "answer": "Yes, these are separate programs that can complement each other. CBAS provides daytime services at centers, while IHSS provides in-home care assistance. Both go through your Medi-Cal Managed Care Plan, which can coordinate applications."
         },
         {
-          "question": "What happens if my parent's dementia is only stage 3?",
-          "answer": "Stage 3 dementia alone may not qualify, but your parent might still be eligible under other criteria like needing Nursing Facility Level of Care. The registered nurse assessment using the CEDT tool evaluates functional abilities regardless of dementia stage."
+          "question": "What happens if my loved one's dementia is only stage 3?",
+          "answer": "Stage 3 dementia alone may not qualify, but your loved one might still be eligible under other criteria like needing Nursing Facility Level of Care. The registered nurse assessment using the CEDT tool evaluates functional abilities regardless of dementia stage."
         },
         {
-          "question": "How many days per week can my parent attend CBAS?",
-          "answer": "Members can be approved for services up to 7 days per week depending on their assessed needs and the managed care plan's authorization. The specific schedule depends on your parent's functional assessment and the center's capacity."
+          "question": "How many days per week can my loved one attend CBAS?",
+          "answer": "Members can be approved for services up to 7 days per week depending on their assessed needs and the managed care plan's authorization. The specific schedule depends on your loved one's functional assessment and the center's capacity."
         }
       ],
       "layoutIntent": {
@@ -566,7 +566,7 @@
       "id": "calfresh-food-benefits",
       "name": "CalFresh",
       "shortName": "CalFresh",
-      "tagline": "Up to $298/month for groceries if your parent is 60+ and on a limited income.",
+      "tagline": "Up to $298/month for groceries if your loved one is 60+ and on a limited income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -579,7 +579,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $15/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your parent may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI recipients are automatically income-eligible but must still apply separately. Your parent won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $15/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your loved one may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI recipients are automatically income-eligible but must still apply separately. Your loved one won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
       "savingsRange": "$180 – $3,570/year in 2026",
       "savingsSource": "Based on minimum $15/month to maximum $298/month individual benefits",
       "savingsVerified": true,
@@ -683,7 +683,7 @@
         ],
         "processingTime": "Typically 30 days; expedited for urgent cases within 3 days if qualify",
         "waitlist": null,
-        "tip": "Request to separate your elderly parent into their own household even if they share meals with family — this often results in higher benefits.",
+        "tip": "Request to separate your elderly loved one into their own household even if they share meals with family — this often results in higher benefits.",
         "urls": [
           {
             "label": "GetCalFresh.org",
@@ -738,36 +738,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep CalFresh if they live in assisted living?",
-          "answer": "Yes, residents of assisted living facilities can receive CalFresh benefits. However, if the facility provides all meals as part of the monthly fee, benefits may be reduced to the minimum $15/month. Your parent can use benefits at grocery stores for snacks and additional food items."
+          "question": "Can my loved one keep CalFresh if they live in assisted living?",
+          "answer": "Yes, residents of assisted living facilities can receive CalFresh benefits. However, if the facility provides all meals as part of the monthly fee, benefits may be reduced to the minimum $15/month. Your loved one can use benefits at grocery stores for snacks and additional food items."
         },
         {
-          "question": "What if my parent's income is mostly Social Security — do they still qualify?",
+          "question": "What if my loved one's income is mostly Social Security — do they still qualify?",
           "answer": "Social Security counts as income, but seniors get special deductions for medical expenses over $35/month and housing costs. After these deductions, many seniors on Social Security still qualify. SSI recipients are automatically income-eligible."
         },
         {
-          "question": "Can I apply for CalFresh on behalf of my elderly parent?",
+          "question": "Can I apply for CalFresh on behalf of my elderly loved one?",
           "answer": "Yes, adult children can apply as an authorized representative for elderly or disabled parents. You'll need to complete a separate form designating you as their representative during the application process."
         },
         {
-          "question": "Does my parent's house count against the asset limit?",
+          "question": "Does my loved one's house count against the asset limit?",
           "answer": "No, the primary home never counts as an asset for CalFresh, regardless of value. For seniors and disabled individuals, there's often no asset limit at all if their net income qualifies after deductions."
         },
         {
-          "question": "Can my parent use CalFresh benefits at restaurants?",
+          "question": "Can my loved one use CalFresh benefits at restaurants?",
           "answer": "Yes, through California's Restaurant Meals Program, seniors 60+ can use their EBT card to buy prepared meals at participating restaurants statewide. This is especially helpful for seniors who have difficulty cooking."
         },
         {
-          "question": "What happens if my parent's medical expenses change during the year?",
+          "question": "What happens if my loved one's medical expenses change during the year?",
           "answer": "Report increases in medical expenses to your county office immediately — this can increase monthly benefits. You must report changes within 10 days, and the county will recalculate benefits based on the new expenses."
         },
         {
-          "question": "Should my parent apply as part of our family household or separately?",
+          "question": "Should my loved one apply as part of our family household or separately?",
           "answer": "Usually separately. Seniors can form their own CalFresh household even if living with family and sharing some meals, as long as the other household members' income is below 165% of the poverty level. This typically results in higher benefits."
         },
         {
           "question": "How long do CalFresh benefits last once approved?",
-          "answer": "Benefits continue as long as your parent remains eligible. Seniors typically have longer certification periods (up to 24 months) before needing to reapply, compared to 12 months for younger adults. You'll receive renewal notices before benefits expire."
+          "answer": "Benefits continue as long as your loved one remains eligible. Seniors typically have longer certification periods (up to 24 months) before needing to reapply, compared to 12 months for younger adults. You'll receive renewal notices before benefits expire."
         }
       ],
       "layoutIntent": {
@@ -788,7 +788,7 @@
       "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "Help paying your parent's heating and cooling bills if they're on a fixed income.",
+      "tagline": "Help paying your loved one's heating and cooling bills if they're on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "intro": "If your parent's monthly income is below $3,332 (for a single person) or $4,357 (for a couple), LIHEAP can help pay their energy bills directly to the utility company. The program prioritizes households with high energy costs, elderly residents, people with disabilities, and families with young children.\n\nBecause federal funding is limited, even eligible households may not receive benefits. Priority goes to the most vulnerable — homes with medical equipment that requires electricity, elderly individuals facing shut-off notices, and households where energy costs consume a large portion of monthly income. Your parent must continue paying their bills during the several-week application review process.",
+      "intro": "If your loved one's monthly income is below $3,332 (for a single person) or $4,357 (for a couple), LIHEAP can help pay their energy bills directly to the utility company. The program prioritizes households with high energy costs, elderly residents, people with disabilities, and families with young children.\n\nBecause federal funding is limited, even eligible households may not receive benefits. Priority goes to the most vulnerable — homes with medical equipment that requires electricity, elderly individuals facing shut-off notices, and households where energy costs consume a large portion of monthly income. Your loved one must continue paying their bills during the several-week application review process.",
       "savingsRange": "",
       "savingsSource": "Direct bill payment assistance - amount varies by household need and funding availability",
       "savingsVerified": false,
@@ -947,35 +947,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply if my parent's name isn't on the utility bill?",
+          "question": "Can I apply if my loved one's name isn't on the utility bill?",
           "answer": "Yes. Anyone 18+ living in the household can apply for LIHEAP, even if they're not the account holder. You'll need to complete an Account Holder Authorization and Consent Form if the energy accounts are in someone else's name."
         },
         {
-          "question": "What if my parent is already receiving SNAP or SSI?",
-          "answer": "Your parent may be automatically eligible for LIHEAP if they receive SNAP, SSI, TANF, or certain veterans assistance programs. You still need to apply, but the income verification process may be streamlined."
+          "question": "What if my loved one is already receiving SNAP or SSI?",
+          "answer": "Your loved one may be automatically eligible for LIHEAP if they receive SNAP, SSI, TANF, or certain veterans assistance programs. You still need to apply, but the income verification process may be streamlined."
         },
         {
-          "question": "How much will LIHEAP actually pay toward my parent's bill?",
+          "question": "How much will LIHEAP actually pay toward my loved one's bill?",
           "answer": "LIHEAP doesn't publish fixed payment amounts. Benefits are allocated based on a priority system that considers high energy burdens, elderly individuals, people with disabilities, and families with children under 5. Higher-need households receive larger payments."
         },
         {
-          "question": "What happens if my parent gets a shut-off notice while the application is being reviewed?",
-          "answer": "Your parent must continue paying bills during the several-week review process — LIHEAP doesn't guarantee payment while applications are being processed. Contact the utility company immediately about payment plans or low-income rate programs like CARE."
+          "question": "What happens if my loved one gets a shut-off notice while the application is being reviewed?",
+          "answer": "Your loved one must continue paying bills during the several-week review process — LIHEAP doesn't guarantee payment while applications are being processed. Contact the utility company immediately about payment plans or low-income rate programs like CARE."
         },
         {
-          "question": "Can my parent apply for LIHEAP and weatherization assistance at the same time?",
+          "question": "Can my loved one apply for LIHEAP and weatherization assistance at the same time?",
           "answer": "Yes, these are separate programs. LIHEAP helps with current bills while weatherization provides home improvements to reduce future energy costs. Contact the same local service provider for both programs."
         },
         {
-          "question": "What if my parent's income is slightly over the limit but they still can't afford their energy bills?",
-          "answer": "If your parent doesn't qualify for LIHEAP, contact their utility company about CARE (20% discount) or FERA (18% discount) programs, which have different income limits. Also ask about medical baseline rates if medical equipment requires extra electricity."
+          "question": "What if my loved one's income is slightly over the limit but they still can't afford their energy bills?",
+          "answer": "If your loved one doesn't qualify for LIHEAP, contact their utility company about CARE (20% discount) or FERA (18% discount) programs, which have different income limits. Also ask about medical baseline rates if medical equipment requires extra electricity."
         },
         {
-          "question": "Does my parent's house value affect LIHEAP eligibility?",
-          "answer": "No. LIHEAP doesn't have asset limits — eligibility is based only on monthly income, household size, and energy burden. Your parent can own their home and still qualify."
+          "question": "Does my loved one's house value affect LIHEAP eligibility?",
+          "answer": "No. LIHEAP doesn't have asset limits — eligibility is based only on monthly income, household size, and energy burden. Your loved one can own their home and still qualify."
         },
         {
-          "question": "How often can my parent receive LIHEAP benefits?",
+          "question": "How often can my loved one receive LIHEAP benefits?",
           "answer": "The research doesn't specify renewal periods, but LIHEAP is typically an annual benefit. Contact your local service provider about reapplication requirements and timing for the following year."
         }
       ],
@@ -997,7 +997,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP",
-      "tagline": "Free home energy efficiency upgrades that can save your parent over $400 per year on utility bills.",
+      "tagline": "Free home energy efficiency upgrades that can save your loved one over $400 per year on utility bills.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1022,7 +1022,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high energy bills or lives in a drafty, hard-to-heat home, California's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program installs insulation, seals air leaks, repairs or replaces heating systems and water heaters, and makes other efficiency upgrades at no cost to qualified households.\n\nBecause the program prioritizes households with adults 60 and older, your parent may move up the waitlist faster than younger applicants. Average households save over $400 per year on energy bills after weatherization, with homes staying warmer in winter and cooler in summer. Services are available once every 5 years through local community providers across California.",
+      "intro": "If your loved one struggles with high energy bills or lives in a drafty, hard-to-heat home, California's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program installs insulation, seals air leaks, repairs or replaces heating systems and water heaters, and makes other efficiency upgrades at no cost to qualified households.\n\nBecause the program prioritizes households with adults 60 and older, your loved one may move up the waitlist faster than younger applicants. Average households save over $400 per year on energy bills after weatherization, with homes staying warmer in winter and cooler in summer. Services are available once every 5 years through local community providers across California.",
       "savingsRange": "$400+/year",
       "savingsSource": "Average yearly savings from energy efficiency improvements",
       "savingsVerified": true,
@@ -1062,7 +1062,7 @@
           {
             "step": 3,
             "title": "Get home energy assessment",
-            "description": "A technician evaluates your parent's home for weatherization needs and determines which improvements will provide the most energy savings."
+            "description": "A technician evaluates your loved one's home for weatherization needs and determines which improvements will provide the most energy savings."
           },
           {
             "step": 4,
@@ -1130,35 +1130,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent their home?",
-          "answer": "Yes, renters are eligible, but your parent must get written permission from their landlord before any weatherization work can begin. The landlord must approve the specific modifications that will be made to the property."
+          "question": "Can my loved one apply if they rent their home?",
+          "answer": "Yes, renters are eligible, but your loved one must get written permission from their landlord before any weatherization work can begin. The landlord must approve the specific modifications that will be made to the property."
         },
         {
-          "question": "What if my parent received weatherization services before?",
-          "answer": "Your parent can receive weatherization services once every 5 years. If they had work done within the last 5 years, they must wait until that period expires before applying again."
+          "question": "What if my loved one received weatherization services before?",
+          "answer": "Your loved one can receive weatherization services once every 5 years. If they had work done within the last 5 years, they must wait until that period expires before applying again."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlists vary significantly by region and funding availability. However, households with adults 60 and older receive priority placement, which can reduce wait times compared to younger applicants."
         },
         {
-          "question": "What happens if my parent has an emergency utility shutoff notice?",
+          "question": "What happens if my loved one has an emergency utility shutoff notice?",
           "answer": "Some providers offer emergency appointments within 1-2 days for households facing utility disconnection. Call your local provider immediately and mention the disconnection notice."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help your parent apply and provide documentation, but the application must be in their name since they are the utility account holder and resident. Bring their ID and have them present during the application process."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply and provide documentation, but the application must be in their name since they are the utility account holder and resident. Bring their ID and have them present during the application process."
         },
         {
           "question": "What exactly gets installed or repaired?",
-          "answer": "Common improvements include installing insulation, sealing air leaks, repairing or replacing heating systems and water heaters, and duct sealing. The specific work depends on your parent's home assessment and what will provide the most energy savings."
+          "answer": "Common improvements include installing insulation, sealing air leaks, repairing or replacing heating systems and water heaters, and duct sealing. The specific work depends on your loved one's home assessment and what will provide the most energy savings."
         },
         {
-          "question": "Can my parent apply for both WAP and LIHEAP energy assistance?",
-          "answer": "Yes, your parent can receive both weatherization services through WAP and monthly utility bill assistance through LIHEAP. These are separate programs that complement each other."
+          "question": "Can my loved one apply for both WAP and LIHEAP energy assistance?",
+          "answer": "Yes, your loved one can receive both weatherization services through WAP and monthly utility bill assistance through LIHEAP. These are separate programs that complement each other."
         },
         {
-          "question": "What if the assessment shows my parent's home needs more work than the program covers?",
+          "question": "What if the assessment shows my loved one's home needs more work than the program covers?",
           "answer": "The program provides a partial list of services and not all improvements are guaranteed. The technician will prioritize the most cost-effective energy-saving measures within the program's scope and budget."
         }
       ],
@@ -1180,7 +1180,7 @@
       "id": "hicap-medicare-counseling",
       "name": "Health Insurance Counseling and Advocacy Program (HICAP)",
       "shortName": "HICAP",
-      "tagline": "Free Medicare counseling to help your parent understand their insurance options and find cost-saving programs.",
+      "tagline": "Free Medicare counseling to help your loved one understand their insurance options and find cost-saving programs.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1201,7 +1201,7 @@
           }
         ]
       },
-      "intro": "If your parent is confused by Medicare options, prescription drug coverage, or rising medical costs, HICAP provides free one-on-one counseling to help them understand their choices. HICAP counselors explain Medicare Parts A, B, and D, help compare Medicare Advantage Plans and Medigap policies, and identify cost-saving programs your parent might qualify for.\n\nThis is not a financial assistance program — HICAP counselors help your parent navigate their options but don't pay medical bills or premiums directly. Because counselors are trained specifically on Medicare rules and cost-saving programs, your parent gets expert guidance without sales pressure from insurance companies.\n\nHICAP serves nine California counties through regional agencies. Your parent must be 65+ or younger than 65 with a Medicare disability to receive counseling.",
+      "intro": "If your loved one is confused by Medicare options, prescription drug coverage, or rising medical costs, HICAP provides free one-on-one counseling to help them understand their choices. HICAP counselors explain Medicare Parts A, B, and D, help compare Medicare Advantage Plans and Medigap policies, and identify cost-saving programs your loved one might qualify for.\n\nThis is not a financial assistance program — HICAP counselors help your loved one navigate their options but don't pay medical bills or premiums directly. Because counselors are trained specifically on Medicare rules and cost-saving programs, your loved one gets expert guidance without sales pressure from insurance companies.\n\nHICAP serves nine California counties through regional agencies. Your loved one must be 65+ or younger than 65 with a Medicare disability to receive counseling.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1230,22 +1230,22 @@
           {
             "step": 1,
             "title": "Call the HICAP helpline",
-            "description": "Call (800) 434-0222, Monday through Friday 8:00 AM – 4:00 PM. Tell them you need Medicare counseling for your parent."
+            "description": "Call (800) 434-0222, Monday through Friday 8:00 AM – 4:00 PM. Tell them you need Medicare counseling for your loved one."
           },
           {
             "step": 2,
             "title": "Schedule counseling session",
-            "description": "The counselor will schedule a one-on-one session by phone or in person. Bring your parent's Medicare card, current insurance documents, and any medical bills or prescription lists."
+            "description": "The counselor will schedule a one-on-one session by phone or in person. Bring your loved one's Medicare card, current insurance documents, and any medical bills or prescription lists."
           },
           {
             "step": 3,
             "title": "Get personalized guidance",
-            "description": "The counselor will review your parent's current coverage, explain options, and help identify any cost-saving programs they might qualify for."
+            "description": "The counselor will review your loved one's current coverage, explain options, and help identify any cost-saving programs they might qualify for."
           }
         ],
         "processingTime": "Immediate counseling available during business hours",
         "waitlist": null,
-        "tip": "Bring your parent's current Medicare Summary Notice and prescription list to get the most targeted advice.",
+        "tip": "Bring your loved one's current Medicare Summary Notice and prescription list to get the most targeted advice.",
         "urls": [
           {
             "label": "California HICAP Program Page",
@@ -1278,20 +1278,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can HICAP help my parent if they already have Medicare coverage?",
-          "answer": "Yes. HICAP counselors review existing coverage to see if your parent could save money by switching plans during Open Enrollment (October 15 – December 7). They also check if your parent qualifies for cost-saving programs like Medicare Savings Programs or Low-Income Subsidy for prescription drugs."
+          "question": "Can HICAP help my loved one if they already have Medicare coverage?",
+          "answer": "Yes. HICAP counselors review existing coverage to see if your loved one could save money by switching plans during Open Enrollment (October 15 – December 7). They also check if your loved one qualifies for cost-saving programs like Medicare Savings Programs or Low-Income Subsidy for prescription drugs."
         },
         {
-          "question": "What if my parent lives outside the nine counties HICAP serves?",
+          "question": "What if my loved one lives outside the nine counties HICAP serves?",
           "answer": "California has statewide HICAP services, but this specific funded program only covers Nevada, Placer, Sacramento, San Joaquin, Sierra, Sutter, Yolo, and Yuba counties. Call (800) 434-0222 and they can refer you to Medicare counseling resources in other counties."
         },
         {
-          "question": "Can I get counseling on behalf of my parent?",
-          "answer": "HICAP counselors can speak with adult children, but they'll need your parent's permission or documentation that you're authorized to discuss their Medicare benefits. Bring power of attorney papers or have your parent present during the call."
+          "question": "Can I get counseling on behalf of my loved one?",
+          "answer": "HICAP counselors can speak with adult children, but they'll need your loved one's permission or documentation that you're authorized to discuss their Medicare benefits. Bring power of attorney papers or have your loved one present during the call."
         },
         {
-          "question": "Will HICAP try to sell my parent insurance?",
-          "answer": "No. HICAP counselors are trained volunteers who don't sell insurance or receive commissions. They provide unbiased information to help your parent understand options and make their own decisions about Medicare coverage."
+          "question": "Will HICAP try to sell my loved one insurance?",
+          "answer": "No. HICAP counselors are trained volunteers who don't sell insurance or receive commissions. They provide unbiased information to help your loved one understand options and make their own decisions about Medicare coverage."
         }
       ],
       "layoutIntent": {
@@ -1325,7 +1325,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to leave home, shop for groceries, or prepare nutritious meals, Meals on Wheels can deliver hot, prepared meals directly to their door. Each meal provides at least one-third of daily nutritional requirements following federal dietary guidelines, plus an informal safety check and connection to other services.\n\nThe program serves homebound seniors who are isolated by illness, disability, or limited mobility. There's no income requirement statewide, though voluntary contributions are welcomed. Your parent's spouse (any age) or a disabled household member may also receive meals if it benefits your parent.\n\nMeals on Wheels operates through 33 local Area Agencies on Aging across California, so availability, delivery schedules, and additional services vary by location. Some areas also offer to-go meal pickup options.",
+      "intro": "If your loved one is 60+ and struggles to leave home, shop for groceries, or prepare nutritious meals, Meals on Wheels can deliver hot, prepared meals directly to their door. Each meal provides at least one-third of daily nutritional requirements following federal dietary guidelines, plus an informal safety check and connection to other services.\n\nThe program serves homebound seniors who are isolated by illness, disability, or limited mobility. There's no income requirement statewide, though voluntary contributions are welcomed. Your loved one's spouse (any age) or a disabled household member may also receive meals if it benefits your loved one.\n\nMeals on Wheels operates through 33 local Area Agencies on Aging across California, so availability, delivery schedules, and additional services vary by location. Some areas also offer to-go meal pickup options.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1359,7 +1359,7 @@
           {
             "step": 2,
             "title": "Call for initial assessment",
-            "description": "Phone your local AAA to request Meals on Wheels services — they'll assess your parent's health, mobility, financial status, dietary needs, and emergency contacts."
+            "description": "Phone your local AAA to request Meals on Wheels services — they'll assess your loved one's health, mobility, financial status, dietary needs, and emergency contacts."
           },
           {
             "step": 3,
@@ -1383,7 +1383,7 @@
         ]
       },
       "documentsNeeded": [
-        "Emergency contact information for your parent",
+        "Emergency contact information for your loved one",
         "List of current medical conditions and medications",
         "Details about mobility limitations or disabilities",
         "Dietary restrictions or special nutrition needs",
@@ -1407,7 +1407,7 @@
       "applicationNotes": [
         "Rural areas receive priority for services due to greater isolation and limited food access",
         "Low-income seniors get priority placement, though income isn't required statewide",
-        "Car ownership or ability to easily leave home may disqualify your parent in some service areas",
+        "Car ownership or ability to easily leave home may disqualify your loved one in some service areas",
         "Voluntary contributions are requested but no one is denied meals for inability to pay"
       ],
       "relatedPrograms": [
@@ -1419,28 +1419,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get meals if they can still drive but have trouble cooking?",
-          "answer": "This depends on your local Area Agency on Aging's criteria. Some programs focus strictly on homebound status, while others consider cooking limitations or safety concerns. Call your local AAA to discuss your parent's specific situation and cooking challenges."
+          "question": "Can my loved one get meals if they can still drive but have trouble cooking?",
+          "answer": "This depends on your local Area Agency on Aging's criteria. Some programs focus strictly on homebound status, while others consider cooking limitations or safety concerns. Call your local AAA to discuss your loved one's specific situation and cooking challenges."
         },
         {
-          "question": "What happens if my parent lives outside the delivery zone?",
-          "answer": "Each of the 33 Area Agencies on Aging has specific geographic boundaries for meal delivery. If your parent lives outside the zone, ask about to-go meal pickup options or congregate meal sites. The AAA can also refer you to neighboring agencies that might serve your area."
+          "question": "What happens if my loved one lives outside the delivery zone?",
+          "answer": "Each of the 33 Area Agencies on Aging has specific geographic boundaries for meal delivery. If your loved one lives outside the zone, ask about to-go meal pickup options or congregate meal sites. The AAA can also refer you to neighboring agencies that might serve your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children commonly initiate Meals on Wheels applications for aging parents. You'll need your parent's consent and detailed information about their health, mobility, living situation, and emergency contacts during the assessment process."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children commonly initiate Meals on Wheels applications for aging loved ones. You'll need your loved one's consent and detailed information about their health, mobility, living situation, and emergency contacts during the assessment process."
         },
         {
           "question": "How much do families typically contribute for meals?",
           "answer": "Contributions are completely voluntary with no set amount — some families donate $3-5 per meal while others contribute nothing. No one is denied service for inability to pay. Some local programs may use sliding-scale fees based on income, but this varies by Area Agency."
         },
         {
-          "question": "What if my parent's health improves and they no longer need delivery?",
-          "answer": "Contact your local provider to update your parent's status. Many programs offer congregate meal options at senior centers as a transition, allowing your parent to maintain nutrition support while socializing with others. Reassessment can happen anytime circumstances change."
+          "question": "What if my loved one's health improves and they no longer need delivery?",
+          "answer": "Contact your local provider to update your loved one's status. Many programs offer congregate meal options at senior centers as a transition, allowing your loved one to maintain nutrition support while socializing with others. Reassessment can happen anytime circumstances change."
         },
         {
-          "question": "Can my parent get both Meals on Wheels and CalFresh benefits?",
-          "answer": "Yes, your parent can receive both programs simultaneously since Meals on Wheels provides prepared meals while CalFresh provides money for groceries. The combination can significantly improve nutrition security for homebound seniors with limited cooking ability."
+          "question": "Can my loved one get both Meals on Wheels and CalFresh benefits?",
+          "answer": "Yes, your loved one can receive both programs simultaneously since Meals on Wheels provides prepared meals while CalFresh provides money for groceries. The combination can significantly improve nutrition security for homebound seniors with limited cooking ability."
         }
       ],
       "layoutIntent": {
@@ -1461,7 +1461,7 @@
       "id": "mssp-caregiver-support",
       "name": "Multipurpose Senior Services Program (MSSP) Caregiver Support",
       "shortName": "MSSP Caregiver Support",
-      "tagline": "Comprehensive care coordination to help your parent stay at home instead of nursing facility placement.",
+      "tagline": "Comprehensive care coordination to help your loved one stay at home instead of nursing facility placement.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1498,7 +1498,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ on Medi-Cal and needs help with bathing, dressing, or daily care, MSSP provides comprehensive care coordination at no cost. A registered nurse or social worker will visit your parent at home, create an individualized care plan, and coordinate services like home-delivered meals, personal care assistance, respite care, transportation to medical appointments, and minor home repairs.\n\nBecause MSSP covers all care coordination under one program, your parent won't need to navigate between separate providers — one team manages everything. The program is designed for seniors who qualify for nursing home level of care but want to remain at home. Services are provided through 37 sites across California, with different organizations serving different counties.",
+      "intro": "If your loved one is 60+ on Medi-Cal and needs help with bathing, dressing, or daily care, MSSP provides comprehensive care coordination at no cost. A registered nurse or social worker will visit your loved one at home, create an individualized care plan, and coordinate services like home-delivered meals, personal care assistance, respite care, transportation to medical appointments, and minor home repairs.\n\nBecause MSSP covers all care coordination under one program, your loved one won't need to navigate between separate providers — one team manages everything. The program is designed for seniors who qualify for nursing home level of care but want to remain at home. Services are provided through 37 sites across California, with different organizations serving different counties.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1581,15 +1581,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get MSSP services if they already receive In-Home Supportive Services (IHSS)?",
+          "question": "Can my loved one get MSSP services if they already receive In-Home Supportive Services (IHSS)?",
           "answer": "Yes, MSSP can work alongside IHSS and other programs without duplication of services. The MSSP care coordinator will work with existing providers to ensure services complement each other rather than overlap."
         },
         {
-          "question": "What if my parent's care needs become too complex or expensive for MSSP?",
-          "answer": "MSSP is designed to keep total care costs lower than nursing facility care. If your parent's needs exceed this cost threshold, they may no longer qualify for the program. However, the care team will help transition them to appropriate alternative services."
+          "question": "What if my loved one's care needs become too complex or expensive for MSSP?",
+          "answer": "MSSP is designed to keep total care costs lower than nursing facility care. If your loved one's needs exceed this cost threshold, they may no longer qualify for the program. However, the care team will help transition them to appropriate alternative services."
         },
         {
-          "question": "Can my parent withdraw from MSSP if they don't like the services?",
+          "question": "Can my loved one withdraw from MSSP if they don't like the services?",
           "answer": "Yes, participants can change their mind and withdraw from MSSP at any time without impacting their eligibility for other services like Medi-Cal or IHSS."
         }
       ],
@@ -1656,7 +1656,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides paid work experience averaging 20 hours per week at minimum wage while building job skills. Because participants work in community service roles at nonprofits and government agencies, your parent earns income while gaining experience that makes them more employable. The program targets low-income seniors earning no more than 125% of the federal poverty level.\n\nYour parent will receive on-the-job training in computer or vocational skills plus professional job placement assistance to find permanent employment. Because SCSEP is designed as a bridge to regular employment, participants must remain unemployed throughout the program but receive dedicated support to transition to unsubsidized work. Hours vary by region — Orange County offers 16-29 hours per week depending on available funding.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid work experience averaging 20 hours per week at minimum wage while building job skills. Because participants work in community service roles at nonprofits and government agencies, your loved one earns income while gaining experience that makes them more employable. The program targets low-income seniors earning no more than 125% of the federal poverty level.\n\nYour loved one will receive on-the-job training in computer or vocational skills plus professional job placement assistance to find permanent employment. Because SCSEP is designed as a bridge to regular employment, participants must remain unemployed throughout the program but receive dedicated support to transition to unsubsidized work. Hours vary by region — Orange County offers 16-29 hours per week depending on available funding.",
       "savingsRange": "$2,900 – $7,600/year",
       "savingsSource": "Estimated from 16-20 hours per week at California minimum wage ($18/hour in 2026)",
       "savingsVerified": false,
@@ -1766,15 +1766,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work part-time while in SCSEP?",
+          "question": "Can my loved one work part-time while in SCSEP?",
           "answer": "No. SCSEP requires participants to be unemployed at enrollment and remain unemployed throughout participation. This includes part-time work, self-employment, or any paid employment outside the program. The SCSEP work experience itself provides the income."
         },
         {
-          "question": "What happens if my parent's income increases during the program?",
-          "answer": "Income must remain at or below 125% of the federal poverty level throughout participation. If your parent's household income increases above this threshold, they may become ineligible and need to leave the program."
+          "question": "What happens if my loved one's income increases during the program?",
+          "answer": "Income must remain at or below 125% of the federal poverty level throughout participation. If your loved one's household income increases above this threshold, they may become ineligible and need to leave the program."
         },
         {
-          "question": "How long can my parent stay in SCSEP?",
+          "question": "How long can my loved one stay in SCSEP?",
           "answer": "SCSEP is designed as temporary training, not permanent employment. The program focuses on building skills and experience to help participants transition to unsubsidized employment. Length of participation varies by individual progress and local provider policies."
         },
         {
@@ -1782,11 +1782,11 @@
           "answer": "Not all counties have equal service capacity. Contact 2-1-1 at dial 2-1-1 to find the nearest provider. Some organizations like SER California serve multiple counties, so you may be able to access services through a regional provider."
         },
         {
-          "question": "Will SCSEP income affect my parent's other benefits?",
+          "question": "Will SCSEP income affect my loved one's other benefits?",
           "answer": "SCSEP wages count as income and may affect eligibility for SNAP, Medicaid, and other need-based programs. Contact each program directly to understand how SCSEP income will be counted before enrolling."
         },
         {
-          "question": "What kind of work will my parent do in SCSEP?",
+          "question": "What kind of work will my loved one do in SCSEP?",
           "answer": "Participants work at community service sites like nonprofits, schools, libraries, and government agencies. Jobs vary but often include clerical work, maintenance, childcare assistance, or community outreach. The goal is to build transferable job skills."
         },
         {
@@ -1823,7 +1823,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 60+ and facing legal problems like eviction threats, Medicare denials, elder abuse, or consumer fraud, California's Senior Legal Services provides free legal representation and advocacy. Staff attorneys travel to approximately 40 convenient community locations throughout the state on regular schedules, bringing legal help directly to seniors.\n\nServices include housing and eviction defense, Social Security and Medicare appeals, elder abuse cases, estate planning, nursing home patient rights, debt protection, and bankruptcy assistance. Income limits vary by service type — some use 125% of Federal Poverty Level ($1,630/month for one person), others use 200% ($2,608/month for one person), and health-related matters may have no income restrictions in certain counties.",
+      "intro": "If your loved one is 60+ and facing legal problems like eviction threats, Medicare denials, elder abuse, or consumer fraud, California's Senior Legal Services provides free legal representation and advocacy. Staff attorneys travel to approximately 40 convenient community locations throughout the state on regular schedules, bringing legal help directly to seniors.\n\nServices include housing and eviction defense, Social Security and Medicare appeals, elder abuse cases, estate planning, nursing home patient rights, debt protection, and bankruptcy assistance. Income limits vary by service type — some use 125% of Federal Poverty Level ($1,630/month for one person), others use 200% ($2,608/month for one person), and health-related matters may have no income restrictions in certain counties.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1927,12 +1927,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's income is slightly above the limit for their legal issue?",
+          "question": "What if my loved one's income is slightly above the limit for their legal issue?",
           "answer": "Income requirements vary significantly by service type and county. Health-related legal matters may have no income limits in Fresno, Madera, Kings, Merced, and Tulare counties. Some services use 125% FPL while others use 200% FPL. Always call your local provider to verify which threshold applies to your specific situation."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who can't travel?",
-          "answer": "Yes, and homebound seniors receive priority consideration. Staff attorneys travel to approximately 40 community locations on regular schedules, and they prioritize seniors with limited mobility or transportation barriers. Explain your parent's mobility limitations when calling your local Area Agency on Aging."
+          "question": "Can I apply on behalf of my elderly loved one who can't travel?",
+          "answer": "Yes, and homebound seniors receive priority consideration. Staff attorneys travel to approximately 40 community locations on regular schedules, and they prioritize seniors with limited mobility or transportation barriers. Explain your loved one's mobility limitations when calling your local Area Agency on Aging."
         },
         {
           "question": "How do I find the right contact since this isn't one central program?",
@@ -1957,7 +1957,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
-      "tagline": "Free advocacy when your parent faces problems with nursing home or assisted living care quality, safety, or rights.",
+      "tagline": "Free advocacy when your loved one faces problems with nursing home or assisted living care quality, safety, or rights.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1978,7 +1978,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a California nursing home, assisted living facility, or residential care home, they have access to free advocacy services when problems arise with care quality, safety, or their rights as a resident. The Long-Term Care Ombudsman Program provides independent advocates who investigate complaints, mediate conflicts with facility staff, and ensure your parent's voice is heard in care decisions.\n\nThis is not a financial assistance program — ombudsman representatives are trained advocates who work directly with residents and facilities to resolve issues like inadequate care, billing disputes, unsafe conditions, or violations of resident rights. The program serves all 2,252 long-term care facilities in California through 35 local offices, with both professional staff and extensively trained volunteers (minimum 36 hours of training plus supervised internship).\n\nImportantly, ombudsman representatives advocate for what your parent wants, not necessarily what family members prefer. If there's disagreement between you and your parent about care decisions, the ombudsman will support your parent's expressed wishes.",
+      "intro": "If your loved one lives in a California nursing home, assisted living facility, or residential care home, they have access to free advocacy services when problems arise with care quality, safety, or their rights as a resident. The Long-Term Care Ombudsman Program provides independent advocates who investigate complaints, mediate conflicts with facility staff, and ensure your loved one's voice is heard in care decisions.\n\nThis is not a financial assistance program — ombudsman representatives are trained advocates who work directly with residents and facilities to resolve issues like inadequate care, billing disputes, unsafe conditions, or violations of resident rights. The program serves all 2,252 long-term care facilities in California through 35 local offices, with both professional staff and extensively trained volunteers (minimum 36 hours of training plus supervised internship).\n\nImportantly, ombudsman representatives advocate for what your loved one wants, not necessarily what family members prefer. If there's disagreement between you and your loved one about care decisions, the ombudsman will support your loved one's expressed wishes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2057,15 +2057,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call the ombudsman about my parent's facility even if my parent doesn't want me to get involved?",
-          "answer": "Yes, you can make the initial complaint, but the ombudsman will work according to your parent's expressed wishes, not yours. If your parent doesn't want advocacy services or disagrees with your concerns, the ombudsman will respect their decision and may not be able to take action you want them to take."
+          "question": "Can I call the ombudsman about my loved one's facility even if my loved one doesn't want me to get involved?",
+          "answer": "Yes, you can make the initial complaint, but the ombudsman will work according to your loved one's expressed wishes, not yours. If your loved one doesn't want advocacy services or disagrees with your concerns, the ombudsman will respect their decision and may not be able to take action you want them to take."
         },
         {
           "question": "What's the difference between calling the ombudsman versus reporting to Adult Protective Services?",
           "answer": "Ombudsman representatives focus on advocacy, mediation, and resolving conflicts within the facility system. Adult Protective Services investigates suspected abuse or neglect as a law enforcement matter. For immediate safety concerns or suspected abuse, call Adult Protective Services first. For care quality issues, billing disputes, or rights violations, start with the ombudsman."
         },
         {
-          "question": "Will the facility retaliate against my parent if I file a complaint with the ombudsman?",
+          "question": "Will the facility retaliate against my loved one if I file a complaint with the ombudsman?",
           "answer": "Retaliation against residents for ombudsman complaints is illegal under federal and state law. Ombudsman representatives are trained to monitor for retaliation and can take action if it occurs. However, you can request that complaints be handled confidentially when possible."
         }
       ],
@@ -2100,7 +2100,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your parent gets more money each month — up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your parent doesn't need to apply separately — if they qualify for SSI, they get SSP.\n\nTo qualify, your parent must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
+      "intro": "If your loved one is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your loved one gets more money each month — up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your loved one doesn't need to apply separately — if they qualify for SSI, they get SSP.\n\nTo qualify, your loved one must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
       "savingsRange": "$2,879 – $7,294/year in 2026",
       "savingsSource": "Maximum SSP benefits: $239.94/month individual ($2,879/year) to $607.83/month couple ($7,294/year)",
       "savingsVerified": true,
@@ -2230,28 +2230,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, your parent's primary residence doesn't count toward the $2,000 asset limit regardless of value. Only cash, bank accounts, stocks, and other investments count as countable assets. The home remains exempt as long as your parent lives in it."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, your loved one's primary residence doesn't count toward the $2,000 asset limit regardless of value. Only cash, bank accounts, stocks, and other investments count as countable assets. The home remains exempt as long as your loved one lives in it."
         },
         {
-          "question": "What happens if my parent lives with me and I pay for their food?",
-          "answer": "Free food and shelter count as in-kind income and will reduce your parent's SSP payment. SSA calculates a dollar value for this support and deducts it from the monthly benefit amount. Keep records of any rent or food costs your parent does pay."
+          "question": "What happens if my loved one lives with me and I pay for their food?",
+          "answer": "Free food and shelter count as in-kind income and will reduce your loved one's SSP payment. SSA calculates a dollar value for this support and deducts it from the monthly benefit amount. Keep records of any rent or food costs your loved one does pay."
         },
         {
-          "question": "Can I apply for SSI and SSP on behalf of my elderly parent?",
-          "answer": "Yes, you can help your parent apply or become their representative payee if SSA determines they can't manage their benefits. Call 1-800-772-1213 to discuss becoming an authorized representative during the application process."
+          "question": "Can I apply for SSI and SSP on behalf of my elderly loved one?",
+          "answer": "Yes, you can help your loved one apply or become their representative payee if SSA determines they can't manage their benefits. Call 1-800-772-1213 to discuss becoming an authorized representative during the application process."
         },
         {
-          "question": "Why hasn't my parent's SSP amount increased with cost of living?",
+          "question": "Why hasn't my loved one's SSP amount increased with cost of living?",
           "answer": "California's SSP supplement hasn't received annual cost-of-living adjustments since cuts made in 2009-2011. While federal SSI gets annual increases, the state portion remains fixed, meaning SSP benefits have lost purchasing power to inflation over time."
         },
         {
-          "question": "What if my parent's income changes after they're approved?",
+          "question": "What if my loved one's income changes after they're approved?",
           "answer": "Report income changes to SSA immediately at 1-800-772-1213. SSP payments are reduced dollar-for-dollar by other countable income, so new income will decrease the monthly payment amount. SSA conducts periodic reviews to verify continued eligibility."
         },
         {
-          "question": "Can my parent receive SSP if they move to another state?",
-          "answer": "No, SSP is only for California residents. If your parent moves to another state, they'll lose the California supplement but may qualify for that state's supplemental payment if one exists. They must report address changes to SSA immediately."
+          "question": "Can my loved one receive SSP if they move to another state?",
+          "answer": "No, SSP is only for California residents. If your loved one moves to another state, they'll lose the California supplement but may qualify for that state's supplemental payment if one exists. They must report address changes to SSA immediately."
         }
       ],
       "layoutIntent": {
@@ -2272,7 +2272,7 @@
       "id": "property-tax-postponement",
       "name": "Property Tax Postponement Program",
       "shortName": "Property Tax Postponement",
-      "tagline": "Defer your parent's property taxes if they're 62+ on fixed income — taxes postponed with 7% interest until the home is sold.",
+      "tagline": "Defer your loved one's property taxes if they're 62+ on fixed income — taxes postponed with 7% interest until the home is sold.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2285,7 +2285,7 @@
           }
         ]
       },
-      "intro": "If your parent is 62+ and struggling to pay property taxes on their home, California can postpone the entire bill until they sell or move. This program defers current-year property taxes with 7% annual interest — creating immediate cash flow relief for seniors on fixed income.\n\nYour parent must have household income of $55,181 or less and own at least 40% equity in their home. The postponed taxes become a lien on the property, repaid when the home is sold, transferred, or after death. Because this affects your family's inheritance, discuss the long-term financial impact before applying.\n\nFunding is limited and distributed first-come, first-served during the annual application period (typically October through February). Your parent must reapply every year to confirm continued eligibility.",
+      "intro": "If your loved one is 62+ and struggling to pay property taxes on their home, California can postpone the entire bill until they sell or move. This program defers current-year property taxes with 7% annual interest — creating immediate cash flow relief for seniors on fixed income.\n\nYour loved one must have household income of $55,181 or less and own at least 40% equity in their home. The postponed taxes become a lien on the property, repaid when the home is sold, transferred, or after death. Because this affects your family's inheritance, discuss the long-term financial impact before applying.\n\nFunding is limited and distributed first-come, first-served during the annual application period (typically October through February). Your loved one must reapply every year to confirm continued eligibility.",
       "savingsRange": "",
       "savingsSource": "Postponement of current-year property taxes",
       "savingsVerified": false,
@@ -2380,28 +2380,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What happens to the postponed taxes when my parent dies or we sell the house?",
-          "answer": "The postponed taxes plus 7% annual interest become due immediately upon sale, transfer, death, or when your parent stops living in the home as their primary residence. The state holds a lien on the property that must be paid from the sale proceeds or estate."
+          "question": "What happens to the postponed taxes when my loved one dies or we sell the house?",
+          "answer": "The postponed taxes plus 7% annual interest become due immediately upon sale, transfer, death, or when your loved one stops living in the home as their primary residence. The state holds a lien on the property that must be paid from the sale proceeds or estate."
         },
         {
-          "question": "Can my parent apply if they co-own the house with someone under 62?",
-          "answer": "All recorded property owners must be 62+, blind, or disabled, except for spouses, registered domestic partners, and direct-line relatives (children, grandchildren, or their spouses). If other co-owners don't meet these criteria, your parent won't qualify."
+          "question": "Can my loved one apply if they co-own the house with someone under 62?",
+          "answer": "All recorded property owners must be 62+, blind, or disabled, except for spouses, registered domestic partners, and direct-line relatives (children, grandchildren, or their spouses). If other co-owners don't meet these criteria, your loved one won't qualify."
         },
         {
-          "question": "How much equity does my parent need in their home to qualify?",
-          "answer": "Your parent must own at least 40% equity, meaning total mortgages, liens, and other encumbrances cannot exceed 60% of the property's fair market value. Any existing delinquent taxes count toward encumbrances and reduce available equity."
+          "question": "How much equity does my loved one need in their home to qualify?",
+          "answer": "Your loved one must own at least 40% equity, meaning total mortgages, liens, and other encumbrances cannot exceed 60% of the property's fair market value. Any existing delinquent taxes count toward encumbrances and reduce available equity."
         },
         {
-          "question": "What if my parent's income is slightly over $55,181?",
-          "answer": "The income limit is firm at $55,181 for household income in the prior calendar year, regardless of household size. Income includes all household members except minors, full-time students, and renters. If income exceeds this limit, your parent cannot qualify."
+          "question": "What if my loved one's income is slightly over $55,181?",
+          "answer": "The income limit is firm at $55,181 for household income in the prior calendar year, regardless of household size. Income includes all household members except minors, full-time students, and renters. If income exceeds this limit, your loved one cannot qualify."
         },
         {
-          "question": "Can my parent postpone taxes if they already have a reverse mortgage?",
+          "question": "Can my loved one postpone taxes if they already have a reverse mortgage?",
           "answer": "No, properties with reverse mortgages are not eligible for the Property Tax Postponement Program. This is a firm program requirement with no exceptions."
         },
         {
-          "question": "What happens if my parent misses the annual application deadline?",
-          "answer": "Your parent must wait until the next application period to apply. The program only accepts applications during specific months each year (typically October through February), and late applications are not accepted."
+          "question": "What happens if my loved one misses the annual application deadline?",
+          "answer": "Your loved one must wait until the next application period to apply. The program only accepts applications during specific months each year (typically October through February), and late applications are not accepted."
         }
       ],
       "layoutIntent": {
@@ -2422,7 +2422,7 @@
       "id": "ihss-in-home-supportive-services",
       "name": "In-Home Supportive Services (IHSS)",
       "shortName": "IHSS",
-      "tagline": "If your parent needs daily help at home but doesn't qualify for nursing home care, IHSS provides up to 283 hours/month of personal care and housework support.",
+      "tagline": "If your loved one needs daily help at home but doesn't qualify for nursing home care, IHSS provides up to 283 hours/month of personal care and housework support.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2435,7 +2435,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medi-Cal and needs daily help with bathing, meal preparation, or housework but wants to stay in their own home, IHSS provides in-home care services up to 283 hours per month. Because IHSS covers personal care, housecleaning, grocery shopping, and even accompaniment to medical appointments, your parent can avoid nursing home placement while getting the support they need.\n\nYour parent must be eligible for Medi-Cal first — either through SSI/SSP or by meeting income limits of $1,801/month for a single person (effective April 1, 2025). Because services are based on a county assessment of functional need, the hours authorized depend on your parent's specific limitations with daily activities like dressing, grooming, or medication management.\n\nThe program requires a physician to complete a Health Care Certification form (SOC 873) confirming your parent needs assistance, and a county social worker conducts a home assessment to determine service hours. Your parent must live in their own home or chosen residence — nursing homes and licensed care facilities don't qualify.",
+      "intro": "If your loved one is on Medi-Cal and needs daily help with bathing, meal preparation, or housework but wants to stay in their own home, IHSS provides in-home care services up to 283 hours per month. Because IHSS covers personal care, housecleaning, grocery shopping, and even accompaniment to medical appointments, your loved one can avoid nursing home placement while getting the support they need.\n\nYour loved one must be eligible for Medi-Cal first — either through SSI/SSP or by meeting income limits of $1,801/month for a single person (effective April 1, 2025). Because services are based on a county assessment of functional need, the hours authorized depend on your loved one's specific limitations with daily activities like dressing, grooming, or medication management.\n\nThe program requires a physician to complete a Health Care Certification form (SOC 873) confirming your loved one needs assistance, and a county social worker conducts a home assessment to determine service hours. Your loved one must live in their own home or chosen residence — nursing homes and licensed care facilities don't qualify.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2471,7 +2471,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must need assistance with daily activities like bathing, dressing, meal preparation, housework, or medication management. A county social worker assesses your parent's functional limitations using a ranking system (1-6) during a home visit.",
+        "functionalRequirement": "Must need assistance with daily activities like bathing, dressing, meal preparation, housework, or medication management. A county social worker assesses your loved one's functional limitations using a ranking system (1-6) during a home visit.",
         "otherRequirements": [
           "California resident",
           "Medi-Cal eligible or pending application",
@@ -2493,7 +2493,7 @@
           {
             "step": 2,
             "title": "Get physician to complete Health Care Certification (SOC 873)",
-            "description": "Your parent's doctor, nurse practitioner, or other licensed healthcare professional must complete form SOC 873 certifying the need for in-home services."
+            "description": "Your loved one's doctor, nurse practitioner, or other licensed healthcare professional must complete form SOC 873 certifying the need for in-home services."
           },
           {
             "step": 3,
@@ -2503,17 +2503,17 @@
           {
             "step": 4,
             "title": "Schedule home assessment",
-            "description": "A county social worker will visit your parent's home to assess functional limitations and determine authorized service hours using a biopsychosocial assessment."
+            "description": "A county social worker will visit your loved one's home to assess functional limitations and determine authorized service hours using a biopsychosocial assessment."
           },
           {
             "step": 5,
             "title": "Receive approval notification",
-            "description": "The county will notify your parent of approved hours and services, or provide reasons for denial. Services can range from a few hours to 283 hours per month maximum."
+            "description": "The county will notify your loved one of approved hours and services, or provide reasons for denial. Services can range from a few hours to 283 hours per month maximum."
           }
         ],
         "processingTime": "Processing time varies by county and includes home interview, functional assessment, and approval notification",
         "waitlist": null,
-        "tip": "Get the SOC 873 form completed by your parent's doctor before contacting the county office — this speeds up the process significantly.",
+        "tip": "Get the SOC 873 form completed by your loved one's doctor before contacting the county office — this speeds up the process significantly.",
         "urls": [
           {
             "label": "California IHSS Program Information",
@@ -2551,7 +2551,7 @@
       ],
       "applicationNotes": [
         "You must have Medi-Cal eligibility before IHSS services can begin — apply for both programs simultaneously if needed",
-        "Services are limited to your parent's own home or chosen residence — nursing homes and licensed facilities don't qualify",
+        "Services are limited to your loved one's own home or chosen residence — nursing homes and licensed facilities don't qualify",
         "The functional assessment determines service hours from 1-283 per month — be specific about daily limitations during the home visit",
         "Non-SSI recipients may have a share of cost based on income — ask about this during your county assessment"
       ],
@@ -2564,32 +2564,32 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get IHSS if they don't have Medi-Cal yet?",
+          "question": "Can my loved one get IHSS if they don't have Medi-Cal yet?",
           "answer": "No, Medi-Cal eligibility is required before IHSS services begin. However, you can apply for both programs at the same time. SSI/SSP recipients automatically qualify for Medi-Cal, while others must meet income limits of $1,801/month for singles or $2,433/month for couples (2025 rates)."
         },
         {
-          "question": "What if my parent's house is worth more than the $2,000 asset limit?",
-          "answer": "The primary residence is often exempt from Medi-Cal asset limits, which means your parent can usually keep their home regardless of value. However, other assets like bank accounts and investments must stay below $2,000 for individuals or $3,000 for couples."
+          "question": "What if my loved one's house is worth more than the $2,000 asset limit?",
+          "answer": "The primary residence is often exempt from Medi-Cal asset limits, which means your loved one can usually keep their home regardless of value. However, other assets like bank accounts and investments must stay below $2,000 for individuals or $3,000 for couples."
         },
         {
           "question": "Can a family member be paid to provide IHSS services?",
           "answer": "Yes, in most cases family members can be hired as IHSS providers and receive payment for authorized hours. Spouses cannot be providers in most situations, but adult children, relatives, and friends can typically be hired through the program."
         },
         {
-          "question": "How many hours will my parent actually get?",
+          "question": "How many hours will my loved one actually get?",
           "answer": "Service hours range from a few hours to 283 hours per month maximum, based on a county assessment of functional limitations. The social worker uses a ranking system (1-6) to determine needs for tasks like bathing, meal preparation, housework, and medical appointment transportation."
         },
         {
-          "question": "What happens if my parent's condition gets worse after enrollment?",
-          "answer": "You can request a reassessment if your parent's functional needs increase. Contact your county IHSS office to schedule a new evaluation, which may result in additional authorized hours if the assessment shows greater need for assistance."
+          "question": "What happens if my loved one's condition gets worse after enrollment?",
+          "answer": "You can request a reassessment if your loved one's functional needs increase. Contact your county IHSS office to schedule a new evaluation, which may result in additional authorized hours if the assessment shows greater need for assistance."
         },
         {
-          "question": "Can my parent get IHSS while living in assisted living?",
+          "question": "Can my loved one get IHSS while living in assisted living?",
           "answer": "No, IHSS is only available for people living in their own homes or chosen residences. Licensed care facilities, nursing homes, and assisted living facilities don't qualify because they already provide supervised care."
         },
         {
           "question": "How long does the county assessment take?",
-          "answer": "The home assessment typically takes 1-3 hours and includes questions about your parent's ability to perform daily activities, medical conditions, and living situation. The social worker observes your parent's functional limitations and reviews medical documentation during the visit."
+          "answer": "The home assessment typically takes 1-3 hours and includes questions about your loved one's ability to perform daily activities, medical conditions, and living situation. The social worker observes your loved one's functional limitations and reviews medical documentation during the visit."
         },
         {
           "question": "What if the county denies our application?",
@@ -2627,7 +2627,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a parent with Alzheimer's, dementia, stroke, Parkinson's, or similar chronic conditions in California, Caregiver Resource Centers provide free support services specifically for your situation. The program serves over 14,000 families annually through 11 nonprofit centers covering every county in California.\n\nServices include respite care funding (financial assistance for in-home support, adult day care, or short-term care), individual and family counseling, support groups, and legal consultation for Powers of Attorney and estate planning. Because there are no income or asset limits, any unpaid family caregiver can access services regardless of financial situation — the focus is on your caregiving needs, not means testing.",
+      "intro": "If you're caring for a loved one with Alzheimer's, dementia, stroke, Parkinson's, or similar chronic conditions in California, Caregiver Resource Centers provide free support services specifically for your situation. The program serves over 14,000 families annually through 11 nonprofit centers covering every county in California.\n\nServices include respite care funding (financial assistance for in-home support, adult day care, or short-term care), individual and family counseling, support groups, and legal consultation for Powers of Attorney and estate planning. Because there are no income or asset limits, any unpaid family caregiver can access services regardless of financial situation — the focus is on your caregiving needs, not means testing.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2723,24 +2723,24 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get CRC services if my parent doesn't have dementia but has other health problems?",
-          "answer": "Only if the condition is on the specific list: dementia, Alzheimer's, stroke, Parkinson's, Huntington's, multiple sclerosis, traumatic brain injury, or other cognitive disorders. General aging issues or other medical conditions don't qualify. Call your local CRC to verify if your parent's diagnosis qualifies."
+          "question": "Can I get CRC services if my loved one doesn't have dementia but has other health problems?",
+          "answer": "Only if the condition is on the specific list: dementia, Alzheimer's, stroke, Parkinson's, Huntington's, multiple sclerosis, traumatic brain injury, or other cognitive disorders. General aging issues or other medical conditions don't qualify. Call your local CRC to verify if your loved one's diagnosis qualifies."
         },
         {
           "question": "How much respite care funding can I actually get?",
           "answer": "CRC doesn't publish specific dollar amounts because funding varies by regional center and availability. When you call your local center, ask directly about current respite funding levels and whether there's a waitlist for financial assistance."
         },
         {
-          "question": "Can I use CRC services if I'm already getting IHSS for my parent?",
+          "question": "Can I use CRC services if I'm already getting IHSS for my loved one?",
           "answer": "Yes, CRC services complement IHSS. While IHSS provides paid caregiving hours, CRC offers counseling, support groups, legal consultation, and additional respite funding that IHSS doesn't cover. You can use both programs simultaneously."
         },
         {
           "question": "What if I live near a county border — which CRC do I use?",
-          "answer": "Use the CRC that serves the county where your parent lives, not where you live. Each center has specific county assignments. If you're unsure, call the main directory at caregivercalifornia.org or (800) 675-6694 to get directed to the right center."
+          "answer": "Use the CRC that serves the county where your loved one lives, not where you live. Each center has specific county assignments. If you're unsure, call the main directory at caregivercalifornia.org or (800) 675-6694 to get directed to the right center."
         },
         {
-          "question": "Do I need my parent's permission to get CRC services?",
-          "answer": "For most services like support groups and caregiver counseling, you don't need your parent's consent since these focus on supporting you as the caregiver. However, services directly involving your parent (like respite care) typically require their awareness and cooperation."
+          "question": "Do I need my loved one's permission to get CRC services?",
+          "answer": "For most services like support groups and caregiver counseling, you don't need your loved one's consent since these focus on supporting you as the caregiver. However, services directly involving your loved one (like respite care) typically require their awareness and cooperation."
         },
         {
           "question": "Can multiple family members get CRC services for the same parent?",
@@ -2772,7 +2772,7 @@
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent has Medi-Cal and needs help with daily activities like bathing, dressing, or medication management, CBAS provides free adult day services at certified centers throughout California. Your parent can receive supervised care, health services, and social activities up to 7 days per week while continuing to live at home.\n\nCBAS serves as an alternative to nursing home care for adults who meet specific medical and functional criteria. The program operates through 310 certified centers across 28 California counties, but your parent must live within one hour's drive of a participating center to qualify.\n\nEligibility requires current Medi-Cal coverage plus meeting clinical criteria through a face-to-face assessment by a registered nurse. Asset limits changed January 1, 2026: $130,000 for individuals, $195,000 for couples.",
+      "intro": "If your loved one has Medi-Cal and needs help with daily activities like bathing, dressing, or medication management, CBAS provides free adult day services at certified centers throughout California. Your loved one can receive supervised care, health services, and social activities up to 7 days per week while continuing to live at home.\n\nCBAS serves as an alternative to nursing home care for adults who meet specific medical and functional criteria. The program operates through 310 certified centers across 28 California counties, but your loved one must live within one hour's drive of a participating center to qualify.\n\nEligibility requires current Medi-Cal coverage plus meeting clinical criteria through a face-to-face assessment by a registered nurse. Asset limits changed January 1, 2026: $130,000 for individuals, $195,000 for couples.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2889,7 +2889,7 @@
         }
       ],
       "applicationNotes": [
-        "CBAS is only available in 28 of California's 58 counties — verify there's a certified center within one hour of your parent's home before applying",
+        "CBAS is only available in 28 of California's 58 counties — verify there's a certified center within one hour of your loved one's home before applying",
         "Asset limits changed January 1, 2026 — families previously eligible under unlimited asset rules may now be disqualified",
         "Your Medi-Cal Managed Care Plan controls the approval process, and different plans may have varying approval rates and timelines",
         "The face-to-face nursing assessment cannot be done remotely — plan for an in-person visit with medical documentation ready"
@@ -2903,35 +2903,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get CBAS if they live in a rural area without a nearby center?",
-          "answer": "No. Your parent must live within one hour's drive of a CBAS center. Only 28 of California's 58 counties have certified centers. If there's no center within an hour, your parent cannot access CBAS services, but they may qualify for other programs like IHSS or MSSP."
+          "question": "Can my loved one get CBAS if they live in a rural area without a nearby center?",
+          "answer": "No. Your loved one must live within one hour's drive of a CBAS center. Only 28 of California's 58 counties have certified centers. If there's no center within an hour, your loved one cannot access CBAS services, but they may qualify for other programs like IHSS or MSSP."
         },
         {
-          "question": "What happens if my parent's assets are just over the new $130,000 limit?",
+          "question": "What happens if my loved one's assets are just over the new $130,000 limit?",
           "answer": "They won't qualify for CBAS as of January 1, 2026. The primary residence and one vehicle don't count toward the limit, but all other assets do. Consider consulting an elder law attorney about legal spend-down strategies if they're close to the limit."
         },
         {
-          "question": "Can I apply for CBAS if my parent has Medicare but not Medi-Cal?",
-          "answer": "No. CBAS is exclusively a Medi-Cal benefit. Your parent must first qualify for and enroll in Medi-Cal. However, Adult Day Health Care (ADHC) remains available for private-pay participants who don't have Medi-Cal."
+          "question": "Can I apply for CBAS if my loved one has Medicare but not Medi-Cal?",
+          "answer": "No. CBAS is exclusively a Medi-Cal benefit. Your loved one must first qualify for and enroll in Medi-Cal. However, Adult Day Health Care (ADHC) remains available for private-pay participants who don't have Medi-Cal."
         },
         {
-          "question": "How many days per week will my parent actually receive services?",
-          "answer": "Services can be approved up to 7 days per week, but the specific frequency depends on your parent's individual needs assessment and your Managed Care Plan's approval. Program materials don't specify standard service hours or typical approval patterns."
+          "question": "How many days per week will my loved one actually receive services?",
+          "answer": "Services can be approved up to 7 days per week, but the specific frequency depends on your loved one's individual needs assessment and your Managed Care Plan's approval. Program materials don't specify standard service hours or typical approval patterns."
         },
         {
-          "question": "What if my parent has mild dementia but can still do most daily activities independently?",
-          "answer": "A dementia diagnosis alone doesn't guarantee eligibility. Your parent must demonstrate functional impairment through the CBAS Eligibility Determination Tool (CEDT) assessment. Mild cognitive impairment and moderate Alzheimer's (stage 4 dementia) are qualifying diagnoses, but functional need must still be proven."
+          "question": "What if my loved one has mild dementia but can still do most daily activities independently?",
+          "answer": "A dementia diagnosis alone doesn't guarantee eligibility. Your loved one must demonstrate functional impairment through the CBAS Eligibility Determination Tool (CEDT) assessment. Mild cognitive impairment and moderate Alzheimer's (stage 4 dementia) are qualifying diagnoses, but functional need must still be proven."
         },
         {
-          "question": "Can I choose which CBAS center my parent attends?",
+          "question": "Can I choose which CBAS center my loved one attends?",
           "answer": "You can select from available certified centers within your area, but your choices are limited to the 310 centers across 28 counties. Your Managed Care Plan will help identify nearby options after approval, and availability may vary by center."
         },
         {
-          "question": "What happens if my parent's condition improves and they no longer need daily help?",
-          "answer": "CBAS eligibility requires ongoing functional impairment. If your parent's condition significantly improves, they would need reassessment and might no longer qualify. However, program materials don't specify reassessment frequency or procedures for condition changes."
+          "question": "What happens if my loved one's condition improves and they no longer need daily help?",
+          "answer": "CBAS eligibility requires ongoing functional impairment. If your loved one's condition significantly improves, they would need reassessment and might no longer qualify. However, program materials don't specify reassessment frequency or procedures for condition changes."
         },
         {
-          "question": "Can my parent be on a waiting list for a nursing home and still get CBAS?",
+          "question": "Can my loved one be on a waiting list for a nursing home and still get CBAS?",
           "answer": "Yes. CBAS is designed as an alternative to nursing home care for people who can live at home with appropriate support services. Being on a nursing home waiting list doesn't disqualify someone from CBAS, and the program may help delay or prevent nursing home placement."
         }
       ],
@@ -2951,7 +2951,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "California offers 16 major programs to help seniors age in place — from covering Medicare costs to providing daily home care. If your parent is 60+ and struggling with medical bills, grocery costs, or daily tasks, you likely qualify for multiple forms of help. California's programs range from cash assistance (up to $298/month for food through CalFresh) to comprehensive care coordination (MSSP can provide nursing oversight and personal care to keep your parent out of a nursing home). Most programs have income limits around $1,700-2,200/month for single seniors, but several resources like HICAP counseling and legal services are free regardless of income. Start by checking the programs below that match your biggest concerns — many families qualify for 3-4 different types of assistance.",
+    "intro": "California offers 16 major programs to help seniors age in place — from covering Medicare costs to providing daily home care. If your loved one is 60+ and struggling with medical bills, grocery costs, or daily tasks, you likely qualify for multiple forms of help. California's programs range from cash assistance (up to $298/month for food through CalFresh) to comprehensive care coordination (MSSP can provide nursing oversight and personal care to keep your loved one out of a nursing home). Most programs have income limits around $1,700-2,200/month for single seniors, but several resources like HICAP counseling and legal services are free regardless of income. Start by checking the programs below that match your biggest concerns — many families qualify for 3-4 different types of assistance.",
     "startHere": [
       {
         "name": "Medi-Cal Medicare Savings Programs",
@@ -2977,7 +2977,7 @@
           "Multipurpose Senior Services Program Waiver (MSSP)",
           "Community Based Adult Services (CBAS)"
         ],
-        "description": "Programs that provide daily personal care, nursing oversight, and adult day services to help your parent stay home safely."
+        "description": "Programs that provide daily personal care, nursing oversight, and adult day services to help your loved one stay home safely."
       },
       {
         "need": "Reducing medical and insurance costs",
@@ -3011,7 +3011,7 @@
           "Caregiver Resource Centers (CRC)",
           "California Senior Legal Services"
         ],
-        "description": "Free counseling, respite care funding, and legal help for families caring for aging parents."
+        "description": "Free counseling, respite care funding, and legal help for families caring for aging loved ones."
       }
     ],
     "quickFacts": [

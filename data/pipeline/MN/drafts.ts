@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.909Z
+ * Last updated: 2026-04-20T22:05:18.092Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs nursing home care, home health services, or comprehensive medical coverage, Medical Assistance (Minnesota's Medicaid program) covers all costs when they qualify. For long-term care needs, this includes full nursing home costs, personal care assistance at home, assisted living support through the Elderly Waiver, plus all doctor visits, hospital stays, and prescription drugs.\n\nIncome limits depend on what your parent needs: $1,305/month for long-term care services, or up to 138% of federal poverty level for general medical coverage. Asset limits for long-term care are strict — $3,000 for a single person, $6,000 for couples — but your parent's home and one car typically don't count.\n\nThe program is administered through county offices statewide, but some waiver services like assisted living support have waitlists due to funding caps. Estate recovery applies to the home after death for long-term care recipients.",
+      "intro": "If your loved one needs nursing home care, home health services, or comprehensive medical coverage, Medical Assistance (Minnesota's Medicaid program) covers all costs when they qualify. For long-term care needs, this includes full nursing home costs, personal care assistance at home, assisted living support through the Elderly Waiver, plus all doctor visits, hospital stays, and prescription drugs.\n\nIncome limits depend on what your loved one needs: $1,305/month for long-term care services, or up to 138% of federal poverty level for general medical coverage. Asset limits for long-term care are strict — $3,000 for a single person, $6,000 for couples — but your loved one's home and one car typically don't count.\n\nThe program is administered through county offices statewide, but some waiver services like assisted living support have waitlists due to funding caps. Estate recovery applies to the home after death for long-term care recipients.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -59,7 +59,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "For long-term care services, must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
+        "functionalRequirement": "For long-term care services, must meet Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
         "otherRequirements": [
           "Minnesota residency",
           "U.S. citizenship or qualified immigrant status",
@@ -89,7 +89,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete clinical assessment if needed",
-            "description": "If applying for nursing home or waiver services, a county assessor will evaluate your parent's need for daily care assistance."
+            "description": "If applying for nursing home or waiver services, a county assessor will evaluate your loved one's need for daily care assistance."
           },
           {
             "step": 5,
@@ -112,7 +112,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your parent and spouse",
+        "Social Security cards for your loved one and spouse",
         "Medicare card (both Part A and Part B)",
         "Birth certificate or passport for age verification",
         "Proof of Minnesota residency (utility bill, lease agreement, or bank statement)",
@@ -149,10 +149,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your parent is already receiving SSI, they may be automatically eligible for Medical Assistance without the standard asset test",
+        "If your loved one is already receiving SSI, they may be automatically eligible for Medical Assistance without the standard asset test",
         "Married couples have spousal impoverishment protections — the community spouse can keep more assets and income than the standard limits",
         "If income is slightly over the limit, ask about spend-down options or Medical Assistance for Employed Persons with Disabilities (MA-EPD)",
-        "Estate recovery will claim your parent's home after death if they received long-term care services, though exceptions exist for surviving spouses or disabled adult children"
+        "Estate recovery will claim your loved one's home after death if they received long-term care services, though exceptions exist for surviving spouses or disabled adult children"
       ],
       "relatedPrograms": [
         "Elderly Waiver Program",
@@ -163,32 +163,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, the primary home is usually exempt regardless of value, but there may be equity limits for some programs. However, the state will pursue estate recovery to reclaim costs from the home's sale after your parent's death (and after a surviving spouse's death)."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is usually exempt regardless of value, but there may be equity limits for some programs. However, the state will pursue estate recovery to reclaim costs from the home's sale after your loved one's death (and after a surviving spouse's death)."
         },
         {
-          "question": "What if my parent's income is just over the $1,305 limit for long-term care?",
-          "answer": "Ask about spend-down options where your parent pays the excess income toward medical bills each month to qualify. There's also Medical Assistance for Employed Persons with Disabilities (MA-EPD) which has higher income limits for some people."
+          "question": "What if my loved one's income is just over the $1,305 limit for long-term care?",
+          "answer": "Ask about spend-down options where your loved one pays the excess income toward medical bills each month to qualify. There's also Medical Assistance for Employed Persons with Disabilities (MA-EPD) which has higher income limits for some people."
         },
         {
           "question": "How long is the waitlist for Elderly Waiver services really?",
           "answer": "Waitlist length varies significantly by county and isn't specified in state sources. Contact your County Human Services office directly for current wait times in your area, as some counties may have immediate openings while others have longer waits."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply as authorized representatives for their parents. You'll need to complete additional authorization forms and may need power of attorney documentation depending on your parent's cognitive capacity."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply as authorized representatives for their loved ones. You'll need to complete additional authorization forms and may need power of attorney documentation depending on your loved one's cognitive capacity."
         },
         {
-          "question": "Can my parent get both Medicare and Medical Assistance at the same time?",
-          "answer": "Yes, this is called being 'dual eligible.' Medical Assistance will cover Medicare premiums, deductibles, and services Medicare doesn't cover. Your parent should keep both — they work together to provide comprehensive coverage."
+          "question": "Can my loved one get both Medicare and Medical Assistance at the same time?",
+          "answer": "Yes, this is called being 'dual eligible.' Medical Assistance will cover Medicare premiums, deductibles, and services Medicare doesn't cover. Your loved one should keep both — they work together to provide comprehensive coverage."
         },
         {
-          "question": "What happens if my parent needs more care after they're already enrolled?",
-          "answer": "Contact your County Human Services office for a reassessment. If your parent's needs increase, they may qualify for additional services like personal care assistance or nursing home placement. The county will conduct a new clinical evaluation."
+          "question": "What happens if my loved one needs more care after they're already enrolled?",
+          "answer": "Contact your County Human Services office for a reassessment. If your loved one's needs increase, they may qualify for additional services like personal care assistance or nursing home placement. The county will conduct a new clinical evaluation."
         },
         {
           "question": "Do retirement accounts like 401(k)s count against the asset limit?",
-          "answer": "This depends on several factors including whether your parent is receiving required minimum distributions. The rules are complex for retirement accounts, so bring all retirement account statements when you apply and let the county determine what counts."
+          "answer": "This depends on several factors including whether your loved one is receiving required minimum distributions. The rules are complex for retirement accounts, so bring all retirement account statements when you apply and let the county determine what counts."
         },
         {
           "question": "What if we disagree with the nursing home level of care assessment?",
@@ -213,7 +213,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "elderly-waiver",
       "name": "Elderly Waiver (EW)",
       "shortName": "Elderly Waiver",
-      "tagline": "Home care services to keep your parent out of nursing homes if they qualify for Medical Assistance long-term care.",
+      "tagline": "Home care services to keep your loved one out of nursing homes if they qualify for Medical Assistance long-term care.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -234,7 +234,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ and qualifies for Medical Assistance long-term care, Elderly Waiver can provide home care services to help them avoid nursing home placement. The program covers personal care assistance, housekeeping, home modifications like grab bars and ramps, adult day programs, home-delivered meals, emergency response systems, and respite care for family caregivers. Services are individualized based on your parent's care plan, with the total cost capped below what nursing home care would cost.\n\nTo qualify, your parent must need nursing facility level of care (daily help with bathing, dressing, or medication management) but choose to stay in the community instead. They must already be eligible for Medical Assistance long-term care services, which has strict income and asset limits. If their income is too high, they may still qualify through a monthly spenddown or waiver obligation payment.\n\nBecause this waiver prioritizes keeping people in their homes over institutional care, the range of services can be comprehensive — from 24-hour customized living support in assisted living facilities to part-time personal care assistance at home. Your county human services office administers the program and conducts the required assessment to determine both Medical Assistance eligibility and the level of care needed.",
+      "intro": "If your loved one is 65+ and qualifies for Medical Assistance long-term care, Elderly Waiver can provide home care services to help them avoid nursing home placement. The program covers personal care assistance, housekeeping, home modifications like grab bars and ramps, adult day programs, home-delivered meals, emergency response systems, and respite care for family caregivers. Services are individualized based on your loved one's care plan, with the total cost capped below what nursing home care would cost.\n\nTo qualify, your loved one must need nursing facility level of care (daily help with bathing, dressing, or medication management) but choose to stay in the community instead. They must already be eligible for Medical Assistance long-term care services, which has strict income and asset limits. If their income is too high, they may still qualify through a monthly spenddown or waiver obligation payment.\n\nBecause this waiver prioritizes keeping people in their homes over institutional care, the range of services can be comprehensive — from 24-hour customized living support in assisted living facilities to part-time personal care assistance at home. Your county human services office administers the program and conducts the required assessment to determine both Medical Assistance eligibility and the level of care needed.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -305,7 +305,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your parent and spouse",
+        "Social Security cards for your loved one and spouse",
         "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
@@ -337,8 +337,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "People with income above Medical Assistance limits may still qualify through monthly spenddown or waiver obligation payments — don't assume high income disqualifies",
-        "If your parent has income at or below 120% of federal poverty guidelines and assets under $3,000, they may need to apply for Alternative Care instead of Elderly Waiver",
-        "The cost of your parent's community services must be less than nursing home costs, or they won't qualify — this is determined during the assessment",
+        "If your loved one has income at or below 120% of federal poverty guidelines and assets under $3,000, they may need to apply for Alternative Care instead of Elderly Waiver",
+        "The cost of your loved one's community services must be less than nursing home costs, or they won't qualify — this is determined during the assessment",
         "Different counties may have different wait times and provider availability — ask about current capacity when you apply"
       ],
       "relatedPrograms": [
@@ -350,24 +350,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $3,000?",
-          "answer": "Yes, the home where your parent lives is typically exempt from the $3,000 asset limit under Medical Assistance rules. However, there may be limits on home equity value — check current MA long-term care guidelines for specific amounts."
+          "question": "Can my loved one keep their house if it's worth more than $3,000?",
+          "answer": "Yes, the home where your loved one lives is typically exempt from the $3,000 asset limit under Medical Assistance rules. However, there may be limits on home equity value — check current MA long-term care guidelines for specific amounts."
         },
         {
-          "question": "What if my parent's income is too high for Medical Assistance?",
+          "question": "What if my loved one's income is too high for Medical Assistance?",
           "answer": "They may still qualify through spenddown (paying medical expenses to reduce countable income) or waiver obligation (monthly payment toward care costs). People who meet the Special Income Standard may qualify without spenddown — your county can explain these options."
         },
         {
-          "question": "How do I know if my parent needs 'nursing facility level of care'?",
-          "answer": "This is determined through the Long-Term Care Consultation assessment. Generally, it means your parent needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision. The assessor makes this clinical determination."
+          "question": "How do I know if my loved one needs 'nursing facility level of care'?",
+          "answer": "This is determined through the Long-Term Care Consultation assessment. Generally, it means your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision. The assessor makes this clinical determination."
         },
         {
           "question": "Can I apply for Elderly Waiver and Alternative Care at the same time?",
-          "answer": "No, these are separate programs with different income requirements. If your parent has income at or below 120% of federal poverty guidelines and assets under $3,000, they should apply for Alternative Care first."
+          "answer": "No, these are separate programs with different income requirements. If your loved one has income at or below 120% of federal poverty guidelines and assets under $3,000, they should apply for Alternative Care first."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
-          "answer": "Care plans can be updated through reassessment. However, if the cost of increased services would exceed nursing home costs, your parent might no longer qualify for the waiver and may need to consider facility care."
+          "question": "What happens if my loved one's care needs increase after enrollment?",
+          "answer": "Care plans can be updated through reassessment. However, if the cost of increased services would exceed nursing home costs, your loved one might no longer qualify for the waiver and may need to consider facility care."
         },
         {
           "question": "Can family members provide some of the personal care assistance?",
@@ -378,7 +378,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "This varies by county and service type. Services cannot begin until the full LTCC assessment is complete, care plan is developed, and Medical Assistance eligibility is confirmed. Ask your county about current timelines."
         },
         {
-          "question": "What if there are no available providers in my parent's area?",
+          "question": "What if there are no available providers in my loved one's area?",
           "answer": "Provider availability varies by region and service type. Your county can tell you about current provider capacity and may help you find alternatives or get on waiting lists for specific services."
         }
       ],
@@ -413,7 +413,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ with Medicare and qualifies for Medicaid, MSHO combines both programs into one managed care plan. Instead of dealing with separate Medicare and Medicaid providers, one health plan coordinates all medical care, prescription drugs, and additional services like dental, transportation, and care coordination.\n\nMSHO covers everything standard Medicare and Medicaid provide, plus extra benefits that vary by health plan — things like over-the-counter allowances, wellness programs like SilverSneakers, and in-home personal care services. Prescription copays are low (based on income level), and most medical and dental services at in-network providers cost $0.\n\nThe catch: your parent must first qualify for Minnesota Medical Assistance (Medicaid), and MSHO is only available in certain counties where participating health plans operate. Because this requires dual eligibility for both Medicare and Medicaid, the application process involves proving both age/Medicare status and low income/assets for Medicaid.",
+      "intro": "If your loved one is 65+ with Medicare and qualifies for Medicaid, MSHO combines both programs into one managed care plan. Instead of dealing with separate Medicare and Medicaid providers, one health plan coordinates all medical care, prescription drugs, and additional services like dental, transportation, and care coordination.\n\nMSHO covers everything standard Medicare and Medicaid provide, plus extra benefits that vary by health plan — things like over-the-counter allowances, wellness programs like SilverSneakers, and in-home personal care services. Prescription copays are low (based on income level), and most medical and dental services at in-network providers cost $0.\n\nThe catch: your loved one must first qualify for Minnesota Medical Assistance (Medicaid), and MSHO is only available in certain counties where participating health plans operate. Because this requires dual eligibility for both Medicare and Medicaid, the application process involves proving both age/Medicare status and low income/assets for Medicaid.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -529,23 +529,23 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What happens if my parent lives in a county where MSHO isn't available?",
-          "answer": "MSHO is only offered in counties where participating health plans operate. If your county doesn't have MSHO, your parent will be enrolled in MSC (Minnesota Senior Care) or MSC+ instead, which provide similar Medicaid benefits but don't integrate Medicare as seamlessly. Check the DHS county map to see what's available in your area."
+          "question": "What happens if my loved one lives in a county where MSHO isn't available?",
+          "answer": "MSHO is only offered in counties where participating health plans operate. If your county doesn't have MSHO, your loved one will be enrolled in MSC (Minnesota Senior Care) or MSC+ instead, which provide similar Medicaid benefits but don't integrate Medicare as seamlessly. Check the DHS county map to see what's available in your area."
         },
         {
-          "question": "Can my parent keep their current doctors if they enroll in MSHO?",
-          "answer": "It depends on whether their doctors are in the MSHO health plan's network. Each plan (HealthPartners, Medica, UCare, etc.) has different provider networks. Before choosing a plan, ask for their provider directory and confirm your parent's doctors participate."
+          "question": "Can my loved one keep their current doctors if they enroll in MSHO?",
+          "answer": "It depends on whether their doctors are in the MSHO health plan's network. Each plan (HealthPartners, Medica, UCare, etc.) has different provider networks. Before choosing a plan, ask for their provider directory and confirm your loved one's doctors participate."
         },
         {
-          "question": "What if my parent is denied Medical Assistance but I think they should qualify?",
-          "answer": "You can appeal the MA denial within 90 days. Contact your county human services office to request an appeal hearing. Common denial reasons include income slightly over limits or missing documentation — sometimes these can be resolved. Without MA approval, your parent cannot enroll in MSHO."
+          "question": "What if my loved one is denied Medical Assistance but I think they should qualify?",
+          "answer": "You can appeal the MA denial within 90 days. Contact your county human services office to request an appeal hearing. Common denial reasons include income slightly over limits or missing documentation — sometimes these can be resolved. Without MA approval, your loved one cannot enroll in MSHO."
         },
         {
           "question": "How much will prescription drugs cost under MSHO?",
-          "answer": "Prescription copays are based on your parent's income level and whether they qualify for Medicare's Extra Help program. Most MSHO members pay very low copays (often $1-$3) or nothing for generic medications. The health plan can give you specific copay amounts during enrollment."
+          "answer": "Prescription copays are based on your loved one's income level and whether they qualify for Medicare's Extra Help program. Most MSHO members pay very low copays (often $1-$3) or nothing for generic medications. The health plan can give you specific copay amounts during enrollment."
         },
         {
-          "question": "Can my parent switch MSHO health plans if they're not happy with their choice?",
+          "question": "Can my loved one switch MSHO health plans if they're not happy with their choice?",
           "answer": "Yes, but only during certain times. You can switch during Medicare's annual open enrollment (October 15 - December 7) or if you have a qualifying life event. You can also request a disenrollment for cause if you have specific problems with the plan."
         },
         {
@@ -553,11 +553,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "MSHO coordinates both programs under one health plan, so you deal with one member services number, one provider network, and one care coordination team. With separate Medicare and Medicaid, you manage different plans, different networks, and sometimes conflicting coverage decisions."
         },
         {
-          "question": "Will MSHO cover nursing home costs if my parent needs that level of care?",
-          "answer": "MSHO covers up to 180 days of nursing facility care, but only if your parent enters the facility after enrolling in MSHO. If they're already in a nursing facility when they enroll, those costs won't be covered. For long-term nursing home care, they'd need to apply for the Elderly Waiver program."
+          "question": "Will MSHO cover nursing home costs if my loved one needs that level of care?",
+          "answer": "MSHO covers up to 180 days of nursing facility care, but only if your loved one enters the facility after enrolling in MSHO. If they're already in a nursing facility when they enroll, those costs won't be covered. For long-term nursing home care, they'd need to apply for the Elderly Waiver program."
         },
         {
-          "question": "Can I help my parent apply for Medical Assistance and MSHO?",
+          "question": "Can I help my loved one apply for Medical Assistance and MSHO?",
           "answer": "Yes, but you'll need to complete authorization forms allowing you to act on their behalf. Each county has different requirements for representatives. Ask your county human services office about their process for family members helping with applications."
         }
       ],
@@ -579,7 +579,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent struggles to afford Medicare premiums and copays, these programs can cover $1,700–3,500 annually in out-of-pocket costs.",
+      "tagline": "If your loved one struggles to afford Medicare premiums and copays, these programs can cover $1,700–3,500 annually in out-of-pocket costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -592,7 +592,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare but struggles to pay premiums, deductibles, and copays, Medicare Savings Programs can eliminate these costs entirely. These programs come in three tiers based on income: QMB covers all Medicare costs including deductibles and copays, while SLMB and QI cover Medicare Part B premiums ($170.10/month in 2025). Because Minnesota has higher asset limits than federal standards ($10,000 for singles vs. $9,430 federally), your parent may qualify even if they wouldn't in other states.\n\nThe programs work differently than supplements — they pay providers directly, so your parent never sees a bill for covered Medicare services. QMB provides the most comprehensive coverage, paying all Medicare-approved costs. However, QI has limited funding and operates first-come, first-served, creating potential waitlists during busy application periods.",
+      "intro": "If your loved one has Medicare but struggles to pay premiums, deductibles, and copays, Medicare Savings Programs can eliminate these costs entirely. These programs come in three tiers based on income: QMB covers all Medicare costs including deductibles and copays, while SLMB and QI cover Medicare Part B premiums ($170.10/month in 2025). Because Minnesota has higher asset limits than federal standards ($10,000 for singles vs. $9,430 federally), your loved one may qualify even if they wouldn't in other states.\n\nThe programs work differently than supplements — they pay providers directly, so your loved one never sees a bill for covered Medicare services. QMB provides the most comprehensive coverage, paying all Medicare-approved costs. However, QI has limited funding and operates first-come, first-served, creating potential waitlists during busy application periods.",
       "savingsRange": "$1,700 – $3,500/year",
       "savingsSource": "Medicare Part B premiums plus deductibles and copays for QMB tier",
       "savingsVerified": true,
@@ -683,7 +683,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30-45 days, varies by county",
         "waitlist": "QI program has limited funding — apply early in fiscal year as funds may run out",
-        "tip": "Income is calculated after standard disregards ($20 general plus half of earned income), so your parent may qualify even if gross income appears too high.",
+        "tip": "Income is calculated after standard disregards ($20 general plus half of earned income), so your loved one may qualify even if gross income appears too high.",
         "urls": [
           {
             "label": "Minnesota Health Care Programs Application",
@@ -751,15 +751,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limits?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limits?",
           "answer": "Yes. The family home is completely exempt from asset limits regardless of value. Only liquid assets like bank accounts, stocks, and bonds count toward the $10,000 individual/$18,000 couple limits."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
+          "question": "What happens if my loved one's income is slightly over the limit?",
           "answer": "They may still qualify due to income disregards. Minnesota subtracts $20 from any income source, plus half of earned income, before comparing to limits. A person earning $1,400/month might actually qualify for QMB after disregards are applied."
         },
         {
-          "question": "Can I apply for my parent who has dementia?",
+          "question": "Can I apply for my loved one who has dementia?",
           "answer": "Yes, family members can apply on behalf of parents who cannot complete applications themselves. You may need to provide documentation of your authority to act (power of attorney or guardianship papers) depending on your county's requirements."
         },
         {
@@ -767,20 +767,20 @@ export const drafts: PipelineStateDrafts = {
           "answer": "QI has limited federal funding allocated first-come, first-served. Waitlists develop when funds run out, typically later in the federal fiscal year (spring/summer). Apply in fall/winter for best chances of immediate approval."
         },
         {
-          "question": "Can my parent have both Medicare Savings Programs and MinnesotaCare?",
+          "question": "Can my loved one have both Medicare Savings Programs and MinnesotaCare?",
           "answer": "No, you cannot have QI and MinnesotaCare simultaneously due to conflicting Part B enrollment requirements. However, QMB and SLMB don't have this restriction. Discuss options with your county worker to choose the better program."
         },
         {
-          "question": "What if my parent gets QMB but a doctor still sends them a bill?",
+          "question": "What if my loved one gets QMB but a doctor still sends them a bill?",
           "answer": "Contact the provider immediately — QMB beneficiaries cannot be billed for Medicare-covered services. Providers who bill QMB patients are violating federal law. If the provider won't remove charges, contact your county human services office for assistance."
         },
         {
-          "question": "Do we need to report changes in my parent's income or assets?",
+          "question": "Do we need to report changes in my loved one's income or assets?",
           "answer": "Yes, you must report changes promptly to avoid overpayments that could affect future eligibility. Report new income sources, significant asset changes, or address moves to your county office within 10 days when possible."
         },
         {
-          "question": "Can my parent apply for all three programs at once to see which they qualify for?",
-          "answer": "You only submit one application — the county will determine which program tier your parent qualifies for based on their income level. They'll automatically place your parent in the highest benefit level they're eligible for."
+          "question": "Can my loved one apply for all three programs at once to see which they qualify for?",
+          "answer": "You only submit one application — the county will determine which program tier your loved one qualifies for based on their income level. They'll automatically place your loved one in the highest benefit level they're eligible for."
         }
       ],
       "layoutIntent": {
@@ -814,7 +814,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $100-546 per month on an EBT card for food purchases. Because your parent is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000) — making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your parent can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
+      "intro": "If your loved one is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $100-546 per month on an EBT card for food purchases. Because your loved one is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000) — making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your loved one can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
       "savingsRange": "$1,200 – $6,552/year in 2026",
       "savingsSource": "Maximum monthly SNAP allotments for 1-person ($546) and 2-person households, Minnesota DHS 2025-2026",
       "savingsVerified": true,
@@ -977,28 +977,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent qualify for SNAP if they live in my house but buy their own groceries?",
+          "question": "Can my loved one qualify for SNAP if they live in my house but buy their own groceries?",
           "answer": "Yes. Seniors 60+ can form a separate SNAP household even when living with family, as long as they buy and prepare their own food separately. They don't have to live alone to qualify."
         },
         {
-          "question": "Will my parent's house count against the $4,500 asset limit?",
+          "question": "Will my loved one's house count against the $4,500 asset limit?",
           "answer": "No. The primary home is typically exempt from asset limits for SNAP. The $4,500 limit applies to countable assets like cash, bank accounts, and investments — not the home they live in."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "You can help with the application process, but your parent generally needs to be the applicant unless you have legal authority (power of attorney, guardianship). Contact your county office to discuss options if your parent cannot apply themselves."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "You can help with the application process, but your loved one generally needs to be the applicant unless you have legal authority (power of attorney, guardianship). Contact your county office to discuss options if your loved one cannot apply themselves."
         },
         {
           "question": "How do medical expenses affect SNAP benefits for seniors?",
           "answer": "Medical expenses over $35/month reduce countable income for seniors 60+, which can increase SNAP benefits. This includes Medicare premiums, prescription costs, doctor visits, and other out-of-pocket medical expenses. Save all receipts."
         },
         {
-          "question": "Can my parent get both SNAP and Meals on Wheels at the same time?",
+          "question": "Can my loved one get both SNAP and Meals on Wheels at the same time?",
           "answer": "Yes. SNAP benefits can be used alongside other food programs like Meals on Wheels, food pantries, or senior nutrition programs. These programs complement each other rather than conflict."
         },
         {
-          "question": "What happens to SNAP benefits if my parent moves to assisted living?",
-          "answer": "SNAP eligibility changes if your parent moves to a facility that provides meals. They may still qualify if they have their own kitchen and buy their own food, but benefits will likely be reduced or eliminated in facilities with meal plans."
+          "question": "What happens to SNAP benefits if my loved one moves to assisted living?",
+          "answer": "SNAP eligibility changes if your loved one moves to a facility that provides meals. They may still qualify if they have their own kitchen and buy their own food, but benefits will likely be reduced or eliminated in facilities with meal plans."
         },
         {
           "question": "How quickly do SNAP benefits start after approval?",
@@ -1027,7 +1027,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ship-medicare-counseling",
       "name": "Senior Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
-      "tagline": "Free one-on-one Medicare counseling to help your parent navigate coverage options and save money.",
+      "tagline": "Free one-on-one Medicare counseling to help your loved one navigate coverage options and save money.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1040,7 +1040,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand all their choices. Because Medicare has multiple parts (A, B, C, D) plus Medigap and various savings programs, a trained counselor can walk through your parent's specific situation and explain which options might save them money.\n\nSHIP counselors help with Medicare plan comparisons, appeals when coverage is denied, spotting Medicare fraud, and connecting your parent to programs that help pay premiums or prescription costs. No income limits apply — any Medicare beneficiary or their family can get help.\n\nCounseling is available immediately by phone at (800) 333-2433 or through over 2,200 local sites statewide. The service is completely free and unbiased — counselors don't sell insurance.",
+      "intro": "If your loved one has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand all their choices. Because Medicare has multiple parts (A, B, C, D) plus Medigap and various savings programs, a trained counselor can walk through your loved one's specific situation and explain which options might save them money.\n\nSHIP counselors help with Medicare plan comparisons, appeals when coverage is denied, spotting Medicare fraud, and connecting your loved one to programs that help pay premiums or prescription costs. No income limits apply — any Medicare beneficiary or their family can get help.\n\nCounseling is available immediately by phone at (800) 333-2433 or through over 2,200 local sites statewide. The service is completely free and unbiased — counselors don't sell insurance.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1071,17 +1071,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Gather Medicare information",
-            "description": "Have your parent's Medicare card, current insurance details, prescription list, and income information ready if you want to explore savings programs during the call."
+            "description": "Have your loved one's Medicare card, current insurance details, prescription list, and income information ready if you want to explore savings programs during the call."
           },
           {
             "step": 3,
             "title": "Get personalized guidance",
-            "description": "The counselor will review your parent's specific situation and explain Medicare options, potential savings programs, and next steps tailored to their needs."
+            "description": "The counselor will review your loved one's specific situation and explain Medicare options, potential savings programs, and next steps tailored to their needs."
           }
         ],
         "processingTime": "Immediate counseling available via phone or in-person",
         "waitlist": null,
-        "tip": "Have your parent's Medicare card and current prescription list ready when you call — this helps counselors give more specific advice about plan options.",
+        "tip": "Have your loved one's Medicare card and current prescription list ready when you call — this helps counselors give more specific advice about plan options.",
         "urls": [
           {
             "label": "Minnesota Board on Aging",
@@ -1117,15 +1117,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call SHIP on behalf of my elderly parent who has trouble using the phone?",
-          "answer": "Yes, family members and caregivers can call SHIP for counseling about their parent's Medicare options. Have your parent's Medicare card and current insurance information ready when you call (800) 333-2433."
+          "question": "Can I call SHIP on behalf of my elderly loved one who has trouble using the phone?",
+          "answer": "Yes, family members and caregivers can call SHIP for counseling about their loved one's Medicare options. Have your loved one's Medicare card and current insurance information ready when you call (800) 333-2433."
         },
         {
-          "question": "Will SHIP try to sell my parent a specific Medicare plan?",
-          "answer": "No, SHIP counselors are completely unbiased and don't sell any insurance products. They provide free education about all available options so you and your parent can make informed decisions about Medicare coverage."
+          "question": "Will SHIP try to sell my loved one a specific Medicare plan?",
+          "answer": "No, SHIP counselors are completely unbiased and don't sell any insurance products. They provide free education about all available options so you and your loved one can make informed decisions about Medicare coverage."
         },
         {
-          "question": "My parent already has Medicare — can SHIP still help if we just have questions about coverage?",
+          "question": "My loved one already has Medicare — can SHIP still help if we just have questions about coverage?",
           "answer": "Absolutely. SHIP helps with ongoing Medicare questions like understanding what's covered, appealing denied claims, comparing plans during open enrollment, and identifying programs that might help pay premiums or prescription costs."
         }
       ],
@@ -1172,7 +1172,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to prepare nutritious meals or get to the grocery store, Minnesota's Senior Nutrition Program delivers hot, fresh meals directly to their door. Your parent can receive home-delivered meals up to 5 days a week (Monday-Friday), with low-sodium options standard and diabetic meals available.\n\nBecause the program focuses on need rather than strict income limits, your parent won't be turned away due to inability to pay. The service includes daily safety checks by volunteers and one-on-one support from nutrition specialists. Spouses and caregivers may also qualify if caregiving prevents meal preparation.\n\nThe program operates through local providers across Minnesota, so availability and exact services vary by region. Some areas may not deliver outside city limits or to rural locations.",
+      "intro": "If your loved one is 60+ and struggles to prepare nutritious meals or get to the grocery store, Minnesota's Senior Nutrition Program delivers hot, fresh meals directly to their door. Your loved one can receive home-delivered meals up to 5 days a week (Monday-Friday), with low-sodium options standard and diabetic meals available.\n\nBecause the program focuses on need rather than strict income limits, your loved one won't be turned away due to inability to pay. The service includes daily safety checks by volunteers and one-on-one support from nutrition specialists. Spouses and caregivers may also qualify if caregiving prevents meal preparation.\n\nThe program operates through local providers across Minnesota, so availability and exact services vary by region. Some areas may not deliver outside city limits or to rural locations.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1206,7 +1206,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Provider will ask about your parent's ability to prepare meals, mobility challenges, and dietary needs. Some providers offer online enrollment while others handle everything by phone."
+            "description": "Provider will ask about your loved one's ability to prepare meals, mobility challenges, and dietary needs. Some providers offer online enrollment while others handle everything by phone."
           },
           {
             "step": 3,
@@ -1216,7 +1216,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have your parent's address, medical conditions, and dietary restrictions ready when you call.",
+        "tip": "Have your loved one's address, medical conditions, and dietary restrictions ready when you call.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1263,24 +1263,24 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "title": "Service Area Restrictions",
-          "content": "Delivery may not be available outside city limits in rural areas. Contact your local provider to confirm they serve your parent's address before applying."
+          "content": "Delivery may not be available outside city limits in rural areas. Contact your local provider to confirm they serve your loved one's address before applying."
         }
       ],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage the process themselves. You'll need to provide your parent's information and explain their inability to prepare meals. Some providers may require you to be present during the initial assessment."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage the process themselves. You'll need to provide your loved one's information and explain their inability to prepare meals. Some providers may require you to be present during the initial assessment."
         },
         {
-          "question": "What if my parent lives outside city limits in a rural area?",
-          "answer": "Delivery availability varies by provider and may not extend to rural areas outside city limits. Call your local provider first to confirm they serve your parent's address. If not available, family members or hired aides may need to handle meal delivery."
+          "question": "What if my loved one lives outside city limits in a rural area?",
+          "answer": "Delivery availability varies by provider and may not extend to rural areas outside city limits. Call your local provider first to confirm they serve your loved one's address. If not available, family members or hired aides may need to handle meal delivery."
         },
         {
-          "question": "Can my parent get meals if they already receive SNAP benefits?",
-          "answer": "Yes, Meals on Wheels is separate from SNAP and your parent can receive both. SNAP benefits can even be used to pay for congregate meals at senior dining sites. The programs complement each other for comprehensive nutrition support."
+          "question": "Can my loved one get meals if they already receive SNAP benefits?",
+          "answer": "Yes, Meals on Wheels is separate from SNAP and your loved one can receive both. SNAP benefits can even be used to pay for congregate meals at senior dining sites. The programs complement each other for comprehensive nutrition support."
         },
         {
-          "question": "What happens if my parent can't afford the suggested donation?",
+          "question": "What happens if my loved one can't afford the suggested donation?",
           "answer": "No one is turned away due to inability to pay. While providers request monthly donations to help sustain the program, donations are completely voluntary. The program is funded through the Older Americans Act regardless of individual contributions."
         },
         {
@@ -1310,7 +1310,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "family-adult-assistance-alternative-care-grants",
       "name": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
       "shortName": "FAA Alternative Care",
-      "tagline": "Home care services to help your parent avoid nursing home placement while staying in their own home",
+      "tagline": "Home care services to help your loved one avoid nursing home placement while staying in their own home",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1323,7 +1323,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, Minnesota's Family Adult Assistance Program may cover personal care assistance, homemaker services, and respite care. This county-administered program provides home and community-based services specifically designed to prevent nursing home placement for adults who would otherwise need facility-level care.\n\nBecause FAA operates through your local county human services office, eligibility requirements, available services, and wait times vary significantly by location. Your parent will need a clinical assessment to determine if they require nursing facility level of care — meaning they need substantial daily assistance with basic activities like eating, bathing, or managing medications.\n\nUnlike many state programs, FAA doesn't publish statewide income or asset limits. Each county handles applications differently, making direct contact with your local office essential for current availability and requirements.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Minnesota's Family Adult Assistance Program may cover personal care assistance, homemaker services, and respite care. This county-administered program provides home and community-based services specifically designed to prevent nursing home placement for adults who would otherwise need facility-level care.\n\nBecause FAA operates through your local county human services office, eligibility requirements, available services, and wait times vary significantly by location. Your loved one will need a clinical assessment to determine if they require nursing facility level of care — meaning they need substantial daily assistance with basic activities like eating, bathing, or managing medications.\n\nUnlike many state programs, FAA doesn't publish statewide income or asset limits. Each county handles applications differently, making direct contact with your local office essential for current availability and requirements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1357,12 +1357,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule intake appointment",
-            "description": "County staff will schedule an in-person or phone assessment to review your parent's care needs and financial situation."
+            "description": "County staff will schedule an in-person or phone assessment to review your loved one's care needs and financial situation."
           },
           {
             "step": 3,
             "title": "Complete clinical assessment",
-            "description": "A county assessor will evaluate whether your parent meets nursing facility level of care through functional assessment of daily living activities."
+            "description": "A county assessor will evaluate whether your loved one meets nursing facility level of care through functional assessment of daily living activities."
           },
           {
             "step": 4,
@@ -1412,9 +1412,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county sets its own income and asset limits — what disqualifies your parent in one county may be acceptable in another",
+        "Each county sets its own income and asset limits — what disqualifies your loved one in one county may be acceptable in another",
         "Some counties have immediate openings while others maintain multi-month waitlists — ask about current availability when calling",
-        "If your parent is being discharged from a hospital, contact the county office immediately as crisis situations may receive expedited processing",
+        "If your loved one is being discharged from a hospital, contact the county office immediately as crisis situations may receive expedited processing",
         "Counties often confuse FAA with MFIP (Minnesota Family Investment Program) which serves families with children — specifically ask for adult disability services"
       ],
       "relatedPrograms": [
@@ -1426,11 +1426,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they have dementia and can't sign forms themselves?",
+          "question": "Can I apply for my loved one if they have dementia and can't sign forms themselves?",
           "answer": "Yes, but you'll need legal authority through power of attorney, guardianship, or representative payee status. County offices can guide you through the specific documentation they require for third-party applications."
         },
         {
-          "question": "What if my parent owns their home but has very little monthly income?",
+          "question": "What if my loved one owns their home but has very little monthly income?",
           "answer": "Home ownership typically doesn't disqualify applicants from FAA, but counties set their own asset rules. Some may require a lien on the home while others don't count primary residences at all. Contact your specific county office for their homeownership policies."
         },
         {
@@ -1438,7 +1438,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Wait times vary dramatically by county — some have immediate openings while others have 6+ month waits. Crisis situations (like hospital discharge with no family support) often receive priority placement. Ask your county about their prioritization criteria."
         },
         {
-          "question": "Can my parent receive both FAA services and Medical Assistance at the same time?",
+          "question": "Can my loved one receive both FAA services and Medical Assistance at the same time?",
           "answer": "Yes, many FAA recipients also qualify for Medical Assistance (Minnesota Medicaid). The programs can complement each other, with Medical Assistance covering medical expenses while FAA covers personal care and homemaker services."
         },
         {
@@ -1447,14 +1447,14 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does FAA cover 24-hour care, or is there a limit on daily hours?",
-          "answer": "FAA typically covers part-time personal care assistance, not 24-hour care. If your parent needs round-the-clock supervision, the county may determine they require nursing facility placement instead of home-based services."
+          "answer": "FAA typically covers part-time personal care assistance, not 24-hour care. If your loved one needs round-the-clock supervision, the county may determine they require nursing facility placement instead of home-based services."
         },
         {
           "question": "What specific services does FAA actually pay for beyond personal care?",
           "answer": "Services vary by county but may include homemaker services, respite care for family caregivers, minor home modifications for safety, and care coordination. Your county office can provide their specific list of covered services and current rates."
         },
         {
-          "question": "Can my parent be denied for having too much income, and is there an appeals process?",
+          "question": "Can my loved one be denied for having too much income, and is there an appeals process?",
           "answer": "Yes, counties can deny applications for excess income or assets. Most counties have formal appeals processes through the state's human services appeal system. You have 30 days from the denial notice to request an appeal hearing."
         }
       ],
@@ -1497,7 +1497,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and struggling to find work on a limited income, SCSEP provides paid part-time training positions while helping them transition to permanent employment. Your parent works about 20 hours per week at minimum wage ($10.85/hour in Minnesota) at nonprofits, schools, hospitals, or senior centers while receiving job coaching and placement assistance.\n\nBecause this is a federal training program, your parent must be unemployed and have family income at or below 125% of the federal poverty level (approximately $18,600 per year for a single person in 2026). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. The program is not available in all Minnesota counties — you'll need to contact the specific provider serving your parent's area.",
+      "intro": "If your loved one is 55+ and struggling to find work on a limited income, SCSEP provides paid part-time training positions while helping them transition to permanent employment. Your loved one works about 20 hours per week at minimum wage ($10.85/hour in Minnesota) at nonprofits, schools, hospitals, or senior centers while receiving job coaching and placement assistance.\n\nBecause this is a federal training program, your loved one must be unemployed and have family income at or below 125% of the federal poverty level (approximately $18,600 per year for a single person in 2026). Priority goes to veterans, adults over 65, those with disabilities, and rural residents. The program is not available in all Minnesota counties — you'll need to contact the specific provider serving your loved one's area.",
       "savingsRange": "$11,284/year in 2026",
       "savingsSource": "20 hours/week at $10.85/hour minimum wage",
       "savingsVerified": true,
@@ -1620,15 +1620,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep SCSEP if they find part-time work elsewhere?",
+          "question": "Can my loved one keep SCSEP if they find part-time work elsewhere?",
           "answer": "No. SCSEP participants must be unemployed when they start and cannot hold other jobs during the training period. The goal is to transition from SCSEP to permanent unsubsidized employment."
         },
         {
-          "question": "What if my parent's county doesn't have a SCSEP provider?",
+          "question": "What if my loved one's county doesn't have a SCSEP provider?",
           "answer": "Some Minnesota counties lack current SCSEP coverage due to changes in federal grant awards. Call Minnesota DEED at 651-259-7114 to confirm current provider availability or ask about neighboring county options."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is designed as temporary training, not permanent employment. Most participants are expected to transition to unsubsidized work within 12-24 months, though specific time limits vary by individual circumstances."
         },
         {
@@ -1640,16 +1640,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Common placements include nonprofits, schools, hospitals, senior centers, day care centers, and government agencies. Work assignments match participants' skills and interests while providing valuable community services."
         },
         {
-          "question": "Can my parent apply to SCSEP and unemployment benefits at the same time?",
+          "question": "Can my loved one apply to SCSEP and unemployment benefits at the same time?",
           "answer": "You cannot receive both simultaneously. SCSEP participants must be unemployed when they start, but the paid training work makes them ineligible for unemployment benefits during participation."
         },
         {
-          "question": "What if my parent has been out of work for several years?",
+          "question": "What if my loved one has been out of work for several years?",
           "answer": "Long-term unemployment actually supports eligibility for SCSEP, as it demonstrates \"low employment prospects.\" The program specifically helps older adults who have struggled to find work in the regular job market."
         },
         {
           "question": "Is there really job placement help after the training period?",
-          "answer": "Yes, SCSEP includes career coaching and job placement assistance as core services. However, success depends on local job market conditions and your parent's skills development during the training period."
+          "answer": "Yes, SCSEP includes career coaching and job placement assistance as core services. However, success depends on local job market conditions and your loved one's skills development during the training period."
         }
       ],
       "layoutIntent": {
@@ -1695,7 +1695,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal issues like elder abuse, wrongful nursing home discharge, or denied benefits, they may qualify for free civil legal services regardless of income. Legal assistance covers everything from elder abuse protection and housing discrimination to appealing denied Social Security or Medical Assistance claims.\n\nServices include advice, consultation, and full representation for civil cases only (no criminal or personal injury cases). Your parent gets priority based on their greatest social and economic need, and income doesn't disqualify seniors 60+ from getting help.\n\nCoverage varies by county — Mid-Minnesota Legal Aid serves 26 counties for seniors, while other providers like Central Minnesota Legal Services and Justice North cover different regions across the state.",
+      "intro": "If your loved one is 60+ and facing legal issues like elder abuse, wrongful nursing home discharge, or denied benefits, they may qualify for free civil legal services regardless of income. Legal assistance covers everything from elder abuse protection and housing discrimination to appealing denied Social Security or Medical Assistance claims.\n\nServices include advice, consultation, and full representation for civil cases only (no criminal or personal injury cases). Your loved one gets priority based on their greatest social and economic need, and income doesn't disqualify seniors 60+ from getting help.\n\nCoverage varies by county — Mid-Minnesota Legal Aid serves 26 counties for seniors, while other providers like Central Minnesota Legal Services and Justice North cover different regions across the state.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1724,7 +1724,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Check your county coverage",
-            "description": "Verify your parent's county is served by visiting mylegalaid.org or calling (877) 696-6529. Mid-Minnesota Legal Aid covers 26 counties including Anoka and Hennepin, while other providers serve different regions."
+            "description": "Verify your loved one's county is served by visiting mylegalaid.org or calling (877) 696-6529. Mid-Minnesota Legal Aid covers 26 counties including Anoka and Hennepin, while other providers serve different regions."
           },
           {
             "step": 2,
@@ -1739,7 +1739,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Intake determines eligibility promptly via phone or online",
         "waitlist": null,
-        "tip": "If your parent's case is outside the service area, intake staff will provide referrals to appropriate legal aid providers.",
+        "tip": "If your loved one's case is outside the service area, intake staff will provide referrals to appropriate legal aid providers.",
         "urls": [
           {
             "label": "Apply Online - MyLegalAid",
@@ -1777,7 +1777,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Seniors 60+ are exempt from income testing but cases are prioritized by social and economic need",
-        "If your parent's county isn't covered by one provider, intake will refer you to the correct legal aid organization"
+        "If your loved one's county isn't covered by one provider, intake will refer you to the correct legal aid organization"
       ],
       "relatedPrograms": [
         "Minnesota Senior LinkAge Line",
@@ -1787,16 +1787,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get help even if they have assets or higher income?",
-          "answer": "Yes, if your parent is 60+, there are no income or asset limits that would disqualify them. However, cases are prioritized based on social and economic need, so those with greater financial hardship may be served first."
+          "question": "Can my loved one get help even if they have assets or higher income?",
+          "answer": "Yes, if your loved one is 60+, there are no income or asset limits that would disqualify them. However, cases are prioritized based on social and economic need, so those with greater financial hardship may be served first."
         },
         {
-          "question": "What if the legal issue happened in a different county than where my parent lives?",
-          "answer": "Your parent can still get help as long as either their residence or the case venue is in the service area. When you call (877) 696-6529, intake staff will determine if they can handle the case or need to refer you elsewhere."
+          "question": "What if the legal issue happened in a different county than where my loved one lives?",
+          "answer": "Your loved one can still get help as long as either their residence or the case venue is in the service area. When you call (877) 696-6529, intake staff will determine if they can handle the case or need to refer you elsewhere."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help your parent apply, but they generally need to be the primary applicant unless you have legal authority like power of attorney. Intake staff at (877) 696-6529 can clarify what's needed for your specific situation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply, but they generally need to be the primary applicant unless you have legal authority like power of attorney. Intake staff at (877) 696-6529 can clarify what's needed for your specific situation."
         },
         {
           "question": "How long does it take to get assigned a lawyer after applying?",
@@ -1821,7 +1821,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Office of Ombudsman for Long-Term Care",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy and complaint resolution if your parent is in a nursing home, assisted living, or receiving home care in Minnesota.",
+      "tagline": "Free advocacy and complaint resolution if your loved one is in a nursing home, assisted living, or receiving home care in Minnesota.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1834,7 +1834,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or receives home care services in Minnesota, the Long-Term Care Ombudsman provides free advocacy when problems arise. Regional ombudsmen and trained volunteers investigate complaints about care quality, resident rights violations, billing disputes, and safety concerns.\n\nBecause ombudsmen are independent advocates, they can resolve issues that families struggle to address directly with facilities or providers. They visit facilities regularly (at least 6 hours monthly), know the regulations, and have authority to investigate complaints and push for solutions. No income limits apply — services are free to anyone needing or receiving long-term care in Minnesota.\n\nThe program serves current residents, family members, and anyone seeking information about long-term care options. Regional offices coordinate services statewide, with local ombudsmen handling individual cases and systemic advocacy for policy improvements.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or receives home care services in Minnesota, the Long-Term Care Ombudsman provides free advocacy when problems arise. Regional ombudsmen and trained volunteers investigate complaints about care quality, resident rights violations, billing disputes, and safety concerns.\n\nBecause ombudsmen are independent advocates, they can resolve issues that families struggle to address directly with facilities or providers. They visit facilities regularly (at least 6 hours monthly), know the regulations, and have authority to investigate complaints and push for solutions. No income limits apply — services are free to anyone needing or receiving long-term care in Minnesota.\n\nThe program serves current residents, family members, and anyone seeking information about long-term care options. Regional offices coordinate services statewide, with local ombudsmen handling individual cases and systemic advocacy for policy improvements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1869,17 +1869,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the issue",
-            "description": "Provide details about the problem, including your parent's name, facility name if applicable, and specific concerns about care, rights, or billing."
+            "description": "Provide details about the problem, including your loved one's name, facility name if applicable, and specific concerns about care, rights, or billing."
           },
           {
             "step": 3,
             "title": "Get connected to local ombudsman",
-            "description": "Staff will assign your case to the appropriate regional ombudsman who covers your parent's facility or home care area."
+            "description": "Staff will assign your case to the appropriate regional ombudsman who covers your loved one's facility or home care area."
           },
           {
             "step": 4,
             "title": "Ombudsman investigates",
-            "description": "The assigned ombudsman will investigate the complaint, visit the facility if needed, and work to resolve the issue while protecting your parent's rights."
+            "description": "The assigned ombudsman will investigate the complaint, visit the facility if needed, and work to resolve the issue while protecting your loved one's rights."
           }
         ],
         "processingTime": "Response time varies by case complexity — complaints receive prompt attention",
@@ -1923,15 +1923,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint on behalf of my parent without their permission?",
+          "question": "Can I file a complaint on behalf of my loved one without their permission?",
           "answer": "Yes, family members can contact the ombudsman about concerns regarding their loved one's care. However, for formal investigations, ombudsmen typically need the resident's consent or may proceed if the person lacks capacity to give consent and the complaint involves health or safety issues."
         },
         {
-          "question": "What if the nursing home retaliates against my parent for filing a complaint?",
+          "question": "What if the nursing home retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation is illegal and a serious violation. Ombudsmen are trained to handle complaints confidentially when possible and can investigate retaliation as a separate complaint. Contact the ombudsman immediately if you suspect retaliation — they have authority to address this directly with facility administrators."
         },
         {
-          "question": "Can the ombudsman help if my parent is being discharged from their facility?",
+          "question": "Can the ombudsman help if my loved one is being discharged from their facility?",
           "answer": "Yes, ombudsmen can advocate regarding discharge issues, especially if proper procedures weren't followed or if the discharge seems inappropriate. They know the regulations about discharge notices, appeal rights, and safe discharge planning requirements."
         },
         {
@@ -1957,7 +1957,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ucare-senior-care-plus",
       "name": "UCare Minnesota Senior Care Plus (MSC+)",
       "shortName": "UCare MSC+",
-      "tagline": "If your parent is 65+ and on Minnesota Medicaid, this managed care plan covers all medical needs plus home care services under one program.",
+      "tagline": "If your loved one is 65+ and on Minnesota Medicaid, this managed care plan covers all medical needs plus home care services under one program.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -1982,7 +1982,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your parent won't need to navigate multiple providers or coordinate between separate systems — one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your parent needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties — if your parent is eligible for Medicaid and lives in a county-based purchasing (CBP) area, they'll automatically be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
+      "intro": "If your loved one is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your loved one won't need to navigate multiple providers or coordinate between separate systems — one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your loved one needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties — if your loved one is eligible for Medicaid and lives in a county-based purchasing (CBP) area, they'll automatically be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2069,7 +2069,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "MSC+ is mandatory enrollment — if you're eligible and live in a CBP county, you'll be automatically enrolled unless you choose MSHO",
-        "Different managed care organizations have different provider networks — make sure your parent's current doctors accept the MCO you choose"
+        "Different managed care organizations have different provider networks — make sure your loved one's current doctors accept the MCO you choose"
       ],
       "relatedPrograms": [
         "Minnesota Medical Assistance (Medicaid)",
@@ -2083,8 +2083,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "MSC+ is a managed care version of Medicaid that coordinates all services through one organization instead of fee-for-service providers. Because everything goes through your chosen MCO, you get extras like 24/7 nurse lines, transportation, and care coordination that regular Medicaid doesn't provide. You still get all standard Medicaid benefits plus these additional services."
         },
         {
-          "question": "Can my parent choose their own doctors and stay with UCare MSC+?",
-          "answer": "Your parent must use providers in their chosen MCO's network. If they want to keep their current doctors, check if those providers accept UCare, Blue Plus, or whichever MCO is available in your county before making a selection. You can call UCare at 612-676-3200 to verify if specific providers are in-network."
+          "question": "Can my loved one choose their own doctors and stay with UCare MSC+?",
+          "answer": "Your loved one must use providers in their chosen MCO's network. If they want to keep their current doctors, check if those providers accept UCare, Blue Plus, or whichever MCO is available in your county before making a selection. You can call UCare at 612-676-3200 to verify if specific providers are in-network."
         }
       ],
       "layoutIntent": {
@@ -2105,7 +2105,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "aging-pathways",
       "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
       "shortName": "Aging Pathways",
-      "tagline": "Free counseling and referrals to help your parent navigate Medicare, find home care, or transition between care settings.",
+      "tagline": "Free counseling and referrals to help your loved one navigate Medicare, find home care, or transition between care settings.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2118,7 +2118,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help understanding Medicare options, finding home care services, or planning a move to assisted living, Minnesota Aging Pathways provides free counseling and referrals statewide. The service connects families to local resources and is required for anyone considering nursing home or assisted living placement.\n\nBecause Aging Pathways counselors are SHINE-certified Medicare specialists, your parent can get personalized guidance on Medicare enrollment, plan comparisons, and coverage questions. The service also handles preadmission screening (PAS) — the mandatory assessment required before nursing facility admission regardless of how you plan to pay.\n\nThere are no income limits or costs for the counseling itself. However, any services they refer you to (like county home care programs or Medicaid) will have their own eligibility requirements and may involve separate applications.",
+      "intro": "If your loved one needs help understanding Medicare options, finding home care services, or planning a move to assisted living, Minnesota Aging Pathways provides free counseling and referrals statewide. The service connects families to local resources and is required for anyone considering nursing home or assisted living placement.\n\nBecause Aging Pathways counselors are SHINE-certified Medicare specialists, your loved one can get personalized guidance on Medicare enrollment, plan comparisons, and coverage questions. The service also handles preadmission screening (PAS) — the mandatory assessment required before nursing facility admission regardless of how you plan to pay.\n\nThere are no income limits or costs for the counseling itself. However, any services they refer you to (like county home care programs or Medicaid) will have their own eligibility requirements and may involve separate applications.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2150,7 +2150,7 @@ export const drafts: PipelineStateDrafts = {
           },
           {
             "step": 2,
-            "title": "Describe your parent's situation",
+            "title": "Describe your loved one's situation",
             "description": "Explain what type of help you need: Medicare questions, home care services, facility placement, or general resource navigation."
           },
           {
@@ -2161,7 +2161,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Phone assistance immediate; resource coordination and referrals typically involve prompt follow-up after initial call",
         "waitlist": null,
-        "tip": "Have your parent's Medicare card and a list of their current medications ready when you call — this helps counselors give more specific guidance.",
+        "tip": "Have your loved one's Medicare card and a list of their current medications ready when you call — this helps counselors give more specific guidance.",
         "urls": [
           {
             "label": "Online referral form",
@@ -2199,11 +2199,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I get help choosing between different Medicare Advantage plans during open enrollment?",
-          "answer": "Yes. Aging Pathways counselors are SHINE-certified Medicare specialists who can compare plans based on your parent's specific medications, doctors, and health needs. They have access to Medicare's plan comparison tools and can walk through costs and coverage options over the phone."
+          "answer": "Yes. Aging Pathways counselors are SHINE-certified Medicare specialists who can compare plans based on your loved one's specific medications, doctors, and health needs. They have access to Medicare's plan comparison tools and can walk through costs and coverage options over the phone."
         },
         {
           "question": "What's the difference between calling Aging Pathways versus going directly to county social services?",
-          "answer": "Aging Pathways provides statewide Medicare expertise and helps you navigate the entire system before connecting you to the right local office. County social services handle specific program applications like Medicaid or home care services. Starting with Aging Pathways can save time because they know which county programs your parent might qualify for."
+          "answer": "Aging Pathways provides statewide Medicare expertise and helps you navigate the entire system before connecting you to the right local office. County social services handle specific program applications like Medicaid or home care services. Starting with Aging Pathways can save time because they know which county programs your loved one might qualify for."
         }
       ],
       "layoutIntent": {
@@ -2222,7 +2222,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Minnesota offers 12 major programs for seniors — 6 provide direct financial benefits or services, while 4 offer free resources available to any caregiver. The financial help ranges from Medical Assistance covering all health costs to SNAP providing up to $546/month for groceries. Free resources include Medicare counseling, legal help, and advocacy for nursing home issues. Minnesota's advantage: programs like MSHO and MSC+ combine Medicare and Medicaid under one plan, reducing paperwork and coordination hassles. Start by checking if your parent qualifies for Medical Assistance — it's the foundation that unlocks home care services, nursing home coverage, and simplified health plans.",
+    "intro": "Minnesota offers 12 major programs for seniors — 6 provide direct financial benefits or services, while 4 offer free resources available to any caregiver. The financial help ranges from Medical Assistance covering all health costs to SNAP providing up to $546/month for groceries. Free resources include Medicare counseling, legal help, and advocacy for nursing home issues. Minnesota's advantage: programs like MSHO and MSC+ combine Medicare and Medicaid under one plan, reducing paperwork and coordination hassles. Start by checking if your loved one qualifies for Medical Assistance — it's the foundation that unlocks home care services, nursing home coverage, and simplified health plans.",
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid)",
@@ -2237,7 +2237,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Medicare Savings Programs",
         "programId": "medicare-savings-programs",
-        "why": "Can save $1,700–3,500 annually in Medicare premiums and copays if your parent struggles with costs."
+        "why": "Can save $1,700–3,500 annually in Medicare premiums and copays if your loved one struggles with costs."
       },
       {
         "name": "Minnesota Aging Pathways",
@@ -2293,8 +2293,8 @@ export const drafts: PipelineStateDrafts = {
       "Minnesota combines Medicare and Medicaid through special plans (MSHO and MSC+) that simplify billing and add benefits like dental and transportation.",
       "SNAP has no gross income limits for seniors 60+ in Minnesota — only net income matters after deductions.",
       "Medical Assistance is Minnesota's Medicaid program and the gateway to home care waivers and nursing home coverage.",
-      "All counseling and advocacy resources are free regardless of your parent's income or assets."
+      "All counseling and advocacy resources are free regardless of your loved one's income or assets."
     ],
-    "resourcesVsBenefits": "Six programs require qualification based on income, assets, or care needs — these provide direct financial benefits like Medical Assistance covering health costs or SNAP providing grocery money. Four programs are free resources available to any Minnesota caregiver: SHIP for Medicare help, Legal Assistance for elder law issues, the Ombudsman for nursing home problems, and Aging Pathways for general guidance. Start with free resources to understand options, then apply for benefits your parent qualifies for."
+    "resourcesVsBenefits": "Six programs require qualification based on income, assets, or care needs — these provide direct financial benefits like Medical Assistance covering health costs or SNAP providing grocery money. Four programs are free resources available to any Minnesota caregiver: SHIP for Medicare help, Legal Assistance for elder law issues, the Ombudsman for nursing home problems, and Aging Pathways for general guidance. Start with free resources to understand options, then apply for benefits your loved one qualifies for."
   }
 };

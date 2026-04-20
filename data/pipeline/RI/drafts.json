@@ -9,7 +9,7 @@
       "id": "medicaid-ltss-elderly",
       "name": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
       "shortName": "RI Medicaid LTSS",
-      "tagline": "If your parent needs daily help with bathing, dressing, or medication, this program covers nursing home care or in-home supports with strict asset limits.",
+      "tagline": "If your loved one needs daily help with bathing, dressing, or medication, this program covers nursing home care or in-home supports with strict asset limits.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs daily help with basic activities like bathing, dressing, or managing medications, Rhode Island Medicaid covers nursing home care, assisted living, or in-home supports. Because this program has strict financial limits — $4,000 in countable assets for a single person and income up to $2,982/month — most applicants need to spend down savings first.\n\nThe program requires a clinical assessment called Nursing Facility Level of Care (NFLOC), which determines if your parent needs the equivalent of full-time nursing home care for 30+ consecutive days. Once qualified, Medicaid covers all long-term care services, but your parent contributes most of their income to costs, keeping only $75/month for personal needs.\n\nBecause selling an exempt home makes the proceeds countable assets, families often face difficult timing decisions about when to apply versus when to liquidate property.",
+      "intro": "If your loved one is 65+ and needs daily help with basic activities like bathing, dressing, or managing medications, Rhode Island Medicaid covers nursing home care, assisted living, or in-home supports. Because this program has strict financial limits — $4,000 in countable assets for a single person and income up to $2,982/month — most applicants need to spend down savings first.\n\nThe program requires a clinical assessment called Nursing Facility Level of Care (NFLOC), which determines if your loved one needs the equivalent of full-time nursing home care for 30+ consecutive days. Once qualified, Medicaid covers all long-term care services, but your loved one contributes most of their income to costs, keeping only $75/month for personal needs.\n\nBecause selling an exempt home makes the proceeds countable assets, families often face difficult timing decisions about when to apply versus when to liquidate property.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -55,7 +55,7 @@
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (NFLOC) — a clinical assessment determining if your parent needs daily help with activities like bathing, dressing, eating, toileting, mobility, plus instrumental activities like shopping, cooking, cleaning",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (NFLOC) — a clinical assessment determining if your loved one needs daily help with activities like bathing, dressing, eating, toileting, mobility, plus instrumental activities like shopping, cooking, cleaning",
         "otherRequirements": [
           "Rhode Island resident",
           "U.S. citizen or qualified immigrant"
@@ -69,7 +69,7 @@
           {
             "step": 1,
             "title": "Gather financial and medical documentation",
-            "description": "Collect 3 months of bank statements, income proof, and medical records showing your parent's need for daily care assistance."
+            "description": "Collect 3 months of bank statements, income proof, and medical records showing your loved one's need for daily care assistance."
           },
           {
             "step": 2,
@@ -79,7 +79,7 @@
           {
             "step": 3,
             "title": "Complete Nursing Facility Level of Care assessment",
-            "description": "A clinical assessor will evaluate your parent's ability to perform daily activities like bathing, dressing, and medication management."
+            "description": "A clinical assessor will evaluate your loved one's ability to perform daily activities like bathing, dressing, and medication management."
           },
           {
             "step": 4,
@@ -133,7 +133,7 @@
       ],
       "applicationNotes": [
         "NFLOC assessment is required for all long-term services — basic Medicaid for seniors doesn't require this clinical evaluation",
-        "Selling your parent's exempt home makes the proceeds countable assets, potentially disqualifying them until money is spent down",
+        "Selling your loved one's exempt home makes the proceeds countable assets, potentially disqualifying them until money is spent down",
         "Asset transfers to spouse, disabled child, sibling, or caregiver child may be allowed without penalty",
         "Higher income is allowed with co-share payments, but most income goes to the state for nursing home costs"
       ],
@@ -146,36 +146,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $730,000?",
-          "answer": "No, if your parent's home equity exceeds $730,000, they won't qualify for Medicaid LTSS. They would need to sell the home or take out a loan to reduce equity below the cap. Once they sell, the proceeds become countable assets and must be spent down to $4,000."
+          "question": "Can my loved one keep their house if it's worth more than $730,000?",
+          "answer": "No, if your loved one's home equity exceeds $730,000, they won't qualify for Medicaid LTSS. They would need to sell the home or take out a loan to reduce equity below the cap. Once they sell, the proceeds become countable assets and must be spent down to $4,000."
         },
         {
-          "question": "What happens to my parent's Social Security check if they qualify?",
-          "answer": "Your parent keeps only $75/month for personal needs, plus Medicare premiums if they're dual eligible. All other income goes to the state to help pay for their long-term care costs. For a nursing home resident receiving $1,500/month in Social Security, about $1,425 would go to the state."
+          "question": "What happens to my loved one's Social Security check if they qualify?",
+          "answer": "Your loved one keeps only $75/month for personal needs, plus Medicare premiums if they're dual eligible. All other income goes to the state to help pay for their long-term care costs. For a nursing home resident receiving $1,500/month in Social Security, about $1,425 would go to the state."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes, you can apply as their representative, but you'll need legal documentation like power of attorney. Include these legal documents with your application to establish your authority to act on their behalf."
         },
         {
-          "question": "What if my parent needs care but has too much income?",
+          "question": "What if my loved one needs care but has too much income?",
           "answer": "Rhode Island allows higher income applicants to qualify by paying a co-share amount toward their care costs. The income limit of $2,982/month isn't a hard cutoff — those above the limit can still qualify but pay more out-of-pocket."
         },
         {
           "question": "How long does the care level assessment take?",
-          "answer": "The Nursing Facility Level of Care (NFLOC) assessment timeline isn't specified in state materials. This clinical evaluation determines if your parent needs daily help equivalent to nursing home care for 30+ consecutive days. Contact HealthSourceRI for current processing times."
+          "answer": "The Nursing Facility Level of Care (NFLOC) assessment timeline isn't specified in state materials. This clinical evaluation determines if your loved one needs daily help equivalent to nursing home care for 30+ consecutive days. Contact HealthSourceRI for current processing times."
         },
         {
-          "question": "Can my parent get Medicaid LTSS while living at home?",
-          "answer": "Yes, the program covers in-home supports, adult day health, and respite care — not just nursing homes. Your parent still needs to meet the NFLOC assessment showing they need nursing home-level care, but they can receive equivalent services at home."
+          "question": "Can my loved one get Medicaid LTSS while living at home?",
+          "answer": "Yes, the program covers in-home supports, adult day health, and respite care — not just nursing homes. Your loved one still needs to meet the NFLOC assessment showing they need nursing home-level care, but they can receive equivalent services at home."
         },
         {
-          "question": "What happens if my parent's condition improves?",
-          "answer": "Medicaid conducts periodic reassessments of both financial eligibility and care needs. If your parent no longer meets Nursing Facility Level of Care, they may lose LTSS coverage but could still qualify for basic Medicaid based on age and income."
+          "question": "What happens if my loved one's condition improves?",
+          "answer": "Medicaid conducts periodic reassessments of both financial eligibility and care needs. If your loved one no longer meets Nursing Facility Level of Care, they may lose LTSS coverage but could still qualify for basic Medicaid based on age and income."
         },
         {
           "question": "Should we apply for this and Medicare at the same time?",
-          "answer": "If your parent has Medicare and qualifies for Medicaid, they become dual eligible and get coordinated care through Neighborhood INTEGRITY plan. This covers both Medicare services and long-term supports under one managed care program."
+          "answer": "If your loved one has Medicare and qualifies for Medicaid, they become dual eligible and get coordinated care through Neighborhood INTEGRITY plan. This covers both Medicare services and long-term supports under one managed care program."
         }
       ],
       "layoutIntent": {
@@ -196,14 +196,14 @@
       "id": "class-waiver",
       "name": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
       "shortName": "CLASS Waiver",
-      "tagline": "Home care services that let your parent avoid nursing home placement while staying on Medicaid.",
+      "tagline": "Home care services that let your loved one avoid nursing home placement while staying on Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, the CLASS Waiver pays for attendant care and community living supports. Because this is a Medicaid waiver program, your parent must qualify for nursing home level of care but can receive services at home instead.\n\nTo qualify, your parent must meet Medicaid's financial limits (typically income under $2,982/month and assets under $4,000 for a single person in 2026) and pass a clinical assessment showing they need the level of care provided in a nursing facility. The waiver covers home-based services that would otherwise only be available in an institutional setting.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, the CLASS Waiver pays for attendant care and community living supports. Because this is a Medicaid waiver program, your loved one must qualify for nursing home level of care but can receive services at home instead.\n\nTo qualify, your loved one must meet Medicaid's financial limits (typically income under $2,982/month and assets under $4,000 for a single person in 2026) and pass a clinical assessment showing they need the level of care provided in a nursing facility. The waiver covers home-based services that would otherwise only be available in an institutional setting.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -228,7 +228,7 @@
           "exemptAssets": [],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (NFLOC) — a clinical assessment showing your parent needs daily assistance with activities like bathing, dressing, medication management, or mobility that would typically require nursing home placement",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (NFLOC) — a clinical assessment showing your loved one needs daily assistance with activities like bathing, dressing, medication management, or mobility that would typically require nursing home placement",
         "otherRequirements": [
           "Must be eligible for Rhode Island Medicaid"
         ],
@@ -246,7 +246,7 @@
           {
             "step": 2,
             "title": "Request NFLOC assessment",
-            "description": "Ask for a Nursing Facility Level of Care assessment to determine if your parent qualifies for institutional-level services."
+            "description": "Ask for a Nursing Facility Level of Care assessment to determine if your loved one qualifies for institutional-level services."
           },
           {
             "step": 3,
@@ -301,9 +301,9 @@
       ],
       "applicationNotes": [
         "You must be approved for Medicaid long-term care services before CLASS Waiver enrollment can begin",
-        "The functional assessment (NFLOC) is more stringent than basic ADL assessments — your parent must need institutional-level care",
+        "The functional assessment (NFLOC) is more stringent than basic ADL assessments — your loved one must need institutional-level care",
         "Provider availability varies by region — ask about service coverage in your specific area during the application process",
-        "Medical documentation is critical — gather comprehensive records showing your parent's daily care needs before applying"
+        "Medical documentation is critical — gather comprehensive records showing your loved one's daily care needs before applying"
       ],
       "relatedPrograms": [
         "Rhode Island Medicaid",
@@ -314,36 +314,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $4,000?",
-          "answer": "Yes, the family home is typically an exempt asset for Medicaid purposes regardless of value, as long as your parent intends to return home or has a spouse living there. The $4,000 limit applies to countable assets like bank accounts and investments."
+          "question": "Can my loved one keep their house if it's worth more than $4,000?",
+          "answer": "Yes, the family home is typically an exempt asset for Medicaid purposes regardless of value, as long as your loved one intends to return home or has a spouse living there. The $4,000 limit applies to countable assets like bank accounts and investments."
         },
         {
           "question": "What's the difference between needing help with daily activities and qualifying for NFLOC?",
-          "answer": "NFLOC (Nursing Facility Level of Care) requires more intensive needs than basic ADL assistance. Your parent must need the level of daily medical supervision, medication management, or physical assistance that would typically require nursing home placement."
+          "answer": "NFLOC (Nursing Facility Level of Care) requires more intensive needs than basic ADL assistance. Your loved one must need the level of daily medical supervision, medication management, or physical assistance that would typically require nursing home placement."
         },
         {
           "question": "Can I apply for the CLASS Waiver and regular Medicaid at the same time?",
           "answer": "You must apply for Medicaid first and be approved before requesting CLASS Waiver services. The waiver is an add-on to Medicaid, not a separate program."
         },
         {
-          "question": "What if my parent's income is slightly over the $2,982 limit?",
-          "answer": "Medicaid has spend-down provisions where medical expenses can reduce countable income. Additionally, some assets and income may be exempt. Contact EOHHS to review your parent's specific financial situation."
+          "question": "What if my loved one's income is slightly over the $2,982 limit?",
+          "answer": "Medicaid has spend-down provisions where medical expenses can reduce countable income. Additionally, some assets and income may be exempt. Contact EOHHS to review your loved one's specific financial situation."
         },
         {
           "question": "How do I find approved CLASS Waiver service providers in my area?",
           "answer": "Rhode Island EOHHS maintains a list of approved waiver service providers. During the enrollment process, your care coordinator will help identify available providers in your geographic area."
         },
         {
-          "question": "What happens if my parent's care needs change after enrollment?",
-          "answer": "Waiver services can be adjusted through reassessment. If your parent's needs decrease significantly, they may no longer qualify. If needs increase, additional services may be authorized within the waiver framework."
+          "question": "What happens if my loved one's care needs change after enrollment?",
+          "answer": "Waiver services can be adjusted through reassessment. If your loved one's needs decrease significantly, they may no longer qualify. If needs increase, additional services may be authorized within the waiver framework."
         },
         {
           "question": "Can family members be paid as attendant care providers?",
           "answer": "Policies on family member caregivers vary by waiver program and provider agency. Contact the CLASS Waiver program directly to ask about their specific rules for family caregiver payment."
         },
         {
-          "question": "What if my parent is currently in a nursing home but wants to return home?",
-          "answer": "The CLASS Waiver can support transition from nursing home back to community living. Contact the facility's social worker and EOHHS to begin the transition planning process while your parent is still in the facility."
+          "question": "What if my loved one is currently in a nursing home but wants to return home?",
+          "answer": "The CLASS Waiver can support transition from nursing home back to community living. Contact the facility's social worker and EOHHS to begin the transition planning process while your loved one is still in the facility."
         }
       ],
       "layoutIntent": {
@@ -385,7 +385,7 @@
           }
         ]
       },
-      "intro": "If your parent needs extensive daily help with bathing, dressing, or medication management but wants to stay home, PACE provides everything under one coordinated program. Because PACE covers all medical care, prescriptions, adult day services, and transportation through one team, your parent won't need to coordinate between separate doctors and services — one interdisciplinary team manages everything.\n\nYour parent must be 55+ and need nursing home-level care while being able to live safely in the community with PACE support. If they qualify for Medicaid (income under $2,901/month and assets under $2,000), PACE is free. If not, private pay averages $4,000–$5,000/month. The tradeoff: your parent can only use PACE network providers — no outside doctors.",
+      "intro": "If your loved one needs extensive daily help with bathing, dressing, or medication management but wants to stay home, PACE provides everything under one coordinated program. Because PACE covers all medical care, prescriptions, adult day services, and transportation through one team, your loved one won't need to coordinate between separate doctors and services — one interdisciplinary team manages everything.\n\nYour loved one must be 55+ and need nursing home-level care while being able to live safely in the community with PACE support. If they qualify for Medicaid (income under $2,901/month and assets under $2,000), PACE is free. If not, private pay averages $4,000–$5,000/month. The tradeoff: your loved one can only use PACE network providers — no outside doctors.",
       "savingsRange": "",
       "savingsSource": "Free service for Medicaid-eligible participants",
       "savingsVerified": true,
@@ -429,17 +429,17 @@
           {
             "step": 1,
             "title": "Call PACE RI enrollment",
-            "description": "Call 401-434-1400 or 401-654-4176 (enrollment specialist) to discuss your parent's needs and start the assessment process."
+            "description": "Call 401-434-1400 or 401-654-4176 (enrollment specialist) to discuss your loved one's needs and start the assessment process."
           },
           {
             "step": 2,
             "title": "Schedule assessment visit",
-            "description": "PACE team will schedule an in-home assessment to evaluate your parent's care needs and determine if they meet nursing home level of care requirements."
+            "description": "PACE team will schedule an in-home assessment to evaluate your loved one's care needs and determine if they meet nursing home level of care requirements."
           },
           {
             "step": 3,
             "title": "Choose service center",
-            "description": "Select from Providence, Woonsocket, or Westerly locations based on your parent's residence and transportation preferences."
+            "description": "Select from Providence, Woonsocket, or Westerly locations based on your loved one's residence and transportation preferences."
           },
           {
             "step": 4,
@@ -459,7 +459,7 @@
       },
       "documentsNeeded": [
         "Medicare card (both Part A and Part B)",
-        "Medicaid card if your parent has coverage",
+        "Medicaid card if your loved one has coverage",
         "Social Security card",
         "Photo identification (driver's license or state ID)",
         "Proof of Rhode Island residency (utility bill, lease agreement, or bank statement)",
@@ -493,10 +493,10 @@
         }
       ],
       "applicationNotes": [
-        "If your parent currently has Medicare Advantage, they must disenroll before joining PACE — this can only happen during specific enrollment periods",
-        "Private pay costs average $4,000–$5,000/month if your parent doesn't qualify for Medicaid but still needs the service",
-        "Re-enrollment is treated as new application unless your parent lost Medicaid within the last 2 months",
-        "Assessment must confirm your parent can live safely in the community with PACE support — this is evaluated during the home visit"
+        "If your loved one currently has Medicare Advantage, they must disenroll before joining PACE — this can only happen during specific enrollment periods",
+        "Private pay costs average $4,000–$5,000/month if your loved one doesn't qualify for Medicaid but still needs the service",
+        "Re-enrollment is treated as new application unless your loved one lost Medicaid within the last 2 months",
+        "Assessment must confirm your loved one can live safely in the community with PACE support — this is evaluated during the home visit"
       ],
       "relatedPrograms": [
         "Rhode Island Medicaid Long-Term Services and Supports",
@@ -507,36 +507,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctor if they join PACE?",
-          "answer": "No. Your parent must receive all care exclusively from PACE network providers. They cannot see outside doctors, specialists, or use other medical services while enrolled in PACE. The PACE team becomes their complete medical care provider."
+          "question": "Can my loved one keep seeing their current doctor if they join PACE?",
+          "answer": "No. Your loved one must receive all care exclusively from PACE network providers. They cannot see outside doctors, specialists, or use other medical services while enrolled in PACE. The PACE team becomes their complete medical care provider."
         },
         {
-          "question": "What if my parent's income is too high for Medicaid but they still need PACE services?",
-          "answer": "Your parent can private pay for PACE services, which averages $4,000–$5,000 per month. There are no income limits for PACE enrollment itself — only for getting Medicaid to cover the costs."
+          "question": "What if my loved one's income is too high for Medicaid but they still need PACE services?",
+          "answer": "Your loved one can private pay for PACE services, which averages $4,000–$5,000 per month. There are no income limits for PACE enrollment itself — only for getting Medicaid to cover the costs."
         },
         {
           "question": "How long is the waitlist at each PACE center in Rhode Island?",
           "answer": "Waitlist times vary by location and aren't publicly specified. When you call 401-434-1400, ask specifically about availability at Providence, Woonsocket, and Westerly centers, as wait times may differ between locations."
         },
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes. The primary home is exempt from the $2,000 asset limit for Medicaid eligibility. Your parent can own their home regardless of value and still qualify for free PACE services through Medicaid."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. The primary home is exempt from the $2,000 asset limit for Medicaid eligibility. Your loved one can own their home regardless of value and still qualify for free PACE services through Medicaid."
         },
         {
-          "question": "What happens if my parent needs to go to the hospital while in PACE?",
-          "answer": "The PACE team coordinates all hospital care and works with you during the stay. Because PACE manages all medical services, they handle discharge planning and ensure continuity of care when your parent returns home or to the adult day center."
+          "question": "What happens if my loved one needs to go to the hospital while in PACE?",
+          "answer": "The PACE team coordinates all hospital care and works with you during the stay. Because PACE manages all medical services, they handle discharge planning and ensure continuity of care when your loved one returns home or to the adult day center."
         },
         {
           "question": "Can I apply for PACE and other Medicaid waiver programs at the same time?",
-          "answer": "No. PACE is an all-inclusive program that replaces other Medicaid long-term care services. Your parent cannot combine PACE with Home and Community-Based Services waivers or other managed care programs."
+          "answer": "No. PACE is an all-inclusive program that replaces other Medicaid long-term care services. Your loved one cannot combine PACE with Home and Community-Based Services waivers or other managed care programs."
         },
         {
-          "question": "What if we live on Block Island — can my parent still get PACE?",
-          "answer": "No. PACE service area excludes Block Island and Prudence Island. Your parent must live within the mainland service areas of Providence, Woonsocket, or Westerly to be eligible."
+          "question": "What if we live on Block Island — can my loved one still get PACE?",
+          "answer": "No. PACE service area excludes Block Island and Prudence Island. Your loved one must live within the mainland service areas of Providence, Woonsocket, or Westerly to be eligible."
         },
         {
-          "question": "Who decides if my parent needs 'nursing home level of care' for PACE?",
-          "answer": "Rhode Island's state assessment team certifies this requirement through a clinical evaluation. They determine if your parent needs extensive daily assistance with activities like bathing, dressing, or medication management that would typically require nursing home placement."
+          "question": "Who decides if my loved one needs 'nursing home level of care' for PACE?",
+          "answer": "Rhode Island's state assessment team certifies this requirement through a clinical evaluation. They determine if your loved one needs extensive daily assistance with activities like bathing, dressing, or medication management that would typically require nursing home placement."
         }
       ],
       "layoutIntent": {
@@ -557,7 +557,7 @@
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (MSP)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent has Medicare and limited income, this program can pay their monthly Medicare premiums and medical costs.",
+      "tagline": "If your loved one has Medicare and limited income, this program can pay their monthly Medicare premiums and medical costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -570,7 +570,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare but struggles with the monthly premiums and medical costs, Rhode Island's Medicare Savings Programs can help. The program has two main levels: Qualified Medicare Beneficiary (QMB) pays all Medicare costs including the $185/month Part B premium, deductibles, and copays. Qualified Individual (QI) covers just the Part B premium but has limited funding and operates first-come, first-served.\n\nIncome limits are $1,683/month for a single person (QMB) or $2,255/month (QI). Your parent also needs less than $9,950 in countable assets. Because this program pays Medicare costs directly to providers, your parent won't see bills for covered services — the state handles payment automatically.\n\nRhode Island expanded its program in February 2026, automatically moving people from the limited SLMB tier into the more comprehensive QMB program. If qualified, your parent also gets automatic enrollment in Extra Help for prescription drug costs.",
+      "intro": "If your loved one has Medicare but struggles with the monthly premiums and medical costs, Rhode Island's Medicare Savings Programs can help. The program has two main levels: Qualified Medicare Beneficiary (QMB) pays all Medicare costs including the $185/month Part B premium, deductibles, and copays. Qualified Individual (QI) covers just the Part B premium but has limited funding and operates first-come, first-served.\n\nIncome limits are $1,683/month for a single person (QMB) or $2,255/month (QI). Your loved one also needs less than $9,950 in countable assets. Because this program pays Medicare costs directly to providers, your loved one won't see bills for covered services — the state handles payment automatically.\n\nRhode Island expanded its program in February 2026, automatically moving people from the limited SLMB tier into the more comprehensive QMB program. If qualified, your loved one also gets automatic enrollment in Extra Help for prescription drug costs.",
       "savingsRange": "$2,220 – $3,500/year in 2026",
       "savingsSource": "Part B premium savings ($185/month minimum) plus additional medical cost coverage for QMB recipients",
       "savingsVerified": true,
@@ -699,28 +699,28 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is exempt from the asset limit regardless of value. The $9,950 limit only applies to countable assets like bank accounts, investments, and additional vehicles."
         },
         {
-          "question": "What happens if my parent applies for QI but the funding runs out?",
+          "question": "What happens if my loved one applies for QI but the funding runs out?",
           "answer": "They'll be placed on a waiting list for the next funding year. Consider applying for QMB instead if their income qualifies - QMB has no funding limits and provides more comprehensive coverage."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes, you can apply as their authorized representative. You'll need to provide documentation of your authority to act on their behalf, such as power of attorney papers."
         },
         {
-          "question": "Will this affect my parent's other Medicare benefits?",
-          "answer": "No, MSP works alongside regular Medicare. Your parent keeps their existing Medicare coverage and providers - MSP just pays the costs they would normally owe."
+          "question": "Will this affect my loved one's other Medicare benefits?",
+          "answer": "No, MSP works alongside regular Medicare. Your loved one keeps their existing Medicare coverage and providers - MSP just pays the costs they would normally owe."
         },
         {
-          "question": "What if my parent's income changes after enrollment?",
+          "question": "What if my loved one's income changes after enrollment?",
           "answer": "Report income changes to EOHHS immediately at 401-462-0311. Eligibility is reviewed annually, but significant changes could affect benefits before the annual review."
         },
         {
-          "question": "Can my parent have MSP and Medicare Advantage at the same time?",
-          "answer": "Yes, MSP works with both Original Medicare and Medicare Advantage plans. The program will pay whatever Medicare costs your parent is responsible for under their specific plan."
+          "question": "Can my loved one have MSP and Medicare Advantage at the same time?",
+          "answer": "Yes, MSP works with both Original Medicare and Medicare Advantage plans. The program will pay whatever Medicare costs your loved one is responsible for under their specific plan."
         },
         {
           "question": "Is there a difference between applying early or late in the year?",
@@ -749,7 +749,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Up to $291 monthly for groceries if your parent is 60+ on a fixed income",
+      "tagline": "Up to $291 monthly for groceries if your loved one is 60+ on a fixed income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -762,7 +762,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded on an EBT card for food purchases at authorized stores. Because Rhode Island expanded eligibility for seniors, your parent may qualify with income up to $2,608/month (200% of federal poverty level) — much higher than standard SNAP limits.\n\nMaximum benefits are around $291/month for one person, $535/month for two people. Your parent's actual amount depends on their income after deductions for medical expenses over $35/month, rent, and utilities. Because seniors get higher medical deductions, many receive more benefits than younger households with similar incomes.\n\nRhode Island waives asset limits for households with seniors or disabled members. Your parent's home, retirement savings, and Social Security don't disqualify them — only monthly income matters for most applicants.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded on an EBT card for food purchases at authorized stores. Because Rhode Island expanded eligibility for seniors, your loved one may qualify with income up to $2,608/month (200% of federal poverty level) — much higher than standard SNAP limits.\n\nMaximum benefits are around $291/month for one person, $535/month for two people. Your loved one's actual amount depends on their income after deductions for medical expenses over $35/month, rent, and utilities. Because seniors get higher medical deductions, many receive more benefits than younger households with similar incomes.\n\nRhode Island waives asset limits for households with seniors or disabled members. Your loved one's home, retirement savings, and Social Security don't disqualify them — only monthly income matters for most applicants.",
       "savingsRange": "$1,200 – $3,500/year",
       "savingsSource": "Monthly SNAP benefits of $100–291 for individuals, scaled by household size and income",
       "savingsVerified": true,
@@ -844,7 +844,7 @@
         ],
         "processingTime": "30 days for standard applications, expedited processing available for urgent cases",
         "waitlist": null,
-        "tip": "Medical expenses over $35/month can significantly increase your parent's benefits — keep receipts for prescriptions, insurance premiums, and doctor visits.",
+        "tip": "Medical expenses over $35/month can significantly increase your loved one's benefits — keep receipts for prescriptions, insurance premiums, and doctor visits.",
         "urls": [
           {
             "label": "Rhode Island DHS SNAP Portal",
@@ -901,19 +901,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and retirement savings if they apply for SNAP?",
-          "answer": "Yes. Rhode Island waives asset limits for households with members 60+ or disabled. Your parent's home, 401(k), IRA, Social Security benefits, and most vehicles don't count against eligibility. Only monthly income matters for qualification."
+          "question": "Can my loved one keep their house and retirement savings if they apply for SNAP?",
+          "answer": "Yes. Rhode Island waives asset limits for households with members 60+ or disabled. Your loved one's home, 401(k), IRA, Social Security benefits, and most vehicles don't count against eligibility. Only monthly income matters for qualification."
         },
         {
-          "question": "What if my parent lives with me but we don't share meals?",
-          "answer": "Only include household members who buy and prepare food together. If your parent buys their own groceries and prepares separate meals, they can apply as a one-person household even if living in your home. This often results in higher benefits."
+          "question": "What if my loved one lives with me but we don't share meals?",
+          "answer": "Only include household members who buy and prepare food together. If your loved one buys their own groceries and prepares separate meals, they can apply as a one-person household even if living in your home. This often results in higher benefits."
         },
         {
-          "question": "How do medical expenses affect my parent's SNAP benefits?",
+          "question": "How do medical expenses affect my loved one's SNAP benefits?",
           "answer": "Medical expenses over $35/month increase benefits significantly. Include insurance premiums, prescription costs, doctor visits, and medical equipment. A senior with $100/month in medical expenses may receive $50-100 more monthly than someone with no medical deduction."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
           "answer": "Yes, you can apply as their authorized representative with written permission. You'll need to sign forms during the application process and can handle the eligibility interview. Call 401-462-5300 to discuss the representative process."
         },
         {
@@ -921,15 +921,15 @@
           "answer": "ESAP (Elderly Simplified Application Project) is for households where all adults are 60+ or disabled with no earned income. It offers 36-month certification instead of 12 months, simplified reporting, and a shorter application form."
         },
         {
-          "question": "Can my parent get SNAP if their Social Security is $1,800/month?",
-          "answer": "Likely yes. Rhode Island allows gross income up to $2,608/month for seniors (200% FPL). After deductions for medical expenses, rent, and utilities, your parent's net income may qualify them for benefits even with higher Social Security payments."
+          "question": "Can my loved one get SNAP if their Social Security is $1,800/month?",
+          "answer": "Likely yes. Rhode Island allows gross income up to $2,608/month for seniors (200% FPL). After deductions for medical expenses, rent, and utilities, your loved one's net income may qualify them for benefits even with higher Social Security payments."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
+          "question": "What happens if my loved one's income changes after they're approved?",
           "answer": "Report significant changes within 10 days by calling 401-462-5300. Increases in Social Security or pension may reduce benefits, while increased medical expenses may increase them. ESAP recipients only report changes annually."
         },
         {
-          "question": "How quickly can my parent get benefits if they're approved?",
+          "question": "How quickly can my loved one get benefits if they're approved?",
           "answer": "Benefits are typically loaded on the EBT card within 7-10 days of approval. For expedited cases (very low income, urgent food needs), benefits can be available within 7 days of application. The card works immediately at authorized stores."
         }
       ],
@@ -964,7 +964,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with heating bills during Rhode Island's cold months, LIHEAP provides one-time grants paid directly to utility or fuel companies to help cover heating costs. Because the program covers October through May and has limited funding each year, families earning up to $42,252 for a single person should apply as early as possible when the season opens October 1st.\n\nThe grant amount varies based on your parent's income, household size, fuel type, and delivery requirements — there's no fixed dollar amount per household. Because LIHEAP also serves as a gateway to other energy programs like Weatherization assistance, qualifying families can access additional help beyond the heating grant. Crisis assistance is available year-round for emergencies like shutoff notices or broken heating equipment.",
+      "intro": "If your loved one struggles with heating bills during Rhode Island's cold months, LIHEAP provides one-time grants paid directly to utility or fuel companies to help cover heating costs. Because the program covers October through May and has limited funding each year, families earning up to $42,252 for a single person should apply as early as possible when the season opens October 1st.\n\nThe grant amount varies based on your loved one's income, household size, fuel type, and delivery requirements — there's no fixed dollar amount per household. Because LIHEAP also serves as a gateway to other energy programs like Weatherization assistance, qualifying families can access additional help beyond the heating grant. Crisis assistance is available year-round for emergencies like shutoff notices or broken heating equipment.",
       "savingsRange": "",
       "savingsSource": "Variable grant amount based on income and household factors",
       "savingsVerified": false,
@@ -1099,11 +1099,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent and utilities are included in rent?",
-          "answer": "Yes, your parent can still apply as long as they're responsible for some utility costs or heating fuel. The household definition includes everyone at the address covered by the same utility bill, regardless of ownership status."
+          "question": "Can my loved one apply if they rent and utilities are included in rent?",
+          "answer": "Yes, your loved one can still apply as long as they're responsible for some utility costs or heating fuel. The household definition includes everyone at the address covered by the same utility bill, regardless of ownership status."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit some months?",
+          "question": "What happens if my loved one's income is slightly over the limit some months?",
           "answer": "LIHEAP uses gross household income limits that can be calculated over 12 months, 3 months, or 1 month depending on your income type. Staff will use whichever calculation period works best for your situation."
         },
         {
@@ -1115,20 +1115,20 @@
           "answer": "LIHEAP grants are paid directly to utility or fuel companies, and most major providers participate in the program. If you encounter problems, contact your local CAP agency immediately — they can work with providers to resolve payment issues."
         },
         {
-          "question": "How long does my parent have to wait if they need crisis assistance?",
+          "question": "How long does my loved one have to wait if they need crisis assistance?",
           "answer": "Crisis assistance for emergencies like shutoff notices or broken heaters is available year-round, not just during the October-May heating season. These cases typically receive priority processing."
         },
         {
-          "question": "Can my parent get LIHEAP help for air conditioning in summer?",
+          "question": "Can my loved one get LIHEAP help for air conditioning in summer?",
           "answer": "No, Rhode Island's LIHEAP program only covers heating assistance from October through May. There is no cooling assistance component for air conditioning costs."
         },
         {
-          "question": "What if my parent received LIHEAP last year — do they automatically get it again?",
+          "question": "What if my loved one received LIHEAP last year — do they automatically get it again?",
           "answer": "No, you must reapply each year. Prior recipients receive renewal applications in the mail, but funding is limited each year and not guaranteed. Apply early when the season opens."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has memory problems?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. Some CAP agencies make special arrangements for elderly or disabled applicants who cannot apply in person. Contact your local CAP agency to discuss assistance options."
+          "question": "Can I apply on behalf of my elderly loved one who has memory problems?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. Some CAP agencies make special arrangements for elderly or disabled applicants who cannot apply in person. Contact your local CAP agency to discuss assistance options."
         }
       ],
       "layoutIntent": {
@@ -1149,7 +1149,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Program",
-      "tagline": "Free home energy improvements that can lower your parent's utility bills by hundreds of dollars annually.",
+      "tagline": "Free home energy improvements that can lower your loved one's utility bills by hundreds of dollars annually.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1162,7 +1162,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills or lives in a drafty home, Rhode Island's Weatherization Assistance Program provides free energy efficiency improvements worth thousands of dollars. The program installs insulation, tunes up heating systems, seals air leaks, and can even replace old furnaces or appliances — all at no cost to qualifying households.\n\nYour parent must first qualify for LIHEAP (heating assistance), which requires income at or below 60% of state median income. Priority goes to households with older adults, people with disabilities, or children. Homeowners are automatically eligible, while renters need landlord approval for the work.\n\nServices include comprehensive home energy audits, attic and wall insulation, heating system repairs or replacement, appliance upgrades, and safety improvements like smoke and carbon monoxide detectors. The program operates year-round through local Community Action Program agencies across Rhode Island.",
+      "intro": "If your loved one struggles with high heating bills or lives in a drafty home, Rhode Island's Weatherization Assistance Program provides free energy efficiency improvements worth thousands of dollars. The program installs insulation, tunes up heating systems, seals air leaks, and can even replace old furnaces or appliances — all at no cost to qualifying households.\n\nYour loved one must first qualify for LIHEAP (heating assistance), which requires income at or below 60% of state median income. Priority goes to households with older adults, people with disabilities, or children. Homeowners are automatically eligible, while renters need landlord approval for the work.\n\nServices include comprehensive home energy audits, attic and wall insulation, heating system repairs or replacement, appliance upgrades, and safety improvements like smoke and carbon monoxide detectors. The program operates year-round through local Community Action Program agencies across Rhode Island.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1207,7 +1207,7 @@
           {
             "step": 4,
             "title": "Home assessment",
-            "description": "Once LIHEAP-qualified, your parent's home will be evaluated for weatherization needs and safety issues. Recent weatherization work or problems like mold may defer services."
+            "description": "Once LIHEAP-qualified, your loved one's home will be evaluated for weatherization needs and safety issues. Recent weatherization work or problems like mold may defer services."
           },
           {
             "step": 5,
@@ -1269,15 +1269,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get weatherization if they're a renter?",
+          "question": "Can my loved one get weatherization if they're a renter?",
           "answer": "Yes, but only with written landlord approval. The landlord must agree to the weatherization work before any improvements can begin. Many landlords approve because the improvements increase property value at no cost to them."
         },
         {
-          "question": "What if my parent was denied LIHEAP in the past?",
+          "question": "What if my loved one was denied LIHEAP in the past?",
           "answer": "They should reapply. Income limits and household circumstances change annually, and CAP agencies can help determine current eligibility. You cannot access weatherization without first qualifying for LIHEAP."
         },
         {
-          "question": "Will weatherization work damage my parent's home?",
+          "question": "Will weatherization work damage my loved one's home?",
           "answer": "No. Trained technicians perform comprehensive energy audits first and use established safety protocols. Homes with structural issues like mold are deferred until problems are resolved to ensure safe, effective work."
         },
         {
@@ -1285,19 +1285,19 @@
           "answer": "Savings vary by home size and condition, but improvements typically reduce energy bills significantly. The program includes major upgrades like insulation, heating system repairs, and appliance replacements that can cost thousands if paid privately."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes. CAP agencies accommodate family members applying for elderly or disabled parents and provide assistance with paperwork and the application process."
         },
         {
-          "question": "What happens if my parent's home was weatherized years ago?",
+          "question": "What happens if my loved one's home was weatherized years ago?",
           "answer": "Homes that were recently weatherized are not eligible, but the program doesn't specify exactly how many years must pass. Contact your local CAP agency to determine if enough time has elapsed for re-qualification."
         },
         {
-          "question": "Does my parent get priority if they're over 60?",
-          "answer": "Yes. The program prioritizes households with older adults, people with disabilities, or children. This can help move your parent up in the queue for services."
+          "question": "Does my loved one get priority if they're over 60?",
+          "answer": "Yes. The program prioritizes households with older adults, people with disabilities, or children. This can help move your loved one up in the queue for services."
         },
         {
-          "question": "Can my parent get both LIHEAP and weatherization in the same year?",
+          "question": "Can my loved one get both LIHEAP and weatherization in the same year?",
           "answer": "Yes, and LIHEAP qualification is actually required for weatherization. These programs work together — LIHEAP provides immediate heating bill assistance while weatherization creates long-term energy savings."
         }
       ],
@@ -1319,7 +1319,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
-      "tagline": "Free one-on-one help navigating Medicare options, appeals, and low-income programs for your parent.",
+      "tagline": "Free one-on-one help navigating Medicare options, appeals, and low-income programs for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1332,7 +1332,7 @@
           }
         ]
       },
-      "intro": "If your parent is confused about Medicare options, struggling with claims denials, or missing out on financial help they're entitled to, Rhode Island's SHIP program provides free personalized counseling. Trained staff help Medicare beneficiaries understand Parts A, B, C, and D, apply for programs like Extra Help that can save hundreds monthly on prescriptions, and navigate appeals when coverage is denied.\n\nBecause SHIP counselors are state-trained and unbiased (not insurance salespeople), your parent gets honest guidance on which plans actually meet their needs and budget. The service is available to all Medicare beneficiaries regardless of income, though they prioritize people with limited incomes and those under 65 with disabilities.",
+      "intro": "If your loved one is confused about Medicare options, struggling with claims denials, or missing out on financial help they're entitled to, Rhode Island's SHIP program provides free personalized counseling. Trained staff help Medicare beneficiaries understand Parts A, B, C, and D, apply for programs like Extra Help that can save hundreds monthly on prescriptions, and navigate appeals when coverage is denied.\n\nBecause SHIP counselors are state-trained and unbiased (not insurance salespeople), your loved one gets honest guidance on which plans actually meet their needs and budget. The service is available to all Medicare beneficiaries regardless of income, though they prioritize people with limited incomes and those under 65 with disabilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1417,15 +1417,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call SHIP to help my parent apply for programs that lower Medicare costs?",
+          "question": "Can I call SHIP to help my loved one apply for programs that lower Medicare costs?",
           "answer": "Yes, SHIP counselors help people apply for Medicare Savings Programs, Extra Help with prescription costs, and Medicaid if eligible. They'll walk you through the applications and explain what documents you need. Call 1-888-884-8721 to get started."
         },
         {
-          "question": "Will SHIP try to sell my parent a specific Medicare plan?",
-          "answer": "No, SHIP counselors are state employees and volunteers who don't sell insurance. They provide unbiased information to help you compare all available options based on your parent's specific medications, doctors, and budget. This makes them different from insurance agents or brokers."
+          "question": "Will SHIP try to sell my loved one a specific Medicare plan?",
+          "answer": "No, SHIP counselors are state employees and volunteers who don't sell insurance. They provide unbiased information to help you compare all available options based on your loved one's specific medications, doctors, and budget. This makes them different from insurance agents or brokers."
         },
         {
-          "question": "Can SHIP help if Medicare denied a claim or service my parent needs?",
+          "question": "Can SHIP help if Medicare denied a claim or service my loved one needs?",
           "answer": "Yes, SHIP counselors specialize in appeals and can explain your rights, help you understand denial letters, and guide you through the appeals process. They can also help you file complaints about plan problems or potential fraud."
         }
       ],
@@ -1447,7 +1447,7 @@
       "id": "meals-on-wheels",
       "name": "Meals on Wheels of Rhode Island",
       "shortName": "Meals on Wheels RI",
-      "tagline": "Free home-delivered meals Monday through Friday if your parent is 60+ and homebound.",
+      "tagline": "Free home-delivered meals Monday through Friday if your loved one is 60+ and homebound.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1464,7 +1464,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and cannot safely leave home on their own, Meals on Wheels of Rhode Island delivers nutritious meals Monday through Friday at no cost. Each meal meets one-third of daily nutritional requirements and is prepared by professional caterers.\n\nThe program offers two options: home delivery for homebound seniors, and the Capital City Café program for those who can travel to community dining sites throughout Providence (including a dedicated LGBTQIA+ café location). Your parent must live within the program's delivery zones to qualify — not all Rhode Island residents are covered based on geography alone.",
+      "intro": "If your loved one is 60+ and cannot safely leave home on their own, Meals on Wheels of Rhode Island delivers nutritious meals Monday through Friday at no cost. Each meal meets one-third of daily nutritional requirements and is prepared by professional caterers.\n\nThe program offers two options: home delivery for homebound seniors, and the Capital City Café program for those who can travel to community dining sites throughout Providence (including a dedicated LGBTQIA+ café location). Your loved one must live within the program's delivery zones to qualify — not all Rhode Island residents are covered based on geography alone.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1502,7 +1502,7 @@
           {
             "step": 3,
             "title": "Wait for service area confirmation",
-            "description": "The program will verify your parent lives within a covered delivery zone before processing the application."
+            "description": "The program will verify your loved one lives within a covered delivery zone before processing the application."
           },
           {
             "step": 4,
@@ -1512,7 +1512,7 @@
         ],
         "processingTime": "Not specified — general Meals on Wheels programs process applications within a week unless waitlist exists",
         "waitlist": null,
-        "tip": "Verify your parent's address is within the service delivery zone before applying — geographic coverage is limited and may be the main barrier to eligibility.",
+        "tip": "Verify your loved one's address is within the service delivery zone before applying — geographic coverage is limited and may be the main barrier to eligibility.",
         "urls": [
           {
             "label": "Online Application",
@@ -1544,7 +1544,7 @@
       ],
       "applicationNotes": [
         "The homebound requirement is strictly enforced — those who can leave home with assistance may not qualify for home delivery but could qualify for Capital City Café",
-        "Geographic service area is a major limiting factor — confirm your parent's address is covered before completing the full application",
+        "Geographic service area is a major limiting factor — confirm your loved one's address is covered before completing the full application",
         "Meals are only delivered Monday-Friday, so weekend nutrition planning is still necessary"
       ],
       "relatedPrograms": [
@@ -1556,15 +1556,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent can walk but needs help getting to the car — do they qualify for home delivery?",
-          "answer": "No, the homebound requirement means your parent must be unable to safely leave home on their own. If they can leave with assistance, they may qualify for the Capital City Café program instead, which offers community dining at sites throughout Providence."
+          "question": "What if my loved one can walk but needs help getting to the car — do they qualify for home delivery?",
+          "answer": "No, the homebound requirement means your loved one must be unable to safely leave home on their own. If they can leave with assistance, they may qualify for the Capital City Café program instead, which offers community dining at sites throughout Providence."
         },
         {
-          "question": "How do I know if my parent's address is within the delivery zone?",
-          "answer": "Contact (401) 351-6700 to verify coverage before applying. Not all Rhode Island residents qualify based on geography — each local program has specific service areas that may not cover your parent's location."
+          "question": "How do I know if my loved one's address is within the delivery zone?",
+          "answer": "Contact (401) 351-6700 to verify coverage before applying. Not all Rhode Island residents qualify based on geography — each local program has specific service areas that may not cover your loved one's location."
         },
         {
-          "question": "Can my parent receive meals if they already go to adult daycare twice a week?",
+          "question": "Can my loved one receive meals if they already go to adult daycare twice a week?",
           "answer": "No, participants cannot receive Meals on Wheels on days they're already participating in adult daycare or other dining programs. They could potentially receive meals on the other weekdays when not attending daycare."
         },
         {
@@ -1572,12 +1572,12 @@
           "answer": "Meals on Wheels only delivers Monday through Friday. You'll need to plan separate nutrition solutions for weekends and holidays, possibly combining with SNAP benefits or family meal preparation."
         },
         {
-          "question": "Does my parent need to pay anything if their income is high?",
+          "question": "Does my loved one need to pay anything if their income is high?",
           "answer": "The program documentation doesn't specify income limits or sliding fee scales. Call (401) 351-6700 to ask about any fees based on financial ability — some Meals on Wheels programs adjust costs, but income may not be disqualifying."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has memory issues?",
-          "answer": "Yes, family members typically can complete applications for elderly parents who cannot manage the process themselves. Call (401) 351-6700 to discuss your parent's situation and what documentation you'll need as their representative."
+          "question": "Can I apply on behalf of my elderly loved one who has memory issues?",
+          "answer": "Yes, family members typically can complete applications for elderly loved ones who cannot manage the process themselves. Call (401) 351-6700 to discuss your loved one's situation and what documentation you'll need as their representative."
         }
       ],
       "layoutIntent": {
@@ -1598,7 +1598,7 @@
       "id": "caregiver-respite-support",
       "name": "Caregiver/Respite Support",
       "shortName": "Respite Care",
-      "tagline": "Financial help for professional caregivers to give you a break from caring for your parent or disabled family member.",
+      "tagline": "Financial help for professional caregivers to give you a break from caring for your loved one or disabled family member.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1619,7 +1619,7 @@
           }
         ]
       },
-      "intro": "If you're providing unpaid care to an aging parent or disabled family member, Rhode Island's Caregiver/Respite Support program provides financial assistance to hire trained professionals who can step in and give you a break. The program connects you with approved respite providers across the state who can care for your loved one in your home or community settings while you rest, run errands, or handle other responsibilities.\n\nThe amount of financial assistance you receive depends on your income if you're caring for an older adult, or your household income if you're caring for a child under 21. Because this program operates regardless of whether your care recipient has Medicaid or Medicare, you can access respite support even if your parent doesn't qualify for other government programs.\n\nBeyond respite hours, the program includes peer support, mentorship, and advocacy services to help you navigate the challenges of caregiving. One team manages the entire process — from matching you with appropriate providers to coordinating the care schedule that works for your family.",
+      "intro": "If you're providing unpaid care to an aging loved one or disabled family member, Rhode Island's Caregiver/Respite Support program provides financial assistance to hire trained professionals who can step in and give you a break. The program connects you with approved respite providers across the state who can care for your loved one in your home or community settings while you rest, run errands, or handle other responsibilities.\n\nThe amount of financial assistance you receive depends on your income if you're caring for an older adult, or your household income if you're caring for a child under 21. Because this program operates regardless of whether your care recipient has Medicaid or Medicare, you can access respite support even if your loved one doesn't qualify for other government programs.\n\nBeyond respite hours, the program includes peer support, mentorship, and advocacy services to help you navigate the challenges of caregiving. One team manages the entire process — from matching you with appropriate providers to coordinating the care schedule that works for your family.",
       "savingsRange": "",
       "savingsSource": "Income-based subsidy for respite care services",
       "savingsVerified": false,
@@ -1716,7 +1716,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get respite help if my parent doesn't have Medicaid or Medicare?",
+          "question": "Can I get respite help if my loved one doesn't have Medicaid or Medicare?",
           "answer": "Yes. Rhode Island's CareBreaks program operates regardless of your care recipient's Medicaid or Medicare status. This is different from some other respite programs that require Medicaid enrollment."
         },
         {
@@ -1740,7 +1740,7 @@
           "answer": "The program tailors matches to your specific situation, so contact your provider agency if your care recipient's condition or needs change. They can adjust the respite plan and provider assignments accordingly."
         },
         {
-          "question": "Can I apply if I'm caring for both my elderly parent and disabled adult child?",
+          "question": "Can I apply if I'm caring for both my elderly loved one and disabled adult child?",
           "answer": "You can apply as a caregiver for multiple family members, but eligibility and income calculations will be different for each person. The over-18 and under-21 categories have different rules, so discuss your situation when calling."
         },
         {
@@ -1779,7 +1779,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with low income, SCSEP provides paid part-time work training (average 20 hours per week) at non-profits, schools, hospitals, and senior centers throughout Rhode Island. Participants earn at least minimum wage while building job skills, updating resumes, and working toward unsubsidized employment.\n\nYour parent must have family income at or below 125% of the federal poverty level — about $18,825/year for a single person in 2023, or $25,500 for a two-person household. Because this is work-based training with a 48-month lifetime limit, the goal is transitioning to regular employment. Priority goes to veterans, adults 65+, those with disabilities, and people facing housing instability.",
+      "intro": "If your loved one is 55+ and unemployed with low income, SCSEP provides paid part-time work training (average 20 hours per week) at non-profits, schools, hospitals, and senior centers throughout Rhode Island. Participants earn at least minimum wage while building job skills, updating resumes, and working toward unsubsidized employment.\n\nYour loved one must have family income at or below 125% of the federal poverty level — about $18,825/year for a single person in 2023, or $25,500 for a two-person household. Because this is work-based training with a 48-month lifetime limit, the goal is transitioning to regular employment. Priority goes to veterans, adults 65+, those with disabilities, and people facing housing instability.",
       "savingsRange": "",
       "savingsSource": "Paid training opportunity",
       "savingsVerified": false,
@@ -1839,7 +1839,7 @@
         ],
         "processingTime": "Staff contacts after pre-application submission (timeline not specified; typically prompt follow-up)",
         "waitlist": "Possible due to funding limits and priority enrollment; varies by demand",
-        "tip": "Emphasize any veteran status, disability, or housing instability — these factors give your parent priority placement.",
+        "tip": "Emphasize any veteran status, disability, or housing instability — these factors give your loved one priority placement.",
         "urls": [
           {
             "label": "SCSEP Pre-Application Survey",
@@ -1890,35 +1890,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're currently working part-time?",
-          "answer": "No. Your parent must be completely unemployed to qualify for SCSEP. Even part-time work disqualifies applicants, as this is specifically designed for people without any employment."
+          "question": "Can my loved one apply if they're currently working part-time?",
+          "answer": "No. Your loved one must be completely unemployed to qualify for SCSEP. Even part-time work disqualifies applicants, as this is specifically designed for people without any employment."
         },
         {
           "question": "What happens when the 48-month limit is reached?",
-          "answer": "Your parent must transition to unsubsidized employment or other support programs. The 48-month limit is lifetime — they cannot re-enter SCSEP later, even after years of regular employment."
+          "answer": "Your loved one must transition to unsubsidized employment or other support programs. The 48-month limit is lifetime — they cannot re-enter SCSEP later, even after years of regular employment."
         },
         {
           "question": "How long is the waitlist for people without priority status?",
           "answer": "Wait times vary by demand and funding, but non-priority applicants typically wait longer than veterans, adults 65+, or those with disabilities. RI Department of Labor & Training can give current wait estimates at (401) 462-8000."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Your parent must complete their own application and participate in the eligibility interview. You can help with paperwork and transportation, but they need to demonstrate ability to work independently."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Your loved one must complete their own application and participate in the eligibility interview. You can help with paperwork and transportation, but they need to demonstrate ability to work independently."
         },
         {
           "question": "What types of work sites are available?",
-          "answer": "Participants work at non-profits, public agencies, schools, hospitals, senior centers, and day-care facilities. Assignments depend on your parent's skills, interests, and available openings in your area."
+          "answer": "Participants work at non-profits, public agencies, schools, hospitals, senior centers, and day-care facilities. Assignments depend on your loved one's skills, interests, and available openings in your area."
         },
         {
           "question": "Does SCSEP count the value of our house in the income test?",
-          "answer": "No. SCSEP has no asset limits — only the income test at 125% of federal poverty level. Your parent's home, savings accounts, and investments don't affect eligibility."
+          "answer": "No. SCSEP has no asset limits — only the income test at 125% of federal poverty level. Your loved one's home, savings accounts, and investments don't affect eligibility."
         },
         {
-          "question": "Can my parent receive SCSEP wages and Social Security at the same time?",
+          "question": "Can my loved one receive SCSEP wages and Social Security at the same time?",
           "answer": "Yes, but SCSEP wages may affect other means-tested benefits like SNAP or Medicaid. Social Security retirement benefits are not affected, though Social Security disability rules may apply differently."
         },
         {
-          "question": "What if my parent lives in a Rhode Island county that isn't served?",
+          "question": "What if my loved one lives in a Rhode Island county that isn't served?",
           "answer": "Contact RI Department of Labor & Training at (401) 462-8000 to confirm which counties have SCSEP services. Bristol County is confirmed, but coverage varies by funding and local partnerships."
         }
       ],
@@ -1965,7 +1965,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with Social Security appeals, housing disputes, or consumer fraud, they can get free legal help through Rhode Island's senior legal aid programs. These services cover government benefit appeals, landlord-tenant disputes, subsidized housing issues, consumer protection, and family law matters — areas where seniors often face complex legal challenges.\n\nBecause multiple organizations provide these services, your parent has several entry points. The RI Bar Association offers free 30-minute consultations for all seniors 60+, while RI Legal Services provides full representation for qualifying low-income seniors. All services focus specifically on issues that affect older adults, so attorneys understand Medicare, Social Security, and housing programs that general legal aid may not handle.",
+      "intro": "If your loved one is 60+ and struggling with Social Security appeals, housing disputes, or consumer fraud, they can get free legal help through Rhode Island's senior legal aid programs. These services cover government benefit appeals, landlord-tenant disputes, subsidized housing issues, consumer protection, and family law matters — areas where seniors often face complex legal challenges.\n\nBecause multiple organizations provide these services, your loved one has several entry points. The RI Bar Association offers free 30-minute consultations for all seniors 60+, while RI Legal Services provides full representation for qualifying low-income seniors. All services focus specifically on issues that affect older adults, so attorneys understand Medicare, Social Security, and housing programs that general legal aid may not handle.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2066,20 +2066,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's income is slightly above 125% of the poverty level?",
-          "answer": "They can still get the free 30-minute consultation through the RI Bar Association at 401-421-7799 — this service has no income limits for seniors 60+. The attorney can provide guidance and referrals even if your parent doesn't qualify for ongoing representation. For urgent issues like benefit appeals with deadlines, call anyway — some exceptions may apply."
+          "question": "What if my loved one's income is slightly above 125% of the poverty level?",
+          "answer": "They can still get the free 30-minute consultation through the RI Bar Association at 401-421-7799 — this service has no income limits for seniors 60+. The attorney can provide guidance and referrals even if your loved one doesn't qualify for ongoing representation. For urgent issues like benefit appeals with deadlines, call anyway — some exceptions may apply."
         },
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
-          "answer": "You can make the initial call to explain the situation, but the legal aid organization will need to speak directly with your parent to establish the attorney-client relationship, unless you have legal power of attorney. If your parent cannot communicate effectively, the RI Disability Law Center at 401-831-3150 specializes in these situations and can help with guardianship or other protective arrangements."
+          "question": "Can I call on behalf of my loved one who has dementia?",
+          "answer": "You can make the initial call to explain the situation, but the legal aid organization will need to speak directly with your loved one to establish the attorney-client relationship, unless you have legal power of attorney. If your loved one cannot communicate effectively, the RI Disability Law Center at 401-831-3150 specializes in these situations and can help with guardianship or other protective arrangements."
         },
         {
           "question": "How quickly can someone help with a Social Security appeal deadline?",
           "answer": "Call immediately — Social Security appeals have strict deadlines (usually 60 days from the denial letter). RI Legal Services prioritizes time-sensitive cases, and even if you can't get full representation, the RI Bar Association's 30-minute consultation can help you understand your options and deadlines."
         },
         {
-          "question": "Will my parent have to pay court fees even with free legal help?",
-          "answer": "Possibly — while the attorney services are free, your parent may still be responsible for court filing fees, document costs, and other case expenses. Ask about fee waivers during your intake call, as low-income seniors can often get these costs waived too."
+          "question": "Will my loved one have to pay court fees even with free legal help?",
+          "answer": "Possibly — while the attorney services are free, your loved one may still be responsible for court filing fees, document costs, and other case expenses. Ask about fee waivers during your intake call, as low-income seniors can often get these costs waived too."
         }
       ],
       "layoutIntent": {
@@ -2100,7 +2100,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Care Ombudsman",
-      "tagline": "Free advocacy to resolve problems with your parent's nursing home, assisted living, or home care provider.",
+      "tagline": "Free advocacy to resolve problems with your loved one's nursing home, assisted living, or home care provider.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2113,7 +2113,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or receives licensed home care in Rhode Island, the Long-Term Care Ombudsman Program provides free advocacy when problems arise. The ombudsman investigates complaints about care quality, resident rights violations, billing disputes, or facility conditions — then works to resolve issues through mediation and negotiation with providers.\n\nBecause ombudsmen operate independently from facilities and state agencies, they can advocate solely for your parent's interests without conflicts. Anyone can file a complaint on behalf of a resident, and there are no income limits or application fees. The program also covers residents at Bristol Veterans Home, Eleanor Slater Hospital Regan Building in Cranston, and Zambarano Hospital in Pascoag.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or receives licensed home care in Rhode Island, the Long-Term Care Ombudsman Program provides free advocacy when problems arise. The ombudsman investigates complaints about care quality, resident rights violations, billing disputes, or facility conditions — then works to resolve issues through mediation and negotiation with providers.\n\nBecause ombudsmen operate independently from facilities and state agencies, they can advocate solely for your loved one's interests without conflicts. Anyone can file a complaint on behalf of a resident, and there are no income limits or application fees. The program also covers residents at Bristol Veterans Home, Eleanor Slater Hospital Regan Building in Cranston, and Zambarano Hospital in Pascoag.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2145,7 +2145,7 @@
           {
             "step": 2,
             "title": "Describe the Problem",
-            "description": "Explain the specific issue — whether it's care quality, billing disputes, resident rights violations, facility conditions, or conflicts with staff. Provide the facility name and your parent's situation."
+            "description": "Explain the specific issue — whether it's care quality, billing disputes, resident rights violations, facility conditions, or conflicts with staff. Provide the facility name and your loved one's situation."
           },
           {
             "step": 3,
@@ -2155,7 +2155,7 @@
         ],
         "processingTime": "Response begins immediately upon complaint filing, with resolution timeline varying by complexity of issue",
         "waitlist": null,
-        "tip": "You don't need your parent's permission to file a complaint — anyone can report concerns about a long-term care resident's treatment.",
+        "tip": "You don't need your loved one's permission to file a complaint — anyone can report concerns about a long-term care resident's treatment.",
         "urls": [
           {
             "label": "Online Contact Form",
@@ -2193,11 +2193,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint even if my parent doesn't want me to?",
-          "answer": "Yes, anyone can file a complaint on behalf of a long-term care resident. The ombudsman will investigate independently, though they may work with your parent directly during the resolution process. If there are concerns about abuse or neglect, the ombudsman is required to report these to relevant authorities."
+          "question": "Can I file a complaint even if my loved one doesn't want me to?",
+          "answer": "Yes, anyone can file a complaint on behalf of a long-term care resident. The ombudsman will investigate independently, though they may work with your loved one directly during the resolution process. If there are concerns about abuse or neglect, the ombudsman is required to report these to relevant authorities."
         },
         {
-          "question": "What if the facility retaliates against my parent for the complaint?",
+          "question": "What if the facility retaliates against my loved one for the complaint?",
           "answer": "Retaliation against residents for complaints is illegal and a serious violation of resident rights. If you suspect retaliation, report it immediately to the ombudsman at (401) 785-3340. The ombudsman can investigate retaliation as a separate complaint and work with regulatory agencies to address violations."
         },
         {
@@ -2236,7 +2236,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ (or 55-64 on disability) and struggling with prescription costs during Medicare Part D's deductible period, RIPAE can help cover those gaps. The program pays a portion of medication costs based on income — from 15% copays for the lowest income tier to full coverage after $1,500 out-of-pocket annually.\n\nBecause RIPAE works alongside Medicare Part D (not instead of it), your parent keeps their existing plan while getting state help with deductibles and non-covered medications. Income limits are generous — individuals earning up to $83,510 annually can qualify for some level of assistance, with no asset or savings test required.\n\nOne important note: Check if your parent qualifies for Medicare's Extra Help program first. Extra Help often provides better coverage than RIPAE, but you cannot have both — and Extra Help eligibility disqualifies you from RIPAE.",
+      "intro": "If your loved one is 65+ (or 55-64 on disability) and struggling with prescription costs during Medicare Part D's deductible period, RIPAE can help cover those gaps. The program pays a portion of medication costs based on income — from 15% copays for the lowest income tier to full coverage after $1,500 out-of-pocket annually.\n\nBecause RIPAE works alongside Medicare Part D (not instead of it), your loved one keeps their existing plan while getting state help with deductibles and non-covered medications. Income limits are generous — individuals earning up to $83,510 annually can qualify for some level of assistance, with no asset or savings test required.\n\nOne important note: Check if your loved one qualifies for Medicare's Extra Help program first. Extra Help often provides better coverage than RIPAE, but you cannot have both — and Extra Help eligibility disqualifies you from RIPAE.",
       "savingsRange": "",
       "savingsSource": "Variable copay assistance based on income tier",
       "savingsVerified": false,
@@ -2267,7 +2267,7 @@
           {
             "step": 1,
             "title": "Check Extra Help eligibility first",
-            "description": "Call Social Security at 1-800-772-1213 to see if your parent qualifies for Medicare's Extra Help program, which may provide better coverage than RIPAE."
+            "description": "Call Social Security at 1-800-772-1213 to see if your loved one qualifies for Medicare's Extra Help program, which may provide better coverage than RIPAE."
           },
           {
             "step": 2,
@@ -2353,24 +2353,24 @@
       ],
       "faqs": [
         {
-          "question": "Should my parent apply for RIPAE or Medicare Extra Help first?",
-          "answer": "Always check Extra Help eligibility first by calling Social Security at 1-800-772-1213. Extra Help often provides better prescription coverage than RIPAE, but you cannot have both programs. If your parent qualifies for Extra Help, they cannot use RIPAE."
+          "question": "Should my loved one apply for RIPAE or Medicare Extra Help first?",
+          "answer": "Always check Extra Help eligibility first by calling Social Security at 1-800-772-1213. Extra Help often provides better prescription coverage than RIPAE, but you cannot have both programs. If your loved one qualifies for Extra Help, they cannot use RIPAE."
         },
         {
-          "question": "What if my parent's Medicare Part D plan already covers their medications?",
+          "question": "What if my loved one's Medicare Part D plan already covers their medications?",
           "answer": "RIPAE only helps during Part D's deductible period (before your plan's coverage kicks in) or for medications Part D doesn't cover. If Part D fully covers everything year-round, RIPAE won't provide additional benefits."
         },
         {
-          "question": "Can my parent apply if they own their home worth $200,000?",
+          "question": "Can my loved one apply if they own their home worth $200,000?",
           "answer": "Yes. RIPAE has no asset or resource test, so home value, savings accounts, and other assets don't affect eligibility. Only income matters for qualification."
         },
         {
-          "question": "What happens if my parent's income changes after enrollment?",
-          "answer": "Contact the Office of Healthy Aging at (401) 462-3000 to report income changes. Your parent may move to a different tier with different copay percentages, but you won't lose coverage entirely unless income exceeds the maximum limits."
+          "question": "What happens if my loved one's income changes after enrollment?",
+          "answer": "Contact the Office of Healthy Aging at (401) 462-3000 to report income changes. Your loved one may move to a different tier with different copay percentages, but you won't lose coverage entirely unless income exceeds the maximum limits."
         },
         {
-          "question": "Can I apply for RIPAE on behalf of my elderly parent?",
-          "answer": "Yes, family members can help complete and submit applications. You'll need your parent's consent and all their personal documentation including Medicare cards, income statements, and proof of residency."
+          "question": "Can I apply for RIPAE on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help complete and submit applications. You'll need your loved one's consent and all their personal documentation including Medicare cards, income statements, and proof of residency."
         },
         {
           "question": "What if the pharmacy says they don't accept RIPAE?",
@@ -2381,7 +2381,7 @@
           "answer": "Medications must be dispensed within one year of the prescription date. Older prescriptions are not covered, and experimental drugs are excluded regardless of when they were prescribed."
         },
         {
-          "question": "What if my parent gets denied — can we appeal?",
+          "question": "What if my loved one gets denied — can we appeal?",
           "answer": "Yes, you can appeal any RIPAE denial by calling the Office of Healthy Aging at (401) 462-3000. They'll review the decision and help determine if additional documentation or corrections are needed."
         }
       ],
@@ -2416,7 +2416,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ (or younger with dementia) and doesn't qualify for Medicaid, Rhode Island's At HOME Cost Share Program can dramatically reduce the cost of home care and adult day services. Instead of paying $25-27/hour for private home care or $90-100/day for adult day programs, your parent pays just $4.50-7.50/hour for home care or $7-15/day for adult day services, depending on income.\n\nThe program covers personal care, housekeeping, meal preparation, and community adult day services with nursing support and social activities. Because there are no asset limits, your parent can keep their house, savings, and investments while still getting help. The state subsidizes the rest through a needs-based assessment that looks at their ability to manage daily tasks like bathing, dressing, and medication management.",
+      "intro": "If your loved one is 65+ (or younger with dementia) and doesn't qualify for Medicaid, Rhode Island's At HOME Cost Share Program can dramatically reduce the cost of home care and adult day services. Instead of paying $25-27/hour for private home care or $90-100/day for adult day programs, your loved one pays just $4.50-7.50/hour for home care or $7-15/day for adult day services, depending on income.\n\nThe program covers personal care, housekeeping, meal preparation, and community adult day services with nursing support and social activities. Because there are no asset limits, your loved one can keep their house, savings, and investments while still getting help. The state subsidizes the rest through a needs-based assessment that looks at their ability to manage daily tasks like bathing, dressing, and medication management.",
       "savingsRange": "$15,000 – $25,000/year",
       "savingsSource": "Based on typical usage of 20 hours/week home care at subsidized rates vs. private pay rates",
       "savingsVerified": false,
@@ -2473,7 +2473,7 @@
           {
             "step": 3,
             "title": "Complete the needs assessment",
-            "description": "A caseworker will evaluate your parent's functional needs for personal care, housekeeping, or meal preparation to determine service eligibility."
+            "description": "A caseworker will evaluate your loved one's functional needs for personal care, housekeeping, or meal preparation to determine service eligibility."
           },
           {
             "step": 4,
@@ -2483,12 +2483,12 @@
           {
             "step": 5,
             "title": "Develop individualized care plan",
-            "description": "Work with program staff to create a service plan that matches your parent's assessed needs and preferences for home care or adult day services."
+            "description": "Work with program staff to create a service plan that matches your loved one's assessed needs and preferences for home care or adult day services."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Apply for Medicaid first if your parent might qualify — Medicaid covers more services with potentially lower costs than this program.",
+        "tip": "Apply for Medicaid first if your loved one might qualify — Medicaid covers more services with potentially lower costs than this program.",
         "urls": [
           {
             "label": "RI Office of Healthy Aging At HOME page",
@@ -2525,7 +2525,7 @@
         }
       ],
       "applicationNotes": [
-        "You must be determined ineligible for Medicaid before qualifying — apply for Medicaid first if your parent might qualify",
+        "You must be determined ineligible for Medicaid before qualifying — apply for Medicaid first if your loved one might qualify",
         "Income limits and cost-share rates adjust annually with Federal Poverty Level changes — verify current amounts when applying",
         "The needs assessment focuses on functional ability, not medical diagnosis — daily living assistance needs qualify",
         "Cost-share rates are per hour for home care and per day for adult day services — calculate your monthly costs based on planned usage"
@@ -2563,36 +2563,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they were denied Medicaid due to excess assets?",
-          "answer": "Yes, this is exactly who the program serves. Unlike Medicaid, At HOME Cost Share has no asset limits, so your parent can keep their house, savings, and investments while still getting subsidized care services."
+          "question": "Can my loved one apply if they were denied Medicaid due to excess assets?",
+          "answer": "Yes, this is exactly who the program serves. Unlike Medicaid, At HOME Cost Share has no asset limits, so your loved one can keep their house, savings, and investments while still getting subsidized care services."
         },
         {
           "question": "What's the difference between this program and RIte@Home?",
           "answer": "RIte@Home is Rhode Island's Medicaid waiver program with higher income limits (300% FBR, about $2,901/month) but strict asset limits and requires nursing facility level of care. At HOME Cost Share is for people who don't qualify for Medicaid, has lower income limits (250% FPL), but no asset limits and less restrictive functional requirements."
         },
         {
-          "question": "How many hours of home care can my parent get?",
-          "answer": "The program creates an individualized care plan based on your parent's assessed needs. There's no set hour limit mentioned in program materials — services are tailored to what the needs assessment determines is necessary for personal care, housekeeping, or meal preparation."
+          "question": "How many hours of home care can my loved one get?",
+          "answer": "The program creates an individualized care plan based on your loved one's assessed needs. There's no set hour limit mentioned in program materials — services are tailored to what the needs assessment determines is necessary for personal care, housekeeping, or meal preparation."
         },
         {
-          "question": "Can my parent use both home care and adult day services?",
-          "answer": "The program covers both in-home services and community adult day services, and your individualized care plan can include both types of services based on your parent's needs and preferences."
+          "question": "Can my loved one use both home care and adult day services?",
+          "answer": "The program covers both in-home services and community adult day services, and your individualized care plan can include both types of services based on your loved one's needs and preferences."
         },
         {
-          "question": "What if my parent's income changes after they're enrolled?",
+          "question": "What if my loved one's income changes after they're enrolled?",
           "answer": "Income limits and cost-share rates are tied to annual Federal Poverty Level adjustments, so your tier and costs may change yearly. Contact the ADRC at 401-462-4444 to report significant income changes that might affect your tier status."
         },
         {
-          "question": "Does my parent have to choose their own home care agency?",
+          "question": "Does my loved one have to choose their own home care agency?",
           "answer": "The program materials don't specify how providers are selected. During your individualized care plan development, program staff will explain available providers and how the service arrangement works in your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "While the program materials don't explicitly address this, most state aging programs allow adult children to apply for their parents. Call the ADRC at 401-462-4444 to discuss your situation and what documentation you'll need if applying as a representative."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "While the program materials don't explicitly address this, most state aging programs allow adult children to apply for their loved ones. Call the ADRC at 401-462-4444 to discuss your situation and what documentation you'll need if applying as a representative."
         },
         {
-          "question": "What happens if my parent later qualifies for Medicaid?",
-          "answer": "Since the program specifically excludes those eligible for Medicaid, your parent would likely transition to Medicaid services if they become eligible. Medicaid typically offers more comprehensive coverage, so this could be beneficial."
+          "question": "What happens if my loved one later qualifies for Medicaid?",
+          "answer": "Since the program specifically excludes those eligible for Medicaid, your loved one would likely transition to Medicaid services if they become eligible. Medicaid typically offers more comprehensive coverage, so this could be beneficial."
         }
       ],
       "layoutIntent": {
@@ -2613,7 +2613,7 @@
       "id": "hcc-senior-companion-program",
       "name": "HCC Senior Companion Program",
       "shortName": "Senior Companion Program",
-      "tagline": "Free trained volunteer companions help your parent with daily tasks and provide companionship if they're homebound or isolated.",
+      "tagline": "Free trained volunteer companions help your loved one with daily tasks and provide companionship if they're homebound or isolated.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2630,7 +2630,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with isolation or needs help with daily tasks like grocery shopping or getting to medical appointments, Rhode Island's Senior Companion Program provides free trained volunteers to help. Volunteers (age 55+) visit your parent's home to provide companionship, assist with light housework, meal preparation, transportation, and bill paying. The program serves nearly 500 older adults weekly across Rhode Island.\n\nYour parent must be a Rhode Island resident with low income (exact limits determined when you call) and be frail, homebound, or isolated. Because these are trained volunteers rather than paid staff, the service is completely free to eligible families. Volunteers can visit homes, adult day centers, or community sites depending on your parent's needs.",
+      "intro": "If your loved one is 60+ and struggling with isolation or needs help with daily tasks like grocery shopping or getting to medical appointments, Rhode Island's Senior Companion Program provides free trained volunteers to help. Volunteers (age 55+) visit your loved one's home to provide companionship, assist with light housework, meal preparation, transportation, and bill paying. The program serves nearly 500 older adults weekly across Rhode Island.\n\nYour loved one must be a Rhode Island resident with low income (exact limits determined when you call) and be frail, homebound, or isolated. Because these are trained volunteers rather than paid staff, the service is completely free to eligible families. Volunteers can visit homes, adult day centers, or community sites depending on your loved one's needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2660,22 +2660,22 @@
           {
             "step": 1,
             "title": "Call the RI Office of Healthy Aging",
-            "description": "Call 401-462-0569 to explain your parent's needs and request a volunteer companion."
+            "description": "Call 401-462-0569 to explain your loved one's needs and request a volunteer companion."
           },
           {
             "step": 2,
             "title": "Provide income verification",
-            "description": "You'll need to show proof of your parent's income to verify they meet the low-income guidelines."
+            "description": "You'll need to show proof of your loved one's income to verify they meet the low-income guidelines."
           },
           {
             "step": 3,
             "title": "Assessment and matching",
-            "description": "Program staff will assess your parent's needs and match them with a trained volunteer in their area."
+            "description": "Program staff will assess your loved one's needs and match them with a trained volunteer in their area."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Volunteers must pass background checks and physical exams, which may affect how quickly a companion can be matched to your parent.",
+        "tip": "Volunteers must pass background checks and physical exams, which may affect how quickly a companion can be matched to your loved one.",
         "urls": [
           {
             "label": "RI Office of Healthy Aging Volunteer Programs",
@@ -2684,8 +2684,8 @@
         ]
       },
       "documentsNeeded": [
-        "Proof of income for your parent (Social Security award letter, pension statements, or other income documentation)",
-        "Documentation showing your parent's frailty, isolation, or disability if they are under 60"
+        "Proof of income for your loved one (Social Security award letter, pension statements, or other income documentation)",
+        "Documentation showing your loved one's frailty, isolation, or disability if they are under 60"
       ],
       "contacts": [
         {
@@ -2711,11 +2711,11 @@
       "faqs": [
         {
           "question": "What tasks can the volunteer companions help with and what can't they do?",
-          "answer": "Volunteers can provide companionship, help with transportation to medical appointments, grocery shopping, light housework, meal preparation, paying bills, and appropriate exercise. They cannot provide medical care, personal care like bathing or dressing, medication management, wound care, or any lifting of your parent."
+          "answer": "Volunteers can provide companionship, help with transportation to medical appointments, grocery shopping, light housework, meal preparation, paying bills, and appropriate exercise. They cannot provide medical care, personal care like bathing or dressing, medication management, wound care, or any lifting of your loved one."
         },
         {
-          "question": "How do I know if my parent's income qualifies for this free program?",
-          "answer": "The program uses low-income guidelines that are updated annually, but the exact dollar amounts aren't published online. Call 401-462-0569 to verify if your parent's income qualifies — staff will tell you the current limits and whether your parent is eligible."
+          "question": "How do I know if my loved one's income qualifies for this free program?",
+          "answer": "The program uses low-income guidelines that are updated annually, but the exact dollar amounts aren't published online. Call 401-462-0569 to verify if your loved one's income qualifies — staff will tell you the current limits and whether your loved one is eligible."
         }
       ],
       "layoutIntent": {
@@ -2749,7 +2749,7 @@
           }
         ]
       },
-      "intro": "If your parent needs help with bathing, dressing, or can't safely stay home alone, The POINT provides the gateway to Rhode Island's home and community-based services that can help them avoid nursing home placement. Because The POINT serves as the single entry point for all Long-Term Services and Supports, your parent gets one comprehensive assessment instead of navigating multiple agencies — and that assessment connects them to personal care, homemaker services, respite care, and self-directed care programs.\n\nYour parent must be 65+ and qualify for Rhode Island Medicaid Long-Term Services and Supports, which means income under $2,982/month for a single person and countable assets under $4,000. Because The POINT requires meeting Nursing Facility Level of Care — meaning your parent needs daily help with activities like bathing, dressing, or medication management — the assessment focuses on functional needs, not just financial eligibility.\n\nThe POINT itself is free assessment and care planning, but it connects your parent to Medicaid-funded services that can provide thousands of dollars in monthly home care value. Wait times for actual services vary by region and assessed priority level after the initial evaluation.",
+      "intro": "If your loved one needs help with bathing, dressing, or can't safely stay home alone, The POINT provides the gateway to Rhode Island's home and community-based services that can help them avoid nursing home placement. Because The POINT serves as the single entry point for all Long-Term Services and Supports, your loved one gets one comprehensive assessment instead of navigating multiple agencies — and that assessment connects them to personal care, homemaker services, respite care, and self-directed care programs.\n\nYour loved one must be 65+ and qualify for Rhode Island Medicaid Long-Term Services and Supports, which means income under $2,982/month for a single person and countable assets under $4,000. Because The POINT requires meeting Nursing Facility Level of Care — meaning your loved one needs daily help with activities like bathing, dressing, or medication management — the assessment focuses on functional needs, not just financial eligibility.\n\nThe POINT itself is free assessment and care planning, but it connects your loved one to Medicaid-funded services that can provide thousands of dollars in monthly home care value. Wait times for actual services vary by region and assessed priority level after the initial evaluation.",
       "savingsRange": "",
       "savingsSource": "Free assessment and care coordination service",
       "savingsVerified": false,
@@ -2782,7 +2782,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care — a clinical assessment showing your parent needs daily help with activities like bathing, dressing, medication management, or cannot safely leave home without considerable assistance",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care — a clinical assessment showing your loved one needs daily help with activities like bathing, dressing, medication management, or cannot safely leave home without considerable assistance",
         "otherRequirements": [
           "Rhode Island resident",
           "U.S. citizen or qualified immigrant",
@@ -2802,7 +2802,7 @@
           {
             "step": 2,
             "title": "Complete screening",
-            "description": "Answer questions about your parent's income, assets, and daily care needs to determine if they meet basic eligibility requirements."
+            "description": "Answer questions about your loved one's income, assets, and daily care needs to determine if they meet basic eligibility requirements."
           },
           {
             "step": 3,
@@ -2831,7 +2831,7 @@
         ]
       },
       "documentsNeeded": [
-        "Social Security card for your parent",
+        "Social Security card for your loved one",
         "Medicare card (both parts A and B)",
         "Proof of Rhode Island residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
@@ -2863,7 +2863,7 @@
       "applicationNotes": [
         "The POINT is the assessment gateway — actual home care services come through separate Medicaid LTSS programs with potential waitlists",
         "Both financial eligibility (Medicaid LTSS) and functional eligibility (Nursing Facility Level of Care) must be met",
-        "Spousal impoverishment rules apply if your parent is married — the spouse's assets and income are also evaluated",
+        "Spousal impoverishment rules apply if your loved one is married — the spouse's assets and income are also evaluated",
         "Income and asset limits are higher than regular SSI but lower than standard Medicaid — careful planning may be needed if over limits"
       ],
       "relatedPrograms": [
@@ -2875,36 +2875,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they own their home worth more than $4,000?",
-          "answer": "Yes, the primary residence is typically exempt from the $4,000 asset limit. However, other countable assets like bank accounts, investments, and additional property count toward the limit. The exact exemptions depend on Medicaid LTSS rules — call (401) 462-4444 to discuss your parent's specific situation."
+          "question": "Can my loved one apply if they own their home worth more than $4,000?",
+          "answer": "Yes, the primary residence is typically exempt from the $4,000 asset limit. However, other countable assets like bank accounts, investments, and additional property count toward the limit. The exact exemptions depend on Medicaid LTSS rules — call (401) 462-4444 to discuss your loved one's specific situation."
         },
         {
-          "question": "What if my parent doesn't meet Nursing Facility Level of Care but still needs some help?",
-          "answer": "Your parent must meet Nursing Facility Level of Care to access Medicaid LTSS through The POINT. This means needing daily help with activities like bathing, dressing, or medication management. If they need less intensive help, ask about other Rhode Island aging services that don't require this clinical threshold."
+          "question": "What if my loved one doesn't meet Nursing Facility Level of Care but still needs some help?",
+          "answer": "Your loved one must meet Nursing Facility Level of Care to access Medicaid LTSS through The POINT. This means needing daily help with activities like bathing, dressing, or medication management. If they need less intensive help, ask about other Rhode Island aging services that don't require this clinical threshold."
         },
         {
           "question": "How long is the waitlist for actual home care services?",
-          "answer": "Wait times vary by region and your parent's assessed priority level after the functional evaluation. Some areas may have immediate availability while others have waitlists of several months. The POINT assessment determines priority placement, not just eligibility."
+          "answer": "Wait times vary by region and your loved one's assessed priority level after the functional evaluation. Some areas may have immediate availability while others have waitlists of several months. The POINT assessment determines priority placement, not just eligibility."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can initiate The POINT process for parents who cannot manage their own affairs. You may need to become an authorized representative or provide legal documentation if your parent cannot participate in the assessment process."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can initiate The POINT process for parents who cannot manage their own affairs. You may need to become an authorized representative or provide legal documentation if your loved one cannot participate in the assessment process."
         },
         {
           "question": "What's the difference between The POINT and directly applying for Medicaid?",
-          "answer": "The POINT specifically handles Long-Term Services and Supports assessment and care planning. While your parent still needs to qualify for Medicaid LTSS financially, The POINT manages the functional assessment and connects them to home care services. Regular Medicaid applications don't include this specialized care coordination."
+          "answer": "The POINT specifically handles Long-Term Services and Supports assessment and care planning. While your loved one still needs to qualify for Medicaid LTSS financially, The POINT manages the functional assessment and connects them to home care services. Regular Medicaid applications don't include this specialized care coordination."
         },
         {
-          "question": "Can my parent get The POINT services while living in assisted living?",
-          "answer": "The POINT focuses on home and community-based services to help people avoid institutional care. Depending on the assisted living arrangement and your parent's needs, they may or may not be eligible. Call (401) 462-4444 to discuss how current living arrangements affect eligibility."
+          "question": "Can my loved one get The POINT services while living in assisted living?",
+          "answer": "The POINT focuses on home and community-based services to help people avoid institutional care. Depending on the assisted living arrangement and your loved one's needs, they may or may not be eligible. Call (401) 462-4444 to discuss how current living arrangements affect eligibility."
         },
         {
-          "question": "What happens if my parent's income is just over the $2,982 limit?",
-          "answer": "If income exceeds the limit, your parent may still qualify through spend-down provisions where medical expenses reduce countable income. Medicaid LTSS has different rules than regular Medicaid. Contact The POINT at (401) 462-4444 to review spend-down options and other financial strategies."
+          "question": "What happens if my loved one's income is just over the $2,982 limit?",
+          "answer": "If income exceeds the limit, your loved one may still qualify through spend-down provisions where medical expenses reduce countable income. Medicaid LTSS has different rules than regular Medicaid. Contact The POINT at (401) 462-4444 to review spend-down options and other financial strategies."
         },
         {
           "question": "Do I need to choose between The POINT services and other benefits like SNAP?",
-          "answer": "No, The POINT connects your parent to Medicaid LTSS services, which can be combined with other benefits like SNAP, LIHEAP, or Medicare. The POINT assessment may actually help identify other programs your parent qualifies for."
+          "answer": "No, The POINT connects your loved one to Medicaid LTSS services, which can be combined with other benefits like SNAP, LIHEAP, or Medicare. The POINT assessment may actually help identify other programs your loved one qualifies for."
         }
       ],
       "layoutIntent": {

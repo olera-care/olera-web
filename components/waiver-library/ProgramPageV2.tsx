@@ -94,7 +94,7 @@ function EligibilitySection({ eligibility }: { eligibility: StructuredEligibilit
           </p>
           {eligibility.assetLimits.exemptAssets && eligibility.assetLimits.exemptAssets.length > 0 && (
             <p>
-              <span className="font-medium text-gray-900">Your parent can keep</span> their {eligibility.assetLimits.exemptAssets.map((a, i) => (
+              <span className="font-medium text-gray-900">What doesn't count:</span> {eligibility.assetLimits.exemptAssets.map((a, i) => (
                 <span key={i}>{i > 0 && (i === eligibility.assetLimits!.exemptAssets!.length - 1 ? ", and " : ", ")}{a.toLowerCase()}</span>
               ))}.
               {eligibility.assetLimits.homeEquityCap && <> Home equity is exempt up to ${eligibility.assetLimits.homeEquityCap.toLocaleString()}.</>}

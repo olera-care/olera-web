@@ -606,31 +606,31 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DCF Service Centers (statewide; locator: https://www.myflfamilies.com/service-centers/)",
+            "name": "Local DCF service centers statewide (search by ZIP inside the MyACCESS Portal: myaccess.myflfamilies.com)",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people. Because seniors get special treatment under SNAP rules, your parent only needs to meet the net income limit (after medical and housing deductions) — not the stricter gross income test that applies to younger households.\n\nThe program covers fruits, vegetables, meat, dairy, and grains but excludes hot prepared foods, alcohol, and tobacco. Benefits are calculated as the maximum allotment minus 30% of net income, so a single senior with $800/month net income would receive $298 - $240 = $58/month. Many eligible seniors miss out because they don't know about medical expense deductions — if your parent pays more than $35/month out-of-pocket for medical costs, this significantly lowers their countable income.",
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people.\n\nFlorida uses a senior-friendly income test: the gross limit is 200% of the federal poverty level ($2,610/month for one person in 2026), nearly double the 130% limit most states apply to working-age households. On top of that, reporting medical expenses above $35/month — Medicare premiums, prescriptions, out-of-pocket costs — lowers the 'countable income' used to calculate the actual benefit.\n\nThe program covers fruits, vegetables, meat, dairy, and grains. As of April 20, 2026, Florida's Healthy SNAP rules also prohibit soda, energy drinks, candy, and ultra-processed shelf-stable desserts. Benefits are calculated as the maximum allotment minus 30% of net income — a single senior with $800/month net income receives $298 − $240 = $58/month.",
       "savingsRange": "$58 – $298/month in 2025",
       "savingsSource": "Maximum SNAP allotments minus 30% of net income calculation",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
-          "Income below $1,255/month (net)",
+          "Gross income below $2,610/month for one person (200% FPL)",
           "Florida resident",
-          "Assets under $4,500"
+          "Assets under $4,500 (home excluded)"
         ],
         "ageRequirement": "60+",
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1255
+            "monthlyLimit": 2610
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 1703
+            "monthlyLimit": 3525
           }
         ],
         "assetLimits": {
@@ -657,16 +657,16 @@
           "Social Security number or proof of application",
           "Not fleeing felony warrant"
         ],
-        "povertyLevelReference": "100% FPL (net income)"
+        "povertyLevelReference": "200% FPL gross — Florida uses Broad-Based Categorical Eligibility (BBCE) for senior/disabled households"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at ACCESS Florida or call 1-866-762-2237; typically processed within 30 days with required interview",
+        "summary": "Apply online at the MyACCESS Portal or call DCF at (850) 300-4323. Takes 30–60 minutes to complete; most cases processed within 30 days.",
         "steps": [
           {
             "step": 1,
             "title": "Submit application",
-            "description": "Apply online at ACCESS Florida (myflfamilies.com/service-programs/access/) or call 1-866-762-2237. You can also download form CF-EBT 1800 and mail to your local DCF office."
+            "description": "Apply online at the MyACCESS Portal (myaccess.myflfamilies.com) or call DCF Customer Call Center at (850) 300-4323. The application takes 30–60 minutes. You can also download form CF-EBT 1800 and mail to your local DCF office."
           },
           {
             "step": 2,
@@ -675,26 +675,30 @@
           },
           {
             "step": 3,
-            "title": "Complete phone interview",
-            "description": "DCF will schedule a required eligibility interview within 30 days. Be prepared to discuss household composition and expenses."
+            "title": "Complete phone interview (if required)",
+            "description": "DCF will reach out within 30 days if a phone interview is needed. Applicants 60+ using the Elderly Simplified Application Project (ESAP) can often have this step waived."
           },
           {
             "step": 4,
             "title": "Receive decision",
-            "description": "If approved, your EBT card arrives by mail within 7-10 days. Benefits are loaded monthly and can be used at grocery stores and farmers markets."
+            "description": "If approved, your EBT card arrives by mail within 7–10 days. Benefits are loaded monthly and can be used at grocery stores and farmers markets."
           }
         ],
-        "processingTime": "Typically 30 days; expedited processing if household has less than $150 gross monthly income and less than $100 cash",
+        "processingTime": "Typically 30 days; expedited processing (within 7 days) if household has less than $150 gross monthly income and less than $100 cash",
         "waitlist": null,
         "tip": "Emphasize all medical expenses over $35/month during the interview — prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
         "urls": [
           {
-            "label": "ACCESS Florida Application",
-            "url": "https://www.myflfamilies.com/service-programs/access/"
+            "label": "MyACCESS Portal (apply online)",
+            "url": "https://myaccess.myflfamilies.com/"
           },
           {
-            "label": "Find Local DCF Office",
-            "url": "https://www.myflfamilies.com/service-centers/"
+            "label": "Start a new application",
+            "url": "https://myaccess.myflfamilies.com/ApplyForBenefits/ABOVR"
+          },
+          {
+            "label": "Florida SNAP program page",
+            "url": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap"
           }
         ]
       },
@@ -716,10 +720,10 @@
       ],
       "contacts": [
         {
-          "label": "ACCESS Florida Helpline",
-          "phone": "1-866-762-2237",
-          "description": "SNAP application assistance and case status",
-          "hours": "Mon-Fri 7am-6pm ET"
+          "label": "DCF Customer Call Center",
+          "phone": "(850) 300-4323",
+          "description": "Primary line for SNAP applications, case status, and technical help with the MyACCESS Portal",
+          "hours": "Mon–Fri"
         },
         {
           "label": "Florida 2-1-1",
@@ -740,31 +744,51 @@
         "Extra Help (Medicare Part D prescription assistance)",
         "Meals on Wheels"
       ],
-      "contentSections": [],
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Applicants 60+ can use Florida's Elderly Simplified Application Project (ESAP) — a shorter application, 36-month certification (vs. 12 months), and no in-person interview required. Ask DCF about ESAP when you apply."
+        },
+        {
+          "type": "callout",
+          "tone": "info",
+          "text": "How the benefit amount is calculated: maximum allotment for the household size minus 30% of net income. Example: a single senior with $800/month net income receives $298 − $240 = $58/month. Reporting medical expenses above $35/month lowers net income and raises the monthly benefit."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Effective April 20, 2026: Florida's Healthy SNAP rules prohibit using benefits for soda, energy drinks (65mg+ caffeine per 8oz), candy, and ultra-processed shelf-stable desserts. Sports drinks (Gatorade, Powerade), sparkling water (LaCroix, Bubly), and drinks with >50% juice or <5g added sugar per serving are still allowed. Full list at healthysnap.myflfamilies.com."
+        }
+      ],
       "faqs": [
         {
           "question": "Can my parent keep SNAP if they live in my house but don't pay rent?",
-          "answer": "Yes, if your parent buys and prepares food separately from your household. They can claim a standard shelter deduction even without paying rent. If they eat meals with your family regularly, they must be included in your household for SNAP purposes."
+          "answer": "Yes — if they buy and prepare food separately from your household, they can apply as a one-person household. Paying zero rent means no shelter deduction, but taking responsibility for even one utility bill (like a cell phone) restores part of it. Their share of the home isn't a problem — the primary residence is an excluded asset."
         },
         {
           "question": "What if my parent's Social Security is $1,400/month — too high for the income limit?",
-          "answer": "They may still qualify because seniors get medical expense deductions. If your parent pays more than $35/month for Medicare premiums, prescriptions, or medical bills, this reduces their countable income. A $1,400 Social Security recipient paying $200/month in medical costs would have $1,200 net income — under the $1,255 limit."
+          "answer": "It's not too high. Florida uses 200% of the federal poverty level ($2,610/month for one person in 2026) as the gross income limit for senior/disabled households — nearly double the 130% threshold most states use. Medical expenses above $35/month further lower their countable income, which raises the monthly benefit."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent signs form CF-EBT 2240 or provides written permission. You'll handle the application and interview process, but your parent must be available by phone during the eligibility interview."
+          "answer": "Yes — you can act as their Authorized Representative. Your parent signs a form designating you, and you handle the application and any interview. They should still be available by phone during the eligibility interview, but you can lead the conversation. For applicants 60+ using ESAP, the interview is often waived entirely."
         },
         {
           "question": "How does owning a house affect SNAP eligibility?",
-          "answer": "The primary residence doesn't count toward the $4,500 asset limit, regardless of value. However, rental property or a second home does count as an asset. Property taxes and homeowner's insurance can be deducted as shelter costs, potentially lowering countable income."
+          "answer": "It doesn't. The primary residence is an excluded asset regardless of value — it never counts toward the $4,500 limit. Rental property or a second home is counted. Property taxes and homeowner's insurance can be deducted as shelter costs, lowering countable income."
         },
         {
           "question": "What happens if my parent's income changes after approval?",
-          "answer": "Report income changes within 10 days if monthly income exceeds 130% of the poverty level ($1,626 for one person in 2025). Benefits are recalculated and may increase or decrease. Failure to report timely can result in overpayments that must be repaid."
+          "answer": "Florida uses Simplified Reporting for most senior households. You only need to notify DCF if monthly income crosses $1,696 (130% FPL for one person). If it does, report within 10 days of the following month to avoid overpayments you'd later have to repay. Reporting income decreases or new medical expenses is always optional — and often increases benefits."
         },
         {
           "question": "Can my parent use SNAP and still get meals from a senior center?",
-          "answer": "Yes, congregate meals at senior centers don't affect SNAP eligibility or benefits. Many seniors use SNAP for groceries and attend senior center meals for social interaction. Both programs can be used simultaneously without conflict."
+          "answer": "Yes — congregate meals at senior centers and Meals on Wheels don't count against SNAP. The programs are designed to work together. SNAP covers groceries at the store; senior center meals fill social gaps."
+        },
+        {
+          "question": "What can't my parent buy with SNAP anymore in Florida?",
+          "answer": "As of April 20, 2026, SNAP in Florida can no longer be used for soda, energy drinks with 65mg+ caffeine per 8oz, candy, or ultra-processed shelf-stable desserts. Sports drinks, sparkling waters, and beverages with more than 50% juice or fewer than 5g of added sugar per serving are still eligible. Full rules at healthysnap.myflfamilies.com."
         }
       ],
       "layoutIntent": {
@@ -776,10 +800,13 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "1-866-762-2237",
-      "sourceUrl": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "phone": "(850) 300-4323",
+      "sourceUrl": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/snap-eligibility",
+      "contentStatus": "under-review",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "TJ",
+      "reviewedAt": "2026-04-20",
+      "lastVerifiedDate": "2026-04-20"
     },
     {
       "id": "liheap-energy-assistance",

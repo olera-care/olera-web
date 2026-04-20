@@ -242,7 +242,7 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
       {limits.exemptAssets && limits.exemptAssets.length > 0 && (
         <div className="pl-11">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">
-            What your parent can keep
+            What doesn't count
           </p>
           <ul className="space-y-1">
             {limits.exemptAssets.map((a, i) => (

@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sendEmail } from "@/lib/email";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
+import { sendSlackAlert, slackSuspiciousClaim } from "@/lib/slack";
+
+export const maxDuration = 30;
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -334,6 +342,84 @@ export async function POST(request: Request) {
       }
       profileId = newProfile.id;
       console.log("[instant-claim] profile created:", profileId);
+    }
+
+    // ─── Trust scoring ───
+    // Fetch provider website for domain extraction
+    let providerWebsite: string | null = null;
+    const { data: oleraProvider } = await supabaseAdmin
+      .from("olera-providers")
+      .select("website")
+      .eq("provider_id", actualSourceProviderId)
+      .maybeSingle();
+    if (oleraProvider?.website) {
+      providerWebsite = oleraProvider.website;
+    }
+
+    let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+    try {
+      trustResult = await scoreClaimTrust({
+        email: normalizedEmail,
+        providerName: displayName,
+        providerCity: city || null,
+        providerState: state || null,
+        providerDomain: extractDomainFromWebsite(providerWebsite),
+      });
+      console.log("[instant-claim] trust score:", trustResult.level, trustResult.reason);
+
+      // Update profile with trust level
+      await supabaseAdmin
+        .from("business_profiles")
+        .update({ claim_trust_level: trustResult.level })
+        .eq("id", profileId);
+    } catch (trustErr) {
+      console.error("[instant-claim] trust scoring error:", trustErr);
+    }
+
+    // ─── Slack alert for low trust claims ───
+    if (trustResult.level === "low") {
+      // Dedup: check for prior low-trust instant claims within 24h
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: existingAlert } = await supabaseAdmin
+        .from("provider_activity")
+        .select("id")
+        .eq("provider_id", slug)
+        .eq("event_type", "suspicious_claim")
+        .gte("created_at", oneDayAgo)
+        .contains("metadata", { email: normalizedEmail, trust_level: "low" })
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingAlert) {
+        // Log to provider_activity for admin visibility
+        await supabaseAdmin.from("provider_activity").insert({
+          provider_id: slug,
+          event_type: "suspicious_claim",
+          metadata: {
+            email: normalizedEmail,
+            trust_level: trustResult.level,
+            trust_reason: trustResult.reason,
+            source: "instant-claim",
+          },
+        });
+
+        // Fire Slack alert
+        try {
+          const alert = slackSuspiciousClaim({
+            providerName: displayName,
+            providerSlug: slug,
+            claimedByEmail: normalizedEmail,
+            trustLevel: trustResult.level,
+            trustReason: trustResult.reason,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+          console.log("[instant-claim] suspicious_claim Slack sent");
+        } catch (slackErr) {
+          console.error("[instant-claim] Slack alert failed:", slackErr);
+        }
+      } else {
+        console.log("[instant-claim] skip low-trust Slack: prior alert within 24h");
+      }
     }
 
     // ─── Create membership if not exists ───

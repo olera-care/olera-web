@@ -6,6 +6,7 @@ import { renderContentToHTML } from "@/lib/render-content";
 import { CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { processArticleHtml } from "@/lib/article-html";
 import { getAuthorByName } from "@/lib/authors";
+import { getBylineRules } from "@/lib/article-byline";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -115,8 +116,6 @@ export default async function TexasArticlePage({
   const authorRole = article.author_role;
   let authorAvatar = article.author_avatar;
   const readingTime = article.reading_time;
-  const publishedAt = article.published_at;
-  const updatedAt = article.updated_at;
   const coverImage = article.cover_image_url;
   const careTypes = (article.care_types ?? []) as CareTypeId[];
   const tags = article.tags ?? [];
@@ -133,6 +132,12 @@ export default async function TexasArticlePage({
   // DB-driven reviewer with Dr. Logan DuBose as the default when unset.
   const reviewerName = article.reviewer_name || "Dr. Logan DuBose";
   const verifier = getAuthorByName(reviewerName);
+  const byline = getBylineRules({
+    authorName,
+    reviewerName,
+    publishedAt: article.published_at,
+    updatedAt: article.updated_at,
+  });
 
   // Render content
   let contentHtml = article.content_html || "";
@@ -265,7 +270,7 @@ export default async function TexasArticlePage({
                 </span>
               </div>
 
-              {verifier && (
+              {verifier && !byline.isSamePerson && (
                 <>
                   <span className="text-gray-300">|</span>
                   <div className="flex items-center gap-2">
@@ -280,9 +285,17 @@ export default async function TexasArticlePage({
                 </>
               )}
 
-              <span className="text-gray-300">|</span>
-              {updatedAt && (
-                <span className="text-gray-400">Updated {formatDate(updatedAt)}</span>
+              {byline.showPublishedDate && byline.publishedDate && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Published {formatDate(byline.publishedDate)}</span>
+                </>
+              )}
+              {byline.verifiedDate && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Verified {formatDate(byline.verifiedDate)}</span>
+                </>
               )}
               {readingTime && (
                 <>

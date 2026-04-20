@@ -11,6 +11,7 @@ import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 import { getStateVerifier } from "@/data/benefits-verifiers";
+import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -399,17 +400,23 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </p>
 
           {(() => {
-            const verifier = getStateVerifier(state.abbreviation);
+            const { author, reviewedAt } = getStateVerifier(state.abbreviation);
             return (
               <p className="mt-5 text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
                 <Stethoscope className="w-3.5 h-3.5 text-gray-400" weight="regular" />
                 <span className="text-gray-400">Reviewed by</span>
                 <Link
-                  href={`/author/${verifier.slug}`}
+                  href={`/author/${author.slug}`}
                   className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
                 >
-                  {verifier.name}
+                  {author.name}
                 </Link>
+                {reviewedAt && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-gray-400">Last verified {formatReviewDate(reviewedAt)}</span>
+                  </>
+                )}
               </p>
             );
           })()}

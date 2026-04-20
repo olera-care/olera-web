@@ -458,6 +458,7 @@ function ProviderOnboardingContent() {
         searchQuery?: string;
         locationQuery?: string; // Legacy format
         selectedOrg?: SelectedOrg | null;
+        createNewSelected?: boolean; // User explicitly clicked "Create new"
       };
 
       // Clear after reading so it doesn't persist across sessions
@@ -491,6 +492,12 @@ function ProviderOnboardingContent() {
       } else if (parsed.searchQuery?.trim()) {
         // User typed org name but didn't select from dropdown
         setFormData(prev => ({ ...prev, orgName: parsed.searchQuery!.trim() }));
+        // Check if user explicitly clicked "Create new" on marketing page
+        if (parsed.createNewSelected) {
+          setCreateNewSelected(true);
+          // Go directly to Create Your Listing screen (skip search)
+          setScreen("preview");
+        }
       }
 
       // Legacy format: locationQuery (for backwards compatibility)

@@ -261,8 +261,8 @@ function ProviderOnboardingContent() {
   // Exit URL - read from ?returnTo param, fallback to /for-providers
   const exitUrl = useMemo(() => {
     const returnTo = searchParams.get("returnTo");
-    if (returnTo && returnTo.startsWith("/")) {
-      // Only allow relative paths (no external URLs)
+    // Only allow relative paths starting with single "/" (not protocol-relative "//")
+    if (returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")) {
       return returnTo;
     }
     return "/for-providers";

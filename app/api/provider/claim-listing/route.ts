@@ -292,39 +292,8 @@ export async function POST(request: Request) {
         );
       }
 
-      // Re-claiming the same listing they already own - update verification status
-      // Check email match for verification
-      const userEmail = user.email?.toLowerCase();
-      const listingEmail = providerEmail?.toLowerCase();
-      const emailMatches = userEmail && listingEmail && userEmail === listingEmail;
-
-      // Also check domain match (e.g., john@sunrise.com matches sunrise.com website)
-      let domainMatches = false;
-      if (userEmail) {
-        try {
-          const { data: providerRecord } = await db
-            .from("olera-providers")
-            .select("website")
-            .eq("provider_id", providerId)
-            .maybeSingle();
-
-          if (providerRecord?.website) {
-            const emailDomain = userEmail.split("@")[1];
-            const websiteUrl = providerRecord.website.startsWith("http")
-              ? providerRecord.website
-              : `https://${providerRecord.website}`;
-            const websiteDomain = new URL(websiteUrl).hostname.replace(/^www\./, "");
-            domainMatches = emailDomain === websiteDomain;
-          }
-        } catch {
-          // Ignore URL parsing errors
-        }
-      }
-
-      // Everyone who completes email verification gets full access
-      const shouldAutoVerify = emailMatches || domainMatches;
-
-      // Update existing profile to link to this source provider
+      // Re-claiming the same listing they already own - update to link source provider
+      // User has already verified via OTP, so they get full verified access
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
@@ -349,35 +318,7 @@ export async function POST(request: Request) {
     }
 
     // No existing profile - create a new business_profile linked to the olera-providers listing
-    const userEmail = user.email?.toLowerCase();
-    const listingEmail = providerEmail?.toLowerCase();
-    const emailMatches = userEmail && listingEmail && userEmail === listingEmail;
-
-    // Check domain match
-    let domainMatches = false;
-    if (userEmail) {
-      try {
-        const { data: providerRecord } = await db
-          .from("olera-providers")
-          .select("website")
-          .eq("provider_id", providerId)
-          .maybeSingle();
-
-        if (providerRecord?.website) {
-          const emailDomain = userEmail.split("@")[1];
-          const websiteUrl = providerRecord.website.startsWith("http")
-            ? providerRecord.website
-            : `https://${providerRecord.website}`;
-          const websiteDomain = new URL(websiteUrl).hostname.replace(/^www\./, "");
-          domainMatches = emailDomain === websiteDomain;
-        }
-      } catch {
-        // Ignore URL parsing errors
-      }
-    }
-
-    // Everyone who completes email verification gets full access
-    const shouldAutoVerify = emailMatches || domainMatches;
+    // User has verified via OTP, so they get full verified access
 
     // Generate unique slug for the new profile (don't use providerSlug to avoid collisions)
     const slug = await generateUniqueSlug(db, providerName || "Provider", city || "", state || "");

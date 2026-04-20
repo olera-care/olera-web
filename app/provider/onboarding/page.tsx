@@ -72,7 +72,7 @@ class OnboardingErrorBoundary extends Component<
 // Types
 // ============================================================
 
-type Screen = "search" | "results" | "preview" | "confirm-claim" | "check-email" | "dispute";
+type Screen = "search" | "results" | "preview" | "confirm-claim" | "dispute";
 
 interface FormData {
   orgName: string;
@@ -104,8 +104,8 @@ const DISPUTE_ROLE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
-// Consumer email domains (personal emails) - these require magic link verification
-// Business emails (not in this list) get instant access
+// Consumer email domains (personal emails)
+// Used to show ReactiveHint encouraging business email use
 const CONSUMER_EMAIL_DOMAINS = new Set([
   "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
   "icloud.com", "aol.com", "protonmail.com", "live.com",
@@ -122,60 +122,6 @@ function isBusinessEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
   if (!domain) return false;
   return !CONSUMER_EMAIL_DOMAINS.has(domain);
-}
-
-// Extract domain from email
-function getEmailDomain(email: string | null | undefined): string | null {
-  if (!email) return null;
-  const domain = email.split("@")[1]?.toLowerCase();
-  return domain || null;
-}
-
-// Check if user's email domain matches the provider's email domain on file
-// This allows any employee from the same organization to claim the listing
-function domainsMatch(userEmail: string, providerEmail: string | null | undefined): boolean {
-  const userDomain = getEmailDomain(userEmail);
-  const providerDomain = getEmailDomain(providerEmail);
-  if (!userDomain || !providerDomain) return false;
-  return userDomain === providerDomain;
-}
-
-// Check if user's email domain matches the provider's business name or slug
-// Used as a fallback when no email is on file
-// Example: "Sunrise Senior Living" (slug: sunrise-senior-living) matches sunriseseniorliving.com
-function domainMatchesProviderIdentity(
-  userEmail: string,
-  providerName: string | null | undefined,
-  providerSlug: string | null | undefined
-): boolean {
-  const userDomain = getEmailDomain(userEmail);
-  if (!userDomain) return false;
-
-  // Extract second-level domain (handles subdomains correctly)
-  // mail.sunriseseniorliving.com → sunriseseniorliving
-  // sunriseseniorliving.com → sunriseseniorliving
-  // sunriseseniorliving.co.uk → co (edge case, but rare for business emails)
-  const parts = userDomain.split(".");
-  const domainBase = parts.length >= 2
-    ? parts[parts.length - 2]?.toLowerCase()  // Second-to-last part (before TLD)
-    : parts[0]?.toLowerCase();
-  if (!domainBase || domainBase.length < 3) return false; // Too short to match reliably
-
-  // Normalize provider name: "Sunrise Senior Living" → "sunriseseniorliving"
-  const normalizedName = providerName?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
-
-  // Normalize slug: "sunrise-senior-living" → "sunriseseniorliving"
-  const normalizedSlug = providerSlug?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
-
-  // Check for match:
-  // 1. Exact match: domain equals name or slug
-  // 2. Name/slug contains domain: "sunriseseniorliving" contains "sunrise"
-  // Note: We do NOT check if domain contains name (too loose, causes false positives)
-  const exactMatch = domainBase === normalizedName || domainBase === normalizedSlug;
-  const nameContainsDomain = domainBase.length >= 5 && normalizedName.includes(domainBase);
-  const slugContainsDomain = domainBase.length >= 5 && normalizedSlug.includes(domainBase);
-
-  return exactMatch || nameContainsDomain || slugContainsDomain;
 }
 
 // Search result from olera-providers (only includes columns we select in search query)
@@ -276,9 +222,6 @@ function ProviderOnboardingContent() {
 
   // Resend email state
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [resending, setResending] = useState(false);
-  const [resendError, setResendError] = useState("");
-
   // Dispute form state
   const [disputingResult, setDisputingResult] = useState<SearchResult | null>(null);
   const [disputeName, setDisputeName] = useState("");
@@ -311,6 +254,7 @@ function ProviderOnboardingContent() {
     setOtpSending(false);
     setOtpError("");
     setOtpVerifying(false);
+    setResendCooldown(0);
     otpSentForScreen.current = null;
   }, []);
 
@@ -1443,7 +1387,7 @@ function ProviderOnboardingContent() {
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-500 ml-1">Use your organization email for instant access</p>
+                <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification code to this email</p>
                 {/* Warning: logged-in user with family/caregiver account using same email */}
                 {user &&
                  formData.email.trim().toLowerCase() === user.email?.toLowerCase() &&
@@ -1580,159 +1524,6 @@ function ProviderOnboardingContent() {
     }
   };
 
-  // Handle sending claim verification email (from confirm-claim screen)
-  // Always sends to the user's entered email (collected in search form)
-  const handleSendClaimEmail = async () => {
-    if (!selectedResult) return;
-
-    const slug = selectedResult._source === "olera-providers"
-      ? (selectedResult.slug || selectedResult.provider_id)
-      : selectedResult.slug;
-
-    // Always send to user's entered email
-    const targetEmail = formData.email.trim().toLowerCase();
-
-    // Check if email matches what's on file - determines verification state
-    // Verified = email matches what's on file
-    // Unverified = no email on file OR email doesn't match (safer default)
-    const providerEmailOnFile = selectedResult.email?.toLowerCase();
-    const emailsMatch = providerEmailOnFile && providerEmailOnFile === targetEmail;
-    // If emails don't match OR there's no email on file, this becomes a pending claim
-    const isPendingClaim = !emailsMatch;
-
-    setActionLoading("confirm-claim");
-    setActionError("");
-
-    try {
-      const res = await fetch("/api/provider/send-claim-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug,
-          email: targetEmail,
-          pendingClaim: isPendingClaim, // Flag for limited access if email doesn't match
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 409) {
-          setActionError("This listing has already been claimed. Please sign in instead.");
-          setActionLoading(null);
-          return;
-        }
-        if (res.status === 429) {
-          setActionError("Too many emails sent. Please wait a few minutes and try again.");
-          setActionLoading(null);
-          return;
-        }
-        throw new Error(data.error || "Failed to send verification email");
-      }
-
-      // Success - show check email screen
-      setActionLoading(null);
-      setActionError("");
-      setResendCooldown(60);
-      setResendError("");
-      setScreen("check-email");
-    } catch (err) {
-      console.error("[handleSendClaimEmail] Error:", err);
-      setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
-      setActionLoading(null);
-    }
-  };
-
-  // Handle instant claim for business emails (no email verification needed)
-  const handleInstantClaim = async () => {
-    if (!selectedResult) return;
-
-    // Extract the right IDs based on source type
-    const isOleraProvider = selectedResult._source === "olera-providers";
-    const providerId = isOleraProvider
-      ? selectedResult.provider_id
-      : selectedResult.id;
-    const providerSlug = isOleraProvider
-      ? (selectedResult.slug || selectedResult.provider_id)
-      : selectedResult.slug;
-    const providerName = isOleraProvider
-      ? selectedResult.provider_name
-      : selectedResult.display_name;
-
-    // For business_profiles, also pass the linked source_provider_id if it exists
-    const sourceProviderId = !isOleraProvider
-      ? selectedResult.source_provider_id
-      : undefined;
-
-    setActionLoading("confirm-claim");
-    setActionError("");
-
-    try {
-      const res = await fetch("/api/provider/instant-claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId,
-          providerName,
-          providerSlug,
-          email: formData.email.trim().toLowerCase(),
-          city: selectedResult.city || formData.city,
-          state: selectedResult.state || formData.state,
-          sourceType: selectedResult._source,
-          sourceProviderId,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          setActionError("Too many claim attempts. Please try again later.");
-          setActionLoading(null);
-          return;
-        }
-        if (res.status === 409) {
-          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
-            setActionError("This email is already used for a personal account. Please use a different business email.");
-          } else if (data.code === "PROFILE_EXISTS") {
-            setActionError("You already have a business profile. Please sign in to manage your listing.");
-          } else if (data.code === "PENDING_CLAIM") {
-            setActionError("This listing has a pending claim. Please try again later.");
-          } else {
-            setActionError("This listing has already been claimed. Please sign in instead.");
-          }
-          setActionLoading(null);
-          return;
-        }
-        throw new Error(data.error || "Failed to claim listing");
-      }
-
-      // Auto-sign-in with the token
-      if (data.tokenHash) {
-        const supabase = createClient();
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: data.tokenHash,
-          type: "magiclink",
-        });
-
-        if (otpError) {
-          console.error("[handleInstantClaim] auto-sign-in error:", otpError);
-          // Still redirect - they can sign in manually
-        }
-      }
-
-      // Clear loading state before redirect
-      setActionLoading(null);
-
-      // Redirect to provider dashboard
-      router.push("/provider");
-    } catch (err) {
-      console.error("[handleInstantClaim] Error:", err);
-      setActionError(err instanceof Error ? err.message : "Failed to claim listing. Please try again.");
-      setActionLoading(null);
-    }
-  };
-
   // Handle "Create New Listing" button - navigate to preview screen
   const handleCreateNew = () => {
     setSelectedResult(null); // Clear any selected result
@@ -1782,101 +1573,6 @@ function ProviderOnboardingContent() {
     // Send OTP for verification
     setActionLoading(null);
     await handleSendOtp();
-  };
-
-  // Handle instant claim for NEW organization (business email - no verification needed)
-  const handleInstantClaimNewOrg = async () => {
-    setActionLoading("preview-submit");
-    setActionError("");
-
-    // Validation (same as handlePreviewSubmit)
-    if (!formData.orgName.trim()) {
-      setActionError("Organization name is required.");
-      setActionLoading(null);
-      return;
-    }
-    if (!formData.city.trim() || !formData.state.trim()) {
-      setActionError("City and state are required.");
-      setActionLoading(null);
-      return;
-    }
-    if (!formData.email.trim() || !formData.email.includes("@")) {
-      setActionError("A valid email is required.");
-      setActionLoading(null);
-      return;
-    }
-    if (formData.careTypes.length === 0) {
-      setActionError("Please select at least one care type.");
-      setActionLoading(null);
-      return;
-    }
-    if (formData.phone.trim()) {
-      const digitsOnly = formData.phone.replace(/\D/g, "");
-      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-        setActionError("Please enter a valid phone number (10-15 digits).");
-        setActionLoading(null);
-        return;
-      }
-    }
-
-    try {
-      const res = await fetch("/api/provider/instant-claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          isNewOrg: true, // Flag to indicate new org creation
-          providerName: formData.orgName,
-          email: formData.email.trim().toLowerCase(),
-          city: formData.city,
-          state: formData.state,
-          phone: formData.phone || undefined,
-          careTypes: formData.careTypes,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          setActionError("Too many attempts. Please try again later.");
-          setActionLoading(null);
-          return;
-        }
-        if (res.status === 409) {
-          if (data.code === "ACCOUNT_TYPE_MISMATCH") {
-            setActionError("This email is already used for a personal account. Please use a different email.");
-          } else if (data.code === "PROFILE_EXISTS") {
-            setActionError("You already have a business profile. Please sign in to manage your listing.");
-          } else {
-            setActionError(data.error || "Failed to create listing.");
-          }
-          setActionLoading(null);
-          return;
-        }
-        throw new Error(data.error || "Failed to create listing");
-      }
-
-      // Auto-sign-in with the token
-      if (data.tokenHash) {
-        const supabase = createClient();
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: data.tokenHash,
-          type: "magiclink",
-        });
-
-        if (otpError) {
-          console.error("[handleInstantClaimNewOrg] auto-sign-in error:", otpError);
-          // Still redirect - they can sign in manually
-        }
-      }
-
-      setActionLoading(null);
-      router.push("/provider");
-    } catch (err) {
-      console.error("[handleInstantClaimNewOrg] Error:", err);
-      setActionError(err instanceof Error ? err.message : "Failed to create listing. Please try again.");
-      setActionLoading(null);
-    }
   };
 
   // Toggle care type selection
@@ -1933,63 +1629,6 @@ function ProviderOnboardingContent() {
       setDisputeError("Something went wrong. Please try again.");
     } finally {
       setDisputeSubmitting(false);
-    }
-  };
-
-  // Handle resending verification email (from Screen 3)
-  const handleResendEmail = async () => {
-    if (resendCooldown > 0 || resending) return;
-
-    setResending(true);
-    setResendError("");
-
-    try {
-      // Determine if this is a claim (selectedResult) or create new (no selectedResult)
-      const isClaim = selectedResult !== null;
-      const slug = isClaim
-        ? (selectedResult._source === "olera-providers"
-            ? (selectedResult.slug || selectedResult.provider_id)
-            : selectedResult.slug)
-        : "new";
-
-      const body: Record<string, unknown> = {
-        slug,
-        email: formData.email,
-      };
-
-      // For "new" signup, include org details
-      if (!isClaim) {
-        body.orgName = formData.orgName;
-        body.city = formData.city;
-        body.state = formData.state;
-        body.phone = formData.phone || undefined;
-        body.careTypes = formData.careTypes;
-      }
-
-      const res = await fetch("/api/provider/send-claim-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          setResendError("Too many emails sent. Please wait before trying again.");
-        } else {
-          throw new Error(data.error || "Failed to resend email");
-        }
-        return;
-      }
-
-      // Success - set cooldown
-      setResendCooldown(60);
-    } catch (err) {
-      console.error("[handleResendEmail] Error:", err);
-      setResendError(err instanceof Error ? err.message : "Failed to resend email. Please try again.");
-    } finally {
-      setResending(false);
     }
   };
 
@@ -2763,23 +2402,8 @@ function ProviderOnboardingContent() {
       ? selectedResult.provider_images?.split("|")[0]?.trim() || null
       : selectedResult.image_url;
 
-    // Simple confirmation: always send to the email the user entered in the search form
+    // Email to send OTP to
     const userEmail = formData.email;
-
-    // Get provider's email on file (for domain matching)
-    const providerEmailOnFile = selectedResult.email;
-    const providerSlug = selectedResult.slug;
-
-    // Check if this qualifies for instant claim:
-    // 1. User's email must be a business email (not gmail/yahoo/etc.)
-    // 2. EITHER:
-    //    a) User's email domain matches the provider's email domain on file, OR
-    //    b) No email on file, but domain matches provider name/slug
-    // This allows employees from the same organization to claim the listing
-    const isBusinessDomain = isBusinessEmail(userEmail);
-    const emailDomainMatches = domainsMatch(userEmail, providerEmailOnFile);
-    const nameDomainMatches = !providerEmailOnFile && domainMatchesProviderIdentity(userEmail, providerName, providerSlug);
-    const canInstantClaim = isBusinessDomain && (emailDomainMatches || nameDomainMatches);
 
     return (
       <div className="min-h-screen flex flex-col bg-vanilla-100">
@@ -2941,123 +2565,6 @@ function ProviderOnboardingContent() {
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────
-  // Screen 3: Check Your Email
-  // ──────────────────────────────────────────────────────────
-
-  if (screen === "check-email") {
-    // Mask email: show first 2 chars, mask middle, show domain
-    const maskEmail = (email: string): string => {
-      const [local, domain] = email.split("@");
-      if (!domain) return "***@***.com";
-      if (local.length <= 2) {
-        return `${local[0] || "*"}***@${domain}`;
-      }
-      return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
-    };
-    const maskedEmail = maskEmail(formData.email);
-
-    // Determine if this is a claim (selectedResult exists) or create (no selectedResult)
-    const isClaim = selectedResult !== null;
-    // Defensive: ensure all rendered values are strings to prevent React Error #310
-    const providerName = String(selectedResult
-      ? (selectedResult._source === "olera-providers" ? selectedResult.provider_name : selectedResult.display_name || "")
-      : formData.orgName || "");
-
-    return (
-      <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
-        {/* Minimal sticky nav */}
-        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
-          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
-              <span className="text-xl font-bold text-gray-900">Olera</span>
-            </Link>
-            <button
-              onClick={handleExit}
-              className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
-            >
-              Exit
-            </button>
-          </div>
-        </nav>
-
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
-          <div className="max-w-md mx-auto text-center animate-fade-in">
-            {/* Email icon */}
-            <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-              </svg>
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
-              Check your email
-            </h1>
-            <p className="text-gray-500 mt-2 mb-2">
-              We sent a verification link to <span className="font-semibold text-gray-900">{maskedEmail}</span>
-            </p>
-            {providerName && (
-              <p className="text-gray-500 mb-6">
-                {isClaim
-                  ? <>Click the link to start managing <strong className="text-gray-700">{providerName}</strong>.</>
-                  : <>Click the link to finish setting up <strong className="text-gray-700">{providerName}</strong>.</>
-                }
-              </p>
-            )}
-            {!providerName && (
-              <p className="text-gray-500 mb-6">
-                Click the link in your email to continue setting up your profile.
-              </p>
-            )}
-
-            {/* Tips */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 text-left">
-              <p className="text-sm font-medium text-gray-700 mb-2">Didn&apos;t get the email?</p>
-              <ul className="text-sm text-gray-500 space-y-1">
-                <li>• Check your spam or promotions folder</li>
-                <li>• Make sure <span className="font-medium text-gray-600">{formData.email}</span> is correct</li>
-              </ul>
-            </div>
-
-            {/* Resend button */}
-            {resendError && (
-              <p className="text-sm text-red-600 mb-4">{resendError}</p>
-            )}
-            <Button
-              variant="secondary"
-              onClick={handleResendEmail}
-              disabled={resendCooldown > 0 || resending}
-            >
-              {resending
-                ? "Sending..."
-                : resendCooldown > 0
-                  ? `Resend in ${resendCooldown}s`
-                  : "Resend email"
-              }
-            </Button>
-          </div>
-        </div>
-
-        {/* Bottom Nav */}
-        <OnboardingBottomNav
-          back={{
-            label: "Back",
-            onClick: () => {
-              setResendError("");
-              // For pre-selected unclaimed orgs claiming, go back to confirm-claim (they skipped results)
-              if (selectedOrg && selectedOrg.claimState !== "claimed" && selectedResult) {
-                setScreen("confirm-claim");
-              } else {
-                setScreen(selectedResult ? "results" : "preview");
-              }
-            },
-          }}
-        />
       </div>
     );
   }

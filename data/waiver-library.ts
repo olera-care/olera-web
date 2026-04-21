@@ -120,12 +120,12 @@ export interface WaiverProgram {
   savingsSource?: string; // Where the savings estimate came from
   savingsVerified?: boolean; // true = researched, false/undefined = category estimate
 
-  // Pipeline v2: Classification (optional — old programs won't have these)
+  // Pipeline v2: Classification (optional, old programs won't have these)
   programType?: ProgramType;
   geographicScope?: GeographicScope;
   complexity?: ProgramComplexity;
 
-  // Pipeline v2: Rich content (optional — replaces flat fields when present)
+  // Pipeline v2: Rich content (optional, replaces flat fields when present)
   applicationGuide?: ApplicationGuide;
   structuredEligibility?: StructuredEligibility;
   contentSections?: ContentSection[];
@@ -137,7 +137,7 @@ export interface WaiverProgram {
   relatedPrograms?: string[] | null; // Sibling programs by name
   regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
 
-  // Pipeline v3: Layout intent — which visual components Claude recommends for this program
+  // Pipeline v3: Layout intent, which visual components Claude recommends for this program
   layoutIntent?: {
     aboutHighlight?: "savings" | "coverage" | "waitlist"; // What stat to feature in the bold moment
     eligibilityDisplay?: "income-table" | "asset-focused" | "simple-list"; // How to render eligibility
@@ -4594,7 +4594,7 @@ const michiganPrograms: WaiverProgram[] = [
     id: "mi-choice-waiver-program",
     name: "MI Choice Waiver Program",
     shortName: "MI Choice Waiver",
-    tagline: "If your parent needs daily care but wants to stay home, MI Choice may cover home health aides, adult day programs, and more.",
+    tagline: "If your loved one needs daily care but wants to stay home, MI Choice may cover home health aides, adult day programs, and more.",
     savingsRange: "$10,000 – $30,000/year",
     description: "Medicaid waiver providing home and community-based services to seniors needing nursing home level of care.",
     eligibilityHighlights: [
@@ -4605,10 +4605,10 @@ const michiganPrograms: WaiverProgram[] = [
       "Medicaid eligible",
     ],
     applicationSteps: [
-      { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your parent meets basic eligibility requirements." },
-      { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your parent's income, assets, medical conditions, and daily care needs over the phone." },
-      { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your parent's home to conduct the Nursing Facility Level of Care assessment." },
-      { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your parent's specific needs and preferences." },
+      { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your loved one meets basic eligibility requirements." },
+      { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your loved one's income, assets, medical conditions, and daily care needs over the phone." },
+      { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your loved one's home to conduct the Nursing Facility Level of Care assessment." },
+      { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your loved one's specific needs and preferences." },
     ],
     forms: [
       { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Official Michigan Medicaid application, required for waiver enrollment.", url: "https://newmibridges.michigan.gov" },
@@ -4618,7 +4618,7 @@ const michiganPrograms: WaiverProgram[] = [
     programType: "benefit",
     complexity: "deep",
     geographicScope: { type: "state", localEntities: [{ name: "Regional AAAs and partners", type: "service-area" as const }] },
-    intro: "If your aging parent needs help with bathing, dressing, or managing medications but wants to avoid a nursing home, MI Choice may pay for home health aides, adult day programs, meal delivery, and other services that let them stay home safely. This Medicaid waiver covers the same level of care they'd get in a nursing facility — but delivered at home or in the community.\n\nYour parent must be 65+ (or disabled if younger) and meet nursing home-level care requirements through a clinical assessment. They also need to qualify financially: monthly income under $2,901 and countable assets under $9,950 (home and one car don't count). The program is available statewide but administered through regional agencies, so wait times and specific services may vary by area.",
+    intro: "If your aging loved one needs help with bathing, dressing, or managing medications but wants to avoid a nursing home, MI Choice may pay for home health aides, adult day programs, meal delivery, and other services that let them stay home safely. This Medicaid waiver covers the same level of care they'd get in a nursing facility, but delivered at home or in the community.\n\nYour loved one must be 65+ (or disabled if younger) and meet nursing home-level care requirements through a clinical assessment. They also need to qualify financially: monthly income under $2,901 and countable assets under $9,950 (home and one car don't count). The program is available statewide but administered through regional agencies, so wait times and specific services may vary by area.",
     structuredEligibility: {
       summary: ["Age 65+ or disabled", "Monthly income under $2,901", "Assets under $9,950", "Needs daily care help", "Medicaid eligible"],
       ageRequirement: "65+",
@@ -4627,7 +4627,7 @@ const michiganPrograms: WaiverProgram[] = [
         countedAssets: ["Bank accounts", "Investments", "Second vehicles", "Property other than primary home"],
         exemptAssets: ["Primary residence", "One vehicle", "Personal belongings", "Burial funds up to limits"],
       },
-      functionalRequirement: "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
+      functionalRequirement: "Must meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
       otherRequirements: ["Must be Medicaid eligible", "Must require supports coordination plus at least one other waiver service", "Cannot currently live in a nursing facility"],
       povertyLevelReference: "300% of Federal Benefit Rate",
     },
@@ -4635,25 +4635,25 @@ const michiganPrograms: WaiverProgram[] = [
       method: "multiple",
       summary: "Call your regional MI Choice agency for a phone screening, followed by an in-home assessment if you qualify.",
       steps: [
-        { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your parent meets basic eligibility requirements." },
-        { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your parent's income, assets, medical conditions, and daily care needs over the phone." },
-        { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your parent's home to conduct the Nursing Facility Level of Care assessment." },
-        { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your parent's specific needs and preferences." },
+        { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your loved one meets basic eligibility requirements." },
+        { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your loved one's income, assets, medical conditions, and daily care needs over the phone." },
+        { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your loved one's home to conduct the Nursing Facility Level of Care assessment." },
+        { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your loved one's specific needs and preferences." },
       ],
-      processingTime: "Varies by region — initial screening plus in-home assessment",
+      processingTime: "Varies by region, initial screening plus in-home assessment",
       waitlist: "Possible if program at capacity in your region",
-      tip: "Have your parent's medical records and recent bank statements ready before calling — the phone screening covers both health and financial eligibility.",
+      tip: "Have your loved one's medical records and recent bank statements ready before calling, the phone screening covers both health and financial eligibility.",
     },
     contentSections: [
-      { type: "callout", tone: "warning", text: "Dementia diagnosis alone does not qualify. Your parent must demonstrate specific functional limitations through the clinical assessment — needing hands-on help with daily activities like bathing, dressing, or eating." },
-      { type: "callout", tone: "tip", text: "If your parent's income is slightly over the $2,901 limit, ask about the \"spend down\" option — they may still qualify after deducting medical expenses." },
+      { type: "callout", tone: "warning", text: "Dementia diagnosis alone does not qualify. Your loved one must demonstrate specific functional limitations through the clinical assessment, needing hands-on help with daily activities like bathing, dressing, or eating." },
+      { type: "callout", tone: "tip", text: "If your loved one's income is slightly over the $2,901 limit, ask about the \"spend down\" option, they may still qualify after deducting medical expenses." },
     ],
     faqs: [
-      { question: "Can my parent keep their house if they qualify?", answer: "Yes. The primary home is exempt from asset limits, regardless of value. One vehicle is also exempt. MI Choice is specifically designed to help people stay in their homes." },
-      { question: "What if Mom's income is just over the limit?", answer: "Michigan has a spend-down option. If medical expenses bring your parent's countable income below the limit, they may still qualify. Ask the MI Choice agency about this during the phone screening." },
-      { question: "How long does it take to get approved?", answer: "The timeline varies by region. After the initial phone screening, an in-home assessment is scheduled. If your parent qualifies, a care plan is developed and services can begin. Some regions have waitlists if the program is at capacity." },
+      { question: "Can my loved one keep their house if they qualify?", answer: "Yes. The primary home is exempt from asset limits, regardless of value. One vehicle is also exempt. MI Choice is specifically designed to help people stay in their homes." },
+      { question: "What if Mom's income is just over the limit?", answer: "Michigan has a spend-down option. If medical expenses bring your loved one's countable income below the limit, they may still qualify. Ask the MI Choice agency about this during the phone screening." },
+      { question: "How long does it take to get approved?", answer: "The timeline varies by region. After the initial phone screening, an in-home assessment is scheduled. If your loved one qualifies, a care plan is developed and services can begin. Some regions have waitlists if the program is at capacity." },
       { question: "Can family members be paid caregivers?", answer: "In some cases, yes. MI Choice allows certain family members (not spouses) to be hired as paid caregivers through the program. The supports coordinator can explain the specific rules for your situation." },
-      { question: "What happens if my parent's condition changes?", answer: "The care plan is reviewed regularly and adjusted as needs change. If your parent needs more or fewer services, the supports coordinator updates the plan accordingly." },
+      { question: "What happens if my loved one's condition changes?", answer: "The care plan is reviewed regularly and adjusted as needs change. If your loved one needs more or fewer services, the supports coordinator updates the plan accordingly." },
     ],
     contentStatus: "pipeline-draft",
     draftedAt: "2026-04-08",
@@ -9325,7 +9325,7 @@ const texasPrograms: WaiverProgram[] = [
       { step: 1, title: "Check your eligibility", description: "Check you meet the age 21+ and $2,982/month income limit for Texas in 2026." },
       { step: 2, title: "Gather required documents", description: "Gather Social Security statements, bank records, and a Texas utility bill or lease." },
       { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application and HCBS Waiver Referral Form." },
-      { step: 4, title: "Submit your application", description: "Submit to Texas HHS — processing takes 30–90 days. Call 211 to join the interest list now." },
+      { step: 4, title: "Submit your application", description: "Submit to Texas HHS, processing takes 30–90 days. Call 211 to join the interest list now." },
     ],
     forms: [
       { id: "texas-medicaid-application", name: "Texas Medicaid Application Form", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
@@ -9367,7 +9367,7 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
     savingsRange: "$2,000 – $8,000/year in 2026",
     description: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
-    intro: "Texas Medicare Savings Programs help low-income Medicare beneficiaries cover the cost of premiums, deductibles, and copays that Medicare alone doesn't pay. Administered by the state of Texas, these programs — including QMB, SLMB, and QI — can save eligible seniors thousands of dollars each year on healthcare costs. If you're on Medicare in Texas and struggling with out-of-pocket expenses, this program may be able to help.",
+    intro: "Texas Medicare Savings Programs help low-income Medicare beneficiaries cover the cost of premiums, deductibles, and copays that Medicare alone doesn't pay. Administered by the state of Texas, these programs, including QMB, SLMB, and QI, can save eligible seniors thousands of dollars each year on healthcare costs. If you're on Medicare in Texas and struggling with out-of-pocket expenses, this program may be able to help.",
     eligibilityHighlights: [
       "Income below $1,796/month",
     ],
@@ -9843,7 +9843,7 @@ const texasPrograms: WaiverProgram[] = [
     sourceUrl: "https://ltco.texas.gov/",
     lastVerifiedDate: "2026-04-04",
     verifiedBy: "chantel",
-    savingsSource: "Free advocacy service — no direct financial benefit",
+    savingsSource: "Free advocacy service, no direct financial benefit",
     savingsVerified: true,
   },
   {
@@ -9853,7 +9853,7 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
     savingsRange: "$5,000 – $8,000 in free improvements",
     description: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
-    intro: "The Texas Weatherization Assistance Program provides free home improvements — such as insulation, weather stripping, and furnace repairs — designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
+    intro: "The Texas Weatherization Assistance Program provides free home improvements, such as insulation, weather stripping, and furnace repairs, designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
     eligibilityHighlights: [
       "Income below $2,660/month",
     ],
@@ -9932,7 +9932,7 @@ const texasPrograms: WaiverProgram[] = [
     sourceUrl: "https://www.tlsc.org/seniors",
     lastVerifiedDate: "2026-04-04",
     verifiedBy: "chantel",
-    savingsSource: "Free legal service — no direct financial benefit",
+    savingsSource: "Free legal service, no direct financial benefit",
     savingsVerified: true,
   },
   {
@@ -9983,7 +9983,7 @@ const texasPrograms: WaiverProgram[] = [
     sourceUrl: "https://theseniorsource.org/volunteer/opportunities-seniors/senior-companions/",
     lastVerifiedDate: "2026-04-04",
     verifiedBy: "chantel",
-    savingsSource: "Free companion service — no direct financial benefit",
+    savingsSource: "Free companion service, no direct financial benefit",
     savingsVerified: true,
   },
   {
@@ -9993,7 +9993,7 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
     savingsRange: "$3,000 – $8,000/year in 2026",
     description: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
-    intro: "The Senior Community Service Employment Program (SCSEP) in Texas offers paid, part-time job training for low-income adults aged 55 and older who want to re-enter the workforce. Participants work at local community organizations — such as schools, hospitals, and nonprofits — while building new skills and earning income. SCSEP gives older Texans a path back to employment with the training and support they need to succeed.",
+    intro: "The Senior Community Service Employment Program (SCSEP) in Texas offers paid, part-time job training for low-income adults aged 55 and older who want to re-enter the workforce. Participants work at local community organizations, such as schools, hospitals, and nonprofits, while building new skills and earning income. SCSEP gives older Texans a path back to employment with the training and support they need to succeed.",
     eligibilityHighlights: [
       "Age 55 or older",
       "Income below $1,663/month",
@@ -10024,7 +10024,7 @@ const texasPrograms: WaiverProgram[] = [
     sourceUrl: "https://www.twc.texas.gov/programs/senior-community-service-employment",
     lastVerifiedDate: "2026-04-04",
     verifiedBy: "chantel",
-    savingsSource: "Job training program — paid stipend at minimum wage, 20hrs/week",
+    savingsSource: "Job training program, paid stipend at minimum wage, 20hrs/week",
     savingsVerified: false,
   },
 ];

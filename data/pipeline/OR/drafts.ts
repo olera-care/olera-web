@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.919Z
+ * Last updated: 2026-04-20T23:39:07.871Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "opi-m-medicaid-home-care",
       "name": "OPI-M (Medicaid-funded)",
       "shortName": "OPI-M Home Care",
-      "tagline": "If your parent needs help with daily tasks but doesn't qualify for regular Medicaid, this Oregon program provides in-home care at higher income limits.",
+      "tagline": "If your loved one needs help with daily tasks but doesn't qualify for regular Medicaid, this Oregon program provides in-home care at higher income limits.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ or has a qualifying disability and needs help with bathing, dressing, or other daily activities but earns too much for regular Medicaid, Oregon's OPI-M program may help. This Medicaid-funded program covers in-home care services like personal care, adult day care, home modifications, and emergency response systems for people with higher incomes — up to $5,217/month for individuals in 2025.\n\nUnlike nursing home Medicaid, OPI-M is designed to help your parent stay in their own home or with family. Because it accepts income up to 400% of the Federal Poverty Level, many families who couldn't afford private care but earned too much for standard Medicaid programs can qualify. Your parent gets 24 months of continuous coverage even if their income changes, and one team coordinates all their long-term care services.",
+      "intro": "If your loved one is 60+ or has a qualifying disability and needs help with bathing, dressing, or other daily activities but earns too much for regular Medicaid, Oregon's OPI-M program may help. This Medicaid-funded program covers in-home care services like personal care, adult day care, home modifications, and emergency response systems for people with higher incomes, up to $5,217/month for individuals in 2025.\n\nUnlike nursing home Medicaid, OPI-M is designed to help your loved one stay in their own home or with family. Because it accepts income up to 400% of the Federal Poverty Level, many families who couldn't afford private care but earned too much for standard Medicaid programs can qualify. Your loved one gets 24 months of continuous coverage even if their income changes, and one team coordinates all their long-term care services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -71,7 +71,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Aging and Disability Resource Connection (ADRC) for assessment — they'll send the application if you qualify.",
+        "summary": "Contact your local Aging and Disability Resource Connection (ADRC) for assessment, they'll send the application if you qualify.",
         "steps": [
           {
             "step": 1,
@@ -81,12 +81,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete the assessment",
-            "description": "A case manager will assess your parent's ability to perform daily activities like bathing, dressing, and mobility. This determines if they meet Service Priority Levels 1-18."
+            "description": "A case manager will assess your loved one's ability to perform daily activities like bathing, dressing, and mobility. This determines if they meet Service Priority Levels 1-18."
           },
           {
             "step": 3,
             "title": "Disability determination (if under 60)",
-            "description": "If your parent is 18-59, they'll need a separate disability determination meeting Social Security standards for physical disabilities."
+            "description": "If your loved one is 18-59, they'll need a separate disability determination meeting Social Security standards for physical disabilities."
           },
           {
             "step": 4,
@@ -101,7 +101,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start with the assessment first — you can't apply for OPI-M directly. The ADRC must determine you're eligible for services before sending the Medicaid application.",
+        "tip": "Start with the assessment first, you can't apply for OPI-M directly. The ADRC must determine you're eligible for services before sending the Medicaid application.",
         "urls": [
           {
             "label": "Oregon DHS Seniors and Disabilities Services",
@@ -140,10 +140,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You cannot apply directly for OPI-M — you must first be assessed and approved for services through your local ADRC",
-        "If your parent receives other Medicaid long-term care services like SPPC or APD Waiver, they cannot also receive OPI-M — you must choose one program",
+        "You cannot apply directly for OPI-M, you must first be assessed and approved for services through your local ADRC",
+        "If your loved one receives other Medicaid long-term care services like SPPC or APD Waiver, they cannot also receive OPI-M, you must choose one program",
         "For couples, only the applicant's income counts toward the $5,217 limit, but there's no spousal income allowance to protect the spouse's finances",
-        "Asset limits are higher than standard Medicaid but the exact dollar amount varies — it's equivalent to six months of Medicaid nursing facility costs in your area"
+        "Asset limits are higher than standard Medicaid but the exact dollar amount varies, it's equivalent to six months of Medicaid nursing facility costs in your area"
       ],
       "relatedPrograms": [
         "SPPC (State Plan Personal Care)",
@@ -153,36 +153,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent receive OPI-M and other Medicaid long-term care services at the same time?",
-          "answer": "No. Your parent cannot receive OPI-M simultaneously with other Medicaid long-term care services like SPPC, APD Waiver, or Healthier Oregon services. You must choose which program best fits their needs. Contact your local ADRC to compare options."
+          "question": "Can my loved one receive OPI-M and other Medicaid long-term care services at the same time?",
+          "answer": "No. Your loved one cannot receive OPI-M simultaneously with other Medicaid long-term care services like SPPC, APD Waiver, or Healthier Oregon services. You must choose which program best fits their needs. Contact your local ADRC to compare options."
         },
         {
-          "question": "What if my parent lives in assisted living or adult foster care?",
-          "answer": "Your parent cannot receive OPI-M services if they live in assisted living, residential care facilities, or adult foster homes. This program is only for people living in their own home or with family members."
+          "question": "What if my loved one lives in assisted living or adult foster care?",
+          "answer": "Your loved one cannot receive OPI-M services if they live in assisted living, residential care facilities, or adult foster homes. This program is only for people living in their own home or with family members."
         },
         {
-          "question": "My parent is 55 and disabled — can they qualify for OPI-M?",
+          "question": "My loved one is 55 and disabled, can they qualify for OPI-M?",
           "answer": "Yes, but they must meet Social Security disability standards for physical disabilities. The program excludes people with only intellectual/developmental disabilities or mental health/substance use disorders unless they meet specific additional criteria. Contact your ADRC for a disability determination."
         },
         {
-          "question": "What happens if my parent's income goes over $5,217 after they're enrolled?",
-          "answer": "Your parent keeps their OPI-M coverage for 24 months even if their income or assets change. This continuous coverage period protects against temporary income fluctuations, but you'll need to reapply after 24 months."
+          "question": "What happens if my loved one's income goes over $5,217 after they're enrolled?",
+          "answer": "Your loved one keeps their OPI-M coverage for 24 months even if their income or assets change. This continuous coverage period protects against temporary income fluctuations, but you'll need to reapply after 24 months."
         },
         {
-          "question": "How much will my parent actually receive in services?",
-          "answer": "Service amounts depend on your parent's assessed Service Priority Level and specific needs. The program can cover adult day care, personal care, home modifications, emergency response systems, and caregiver support, but exact hours or dollar amounts aren't predetermined."
+          "question": "How much will my loved one actually receive in services?",
+          "answer": "Service amounts depend on your loved one's assessed Service Priority Level and specific needs. The program can cover adult day care, personal care, home modifications, emergency response systems, and caregiver support, but exact hours or dollar amounts aren't predetermined."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help with the application process, but the initial contact and assessment must involve your parent directly. If your parent cannot manage their affairs, you may need legal guardianship or power of attorney documentation to apply on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help with the application process, but the initial contact and assessment must involve your loved one directly. If your loved one cannot manage their affairs, you may need legal guardianship or power of attorney documentation to apply on their behalf."
         },
         {
           "question": "What's the difference between OPI-M and regular Medicaid long-term care?",
-          "answer": "OPI-M accepts much higher incomes (up to $5,217/month vs. about $1,000 for regular Medicaid) and higher asset limits, but requires Oregon residency and specific living arrangements. It also doesn't require nursing home level of care — just needing help with daily activities."
+          "answer": "OPI-M accepts much higher incomes (up to $5,217/month vs. about $1,000 for regular Medicaid) and higher asset limits, but requires Oregon residency and specific living arrangements. It also doesn't require nursing home level of care, just needing help with daily activities."
         },
         {
-          "question": "Will my parent's home count against the asset limit?",
-          "answer": "Primary homes are typically exempt from Medicaid asset limits, but OPI-M follows specific Oregon rules for non-standard living arrangements. The exact asset limit equals six months of nursing facility costs in your area. Contact your ADRC for specific guidance about your parent's situation."
+          "question": "Will my loved one's home count against the asset limit?",
+          "answer": "Primary homes are typically exempt from Medicaid asset limits, but OPI-M follows specific Oregon rules for non-standard living arrangements. The exact asset limit equals six months of nursing facility costs in your area. Contact your ADRC for specific guidance about your loved one's situation."
         }
       ],
       "layoutIntent": {
@@ -203,7 +203,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "If your parent needs nursing home-level care but wants to stay at home, PACE covers all medical and long-term care through one coordinated team.",
+      "tagline": "If your loved one needs nursing home-level care but wants to stay at home, PACE covers all medical and long-term care through one coordinated team.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -220,7 +220,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs significant daily care but wants to avoid nursing home placement, PACE provides all medical and long-term care services through one coordinated team. Because PACE covers everything from doctor visits to adult day programs to in-home care, your parent won't need to coordinate between multiple providers — one interdisciplinary team manages all care with no deductibles or co-pays.\n\nYour parent must qualify for nursing home-level care (assessed as Oregon Service Priority Level 1-13) but be able to live safely in the community with PACE support. There are no income or asset limits to join PACE — Medicaid covers costs if eligible, or participants pay private monthly premiums. However, PACE is only available in specific service areas, primarily the Portland metro region through Providence ElderPlace.",
+      "intro": "If your loved one is 55+ and needs significant daily care but wants to avoid nursing home placement, PACE provides all medical and long-term care services through one coordinated team. Because PACE covers everything from doctor visits to adult day programs to in-home care, your loved one won't need to coordinate between multiple providers, one interdisciplinary team manages all care with no deductibles or co-pays.\n\nYour loved one must qualify for nursing home-level care (assessed as Oregon Service Priority Level 1-13) but be able to live safely in the community with PACE support. There are no income or asset limits to join PACE, Medicaid covers costs if eligible, or participants pay private monthly premiums. However, PACE is only available in specific service areas, primarily the Portland metro region through Providence ElderPlace.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -235,7 +235,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be assessed as needing Nursing Facility Level of Care (equivalent to Oregon Service Priority Level 1-13) — a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living.",
+        "functionalRequirement": "Must be assessed as needing Nursing Facility Level of Care (equivalent to Oregon Service Priority Level 1-13), a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living.",
         "otherRequirements": [
           "Must live in a PACE program's approved service area",
           "Must be able to live safely in community setting with PACE services",
@@ -246,7 +246,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE organization for intake screening — processing time varies by provider and availability.",
+        "summary": "Call your local PACE organization for intake screening, processing time varies by provider and availability.",
         "steps": [
           {
             "step": 1,
@@ -256,7 +256,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete screening assessment",
-            "description": "PACE staff will assess whether your parent meets nursing facility level of care requirements (Service Priority Level 1-13) and can live safely in the community."
+            "description": "PACE staff will assess whether your loved one meets nursing facility level of care requirements (Service Priority Level 1-13) and can live safely in the community."
           },
           {
             "step": 3,
@@ -270,8 +270,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Processing time varies by PACE provider and region",
-        "waitlist": "Possible waitlist depending on PACE provider and region — availability varies",
-        "tip": "Contact multiple PACE providers in your area to compare availability and wait times — enrollment capacity varies significantly between organizations.",
+        "waitlist": "Possible waitlist depending on PACE provider and region, availability varies",
+        "tip": "Contact multiple PACE providers in your area to compare availability and wait times, enrollment capacity varies significantly between organizations.",
         "urls": []
       },
       "documentsNeeded": [
@@ -303,10 +303,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must live within the specific service area of a PACE organization — relocation may be required if moving from outside the service area",
-        "PACE requires exclusive use of their providers — your parent cannot see outside doctors or use other medical services while enrolled",
-        "Even if your parent can live independently now, they must qualify for nursing home-level care to be eligible",
-        "Private pay premiums for non-Medicaid participants vary by provider — ask for specific monthly costs during intake"
+        "You must live within the specific service area of a PACE organization, relocation may be required if moving from outside the service area",
+        "PACE requires exclusive use of their providers, your loved one cannot see outside doctors or use other medical services while enrolled",
+        "Even if your loved one can live independently now, they must qualify for nursing home-level care to be eligible",
+        "Private pay premiums for non-Medicaid participants vary by provider, ask for specific monthly costs during intake"
       ],
       "relatedPrograms": [
         "Oregon Medicaid Long-Term Care",
@@ -317,28 +317,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctors after enrolling in PACE?",
-          "answer": "No. PACE requires your parent to receive all medical and long-term care exclusively through PACE providers. This includes primary care, specialists, prescriptions, and all other health services. The trade-off is comprehensive coordination through one team."
+          "question": "Can my loved one keep seeing their current doctors after enrolling in PACE?",
+          "answer": "No. PACE requires your loved one to receive all medical and long-term care exclusively through PACE providers. This includes primary care, specialists, prescriptions, and all other health services. The trade-off is comprehensive coordination through one team."
         },
         {
-          "question": "What if my parent lives outside the Portland metro area?",
-          "answer": "PACE availability is very limited in Oregon outside the Portland region. Call Oregon ADRC at 1-855-673-2372 to check if any PACE organizations serve your parent's area. If not, consider Oregon's HCBS waiver programs as an alternative."
+          "question": "What if my loved one lives outside the Portland metro area?",
+          "answer": "PACE availability is very limited in Oregon outside the Portland region. Call Oregon ADRC at 1-855-673-2372 to check if any PACE organizations serve your loved one's area. If not, consider Oregon's HCBS waiver programs as an alternative."
         },
         {
           "question": "How much do private pay participants actually pay per month?",
-          "answer": "Monthly premiums for non-Medicaid PACE participants vary by provider and aren't publicly listed. You must contact the PACE organization directly during intake screening to get specific premium costs for your parent's care level."
+          "answer": "Monthly premiums for non-Medicaid PACE participants vary by provider and aren't publicly listed. You must contact the PACE organization directly during intake screening to get specific premium costs for your loved one's care level."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
-          "answer": "PACE covers increasing care needs including nursing home placement if necessary. Because it's all-inclusive care, your parent won't lose coverage or need to reapply if they need more intensive services."
+          "question": "What happens if my loved one's care needs increase after enrollment?",
+          "answer": "PACE covers increasing care needs including nursing home placement if necessary. Because it's all-inclusive care, your loved one won't lose coverage or need to reapply if they need more intensive services."
         },
         {
-          "question": "Can I apply for PACE while my parent is in the hospital?",
-          "answer": "Yes, but your parent cannot be enrolled if they have a physician-documented Medicare skilled care condition unlikely to discharge to community within 30 days. Hospital social workers can help coordinate the application process."
+          "question": "Can I apply for PACE while my loved one is in the hospital?",
+          "answer": "Yes, but your loved one cannot be enrolled if they have a physician-documented Medicare skilled care condition unlikely to discharge to community within 30 days. Hospital social workers can help coordinate the application process."
         },
         {
-          "question": "What if PACE denies my parent's application?",
-          "answer": "PACE can only deny enrollment if they determine your parent cannot live safely in the community with PACE services. All other eligibility issues must be resolved. You can appeal denial decisions through the PACE organization's grievance process."
+          "question": "What if PACE denies my loved one's application?",
+          "answer": "PACE can only deny enrollment if they determine your loved one cannot live safely in the community with PACE services. All other eligibility issues must be resolved. You can appeal denial decisions through the PACE organization's grievance process."
         }
       ],
       "layoutIntent": {
@@ -359,7 +359,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (MSP)",
       "shortName": "Medicare Savings",
-      "tagline": "Help paying Medicare premiums, deductibles, and co-pays if your parent's monthly income is under $1,800.",
+      "tagline": "Help paying Medicare premiums, deductibles, and co-pays if your loved one's monthly income is under $1,800.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -380,7 +380,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay Medicare premiums or co-pays, Oregon's Medicare Savings Programs can cover those costs based on their income. The most comprehensive tier covers all Medicare premiums, deductibles, and co-insurance for people with monthly income under $1,330 (single) or $1,804 (couple). Higher income tiers cover Medicare Part B premiums for those earning up to $1,796 monthly.\n\nOregon calculates eligibility using gross income minus $20, with additional deductions for earned income — so families may qualify even if their income appears too high. Unlike many programs, there are no asset limits, meaning savings and home value don't affect eligibility. Four different program levels provide different amounts of coverage, from comprehensive cost-sharing to Part B premium assistance only.",
+      "intro": "If your loved one struggles to pay Medicare premiums or co-pays, Oregon's Medicare Savings Programs can cover those costs based on their income. The most comprehensive tier covers all Medicare premiums, deductibles, and co-insurance for people with monthly income under $1,330 (single) or $1,804 (couple). Higher income tiers cover Medicare Part B premiums for those earning up to $1,796 monthly.\n\nOregon calculates eligibility using gross income minus $20, with additional deductions for earned income, so families may qualify even if their income appears too high. Unlike many programs, there are no asset limits, meaning savings and home value don't affect eligibility. Four different program levels provide different amounts of coverage, from comprehensive cost-sharing to Part B premium assistance only.",
       "savingsRange": "$1,968 – $8,400/year in 2026",
       "savingsSource": "Medicare Part B premium ($164/month) to comprehensive Medicare cost-sharing coverage",
       "savingsVerified": true,
@@ -436,9 +436,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Your local Aging and People with Disabilities office will review your application and notify you of approval or denial."
           }
         ],
-        "processingTime": "Processing time varies by local office — contact 1-800-282-8096 for timeline estimates",
+        "processingTime": "Processing time varies by local office, contact 1-800-282-8096 for timeline estimates",
         "waitlist": "QI/SMF program has federal enrollment caps and may close to new applicants if funding limit is reached",
-        "tip": "Apply for the highest tier you think you qualify for — Oregon will automatically consider you for lower tiers if needed.",
+        "tip": "Apply for the highest tier you think you qualify for, Oregon will automatically consider you for lower tiers if needed.",
         "urls": [
           {
             "label": "Oregon DHS Medicare Savings Programs",
@@ -476,8 +476,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If you're interested in the QI/SMF tier (income $1,596-$1,796), apply early in the calendar year — this program has federal enrollment caps and may close mid-year",
-        "Oregon's income calculation starts with gross income and subtracts $20, plus additional deductions for earned income — you may qualify even if your income appears too high",
+        "If you're interested in the QI/SMF tier (income $1,596-$1,796), apply early in the calendar year, this program has federal enrollment caps and may close mid-year",
+        "Oregon's income calculation starts with gross income and subtracts $20, plus additional deductions for earned income, you may qualify even if your income appears too high",
         "Multnomah County residents can also contact Oregon Medicare Savings Connect, which operates under the same eligibility rules",
         "Income limits update every March, so families should verify current limits annually"
       ],
@@ -508,7 +508,7 @@ export const drafts: PipelineStateDrafts = {
               "tier": "QI/SMF",
               "income": "$1,796/month single, $2,435/month couple",
               "covers": "Medicare Part B premiums only",
-              "note": "Limited enrollment — apply early"
+              "note": "Limited enrollment, apply early"
             },
             {
               "tier": "QMB-DW",
@@ -521,20 +521,20 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they own their home worth $300,000?",
+          "question": "Can my loved one apply if they own their home worth $300,000?",
           "answer": "Yes. Oregon has no asset limits for Medicare Savings Programs, so home value, savings accounts, and other assets don't affect eligibility. Only monthly income matters."
         },
         {
-          "question": "What if my parent gets approved for regular Oregon Medicaid?",
-          "answer": "If your parent qualifies for any other Oregon Medicaid benefit, they cannot use the QI/SMF tier of Medicare Savings Programs. However, they may still be eligible for QMB or SLMB tiers depending on income."
+          "question": "What if my loved one gets approved for regular Oregon Medicaid?",
+          "answer": "If your loved one qualifies for any other Oregon Medicaid benefit, they cannot use the QI/SMF tier of Medicare Savings Programs. However, they may still be eligible for QMB or SLMB tiers depending on income."
         },
         {
           "question": "How much can the QMB program really save?",
           "answer": "QMB covers all Medicare cost-sharing, which can save thousands annually. For example, it covers the $1,676 Medicare Part A deductible per hospital stay, plus 20% co-insurance on Part B services that can add up quickly."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help your parent apply and speak on their behalf during the application process. If your parent cannot make decisions due to cognitive impairment, you may need legal authority such as power of attorney."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply and speak on their behalf during the application process. If your loved one cannot make decisions due to cognitive impairment, you may need legal authority such as power of attorney."
         },
         {
           "question": "What happens if the QI/SMF program closes due to enrollment caps?",
@@ -545,12 +545,12 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, Medicare Savings Programs don't cover prescription drug costs. However, if you qualify for MSP, you automatically qualify for Medicare Part D Low-Income Subsidy (Extra Help) for prescription assistance."
         },
         {
-          "question": "Can my parent have both Medicare Savings Programs and a Medicare Advantage plan?",
-          "answer": "Yes. MSP benefits work with both Original Medicare and Medicare Advantage plans. The program will cover your share of premiums, deductibles, and co-insurance regardless of which Medicare option your parent chooses."
+          "question": "Can my loved one have both Medicare Savings Programs and a Medicare Advantage plan?",
+          "answer": "Yes. MSP benefits work with both Original Medicare and Medicare Advantage plans. The program will cover your share of premiums, deductibles, and co-insurance regardless of which Medicare option your loved one chooses."
         },
         {
-          "question": "What if my parent's income changes after approval?",
-          "answer": "Report income changes to your local Aging and People with Disabilities office immediately. Significant income increases may affect eligibility, while decreases might qualify your parent for a higher tier with better coverage."
+          "question": "What if my loved one's income changes after approval?",
+          "answer": "Report income changes to your local Aging and People with Disabilities office immediately. Significant income increases may affect eligibility, while decreases might qualify your loved one for a higher tier with better coverage."
         }
       ],
       "layoutIntent": {
@@ -571,14 +571,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "SNAP Food Benefits (Oregon)",
       "shortName": "SNAP Oregon",
-      "tagline": "If your parent is on a fixed income, they may qualify for monthly grocery assistance — even if their income seems too high.",
+      "tagline": "If your loved one is on a fixed income, they may qualify for monthly grocery assistance, even if their income seems too high.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your elderly parent struggles to afford groceries on Social Security or pension income, Oregon SNAP provides monthly benefits to help pay for food. Because Oregon expanded eligibility beyond federal requirements, your parent may qualify even if their income is higher than you'd expect — up to $2,608/month for a single person.\n\nFor seniors 60 and older, special rules make qualifying easier. Out-of-pocket medical costs (prescriptions, doctor visits, dental work) count as deductions that reduce countable income, potentially qualifying your parent for benefits or increasing their monthly amount. Adults 65+ can also receive benefits as direct deposit, check, or EBT card in some counties, rather than just the standard EBT card.\n\nBecause SNAP uses a formula where every $100 more in net income reduces benefits by $30, even middle-income seniors often qualify for meaningful assistance. Your parent's house, car, and most bank accounts don't count against eligibility, making this accessible for homeowners with modest savings.",
+      "intro": "If your elderly loved one struggles to afford groceries on Social Security or pension income, Oregon SNAP provides monthly benefits to help pay for food. Because Oregon expanded eligibility beyond federal requirements, your loved one may qualify even if their income is higher than you'd expect, up to $2,608/month for a single person.\n\nFor seniors 60 and older, special rules make qualifying easier. Out-of-pocket medical costs (prescriptions, doctor visits, dental work) count as deductions that reduce countable income, potentially qualifying your loved one for benefits or increasing their monthly amount. Adults 65+ can also receive benefits as direct deposit, check, or EBT card in some counties, rather than just the standard EBT card.\n\nBecause SNAP uses a formula where every $100 more in net income reduces benefits by $30, even middle-income seniors often qualify for meaningful assistance. Your loved one's house, car, and most bank accounts don't count against eligibility, making this accessible for homeowners with modest savings.",
       "savingsRange": "",
       "savingsSource": "Monthly grocery assistance based on household income",
       "savingsVerified": false,
@@ -649,7 +649,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Gather required documents",
-            "description": "Collect proof of income, citizenship, and medical expenses if your parent is 60+. Medical cost documentation is crucial for maximizing benefits for seniors."
+            "description": "Collect proof of income, citizenship, and medical expenses if your loved one is 60+. Medical cost documentation is crucial for maximizing benefits for seniors."
           },
           {
             "step": 2,
@@ -669,12 +669,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Set up alternate payee if needed",
-            "description": "If your parent needs help shopping, complete the alternate payee form so a family member can use their benefits to buy groceries."
+            "description": "If your loved one needs help shopping, complete the alternate payee form so a family member can use their benefits to buy groceries."
           }
         ],
         "processingTime": "7 days for expedited benefits if eligible, standard processing time varies",
         "waitlist": null,
-        "tip": "If your parent is 60+, document all out-of-pocket medical expenses — even small copays and prescription costs add up to reduce countable income and increase benefits.",
+        "tip": "If your loved one is 60+, document all out-of-pocket medical expenses, even small copays and prescription costs add up to reduce countable income and increase benefits.",
         "urls": [
           {
             "label": "Oregon SNAP Application",
@@ -695,7 +695,7 @@ export const drafts: PipelineStateDrafts = {
         "Information about other household members who buy and prepare food together",
         "Vehicle registration if you own a car",
         "Life insurance policies with cash values",
-        "Alternate payee form if designating someone to shop for your parent"
+        "Alternate payee form if designating someone to shop for your loved one"
       ],
       "contacts": [
         {
@@ -713,9 +713,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Households with all members 65+ in Clackamas, Columbia, Multnomah, and Washington counties can receive benefits as direct deposit or check instead of EBT card",
-        "If your parent lives with you but buys food separately, they may still be counted as one household — household definition affects benefit amounts",
-        "Work requirements now apply statewide and affect about 37,000 Oregonians — able-bodied adults 18-64 without disabilities or children may only receive 3 months of benefits unless working",
-        "Expedited benefits require specific income thresholds — ask specifically about expedited processing when applying if your parent has very low income or faces utility shutoff"
+        "If your loved one lives with you but buys food separately, they may still be counted as one household, household definition affects benefit amounts",
+        "Work requirements now apply statewide and affect about 37,000 Oregonians, able-bodied adults 18-64 without disabilities or children may only receive 3 months of benefits unless working",
+        "Expedited benefits require specific income thresholds, ask specifically about expedited processing when applying if your loved one has very low income or faces utility shutoff"
       ],
       "relatedPrograms": [
         "Oregon LIHEAP (Low Income Energy Assistance)",
@@ -726,32 +726,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get SNAP if they live with me but we buy groceries separately?",
-          "answer": "This depends on your relationship and living situation. Spouses and children under 22 are automatically counted as one household regardless of food arrangements. If your parent is your dependent or you regularly share meals, you may be counted together, which could affect benefit amounts. The caseworker will ask detailed questions about your food purchasing and preparation habits."
+          "question": "Can my loved one get SNAP if they live with me but we buy groceries separately?",
+          "answer": "This depends on your relationship and living situation. Spouses and children under 22 are automatically counted as one household regardless of food arrangements. If your loved one is your dependent or you regularly share meals, you may be counted together, which could affect benefit amounts. The caseworker will ask detailed questions about your food purchasing and preparation habits."
         },
         {
-          "question": "My parent's Social Security is $2,100/month — can they still qualify in Oregon?",
-          "answer": "Yes, they may still qualify because Oregon uses 200% of federal poverty level ($2,608/month for one person). Plus, if your parent is 60+, out-of-pocket medical expenses reduce their countable income. Medical deductions for prescription costs, Medicare premiums, and doctor copays could bring them under the income limit."
+          "question": "My loved one's Social Security is $2,100/month, can they still qualify in Oregon?",
+          "answer": "Yes, they may still qualify because Oregon uses 200% of federal poverty level ($2,608/month for one person). Plus, if your loved one is 60+, out-of-pocket medical expenses reduce their countable income. Medical deductions for prescription costs, Medicare premiums, and doctor copays could bring them under the income limit."
         },
         {
-          "question": "Can I shop for groceries using my parent's SNAP benefits?",
+          "question": "Can I shop for groceries using my loved one's SNAP benefits?",
           "answer": "Yes, but you must complete an alternate payee form first. This allows a designated family member to use the EBT card and make food purchases on behalf of the SNAP recipient. The form must be submitted to Oregon Department of Human Services and approved before you can legally use their benefits."
         },
         {
-          "question": "What medical expenses count toward reducing my parent's SNAP income?",
-          "answer": "For adults 60+, qualifying medical expenses include prescription medications, Medicare premiums, doctor visit copays, dental costs, eyeglasses, medical equipment, and health insurance deductibles. Keep all receipts — even small amounts add up. You must provide proof of these expenses during application and renewal."
+          "question": "What medical expenses count toward reducing my loved one's SNAP income?",
+          "answer": "For adults 60+, qualifying medical expenses include prescription medications, Medicare premiums, doctor visit copays, dental costs, eyeglasses, medical equipment, and health insurance deductibles. Keep all receipts, even small amounts add up. You must provide proof of these expenses during application and renewal."
         },
         {
-          "question": "How much will my parent actually receive in SNAP benefits?",
+          "question": "How much will my loved one actually receive in SNAP benefits?",
           "answer": "Oregon uses the formula: for every $100 increase in net income, benefits decrease by $30. The exact amount depends on household size, total income, and allowable deductions (especially medical costs for seniors). A single person with $1,500 monthly income might receive $100-200 in monthly benefits, but medical deductions could increase this significantly."
         },
         {
-          "question": "Can my parent use SNAP benefits for meal delivery services?",
-          "answer": "Yes, Oregon allows SNAP use at authorized community meal sites including some Meals on Wheels programs. Your parent can also order groceries online through Amazon and Walmart using SNAP benefits. However, prepared meals from restaurants are generally not covered unless your parent is elderly/disabled and the restaurant participates in a special program."
+          "question": "Can my loved one use SNAP benefits for meal delivery services?",
+          "answer": "Yes, Oregon allows SNAP use at authorized community meal sites including some Meals on Wheels programs. Your loved one can also order groceries online through Amazon and Walmart using SNAP benefits. However, prepared meals from restaurants are generally not covered unless your loved one is elderly/disabled and the restaurant participates in a special program."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
-          "answer": "Your parent must report changes in income within 10 days if it affects their benefit amount. Social Security cost-of-living increases usually don't require reporting, but new pension income or changes in household composition do. Benefits are recalculated annually at renewal, and medical expense deductions must be re-verified with current receipts."
+          "question": "What happens if my loved one's income changes after they're approved?",
+          "answer": "Your loved one must report changes in income within 10 days if it affects their benefit amount. Social Security cost-of-living increases usually don't require reporting, but new pension income or changes in household composition do. Benefits are recalculated annually at renewal, and medical expense deductions must be re-verified with current receipts."
         },
         {
           "question": "Can I apply for SNAP and Oregon Medicaid at the same time?",
@@ -776,7 +776,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "If your parent struggles with heating or cooling bills, they may qualify for a one-time grant of $250–750 paid directly to their utility company.",
+      "tagline": "If your loved one struggles with heating or cooling bills, they may qualify for a one-time grant of $250–750 paid directly to their utility company.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -789,7 +789,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent's household income is below $3,198/month (single person) or $4,183/month (couple), they may qualify for help paying their heating or cooling bills. LIHEAP provides one-time grants of $250–750 paid directly to utility providers — your parent never handles the money.\n\nBecause funds are limited and distributed first-come, first-served, seniors 60+ and people with disabilities get priority. Others may face waiting lists or miss out entirely when funds run out. The program also offers crisis assistance up to $750 for emergencies like shutoff notices or broken heating systems.\n\nThe program is administered through local Community Action Agencies across Oregon, so application processes and wait times vary slightly by region. Your parent doesn't need to own their home — renters qualify too, though landlord cooperation may be needed for some benefits.",
+      "intro": "If your loved one's household income is below $3,198/month (single person) or $4,183/month (couple), they may qualify for help paying their heating or cooling bills. LIHEAP provides one-time grants of $250–750 paid directly to utility providers, your loved one never handles the money.\n\nBecause funds are limited and distributed first-come, first-served, seniors 60+ and people with disabilities get priority. Others may face waiting lists or miss out entirely when funds run out. The program also offers crisis assistance up to $750 for emergencies like shutoff notices or broken heating systems.\n\nThe program is administered through local Community Action Agencies across Oregon, so application processes and wait times vary slightly by region. Your loved one doesn't need to own their home, renters qualify too, though landlord cooperation may be needed for some benefits.",
       "savingsRange": "$250 – $750/year in 2026",
       "savingsSource": "Oregon Housing and Community Services",
       "savingsVerified": true,
@@ -846,7 +846,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local Community Action Agency at 1-800-453-5511 option 2 — complete applications are processed on a first-come, first-served basis.",
+        "summary": "Call your local Community Action Agency at 1-800-453-5511 option 2, complete applications are processed on a first-come, first-served basis.",
         "steps": [
           {
             "step": 1,
@@ -866,12 +866,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Payment sent directly to utility",
-            "description": "If approved, the grant is paid directly to your utility company — you won't receive cash or checks."
+            "description": "If approved, the grant is paid directly to your utility company, you won't receive cash or checks."
           }
         ],
         "processingTime": "Complete applications are processed promptly, but incomplete applications are denied after 15 days pending",
-        "waitlist": "Funds are limited with priority to seniors 60+, disabled individuals, and crisis situations — general applicants may face waits or denial when funds are exhausted",
-        "tip": "If your parent has a shutoff notice or broken heating system, mention this immediately — crisis cases get priority processing.",
+        "waitlist": "Funds are limited with priority to seniors 60+, disabled individuals, and crisis situations, general applicants may face waits or denial when funds are exhausted",
+        "tip": "If your loved one has a shutoff notice or broken heating system, mention this immediately, crisis cases get priority processing.",
         "urls": [
           {
             "label": "Oregon Energy Assistance Information",
@@ -909,10 +909,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Seniors 60+ and people with disabilities get priority scheduling and funding — mention this when calling",
+        "Seniors 60+ and people with disabilities get priority scheduling and funding, mention this when calling",
         "Crisis situations like shutoff notices or broken heating systems may qualify for emergency processing and higher benefit amounts up to $750",
-        "Household income includes ALL people living at the address covered by the utility bill, even if they don't share expenses with your parent",
-        "Recent income changes may qualify your parent based on the last 30 days rather than 2 months — ask about this if circumstances have changed"
+        "Household income includes ALL people living at the address covered by the utility bill, even if they don't share expenses with your loved one",
+        "Recent income changes may qualify your loved one based on the last 30 days rather than 2 months, ask about this if circumstances have changed"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -923,32 +923,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives with roommates who aren't family?",
+          "question": "What if my loved one lives with roommates who aren't family?",
           "answer": "Everyone living at the address covered by the same utility bill counts as one household for income purposes, even if they don't share expenses. All their incomes will be counted together against the household size limits. This often disqualifies people in shared housing situations."
         },
         {
           "question": "Can I apply for both regular LIHEAP and crisis assistance?",
-          "answer": "Yes, these are separate funding pools. Your parent can receive regular heating/cooling assistance ($250-750) and still qualify for crisis assistance (up to $750) if they face a shutoff notice or heating system emergency in the same year."
+          "answer": "Yes, these are separate funding pools. Your loved one can receive regular heating/cooling assistance ($250-750) and still qualify for crisis assistance (up to $750) if they face a shutoff notice or heating system emergency in the same year."
         },
         {
-          "question": "What if my parent is a renter and the utilities are included in rent?",
-          "answer": "Your parent may still qualify, but the benefit structure differs and landlord cooperation is typically required. The local Community Action Agency will work with the landlord to determine how assistance can be applied. This can be more complicated than direct utility accounts."
+          "question": "What if my loved one is a renter and the utilities are included in rent?",
+          "answer": "Your loved one may still qualify, but the benefit structure differs and landlord cooperation is typically required. The local Community Action Agency will work with the landlord to determine how assistance can be applied. This can be more complicated than direct utility accounts."
         },
         {
           "question": "How long does the priority really last for seniors 60+?",
           "answer": "Priority means seniors get scheduled first and their applications are reviewed first, but it doesn't guarantee approval if funds run out. Priority helps most in the early months of the program year (October-December). By spring, even priority applicants may face waitlists."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
-          "answer": "Income limits are firm — there's no flexibility for being $50 or $100 over the monthly threshold. However, if your parent's income recently decreased due to job loss, illness, or other changes, they may qualify based on the last 30 days of income rather than 2 months."
+          "question": "What happens if my loved one's income is slightly over the limit?",
+          "answer": "Income limits are firm, there's no flexibility for being $50 or $100 over the monthly threshold. However, if your loved one's income recently decreased due to job loss, illness, or other changes, they may qualify based on the last 30 days of income rather than 2 months."
         },
         {
           "question": "Can weatherization and energy assistance be done at the same time?",
           "answer": "These are separate programs administered by the same agencies, so you can apply for both. Weatherization (insulation, repairs, efficiency improvements) has different eligibility rules and much longer waitlists, often 1-2 years. Energy assistance for bills can happen much faster."
         },
         {
-          "question": "What if the utility bill is in someone else's name but my parent lives there?",
-          "answer": "The account holder must live in the home for the household to qualify. If your parent lives with adult children or others, whoever's name is on the utility bill must be present for the application, and everyone in the household counts for income limits."
+          "question": "What if the utility bill is in someone else's name but my loved one lives there?",
+          "answer": "The account holder must live in the home for the household to qualify. If your loved one lives with adult children or others, whoever's name is on the utility bill must be present for the application, and everyone in the household counts for income limits."
         },
         {
           "question": "Does applying early in the program year really make a difference?",
@@ -973,7 +973,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-wap",
       "name": "Low Income Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home insulation, furnace repairs, and energy upgrades that can cut your parent's heating bills by hundreds per year",
+      "tagline": "Free home insulation, furnace repairs, and energy upgrades that can cut your loved one's heating bills by hundreds per year",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1006,7 +1006,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent's household income is below 200% of the federal poverty level, they can get free weatherization services including ceiling and wall insulation, furnace repair or replacement, air sealing, and heating duct improvements. These upgrades typically reduce energy bills by 10-50% annually.\n\nThe program prioritizes seniors 60+, people with disabilities, and households with high energy costs, though all eligible households eventually get served. Your parent can be a renter or homeowner, and mobile homes qualify. Because this operates through local agencies with limited funding, most areas have waiting lists ranging from several months to over a year.\n\nAfter application, an energy audit determines which specific improvements will provide the most cost-effective energy savings for your parent's home. All work is performed by certified contractors at no cost to your family.",
+      "intro": "If your loved one's household income is below 200% of the federal poverty level, they can get free weatherization services including ceiling and wall insulation, furnace repair or replacement, air sealing, and heating duct improvements. These upgrades typically reduce energy bills by 10-50% annually.\n\nThe program prioritizes seniors 60+, people with disabilities, and households with high energy costs, though all eligible households eventually get served. Your loved one can be a renter or homeowner, and mobile homes qualify. Because this operates through local agencies with limited funding, most areas have waiting lists ranging from several months to over a year.\n\nAfter application, an energy audit determines which specific improvements will provide the most cost-effective energy savings for your loved one's home. All work is performed by certified contractors at no cost to your family.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1030,7 +1030,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Community Action Agency to get on the waiting list — no online application available.",
+        "summary": "Call your local Community Action Agency to get on the waiting list, no online application available.",
         "steps": [
           {
             "step": 1,
@@ -1040,7 +1040,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake interview",
-            "description": "Provide household income information and basic details about your parent's home and energy costs over the phone."
+            "description": "Provide household income information and basic details about your loved one's home and energy costs over the phone."
           },
           {
             "step": 3,
@@ -1050,7 +1050,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Wait for energy audit scheduling",
-            "description": "Your parent will be placed on a waiting list. Priority households (seniors 60+, people with disabilities) may get faster service."
+            "description": "Your loved one will be placed on a waiting list. Priority households (seniors 60+, people with disabilities) may get faster service."
           },
           {
             "step": 5,
@@ -1064,8 +1064,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Households are placed on a waiting service list after initial contact",
-        "waitlist": "Yes — most areas have waiting lists ranging from several months to over a year depending on local funding and demand",
-        "tip": "If your parent is 60+ or has a disability, mention this when calling — priority households may get faster service.",
+        "waitlist": "Yes, most areas have waiting lists ranging from several months to over a year depending on local funding and demand",
+        "tip": "If your loved one is 60+ or has a disability, mention this when calling, priority households may get faster service.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1118,10 +1118,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income is calculated as gross household income before any payroll deductions — this includes all income sources for everyone living in the home",
+        "Income is calculated as gross household income before any payroll deductions, this includes all income sources for everyone living in the home",
         "Renters can apply but must get landlord permission before weatherization work begins",
         "If household income is above 200% of poverty level, ask about Energy Trust of Oregon's 'Savings Within Reach' program instead",
-        "An energy audit determines specific services provided — not every household gets all possible weatherization measures"
+        "An energy audit determines specific services provided, not every household gets all possible weatherization measures"
       ],
       "relatedPrograms": [
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1131,35 +1131,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're a renter?",
-          "answer": "Yes, renters can apply for weatherization assistance. However, your parent will need to get written permission from their landlord before any weatherization work can begin. The landlord cannot charge rent increases for at least one year after work is completed."
+          "question": "Can my loved one apply if they're a renter?",
+          "answer": "Yes, renters can apply for weatherization assistance. However, your loved one will need to get written permission from their landlord before any weatherization work can begin. The landlord cannot charge rent increases for at least one year after work is completed."
         },
         {
           "question": "How long is the waiting list really?",
           "answer": "Wait times vary significantly by county and available funding, typically ranging from several months to over a year. Seniors 60+, people with disabilities, families with children under 6, and high energy users get priority placement, which can reduce wait times."
         },
         {
-          "question": "What if my parent's income is slightly above the 200% poverty level?",
-          "answer": "Your parent won't qualify for free weatherization, but they may be eligible for Energy Trust of Oregon's 'Savings Within Reach' program, which offers rebates and financing for energy efficiency improvements. Ask your local agency about this alternative."
+          "question": "What if my loved one's income is slightly above the 200% poverty level?",
+          "answer": "Your loved one won't qualify for free weatherization, but they may be eligible for Energy Trust of Oregon's 'Savings Within Reach' program, which offers rebates and financing for energy efficiency improvements. Ask your local agency about this alternative."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. However, your parent (or their legal representative with proper documentation) must be involved in the income verification and consent process since they are the household member qualifying for benefits."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. However, your loved one (or their legal representative with proper documentation) must be involved in the income verification and consent process since they are the household member qualifying for benefits."
         },
         {
-          "question": "What happens if my parent's application gets denied?",
-          "answer": "There is a dispute resolution process under Oregon Administrative Rules. Your parent has the right to request a review of the denial decision. Contact the agency that denied the application to start the appeals process."
+          "question": "What happens if my loved one's application gets denied?",
+          "answer": "There is a dispute resolution process under Oregon Administrative Rules. Your loved one has the right to request a review of the denial decision. Contact the agency that denied the application to start the appeals process."
         },
         {
-          "question": "Will weatherization work disrupt my parent's daily routine?",
-          "answer": "Most weatherization work takes 1-3 days depending on the scope. The energy auditor will explain exactly what work will be done and the expected timeline. Your parent can usually stay in the home during most weatherization activities."
+          "question": "Will weatherization work disrupt my loved one's daily routine?",
+          "answer": "Most weatherization work takes 1-3 days depending on the scope. The energy auditor will explain exactly what work will be done and the expected timeline. Your loved one can usually stay in the home during most weatherization activities."
         },
         {
-          "question": "Does my parent's mobile home qualify for weatherization?",
-          "answer": "Yes, both mobile homes and site-built homes qualify for weatherization assistance. The energy audit will determine appropriate weatherization measures for your parent's specific type of housing."
+          "question": "Does my loved one's mobile home qualify for weatherization?",
+          "answer": "Yes, both mobile homes and site-built homes qualify for weatherization assistance. The energy audit will determine appropriate weatherization measures for your loved one's specific type of housing."
         },
         {
-          "question": "What if my parent receives SSI — do they automatically qualify?",
+          "question": "What if my loved one receives SSI, do they automatically qualify?",
           "answer": "Yes, households receiving Supplemental Security Income (SSI) are automatically eligible for weatherization assistance and don't need to meet the separate income test. They'll still need to complete the application process and provide SSI verification documentation."
         }
       ],
@@ -1194,7 +1194,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare and faces confusing bills, plan choices, or coverage problems, Oregon's SHIBA program provides free one-on-one counseling with trained volunteers. Because SHIBA counselors are independent from insurance companies, they give unbiased advice on Medicare Advantage vs. Medigap, prescription drug plans, billing errors, and appeals.\n\nYour parent doesn't need to meet any income requirements — SHIBA serves all Medicare beneficiaries in Oregon, whether they're 65+ or younger adults with disabilities. The program operates statewide with local counselors who can meet by phone, in-person, or at community events, especially during Medicare Open Enrollment (October 15 - December 7).",
+      "intro": "If your loved one has Medicare and faces confusing bills, plan choices, or coverage problems, Oregon's SHIBA program provides free one-on-one counseling with trained volunteers. Because SHIBA counselors are independent from insurance companies, they give unbiased advice on Medicare Advantage vs. Medigap, prescription drug plans, billing errors, and appeals.\n\nYour loved one doesn't need to meet any income requirements, SHIBA serves all Medicare beneficiaries in Oregon, whether they're 65+ or younger adults with disabilities. The program operates statewide with local counselors who can meet by phone, in-person, or at community events, especially during Medicare Open Enrollment (October 15 - December 7).",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1217,7 +1217,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-722-4134 and enter your zip code for immediate routing to local counselors — no application needed.",
+        "summary": "Call 800-722-4134 and enter your zip code for immediate routing to local counselors, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1237,7 +1237,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate counseling available by phone or appointment",
         "waitlist": null,
-        "tip": "During Medicare Open Enrollment (October 15 - December 7), counselors are busiest — call early in the day or schedule in advance.",
+        "tip": "During Medicare Open Enrollment (October 15 - December 7), counselors are busiest, call early in the day or schedule in advance.",
         "urls": [
           {
             "label": "Find Local SHIBA Office",
@@ -1285,12 +1285,12 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call SHIBA on behalf of my elderly parent?",
-          "answer": "Yes, you can call to get general information and schedule appointments. However, for specific account details or plan recommendations, your parent will need to be present during counseling or provide written authorization for you to act on their behalf."
+          "question": "Can I call SHIBA on behalf of my elderly loved one?",
+          "answer": "Yes, you can call to get general information and schedule appointments. However, for specific account details or plan recommendations, your loved one will need to be present during counseling or provide written authorization for you to act on their behalf."
         },
         {
-          "question": "What if my parent is losing Medicaid and needs to transition to Medicare?",
-          "answer": "SHIBA counselors specialize in Medicaid-to-Medicare transitions, especially common after COVID-related coverage changes. Call 800-722-4134 as soon as you receive notice — counselors can help find the best Medicare plan before coverage gaps occur."
+          "question": "What if my loved one is losing Medicaid and needs to transition to Medicare?",
+          "answer": "SHIBA counselors specialize in Medicaid-to-Medicare transitions, especially common after COVID-related coverage changes. Call 800-722-4134 as soon as you receive notice, counselors can help find the best Medicare plan before coverage gaps occur."
         },
         {
           "question": "Does SHIBA help with Medicare billing disputes or appeals?",
@@ -1344,7 +1344,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to leave home or prepare safe meals, Meals on Wheels delivers hot, nutritious meals directly to their door — often daily. Because this isn't a single statewide program, each region operates differently through local providers or Area Agencies on Aging.\n\nYour parent qualifies if they're homebound (meaning leaving home is a major effort and unassisted outings are rare), have limited ability to shop for or prepare meals safely, and lack family support for meal preparation. The program includes periodic wellness checks by volunteers who can spot emergencies or health changes. If your parent has Oregon Health Plan (Medicaid), meals may be covered through their case manager.",
+      "intro": "If your loved one is 60+ and struggles to leave home or prepare safe meals, Meals on Wheels delivers hot, nutritious meals directly to their door, often daily. Because this isn't a single statewide program, each region operates differently through local providers or Area Agencies on Aging.\n\nYour loved one qualifies if they're homebound (meaning leaving home is a major effort and unassisted outings are rare), have limited ability to shop for or prepare meals safely, and lack family support for meal preparation. The program includes periodic wellness checks by volunteers who can spot emergencies or health changes. If your loved one has Oregon Health Plan (Medicaid), meals may be covered through their case manager.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1358,7 +1358,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be homebound — leaving home is a major effort and unassisted outings are rare, though medical, religious, or essential activities are allowed. Must have limited ability to shop for or prepare meals safely.",
+        "functionalRequirement": "Must be homebound, leaving home is a major effort and unassisted outings are rare, though medical, religious, or essential activities are allowed. Must have limited ability to shop for or prepare meals safely.",
         "otherRequirements": [
           "Must lack family or other natural supports for meal preparation",
           "Annual reassessment required to maintain eligibility",
@@ -1368,7 +1368,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider for an in-person assessment — eligibility and availability vary significantly by region.",
+        "summary": "Call your local provider for an in-person assessment, eligibility and availability vary significantly by region.",
         "steps": [
           {
             "step": 1,
@@ -1378,22 +1378,22 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete in-person assessment",
-            "description": "A case manager will evaluate your parent's homebound status, meal preparation abilities, and safety needs. This assessment determines eligibility and meal frequency."
+            "description": "A case manager will evaluate your loved one's homebound status, meal preparation abilities, and safety needs. This assessment determines eligibility and meal frequency."
           },
           {
             "step": 3,
             "title": "Get doctor or social worker referral if needed",
-            "description": "Some programs require professional referral to confirm your parent's need for meal delivery services."
+            "description": "Some programs require professional referral to confirm your loved one's need for meal delivery services."
           },
           {
             "step": 4,
-            "title": "If your parent has Medicaid",
+            "title": "If your loved one has Medicaid",
             "description": "Their case manager can complete Form 595 (Medicaid HDM referral/authorization) to access covered meal services through the Oregon Health Plan."
           }
         ],
-        "processingTime": "Initial in-person assessment required, with annual reassessments. No statewide timeline specified — varies by local provider capacity.",
+        "processingTime": "Initial in-person assessment required, with annual reassessments. No statewide timeline specified, varies by local provider capacity.",
         "waitlist": null,
-        "tip": "If your parent has Oregon Health Plan, start with their case manager — Medicaid may cover the meals and streamline the process.",
+        "tip": "If your loved one has Oregon Health Plan, start with their case manager, Medicaid may cover the meals and streamline the process.",
         "urls": [
           {
             "label": "Oregon Department of Human Services - Meals & Nutrition",
@@ -1436,10 +1436,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Eligibility requirements and income considerations vary significantly by local provider — what qualifies you in one county may not in another",
-        "Annual reassessment is required — if your parent's condition improves and they can safely leave home regularly, they may lose eligibility",
+        "Eligibility requirements and income considerations vary significantly by local provider, what qualifies you in one county may not in another",
+        "Annual reassessment is required, if your loved one's condition improves and they can safely leave home regularly, they may lose eligibility",
         "Spouse or disabled dependent child may also receive meals, but only if they live with and benefit the primary homebound individual",
-        "Some areas like Salem/Keizer have specific delivery boundaries — service may not be available outside city limits without contacting additional providers"
+        "Some areas like Salem/Keizer have specific delivery boundaries, service may not be available outside city limits without contacting additional providers"
       ],
       "relatedPrograms": [
         "SNAP (Supplemental Nutrition Assistance Program)",
@@ -1450,28 +1450,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent can drive to medical appointments but struggles with grocery shopping?",
+          "question": "What if my loved one can drive to medical appointments but struggles with grocery shopping?",
           "answer": "They may still qualify as homebound. The definition allows for essential activities like medical, religious, or critical errands, but requires that leaving home is a major effort and unassisted outings are rare. The assessment will focus on their ability to safely shop for and prepare meals."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can initiate the process, but an in-person assessment of your parent is still required. If your parent has a case manager through Oregon Health Plan, they can also help coordinate the referral and authorization."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can initiate the process, but an in-person assessment of your loved one is still required. If your loved one has a case manager through Oregon Health Plan, they can also help coordinate the referral and authorization."
         },
         {
           "question": "What happens if we live outside Salem/Keizer but still in Marion County?",
           "answer": "Marion Polk Food Share specifically serves Salem/Keizer delivery areas. You'll need to contact them at 503-364-2856 to confirm coverage or get referred to another provider serving your specific area within the county."
         },
         {
-          "question": "How often will my parent receive meals?",
+          "question": "How often will my loved one receive meals?",
           "answer": "Frequency varies by assessment and local program capacity. Some provide daily meals, others several times per week. Medicaid-covered programs may specify maximum monthly quantities based on authorization from the case manager."
         },
         {
-          "question": "What if my parent's condition improves during the year?",
-          "answer": "Annual reassessment is required to maintain eligibility. If your parent regains the ability to safely leave home and prepare meals regularly, they may no longer qualify. However, you can reapply if their condition changes again."
+          "question": "What if my loved one's condition improves during the year?",
+          "answer": "Annual reassessment is required to maintain eligibility. If your loved one regains the ability to safely leave home and prepare meals regularly, they may no longer qualify. However, you can reapply if their condition changes again."
         },
         {
-          "question": "Does my parent's income matter for eligibility?",
-          "answer": "Most programs don't have strict statewide income limits, but some local providers like Marion Polk may consider income based on availability. If your parent has Oregon Health Plan, Medicaid coverage can help access meals regardless of other income considerations."
+          "question": "Does my loved one's income matter for eligibility?",
+          "answer": "Most programs don't have strict statewide income limits, but some local providers like Marion Polk may consider income based on availability. If your loved one has Oregon Health Plan, Medicaid coverage can help access meals regardless of other income considerations."
         }
       ],
       "layoutIntent": {
@@ -1492,7 +1492,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "family-caregiver-assistance-support",
       "name": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
       "shortName": "Family Caregiver Programs",
-      "tagline": "Get up to $500/month in services to help care for your aging parent at home, plus respite and support for yourself as a caregiver.",
+      "tagline": "Get up to $500/month in services to help care for your aging loved one at home, plus respite and support for yourself as a caregiver.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1505,7 +1505,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging parent who wants to stay in their own home, Oregon offers two programs that can provide up to $500 per month in services like personal care, adult day programs, and respite care. The Family Caregiver Assistance Program (FCAP) is Medicaid-funded with strict income limits, while the Family Caregiver Support Program (FCSP) focuses on supporting you as the caregiver with training, counseling, and respite services.\n\nFCAP serves adults who meet Oregon's Service Priority Levels 1-18 (indicating need for daily assistance) and have income below $4,163/month for individuals or $5,637/month for couples. Because FCAP covers services through one coordinated program, your parent won't need to navigate multiple Medicaid programs — but they cannot use other Medicaid services while enrolled.\n\nFCSP has more flexible eligibility and serves caregivers of adults 60+ or anyone with Alzheimer's/dementia, plus grandparents 55+ caring for children or disabled adults. Both programs are administered locally through Area Agencies on Aging, so available services may vary by county.",
+      "intro": "If you're caring for an aging loved one who wants to stay in their own home, Oregon offers two programs that can provide up to $500 per month in services like personal care, adult day programs, and respite care. The Family Caregiver Assistance Program (FCAP) is Medicaid-funded with strict income limits, while the Family Caregiver Support Program (FCSP) focuses on supporting you as the caregiver with training, counseling, and respite services.\n\nFCAP serves adults who meet Oregon's Service Priority Levels 1-18 (indicating need for daily assistance) and have income below $4,163/month for individuals or $5,637/month for couples. Because FCAP covers services through one coordinated program, your loved one won't need to navigate multiple Medicaid programs, but they cannot use other Medicaid services while enrolled.\n\nFCSP has more flexible eligibility and serves caregivers of adults 60+ or anyone with Alzheimer's/dementia, plus grandparents 55+ caring for children or disabled adults. Both programs are administered locally through Area Agencies on Aging, so available services may vary by county.",
       "savingsRange": "$500 – $6,000/year in 2026",
       "savingsSource": "Up to $500/month in services through FCAP",
       "savingsVerified": true,
@@ -1564,7 +1564,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete functional assessment",
-            "description": "A care coordinator will assess your parent's daily living needs to determine Service Priority Level for FCAP eligibility."
+            "description": "A care coordinator will assess your loved one's daily living needs to determine Service Priority Level for FCAP eligibility."
           },
           {
             "step": 3,
@@ -1579,7 +1579,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Processing time not specified in available sources",
         "waitlist": "Funding is limited under federal Older Americans Act for FCSP; waitlist information varies by county",
-        "tip": "Apply to both programs if eligible — FCSP can provide caregiver support services even if you're waiting for FCAP services to begin.",
+        "tip": "Apply to both programs if eligible, FCSP can provide caregiver support services even if you're waiting for FCAP services to begin.",
         "urls": [
           {
             "label": "ADRC of Oregon",
@@ -1614,10 +1614,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "FCAP and FCSP are separate programs with different funding sources — you may qualify for one but not the other",
+        "FCAP and FCSP are separate programs with different funding sources, you may qualify for one but not the other",
         "Services and availability vary significantly by county since programs are administered by local Area Agencies on Aging",
-        "If your parent is currently receiving other Medicaid long-term services, they cannot enroll in FCAP",
-        "Asset limits are tied to average nursing home costs in Oregon, which change annually — verify current thresholds when applying"
+        "If your loved one is currently receiving other Medicaid long-term services, they cannot enroll in FCAP",
+        "Asset limits are tied to average nursing home costs in Oregon, which change annually, verify current thresholds when applying"
       ],
       "relatedPrograms": [
         "Oregon Medicaid (Oregon Health Plan)",
@@ -1628,31 +1628,31 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent receive FCAP services while also getting other Medicaid benefits?",
-          "answer": "No, your parent cannot use other Medicaid long-term services and supports while enrolled in FCAP. This includes programs like Community First Choice or other home and community-based waiver services. However, they can still receive regular Medicaid health coverage."
+          "question": "Can my loved one receive FCAP services while also getting other Medicaid benefits?",
+          "answer": "No, your loved one cannot use other Medicaid long-term services and supports while enrolled in FCAP. This includes programs like Community First Choice or other home and community-based waiver services. However, they can still receive regular Medicaid health coverage."
         },
         {
           "question": "What's the difference between FCAP and FCSP, and can we apply for both?",
           "answer": "FCAP provides up to $500/month in direct services for the care recipient and has strict Medicaid income/asset limits. FCSP focuses on supporting you as the caregiver with respite, training, and counseling, with more flexible eligibility. Yes, you can apply for both programs simultaneously."
         },
         {
-          "question": "My parent lives in assisted living — can they still get these services?",
-          "answer": "No, both FCAP and FCSP require that your parent live in their own home. This includes their own apartment or house, but excludes assisted living facilities, adult foster homes, or residential care facilities."
+          "question": "My loved one lives in assisted living, can they still get these services?",
+          "answer": "No, both FCAP and FCSP require that your loved one live in their own home. This includes their own apartment or house, but excludes assisted living facilities, adult foster homes, or residential care facilities."
         },
         {
-          "question": "How do I know if my parent meets the Service Priority Level requirements?",
-          "answer": "Service Priority Levels 1-18 generally mean your parent needs daily help with activities like bathing, dressing, medication management, or requires safety supervision due to cognitive issues. A care coordinator will conduct this assessment as part of the application process."
+          "question": "How do I know if my loved one meets the Service Priority Level requirements?",
+          "answer": "Service Priority Levels 1-18 generally mean your loved one needs daily help with activities like bathing, dressing, medication management, or requires safety supervision due to cognitive issues. A care coordinator will conduct this assessment as part of the application process."
         },
         {
-          "question": "What happens if my parent's income is just over the FCAP limit?",
-          "answer": "If income exceeds $4,163/month for an individual or $5,637/month for a couple, your parent won't qualify for FCAP. However, they may still be eligible for FCSP services, which focus on caregiver support and have more flexible financial requirements."
+          "question": "What happens if my loved one's income is just over the FCAP limit?",
+          "answer": "If income exceeds $4,163/month for an individual or $5,637/month for a couple, your loved one won't qualify for FCAP. However, they may still be eligible for FCSP services, which focus on caregiver support and have more flexible financial requirements."
         },
         {
           "question": "Are the asset limits the same statewide, or do they vary by county?",
           "answer": "Asset limits are tied to the average cost of six months in a nursing facility, which may vary by region. Contact your local ADRC at 1-855-673-2372 to verify current asset thresholds in your area, as these amounts change annually."
         },
         {
-          "question": "Can I get respite care through these programs even if my parent doesn't qualify for FCAP?",
+          "question": "Can I get respite care through these programs even if my loved one doesn't qualify for FCAP?",
           "answer": "Yes, FCSP specifically provides respite services, caregiver training, and emotional support for family caregivers, even if the care recipient doesn't meet FCAP's stricter financial requirements. Contact your local Area Agency on Aging to learn about available FCSP services in your county."
         },
         {
@@ -1699,7 +1699,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work experience (average 20 hours per week) at minimum wage while they search for permanent employment. Your parent earns income immediately while receiving job training, skill updates, and placement assistance into unsubsidized jobs.\n\nTo qualify, your parent's family income must not exceed 125% of the federal poverty level (updated January 15, 2025) and they must be currently unemployed. Priority enrollment goes to veterans, adults 65+, those with disabilities, and rural residents. Because this is transitional employment designed to bridge to permanent work, participants typically stay in the program while actively job searching.\n\nThe program operates statewide through Easter Seals Oregon, which partners with local nonprofits and government agencies to provide actual work placements. Your parent works at community organizations while building resume-worthy experience and receiving ongoing support to find permanent employment.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid work experience (average 20 hours per week) at minimum wage while they search for permanent employment. Your loved one earns income immediately while receiving job training, skill updates, and placement assistance into unsubsidized jobs.\n\nTo qualify, your loved one's family income must not exceed 125% of the federal poverty level (updated January 15, 2025) and they must be currently unemployed. Priority enrollment goes to veterans, adults 65+, those with disabilities, and rural residents. Because this is transitional employment designed to bridge to permanent work, participants typically stay in the program while actively job searching.\n\nThe program operates statewide through Easter Seals Oregon, which partners with local nonprofits and government agencies to provide actual work placements. Your loved one works at community organizations while building resume-worthy experience and receiving ongoing support to find permanent employment.",
       "savingsRange": "",
       "savingsSource": "Employment program providing wages",
       "savingsVerified": false,
@@ -1722,7 +1722,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call Easter Seals Oregon at 503-228-5100 to start the application process — processing time varies by location.",
+        "summary": "Call Easter Seals Oregon at 503-228-5100 to start the application process, processing time varies by location.",
         "steps": [
           {
             "step": 1,
@@ -1732,7 +1732,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Easter Seals will assess your parent's employment history, skills, and job goals. They'll verify income eligibility (125% of federal poverty level) and unemployment status."
+            "description": "Easter Seals will assess your loved one's employment history, skills, and job goals. They'll verify income eligibility (125% of federal poverty level) and unemployment status."
           },
           {
             "step": 3,
@@ -1742,12 +1742,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Job placement matching",
-            "description": "If eligible, Easter Seals matches your parent with a host agency (nonprofit or government organization) based on skills and interests. Work begins once placement is confirmed."
+            "description": "If eligible, Easter Seals matches your loved one with a host agency (nonprofit or government organization) based on skills and interests. Work begins once placement is confirmed."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent qualifies for priority enrollment (veteran, age 65+, disability, rural resident), mention this when calling — it may reduce wait times.",
+        "tip": "If your loved one qualifies for priority enrollment (veteran, age 65+, disability, rural resident), mention this when calling, it may reduce wait times.",
         "urls": [
           {
             "label": "Oregon SCSEP Information",
@@ -1792,9 +1792,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits are strict — family income must be below 125% of federal poverty level, which was updated January 15, 2025. Verify current thresholds before applying.",
+        "Income limits are strict, family income must be below 125% of federal poverty level, which was updated January 15, 2025. Verify current thresholds before applying.",
         "Priority enrollment categories can significantly affect wait times. Veterans, adults 65+, those with disabilities, and rural residents typically get faster placement.",
-        "This is transitional employment designed to bridge to permanent work — the goal is unsubsidized employment, not long-term program participation.",
+        "This is transitional employment designed to bridge to permanent work, the goal is unsubsidized employment, not long-term program participation.",
         "Work hours average 20 hours per week at minimum wage, so this provides supplemental income while job searching, not full-time replacement income."
       ],
       "relatedPrograms": [
@@ -1806,27 +1806,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're receiving Social Security or pension income?",
-          "answer": "Yes, but total family income (including Social Security, pensions, and all other sources) must not exceed 125% of the federal poverty level. Contact Easter Seals at 503-228-5100 to verify if your parent's specific income qualifies under current 2025 poverty guidelines."
+          "question": "Can my loved one apply if they're receiving Social Security or pension income?",
+          "answer": "Yes, but total family income (including Social Security, pensions, and all other sources) must not exceed 125% of the federal poverty level. Contact Easter Seals at 503-228-5100 to verify if your loved one's specific income qualifies under current 2025 poverty guidelines."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
-          "answer": "SCSEP is designed as transitional employment to bridge to permanent work. The program provides ongoing placement assistance while your parent works part-time and job searches. Length varies based on individual job search success and local program capacity."
+          "question": "How long can my loved one stay in the SCSEP program?",
+          "answer": "SCSEP is designed as transitional employment to bridge to permanent work. The program provides ongoing placement assistance while your loved one works part-time and job searches. Length varies based on individual job search success and local program capacity."
         },
         {
-          "question": "What if my parent lives in a rural area — are there work placements available?",
-          "answer": "Rural residents receive priority enrollment, and Easter Seals partners with local nonprofits and government agencies statewide to provide work placements. Call 503-228-5100 to discuss specific opportunities in your parent's area."
+          "question": "What if my loved one lives in a rural area, are there work placements available?",
+          "answer": "Rural residents receive priority enrollment, and Easter Seals partners with local nonprofits and government agencies statewide to provide work placements. Call 503-228-5100 to discuss specific opportunities in your loved one's area."
         },
         {
-          "question": "Can my parent choose what type of work they do in the program?",
+          "question": "Can my loved one choose what type of work they do in the program?",
           "answer": "Easter Seals matches participants with host agencies based on skills, interests, and local availability. Work is typically at community organizations, nonprofits, or government agencies. Discuss preferences during the intake assessment."
         },
         {
-          "question": "What happens if my parent finds permanent employment while in SCSEP?",
+          "question": "What happens if my loved one finds permanent employment while in SCSEP?",
           "answer": "That's the program's goal. Easter Seals provides ongoing job placement assistance, and participants transition out of SCSEP when they secure unsubsidized permanent employment. The program celebrates successful job placements."
         },
         {
-          "question": "Does my parent get benefits like health insurance through SCSEP?",
+          "question": "Does my loved one get benefits like health insurance through SCSEP?",
           "answer": "SCSEP provides wages at minimum wage for part-time work (average 20 hours per week). Contact Easter Seals at 503-228-5100 for specific information about any additional benefits provided to participants."
         }
       ],
@@ -1869,7 +1869,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older, they can get free 30-minute consultations with volunteer attorneys on civil legal issues — even if their income is too high for other legal aid services. Because seniors often get priority regardless of income, your parent won't need to prove financial hardship for initial consultations at most regional offices.\n\nLegal Aid Services of Oregon helps with wills, powers of attorney, housing disputes, consumer debt, abuse protection orders, public benefits appeals, family law, and nursing home issues. If your parent needs full representation beyond the consultation, low-income seniors (household income up to 125% of federal poverty guidelines) get priority for extended services.",
+      "intro": "If your loved one is 60 or older, they can get free 30-minute consultations with volunteer attorneys on civil legal issues, even if their income is too high for other legal aid services. Because seniors often get priority regardless of income, your loved one won't need to prove financial hardship for initial consultations at most regional offices.\n\nLegal Aid Services of Oregon helps with wills, powers of attorney, housing disputes, consumer debt, abuse protection orders, public benefits appeals, family law, and nursing home issues. If your loved one needs full representation beyond the consultation, low-income seniors (household income up to 125% of federal poverty guidelines) get priority for extended services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1893,7 +1893,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional office during intake hours — most offer same-week consultations.",
+        "summary": "Call your regional office during intake hours, most offer same-week consultations.",
         "steps": [
           {
             "step": 1,
@@ -1913,7 +1913,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Consultations typically scheduled within one week of calling",
         "waitlist": null,
-        "tip": "Seniors get income-blind initial consultations, but mention if your parent is low-income since that helps with priority for extended representation.",
+        "tip": "Seniors get income-blind initial consultations, but mention if your loved one is low-income since that helps with priority for extended representation.",
         "urls": [
           {
             "label": "LASO Main Website",
@@ -1970,16 +1970,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Will my parent be charged if they need more help after the free consultation?",
-          "answer": "The 30-minute consultation is always free. If your parent needs full representation and qualifies as low-income (up to 125% of federal poverty guidelines), extended services remain free. If volunteer attorneys take the case privately beyond LASO services, they may charge standard rates."
+          "question": "Will my loved one be charged if they need more help after the free consultation?",
+          "answer": "The 30-minute consultation is always free. If your loved one needs full representation and qualifies as low-income (up to 125% of federal poverty guidelines), extended services remain free. If volunteer attorneys take the case privately beyond LASO services, they may charge standard rates."
         },
         {
-          "question": "What if my parent's legal problem is in a county without a LASO office?",
-          "answer": "LASO serves most Oregon counties through regional offices. Call the nearest regional office — they can often help by phone or refer you to local resources. The Central Oregon office at 1-800-678-6944 serves multiple counties."
+          "question": "What if my loved one's legal problem is in a county without a LASO office?",
+          "answer": "LASO serves most Oregon counties through regional offices. Call the nearest regional office, they can often help by phone or refer you to local resources. The Central Oregon office at 1-800-678-6944 serves multiple counties."
         },
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
-          "answer": "You can call to ask about services and schedule appointments, but the attorney will need to assess your parent's capacity to make legal decisions. If your parent cannot participate, the attorney may help you explore guardianship or other protective options."
+          "question": "Can I call on behalf of my loved one who has dementia?",
+          "answer": "You can call to ask about services and schedule appointments, but the attorney will need to assess your loved one's capacity to make legal decisions. If your loved one cannot participate, the attorney may help you explore guardianship or other protective options."
         }
       ],
       "layoutIntent": {
@@ -2000,7 +2000,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Long-term Care Ombudsman",
       "shortName": "Ombudsman Services",
-      "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility.",
+      "tagline": "Free advocacy and complaint resolution if your loved one lives in a nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2021,7 +2021,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or adult foster home in Oregon, the Long-term Care Ombudsman provides free advocacy when problems arise. Because ombudsman representatives visit facilities regularly and investigate complaints, your parent gets an independent voice to address issues with care quality, billing disputes, or violations of residents' rights.\n\nThis is not a placement service or financial aid program — it's specifically for current residents who need help resolving problems with their facility. The program operates statewide through trained volunteers and state staff who can investigate complaints, mediate disputes, and ensure facilities follow state regulations.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or adult foster home in Oregon, the Long-term Care Ombudsman provides free advocacy when problems arise. Because ombudsman representatives visit facilities regularly and investigate complaints, your loved one gets an independent voice to address issues with care quality, billing disputes, or violations of residents' rights.\n\nThis is not a placement service or financial aid program, it's specifically for current residents who need help resolving problems with their facility. The program operates statewide through trained volunteers and state staff who can investigate complaints, mediate disputes, and ensure facilities follow state regulations.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2042,7 +2042,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local ombudsman directly or contact them through your facility — no forms required.",
+        "summary": "Call your local ombudsman directly or contact them through your facility, no forms required.",
         "steps": [
           {
             "step": 1,
@@ -2057,12 +2057,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Ombudsman investigates",
-            "description": "The ombudsman will investigate your complaint and work with the facility to resolve the issue. If you're filing on behalf of your parent, they'll need your parent's consent to proceed."
+            "description": "The ombudsman will investigate your complaint and work with the facility to resolve the issue. If you're filing on behalf of your loved one, they'll need your loved one's consent to proceed."
           }
         ],
         "processingTime": "Complaint investigations handled promptly by ombudsman representatives",
         "waitlist": null,
-        "tip": "If you're filing a complaint on behalf of your parent, make sure they understand and consent to the investigation — the ombudsman needs resident permission to act.",
+        "tip": "If you're filing a complaint on behalf of your loved one, make sure they understand and consent to the investigation, the ombudsman needs resident permission to act.",
         "urls": [
           {
             "label": "Oregon Law Help Ombudsman Referrals",
@@ -2094,11 +2094,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint on behalf of my parent who has dementia?",
-          "answer": "Yes, but the ombudsman still needs your parent's consent to investigate, even if you're filing the complaint. If your parent cannot provide consent due to cognitive impairment, the ombudsman can still provide information and may be able to investigate under certain circumstances. Contact your local ombudsman to discuss your specific situation."
+          "question": "Can I file a complaint on behalf of my loved one who has dementia?",
+          "answer": "Yes, but the ombudsman still needs your loved one's consent to investigate, even if you're filing the complaint. If your loved one cannot provide consent due to cognitive impairment, the ombudsman can still provide information and may be able to investigate under certain circumstances. Contact your local ombudsman to discuss your specific situation."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "question": "What if the facility retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation against residents for filing complaints is illegal. The ombudsman specifically monitors for retaliation and can investigate these violations as separate complaints. Document any changes in care or treatment after filing a complaint and report them immediately to the ombudsman."
         },
         {
@@ -2131,7 +2131,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 58 or older and at risk of losing their housing in Oregon, ERA can pay their rent directly to landlords. This program specifically helps elderly adults who are homeless or unstably housed — stable renters don't qualify, even if they're struggling financially.\n\nBecause ERA works through local homeless prevention programs, the exact benefit amount varies by county and household size. Your parent must earn less than 50% of their area's median income, which is significantly lower than most housing programs. Oregon doesn't require citizenship or long-term residency, making this accessible to recent residents and immigrants.",
+      "intro": "If your loved one is 58 or older and at risk of losing their housing in Oregon, ERA can pay their rent directly to landlords. This program specifically helps elderly adults who are homeless or unstably housed, stable renters don't qualify, even if they're struggling financially.\n\nBecause ERA works through local homeless prevention programs, the exact benefit amount varies by county and household size. Your loved one must earn less than 50% of their area's median income, which is significantly lower than most housing programs. Oregon doesn't require citizenship or long-term residency, making this accessible to recent residents and immigrants.",
       "savingsRange": "",
       "savingsSource": "Rental housing cost assistance - specific amounts vary by household and county",
       "savingsVerified": false,
@@ -2155,7 +2155,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your local homeless prevention program through the Coordinated Entry System — processing times vary by region.",
+        "summary": "Contact your local homeless prevention program through the Coordinated Entry System, processing times vary by region.",
         "steps": [
           {
             "step": 1,
@@ -2165,7 +2165,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete housing stability assessment",
-            "description": "Your local provider will assess your parent's housing situation and income eligibility. This assessment is covered even if your parent doesn't qualify for benefits."
+            "description": "Your local provider will assess your loved one's housing situation and income eligibility. This assessment is covered even if your loved one doesn't qualify for benefits."
           },
           {
             "step": 3,
@@ -2180,7 +2180,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified - varies by local provider capacity",
         "waitlist": null,
-        "tip": "Even if your parent seems ineligible, request the assessment — it's free and providers may identify other housing resources.",
+        "tip": "Even if your loved one seems ineligible, request the assessment, it's free and providers may identify other housing resources.",
         "urls": [
           {
             "label": "Oregon Housing and Community Services",
@@ -2216,10 +2216,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The age threshold is 58, not 65 — many families assume Medicare age eligibility applies to housing programs",
-        "Income limits are 50% of Area Median Income, which varies significantly by county — Portland limits differ from rural Oregon",
-        "No citizenship or residency duration requirements, but some local agencies may have stricter policies — clarify with your provider",
-        "Assessment costs are covered program expenses even if your parent is ultimately deemed ineligible for rental assistance"
+        "The age threshold is 58, not 65, many families assume Medicare age eligibility applies to housing programs",
+        "Income limits are 50% of Area Median Income, which varies significantly by county, Portland limits differ from rural Oregon",
+        "No citizenship or residency duration requirements, but some local agencies may have stricter policies, clarify with your provider",
+        "Assessment costs are covered program expenses even if your loved one is ultimately deemed ineligible for rental assistance"
       ],
       "relatedPrograms": [
         "Oregon Emergency Rental Assistance Program",
@@ -2230,27 +2230,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my 57-year-old parent apply if they turn 58 soon?",
-          "answer": "No, your parent must be 58 or older when they apply. The program requires at least one household member to meet the age threshold at application time, not during processing."
+          "question": "Can my 57-year-old loved one apply if they turn 58 soon?",
+          "answer": "No, your loved one must be 58 or older when they apply. The program requires at least one household member to meet the age threshold at application time, not during processing."
         },
         {
-          "question": "What counts as 'unstably housed' if my parent isn't technically homeless?",
+          "question": "What counts as 'unstably housed' if my loved one isn't technically homeless?",
           "answer": "Unstably housed includes facing eviction, living temporarily with others, staying in unsafe conditions, or spending more than 50% of income on housing. Your local provider will assess the specific situation during the eligibility interview."
         },
         {
-          "question": "How do I find the income limit for my parent's county?",
+          "question": "How do I find the income limit for my loved one's county?",
           "answer": "Income limits are 50% of Area Median Income, which varies by county and household size. Contact your local homeless prevention program through OHCS at (503) 986-2000 for exact dollar amounts in your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. Your parent will need to be present for the assessment interview, but you can handle initial contact and document gathering."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. Your loved one will need to be present for the assessment interview, but you can handle initial contact and document gathering."
         },
         {
-          "question": "What if my parent has no formal income documentation?",
+          "question": "What if my loved one has no formal income documentation?",
           "answer": "Self-attestation is permitted as a last resort when formal documentation isn't available. Your local provider will work with you to document zero income or informal income sources like family support."
         },
         {
-          "question": "Does my parent need to be a U.S. citizen to qualify?",
+          "question": "Does my loved one need to be a U.S. citizen to qualify?",
           "answer": "No, citizenship is not required for ERA. Oregon also doesn't consider immigration status or require minimum residency duration, making this accessible to recent residents and immigrants."
         },
         {
@@ -2258,7 +2258,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The program documents don't specify benefit duration limits. Contact your local provider to understand whether assistance is one-time emergency help or ongoing rental support."
         },
         {
-          "question": "What happens if my parent gets approved but their landlord won't participate?",
+          "question": "What happens if my loved one gets approved but their landlord won't participate?",
           "answer": "ERA pays rental costs directly, so landlord cooperation is typically required. Your local provider may be able to help negotiate with landlords or identify alternative housing options if needed."
         }
       ],
@@ -2280,7 +2280,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-tuition-audit",
       "name": "Oregon Senior Free Tuition Audit Program",
       "shortName": "Senior Tuition Audit",
-      "tagline": "If your parent is 65+, they can audit college courses for free at Oregon public colleges and universities.",
+      "tagline": "If your loved one is 65+, they can audit college courses for free at Oregon public colleges and universities.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2297,7 +2297,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ and curious about learning, they can audit college courses for free at any Oregon public college or university. This means 100% tuition waiver for up to 8 credits per term — no income limits, no financial tests required.\n\nBecause this is audit-only (no grades or credit earned), your parent can explore subjects they've always been interested in without academic pressure. They'll need instructor approval and can only register if space remains after paying students, but other fees like technology or course fees still apply.\n\nThe process varies by school — some colleges like Portland Community College start partial discounts at age 62, but the full tuition waiver kicks in at 65 statewide. Your parent will need to get admitted to the college first, then get instructor permission, then register after the first day of class if space is available.",
+      "intro": "If your loved one is 65+ and curious about learning, they can audit college courses for free at any Oregon public college or university. This means 100% tuition waiver for up to 8 credits per term, no income limits, no financial tests required.\n\nBecause this is audit-only (no grades or credit earned), your loved one can explore subjects they've always been interested in without academic pressure. They'll need instructor approval and can only register if space remains after paying students, but other fees like technology or course fees still apply.\n\nThe process varies by school, some colleges like Portland Community College start partial discounts at age 62, but the full tuition waiver kicks in at 65 statewide. Your loved one will need to get admitted to the college first, then get instructor permission, then register after the first day of class if space is available.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2325,12 +2325,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact the specific college directly — each has different forms and processes, but generally requires admission, instructor approval, and registration after the first day of class.",
+        "summary": "Contact the specific college directly, each has different forms and processes, but generally requires admission, instructor approval, and registration after the first day of class.",
         "steps": [
           {
             "step": 1,
             "title": "Apply for admission if new student",
-            "description": "Complete the standard college admission application if your parent isn't already enrolled. This is required even for auditing."
+            "description": "Complete the standard college admission application if your loved one isn't already enrolled. This is required even for auditing."
           },
           {
             "step": 2,
@@ -2355,7 +2355,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by institution; registration occurs after first day of class if approved (typically confirmed during the first week of term)",
         "waitlist": "No formal waitlist; space-available only after paying students register",
-        "tip": "Email instructors early — they're more likely to approve audit requests when contacted before the term starts.",
+        "tip": "Email instructors early, they're more likely to approve audit requests when contacted before the term starts.",
         "urls": [
           {
             "label": "Oregon Coast Community College Registrar",
@@ -2397,8 +2397,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Some colleges like Clatsop offer additional discounts starting at age 62 (Gold Card 25% off), but the full tuition waiver requires age 65 statewide",
-        "Registration must occur after the first day of class per state law — you cannot register during normal registration periods",
-        "Course fees, technology fees, and lab fees are not waived — only tuition is covered under this program",
+        "Registration must occur after the first day of class per state law, you cannot register during normal registration periods",
+        "Course fees, technology fees, and lab fees are not waived, only tuition is covered under this program",
         "Limited-entry programs like nursing have their own restrictions and may not accept audit students"
       ],
       "relatedPrograms": [
@@ -2409,27 +2409,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent audit courses if they're 62 but not yet 65?",
+          "question": "Can my loved one audit courses if they're 62 but not yet 65?",
           "answer": "It depends on the college. Some schools like Portland Community College and Oregon Coast Community College offer partial discounts starting at age 62, but the full tuition waiver is only guaranteed at age 65 statewide. Contact the specific college to ask about their early discount policies."
         },
         {
           "question": "What happens if the class is full and there's no space for auditors?",
-          "answer": "Your parent cannot register for that course. Because paying students get priority, there's no formal waitlist or guarantee of space. Try contacting the instructor early or look for the same course in a future term when enrollment might be lower."
+          "answer": "Your loved one cannot register for that course. Because paying students get priority, there's no formal waitlist or guarantee of space. Try contacting the instructor early or look for the same course in a future term when enrollment might be lower."
         },
         {
-          "question": "Can my parent take multiple courses in the same term?",
+          "question": "Can my loved one take multiple courses in the same term?",
           "answer": "Yes, up to 8 credits per term maximum. However, each course requires separate instructor approval and space availability. The more courses they want, the earlier they should start the approval process."
         },
         {
-          "question": "What fees will my parent still need to pay even with the tuition waiver?",
+          "question": "What fees will my loved one still need to pay even with the tuition waiver?",
           "answer": "All non-tuition fees still apply: course fees, technology fees, lab fees, parking permits, and student activity fees. Contact the college's business office for a specific breakdown, as these can add $50-200+ per course depending on the type of class."
         },
         {
-          "question": "Can my parent switch from auditing to taking the course for credit mid-term?",
-          "answer": "No, the senior program only covers auditing. If your parent wants to earn credit, they would need to register as a regular paying student and pay full tuition. This decision must be made before registration."
+          "question": "Can my loved one switch from auditing to taking the course for credit mid-term?",
+          "answer": "No, the senior program only covers auditing. If your loved one wants to earn credit, they would need to register as a regular paying student and pay full tuition. This decision must be made before registration."
         },
         {
-          "question": "What if my parent wants to take upper-division or graduate courses?",
+          "question": "What if my loved one wants to take upper-division or graduate courses?",
           "answer": "The senior tuition waiver only applies to lower-division collegiate courses. Upper-division and graduate courses are excluded, though specific colleges may have their own policies. Contact the university's registrar to ask about options for advanced courses."
         }
       ],
@@ -2464,7 +2464,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Oregon Health Plan (OHP) Medicaid and is going through a major life transition — like being released from prison, discharged from a mental health facility, becoming homeless, or transitioning to Medicare — they may qualify for Health Related Social Needs Benefits. This program covers rent and utilities for up to 6 months, medically necessary home modifications like wheelchair ramps and grab bars, and medically tailored meals delivered to their home.\n\nThe program requires both a qualifying life transition and clinical risk factors (like being 65+, having complex health conditions, or difficulty with daily activities). For housing benefits specifically, your parent's household income must be 30% or less of their area's median income, and they must lack other resources to prevent homelessness. Because this is administered through regional insurance plans (CCOs), availability and wait times vary significantly by location — some areas have immediate openings while others have months-long backlogs.",
+      "intro": "If your loved one has Oregon Health Plan (OHP) Medicaid and is going through a major life transition, like being released from prison, discharged from a mental health facility, becoming homeless, or transitioning to Medicare, they may qualify for Health Related Social Needs Benefits. This program covers rent and utilities for up to 6 months, medically necessary home modifications like wheelchair ramps and grab bars, and medically tailored meals delivered to their home.\n\nThe program requires both a qualifying life transition and clinical risk factors (like being 65+, having complex health conditions, or difficulty with daily activities). For housing benefits specifically, your loved one's household income must be 30% or less of their area's median income, and they must lack other resources to prevent homelessness. Because this is administered through regional insurance plans (CCOs), availability and wait times vary significantly by location, some areas have immediate openings while others have months-long backlogs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2489,22 +2489,22 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your parent's healthcare provider or their OHP insurance plan (CCO) directly — there's no single statewide application.",
+        "summary": "Contact your loved one's healthcare provider or their OHP insurance plan (CCO) directly, there's no single statewide application.",
         "steps": [
           {
             "step": 1,
             "title": "Confirm OHP enrollment",
-            "description": "Call 1-800-273-0557 to verify your parent has active Oregon Health Plan coverage and identify which CCO (insurance plan) they're enrolled with."
+            "description": "Call 1-800-273-0557 to verify your loved one has active Oregon Health Plan coverage and identify which CCO (insurance plan) they're enrolled with."
           },
           {
             "step": 2,
             "title": "Contact the right organization",
-            "description": "If enrolled with PacificSource, call 211info for a follow-up referral. For Health Share, AllCare, Advanced Health, or IHN-CCO, contact them directly through their websites or call your parent's primary care provider."
+            "description": "If enrolled with PacificSource, call 211info for a follow-up referral. For Health Share, AllCare, Advanced Health, or IHN-CCO, contact them directly through their websites or call your loved one's primary care provider."
           },
           {
             "step": 3,
             "title": "Complete assessment",
-            "description": "A provider will assess your parent's life transition status, clinical risk factors, and specific social needs (housing, nutrition, climate-related)."
+            "description": "A provider will assess your loved one's life transition status, clinical risk factors, and specific social needs (housing, nutrition, climate-related)."
           },
           {
             "step": 4,
@@ -2512,9 +2512,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Provide proof of OHP enrollment, income verification for housing benefits, lease or landlord agreement, and medical documentation of clinical risk factors."
           }
         ],
-        "processingTime": "Varies by service and provider — high volume causes longer processing times, with some areas experiencing backlogs as of 2026",
-        "waitlist": "Possible due to volume and provider capacity — wait times vary significantly by region and CCO",
-        "tip": "Work with your parent's healthcare provider first rather than applying directly — they can help determine eligibility and navigate the CCO-specific process.",
+        "processingTime": "Varies by service and provider, high volume causes longer processing times, with some areas experiencing backlogs as of 2026",
+        "waitlist": "Possible due to volume and provider capacity, wait times vary significantly by region and CCO",
+        "tip": "Work with your loved one's healthcare provider first rather than applying directly, they can help determine eligibility and navigate the CCO-specific process.",
         "urls": [
           {
             "label": "Oregon HRSN Official Page",
@@ -2556,10 +2556,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Don't submit applications to multiple CCOs for the same benefits — work with the CCO your parent is already enrolled with",
-        "This is not for emergency situations — contact Community Action Agencies for immediate crisis assistance instead",
-        "Housing benefits require your parent to already have housing (with a lease) and lack resources to maintain it — this doesn't help find housing for unhoused individuals without a housing path",
-        "Processing delays are common due to high demand — expect longer wait times in some regions, particularly Lane County PacificSource as of early 2026"
+        "Don't submit applications to multiple CCOs for the same benefits, work with the CCO your loved one is already enrolled with",
+        "This is not for emergency situations, contact Community Action Agencies for immediate crisis assistance instead",
+        "Housing benefits require your loved one to already have housing (with a lease) and lack resources to maintain it, this doesn't help find housing for unhoused individuals without a housing path",
+        "Processing delays are common due to high demand, expect longer wait times in some regions, particularly Lane County PacificSource as of early 2026"
       ],
       "relatedPrograms": [
         "Oregon Health Plan (OHP)",
@@ -2570,11 +2570,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get HRSN benefits if they're not currently homeless but struggling to pay rent?",
+          "question": "Can my loved one get HRSN benefits if they're not currently homeless but struggling to pay rent?",
           "answer": "Yes, if they're 'at risk of homelessness' and meet the other requirements. For housing benefits, they need a current lease or landlord agreement, household income 30% or less of Area Median Income, and lack other resources or support to prevent homelessness. The program can cover rent and utilities for up to 6 months."
         },
         {
-          "question": "What if my parent has Medicare and Medicaid — do they still qualify?",
+          "question": "What if my loved one has Medicare and Medicaid, do they still qualify?",
           "answer": "Yes, as long as they have Oregon Health Plan (OHP) coverage. In fact, 'transitioning to dual Medicaid/Medicare eligibility' within the next 3 months or past 9 months is one of the qualifying life transitions. Call 1-800-273-0557 to confirm their OHP status."
         },
         {
@@ -2582,23 +2582,23 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Wait times vary significantly by region and CCO. Some areas have immediate availability while others have months-long backlogs. As of early 2026, Lane County PacificSource specifically was experiencing processing delays due to high volume. Applications are reviewed in the order received."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "Yes, but you'll need to work through their healthcare provider or CCO care coordinator. The clinical assessment and life transition verification still need to be completed, and you'll need proper documentation showing your authority to act on their behalf if you're not their legal guardian."
         },
         {
-          "question": "What happens if my parent is getting similar help from another program?",
+          "question": "What happens if my loved one is getting similar help from another program?",
           "answer": "They cannot receive the same or similar benefits from other state, local, or federal programs simultaneously. The CCO will verify this during the application process. However, they may be able to receive different types of assistance (like SNAP for food and HRSN for housing) as long as the services don't duplicate."
         },
         {
-          "question": "My parent was released from prison 18 months ago — are they still eligible?",
+          "question": "My loved one was released from prison 18 months ago, are they still eligible?",
           "answer": "No, the qualifying life transition for incarceration release must be within the past 12 months. However, they may qualify under other life transitions like being homeless or at risk of homelessness, or if they're 65+ and meet the clinical risk factors."
         },
         {
           "question": "What's the difference between medically tailored meals and regular food assistance?",
-          "answer": "HRSN medically tailored meals are prescribed by a dietitian or primary care provider for specific health conditions and low or very low food security. They're delivered to your parent's home and designed for their medical needs. This is different from SNAP benefits or Meals on Wheels, which provide general nutrition assistance."
+          "answer": "HRSN medically tailored meals are prescribed by a dietitian or primary care provider for specific health conditions and low or very low food security. They're delivered to your loved one's home and designed for their medical needs. This is different from SNAP benefits or Meals on Wheels, which provide general nutrition assistance."
         },
         {
-          "question": "Can my parent get home modifications like grab bars and ramps through this program?",
+          "question": "Can my loved one get home modifications like grab bars and ramps through this program?",
           "answer": "Yes, if they're medically necessary and improve their health condition. Examples include wheelchair ramps, grab bars, and other accessibility modifications. The modification must be tied to their clinical risk factors and approved through their healthcare provider's assessment."
         }
       ],
@@ -2618,12 +2618,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Oregon offers 15 programs to help your aging parent stay safe and independent at home. These range from monthly financial benefits (like $100-300 for groceries through SNAP or up to $500/month for caregiver support) to free resources that don't require income qualification. The state covers some unique benefits — including rent and utility assistance for OHP members in crisis, and free college course auditing for seniors 65+. Start by checking the highest-value programs first: Medicare Savings Programs can cut hundreds from monthly healthcare costs, while OPI-M provides Medicaid-funded home care even if your parent's income is too high for regular Medicaid.",
+    "intro": "Oregon offers 15 programs to help your aging loved one stay safe and independent at home. These range from monthly financial benefits (like $100-300 for groceries through SNAP or up to $500/month for caregiver support) to free resources that don't require income qualification. The state covers some unique benefits, including rent and utility assistance for OHP members in crisis, and free college course auditing for seniors 65+. Start by checking the highest-value programs first: Medicare Savings Programs can cut hundreds from monthly healthcare costs, while OPI-M provides Medicaid-funded home care even if your loved one's income is too high for regular Medicaid.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
         "programId": "medicare-savings-programs-msp",
-        "why": "Can immediately reduce Medicare premiums and co-pays if your parent's income is under $1,800/month."
+        "why": "Can immediately reduce Medicare premiums and co-pays if your loved one's income is under $1,800/month."
       },
       {
         "name": "SNAP Food Benefits (Oregon)",
@@ -2638,7 +2638,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
         "programId": "senior-health-insurance-benefits-assistance-shiba",
-        "why": "Free expert help navigating Medicare — no income requirements."
+        "why": "Free expert help navigating Medicare, no income requirements."
       }
     ],
     "byNeed": [
@@ -2684,7 +2684,7 @@ export const drafts: PipelineStateDrafts = {
           "Legal Aid Services of Oregon (LASO)",
           "Long-term Care Ombudsman"
         ],
-        "description": "Expert help with Medicare, legal issues, and nursing home problems — available to all Oregon seniors."
+        "description": "Expert help with Medicare, legal issues, and nursing home problems, available to all Oregon seniors."
       },
       {
         "need": "Employment and education",
@@ -2697,10 +2697,10 @@ export const drafts: PipelineStateDrafts = {
     ],
     "quickFacts": [
       "Oregon Health Plan (OHP) members can get rent, utilities, and home modifications covered through Health Related Social Needs Benefits during specific life transitions",
-      "Most income-based programs use similar thresholds — around $1,800-2,200/month for a single person, though some programs have higher limits",
+      "Most income-based programs use similar thresholds, around $1,800-2,200/month for a single person, though some programs have higher limits",
       "Oregon provides free legal aid specifically for seniors through Legal Aid Services of Oregon, including help with benefits applications",
       "The state offers both general Medicaid home care and a specialized program (OPI-M) for those who don't qualify for regular Medicaid"
     ],
-    "resourcesVsBenefits": "Oregon offers both income-qualified benefits and free resources for all seniors. Benefits like SNAP, energy assistance, and home care require meeting income limits (typically under $1,800-2,200/month). But resources like SHIBA Medicare counseling, Legal Aid Services, and the Long-term Care Ombudsman are free to all Oregon residents regardless of income — use these first for expert guidance, then apply for financial benefits based on your parent's situation."
+    "resourcesVsBenefits": "Oregon offers both income-qualified benefits and free resources for all seniors. Benefits like SNAP, energy assistance, and home care require meeting income limits (typically under $1,800-2,200/month). But resources like SHIBA Medicare counseling, Legal Aid Services, and the Long-term Care Ombudsman are free to all Oregon residents regardless of income, use these first for expert guidance, then apply for financial benefits based on your loved one's situation."
   }
 };

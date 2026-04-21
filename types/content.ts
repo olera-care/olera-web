@@ -28,6 +28,8 @@ export interface ContentArticle {
   author_name: string;
   author_role: string;
   author_avatar: string | null;
+  reviewer_name: string | null;
+  reviewer_role: string | null;
   status: ContentStatus;
   featured: boolean;
   tags: string[];
@@ -45,6 +47,7 @@ export interface ContentArticle {
   twitter_card_type: string;
   // Timestamps
   published_at: string | null;
+  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;

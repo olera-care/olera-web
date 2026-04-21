@@ -9,7 +9,7 @@
       "id": "hcbs-waivers",
       "name": "Home and Community-Based Services (HCBS) Waivers",
       "shortName": "HCBS Waivers",
-      "tagline": "Services to help your parent stay at home instead of moving to a nursing facility, when they qualify for nursing home-level care.",
+      "tagline": "Services to help your loved one stay at home instead of moving to a nursing facility, when they qualify for nursing home-level care.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -26,7 +26,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs daily help with activities like bathing, dressing, or medication management, Maine's HCBS Waivers provide home care services to avoid nursing home placement. The program covers care coordination, personal support services, home health services, adult day programs, transportation, emergency response systems, home modifications, and respite care. Because these waivers require Nursing Facility Level of Care (a clinical assessment showing your parent needs daily skilled nursing or significant help with at least 3 daily activities), they serve parents who would otherwise qualify for nursing home admission.\n\nThe services are person-centered and designed around your parent's specific needs, but funded openings are limited and waitlists exist. Multiple waiver types serve different populations — elderly/disabled adults, intellectual disabilities, and brain injury — and your parent can only enroll in one waiver at a time. Home equity up to $1,130,000 in 2026 is exempt, but your parent must first qualify for MaineCare (Maine Medicaid) to access these additional waiver services.",
+      "intro": "If your loved one is 65+ and needs daily help with activities like bathing, dressing, or medication management, Maine's HCBS Waivers provide home care services to avoid nursing home placement. The program covers care coordination, personal support services, home health services, adult day programs, transportation, emergency response systems, home modifications, and respite care. Because these waivers require Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily skilled nursing or significant help with at least 3 daily activities), they serve parents who would otherwise qualify for nursing home admission.\n\nThe services are person-centered and designed around your loved one's specific needs, but funded openings are limited and waitlists exist. Multiple waiver types serve different populations, elderly/disabled adults, intellectual disabilities, and brain injury, and your loved one can only enroll in one waiver at a time. Home equity up to $1,130,000 in 2026 is exempt, but your loved one must first qualify for MaineCare (Maine Medicaid) to access these additional waiver services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -77,7 +77,7 @@
           {
             "step": 3,
             "title": "Complete in-person nursing assessment",
-            "description": "A registered nurse will visit to assess your parent's functional needs using the Medical Eligibility Determination (MED) tool to determine if they meet Nursing Facility Level of Care."
+            "description": "A registered nurse will visit to assess your loved one's functional needs using the Medical Eligibility Determination (MED) tool to determine if they meet Nursing Facility Level of Care."
           },
           {
             "step": 4,
@@ -87,7 +87,7 @@
         ],
         "processingTime": "Processing time not specified",
         "waitlist": "Limited funded slots create waitlists; wait times vary by waiver type and region",
-        "tip": "Start the MaineCare application early — you cannot access waiver services without MaineCare eligibility first.",
+        "tip": "Start the MaineCare application early, you cannot access waiver services without MaineCare eligibility first.",
         "urls": [
           {
             "label": "Maine DHHS Office for Family Independence",
@@ -127,7 +127,7 @@
         }
       ],
       "applicationNotes": [
-        "Multiple distinct waivers exist (Elderly/Adults with Disabilities, Intellectual Disabilities/Autism, Brain Injury) — you can only enroll in one at a time",
+        "Multiple distinct waivers exist (Elderly/Adults with Disabilities, Intellectual Disabilities/Autism, Brain Injury), you can only enroll in one at a time",
         "Relatives and spouses can provide paid services but must complete required training and certification by deadline",
         "Home equity limit of $1,130,000 in 2026 may disqualify applicants unless exemptions apply (spouse or disabled child living there)",
         "Even with MaineCare approval and nursing facility level of care determination, services cannot begin until a funded slot becomes available"
@@ -141,8 +141,8 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent qualify if their home is worth more than $1 million?",
-          "answer": "Yes, if the home equity is $1,130,000 or less in 2026. If your parent lives there or intends to return, or if a spouse or disabled child lives there, the home is completely exempt regardless of value. Only the equity amount (market value minus mortgage) counts toward the limit."
+          "question": "Can my loved one qualify if their home is worth more than $1 million?",
+          "answer": "Yes, if the home equity is $1,130,000 or less in 2026. If your loved one lives there or intends to return, or if a spouse or disabled child lives there, the home is completely exempt regardless of value. Only the equity amount (market value minus mortgage) counts toward the limit."
         },
         {
           "question": "What's the real wait time for services to start?",
@@ -150,10 +150,10 @@
         },
         {
           "question": "Can I apply for both PACE and HCBS Waivers at the same time?",
-          "answer": "You can apply to both programs simultaneously, but your parent cannot be enrolled in both at once. PACE provides comprehensive medical and social services, while HCBS Waivers supplement existing healthcare with home and community services. Choose based on your parent's specific needs and service availability."
+          "answer": "You can apply to both programs simultaneously, but your loved one cannot be enrolled in both at once. PACE provides comprehensive medical and social services, while HCBS Waivers supplement existing healthcare with home and community services. Choose based on your loved one's specific needs and service availability."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
+          "question": "What happens if my loved one's care needs increase after enrollment?",
           "answer": "Services are reviewed and adjusted through person-centered planning meetings with your case manager. If needs increase significantly, you may need to transition to a different waiver type or consider other long-term care options, but changes depend on available funding and slots."
         },
         {
@@ -161,8 +161,8 @@
           "answer": "Yes, relatives and spouses can provide services and receive payment, but they must complete required training and certification programs by the specified deadline. The case manager will explain training requirements and payment processes during enrollment."
         },
         {
-          "question": "What if my parent is currently in the hospital or rehabilitation facility?",
-          "answer": "You can start the application process while your parent is in a facility. Discharge planners often help initiate MaineCare and waiver applications. Having services approved before discharge helps ensure a smooth transition home, but a funded slot must still be available."
+          "question": "What if my loved one is currently in the hospital or rehabilitation facility?",
+          "answer": "You can start the application process while your loved one is in a facility. Discharge planners often help initiate MaineCare and waiver applications. Having services approved before discharge helps ensure a smooth transition home, but a funded slot must still be available."
         }
       ],
       "layoutIntent": {
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling to afford groceries on a fixed income, SNAP provides monthly benefits loaded onto an EBT card to help pay for food. In Maine, a single person can receive up to $298 per month, with higher amounts for larger households. The actual amount depends on your parent's income and qualifying expenses like medical bills over $35 per month.\n\nMaine has special rules that make SNAP more accessible for seniors. Your parent won't face asset limits that exist in other states, and if they're over 60, they only need to meet the net income test (not the gross income limit that applies to younger adults). This means seniors with slightly higher incomes may still qualify if they have medical expenses or other deductions.\n\nThe program covers most food items at grocery stores, farmers markets, and many online retailers. Benefits are loaded monthly onto an EBT card that works like a debit card for eligible food purchases.",
+      "intro": "If your loved one is struggling to afford groceries on a fixed income, SNAP provides monthly benefits loaded onto an EBT card to help pay for food. In Maine, a single person can receive up to $298 per month, with higher amounts for larger households. The actual amount depends on your loved one's income and qualifying expenses like medical bills over $35 per month.\n\nMaine has special rules that make SNAP more accessible for seniors. Your loved one won't face asset limits that exist in other states, and if they're over 60, they only need to meet the net income test (not the gross income limit that applies to younger adults). This means seniors with slightly higher incomes may still qualify if they have medical expenses or other deductions.\n\nThe program covers most food items at grocery stores, farmers markets, and many online retailers. Benefits are loaded monthly onto an EBT card that works like a debit card for eligible food purchases.",
       "savingsRange": "$100 – $3,600/year in 2026",
       "savingsSource": "Based on SNAP maximum monthly benefits ($298 for single person, varies by household size and income)",
       "savingsVerified": true,
@@ -261,7 +261,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at MyMaineConnection.gov or call your local DHHS office — processing typically takes 30 days.",
+        "summary": "Apply online at MyMaineConnection.gov or call your local DHHS office, processing typically takes 30 days.",
         "steps": [
           {
             "step": 1,
@@ -291,7 +291,7 @@
         ],
         "processingTime": "Typically 30 days, expedited for urgent cases",
         "waitlist": null,
-        "tip": "Report medical expenses over $35/month — this can significantly increase your parent's monthly benefit amount.",
+        "tip": "Report medical expenses over $35/month, this can significantly increase your loved one's monthly benefit amount.",
         "urls": [
           {
             "label": "Apply online at MyMaineConnection",
@@ -342,9 +342,9 @@
       ],
       "applicationNotes": [
         "Households with seniors (60+) only need to meet the net income test, not the gross income limit that applies to younger applicants",
-        "Maine's state-funded expansion eliminates asset limits — your parent won't be disqualified for having savings or a valuable car",
+        "Maine's state-funded expansion eliminates asset limits, your loved one won't be disqualified for having savings or a valuable car",
         "Medical expenses over $35/month can be deducted from income, potentially increasing benefit amounts significantly",
-        "If your parent lives with others but buys and prepares food separately, they can apply as a one-person household"
+        "If your loved one lives with others but buys and prepares food separately, they can apply as a one-person household"
       ],
       "relatedPrograms": [
         "LIHEAP (Low Income Home Energy Assistance Program)",
@@ -355,19 +355,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car if they apply for SNAP?",
-          "answer": "Yes. Maine eliminated asset limits for SNAP, so your parent's home, car, and savings won't disqualify them. This is different from other states where asset limits still apply."
+          "question": "Can my loved one keep their house and car if they apply for SNAP?",
+          "answer": "Yes. Maine eliminated asset limits for SNAP, so your loved one's home, car, and savings won't disqualify them. This is different from other states where asset limits still apply."
         },
         {
-          "question": "What if my parent's Social Security income is slightly over the limit?",
-          "answer": "If your parent is 60+, they only need to meet the net income test after deductions. Medical expenses over $35/month can be deducted from income, potentially bringing them under the limit and increasing their benefits."
+          "question": "What if my loved one's Social Security income is slightly over the limit?",
+          "answer": "If your loved one is 60+, they only need to meet the net income test after deductions. Medical expenses over $35/month can be deducted from income, potentially bringing them under the limit and increasing their benefits."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent gives written permission or if you have legal authority (power of attorney, guardianship). Contact your local DHHS office to complete the representative forms."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one gives written permission or if you have legal authority (power of attorney, guardianship). Contact your local DHHS office to complete the representative forms."
         },
         {
-          "question": "What foods can my parent buy with SNAP benefits?",
+          "question": "What foods can my loved one buy with SNAP benefits?",
           "answer": "SNAP covers most food items including fruits, vegetables, meat, dairy, bread, and seeds for growing food. It cannot be used for alcohol, tobacco, hot prepared foods, vitamins, or non-food items like soap or pet food."
         },
         {
@@ -375,15 +375,15 @@
           "answer": "Benefits are ongoing but require periodic reviews. Households with elderly or disabled members typically have longer certification periods (up to 24 months) before needing to recertify compared to other households."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
-          "answer": "Report income changes within 10 days if your parent is subject to work requirements, or by the next report date for elderly households. Changes may increase or decrease benefits, but prompt reporting prevents overpayments that must be repaid."
+          "question": "What happens if my loved one's income changes after approval?",
+          "answer": "Report income changes within 10 days if your loved one is subject to work requirements, or by the next report date for elderly households. Changes may increase or decrease benefits, but prompt reporting prevents overpayments that must be repaid."
         },
         {
-          "question": "Can my parent get SNAP if they're already receiving Medicaid or other benefits?",
-          "answer": "Yes, receiving other benefits doesn't disqualify your parent from SNAP. In fact, being on certain programs like SSI or Medicaid may streamline the SNAP application process and provide automatic eligibility."
+          "question": "Can my loved one get SNAP if they're already receiving Medicaid or other benefits?",
+          "answer": "Yes, receiving other benefits doesn't disqualify your loved one from SNAP. In fact, being on certain programs like SSI or Medicaid may streamline the SNAP application process and provide automatic eligibility."
         },
         {
-          "question": "What if my parent lives in senior housing or assisted living?",
+          "question": "What if my loved one lives in senior housing or assisted living?",
           "answer": "Residents of senior housing can receive SNAP if they buy and prepare their own food. However, residents of assisted living facilities that provide meals as part of their services typically cannot receive SNAP benefits."
         }
       ],
@@ -405,7 +405,7 @@
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Your parent can get help paying heating bills if their monthly income is under $3,070 for a single-person household.",
+      "tagline": "Your loved one can get help paying heating bills if their monthly income is under $3,070 for a single-person household.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -418,7 +418,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills, LIHEAP provides a one-time payment sent directly to their utility or fuel provider. The program helps cover heating costs for homeowners and renters — even if heat is included in rent — based on household size, income, and fuel type.\n\nPriority goes to households with the lowest incomes, with TANF recipients receiving the highest benefit amounts for their household size. The program also has a crisis component for emergencies like utility shutoffs or broken heating systems.\n\nFunding is limited and distributed first-come, first-served. Applications typically open July 1st through local Community Action Agencies, with demand up 20% over previous years. Apply as early as possible since funds may run out during peak winter months.",
+      "intro": "If your loved one struggles to pay heating bills, LIHEAP provides a one-time payment sent directly to their utility or fuel provider. The program helps cover heating costs for homeowners and renters, even if heat is included in rent, based on household size, income, and fuel type.\n\nPriority goes to households with the lowest incomes, with TANF recipients receiving the highest benefit amounts for their household size. The program also has a crisis component for emergencies like utility shutoffs or broken heating systems.\n\nFunding is limited and distributed first-come, first-served. Applications typically open July 1st through local Community Action Agencies, with demand up 20% over previous years. Apply as early as possible since funds may run out during peak winter months.",
       "savingsRange": "",
       "savingsSource": "One-time payment varies by household size and income",
       "savingsVerified": false,
@@ -475,7 +475,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through MaineHousing or by appointment at your local Community Action Agency — applications typically open July 1st.",
+        "summary": "Apply online through MaineHousing or by appointment at your local Community Action Agency, applications typically open July 1st.",
         "steps": [
           {
             "step": 1,
@@ -498,9 +498,9 @@
             "description": "Answer any requests for additional documentation right away. Applications become incomplete if you don't respond promptly, which can delay or prevent approval."
           }
         ],
-        "processingTime": "Not specified — first-come, first-served with limited funds",
+        "processingTime": "Not specified, first-come, first-served with limited funds",
         "waitlist": null,
-        "tip": "If your parent has high medical expenses or receives TANF, they may qualify even if their income appears over the limit — apply anyway.",
+        "tip": "If your loved one has high medical expenses or receives TANF, they may qualify even if their income appears over the limit, apply anyway.",
         "urls": [
           {
             "label": "Maine LIHEAP Application",
@@ -537,7 +537,7 @@
       "applicationNotes": [
         "TANF recipients are automatically income-eligible and receive the highest benefit amount for their household size",
         "Documented medical expenses can be deducted from gross income, potentially qualifying households over the income limits",
-        "Crisis assistance is available for emergencies like utility shutoffs or broken heating systems — contact your local CAA immediately",
+        "Crisis assistance is available for emergencies like utility shutoffs or broken heating systems, contact your local CAA immediately",
         "Mixed immigration status households can receive benefits for eligible members only"
       ],
       "relatedPrograms": [
@@ -549,11 +549,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if heat is included in their rent?",
+          "question": "Can my loved one apply if heat is included in their rent?",
           "answer": "Yes. Renters qualify for LIHEAP even if heating costs are included in their rent payment. The program recognizes that renters face energy costs through their rental payments."
         },
         {
-          "question": "What if my parent's income is slightly over the limit but they have high medical bills?",
+          "question": "What if my loved one's income is slightly over the limit but they have high medical bills?",
           "answer": "They should still apply. Documented medical expenses can be deducted from gross income, which may bring them under the income limit. Gather receipts and statements for all out-of-pocket medical costs."
         },
         {
@@ -562,15 +562,15 @@
         },
         {
           "question": "Can I apply for both regular LIHEAP and crisis assistance?",
-          "answer": "Yes. Crisis assistance is for emergencies like utility shutoffs or broken heating systems. Contact your local Community Action Agency immediately if your parent faces a heating emergency — don't wait for regular application processing."
+          "answer": "Yes. Crisis assistance is for emergencies like utility shutoffs or broken heating systems. Contact your local Community Action Agency immediately if your loved one faces a heating emergency, don't wait for regular application processing."
         },
         {
           "question": "What counts as 'household' for income and size calculations?",
           "answer": "Everyone living at the same address who shares the utility bill counts as the household. This includes family members and non-relatives who live together and share energy costs."
         },
         {
-          "question": "Does the payment go directly to my parent or the utility company?",
-          "answer": "The payment goes directly to the utility company or fuel provider, not to your parent. This ensures the funds are used specifically for energy costs and may help prevent shutoffs."
+          "question": "Does the payment go directly to my loved one or the utility company?",
+          "answer": "The payment goes directly to the utility company or fuel provider, not to your loved one. This ensures the funds are used specifically for energy costs and may help prevent shutoffs."
         }
       ],
       "layoutIntent": {
@@ -591,7 +591,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy improvements that can cut your parent's heating bills while making their home safer and more comfortable.",
+      "tagline": "Free home energy improvements that can cut your loved one's heating bills while making their home safer and more comfortable.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -612,7 +612,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills or lives in a drafty home, Maine's Weatherization Assistance Program provides free energy efficiency improvements at no cost to qualifying households. The program installs insulation, seals air leaks, repairs or replaces heating systems, and makes health and safety improvements like installing carbon monoxide detectors and improving ventilation.\n\nYour parent qualifies if their household income is at or below 200% of the federal poverty level, or if they already receive benefits like HEAP, SNAP, TANF, or MaineCare. Because households receiving HEAP benefits are automatically eligible, many seniors who get help with heating bills can also get these home improvements. The program serves homeowners and renters statewide, though renters need written landlord approval.\n\nPriority goes to households with elderly residents (60+), young children, or disabled family members — but this also means others may face longer waits due to funding limits. Your parent's home must be their primary year-round residence and cannot have been weatherized under WAP or MaineHousing within the past 15 years.",
+      "intro": "If your loved one struggles with high heating bills or lives in a drafty home, Maine's Weatherization Assistance Program provides free energy efficiency improvements at no cost to qualifying households. The program installs insulation, seals air leaks, repairs or replaces heating systems, and makes health and safety improvements like installing carbon monoxide detectors and improving ventilation.\n\nYour loved one qualifies if their household income is at or below 200% of the federal poverty level, or if they already receive benefits like HEAP, SNAP, TANF, or MaineCare. Because households receiving HEAP benefits are automatically eligible, many seniors who get help with heating bills can also get these home improvements. The program serves homeowners and renters statewide, though renters need written landlord approval.\n\nPriority goes to households with elderly residents (60+), young children, or disabled family members, but this also means others may face longer waits due to funding limits. Your loved one's home must be their primary year-round residence and cannot have been weatherized under WAP or MaineHousing within the past 15 years.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -638,7 +638,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your regional Community Action Agency by phone — no central online application, but the process starts with one call.",
+        "summary": "Contact your regional Community Action Agency by phone, no central online application, but the process starts with one call.",
         "steps": [
           {
             "step": 1,
@@ -653,7 +653,7 @@
           {
             "step": 3,
             "title": "Schedule home assessment",
-            "description": "Agency will verify income and schedule an energy audit to determine what improvements your parent's home needs and confirm structural condition."
+            "description": "Agency will verify income and schedule an energy audit to determine what improvements your loved one's home needs and confirm structural condition."
           },
           {
             "step": 4,
@@ -661,9 +661,9 @@
             "description": "Households with elderly residents (60+), young children, or disabled members get priority. Others may face longer waits due to funding limits."
           }
         ],
-        "processingTime": "Not specified — income re-verified prior to energy audit",
+        "processingTime": "Not specified, income re-verified prior to energy audit",
         "waitlist": "Likely due to funding limits and priority system favoring elderly 60+, young children, and disabled residents",
-        "tip": "If your parent already receives HEAP benefits, mention this upfront — it makes them automatically eligible and may speed the process.",
+        "tip": "If your loved one already receives HEAP benefits, mention this upfront, it makes them automatically eligible and may speed the process.",
         "urls": [
           {
             "label": "MaineHousing Weatherization Program",
@@ -675,7 +675,7 @@
         "HEAP, SNAP, TANF, or MaineCare award letters (if participating)",
         "Proof of income from all household members for the last 12 months",
         "Current property tax bill or municipal confirmation of residence",
-        "Utility bills showing the home is your parent's primary residence",
+        "Utility bills showing the home is your loved one's primary residence",
         "Birth certificates or other proof of age for household members",
         "Documentation of disability status (if claiming priority)",
         "For rentals: Written landlord authorization form",
@@ -702,7 +702,7 @@
         }
       ],
       "applicationNotes": [
-        "Priority goes to households with elderly residents (60+), young children, or disabled members — others may face significantly longer waits",
+        "Priority goes to households with elderly residents (60+), young children, or disabled members, others may face significantly longer waits",
         "HEAP participants are automatically income-eligible, which can speed up the approval process",
         "Homes with serious structural problems that affect safety will be disqualified until repairs are made",
         "Landlords must agree in writing and the improvements must benefit at least 66% of rental units in the building"
@@ -716,36 +716,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they had weatherization work done years ago?",
-          "answer": "No, if your parent received weatherization through WAP or MaineHousing within the past 15 years, they're not eligible for the program again. This 15-year rule is strictly enforced to ensure the program serves as many different households as possible."
+          "question": "Can my loved one apply if they had weatherization work done years ago?",
+          "answer": "No, if your loved one received weatherization through WAP or MaineHousing within the past 15 years, they're not eligible for the program again. This 15-year rule is strictly enforced to ensure the program serves as many different households as possible."
         },
         {
-          "question": "What if my parent rents and the landlord won't give permission?",
-          "answer": "The landlord's written authorization is required for rental properties, and there's no way around this requirement. Try explaining that the improvements are free and will reduce utility costs while increasing property value. If the landlord still refuses, your parent cannot participate in the program."
+          "question": "What if my loved one rents and the landlord won't give permission?",
+          "answer": "The landlord's written authorization is required for rental properties, and there's no way around this requirement. Try explaining that the improvements are free and will reduce utility costs while increasing property value. If the landlord still refuses, your loved one cannot participate in the program."
         },
         {
           "question": "How long is the waitlist really for someone who doesn't get priority?",
-          "answer": "The program prioritizes households with elderly residents (60+), young children, or disabled members due to limited funding. While specific wait times aren't published, households without these priority factors may wait significantly longer — potentially months to over a year depending on your region's demand."
+          "answer": "The program prioritizes households with elderly residents (60+), young children, or disabled members due to limited funding. While specific wait times aren't published, households without these priority factors may wait significantly longer, potentially months to over a year depending on your region's demand."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can help with the application process, but your parent will need to be involved since the program requires verification of their income, living situation, and home condition. The energy audit must be conducted at your parent's home with someone present who can answer questions about the property."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can help with the application process, but your loved one will need to be involved since the program requires verification of their income, living situation, and home condition. The energy audit must be conducted at your loved one's home with someone present who can answer questions about the property."
         },
         {
           "question": "What happens if the home inspection finds structural problems?",
-          "answer": "Homes must be in good structural condition to qualify for weatherization. If the assessment finds serious structural issues that affect safety, your parent will be disqualified until those problems are fixed at their own expense. Minor issues that don't affect safety may be addressed as part of the weatherization work."
+          "answer": "Homes must be in good structural condition to qualify for weatherization. If the assessment finds serious structural issues that affect safety, your loved one will be disqualified until those problems are fixed at their own expense. Minor issues that don't affect safety may be addressed as part of the weatherization work."
         },
         {
-          "question": "Can my parent get weatherization and HEAP at the same time?",
-          "answer": "Yes, your parent can receive HEAP energy assistance while waiting for or receiving weatherization services. In fact, HEAP participation makes them automatically eligible for weatherization and may help move them through the process faster."
+          "question": "Can my loved one get weatherization and HEAP at the same time?",
+          "answer": "Yes, your loved one can receive HEAP energy assistance while waiting for or receiving weatherization services. In fact, HEAP participation makes them automatically eligible for weatherization and may help move them through the process faster."
         },
         {
-          "question": "What if my parent's income changes after they apply?",
-          "answer": "Income is re-verified before the energy audit is conducted, so if your parent's income rises above 200% of the federal poverty level and they don't have categorical eligibility through HEAP or other programs, they may be disqualified. Report income changes to your regional agency promptly."
+          "question": "What if my loved one's income changes after they apply?",
+          "answer": "Income is re-verified before the energy audit is conducted, so if your loved one's income rises above 200% of the federal poverty level and they don't have categorical eligibility through HEAP or other programs, they may be disqualified. Report income changes to your regional agency promptly."
         },
         {
           "question": "Does this program cover vacation homes or seasonal properties?",
-          "answer": "No, the home must be your parent's principal year-round residence. Vacation homes, seasonal properties, and second homes don't qualify. The program is specifically designed to help people with their primary living situation, not recreational properties."
+          "answer": "No, the home must be your loved one's principal year-round residence. Vacation homes, seasonal properties, and second homes don't qualify. The program is specifically designed to help people with their primary living situation, not recreational properties."
         }
       ],
       "layoutIntent": {
@@ -766,7 +766,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
       "shortName": "Maine SHIP",
-      "tagline": "Free, expert help navigating Medicare choices, appeals, and cost-saving programs for your parent.",
+      "tagline": "Free, expert help navigating Medicare choices, appeals, and cost-saving programs for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -787,7 +787,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling with Medicare decisions, billing issues, or finding ways to reduce healthcare costs, Maine SHIP provides free one-on-one counseling with trained experts who don't sell insurance. These counselors help compare Medicare Advantage plans, Medigap policies, prescription drug options, and can enroll your parent in programs that reduce out-of-pocket costs.\n\nBecause SHIP counselors are independent and don't work for insurance companies, they provide objective information to help your parent choose the best coverage for their specific needs. No income limits apply — these services are free regardless of your parent's financial situation.\n\nMaine SHIP operates through five Area Agencies on Aging statewide, offering appointments by phone, Zoom, or in-person depending on your local office.",
+      "intro": "If your loved one is struggling with Medicare decisions, billing issues, or finding ways to reduce healthcare costs, Maine SHIP provides free one-on-one counseling with trained experts who don't sell insurance. These counselors help compare Medicare Advantage plans, Medigap policies, prescription drug options, and can enroll your loved one in programs that reduce out-of-pocket costs.\n\nBecause SHIP counselors are independent and don't work for insurance companies, they provide objective information to help your loved one choose the best coverage for their specific needs. No income limits apply, these services are free regardless of your loved one's financial situation.\n\nMaine SHIP operates through five Area Agencies on Aging statewide, offering appointments by phone, Zoom, or in-person depending on your local office.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -809,7 +809,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging to schedule a counseling appointment — no formal application needed.",
+        "summary": "Call your local Area Agency on Aging to schedule a counseling appointment, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -827,7 +827,7 @@
             "description": "Have your Medicare cards, recent bills, insurance notices, or any specific questions ready for your session."
           }
         ],
-        "processingTime": "Immediate scheduling upon contact — no processing time required",
+        "processingTime": "Immediate scheduling upon contact, no processing time required",
         "waitlist": null,
         "tip": "Before your appointment, write down specific questions about Medicare plans or billing issues so you make the most of your counseling time.",
         "urls": [
@@ -848,7 +848,7 @@
         {
           "label": "Maine Office of Aging and Disability Services",
           "phone": null,
-          "description": "State office — use shiphelp.org to connect with local counselors",
+          "description": "State office, use shiphelp.org to connect with local counselors",
           "hours": "Mon-Fri business hours"
         }
       ],
@@ -862,19 +862,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help choosing between my parent's Medicare Advantage options during Open Enrollment?",
-          "answer": "Yes, SHIP counselors specialize in comparing Medicare Advantage plans side-by-side, looking at your parent's specific doctors, medications, and budget. They can help during Open Enrollment (October 15 - December 7) or any time you have questions about plan changes."
+          "question": "Can I get help choosing between my loved one's Medicare Advantage options during Open Enrollment?",
+          "answer": "Yes, SHIP counselors specialize in comparing Medicare Advantage plans side-by-side, looking at your loved one's specific doctors, medications, and budget. They can help during Open Enrollment (October 15 - December 7) or any time you have questions about plan changes."
         },
         {
-          "question": "Will the counselor try to sell my parent insurance?",
-          "answer": "No. SHIP counselors are trained volunteers who don't work for insurance companies and don't earn commissions. They provide objective information to help your parent make informed decisions without any sales pressure."
+          "question": "Will the counselor try to sell my loved one insurance?",
+          "answer": "No. SHIP counselors are trained volunteers who don't work for insurance companies and don't earn commissions. They provide objective information to help your loved one make informed decisions without any sales pressure."
         },
         {
-          "question": "Can a SHIP counselor help if Medicare denied my parent's claim?",
+          "question": "Can a SHIP counselor help if Medicare denied my loved one's claim?",
           "answer": "Yes, counselors help with Medicare appeals, billing disputes, and understanding explanation of benefits. They can walk you through the appeals process and help gather the documentation needed to challenge denied claims."
         },
         {
-          "question": "Does my parent need to qualify financially for SHIP services?",
+          "question": "Does my loved one need to qualify financially for SHIP services?",
           "answer": "No income or asset limits apply. SHIP services are free for anyone with Medicare, their family members, and caregivers, regardless of financial situation."
         }
       ],
@@ -896,7 +896,7 @@
       "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
-      "tagline": "Free nutritious meals delivered to your parent's door up to 5 days a week if they can't prepare food safely.",
+      "tagline": "Free nutritious meals delivered to your loved one's door up to 5 days a week if they can't prepare food safely.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -917,7 +917,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to prepare meals safely — whether due to mobility issues, cognitive changes, or being homebound — Maine's Home Delivered Meals program brings nutritious, balanced meals directly to their door up to 5 days a week. Volunteers and staff deliver hot meals while providing wellness check-ins and nutrition counseling from registered dietitians.\n\nBecause the program prioritizes homebound seniors who can't safely cook for themselves, your parent doesn't need to meet strict income limits — the focus is on functional need rather than financial tests. The service works on both short-term (post-hospital recovery) and long-term bases, adapting to your parent's changing health needs.\n\nYour parent must be assessed in person by a local provider within 10 business days of referral, and meals begin within 2 business days of approval. The program operates through Maine's five Area Agencies on Aging, so availability and delivery schedules may vary by region.",
+      "intro": "If your loved one is 60+ and struggles to prepare meals safely, whether due to mobility issues, cognitive changes, or being homebound, Maine's Home Delivered Meals program brings nutritious, balanced meals directly to their door up to 5 days a week. Volunteers and staff deliver hot meals while providing wellness check-ins and nutrition counseling from registered dietitians.\n\nBecause the program prioritizes homebound seniors who can't safely cook for themselves, your loved one doesn't need to meet strict income limits, the focus is on functional need rather than financial tests. The service works on both short-term (post-hospital recovery) and long-term bases, adapting to your loved one's changing health needs.\n\nYour loved one must be assessed in person by a local provider within 10 business days of referral, and meals begin within 2 business days of approval. The program operates through Maine's five Area Agencies on Aging, so availability and delivery schedules may vary by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -943,7 +943,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for an assessment — meals start within 2 business days of approval.",
+        "summary": "Call your local Area Agency on Aging for an assessment, meals start within 2 business days of approval.",
         "steps": [
           {
             "step": 1,
@@ -953,12 +953,12 @@
           {
             "step": 2,
             "title": "Schedule in-person assessment",
-            "description": "A provider will schedule an in-person visit within 10 business days to assess your parent's functional needs and living situation."
+            "description": "A provider will schedule an in-person visit within 10 business days to assess your loved one's functional needs and living situation."
           },
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "The assessor evaluates your parent's ability to prepare meals safely, mobility limitations, and overall homebound status."
+            "description": "The assessor evaluates your loved one's ability to prepare meals safely, mobility limitations, and overall homebound status."
           },
           {
             "step": 4,
@@ -967,8 +967,8 @@
           }
         ],
         "processingTime": "In-person assessment within 10 business days of referral; meals begin within 2 business days of assessment approval",
-        "waitlist": "Waitlists may vary by region depending on provider capacity — ask about current availability when calling",
-        "tip": "Have medical information ready about your parent's limitations with cooking, mobility, or cognitive function — this helps the assessor understand their needs.",
+        "waitlist": "Waitlists may vary by region depending on provider capacity, ask about current availability when calling",
+        "tip": "Have medical information ready about your loved one's limitations with cooking, mobility, or cognitive function, this helps the assessor understand their needs.",
         "urls": [
           {
             "label": "Maine Aging Services",
@@ -977,11 +977,11 @@
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID for your parent",
+        "Valid photo ID for your loved one",
         "Proof of Maine residency (utility bill or lease agreement)",
         "List of current medications",
         "Medical documentation of physical or cognitive limitations",
-        "Contact information for your parent's primary care doctor",
+        "Contact information for your loved one's primary care doctor",
         "Emergency contact information",
         "Information about other household members and caregivers",
         "List of dietary restrictions or special nutrition needs"
@@ -1001,10 +1001,10 @@
         }
       ],
       "applicationNotes": [
-        "Priority goes to low-income, rural, and vulnerable older adults, but there's no strict income cutoff — functional need is the primary criteria",
+        "Priority goes to low-income, rural, and vulnerable older adults, but there's no strict income cutoff, functional need is the primary criteria",
         "Spouses and disabled adults under 60 may also qualify in some cases depending on regional provider policies",
-        "Short-term meal delivery is available for post-hospital recovery even if your parent doesn't qualify for long-term services",
-        "Each region has different providers and delivery schedules — Eastern Agency on Aging serves eastern Maine while other AAAs cover their territories"
+        "Short-term meal delivery is available for post-hospital recovery even if your loved one doesn't qualify for long-term services",
+        "Each region has different providers and delivery schedules, Eastern Agency on Aging serves eastern Maine while other AAAs cover their territories"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -1021,35 +1021,35 @@
       ],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they have dementia and can't call themselves?",
-          "answer": "Yes, family members can initiate the referral process on behalf of elderly parents. However, the in-person assessment must still include your parent, and the assessor will need to evaluate their specific functional limitations directly."
+          "question": "Can I apply for my loved one if they have dementia and can't call themselves?",
+          "answer": "Yes, family members can initiate the referral process on behalf of elderly loved ones. However, the in-person assessment must still include your loved one, and the assessor will need to evaluate their specific functional limitations directly."
         },
         {
-          "question": "What if my parent can cook sometimes but not safely every day?",
-          "answer": "The assessment looks at overall functional ability and safety, not just complete inability to cook. If your parent has good days and bad days, or can manage simple tasks but not full meal preparation, they may still qualify based on the assessor's evaluation."
+          "question": "What if my loved one can cook sometimes but not safely every day?",
+          "answer": "The assessment looks at overall functional ability and safety, not just complete inability to cook. If your loved one has good days and bad days, or can manage simple tasks but not full meal preparation, they may still qualify based on the assessor's evaluation."
         },
         {
           "question": "How long is the waitlist in different parts of Maine?",
           "answer": "Waitlists vary significantly by region and aren't publicly reported. Eastern Maine through Eastern Agency on Aging may have different capacity than central or northern regions. Ask about current wait times when you call your local AAA."
         },
         {
-          "question": "Can my parent get meals temporarily after a hospital stay even if they might not qualify long-term?",
-          "answer": "Yes, the program offers short-term meal delivery for post-hospital recovery periods. This can provide crucial support during rehabilitation even if your parent's functional limitations aren't permanent enough for long-term services."
+          "question": "Can my loved one get meals temporarily after a hospital stay even if they might not qualify long-term?",
+          "answer": "Yes, the program offers short-term meal delivery for post-hospital recovery periods. This can provide crucial support during rehabilitation even if your loved one's functional limitations aren't permanent enough for long-term services."
         },
         {
-          "question": "What happens if my parent's needs change and they no longer qualify?",
-          "answer": "Providers conduct periodic reassessments to ensure continued eligibility. If your parent's functional ability improves significantly, they may transition off the program, but this is evaluated case-by-case based on safety and independence."
+          "question": "What happens if my loved one's needs change and they no longer qualify?",
+          "answer": "Providers conduct periodic reassessments to ensure continued eligibility. If your loved one's functional ability improves significantly, they may transition off the program, but this is evaluated case-by-case based on safety and independence."
         },
         {
           "question": "Are there any foods or dietary restrictions the program can't accommodate?",
           "answer": "Most programs work with registered dietitians to accommodate common dietary needs like diabetes management, low-sodium, or texture modifications. However, very specialized medical diets may have limitations depending on your regional provider's capacity."
         },
         {
-          "question": "Can my parent also use SNAP benefits if they're getting delivered meals?",
-          "answer": "Yes, your parent can receive both SNAP benefits and home delivered meals simultaneously. The delivered meals typically cover lunch and may include additional items, while SNAP helps with other groceries and meal needs."
+          "question": "Can my loved one also use SNAP benefits if they're getting delivered meals?",
+          "answer": "Yes, your loved one can receive both SNAP benefits and home delivered meals simultaneously. The delivered meals typically cover lunch and may include additional items, while SNAP helps with other groceries and meal needs."
         },
         {
-          "question": "What if my parent lives in a very rural area with difficult access?",
+          "question": "What if my loved one lives in a very rural area with difficult access?",
           "answer": "Rural older adults actually receive priority in the program. However, extremely remote locations may affect delivery frequency or require special arrangements. Discuss accessibility concerns during the initial assessment."
         }
       ],
@@ -1084,7 +1084,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal problems with their health coverage, housing, or elder abuse, Maine Legal Services for the Elderly provides free legal help. The program handles Medicare/MaineCare disputes, eviction defense, consumer debt, guardianship issues, and elder abuse protection orders — problems that private attorneys charge hundreds of dollars per hour to resolve.\n\nYour parent can get immediate advice by calling the helpline at 1-800-750-5353. For complex cases requiring court representation, LSE attorneys are located in offices across Maine. The program prioritizes cases where basic human needs are at stake, so housing emergencies and health coverage denials get faster attention than routine estate planning.",
+      "intro": "If your loved one is 60+ and facing legal problems with their health coverage, housing, or elder abuse, Maine Legal Services for the Elderly provides free legal help. The program handles Medicare/MaineCare disputes, eviction defense, consumer debt, guardianship issues, and elder abuse protection orders, problems that private attorneys charge hundreds of dollars per hour to resolve.\n\nYour loved one can get immediate advice by calling the helpline at 1-800-750-5353. For complex cases requiring court representation, LSE attorneys are located in offices across Maine. The program prioritizes cases where basic human needs are at stake, so housing emergencies and health coverage denials get faster attention than routine estate planning.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1108,12 +1108,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the helpline at 1-800-750-5353 for immediate advice — no application form required.",
+        "summary": "Call the helpline at 1-800-750-5353 for immediate advice, no application form required.",
         "steps": [
           {
             "step": 1,
             "title": "Call the helpline",
-            "description": "Call 1-800-750-5353 (in-state) or 207-623-1797. Explain your parent's legal issue and income situation."
+            "description": "Call 1-800-750-5353 (in-state) or 207-623-1797. Explain your loved one's legal issue and income situation."
           },
           {
             "step": 2,
@@ -1128,7 +1128,7 @@
         ],
         "processingTime": "Immediate helpline advice; representation cases depend on priority level",
         "waitlist": null,
-        "tip": "Call as soon as possible if facing eviction, foreclosure, or benefit termination — crisis cases get priority.",
+        "tip": "Call as soon as possible if facing eviction, foreclosure, or benefit termination, crisis cases get priority.",
         "urls": [
           {
             "label": "Elder Rights Handbook",
@@ -1161,20 +1161,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can call the helpline for advice about their parent's legal issues. For court representation, LSE will need to determine if your parent can consent or if guardianship proceedings are needed. Call 1-800-750-5353 to discuss your specific situation."
+          "question": "Can I call on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can call the helpline for advice about their loved one's legal issues. For court representation, LSE will need to determine if your loved one can consent or if guardianship proceedings are needed. Call 1-800-750-5353 to discuss your specific situation."
         },
         {
-          "question": "What if the nursing home is pressuring my parent to apply for MaineCare immediately?",
-          "answer": "Don't rush into a MaineCare application without understanding asset protection options. Nursing homes often push applications without explaining how to legally protect assets first. Call LSE at 1-800-750-5353 before signing anything — they can advise on spend-down strategies and asset protection."
+          "question": "What if the nursing home is pressuring my loved one to apply for MaineCare immediately?",
+          "answer": "Don't rush into a MaineCare application without understanding asset protection options. Nursing homes often push applications without explaining how to legally protect assets first. Call LSE at 1-800-750-5353 before signing anything, they can advise on spend-down strategies and asset protection."
         },
         {
           "question": "Will LSE take any legal case or only certain types?",
-          "answer": "LSE focuses on elder-specific issues where basic human needs are at stake — health coverage disputes, housing problems, elder abuse, and public benefits issues get priority. They don't handle criminal cases or routine estate planning. If they can't help, they'll refer you to private attorneys."
+          "answer": "LSE focuses on elder-specific issues where basic human needs are at stake, health coverage disputes, housing problems, elder abuse, and public benefits issues get priority. They don't handle criminal cases or routine estate planning. If they can't help, they'll refer you to private attorneys."
         },
         {
           "question": "Should I use power of attorney forms from the internet or office supply stores?",
-          "answer": "No — LSE specifically warns that pre-printed forms from stores or websites may not be legally valid in Maine. Contact an LSE attorney to ensure your power of attorney documents meet Maine's specific legal requirements."
+          "answer": "No, LSE specifically warns that pre-printed forms from stores or websites may not be legally valid in Maine. Contact an LSE attorney to ensure your power of attorney documents meet Maine's specific legal requirements."
         }
       ],
       "layoutIntent": {
@@ -1193,7 +1193,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "If you're helping an aging parent in Maine, 7 state and federal programs can reduce their monthly expenses and provide essential support. These range from direct financial help — like up to $298/month for groceries through SNAP — to free services like meal delivery and Medicare guidance. Maine seniors also have access to home weatherization that can cut heating bills permanently and legal help for issues like Medicare disputes or elder abuse. Start by checking income-based benefits first, since these provide the most immediate financial relief, then explore free resources that don't require income limits.",
+    "intro": "If you're helping an aging loved one in Maine, 7 state and federal programs can reduce their monthly expenses and provide essential support. These range from direct financial help, like up to $298/month for groceries through SNAP, to free services like meal delivery and Medicare guidance. Maine seniors also have access to home weatherization that can cut heating bills permanently and legal help for issues like Medicare disputes or elder abuse. Start by checking income-based benefits first, since these provide the most immediate financial relief, then explore free resources that don't require income limits.",
     "startHere": [
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
@@ -1208,7 +1208,7 @@
       {
         "name": "Maine Senior Health Insurance Assistance Program",
         "programId": "ship",
-        "why": "Free expert help that can save hundreds on Medicare costs — available to all Maine seniors regardless of income."
+        "why": "Free expert help that can save hundreds on Medicare costs, available to all Maine seniors regardless of income."
       },
       {
         "name": "Home and Community-Based Services (HCBS) Waivers",
@@ -1231,7 +1231,7 @@
           "Home and Community-Based Services (HCBS) Waivers",
           "Weatherization Assistance Program (WAP)"
         ],
-        "description": "Services to help your parent stay safely in their home, from personal care to energy efficiency improvements."
+        "description": "Services to help your loved one stay safely in their home, from personal care to energy efficiency improvements."
       },
       {
         "need": "Nutrition support",
@@ -1239,7 +1239,7 @@
           "SNAP (Supplemental Nutrition Assistance Program)",
           "Home Delivered Meals"
         ],
-        "description": "Help with grocery costs or free meal delivery if your parent can't shop or cook safely."
+        "description": "Help with grocery costs or free meal delivery if your loved one can't shop or cook safely."
       },
       {
         "need": "Free guidance and advocacy",
@@ -1247,12 +1247,12 @@
           "Maine Senior Health Insurance Assistance Program",
           "Maine Legal Services for the Elderly"
         ],
-        "description": "Expert help navigating Medicare, legal issues, and elder abuse — no income limits required."
+        "description": "Expert help navigating Medicare, legal issues, and elder abuse, no income limits required."
       }
     ],
     "quickFacts": [
       "Most financial benefits require monthly income under $3,070 for a single person, though some programs have lower limits",
-      "Maine's SHIP program provides free Medicare help to all seniors regardless of income — call 1-800-750-5353",
+      "Maine's SHIP program provides free Medicare help to all seniors regardless of income, call 1-800-750-5353",
       "Home delivered meals are available statewide but may have waiting lists in rural areas",
       "Weatherization improvements are permanent and can reduce heating bills by 20-30% annually"
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.895Z
+ * Last updated: 2026-04-20T23:39:07.846Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicaid-elderly-disabled-waiver",
       "name": "Alabama Medicaid Elderly and Disabled Waiver",
       "shortName": "Elderly & Disabled Waiver",
-      "tagline": "Home care services for parents at risk of nursing home placement — personal care, meals, and respite to help them stay home safely.",
+      "tagline": "Home care services for parents at risk of nursing home placement, personal care, meals, and respite to help them stay home safely.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, Alabama's Elderly and Disabled Waiver covers personal care, homemaker services, respite care, and home-delivered meals. Your parent must be at risk of nursing home placement (determined by a physician) and meet Medicaid's financial rules — income below $2,829/month and assets under $2,000.\n\nThe program is person-centered, meaning services are tailored to your parent's specific needs through a care plan developed with a case manager. Services can include personal care assistance, adult day health programs, companion services, and respite care to give you breaks from caregiving.\n\nOnly 15,000 slots are available statewide, so there's often a waitlist when the program is full. The program is administered regionally through local Area Agencies on Aging, so contact your regional office to apply and check current availability.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Alabama's Elderly and Disabled Waiver covers personal care, homemaker services, respite care, and home-delivered meals. Your loved one must be at risk of nursing home placement (determined by a physician) and meet Medicaid's financial rules, income below $2,829/month and assets under $2,000.\n\nThe program is person-centered, meaning services are tailored to your loved one's specific needs through a care plan developed with a case manager. Services can include personal care assistance, adult day health programs, companion services, and respite care to give you breaks from caregiving.\n\nOnly 15,000 slots are available statewide, so there's often a waitlist when the program is full. The program is administered regionally through local Area Agencies on Aging, so contact your regional office to apply and check current availability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -59,7 +59,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 1130000
         },
-        "functionalRequirement": "Must meet nursing facility level of care (a clinical assessment by a physician that your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "functionalRequirement": "Must meet nursing facility level of care (a clinical assessment by a physician that your loved one needs daily help with activities like bathing, dressing, eating, or medication management)",
         "otherRequirements": [
           "Alabama resident",
           "Financially eligible for full Medicaid",
@@ -69,7 +69,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Area Agency on Aging to start the application process — processing time varies and there may be a waitlist due to the 15,000-person enrollment cap.",
+        "summary": "Contact your local Area Agency on Aging to start the application process, processing time varies and there may be a waitlist due to the 15,000-person enrollment cap.",
         "steps": [
           {
             "step": 1,
@@ -79,12 +79,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete Medicaid eligibility screening",
-            "description": "Your local AAA will help determine if your parent meets Medicaid's financial requirements (income below $2,829/month, assets under $2,000)."
+            "description": "Your local AAA will help determine if your loved one meets Medicaid's financial requirements (income below $2,829/month, assets under $2,000)."
           },
           {
             "step": 3,
             "title": "Get physician assessment",
-            "description": "A physician must confirm your parent meets nursing facility level of care — that they need daily assistance with personal care activities."
+            "description": "A physician must confirm your loved one meets nursing facility level of care, that they need daily assistance with personal care activities."
           },
           {
             "step": 4,
@@ -94,12 +94,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Wait for enrollment slot",
-            "description": "If the program is at capacity (15,000 statewide), your parent will be placed on a waitlist until a slot becomes available."
+            "description": "If the program is at capacity (15,000 statewide), your loved one will be placed on a waitlist until a slot becomes available."
           }
         ],
         "processingTime": "Not specified; enrollment limited with potential waiting period",
         "waitlist": "Yes, program capped at 15,000 slots annually; waitlist common when full",
-        "tip": "Start the application process early — even if there's a waitlist, getting all paperwork ready ensures faster enrollment when a slot opens.",
+        "tip": "Start the application process early, even if there's a waitlist, getting all paperwork ready ensures faster enrollment when a slot opens.",
         "urls": [
           {
             "label": "Alabama Medicaid Waiver Programs",
@@ -141,10 +141,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must already qualify for full Medicaid financially — the waiver doesn't waive Medicaid's income and asset rules",
-        "The 60-month look-back rule applies to asset transfers — transfers below fair market value can create penalty periods",
+        "You must already qualify for full Medicaid financially, the waiver doesn't waive Medicaid's income and asset rules",
+        "The 60-month look-back rule applies to asset transfers, transfers below fair market value can create penalty periods",
         "Even though your home is exempt as an asset, it may be subject to estate recovery after death",
-        "Services are not guaranteed in specific amounts — everything is based on assessed needs and available funding"
+        "Services are not guaranteed in specific amounts, everything is based on assessed needs and available funding"
       ],
       "relatedPrograms": [
         "Alabama Medicaid",
@@ -155,36 +155,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your parent lives there, intends to return, or certain family members live there. However, home equity cannot exceed $1,130,000 in 2026. The home may be subject to estate recovery after your parent's death."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your loved one lives there, intends to return, or certain family members live there. However, home equity cannot exceed $1,130,000 in 2026. The home may be subject to estate recovery after your loved one's death."
         },
         {
-          "question": "What happens if my parent gave away money or property in the last 5 years?",
-          "answer": "Alabama has a 60-month look-back rule for asset transfers. If your parent transferred assets below fair market value during this period, it could create a penalty period where they're temporarily ineligible for the waiver. You'll need documentation of any transfers during this time."
+          "question": "What happens if my loved one gave away money or property in the last 5 years?",
+          "answer": "Alabama has a 60-month look-back rule for asset transfers. If your loved one transferred assets below fair market value during this period, it could create a penalty period where they're temporarily ineligible for the waiver. You'll need documentation of any transfers during this time."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "The program is capped at 15,000 people statewide, and waitlists are common when it's full. Wait times aren't specified officially and likely vary by region and your parent's priority level. Contact your local Area Agency on Aging for current waitlist status in your area."
+          "answer": "The program is capped at 15,000 people statewide, and waitlists are common when it's full. Wait times aren't specified officially and likely vary by region and your loved one's priority level. Contact your local Area Agency on Aging for current waitlist status in your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process through the local Area Agency on Aging. If your parent cannot make decisions due to dementia or other conditions, you may need legal documentation like power of attorney or guardianship."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process through the local Area Agency on Aging. If your loved one cannot make decisions due to dementia or other conditions, you may need legal documentation like power of attorney or guardianship."
         },
         {
-          "question": "Can my parent get this waiver and regular Medicaid at the same time?",
-          "answer": "Your parent must qualify for regular Medicaid first — the waiver is an add-on that provides home and community services. They'll have both regular Medicaid coverage and the additional waiver services."
+          "question": "Can my loved one get this waiver and regular Medicaid at the same time?",
+          "answer": "Your loved one must qualify for regular Medicaid first, the waiver is an add-on that provides home and community services. They'll have both regular Medicaid coverage and the additional waiver services."
         },
         {
-          "question": "What if my parent's needs change after they're enrolled?",
-          "answer": "The case manager will reassess your parent's needs periodically and adjust the care plan accordingly. Services can be increased, decreased, or changed based on their current functional abilities and medical condition."
+          "question": "What if my loved one's needs change after they're enrolled?",
+          "answer": "The case manager will reassess your loved one's needs periodically and adjust the care plan accordingly. Services can be increased, decreased, or changed based on their current functional abilities and medical condition."
         },
         {
-          "question": "Does the waiver cover 24-hour care if my parent needs constant supervision?",
-          "answer": "The waiver provides personal care and companion services but isn't designed for 24-hour supervision. If your parent needs round-the-clock care, the case manager will assess whether the waiver can meet those needs or if nursing facility placement is more appropriate."
+          "question": "Does the waiver cover 24-hour care if my loved one needs constant supervision?",
+          "answer": "The waiver provides personal care and companion services but isn't designed for 24-hour supervision. If your loved one needs round-the-clock care, the case manager will assess whether the waiver can meet those needs or if nursing facility placement is more appropriate."
         },
         {
           "question": "What happens to the services if we move to a different county in Alabama?",
-          "answer": "Since the program is administered regionally through local Area Agencies on Aging, you'll need to transfer your parent's case to the new region's AAA. Services should continue, but there may be different providers and case managers in the new area."
+          "answer": "Since the program is administered regionally through local Area Agencies on Aging, you'll need to transfer your loved one's case to the new region's AAA. Services should continue, but there may be different providers and case managers in the new area."
         }
       ],
       "layoutIntent": {
@@ -205,7 +205,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-comprehensive-care",
       "name": "Alabama PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Alabama PACE",
-      "tagline": "If your parent needs nursing home-level care but wants to stay in the community, this program coordinates all medical and long-term care services under one team.",
+      "tagline": "If your loved one needs nursing home-level care but wants to stay in the community, this program coordinates all medical and long-term care services under one team.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -222,7 +222,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs extensive daily help with bathing, dressing, medication management, or walking, Alabama PACE provides comprehensive medical and long-term care coordination to keep them living safely at home. Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one interdisciplinary team manages everything from doctor visits to physical therapy to prescription drugs.\n\nOnce enrolled, participants never pay deductibles or co-pays for any care, medication, or service provided by the PACE team. The program is currently only available in Mobile and Baldwin counties, with enrollment capped at 185 participants per program location.",
+      "intro": "If your loved one is 55+ and needs extensive daily help with bathing, dressing, medication management, or walking, Alabama PACE provides comprehensive medical and long-term care coordination to keep them living safely at home. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers, one interdisciplinary team manages everything from doctor visits to physical therapy to prescription drugs.\n\nOnce enrolled, participants never pay deductibles or co-pays for any care, medication, or service provided by the PACE team. The program is currently only available in Mobile and Baldwin counties, with enrollment capped at 185 participants per program location.",
       "savingsRange": "",
       "savingsSource": "Free service with comprehensive care coordination",
       "savingsVerified": false,
@@ -270,22 +270,22 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete state assessment",
-            "description": "Schedule and complete the state certification assessment to determine if your parent meets nursing home-level care requirements."
+            "description": "Schedule and complete the state certification assessment to determine if your loved one meets nursing home-level care requirements."
           },
           {
             "step": 3,
             "title": "Verify service area eligibility",
-            "description": "Confirm your parent lives in the approved zip codes within Mobile or Baldwin counties."
+            "description": "Confirm your loved one lives in the approved zip codes within Mobile or Baldwin counties."
           },
           {
             "step": 4,
             "title": "Choose payment option",
-            "description": "Determine if your parent qualifies for Medicaid coverage or will pay the flat monthly premium."
+            "description": "Determine if your loved one qualifies for Medicaid coverage or will pay the flat monthly premium."
           }
         ],
         "processingTime": null,
         "waitlist": "Program enrollment is capped at 185 enrollees per program location",
-        "tip": "Start the process early — the state certification for nursing home-level care can take time, and enrollment caps may create waiting periods.",
+        "tip": "Start the process early, the state certification for nursing home-level care can take time, and enrollment caps may create waiting periods.",
         "urls": [
           {
             "label": "Mercy LIFE of Alabama",
@@ -319,7 +319,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Geographic limitation is critical — PACE is only available in Mobile and Baldwin counties, regardless of other eligibility factors",
+        "Geographic limitation is critical, PACE is only available in Mobile and Baldwin counties, regardless of other eligibility factors",
         "Enrollment caps mean availability may be limited even if you meet all requirements",
         "You can leave the program at any time, but re-enrollment depends on availability",
         "Non-Medicaid participants pay a flat monthly premium while Medicaid participants receive fully covered services"
@@ -332,27 +332,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives outside Mobile or Baldwin counties?",
+          "question": "What if my loved one lives outside Mobile or Baldwin counties?",
           "answer": "Alabama PACE is only available in Mobile and Baldwin counties. Families outside these areas cannot access this program regardless of other eligibility factors. You'll need to explore other long-term care options like Medicaid waiver programs or Medicare Advantage plans."
         },
         {
-          "question": "How much does PACE cost if my parent doesn't qualify for Medicaid?",
+          "question": "How much does PACE cost if my loved one doesn't qualify for Medicaid?",
           "answer": "Non-Medicaid participants pay a flat monthly premium, but the specific amount isn't publicly available. Contact Mercy LIFE of Alabama directly for current pricing. Medicaid participants receive all services at no cost."
         },
         {
-          "question": "Can my parent keep their current doctors?",
-          "answer": "No, PACE uses an interdisciplinary team approach where all care is coordinated through PACE providers. Your parent will be assigned to the PACE medical team, but this ensures all providers communicate and coordinate care seamlessly."
+          "question": "Can my loved one keep their current doctors?",
+          "answer": "No, PACE uses an interdisciplinary team approach where all care is coordinated through PACE providers. Your loved one will be assigned to the PACE medical team, but this ensures all providers communicate and coordinate care seamlessly."
         },
         {
           "question": "What happens if the program reaches its 185-person enrollment cap?",
           "answer": "You may be placed on a waiting list until a spot opens up. The program can only serve 185 enrollees at a time, so availability depends on current enrollment and turnover."
         },
         {
-          "question": "Who determines if my parent needs 'nursing home-level care'?",
-          "answer": "The state of Alabama conducts this assessment — it's not self-determined or decided by your family doctor. The assessment looks at your parent's ability to perform activities of daily living like bathing, dressing, toileting, walking, transferring, and eating."
+          "question": "Who determines if my loved one needs 'nursing home-level care'?",
+          "answer": "The state of Alabama conducts this assessment, it's not self-determined or decided by your family doctor. The assessment looks at your loved one's ability to perform activities of daily living like bathing, dressing, toileting, walking, transferring, and eating."
         },
         {
-          "question": "Can my parent apply for PACE while living in assisted living?",
+          "question": "Can my loved one apply for PACE while living in assisted living?",
           "answer": "Yes, as long as they can demonstrate they would be able to live safely in the community with PACE support. The program is designed to keep people out of nursing homes, so assisted living residents may qualify if they meet other requirements."
         }
       ],
@@ -374,7 +374,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Get help paying Medicare premiums, deductibles, and coinsurance if your parent's income is below $1,695/month",
+      "tagline": "Get help paying Medicare premiums, deductibles, and coinsurance if your loved one's income is below $1,695/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -387,7 +387,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay Medicare costs on a fixed income, Alabama's Medicare Savings Programs can help. These three programs — QMB, SLMB, and QI — cover Medicare premiums, deductibles, and coinsurance based on income level. QMB provides the most comprehensive help, paying the $206.50 monthly Part B premium plus all deductibles and the 20% coinsurance that Medicare doesn't cover.\n\nYour parent must have Medicare and meet strict income limits: $1,275/month for QMB, $1,506/month for SLMB, or $1,695/month for QI (higher limits for couples). Asset limits are $9,430 for individuals or $14,130 for couples. Because QMB automatically qualifies your parent for Extra Help with prescription drug costs, it provides the most value.\n\nThe QI program has limited funding and operates first-come, first-served, so applications may be denied when funds run out. All three programs can provide retroactive coverage, but you must apply to find out which tier your parent qualifies for.",
+      "intro": "If your loved one struggles to pay Medicare costs on a fixed income, Alabama's Medicare Savings Programs can help. These three programs, QMB, SLMB, and QI, cover Medicare premiums, deductibles, and coinsurance based on income level. QMB provides the most comprehensive help, paying the $206.50 monthly Part B premium plus all deductibles and the 20% coinsurance that Medicare doesn't cover.\n\nYour loved one must have Medicare and meet strict income limits: $1,275/month for QMB, $1,506/month for SLMB, or $1,695/month for QI (higher limits for couples). Asset limits are $9,430 for individuals or $14,130 for couples. Because QMB automatically qualifies your loved one for Extra Help with prescription drug costs, it provides the most value.\n\nThe QI program has limited funding and operates first-come, first-served, so applications may be denied when funds run out. All three programs can provide retroactive coverage, but you must apply to find out which tier your loved one qualifies for.",
       "savingsRange": "$1,200 – $3,500/year",
       "savingsSource": "Part B premiums ($206.50/month = $2,478/year) plus deductibles and coinsurance for QMB",
       "savingsVerified": true,
@@ -454,7 +454,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online, by phone, or with Form 210 at local Medicaid offices — processing takes 1-3 months.",
+        "summary": "Apply online, by phone, or with Form 210 at local Medicaid offices, processing takes 1-3 months.",
         "steps": [
           {
             "step": 1,
@@ -478,7 +478,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "QMB coverage begins the month after approval; SLMB and QI coverage can be retroactive up to 3 months if eligible",
-        "waitlist": "QI program has limited federal funding — applications denied when funds exhausted",
+        "waitlist": "QI program has limited federal funding, applications denied when funds exhausted",
         "tip": "Apply early in the year for QI since funding runs out on a first-come, first-served basis.",
         "urls": [
           {
@@ -520,9 +520,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QI program funding is limited — apply early in the calendar year before funds are exhausted",
+        "QI program funding is limited, apply early in the calendar year before funds are exhausted",
         "SLMB and QI recipients don't get Medicaid cards but still receive premium assistance",
-        "QMB automatically qualifies your parent for Medicare Part D Extra Help prescription assistance",
+        "QMB automatically qualifies your loved one for Medicare Part D Extra Help prescription assistance",
         "Income limits include a $20 general disregard, so actual limits are slightly higher than listed"
       ],
       "relatedPrograms": [
@@ -561,36 +561,36 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car if the house is worth $200,000?",
+          "question": "Can my loved one keep their house and car if the house is worth $200,000?",
           "answer": "Yes. The family home and one car are completely exempt from the asset limits, regardless of value. Only countable assets like bank accounts and investments count toward the $9,430 individual limit."
         },
         {
-          "question": "What happens if my parent's income is $50 over the QMB limit?",
+          "question": "What happens if my loved one's income is $50 over the QMB limit?",
           "answer": "They may still qualify for SLMB (up to $1,506/month) or QI (up to $1,695/month), which cover the Part B premium. Remember there's a $20 income disregard, so limits are slightly higher than published."
         },
         {
-          "question": "Will providers balance bill my parent if they have SLMB or QI?",
+          "question": "Will providers balance bill my loved one if they have SLMB or QI?",
           "answer": "Unlike QMB, SLMB and QI don't provide full Medicaid protections. Providers aren't prohibited from balance billing, though it's uncommon. QMB offers the strongest protection against extra charges."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all their financial documents and may need to establish legal authority depending on the situation."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to provide all their financial documents and may need to establish legal authority depending on the situation."
         },
         {
           "question": "How do I know if QI funding has run out?",
           "answer": "Call 1-800-362-1504 before applying to check current QI availability. If denied due to funding limits, you can reapply when the next federal fiscal year begins."
         },
         {
-          "question": "Can my parent have Medicare Savings Programs and regular Medicaid at the same time?",
+          "question": "Can my loved one have Medicare Savings Programs and regular Medicaid at the same time?",
           "answer": "QMB recipients can have full Medicaid. However, people with other Medicaid coverage cannot get QI benefits. SLMB recipients may qualify for limited Medicaid services."
         },
         {
-          "question": "What if my parent's Medicare premium is already deducted from Social Security?",
-          "answer": "The program will reimburse the premium directly to Social Security, so your parent will see the $206.50 monthly deduction stop or get refunded. This happens automatically after approval."
+          "question": "What if my loved one's Medicare premium is already deducted from Social Security?",
+          "answer": "The program will reimburse the premium directly to Social Security, so your loved one will see the $206.50 monthly deduction stop or get refunded. This happens automatically after approval."
         },
         {
           "question": "Do these programs cover Medicare Advantage plan premiums?",
-          "answer": "Yes, if your parent pays a premium for their Medicare Advantage plan above the standard Part B premium, these programs will help cover those costs too."
+          "answer": "Yes, if your loved one pays a premium for their Medicare Advantage plan above the standard Part B premium, these programs will help cover those costs too."
         }
       ],
       "layoutIntent": {
@@ -611,7 +611,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "aesap-elderly-food-assistance",
       "name": "Alabama Elderly Simplified Application Project (AESAP)",
       "shortName": "AESAP",
-      "tagline": "If your parent is 60+ with no job income, they can apply for food assistance with a simplified 2-page form and no interview.",
+      "tagline": "If your loved one is 60+ with no job income, they can apply for food assistance with a simplified 2-page form and no interview.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -624,7 +624,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60 or older and lives in a household where everyone is 60+, they may qualify for monthly food assistance through Alabama's simplified elderly application process. Because AESAP streamlines the regular SNAP application, your parent gets the same monthly benefits (up to $291 for a single person) but with a shorter 2-page form, no interview required, and benefits certified for 3 years instead of 1.\n\nThe key requirement: no one in the household can have earned income (wages or self-employment) in the month they apply. Social Security, pensions, and other unearned income are allowed. Income limits are the same as regular SNAP — $1,580 gross monthly income for a single person as of October 2022, with limits updated annually.\n\nBecause this is still the same SNAP program underneath, your parent gets an EBT debit card that works at grocery stores, farmers markets, and online retailers like Amazon and Walmart for eligible food purchases.",
+      "intro": "If your loved one is 60 or older and lives in a household where everyone is 60+, they may qualify for monthly food assistance through Alabama's simplified elderly application process. Because AESAP streamlines the regular SNAP application, your loved one gets the same monthly benefits (up to $291 for a single person) but with a shorter 2-page form, no interview required, and benefits certified for 3 years instead of 1.\n\nThe key requirement: no one in the household can have earned income (wages or self-employment) in the month they apply. Social Security, pensions, and other unearned income are allowed. Income limits are the same as regular SNAP, $1,580 gross monthly income for a single person as of October 2022, with limits updated annually.\n\nBecause this is still the same SNAP program underneath, your loved one gets an EBT debit card that works at grocery stores, farmers markets, and online retailers like Amazon and Walmart for eligible food purchases.",
       "savingsRange": "$100 – $291/month",
       "savingsSource": "Monthly SNAP benefits based on household size and income, with maximum allotments up to $291 for single person",
       "savingsVerified": false,
@@ -675,7 +675,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online, by phone at 1-800-438-2958, or mail the 2-page AESAP form to your county DHR office — processing takes up to 30 days.",
+        "summary": "Apply online, by phone at 1-800-438-2958, or mail the 2-page AESAP form to your county DHR office, processing takes up to 30 days.",
         "steps": [
           {
             "step": 1,
@@ -700,7 +700,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to 30 days from application date",
         "waitlist": null,
-        "tip": "Keep copies of any medical expense receipts — these can be deducted from income to increase your benefit amount.",
+        "tip": "Keep copies of any medical expense receipts, these can be deducted from income to increase your benefit amount.",
         "urls": [
           {
             "label": "AESAP Online Application",
@@ -738,9 +738,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No face-to-face interview required unless DHR specifically requests one — most applications processed entirely by mail or online",
+        "No face-to-face interview required unless DHR specifically requests one, most applications processed entirely by mail or online",
         "Benefits are certified for 3 years instead of the usual 1 year, but you must submit an annual Interim Contact Form to maintain benefits",
-        "Self-declaration is allowed for most information, but DHR will verify questionable details — fraud penalties include fines and possible imprisonment"
+        "Self-declaration is allowed for most information, but DHR will verify questionable details, fraud penalties include fines and possible imprisonment"
       ],
       "relatedPrograms": [
         "Alabama Food Assistance Program (regular SNAP)",
@@ -751,28 +751,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my 59-year-old parent apply if they live with their 62-year-old spouse?",
-          "answer": "No, all household members must be 60 or older on the application date. Your parent would need to apply through the regular SNAP program until they turn 60, or the couple would need to purchase and prepare food separately to be considered separate households."
+          "question": "Can my 59-year-old loved one apply if they live with their 62-year-old spouse?",
+          "answer": "No, all household members must be 60 or older on the application date. Your loved one would need to apply through the regular SNAP program until they turn 60, or the couple would need to purchase and prepare food separately to be considered separate households."
         },
         {
           "question": "What counts as 'earned income' that would disqualify them?",
-          "answer": "Earned income includes wages from any job, self-employment income, or earnings from a business. Social Security, pensions, disability benefits, interest, and other unearned income are allowed and won't disqualify your parent from AESAP."
+          "answer": "Earned income includes wages from any job, self-employment income, or earnings from a business. Social Security, pensions, disability benefits, interest, and other unearned income are allowed and won't disqualify your loved one from AESAP."
         },
         {
-          "question": "How much in food benefits will my parent actually receive?",
+          "question": "How much in food benefits will my loved one actually receive?",
           "answer": "The amount depends on household size and income after deductions. A single person with no income gets the maximum $291/month, but most people receive less based on their Social Security or other income. Medical expenses over $35/month can be deducted to increase benefits."
         },
         {
           "question": "What happens after the 3-year certification period ends?",
-          "answer": "Your parent must reapply using a new AESAP application before the 3-year period expires. They'll also need to submit an annual Interim Contact Form each year to maintain benefits between the initial application and reapplication."
+          "answer": "Your loved one must reapply using a new AESAP application before the 3-year period expires. They'll also need to submit an annual Interim Contact Form each year to maintain benefits between the initial application and reapplication."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent is unable to apply themselves. You'll need to sign the application as their representative and may need legal documentation depending on the circumstances."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one is unable to apply themselves. You'll need to sign the application as their representative and may need legal documentation depending on the circumstances."
         },
         {
           "question": "Do the same asset limits apply as regular SNAP?",
-          "answer": "Yes, AESAP follows the same resource limits as regular SNAP. Your parent's home and one vehicle don't count, but bank accounts, investments, and other countable resources are subject to federal SNAP asset limits."
+          "answer": "Yes, AESAP follows the same resource limits as regular SNAP. Your loved one's home and one vehicle don't count, but bank accounts, investments, and other countable resources are subject to federal SNAP asset limits."
         }
       ],
       "layoutIntent": {
@@ -793,7 +793,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Alabama LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "Alabama LIHEAP",
-      "tagline": "Help paying heating and cooling bills for low-income households — up to $580 toward winter energy costs.",
+      "tagline": "Help paying heating and cooling bills for low-income households, up to $580 toward winter energy costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -806,7 +806,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating or cooling bills on a fixed income, Alabama LIHEAP provides direct payments to utility companies. The program pays up to $580 toward heating costs and $520 toward cooling costs annually — you get one heating payment and one cooling payment per year, with emergency crisis assistance up to $1,100 for heating emergencies.\n\nBecause LIHEAP operates through local Community Action Agencies rather than a central state office, you must apply through your county's specific agency. Priority goes to households with seniors 60+, disabled members, young children, or those facing disconnection. Income limits are set at 150% of the federal poverty level — $2,152/month for a single person in 2026.\n\nFunds are limited and distributed first-come, first-served. Applications typically open in late December or early January, with high demand during winter months when heating assistance applications surge.",
+      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, Alabama LIHEAP provides direct payments to utility companies. The program pays up to $580 toward heating costs and $520 toward cooling costs annually, you get one heating payment and one cooling payment per year, with emergency crisis assistance up to $1,100 for heating emergencies.\n\nBecause LIHEAP operates through local Community Action Agencies rather than a central state office, you must apply through your county's specific agency. Priority goes to households with seniors 60+, disabled members, young children, or those facing disconnection. Income limits are set at 150% of the federal poverty level, $2,152/month for a single person in 2026.\n\nFunds are limited and distributed first-come, first-served. Applications typically open in late December or early January, with high demand during winter months when heating assistance applications surge.",
       "savingsRange": "$280 – $1,680/year in 2026",
       "savingsSource": "Minimum heating ($280) + cooling ($320) to maximum heating ($580) + cooling ($520) + crisis assistance ($1,100)",
       "savingsVerified": true,
@@ -853,7 +853,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's Community Action Agency to schedule an appointment — awards are made at the appointment if eligible.",
+        "summary": "Contact your county's Community Action Agency to schedule an appointment, awards are made at the appointment if eligible.",
         "steps": [
           {
             "step": 1,
@@ -873,11 +873,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Attend your appointment",
-            "description": "Complete the LIHEAP application at your appointment. If eligible, the award is made immediately. Payment goes directly to your utility company — you pay any remaining balance."
+            "description": "Complete the LIHEAP application at your appointment. If eligible, the award is made immediately. Payment goes directly to your utility company, you pay any remaining balance."
           }
         ],
         "processingTime": "Award made at appointment if eligible",
-        "waitlist": "No waitlist — funds distributed first-come, first-served until exhausted",
+        "waitlist": "No waitlist, funds distributed first-come, first-served until exhausted",
         "tip": "Apply early when applications open in your area. Winter heating assistance has the highest demand and funds may run out.",
         "urls": [
           {
@@ -918,10 +918,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county's Community Action Agency opens applications on different dates — priority households (seniors, disabled, families with young children) often get earlier access in late December",
+        "Each county's Community Action Agency opens applications on different dates, priority households (seniors, disabled, families with young children) often get earlier access in late December",
         "Crisis assistance requires proof of emergency like a disconnection notice or out-of-fuel situation, but can provide up to $1,100 for heating or $990 for cooling",
-        "Income verification must be from the prior month specifically — Social Security recipients can use award letters, but working adults need recent pay stubs",
-        "You cannot apply through the state office directly — all applications go through county-level Community Action Agencies with their own procedures and funding levels"
+        "Income verification must be from the prior month specifically, Social Security recipients can use award letters, but working adults need recent pay stubs",
+        "You cannot apply through the state office directly, all applications go through county-level Community Action Agencies with their own procedures and funding levels"
       ],
       "relatedPrograms": [
         "Alabama Weatherization Assistance Program",
@@ -953,7 +953,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "If I'm 62 years old, do I get priority even if my income is higher?",
-          "answer": "Age 60+ gives you priority for appointments and processing, but you still must meet the income limits (150% of federal poverty level). Priority doesn't override income requirements — it just means you're served first among eligible applicants."
+          "answer": "Age 60+ gives you priority for appointments and processing, but you still must meet the income limits (150% of federal poverty level). Priority doesn't override income requirements, it just means you're served first among eligible applicants."
         },
         {
           "question": "Can my adult child apply for LIHEAP on my behalf?",
@@ -982,7 +982,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Alabama Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home weatherization services can cut your parent's energy bills through professional insulation, air sealing, and HVAC repairs.",
+      "tagline": "Free home weatherization services can cut your loved one's energy bills through professional insulation, air sealing, and HVAC repairs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -995,7 +995,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high energy bills, Alabama's Weatherization Assistance Program provides free home improvements to reduce heating and cooling costs. The program covers air sealing, insulation installation, duct repairs, and HVAC system repairs or replacement — all at no cost to qualifying households.\n\nPriority goes to households with elderly residents, people with disabilities, families with children, or high energy users. Your parent automatically qualifies if they receive Supplemental Security Income (SSI) or Aid to Families with Dependent Children (AFDC). Because funding is limited and distributed through county quotas, there are waiting lists statewide with priority ranking based on household characteristics.",
+      "intro": "If your loved one struggles with high energy bills, Alabama's Weatherization Assistance Program provides free home improvements to reduce heating and cooling costs. The program covers air sealing, insulation installation, duct repairs, and HVAC system repairs or replacement, all at no cost to qualifying households.\n\nPriority goes to households with elderly residents, people with disabilities, families with children, or high energy users. Your loved one automatically qualifies if they receive Supplemental Security Income (SSI) or Aid to Families with Dependent Children (AFDC). Because funding is limited and distributed through county quotas, there are waiting lists statewide with priority ranking based on household characteristics.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1020,7 +1020,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's local weatherization agency directly — applications are placed on priority-ranked waiting lists, not processed first-come first-served.",
+        "summary": "Contact your county's local weatherization agency directly, applications are placed on priority-ranked waiting lists, not processed first-come first-served.",
         "steps": [
           {
             "step": 1,
@@ -1043,9 +1043,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Mail or deliver the completed application with all documents to your local agency. Applications are ranked by priority points (elderly, disabled, children, high energy use) and placed on county waiting lists."
           }
         ],
-        "processingTime": "Not specified — applications placed on waiting list and ranked by priority points",
+        "processingTime": "Not specified, applications placed on waiting list and ranked by priority points",
         "waitlist": "Yes, statewide waiting lists ranked by priority (elderly, disabled, children, high energy use). Wait times vary by funding and county quotas",
-        "tip": "Bring original Social Security cards for all household members — some regions won't accept copies.",
+        "tip": "Bring original Social Security cards for all household members, some regions won't accept copies.",
         "urls": [
           {
             "label": "ADECA Weatherization Program",
@@ -1098,10 +1098,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "ADECA does not process applications directly — you must contact the specific county agency that serves your parent's area",
+        "ADECA does not process applications directly, you must contact the specific county agency that serves your loved one's area",
         "Renters need landlord approval and the landlord must agree to pay a portion of costs and not raise rent for 1 year",
-        "Priority ranking determines waiting list order, not application date — elderly and disabled applicants get preference",
-        "Home must pass a professional energy audit before work begins — not all weatherization measures are guaranteed for every home"
+        "Priority ranking determines waiting list order, not application date, elderly and disabled applicants get preference",
+        "Home must pass a professional energy audit before work begins, not all weatherization measures are guaranteed for every home"
       ],
       "relatedPrograms": [
         "Alabama LIHEAP (Low Income Home Energy Assistance Program)",
@@ -1111,35 +1111,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent their home?",
+          "question": "Can my loved one apply if they rent their home?",
           "answer": "Yes, but the landlord must participate by agreeing to pay a portion of the weatherization costs and promising not to raise rent for one year after completion. The landlord must sign an acknowledgment form as part of the application process."
         },
         {
           "question": "How long is the waiting list really?",
-          "answer": "Wait times vary significantly by county and available funding. Applications are ranked by priority points based on household characteristics (elderly, disabled, children, high energy use), so your parent's wait time depends on both their priority score and their county's funding allocation."
+          "answer": "Wait times vary significantly by county and available funding. Applications are ranked by priority points based on household characteristics (elderly, disabled, children, high energy use), so your loved one's wait time depends on both their priority score and their county's funding allocation."
         },
         {
-          "question": "What if my parent's income is slightly over 200% of the poverty level?",
+          "question": "What if my loved one's income is slightly over 200% of the poverty level?",
           "answer": "They won't qualify based on income alone. However, if they receive Supplemental Security Income (SSI) or Aid to Families with Dependent Children (AFDC), they automatically qualify regardless of other income."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help with the application process, but the application must be in your parent's name since they're the homeowner or tenant. Bring their original Social Security card and photo ID to any appointments."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help with the application process, but the application must be in your loved one's name since they're the homeowner or tenant. Bring their original Social Security card and photo ID to any appointments."
         },
         {
           "question": "What weatherization work is actually guaranteed?",
-          "answer": "Services depend on a professional energy audit of your parent's specific home. Common services include air sealing, attic insulation, duct repairs, and HVAC system repairs or replacement, but not every home will receive every service."
+          "answer": "Services depend on a professional energy audit of your loved one's specific home. Common services include air sealing, attic insulation, duct repairs, and HVAC system repairs or replacement, but not every home will receive every service."
         },
         {
-          "question": "Can my parent apply for this program and LIHEAP at the same time?",
+          "question": "Can my loved one apply for this program and LIHEAP at the same time?",
           "answer": "Yes, weatherization assistance and LIHEAP (energy bill payment assistance) are separate programs that can be used together. Contact the same local community action agency as they often administer both programs."
         },
         {
-          "question": "What happens if my parent's application is denied?",
+          "question": "What happens if my loved one's application is denied?",
           "answer": "Applications are typically placed on waiting lists rather than denied outright if basic eligibility is met. If denied for eligibility reasons, contact the local agency to understand specific reasons and ask about reapplying if circumstances change."
         },
         {
-          "question": "Does my parent need to be home during the weatherization work?",
+          "question": "Does my loved one need to be home during the weatherization work?",
           "answer": "Yes, someone should be present during the energy audit and weatherization work. The contractors need access to all areas of the home and may need to ask questions about energy usage patterns and comfort issues."
         }
       ],
@@ -1161,7 +1161,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ship-medicare-counseling",
       "name": "Alabama SHIP (State Health Insurance Assistance Program)",
       "shortName": "Alabama SHIP",
-      "tagline": "Free, personalized Medicare counseling to help your parent compare plans, understand benefits, and save money on healthcare.",
+      "tagline": "Free, personalized Medicare counseling to help your loved one compare plans, understand benefits, and save money on healthcare.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -1178,7 +1178,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare or is about to turn 65, Alabama SHIP provides free, one-on-one counseling to help them navigate their healthcare options. Because counselors are completely independent and don't sell insurance, your parent gets unbiased advice on Medicare parts A, B, and D, Medicare Advantage plans, and Medicare Supplement Insurance (Medigap).\n\nSHIP counselors also help identify Medicare Savings Programs that can pay monthly premiums and prescription drug assistance programs that can reduce medication costs. The service is available statewide through local Area Agencies on Aging, with no income limits or fees.",
+      "intro": "If your loved one has Medicare or is about to turn 65, Alabama SHIP provides free, one-on-one counseling to help them navigate their healthcare options. Because counselors are completely independent and don't sell insurance, your loved one gets unbiased advice on Medicare parts A, B, and D, Medicare Advantage plans, and Medicare Supplement Insurance (Medigap).\n\nSHIP counselors also help identify Medicare Savings Programs that can pay monthly premiums and prescription drug assistance programs that can reduce medication costs. The service is available statewide through local Area Agencies on Aging, with no income limits or fees.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1200,7 +1200,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-AGE-LINE to connect with your local counselor — no application needed.",
+        "summary": "Call 1-800-AGE-LINE to connect with your local counselor, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1252,16 +1252,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help for my parent even if they already have Medicare coverage?",
-          "answer": "Yes. SHIP counselors help Medicare beneficiaries at any stage — whether your parent is new to Medicare, wants to compare plans during Open Enrollment, or needs help with existing coverage problems like claims appeals or billing issues."
+          "question": "Can I get help for my loved one even if they already have Medicare coverage?",
+          "answer": "Yes. SHIP counselors help Medicare beneficiaries at any stage, whether your loved one is new to Medicare, wants to compare plans during Open Enrollment, or needs help with existing coverage problems like claims appeals or billing issues."
         },
         {
           "question": "Will the counselor try to sell us insurance or recommend specific companies?",
-          "answer": "No. SHIP counselors are completely independent and do not sell insurance or receive commissions from insurance companies. They provide unbiased information to help your parent choose the best coverage for their specific needs and budget."
+          "answer": "No. SHIP counselors are completely independent and do not sell insurance or receive commissions from insurance companies. They provide unbiased information to help your loved one choose the best coverage for their specific needs and budget."
         },
         {
           "question": "What's the best time to contact SHIP for Medicare plan help?",
-          "answer": "Contact SHIP during Medicare Open Enrollment (October 15 - December 7) to compare and switch plans for the following year. Also contact when your parent first becomes Medicare eligible at 65 for a comprehensive explanation of all Medicare parts and options."
+          "answer": "Contact SHIP during Medicare Open Enrollment (October 15 - December 7) to compare and switch plans for the following year. Also contact when your loved one first becomes Medicare eligible at 65 for a comprehensive explanation of all Medicare parts and options."
         }
       ],
       "layoutIntent": {
@@ -1282,7 +1282,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "elderly-nutrition-meals-on-wheels",
       "name": "Elderly Nutrition Program (Meals on Wheels)",
       "shortName": "Meals on Wheels",
-      "tagline": "Free hot meals delivered to your parent's home or served at local senior centers — no income requirements.",
+      "tagline": "Free hot meals delivered to your loved one's home or served at local senior centers, no income requirements.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1295,7 +1295,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles with cooking or getting to the grocery store, they can receive free nutritious hot meals through Alabama's Elderly Nutrition Program. Because this program has no income limits, your parent qualifies based on age alone — though home delivery requires being homebound or unable to safely prepare meals.\n\nEach meal includes an entrée, vegetable, fruit, bread, and milk, providing at least one-third of daily nutritional needs. Your parent can eat with others at one of 335 senior centers statewide, or receive home delivery if they cannot leave home safely. In 2023, Alabama served 4.9 million meals through this program — 3.3 million delivered to homes and 1.6 million at senior centers.\n\nBecause the program relies on volunteers and donations, availability varies by county. Some areas have daily delivery, others provide frozen meals or weekly meal boxes. The program accepts voluntary donations but never requires payment.",
+      "intro": "If your loved one is 60+ and struggles with cooking or getting to the grocery store, they can receive free nutritious hot meals through Alabama's Elderly Nutrition Program. Because this program has no income limits, your loved one qualifies based on age alone, though home delivery requires being homebound or unable to safely prepare meals.\n\nEach meal includes an entrée, vegetable, fruit, bread, and milk, providing at least one-third of daily nutritional needs. Your loved one can eat with others at one of 335 senior centers statewide, or receive home delivery if they cannot leave home safely. In 2023, Alabama served 4.9 million meals through this program, 3.3 million delivered to homes and 1.6 million at senior centers.\n\nBecause the program relies on volunteers and donations, availability varies by county. Some areas have daily delivery, others provide frozen meals or weekly meal boxes. The program accepts voluntary donations but never requires payment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1319,27 +1319,27 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Alabama's Aging Line at 1-800-243-5463 for referral to your local provider — no forms required, just an assessment.",
+        "summary": "Call Alabama's Aging Line at 1-800-243-5463 for referral to your local provider, no forms required, just an assessment.",
         "steps": [
           {
             "step": 1,
             "title": "Call the Alabama Aging Line",
-            "description": "Call 1-800-AGE-LINE (1-800-243-5463) to find your local Area Agency on Aging. They'll connect you to the provider serving your parent's address."
+            "description": "Call 1-800-AGE-LINE (1-800-243-5463) to find your local Area Agency on Aging. They'll connect you to the provider serving your loved one's address."
           },
           {
             "step": 2,
             "title": "Contact your local provider",
-            "description": "Speak with local AAA staff who will assess your parent's age, health, mobility, and meal preparation ability. They'll also confirm your parent lives within their delivery zone."
+            "description": "Speak with local AAA staff who will assess your loved one's age, health, mobility, and meal preparation ability. They'll also confirm your loved one lives within their delivery zone."
           },
           {
             "step": 3,
             "title": "Schedule meal service",
-            "description": "If eligible, staff will arrange either congregate meals at the nearest senior center or home delivery based on your parent's mobility and location."
+            "description": "If eligible, staff will arrange either congregate meals at the nearest senior center or home delivery based on your loved one's mobility and location."
           }
         ],
-        "processingTime": "Not specified — varies by local provider after initial assessment",
+        "processingTime": "Not specified, varies by local provider after initial assessment",
         "waitlist": null,
-        "tip": "Ask specifically about delivery zones — being homebound doesn't guarantee home delivery if your parent lives outside the service area.",
+        "tip": "Ask specifically about delivery zones, being homebound doesn't guarantee home delivery if your loved one lives outside the service area.",
         "urls": [
           {
             "label": "Alabama Aging Line Directory",
@@ -1376,8 +1376,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Mobile seniors who can drive or have family help may be directed to congregate meals at senior centers instead of home delivery",
-        "Each of Alabama's 11 Area Agencies on Aging operates differently — delivery schedules, menu options, and volunteer availability vary significantly by county",
-        "Voluntary donations are suggested but never required — the program cannot deny meals based on inability to contribute"
+        "Each of Alabama's 11 Area Agencies on Aging operates differently, delivery schedules, menu options, and volunteer availability vary significantly by county",
+        "Voluntary donations are suggested but never required, the program cannot deny meals based on inability to contribute"
       ],
       "relatedPrograms": [
         "SNAP (food benefits)",
@@ -1387,27 +1387,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Does my parent qualify for home delivery if they can still drive occasionally?",
-          "answer": "Home delivery is specifically for parents who are homebound and cannot safely cook or shop. If your parent can drive occasionally or has family help with groceries, they may be directed to congregate meals at senior centers instead. Each local provider makes this determination during the assessment."
+          "question": "Does my loved one qualify for home delivery if they can still drive occasionally?",
+          "answer": "Home delivery is specifically for parents who are homebound and cannot safely cook or shop. If your loved one can drive occasionally or has family help with groceries, they may be directed to congregate meals at senior centers instead. Each local provider makes this determination during the assessment."
         },
         {
-          "question": "What if my parent lives in a rural area without meal delivery?",
-          "answer": "Not all areas have home delivery due to volunteer limitations and service zones. Your parent may receive frozen meals for the week, meal boxes, or be referred to the nearest senior center for congregate dining. Call 1-800-243-5463 to confirm what's available at your parent's specific address."
+          "question": "What if my loved one lives in a rural area without meal delivery?",
+          "answer": "Not all areas have home delivery due to volunteer limitations and service zones. Your loved one may receive frozen meals for the week, meal boxes, or be referred to the nearest senior center for congregate dining. Call 1-800-243-5463 to confirm what's available at your loved one's specific address."
         },
         {
-          "question": "Can I apply for my parent who has dementia?",
-          "answer": "Yes, family members can contact the local Area Agency on Aging on behalf of parents with dementia or other conditions. Staff will assess your parent's needs and arrange appropriate meal service. You'll need to provide emergency contact information and details about dietary restrictions."
+          "question": "Can I apply for my loved one who has dementia?",
+          "answer": "Yes, family members can contact the local Area Agency on Aging on behalf of parents with dementia or other conditions. Staff will assess your loved one's needs and arrange appropriate meal service. You'll need to provide emergency contact information and details about dietary restrictions."
         },
         {
-          "question": "What happens if my parent needs special diabetic or low-sodium meals?",
+          "question": "What happens if my loved one needs special diabetic or low-sodium meals?",
           "answer": "During the assessment, tell staff about any dietary restrictions, diabetes, heart conditions, or food allergies. Most providers can accommodate common dietary needs, but options vary by local meal preparation facilities. Some areas offer more specialized menu choices than others."
         },
         {
-          "question": "How much should my parent donate for meals?",
-          "answer": "Donations are completely voluntary and confidential — no one is denied meals for inability to contribute. Some providers suggest income-based donation amounts, and contributions are tax-deductible for non-family members. The program relies on community support but never requires payment."
+          "question": "How much should my loved one donate for meals?",
+          "answer": "Donations are completely voluntary and confidential, no one is denied meals for inability to contribute. Some providers suggest income-based donation amounts, and contributions are tax-deductible for non-family members. The program relies on community support but never requires payment."
         },
         {
-          "question": "Can my 58-year-old parent get meals if they live with my 65-year-old father?",
+          "question": "Can my 58-year-old loved one get meals if they live with my 65-year-old father?",
           "answer": "Yes, spouses of eligible participants qualify regardless of age. Since your father is 65 and eligible, your mother can also receive meals even though she's under 60. People with disabilities living with eligible participants also qualify for the program."
         }
       ],
@@ -1429,7 +1429,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "alabama-lifespan-respite-program",
       "name": "Alabama Lifespan Respite Program",
       "shortName": "Alabama Respite",
-      "tagline": "Get reimbursed for hiring someone to care for your parent so you can take a break",
+      "tagline": "Get reimbursed for hiring someone to care for your loved one so you can take a break",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1446,7 +1446,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for a parent with a chronic illness or disability that requires around-the-clock care, Alabama's Lifespan Respite Program reimburses you for hiring temporary caregivers so you can take breaks. You choose and hire the respite provider, and the program pays you back for their hours.\n\nYour parent can be any age and have any chronic condition requiring constant care — from dementia to physical disabilities. You must be the full-time, unpaid caregiver and an Alabama resident. Because funding is limited, not all qualified families receive assistance even if they meet requirements.\n\nThe program covers your costs for respite care hours, with reimbursement arriving within 30 days of submitting your completed timesheet. You're responsible for finding, hiring, and training the respite provider — the program provides funding, not caregivers.",
+      "intro": "If you're caring for a loved one with a chronic illness or disability that requires around-the-clock care, Alabama's Lifespan Respite Program reimburses you for hiring temporary caregivers so you can take breaks. You choose and hire the respite provider, and the program pays you back for their hours.\n\nYour loved one can be any age and have any chronic condition requiring constant care, from dementia to physical disabilities. You must be the full-time, unpaid caregiver and an Alabama resident. Because funding is limited, not all qualified families receive assistance even if they meet requirements.\n\nThe program covers your costs for respite care hours, with reimbursement arriving within 30 days of submitting your completed timesheet. You're responsible for finding, hiring, and training the respite provider, the program provides funding, not caregivers.",
       "savingsRange": "",
       "savingsSource": "Reimbursement program",
       "savingsVerified": false,
@@ -1473,7 +1473,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Download the one-page application, get doctor's documentation, and submit by phone, email, or mail — quick approval process.",
+        "summary": "Download the one-page application, get doctor's documentation, and submit by phone, email, or mail, quick approval process.",
         "steps": [
           {
             "step": 1,
@@ -1483,7 +1483,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Gather proof of diagnosis",
-            "description": "Get a letter from your parent's doctor, social worker, case manager, or copy of IEP documenting their chronic illness or disability"
+            "description": "Get a letter from your loved one's doctor, social worker, case manager, or copy of IEP documenting their chronic illness or disability"
           },
           {
             "step": 3,
@@ -1498,7 +1498,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Quick approval process determined by Alabama Respite staff; reimbursement issued within 30 days of receiving completed timesheet",
         "waitlist": "Program has limited funds; not all qualified applicants can be assisted based on available resources",
-        "tip": "If you received respite reimbursement after July 1, 2025, you don't need to reapply — re-enrollment information is sent annually",
+        "tip": "If you received respite reimbursement after July 1, 2025, you don't need to reapply, re-enrollment information is sent annually",
         "urls": [
           {
             "label": "2025-2026 Respite Application Packet",
@@ -1530,7 +1530,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Completing an application does not guarantee financial assistance due to limited funding availability",
-        "You are responsible for selecting, hiring, and training your respite provider — the program does not provide or vet caregivers",
+        "You are responsible for selecting, hiring, and training your respite provider, the program does not provide or vet caregivers",
         "Cannot use family members living in the same home as respite providers",
         "Keep detailed timesheets of respite hours to ensure proper reimbursement"
       ],
@@ -1542,24 +1542,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for this program if my parent already gets other respite services?",
+          "question": "Can I apply for this program if my loved one already gets other respite services?",
           "answer": "No. You cannot receive respite services through any other program while participating in Alabama Lifespan Respite. This includes other state, federal, or private respite programs. You must choose one program or the other."
         },
         {
           "question": "What if I can't find anyone to hire as a respite provider?",
-          "answer": "The program provides funding but not caregivers. You're responsible for finding, hiring, and training your own respite provider. The provider must be at least 18 years old and cannot live in the same home as your parent. Consider family friends, neighbors, or local caregiving services."
+          "answer": "The program provides funding but not caregivers. You're responsible for finding, hiring, and training your own respite provider. The provider must be at least 18 years old and cannot live in the same home as your loved one. Consider family friends, neighbors, or local caregiving services."
         },
         {
           "question": "How much will I actually get reimbursed for respite care?",
           "answer": "The program doesn't publish specific reimbursement rates. You submit timesheets showing hours of respite care provided, and reimbursement is issued within 30 days. Contact 256-859-8300 for current rates and coverage limits."
         },
         {
-          "question": "What happens if I'm approved but then my parent's condition changes?",
-          "answer": "Contact UCP Huntsville at 256-859-8300 to report changes in your parent's condition or care needs. Significant improvements that reduce the need for around-the-clock care may affect your eligibility for continued assistance."
+          "question": "What happens if I'm approved but then my loved one's condition changes?",
+          "answer": "Contact UCP Huntsville at 256-859-8300 to report changes in your loved one's condition or care needs. Significant improvements that reduce the need for around-the-clock care may affect your eligibility for continued assistance."
         },
         {
-          "question": "Can I apply if my parent lives in assisted living but still needs extra care?",
-          "answer": "Yes, as long as your parent has a chronic illness or disability requiring around-the-clock care and you're providing full-time, unpaid caregiving. The program doesn't restrict based on living situation, only on care needs and your role as primary caregiver."
+          "question": "Can I apply if my loved one lives in assisted living but still needs extra care?",
+          "answer": "Yes, as long as your loved one has a chronic illness or disability requiring around-the-clock care and you're providing full-time, unpaid caregiving. The program doesn't restrict based on living situation, only on care needs and your role as primary caregiver."
         },
         {
           "question": "How long does it really take to get approved with limited funding?",
@@ -1584,7 +1584,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "scsep-employment-training",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
-      "tagline": "If your parent is 55+ and unemployed, they can earn while training for permanent employment through community service work.",
+      "tagline": "If your loved one is 55+ and unemployed, they can earn while training for permanent employment through community service work.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -1617,7 +1617,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55 or older and unemployed, SCSEP can provide immediate paid work while helping them find permanent employment. Participants work part-time (about 20 hours per week) at community organizations like schools, libraries, or senior centers, earning minimum wage ($7.25-$7.34 per hour) while receiving job training and placement services.\n\nBecause SCSEP is designed as a bridge to unsubsidized employment, your parent will work in real community service positions while actively searching for permanent jobs with program support. Income must be below 125% of the federal poverty level, but there are no asset limits — the program focuses solely on current income and employment status.\n\nThe program operates through six regional providers across all 67 Alabama counties, so you'll need to contact the specific organization serving your parent's county. Each region may have slightly different wages and schedules, but all provide the same core services: paid training work, job search assistance, and placement support.",
+      "intro": "If your loved one is 55 or older and unemployed, SCSEP can provide immediate paid work while helping them find permanent employment. Participants work part-time (about 20 hours per week) at community organizations like schools, libraries, or senior centers, earning minimum wage ($7.25-$7.34 per hour) while receiving job training and placement services.\n\nBecause SCSEP is designed as a bridge to unsubsidized employment, your loved one will work in real community service positions while actively searching for permanent jobs with program support. Income must be below 125% of the federal poverty level, but there are no asset limits, the program focuses solely on current income and employment status.\n\nThe program operates through six regional providers across all 67 Alabama counties, so you'll need to contact the specific organization serving your loved one's county. Each region may have slightly different wages and schedules, but all provide the same core services: paid training work, job search assistance, and placement support.",
       "savingsRange": "$3,016 - $7,635/year in 2026",
       "savingsSource": "Part-time wages at $7.25-$7.34/hour for 19.75-20 hours/week",
       "savingsVerified": true,
@@ -1648,7 +1648,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your regional provider",
-            "description": "Determine which of the six regional organizations serves your parent's county. Each region has different contact information and may have varying wages or schedules."
+            "description": "Determine which of the six regional organizations serves your loved one's county. Each region has different contact information and may have varying wages or schedules."
           },
           {
             "step": 2,
@@ -1673,7 +1673,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Processing time not specified in program materials",
         "waitlist": "Waitlists may exist due to limited slots; varies by region",
-        "tip": "Contact your specific regional provider rather than just the state line — they know local job opportunities and can give you realistic timelines for openings in your area.",
+        "tip": "Contact your specific regional provider rather than just the state line, they know local job opportunities and can give you realistic timelines for openings in your area.",
         "urls": [
           {
             "label": "Alabama AGE-LINE SCSEP page",
@@ -1718,8 +1718,8 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must apply through the specific regional provider that serves your parent's county — there's no statewide application process",
-        "This is a temporary training program, not permanent employment — participants are expected to actively search for unsubsidized jobs",
+        "You must apply through the specific regional provider that serves your loved one's county, there's no statewide application process",
+        "This is a temporary training program, not permanent employment, participants are expected to actively search for unsubsidized jobs",
         "Wages and exact hours may vary slightly by region ($7.25-$7.34/hour, 19.75-20 hours/week)",
         "The program has no asset limits, but income must stay below 125% of federal poverty level throughout participation"
       ],
@@ -1732,32 +1732,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and savings while in SCSEP?",
-          "answer": "Yes. SCSEP has no asset or resource limits. Your parent can own a home, have savings accounts, or other assets without affecting eligibility. The program only looks at current income, which must be below 125% of federal poverty level."
+          "question": "Can my loved one keep their house and savings while in SCSEP?",
+          "answer": "Yes. SCSEP has no asset or resource limits. Your loved one can own a home, have savings accounts, or other assets without affecting eligibility. The program only looks at current income, which must be below 125% of federal poverty level."
         },
         {
-          "question": "What happens if my parent finds a permanent job while in SCSEP?",
-          "answer": "That's the goal. SCSEP is designed as a bridge to permanent employment, and program staff actively help participants find unsubsidized jobs. When your parent gets permanent employment, they graduate from the program successfully."
+          "question": "What happens if my loved one finds a permanent job while in SCSEP?",
+          "answer": "That's the goal. SCSEP is designed as a bridge to permanent employment, and program staff actively help participants find unsubsidized jobs. When your loved one gets permanent employment, they graduate from the program successfully."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "The program is temporary, but specific time limits aren't detailed in Alabama materials. Participants are expected to actively job search and work toward permanent employment. Contact your regional provider for specific duration policies in your area."
         },
         {
-          "question": "Can my parent choose where they work for their community service assignment?",
-          "answer": "Program staff will work with your parent to match their skills and interests to available positions at local nonprofits, schools, libraries, or government agencies. While preferences are considered, assignments depend on current openings in your area."
+          "question": "Can my loved one choose where they work for their community service assignment?",
+          "answer": "Program staff will work with your loved one to match their skills and interests to available positions at local nonprofits, schools, libraries, or government agencies. While preferences are considered, assignments depend on current openings in your area."
         },
         {
-          "question": "What if my parent receives Social Security — does that affect SCSEP wages?",
-          "answer": "Your parent can receive Social Security while in SCSEP, but the combined income must stay below 125% of federal poverty level. The SCSEP wages may affect Social Security earnings limits if your parent is under full retirement age."
+          "question": "What if my loved one receives Social Security, does that affect SCSEP wages?",
+          "answer": "Your loved one can receive Social Security while in SCSEP, but the combined income must stay below 125% of federal poverty level. The SCSEP wages may affect Social Security earnings limits if your loved one is under full retirement age."
         },
         {
-          "question": "Is there a waitlist, and how long might my parent wait?",
-          "answer": "Waitlists may exist due to limited program slots, and wait times likely vary by region. Contact your specific regional provider for current availability — some areas may have immediate openings while others have longer waits."
+          "question": "Is there a waitlist, and how long might my loved one wait?",
+          "answer": "Waitlists may exist due to limited program slots, and wait times likely vary by region. Contact your specific regional provider for current availability, some areas may have immediate openings while others have longer waits."
         },
         {
-          "question": "Can I help my parent apply, or do they need to do it themselves?",
-          "answer": "You can help your parent with the application process and paperwork, but they'll need to participate in interviews and the actual work assignments. Program staff understand that family members often assist older adults with applications and documentation."
+          "question": "Can I help my loved one apply, or do they need to do it themselves?",
+          "answer": "You can help your loved one with the application process and paperwork, but they'll need to participate in interviews and the actual work assignments. Program staff understand that family members often assist older adults with applications and documentation."
         },
         {
           "question": "What types of jobs do SCSEP participants typically get placed in permanently?",
@@ -1803,7 +1803,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with elder abuse, guardianship disputes, housing problems, or Medicaid denials, Alabama Legal Services provides free legal representation and advice. The program helps with powers of attorney, wills, debt collection defense, Social Security appeals, and accessing long-term care benefits.\n\nBecause the program covers legal research, document preparation, and court representation, your parent won't need to pay attorney fees that can run $200-400/hour. Legal Services Alabama operates statewide with offices in Birmingham, Mobile, Montgomery, Huntsville, and four other cities.\n\nThe program uses income limits (125% of federal poverty guidelines) but also offers special grants for seniors that aren't income-based. Asset limits apply but vary by situation — you'll need to call to determine eligibility rather than self-screening online.",
+      "intro": "If your loved one is 60+ and needs help with elder abuse, guardianship disputes, housing problems, or Medicaid denials, Alabama Legal Services provides free legal representation and advice. The program helps with powers of attorney, wills, debt collection defense, Social Security appeals, and accessing long-term care benefits.\n\nBecause the program covers legal research, document preparation, and court representation, your loved one won't need to pay attorney fees that can run $200-400/hour. Legal Services Alabama operates statewide with offices in Birmingham, Mobile, Montgomery, Huntsville, and four other cities.\n\nThe program uses income limits (125% of federal poverty guidelines) but also offers special grants for seniors that aren't income-based. Asset limits apply but vary by situation, you'll need to call to determine eligibility rather than self-screening online.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1827,7 +1827,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 1-800-AGE-LINE (1-800-243-5463) to apply — no processing time specified.",
+        "summary": "Call 1-800-AGE-LINE (1-800-243-5463) to apply, no processing time specified.",
         "steps": [
           {
             "step": 1,
@@ -1842,17 +1842,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Provide income and asset information",
-            "description": "Be prepared to discuss your parent's income and assets — specific dollar limits aren't published, so the intake worker will determine eligibility during the call."
+            "description": "Be prepared to discuss your loved one's income and assets, specific dollar limits aren't published, so the intake worker will determine eligibility during the call."
           },
           {
             "step": 4,
             "title": "Understand service limitations",
-            "description": "Submitting an application doesn't guarantee assistance — the program has capacity limits and cannot help everyone who applies."
+            "description": "Submitting an application doesn't guarantee assistance, the program has capacity limits and cannot help everyone who applies."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Multiple phone numbers exist for this program — start with 1-800-AGE-LINE as it's the main entry point for all senior legal services.",
+        "tip": "Multiple phone numbers exist for this program, start with 1-800-AGE-LINE as it's the main entry point for all senior legal services.",
         "urls": [
           {
             "label": "Legal Services Alabama Elder Law",
@@ -1900,16 +1900,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "No — the individual who needs legal assistance must submit their own application according to program rules. However, family members can help gather information and provide support during the application process."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "No, the individual who needs legal assistance must submit their own application according to program rules. However, family members can help gather information and provide support during the application process."
         },
         {
-          "question": "What if my parent's income is slightly above 125% of poverty level?",
-          "answer": "Ask about special grants for seniors that are not income-based. Legal Services Alabama notes these exist but doesn't widely advertise them — the intake worker can determine if your parent qualifies for non-income-based assistance."
+          "question": "What if my loved one's income is slightly above 125% of poverty level?",
+          "answer": "Ask about special grants for seniors that are not income-based. Legal Services Alabama notes these exist but doesn't widely advertise them, the intake worker can determine if your loved one qualifies for non-income-based assistance."
         },
         {
-          "question": "Does applying guarantee my parent will get a lawyer?",
-          "answer": "No — submitting an application does not establish an attorney-client relationship and the program cannot assist everyone who applies due to capacity limitations. Priority is typically given to cases involving elder abuse, exploitation, or urgent housing issues."
+          "question": "Does applying guarantee my loved one will get a lawyer?",
+          "answer": "No, submitting an application does not establish an attorney-client relationship and the program cannot assist everyone who applies due to capacity limitations. Priority is typically given to cases involving elder abuse, exploitation, or urgent housing issues."
         },
         {
           "question": "Which phone number should I call first?",
@@ -1934,7 +1934,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Alabama Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
-      "tagline": "Get help resolving complaints about your parent's nursing home or assisted living facility care.",
+      "tagline": "Get help resolving complaints about your loved one's nursing home or assisted living facility care.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1951,7 +1951,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or other long-term care facility in Alabama, the Long-Term Care Ombudsman Program investigates and resolves complaints about poor care, facility conditions, or treatment issues. The program provides free advocacy services to protect residents' rights and mediate between families and facility staff.\n\nOmbudsmen conduct regular visits to facilities across Alabama, educate families about residents' rights, and advocate for systemic changes when needed. You can file a complaint anonymously and confidentially — no income limits or eligibility requirements apply. The program covers all types of long-term care facilities including nursing homes, assisted living facilities, specialty care facilities, and boarding homes.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or other long-term care facility in Alabama, the Long-Term Care Ombudsman Program investigates and resolves complaints about poor care, facility conditions, or treatment issues. The program provides free advocacy services to protect residents' rights and mediate between families and facility staff.\n\nOmbudsmen conduct regular visits to facilities across Alabama, educate families about residents' rights, and advocate for systemic changes when needed. You can file a complaint anonymously and confidentially, no income limits or eligibility requirements apply. The program covers all types of long-term care facilities including nursing homes, assisted living facilities, specialty care facilities, and boarding homes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1972,7 +1972,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 334-242-5753 to file a complaint — no forms required and you can remain anonymous.",
+        "summary": "Call 334-242-5753 to file a complaint, no forms required and you can remain anonymous.",
         "steps": [
           {
             "step": 1,
@@ -1982,7 +1982,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Describe the problem",
-            "description": "Explain the care issue, facility problem, or rights violation. The ombudsman will ask about your parent's facility and the specific situation."
+            "description": "Explain the care issue, facility problem, or rights violation. The ombudsman will ask about your loved one's facility and the specific situation."
           },
           {
             "step": 3,
@@ -1992,7 +1992,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "You don't have to give your name when filing a complaint — all information is kept confidential.",
+        "tip": "You don't have to give your name when filing a complaint, all information is kept confidential.",
         "urls": [
           {
             "label": "Alabama Age Line Ombudsman",
@@ -2024,11 +2024,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint even if my parent doesn't want me to?",
-          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman will work sensitively with your parent's preferences while investigating the issue. All complaints are handled confidentially."
+          "question": "Can I file a complaint even if my loved one doesn't want me to?",
+          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman will work sensitively with your loved one's preferences while investigating the issue. All complaints are handled confidentially."
         },
         {
-          "question": "What if the facility retaliates against my parent after I file a complaint?",
+          "question": "What if the facility retaliates against my loved one after I file a complaint?",
           "answer": "Retaliation is illegal and the ombudsman program specifically protects against it. If you suspect retaliation, report it immediately to the ombudsman who will investigate and take appropriate action."
         },
         {
@@ -2054,7 +2054,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "alabama-cares-program",
       "name": "Alabama Cares Program",
       "shortName": "Alabama Cares",
-      "tagline": "Free respite care, counseling, and support services for family caregivers of aging parents or disabled relatives.",
+      "tagline": "Free respite care, counseling, and support services for family caregivers of aging loved ones or disabled relatives.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2067,7 +2067,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging parent 60+ or a relative with disabilities, Alabama Cares provides free respite care, counseling, and support services to prevent caregiver burnout. Because you provide 20+ hours of care per week, you qualify for services like temporary relief care, support groups, training workshops, and personal care assistance for your loved one.\n\nThe program prioritizes caregivers in greatest social and economic need, particularly low-income families, rural caregivers, and those caring for someone with Alzheimer's or dementia. Services vary by region but include adult day care, limited homemaker services, caregiver education, and 24/7 information assistance through Alabama's aging network.",
+      "intro": "If you're caring for an aging loved one 60+ or a relative with disabilities, Alabama Cares provides free respite care, counseling, and support services to prevent caregiver burnout. Because you provide 20+ hours of care per week, you qualify for services like temporary relief care, support groups, training workshops, and personal care assistance for your loved one.\n\nThe program prioritizes caregivers in greatest social and economic need, particularly low-income families, rural caregivers, and those caring for someone with Alzheimer's or dementia. Services vary by region but include adult day care, limited homemaker services, caregiver education, and 24/7 information assistance through Alabama's aging network.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2092,7 +2092,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-AGE-LINE to connect with your local Area Agency on Aging — no formal application required.",
+        "summary": "Call 1-800-AGE-LINE to connect with your local Area Agency on Aging, no formal application required.",
         "steps": [
           {
             "step": 1,
@@ -2117,7 +2117,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate connection to local services",
         "waitlist": null,
-        "tip": "Mention if you're caring for someone with Alzheimer's or dementia, or if you're in a rural area — these are priority populations for services.",
+        "tip": "Mention if you're caring for someone with Alzheimer's or dementia, or if you're in a rural area, these are priority populations for services.",
         "urls": [
           {
             "label": "Alabama Cares Official Page",
@@ -2154,9 +2154,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority is given to caregivers in greatest social and economic need, particularly low-income individuals and those in rural areas",
-        "Services and providers vary by region — your local Area Agency on Aging determines what's available in your county",
-        "This is a caregiver support program, not direct care for your parent — services focus on preventing your burnout through respite and training",
-        "Different from Medicaid waivers or paid caregiver programs — Alabama Cares provides temporary relief and support services, not ongoing paid care"
+        "Services and providers vary by region, your local Area Agency on Aging determines what's available in your county",
+        "This is a caregiver support program, not direct care for your loved one, services focus on preventing your burnout through respite and training",
+        "Different from Medicaid waivers or paid caregiver programs, Alabama Cares provides temporary relief and support services, not ongoing paid care"
       ],
       "relatedPrograms": [
         "Alabama Elderly and Disabled Waiver",
@@ -2167,11 +2167,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get Alabama Cares services while my parent is also on a Medicaid waiver?",
-          "answer": "Yes, Alabama Cares is separate from Medicaid waiver programs like Elderly & Disabled Waiver or Personal Choices. These programs can work together — Alabama Cares supports you as the caregiver while Medicaid waivers provide direct care services for your parent."
+          "question": "Can I get Alabama Cares services while my loved one is also on a Medicaid waiver?",
+          "answer": "Yes, Alabama Cares is separate from Medicaid waiver programs like Elderly & Disabled Waiver or Personal Choices. These programs can work together, Alabama Cares supports you as the caregiver while Medicaid waivers provide direct care services for your loved one."
         },
         {
-          "question": "What if I only provide 15 hours of care per week — can I still qualify?",
+          "question": "What if I only provide 15 hours of care per week, can I still qualify?",
           "answer": "The program requires 20+ hours per week of caregiving to qualify as a primary caregiver. However, your local Area Agency on Aging may have other resources available for part-time caregivers. Call 1-800-AGE-LINE to discuss your situation."
         },
         {
@@ -2187,8 +2187,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Rural caregivers are a priority population, but service availability does vary by county. Your AAA may connect you with neighboring counties' providers, offer phone-based support groups, or provide travel assistance to reach services. Some regions offer mobile services that come to rural areas."
         },
         {
-          "question": "Can my parent apply for Alabama Cares services directly?",
-          "answer": "No, Alabama Cares is specifically for caregivers, not care recipients. You as the caregiver are the program participant. If your parent needs direct services, ask your AAA about other programs like Medicaid waivers or Older Americans Act services."
+          "question": "Can my loved one apply for Alabama Cares services directly?",
+          "answer": "No, Alabama Cares is specifically for caregivers, not care recipients. You as the caregiver are the program participant. If your loved one needs direct services, ask your AAA about other programs like Medicaid waivers or Older Americans Act services."
         },
         {
           "question": "Is there income verification required to prove I'm low-income?",
@@ -2217,7 +2217,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ed-medicaid-waiver",
       "name": "Elderly and Disabled (E&D) Medicaid Waiver",
       "shortName": "E&D Waiver",
-      "tagline": "Get home care services covered so your parent can avoid nursing home placement while staying in their own home.",
+      "tagline": "Get home care services covered so your loved one can avoid nursing home placement while staying in their own home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2230,7 +2230,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help with bathing, dressing, or medication management but wants to stay home, Alabama's Elderly and Disabled Waiver can cover personal care, homemaker services, adult day health, and respite care through Medicaid. Your parent must qualify financially for Medicaid (typically income under $2,829/month) and meet clinical criteria showing they need nursing home level care.\n\nThe waiver has no yearly cost cap on services — a case manager develops a personalized care plan based on your parent's specific needs. Services can include daily personal care, companion services, frozen meal delivery, and adult day programs. Because this waiver covers comprehensive home care under one program, your parent won't need to coordinate between separate providers.\n\nThere is a waiting list, especially for people not already on Medicaid or SSI. Priority goes to those who are financially pre-qualified through existing Medicaid enrollment.",
+      "intro": "If your loved one needs help with bathing, dressing, or medication management but wants to stay home, Alabama's Elderly and Disabled Waiver can cover personal care, homemaker services, adult day health, and respite care through Medicaid. Your loved one must qualify financially for Medicaid (typically income under $2,829/month) and meet clinical criteria showing they need nursing home level care.\n\nThe waiver has no yearly cost cap on services, a case manager develops a personalized care plan based on your loved one's specific needs. Services can include daily personal care, companion services, frozen meal delivery, and adult day programs. Because this waiver covers comprehensive home care under one program, your loved one won't need to coordinate between separate providers.\n\nThere is a waiting list, especially for people not already on Medicaid or SSI. Priority goes to those who are financially pre-qualified through existing Medicaid enrollment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2270,12 +2270,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact your local Area Agency on Aging for a face-to-face assessment — processing time varies based on eligibility determination.",
+        "summary": "Contact your local Area Agency on Aging for a face-to-face assessment, processing time varies based on eligibility determination.",
         "steps": [
           {
             "step": 1,
             "title": "Apply for Medicaid first",
-            "description": "If your parent isn't already on Medicaid or SSI, apply through Alabama Medicaid. Those already enrolled can skip this step."
+            "description": "If your loved one isn't already on Medicaid or SSI, apply through Alabama Medicaid. Those already enrolled can skip this step."
           },
           {
             "step": 2,
@@ -2285,17 +2285,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete face-to-face assessment",
-            "description": "A case manager will visit to complete the HCBS-1 assessment form to determine if your parent meets nursing facility level of care (2 of 11 criteria required)."
+            "description": "A case manager will visit to complete the HCBS-1 assessment form to determine if your loved one meets nursing facility level of care (2 of 11 criteria required)."
           },
           {
             "step": 4,
             "title": "Develop person-centered care plan",
-            "description": "If eligible and a slot is available, the case manager creates a customized service plan based on your parent's specific needs and preferences."
+            "description": "If eligible and a slot is available, the case manager creates a customized service plan based on your loved one's specific needs and preferences."
           }
         ],
-        "processingTime": "Not specified — involves assessment and plan development after eligibility determination",
+        "processingTime": "Not specified, involves assessment and plan development after eligibility determination",
         "waitlist": "Yes, waiting list exists, especially for those not already on Medicaid or SSI. Waiver enrollment is limited.",
-        "tip": "Apply for Medicaid first if your parent isn't already enrolled — this can speed up the waiver application process and may give priority on the waiting list.",
+        "tip": "Apply for Medicaid first if your loved one isn't already enrolled, this can speed up the waiver application process and may give priority on the waiting list.",
         "urls": [
           {
             "label": "Alabama Medicaid Waiver Information",
@@ -2334,10 +2334,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "People already on Medicaid or SSI get priority for waiver slots — apply for Medicaid first if your parent isn't enrolled",
-        "The 60-month Look-Back Rule applies — any asset transfers below fair market value in the last 5 years can trigger penalty periods",
-        "Respond promptly to annual renewal letters from both Medicaid and your Area Agency on Aging or your parent will lose eligibility",
-        "Services aren't automatic after approval — everything depends on the person-centered care plan developed with your case manager"
+        "People already on Medicaid or SSI get priority for waiver slots, apply for Medicaid first if your loved one isn't enrolled",
+        "The 60-month Look-Back Rule applies, any asset transfers below fair market value in the last 5 years can trigger penalty periods",
+        "Respond promptly to annual renewal letters from both Medicaid and your Area Agency on Aging or your loved one will lose eligibility",
+        "Services aren't automatic after approval, everything depends on the person-centered care plan developed with your case manager"
       ],
       "relatedPrograms": [
         "Alabama Medicaid",
@@ -2348,36 +2348,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your parent lives there or intends to return. The home equity limit is $1,130,000 in 2026. The home is also exempt if a non-applicant spouse, disabled child of any age, or child under 21 lives there."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your loved one lives there or intends to return. The home equity limit is $1,130,000 in 2026. The home is also exempt if a non-applicant spouse, disabled child of any age, or child under 21 lives there."
         },
         {
-          "question": "What if my parent doesn't qualify for regular Medicaid but needs these services?",
-          "answer": "The waiver has its own financial criteria — income up to 300% of the SSI rate (approximately $2,829/month). Your parent might qualify for the waiver even if they don't meet regular Medicaid income limits. However, there's typically a longer waiting list for non-Medicaid recipients."
+          "question": "What if my loved one doesn't qualify for regular Medicaid but needs these services?",
+          "answer": "The waiver has its own financial criteria, income up to 300% of the SSI rate (approximately $2,829/month). Your loved one might qualify for the waiver even if they don't meet regular Medicaid income limits. However, there's typically a longer waiting list for non-Medicaid recipients."
         },
         {
           "question": "How long is the waiting list really?",
           "answer": "Alabama doesn't publish specific wait times, but people already on Medicaid or SSI get priority. Those not financially pre-qualified face longer waits. Wait times vary by region since services are administered through local Area Agencies on Aging."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of a parent who cannot manage their own affairs. You may need to provide legal documentation like power of attorney, or the case manager can help determine decision-making capacity during the assessment process."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of a loved one who cannot manage their own affairs. You may need to provide legal documentation like power of attorney, or the case manager can help determine decision-making capacity during the assessment process."
         },
         {
-          "question": "What happens if my parent's needs change after they're enrolled?",
+          "question": "What happens if my loved one's needs change after they're enrolled?",
           "answer": "The case manager can modify the person-centered care plan as needs change. There's no yearly cost cap on services, so additional support can be added. However, any changes require reassessment and plan approval through your local Area Agency on Aging."
         },
         {
-          "question": "Can my parent get waiver services if they live in assisted living?",
-          "answer": "The waiver is designed to help people stay in their own homes and avoid nursing home placement. Check with your local Area Agency on Aging about whether assisted living residents can receive waiver services — policies may vary by facility type and region."
+          "question": "Can my loved one get waiver services if they live in assisted living?",
+          "answer": "The waiver is designed to help people stay in their own homes and avoid nursing home placement. Check with your local Area Agency on Aging about whether assisted living residents can receive waiver services, policies may vary by facility type and region."
         },
         {
           "question": "What if we gave away money or property in the last 5 years?",
-          "answer": "The 60-month Look-Back Rule applies to all asset transfers below fair market value. This can create penalty periods that delay eligibility. Bring documentation of all transfers when you apply — some transfers may be exempt or the penalty period may have already passed."
+          "answer": "The 60-month Look-Back Rule applies to all asset transfers below fair market value. This can create penalty periods that delay eligibility. Bring documentation of all transfers when you apply, some transfers may be exempt or the penalty period may have already passed."
         },
         {
           "question": "Do we have to pay anything out-of-pocket for waiver services?",
-          "answer": "Waiver services are covered by Medicaid with no co-pays or deductibles for participants. However, your parent may have a small monthly income contribution toward their care if their income exceeds certain levels — the case manager will calculate this during plan development."
+          "answer": "Waiver services are covered by Medicaid with no co-pays or deductibles for participants. However, your loved one may have a small monthly income contribution toward their care if their income exceeds certain levels, the case manager will calculate this during plan development."
         }
       ],
       "layoutIntent": {
@@ -2398,7 +2398,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-aides-program",
       "name": "Senior Aides Program",
       "shortName": "Senior Aides",
-      "tagline": "Home care assistance to help your aging parent avoid nursing home placement while staying safely at home.",
+      "tagline": "Home care assistance to help your aging loved one avoid nursing home placement while staying safely at home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2411,7 +2411,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Alabama's home care programs can provide personal aides to help them stay safely at home instead of moving to a nursing facility. These programs work through Medicaid waivers and state funding to deliver services like personal care, homemaker assistance, and respite care directly to your parent's home.\n\nThe main pathway is the Elderly & Disabled (E&D) Waiver, which requires your parent to meet nursing facility level of care (a clinical assessment showing they need substantial daily assistance) and have income below $2,982/month. Alabama CARES provides additional support services for caregivers of adults 60+ or those caring for family members with dementia, regardless of income level.\n\nBecause these programs often have waitlists and complex eligibility requirements, starting the application process early is critical — even if your parent doesn't need services immediately.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Alabama's home care programs can provide personal aides to help them stay safely at home instead of moving to a nursing facility. These programs work through Medicaid waivers and state funding to deliver services like personal care, homemaker assistance, and respite care directly to your loved one's home.\n\nThe main pathway is the Elderly & Disabled (E&D) Waiver, which requires your loved one to meet nursing facility level of care (a clinical assessment showing they need substantial daily assistance) and have income below $2,982/month. Alabama CARES provides additional support services for caregivers of adults 60+ or those caring for family members with dementia, regardless of income level.\n\nBecause these programs often have waitlists and complex eligibility requirements, starting the application process early is critical, even if your loved one doesn't need services immediately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2447,7 +2447,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with at least 2 of 11 activities including bathing, dressing, eating, medication management, or mobility)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily help with at least 2 of 11 activities including bathing, dressing, eating, medication management, or mobility)",
         "otherRequirements": [
           "Must be Alabama resident",
           "Cannot have transferred assets within 60 months for less than fair market value",
@@ -2467,7 +2467,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete initial screening",
-            "description": "AAA staff will conduct a phone screening to determine which programs your parent may qualify for and schedule an in-home assessment."
+            "description": "AAA staff will conduct a phone screening to determine which programs your loved one may qualify for and schedule an in-home assessment."
           },
           {
             "step": 3,
@@ -2477,17 +2477,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete HCBS-1 functional assessment",
-            "description": "A trained assessor will visit your parent's home to evaluate their daily living needs and determine if they meet nursing facility level of care."
+            "description": "A trained assessor will visit your loved one's home to evaluate their daily living needs and determine if they meet nursing facility level of care."
           },
           {
             "step": 5,
             "title": "Wait for approval and service coordination",
-            "description": "If approved, you'll be assigned a case manager who will help arrange specific services based on your parent's assessed needs and available funding."
+            "description": "If approved, you'll be assigned a case manager who will help arrange specific services based on your loved one's assessed needs and available funding."
           }
         ],
         "processingTime": null,
         "waitlist": "Waitlists are common for waiver services, though specific wait times are not published",
-        "tip": "Start the process before your parent needs immediate help — assessments and approvals can take weeks, and waitlists may add additional delays.",
+        "tip": "Start the process before your loved one needs immediate help, assessments and approvals can take weeks, and waitlists may add additional delays.",
         "urls": [
           {
             "label": "Alabama Medicaid Applications",
@@ -2500,7 +2500,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security card for your parent",
+        "Social Security card for your loved one",
         "Medicare card (both parts A and B)",
         "Birth certificate or passport for proof of age",
         "Proof of Alabama residency (utility bill, lease, or state ID)",
@@ -2514,7 +2514,7 @@ export const drafts: PipelineStateDrafts = {
         "Documentation of any asset transfers in the last 60 months",
         "Power of attorney documents if applying on parent's behalf",
         "Contact information for current doctors and care providers",
-        "List of current services or care your parent receives"
+        "List of current services or care your loved one receives"
       ],
       "contacts": [
         {
@@ -2537,10 +2537,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "A dementia diagnosis alone is not sufficient to meet nursing facility level of care — your parent must need hands-on daily assistance with specific activities",
-        "Asset transfers within the past 60 months will trigger penalties that can delay eligibility — be prepared to document all financial transactions",
-        "Programs prioritize applicants with the greatest needs, so comprehensive documentation of your parent's functional limitations is crucial",
-        "Different waivers and programs may have different waitlist lengths — ask about all available options during your initial screening"
+        "A dementia diagnosis alone is not sufficient to meet nursing facility level of care, your loved one must need hands-on daily assistance with specific activities",
+        "Asset transfers within the past 60 months will trigger penalties that can delay eligibility, be prepared to document all financial transactions",
+        "Programs prioritize applicants with the greatest needs, so comprehensive documentation of your loved one's functional limitations is crucial",
+        "Different waivers and programs may have different waitlist lengths, ask about all available options during your initial screening"
       ],
       "relatedPrograms": [
         "Personal Choices Program",
@@ -2551,36 +2551,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for these services?",
-          "answer": "Yes, your parent's primary home is exempt from asset limits regardless of value. However, they must still meet the income limit of $2,982/month and other Medicaid requirements."
+          "question": "Can my loved one keep their house and still qualify for these services?",
+          "answer": "Yes, your loved one's primary home is exempt from asset limits regardless of value. However, they must still meet the income limit of $2,982/month and other Medicaid requirements."
         },
         {
-          "question": "What if my parent needs care immediately but there's a waitlist?",
+          "question": "What if my loved one needs care immediately but there's a waitlist?",
           "answer": "Apply immediately and ask about priority placement for crisis situations. In the meantime, contact Alabama CARES at 1-800-243-5463 for short-term caregiver support and information about private-pay options."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can apply on behalf of their parents. You'll need power of attorney documents or other legal authorization to act on their behalf during the application process."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can apply on behalf of their loved ones. You'll need power of attorney documents or other legal authorization to act on their behalf during the application process."
         },
         {
-          "question": "How many hours of aide services will my parent receive?",
-          "answer": "Service hours depend on your parent's assessed needs and available funding. The case manager will work with you to develop a care plan based on the functional assessment results and program capacity."
+          "question": "How many hours of aide services will my loved one receive?",
+          "answer": "Service hours depend on your loved one's assessed needs and available funding. The case manager will work with you to develop a care plan based on the functional assessment results and program capacity."
         },
         {
           "question": "What's the difference between E&D Waiver and Alabama CARES?",
           "answer": "E&D Waiver provides direct personal care services through Medicaid for those meeting nursing facility level of care. Alabama CARES offers caregiver support, training, and some services for families caring for adults 60+ with no income restrictions."
         },
         {
-          "question": "Can my parent receive services from both programs at the same time?",
-          "answer": "Yes, your parent may be able to receive E&D Waiver services while you as the caregiver receive support through Alabama CARES. Each program has different eligibility requirements and serves different needs."
+          "question": "Can my loved one receive services from both programs at the same time?",
+          "answer": "Yes, your loved one may be able to receive E&D Waiver services while you as the caregiver receive support through Alabama CARES. Each program has different eligibility requirements and serves different needs."
         },
         {
-          "question": "What happens if my parent's needs change after they're enrolled?",
-          "answer": "Case managers conduct regular reassessments to adjust services as your parent's needs change. You can also request a reassessment if your parent's condition significantly improves or declines."
+          "question": "What happens if my loved one's needs change after they're enrolled?",
+          "answer": "Case managers conduct regular reassessments to adjust services as your loved one's needs change. You can also request a reassessment if your loved one's condition significantly improves or declines."
         },
         {
           "question": "Do we have to choose our own aide or does the program assign one?",
-          "answer": "This depends on which program and service model your parent qualifies for. Personal Choices allows more self-direction in hiring, while traditional E&D services typically work with contracted agencies that provide pre-screened aides."
+          "answer": "This depends on which program and service model your loved one qualifies for. Personal Choices allows more self-direction in hiring, while traditional E&D services typically work with contracted agencies that provide pre-screened aides."
         }
       ],
       "layoutIntent": {
@@ -2601,7 +2601,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "seniorx-prescription-assistance",
       "name": "SenioRx Prescription Drug Assistance Program",
       "shortName": "SenioRx",
-      "tagline": "Free prescription medications from drug companies if your parent has chronic conditions and limited coverage.",
+      "tagline": "Free prescription medications from drug companies if your loved one has chronic conditions and limited coverage.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2614,7 +2614,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ with chronic conditions like diabetes or heart disease, they may qualify for free brand-name prescription medications through pharmaceutical company assistance programs. SenioRx helps Alabama residents navigate these programs when they have no prescription coverage, inadequate Medicare Part D coverage, or fall into the Medicare \"donut hole.\"\n\nThe program provides 3-month supplies of medications with refills, plus connections to low-cost generic mail-order options. Because each pharmaceutical company sets its own guidelines, your parent might qualify even if their income exceeds the initial screening threshold of 200% of the federal poverty level.\n\nYou must apply in your parent's county of residence through their local Area Agency on Aging office. The program serves all 67 Alabama counties but requires an in-person appointment or phone consultation for eligibility screening.",
+      "intro": "If your loved one is 55+ with chronic conditions like diabetes or heart disease, they may qualify for free brand-name prescription medications through pharmaceutical company assistance programs. SenioRx helps Alabama residents navigate these programs when they have no prescription coverage, inadequate Medicare Part D coverage, or fall into the Medicare \"donut hole.\"\n\nThe program provides 3-month supplies of medications with refills, plus connections to low-cost generic mail-order options. Because each pharmaceutical company sets its own guidelines, your loved one might qualify even if their income exceeds the initial screening threshold of 200% of the federal poverty level.\n\nYou must apply in your loved one's county of residence through their local Area Agency on Aging office. The program serves all 67 Alabama counties but requires an in-person appointment or phone consultation for eligibility screening.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2649,7 +2649,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule an eligibility appointment",
-            "description": "Call to discuss your parent's medications, income, and current coverage. Staff will determine if pharmaceutical company programs are a good fit."
+            "description": "Call to discuss your loved one's medications, income, and current coverage. Staff will determine if pharmaceutical company programs are a good fit."
           },
           {
             "step": 3,
@@ -2664,7 +2664,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Even if your parent's income seems too high, still apply. Pharmaceutical companies often have higher income limits than the 200% federal poverty level used for initial screening.",
+        "tip": "Even if your loved one's income seems too high, still apply. Pharmaceutical companies often have higher income limits than the 200% federal poverty level used for initial screening.",
         "urls": [
           {
             "label": "Alabama Ageline SenioRx Page",
@@ -2704,16 +2704,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my parent if they can't get to the appointment?",
-          "answer": "Yes, family members can represent their parent during the eligibility screening. You'll need to bring all required documents and have detailed information about their medications and health conditions. Some offices may require a signed authorization form."
+          "question": "Can I apply for my loved one if they can't get to the appointment?",
+          "answer": "Yes, family members can represent their loved one during the eligibility screening. You'll need to bring all required documents and have detailed information about their medications and health conditions. Some offices may require a signed authorization form."
         },
         {
-          "question": "What if my parent has Medicare Part D but still can't afford their medications?",
+          "question": "What if my loved one has Medicare Part D but still can't afford their medications?",
           "answer": "They may still qualify if they're in the Medicare \"donut hole\" coverage gap, face high co-pays, or need medications not covered by their plan's formulary. The pharmaceutical companies consider these situations as inadequate coverage."
         },
         {
           "question": "How long do the free medications last?",
-          "answer": "Most pharmaceutical company programs provide 3-month supplies with refills available if your parent continues to meet eligibility requirements. You'll need to reapply periodically as required by each company's guidelines."
+          "answer": "Most pharmaceutical company programs provide 3-month supplies with refills available if your loved one continues to meet eligibility requirements. You'll need to reapply periodically as required by each company's guidelines."
         }
       ],
       "layoutIntent": {
@@ -2732,17 +2732,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Alabama offers 15 programs that can help your aging parent stay safe, healthy, and independent — from $100-300/month for groceries to free home care services that prevent nursing home placement. Ten of these are financial benefits with income requirements, while five are free resources available to any Alabama senior regardless of income. Most benefit programs require household income below $2,000-2,500/month, but eligibility varies significantly by program. Start by checking the programs below based on your parent's most urgent needs — whether that's paying bills, getting meals, or finding quality healthcare coverage.",
+    "intro": "Alabama offers 15 programs that can help your aging loved one stay safe, healthy, and independent, from $100-300/month for groceries to free home care services that prevent nursing home placement. Ten of these are financial benefits with income requirements, while five are free resources available to any Alabama senior regardless of income. Most benefit programs require household income below $2,000-2,500/month, but eligibility varies significantly by program. Start by checking the programs below based on your loved one's most urgent needs, whether that's paying bills, getting meals, or finding quality healthcare coverage.",
     "startHere": [
       {
         "name": "Alabama Medicaid Elderly and Disabled Waiver",
         "programId": "alabama-medicaid-elderly-disabled-waiver",
-        "why": "Covers home care services that can prevent costly nursing home placement while keeping your parent in their own home."
+        "why": "Covers home care services that can prevent costly nursing home placement while keeping your loved one in their own home."
       },
       {
         "name": "Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
         "programId": "alabama-medicaid-medicare-savings-programs",
-        "why": "Can eliminate Medicare premiums and out-of-pocket costs if your parent's income is below $1,695/month."
+        "why": "Can eliminate Medicare premiums and out-of-pocket costs if your loved one's income is below $1,695/month."
       },
       {
         "name": "Alabama SHIP (State Health Insurance Assistance Program)",
@@ -2752,7 +2752,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Alabama Elderly Simplified Application Project (AESAP)",
         "programId": "alabama-aesap",
-        "why": "Streamlined food assistance application for seniors 60+ with no job income — just a 2-page form and no interview required."
+        "why": "Streamlined food assistance application for seniors 60+ with no job income, just a 2-page form and no interview required."
       }
     ],
     "byNeed": [
@@ -2762,7 +2762,7 @@ export const drafts: PipelineStateDrafts = {
           "Alabama Medicaid Elderly and Disabled Waiver",
           "Elderly and Disabled (E&D) Medicaid Waiver"
         ],
-        "description": "Get personal care, meals, and other services covered so your parent can stay home instead of entering a nursing facility."
+        "description": "Get personal care, meals, and other services covered so your loved one can stay home instead of entering a nursing facility."
       },
       {
         "need": "Healthcare and Medicare help",
@@ -2779,7 +2779,7 @@ export const drafts: PipelineStateDrafts = {
           "Alabama Elderly Simplified Application Project (AESAP)",
           "Elderly Nutrition Program (Meals on Wheels)"
         ],
-        "description": "Monthly grocery benefits or free home-delivered meals to ensure your parent eats well."
+        "description": "Monthly grocery benefits or free home-delivered meals to ensure your loved one eats well."
       },
       {
         "need": "Utility bills and home repairs",
@@ -2809,9 +2809,9 @@ export const drafts: PipelineStateDrafts = {
     ],
     "quickFacts": [
       "Most Alabama benefit programs require income below $2,000-2,500/month for a single person, but limits vary by program",
-      "Alabama has two separate Medicaid waiver programs for elderly home care — check both for availability in your parent's area",
+      "Alabama has two separate Medicaid waiver programs for elderly home care, check both for availability in your loved one's area",
       "Five programs offer free help regardless of income: SHIP Medicare counseling, Meals on Wheels, legal services, ombudsman services, and prescription assistance"
     ],
-    "resourcesVsBenefits": "Alabama's benefit programs require income and asset limits — like the Medicaid waivers for home care or AESAP for food assistance. But five programs help any Alabama senior regardless of income: free Medicare counseling through SHIP, Meals on Wheels nutrition programs, legal services for seniors 60+, nursing home advocacy, and prescription drug assistance. Start with the free resources while you're applying for financial benefits."
+    "resourcesVsBenefits": "Alabama's benefit programs require income and asset limits, like the Medicaid waivers for home care or AESAP for food assistance. But five programs help any Alabama senior regardless of income: free Medicare counseling through SHIP, Meals on Wheels nutrition programs, legal services for seniors 60+, nursing home advocacy, and prescription drug assistance. Start with the free resources while you're applying for financial benefits."
   }
 };

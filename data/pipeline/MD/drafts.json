@@ -26,7 +26,7 @@
           }
         ]
       },
-      "intro": "If your parent needs medical equipment like a walker, wheelchair, or hospital bed, Maryland's DME Reuse Program provides these items free regardless of income. The program offers basic equipment (canes, walkers, shower chairs) that you can request directly online, plus complex equipment (wheelchairs, hospital beds, patient lifts) that requires a healthcare provider's form.\n\nEquipment is donated, sanitized, and repaired before distribution — your parent keeps it permanently with no return required. Because all items depend on donated stock, availability varies and you must pick up equipment by appointment at state locations around Maryland.",
+      "intro": "If your loved one needs medical equipment like a walker, wheelchair, or hospital bed, Maryland's DME Reuse Program provides these items free regardless of income. The program offers basic equipment (canes, walkers, shower chairs) that you can request directly online, plus complex equipment (wheelchairs, hospital beds, patient lifts) that requires a healthcare provider's form.\n\nEquipment is donated, sanitized, and repaired before distribution, your loved one keeps it permanently with no return required. Because all items depend on donated stock, availability varies and you must pick up equipment by appointment at state locations around Maryland.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -49,7 +49,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online for basic equipment or call 240-230-8000 to request forms for complex items — staff will contact you to schedule pickup.",
+        "summary": "Apply online for basic equipment or call 240-230-8000 to request forms for complex items, staff will contact you to schedule pickup.",
         "steps": [
           {
             "step": 1,
@@ -72,7 +72,7 @@
             "description": "Collect equipment by appointment at designated pickup sites around Maryland. No home delivery available."
           }
         ],
-        "processingTime": "Form goes 'In-Review' after submission — timeline for staff contact not specified",
+        "processingTime": "Form goes 'In-Review' after submission, timeline for staff contact not specified",
         "waitlist": null,
         "tip": "Call ahead to verify equipment availability before submitting forms, since all items depend on donated stock.",
         "urls": [
@@ -121,19 +121,19 @@
       "faqs": [
         {
           "question": "What's the difference between basic and complex equipment?",
-          "answer": "Basic equipment includes canes, walkers, shower chairs, and toilet safety rails — you can request these directly online. Complex equipment includes wheelchairs, hospital beds, and patient lifts, which require a healthcare provider to complete Parts B and C of the request form before you can apply."
+          "answer": "Basic equipment includes canes, walkers, shower chairs, and toilet safety rails, you can request these directly online. Complex equipment includes wheelchairs, hospital beds, and patient lifts, which require a healthcare provider to complete Parts B and C of the request form before you can apply."
         },
         {
           "question": "What if the equipment I need isn't available?",
-          "answer": "All equipment depends on donated stock, so availability changes frequently. Call 240-230-8000 to check current inventory before submitting forms. Staff can also suggest alternative equipment that might meet your parent's needs."
+          "answer": "All equipment depends on donated stock, so availability changes frequently. Call 240-230-8000 to check current inventory before submitting forms. Staff can also suggest alternative equipment that might meet your loved one's needs."
         },
         {
-          "question": "Can I apply if my parent has Medicare or private insurance?",
-          "answer": "Yes, this program has no insurance requirements or restrictions. Your parent can receive equipment regardless of their Medicare, Medicaid, or private insurance status — there are no income or asset limits."
+          "question": "Can I apply if my loved one has Medicare or private insurance?",
+          "answer": "Yes, this program has no insurance requirements or restrictions. Your loved one can receive equipment regardless of their Medicare, Medicaid, or private insurance status, there are no income or asset limits."
         },
         {
-          "question": "How do I return equipment when my parent no longer needs it?",
-          "answer": "Your parent keeps all equipment permanently with no return required. However, the program encourages donations back to help other families — contact dme.mdoa@maryland.gov to arrange a voluntary return."
+          "question": "How do I return equipment when my loved one no longer needs it?",
+          "answer": "Your loved one keeps all equipment permanently with no return required. However, the program encourages donations back to help other families, contact dme.mdoa@maryland.gov to arrange a voluntary return."
         }
       ],
       "layoutIntent": {
@@ -154,7 +154,7 @@
       "id": "community-first-choice-cfc",
       "name": "Community First Choice (CFC)",
       "shortName": "Community First Choice",
-      "tagline": "If your parent needs daily help but wants to stay home, CFC provides personal care, home modifications, and medical support — all covered by Medicaid.",
+      "tagline": "If your loved one needs daily help but wants to stay home, CFC provides personal care, home modifications, and medical support, all covered by Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -183,7 +183,7 @@
           }
         ]
       },
-      "intro": "If your parent needs institutional-level care but wants to remain at home, Community First Choice (CFC) provides comprehensive home-based services through Medicaid. This includes personal care assistance with bathing and dressing, home-delivered meals, medical equipment, home modifications for accessibility, and emergency response systems.\n\nYour parent must already have full Medicaid (the red and white card) and require nursing home level care based on a clinical assessment. Income limits are extremely low — $350/month for individuals in 2026 — but SSI recipients automatically qualify regardless of income. Because CFC covers the full range of services needed to live safely at home, families can avoid nursing home placement while ensuring comprehensive care coordination.",
+      "intro": "If your loved one needs institutional-level care but wants to remain at home, Community First Choice (CFC) provides comprehensive home-based services through Medicaid. This includes personal care assistance with bathing and dressing, home-delivered meals, medical equipment, home modifications for accessibility, and emergency response systems.\n\nYour loved one must already have full Medicaid (the red and white card) and require nursing home level care based on a clinical assessment. Income limits are extremely low, $350/month for individuals in 2026, but SSI recipients automatically qualify regardless of income. Because CFC covers the full range of services needed to live safely at home, families can avoid nursing home placement while ensuring comprehensive care coordination.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -208,7 +208,7 @@
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must require institutional level of care based on a uniform medical assessment — meaning your parent needs daily help with activities like bathing, dressing, or medication management that would otherwise require nursing home care.",
+        "functionalRequirement": "Must require institutional level of care based on a uniform medical assessment, meaning your loved one needs daily help with activities like bathing, dressing, or medication management that would otherwise require nursing home care.",
         "otherRequirements": [
           "Must already have full Medicaid (red and white card)",
           "Must reside in the community (not in a facility)",
@@ -218,12 +218,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Maryland Access Point at 1-844-627-5465 to start the application — processing time varies by county.",
+        "summary": "Call the Maryland Access Point at 1-844-627-5465 to start the application, processing time varies by county.",
         "steps": [
           {
             "step": 1,
             "title": "Confirm Medicaid eligibility",
-            "description": "Your parent must have full Medicaid (red and white card) before applying for CFC. If they don't have this, apply for Medicaid first through your local Department of Social Services."
+            "description": "Your loved one must have full Medicaid (red and white card) before applying for CFC. If they don't have this, apply for Medicaid first through your local Department of Social Services."
           },
           {
             "step": 2,
@@ -233,7 +233,7 @@
           {
             "step": 3,
             "title": "Complete medical assessment",
-            "description": "A nurse from your local Health Department will conduct a uniform medical assessment to determine if your parent requires institutional level of care."
+            "description": "A nurse from your local Health Department will conduct a uniform medical assessment to determine if your loved one requires institutional level of care."
           },
           {
             "step": 4,
@@ -248,7 +248,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Don't transfer any assets before applying — Maryland has a 60-month look-back rule that can delay eligibility.",
+        "tip": "Don't transfer any assets before applying, Maryland has a 60-month look-back rule that can delay eligibility.",
         "urls": [
           {
             "label": "Maryland CFC Official Page",
@@ -291,7 +291,7 @@
         }
       ],
       "applicationNotes": [
-        "If only one spouse applies, the non-applicant spouse's income doesn't count — but a Monthly Maintenance Needs Allowance may apply to protect spouse income",
+        "If only one spouse applies, the non-applicant spouse's income doesn't count, but a Monthly Maintenance Needs Allowance may apply to protect spouse income",
         "SSI recipients automatically qualify for Medicaid regardless of income, bypassing the $350/month limit",
         "Persons in the Community Options Medicaid Waiver may qualify for CFC with higher income limits than standard Medicaid",
         "Assets given away or sold below fair market value in the past 5 years can trigger a penalty period of ineligibility"
@@ -305,36 +305,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they make more than $350 per month?",
+          "question": "Can my loved one apply if they make more than $350 per month?",
           "answer": "Yes, if they receive SSI, they automatically qualify regardless of income. Also, if they're eligible for the Community Options Medicaid Waiver, higher income limits apply than the standard $350/month limit."
         },
         {
-          "question": "What happens if my parent's house is worth more than $730,000?",
-          "answer": "The home itself is protected as long as your parent lives there or intends to return. However, the home equity interest (the value minus any mortgage) cannot exceed $730,000 to qualify for CFC."
+          "question": "What happens if my loved one's house is worth more than $730,000?",
+          "answer": "The home itself is protected as long as your loved one lives there or intends to return. However, the home equity interest (the value minus any mortgage) cannot exceed $730,000 to qualify for CFC."
         },
         {
-          "question": "Can I apply for CFC if my parent is currently in the hospital?",
-          "answer": "Yes, you can start the application process while your parent is hospitalized. Hospital discharge planners often help coordinate with CFC to ensure services are ready when your parent returns home."
+          "question": "Can I apply for CFC if my loved one is currently in the hospital?",
+          "answer": "Yes, you can start the application process while your loved one is hospitalized. Hospital discharge planners often help coordinate with CFC to ensure services are ready when your loved one returns home."
         },
         {
-          "question": "How do I know if my parent needs 'institutional level of care'?",
-          "answer": "A nurse from your local Health Department will conduct a uniform medical assessment. Generally, this means your parent needs daily help with activities like bathing, dressing, medication management, or mobility — the level of care typically provided in a nursing home."
+          "question": "How do I know if my loved one needs 'institutional level of care'?",
+          "answer": "A nurse from your local Health Department will conduct a uniform medical assessment. Generally, this means your loved one needs daily help with activities like bathing, dressing, medication management, or mobility, the level of care typically provided in a nursing home."
         },
         {
-          "question": "What if my parent already has some home care services?",
-          "answer": "CFC can coordinate with existing services and may expand what's available. If your parent is already on a 1915(c) waiver, they must continue to meet all waiver requirements and receive at least one waiver service per year to maintain CFC eligibility."
+          "question": "What if my loved one already has some home care services?",
+          "answer": "CFC can coordinate with existing services and may expand what's available. If your loved one is already on a 1915(c) waiver, they must continue to meet all waiver requirements and receive at least one waiver service per year to maintain CFC eligibility."
         },
         {
           "question": "Can we apply for CFC and the Community Options Waiver at the same time?",
-          "answer": "The Community Options Waiver actually provides a pathway to CFC eligibility with higher income limits. Call the Maryland Access Point at 1-844-627-5465 to discuss which program best fits your parent's situation."
+          "answer": "The Community Options Waiver actually provides a pathway to CFC eligibility with higher income limits. Call the Maryland Access Point at 1-844-627-5465 to discuss which program best fits your loved one's situation."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "CFC includes ongoing supports planning and nurse monitoring. Your supports planner will reassess needs regularly and adjust services accordingly. The program is designed to adapt as your parent's care requirements change."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "CFC includes ongoing supports planning and nurse monitoring. Your supports planner will reassess needs regularly and adjust services accordingly. The program is designed to adapt as your loved one's care requirements change."
         },
         {
-          "question": "Can a family member apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can assist with the application process. If you have power of attorney or legal guardianship, bring those documents when applying. Otherwise, your parent will need to be involved in the application and assessment process."
+          "question": "Can a family member apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can assist with the application process. If you have power of attorney or legal guardianship, bring those documents when applying. Otherwise, your loved one will need to be involved in the application and assessment process."
         }
       ],
       "layoutIntent": {
@@ -355,7 +355,7 @@
       "id": "pace-comprehensive-care",
       "name": "Maryland PACE",
       "shortName": "PACE",
-      "tagline": "Complete medical and long-term care under one program for aging parents who need nursing home-level care but want to stay home.",
+      "tagline": "Complete medical and long-term care under one program for aging loved ones who need nursing home-level care but want to stay home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -372,7 +372,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay in their community, PACE provides all medical care, prescriptions, home care, adult day services, and transportation under one coordinated program. Your parent gets a dedicated care team that manages everything from primary care visits to emergency hospitalization — no need to coordinate between separate Medicare and Medicaid providers.\n\nPACE serves adults who are certified as needing nursing facility care for more than 4 months but are safe to live in the community with support. In Maryland, PACE operates in specific service areas only: certain Baltimore zip codes (21201, 21207, 21209, 21210, 21211, 21212, 21215, 21216, 21223, 21225, 21226, 21228, 21229, 21230, 21239, 21251, 21287) and Montgomery County. Your parent must agree to receive all Medicare and Medicaid-covered services exclusively through the PACE provider and cannot be enrolled in Medicare Advantage or hospice.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their community, PACE provides all medical care, prescriptions, home care, adult day services, and transportation under one coordinated program. Your loved one gets a dedicated care team that manages everything from primary care visits to emergency hospitalization, no need to coordinate between separate Medicare and Medicaid providers.\n\nPACE serves adults who are certified as needing nursing facility care for more than 4 months but are safe to live in the community with support. In Maryland, PACE operates in specific service areas only: certain Baltimore zip codes (21201, 21207, 21209, 21210, 21211, 21212, 21215, 21216, 21223, 21225, 21226, 21228, 21229, 21230, 21239, 21251, 21287) and Montgomery County. Your loved one must agree to receive all Medicare and Medicaid-covered services exclusively through the PACE provider and cannot be enrolled in Medicare Advantage or hospice.",
       "savingsRange": "",
       "savingsSource": "Comprehensive care service",
       "savingsVerified": false,
@@ -402,7 +402,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by the state as needing nursing facility level of care for more than 4 months (clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must be certified by the state as needing nursing facility level of care for more than 4 months (clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "Must live in PACE provider's approved service area",
           "Must be able to live safely in community with PACE assistance",
@@ -413,7 +413,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local PACE provider directly for assessment and enrollment — no standard state application form.",
+        "summary": "Contact your local PACE provider directly for assessment and enrollment, no standard state application form.",
         "steps": [
           {
             "step": 1,
@@ -428,12 +428,12 @@
           {
             "step": 3,
             "title": "Schedule comprehensive assessment",
-            "description": "An interdisciplinary team (doctor, nurse, social worker, therapists) will assess your parent's medical and functional needs to determine if they need nursing facility level of care."
+            "description": "An interdisciplinary team (doctor, nurse, social worker, therapists) will assess your loved one's medical and functional needs to determine if they need nursing facility level of care."
           },
           {
             "step": 4,
             "title": "Complete financial eligibility",
-            "description": "PACE staff will help determine Medicaid eligibility if needed, or discuss private pay options if your parent doesn't qualify for Medicaid."
+            "description": "PACE staff will help determine Medicaid eligibility if needed, or discuss private pay options if your loved one doesn't qualify for Medicaid."
           },
           {
             "step": 5,
@@ -441,8 +441,8 @@
             "description": "If approved, sign agreement acknowledging you'll receive all Medicare and Medicaid services exclusively through PACE."
           }
         ],
-        "processingTime": "Not specified — varies by provider",
-        "waitlist": "Possible — varies by provider and service area capacity",
+        "processingTime": "Not specified, varies by provider",
+        "waitlist": "Possible, varies by provider and service area capacity",
         "tip": "Each PACE provider operates independently, so call the specific one for your area rather than a state agency.",
         "urls": []
       },
@@ -478,10 +478,10 @@
         }
       ],
       "applicationNotes": [
-        "Private pay option available if your parent doesn't qualify for Medicaid — costs typically $7,000+ per month based on national PACE averages",
-        "Your parent cannot use outside Medicare or Medicaid providers once enrolled — all care must go through the PACE team",
-        "If your parent moves outside the PACE service area, they must disenroll and find new care arrangements",
-        "Some areas may have waitlists while others have immediate openings — ask about current capacity when you call"
+        "Private pay option available if your loved one doesn't qualify for Medicaid, costs typically $7,000+ per month based on national PACE averages",
+        "Your loved one cannot use outside Medicare or Medicaid providers once enrolled, all care must go through the PACE team",
+        "If your loved one moves outside the PACE service area, they must disenroll and find new care arrangements",
+        "Some areas may have waitlists while others have immediate openings, ask about current capacity when you call"
       ],
       "relatedPrograms": [
         "Maryland Medicaid Waiver Programs",
@@ -491,11 +491,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctors after enrolling in PACE?",
-          "answer": "No. PACE requires your parent to receive all Medicare and Medicaid-covered services exclusively through the PACE care team. They cannot see outside providers except for emergency care or when PACE refers them to specialists not available in-house."
+          "question": "Can my loved one keep seeing their current doctors after enrolling in PACE?",
+          "answer": "No. PACE requires your loved one to receive all Medicare and Medicaid-covered services exclusively through the PACE care team. They cannot see outside providers except for emergency care or when PACE refers them to specialists not available in-house."
         },
         {
-          "question": "What if my parent's house is worth more than $2,000 — can they still qualify?",
+          "question": "What if my loved one's house is worth more than $2,000, can they still qualify?",
           "answer": "Yes. The primary home is exempt from asset limits for Medicaid eligibility. Only countable assets like bank accounts, stocks, and investments count toward the $2,000 limit."
         },
         {
@@ -503,24 +503,24 @@
           "answer": "Waitlist times vary significantly by provider and aren't publicly reported. PACE of West Baltimore and Trinity Health PACE each manage their own capacity. Call the provider directly to ask about current enrollment availability in your specific area."
         },
         {
-          "question": "Can I apply for PACE on behalf of my parent?",
-          "answer": "Yes, if you have power of attorney or guardianship. You'll need to provide the legal documentation. If your parent is cognitively able, they can also designate you as their representative during the application process."
+          "question": "Can I apply for PACE on behalf of my loved one?",
+          "answer": "Yes, if you have power of attorney or guardianship. You'll need to provide the legal documentation. If your loved one is cognitively able, they can also designate you as their representative during the application process."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "The PACE interdisciplinary team reassesses participants regularly and adjusts the care plan as needs change. If your parent's condition improves significantly and they no longer need nursing facility level care, they may need to disenroll."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "The PACE interdisciplinary team reassesses participants regularly and adjusts the care plan as needs change. If your loved one's condition improves significantly and they no longer need nursing facility level care, they may need to disenroll."
         },
         {
-          "question": "Can my parent be on PACE and Medicare Advantage at the same time?",
+          "question": "Can my loved one be on PACE and Medicare Advantage at the same time?",
           "answer": "No. PACE participants cannot be enrolled in Medicare Advantage plans, hospice care, or certain other Medicare programs. PACE becomes their Medicare and Medicaid provider for all covered services."
         },
         {
           "question": "What if we live right on the border of a PACE service area?",
-          "answer": "Your parent must live within the exact zip codes served by each PACE provider. Living close but outside the boundary means you're not eligible for that provider. Check the specific zip code list with each provider to confirm coverage."
+          "answer": "Your loved one must live within the exact zip codes served by each PACE provider. Living close but outside the boundary means you're not eligible for that provider. Check the specific zip code list with each provider to confirm coverage."
         },
         {
-          "question": "How much does PACE cost if my parent doesn't qualify for Medicaid?",
-          "answer": "Private pay costs aren't published by Maryland PACE providers, but national averages suggest $7,000+ per month. The provider will give you exact pricing during the enrollment process if your parent doesn't qualify for Medicaid coverage."
+          "question": "How much does PACE cost if my loved one doesn't qualify for Medicaid?",
+          "answer": "Private pay costs aren't published by Maryland PACE providers, but national averages suggest $7,000+ per month. The provider will give you exact pricing during the enrollment process if your loved one doesn't qualify for Medicaid coverage."
         }
       ],
       "layoutIntent": {
@@ -541,7 +541,7 @@
       "id": "medicare-savings-program",
       "name": "Maryland Medicare Savings Program (MSP)",
       "shortName": "Medicare Savings Program",
-      "tagline": "If your parent qualifies, Maryland pays their Medicare premiums, deductibles, and coinsurance — saving up to $2,000+ annually.",
+      "tagline": "If your loved one qualifies, Maryland pays their Medicare premiums, deductibles, and coinsurance, saving up to $2,000+ annually.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -554,7 +554,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and struggles with monthly premiums or copayments, Maryland's Medicare Savings Program may cover these costs entirely. The program has three tiers based on income: QMB covers all Medicare premiums, deductibles, and coinsurance; SLMB covers Medicare Part B premiums ($174.70/month in 2025); and QI covers Part B premiums with limited funding.\n\nIncome limits are higher than many people realize because of special deductions. A single person earning up to $1,660/month may qualify for some level of coverage, and Maryland disregards the first $20 of unearned income and $65 of earned income when calculating eligibility. Asset limits are $9,090 for individuals and $13,630 for couples, but your parent's home, one car, and burial funds don't count.\n\nBecause MSP is automatically checked when anyone applies for Medical Assistance in Maryland, many eligible seniors are already enrolled without realizing it. If your parent pays Medicare premiums out-of-pocket, it's worth checking whether they qualify.",
+      "intro": "If your loved one has Medicare and struggles with monthly premiums or copayments, Maryland's Medicare Savings Program may cover these costs entirely. The program has three tiers based on income: QMB covers all Medicare premiums, deductibles, and coinsurance; SLMB covers Medicare Part B premiums ($174.70/month in 2025); and QI covers Part B premiums with limited funding.\n\nIncome limits are higher than many people realize because of special deductions. A single person earning up to $1,660/month may qualify for some level of coverage, and Maryland disregards the first $20 of unearned income and $65 of earned income when calculating eligibility. Asset limits are $9,090 for individuals and $13,630 for couples, but your loved one's home, one car, and burial funds don't count.\n\nBecause MSP is automatically checked when anyone applies for Medical Assistance in Maryland, many eligible seniors are already enrolled without realizing it. If your loved one pays Medicare premiums out-of-pocket, it's worth checking whether they qualify.",
       "savingsRange": "$200 – $2,500/year in 2026",
       "savingsSource": "Medicare Part B premiums ($174.70/month in 2025) plus potential deductibles and coinsurance coverage",
       "savingsVerified": true,
@@ -620,7 +620,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Maryland Health Connection or at your local Department of Social Services — processing typically takes 30-45 days.",
+        "summary": "Apply online through Maryland Health Connection or at your local Department of Social Services, processing typically takes 30-45 days.",
         "steps": [
           {
             "step": 1,
@@ -650,7 +650,7 @@
         ],
         "processingTime": "SLMB and QI effective first day of application month; QMB and other tiers typically processed within 30-45 days",
         "waitlist": null,
-        "tip": "Even if you think your parent's income is too high, apply anyway — the $20 unearned income disregard and $65 earned income deduction often make people eligible who don't expect to qualify.",
+        "tip": "Even if you think your loved one's income is too high, apply anyway, the $20 unearned income disregard and $65 earned income deduction often make people eligible who don't expect to qualify.",
         "urls": [
           {
             "label": "Maryland Health Connection",
@@ -676,7 +676,7 @@
         "Pre-need burial contracts or burial fund documentation",
         "Documentation of medical expenses paid out-of-pocket",
         "Proof of health insurance premiums currently being paid",
-        "Any legal documents if someone else is applying on your parent's behalf"
+        "Any legal documents if someone else is applying on your loved one's behalf"
       ],
       "contacts": [
         {
@@ -699,10 +699,10 @@
         }
       ],
       "applicationNotes": [
-        "MSP eligibility is automatically reviewed during any Medical Assistance application — you don't need to apply separately",
-        "Income limits are updated each April based on Federal Poverty Level changes — check current limits before applying",
+        "MSP eligibility is automatically reviewed during any Medical Assistance application, you don't need to apply separately",
+        "Income limits are updated each April based on Federal Poverty Level changes, check current limits before applying",
         "Working income receives larger deductions ($65 earned vs $20 unearned), so employed seniors may qualify at higher income levels",
-        "If you're denied, ask specifically about the income disregards — caseworkers sometimes miss the $20/$65 deductions"
+        "If you're denied, ask specifically about the income disregards, caseworkers sometimes miss the $20/$65 deductions"
       ],
       "relatedPrograms": [
         "Maryland Energy Assistance Program (MEAP)",
@@ -713,35 +713,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes. The primary home is completely exempt regardless of value. Only the asset limits of $9,090 (single) or $13,630 (couple) apply to countable assets like bank accounts, investments, and additional vehicles."
         },
         {
-          "question": "What's the difference between the three MSP tiers my parent might qualify for?",
+          "question": "What's the difference between the three MSP tiers my loved one might qualify for?",
           "answer": "QMB (lowest income) covers all Medicare premiums, deductibles, and coinsurance. SLMB covers only Medicare Part B premiums ($174.70/month in 2025). QI also covers Part B premiums but has limited federal funding and may not be available year-round."
         },
         {
-          "question": "Will my parent get a Medicaid card if they're approved for MSP?",
+          "question": "Will my loved one get a Medicaid card if they're approved for MSP?",
           "answer": "Only QMB recipients receive a gray and white Medicaid card. SLMB and QI recipients get a determination letter confirming that their Medicare premiums are being paid, but no physical card."
         },
         {
-          "question": "Can I apply for MSP on behalf of my elderly parent?",
+          "question": "Can I apply for MSP on behalf of my elderly loved one?",
           "answer": "Yes, but you'll need legal authorization such as power of attorney or guardianship documents. The local Department of Social Services can guide you through the representative application process."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
-          "answer": "Report income changes to your local Department of Social Services within 30 days. Increases might affect eligibility, while decreases could qualify your parent for a higher tier of benefits with more coverage."
+          "question": "What happens if my loved one's income changes after they're approved?",
+          "answer": "Report income changes to your local Department of Social Services within 30 days. Increases might affect eligibility, while decreases could qualify your loved one for a higher tier of benefits with more coverage."
         },
         {
-          "question": "Can my parent have MSP and also apply for other programs like SNAP?",
-          "answer": "Yes. MSP eligibility often makes your parent automatically eligible for SNAP and other benefits. The Department of Social Services will screen for all available programs during the application process."
+          "question": "Can my loved one have MSP and also apply for other programs like SNAP?",
+          "answer": "Yes. MSP eligibility often makes your loved one automatically eligible for SNAP and other benefits. The Department of Social Services will screen for all available programs during the application process."
         },
         {
           "question": "How long does MSP coverage last once approved?",
-          "answer": "MSP coverage continues as long as your parent remains eligible. Maryland conducts periodic reviews (typically annually) to confirm continued eligibility based on income and asset limits."
+          "answer": "MSP coverage continues as long as your loved one remains eligible. Maryland conducts periodic reviews (typically annually) to confirm continued eligibility based on income and asset limits."
         },
         {
-          "question": "What if my parent is paying Medicare premiums now — will they get reimbursed?",
+          "question": "What if my loved one is paying Medicare premiums now, will they get reimbursed?",
           "answer": "SLMB and QI coverage can be retroactive up to 3 months before the application date, meaning Medicare premiums paid during that period may be refunded. QMB retroactivity rules vary."
         }
       ],
@@ -763,7 +763,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery assistance for seniors on fixed incomes — average $188/month, minimum $30 for those 62+.",
+      "tagline": "Monthly grocery assistance for seniors on fixed incomes, average $188/month, minimum $30 for those 62+.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -776,7 +776,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits on an EBT card to buy food at grocery stores and farmers markets. The average older adult receives about $188/month, with benefits ranging from $30 to $298/month for single seniors depending on income. Maryland recently increased the minimum benefit to $30/month for seniors 62+ (nearly doubling the federal minimum).\n\nBecause seniors have higher income limits (165% of poverty vs. 130% for younger households) and different asset rules, your parent may qualify even if their Social Security or pension seemed too high for other programs. Income limit for a single person 60+ is $2,152/month in 2026. The program covers SNAP-approved foods including fruits, vegetables, meat, dairy, and bread — but not alcohol, tobacco, or prepared hot foods.\n\nDespite these benefits, only about half of eligible seniors are enrolled in SNAP. Because medical expenses for those 60+ are deductible from income, many seniors qualify who don't realize it.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits on an EBT card to buy food at grocery stores and farmers markets. The average older adult receives about $188/month, with benefits ranging from $30 to $298/month for single seniors depending on income. Maryland recently increased the minimum benefit to $30/month for seniors 62+ (nearly doubling the federal minimum).\n\nBecause seniors have higher income limits (165% of poverty vs. 130% for younger households) and different asset rules, your loved one may qualify even if their Social Security or pension seemed too high for other programs. Income limit for a single person 60+ is $2,152/month in 2026. The program covers SNAP-approved foods including fruits, vegetables, meat, dairy, and bread, but not alcohol, tobacco, or prepared hot foods.\n\nDespite these benefits, only about half of eligible seniors are enrolled in SNAP. Because medical expenses for those 60+ are deductible from income, many seniors qualify who don't realize it.",
       "savingsRange": "$360 – $3,576/year in 2026",
       "savingsSource": "Based on Maryland SNAP minimum $30/month to maximum $298/month for single seniors",
       "savingsVerified": true,
@@ -851,7 +851,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through myDHR portal or call 1-800-332-6347 — interview required for all applications.",
+        "summary": "Apply online through myDHR portal or call 1-800-332-6347, interview required for all applications.",
         "steps": [
           {
             "step": 1,
@@ -866,7 +866,7 @@
           {
             "step": 3,
             "title": "Complete interview",
-            "description": "All applicants must be interviewed — this can be done by phone or in person at your local Department of Social Services office."
+            "description": "All applicants must be interviewed, this can be done by phone or in person at your local Department of Social Services office."
           },
           {
             "step": 4,
@@ -879,9 +879,9 @@
             "description": "Get approval or denial notice by mail. If approved, your Maryland Independence EBT card will arrive within 7-10 days."
           }
         ],
-        "processingTime": "Standard processing after interview and verification completion — expedited processing available in some circumstances",
+        "processingTime": "Standard processing after interview and verification completion, expedited processing available in some circumstances",
         "waitlist": null,
-        "tip": "Don't miss reporting medical expenses if you're 60+ — they're deductible from income and can significantly increase your benefits or help you qualify.",
+        "tip": "Don't miss reporting medical expenses if you're 60+, they're deductible from income and can significantly increase your benefits or help you qualify.",
         "urls": [
           {
             "label": "myDHR Online Application Portal",
@@ -923,7 +923,7 @@
         }
       ],
       "applicationNotes": [
-        "Medical expenses are deductible for households with members 60+ or disabled — this includes Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
+        "Medical expenses are deductible for households with members 60+ or disabled, this includes Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
         "You must include all household members who live together and buy/prepare food together, even if some don't qualify for benefits themselves",
         "Social Security benefits, pensions, and disability income all count toward the income limit, but medical expenses can reduce your countable income",
         "The work registration requirement doesn't apply to seniors 60+, but able-bodied household members under 60 must register for work"
@@ -937,35 +937,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for SNAP?",
-          "answer": "Yes, home value is completely exempt from SNAP asset limits. Your parent can own a home worth any amount and still qualify as long as their other countable assets (bank accounts, non-retirement investments) stay under $3,001 for households with members 60+."
+          "question": "Can my loved one keep their house and still qualify for SNAP?",
+          "answer": "Yes, home value is completely exempt from SNAP asset limits. Your loved one can own a home worth any amount and still qualify as long as their other countable assets (bank accounts, non-retirement investments) stay under $3,001 for households with members 60+."
         },
         {
           "question": "Do Social Security and pension payments count against the income limit?",
           "answer": "Yes, Social Security benefits, pensions, and disability income all count toward the $2,152/month income limit for single seniors. However, medical expenses over $35/month are deductible from income, which can help you qualify or increase benefits."
         },
         {
-          "question": "What if my parent lives with family but buys their own groceries?",
-          "answer": "SNAP looks at who buys and prepares food together, not just who lives together. If your parent shops separately and prepares their own meals, they can apply as a separate household of one. If they share meals or grocery shopping, the whole household must apply together."
+          "question": "What if my loved one lives with family but buys their own groceries?",
+          "answer": "SNAP looks at who buys and prepares food together, not just who lives together. If your loved one shops separately and prepares their own meals, they can apply as a separate household of one. If they share meals or grocery shopping, the whole household must apply together."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative for your parent, but you'll need to provide documentation of your authority to act on their behalf (power of attorney, guardianship papers, or signed authorization). Your parent or you will still need to complete the required interview."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative for your loved one, but you'll need to provide documentation of your authority to act on their behalf (power of attorney, guardianship papers, or signed authorization). Your loved one or you will still need to complete the required interview."
         },
         {
-          "question": "What medical expenses can reduce my parent's countable income?",
-          "answer": "Medical expenses over $35/month are deductible for those 60+, including Medicare premiums, prescription costs, doctor visits, dental care, eyeglasses, and medical equipment. Keep receipts from the last 3 months — this deduction often makes the difference between qualifying or not."
+          "question": "What medical expenses can reduce my loved one's countable income?",
+          "answer": "Medical expenses over $35/month are deductible for those 60+, including Medicare premiums, prescription costs, doctor visits, dental care, eyeglasses, and medical equipment. Keep receipts from the last 3 months, this deduction often makes the difference between qualifying or not."
         },
         {
-          "question": "Can my parent use SNAP benefits at farmers markets?",
+          "question": "Can my loved one use SNAP benefits at farmers markets?",
           "answer": "Yes, the EBT card works at participating farmers markets throughout Maryland. Many markets also offer matching programs that double your SNAP dollars when buying fresh fruits and vegetables, effectively increasing your buying power."
         },
         {
-          "question": "What happens to SNAP benefits if my parent moves to assisted living?",
-          "answer": "If your parent moves to an assisted living facility that provides meals, they may no longer be eligible for SNAP since they're not buying and preparing their own food. However, if they have a kitchenette and buy their own groceries, they can continue receiving benefits."
+          "question": "What happens to SNAP benefits if my loved one moves to assisted living?",
+          "answer": "If your loved one moves to an assisted living facility that provides meals, they may no longer be eligible for SNAP since they're not buying and preparing their own food. However, if they have a kitchenette and buy their own groceries, they can continue receiving benefits."
         },
         {
-          "question": "How often does my parent need to renew their SNAP benefits?",
+          "question": "How often does my loved one need to renew their SNAP benefits?",
           "answer": "Most SNAP recipients must renew every 12 months, but some seniors may qualify for 24-month certification periods if they have fixed income and no able-bodied adults in the household. You'll receive renewal notices by mail with specific deadlines and required documentation."
         }
       ],
@@ -1000,7 +1000,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with heating bills, LIHEAP can provide $25–750 toward their heating costs each year, plus up to $600 in emergency assistance when utility shutoff threatens. Because this is income-based assistance (not age-restricted), any household earning less than $2,608/month for one person qualifies — and if your parent already gets SNAP or cash assistance, they're automatically eligible.\n\nMaryland runs LIHEAP through three connected programs: MEAP for heating assistance, EUSP for electric bill grants, and year-round crisis help. Because payments go directly to the utility company, your parent never handles the money — the assistance appears as a credit on their bill. The catch: funding is limited and applications close when money runs out, so apply early in the program year.",
+      "intro": "If your loved one struggles with heating bills, LIHEAP can provide $25–750 toward their heating costs each year, plus up to $600 in emergency assistance when utility shutoff threatens. Because this is income-based assistance (not age-restricted), any household earning less than $2,608/month for one person qualifies, and if your loved one already gets SNAP or cash assistance, they're automatically eligible.\n\nMaryland runs LIHEAP through three connected programs: MEAP for heating assistance, EUSP for electric bill grants, and year-round crisis help. Because payments go directly to the utility company, your loved one never handles the money, the assistance appears as a credit on their bill. The catch: funding is limited and applications close when money runs out, so apply early in the program year.",
       "savingsRange": "$25 – $750/year in 2026",
       "savingsSource": "Maryland Energy Assistance Program heating assistance amounts",
       "savingsVerified": true,
@@ -1064,7 +1064,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at marylandbenefits.gov or call 1-800-332-6347 — processing time varies, but apply early as funding is limited.",
+        "summary": "Apply online at marylandbenefits.gov or call 1-800-332-6347, processing time varies, but apply early as funding is limited.",
         "steps": [
           {
             "step": 1,
@@ -1087,9 +1087,9 @@
             "description": "Your local OHEP office will review your application. If approved, payment goes directly to your utility company and appears as a credit on your bill."
           }
         ],
-        "processingTime": "Not specified — varies by local office and application volume",
+        "processingTime": "Not specified, varies by local office and application volume",
         "waitlist": null,
-        "tip": "If your parent gets SNAP or cash assistance, they can skip the full application after their benefits are renewed — they're automatically eligible.",
+        "tip": "If your loved one gets SNAP or cash assistance, they can skip the full application after their benefits are renewed, they're automatically eligible.",
         "urls": [
           {
             "label": "Maryland Benefits Portal",
@@ -1125,7 +1125,7 @@
         }
       ],
       "applicationNotes": [
-        "Funding is limited and applications may close before the program year ends — apply as early as possible",
+        "Funding is limited and applications may close before the program year ends, apply as early as possible",
         "SNAP and cash assistance recipients are automatically eligible and don't need to provide income documentation",
         "EUSP electric assistance is limited to once per program year (July through June)",
         "Crisis assistance is available year-round but summer cooling assistance is not offered"
@@ -1139,36 +1139,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for LIHEAP and still keep their house?",
-          "answer": "Yes, there are no asset limits for LIHEAP — your parent can own their home, have savings, or other assets and still qualify based solely on income."
+          "question": "Can my loved one apply for LIHEAP and still keep their house?",
+          "answer": "Yes, there are no asset limits for LIHEAP, your loved one can own their home, have savings, or other assets and still qualify based solely on income."
         },
         {
-          "question": "What if my parent lives with other family members — who counts as the household?",
+          "question": "What if my loved one lives with other family members, who counts as the household?",
           "answer": "The household includes everyone living at the address who is covered by the same utility bill, even if they don't share expenses. This is different from SNAP rules."
         },
         {
           "question": "How much notice do we get before LIHEAP funding runs out?",
-          "answer": "There's typically no advance notice — applications close when funds are exhausted. Apply as early as possible in the program year to avoid missing the funding deadline."
+          "answer": "There's typically no advance notice, applications close when funds are exhausted. Apply as early as possible in the program year to avoid missing the funding deadline."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, especially if your parent is 62+, disabled, or homebound — OHEP offices can arrange home visits or work with family representatives to complete applications."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, especially if your loved one is 62+, disabled, or homebound, OHEP offices can arrange home visits or work with family representatives to complete applications."
         },
         {
-          "question": "What happens if my parent gets a shutoff notice after receiving LIHEAP?",
+          "question": "What happens if my loved one gets a shutoff notice after receiving LIHEAP?",
           "answer": "They can apply for crisis assistance which provides up to $600 in emergency help during winter months. This is separate from the regular heating assistance."
         },
         {
-          "question": "Can my parent get both LIHEAP and EUSP electric assistance?",
-          "answer": "Yes, these are separate programs. MEAP covers heating costs, while EUSP provides electric bill assistance — but EUSP is limited to once per July-June program year."
+          "question": "Can my loved one get both LIHEAP and EUSP electric assistance?",
+          "answer": "Yes, these are separate programs. MEAP covers heating costs, while EUSP provides electric bill assistance, but EUSP is limited to once per July-June program year."
         },
         {
-          "question": "Does my parent need to reapply every year?",
-          "answer": "Yes, LIHEAP requires annual applications. However, if your parent receives SNAP or cash assistance, they may be automatically re-enrolled after their benefits are redetermined."
+          "question": "Does my loved one need to reapply every year?",
+          "answer": "Yes, LIHEAP requires annual applications. However, if your loved one receives SNAP or cash assistance, they may be automatically re-enrolled after their benefits are redetermined."
         },
         {
           "question": "What if the utility bill is in someone else's name?",
-          "answer": "As long as your parent lives at the address covered by the utility bill, they can still apply. The household definition is based on who lives there, not whose name is on the bill."
+          "answer": "As long as your loved one lives at the address covered by the utility bill, they can still apply. The household definition is based on who lives there, not whose name is on the bill."
         }
       ],
       "layoutIntent": {
@@ -1189,7 +1189,7 @@
       "id": "weatherization-assistance",
       "name": "Maryland Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills by 30-35%.",
+      "tagline": "Free home energy upgrades that can cut your loved one's heating and cooling bills by 30-35%.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1202,7 +1202,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling with high energy bills, Maryland's Weatherization Assistance Program provides free home improvements that reduce heating and cooling costs by an average of 30-35%. The program installs insulation, fixes air leaks, tunes up furnaces, and makes other energy efficiency upgrades at no cost to qualifying homeowners and renters.\n\nYour parent may qualify if their household income is below $48,085 for a single person or $62,880 for a couple (2026 limits). The program automatically accepts families already receiving SNAP, TANF, SSI, or certain utility assistance programs. Priority goes to households with seniors age 60+, people with disabilities, or families with young children.\n\nBecause this is a federal program delivered through local agencies, your parent will work with energy specialists in their area who assess the home and complete all improvements using certified contractors. There's no dollar limit per home — the upgrades are based on what the energy assessment shows will help most.",
+      "intro": "If your loved one is struggling with high energy bills, Maryland's Weatherization Assistance Program provides free home improvements that reduce heating and cooling costs by an average of 30-35%. The program installs insulation, fixes air leaks, tunes up furnaces, and makes other energy efficiency upgrades at no cost to qualifying homeowners and renters.\n\nYour loved one may qualify if their household income is below $48,085 for a single person or $62,880 for a couple (2026 limits). The program automatically accepts families already receiving SNAP, TANF, SSI, or certain utility assistance programs. Priority goes to households with seniors age 60+, people with disabilities, or families with young children.\n\nBecause this is a federal program delivered through local agencies, your loved one will work with energy specialists in their area who assess the home and complete all improvements using certified contractors. There's no dollar limit per home, the upgrades are based on what the energy assessment shows will help most.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1236,7 +1236,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 844-400-3423 to apply — processing time varies by local agency capacity and priority level.",
+        "summary": "Call 844-400-3423 to apply, processing time varies by local agency capacity and priority level.",
         "steps": [
           {
             "step": 1,
@@ -1251,7 +1251,7 @@
           {
             "step": 3,
             "title": "Schedule home energy assessment",
-            "description": "Once approved, your local agency will schedule a certified energy auditor to visit your parent's home and identify which improvements will save the most energy."
+            "description": "Once approved, your local agency will schedule a certified energy auditor to visit your loved one's home and identify which improvements will save the most energy."
           },
           {
             "step": 4,
@@ -1259,9 +1259,9 @@
             "description": "Certified contractors will complete all approved work including insulation, air sealing, furnace maintenance, and safety repairs at no cost to your family."
           }
         ],
-        "processingTime": "Processing time varies by local agency — energy assessment scheduled after eligibility determination",
-        "waitlist": "Priority given to elderly, disabled, and families with children — others may experience delays",
-        "tip": "If your parent is already receiving SNAP, TANF, SSI, or utility assistance, mention this upfront — it speeds up the approval process significantly.",
+        "processingTime": "Processing time varies by local agency, energy assessment scheduled after eligibility determination",
+        "waitlist": "Priority given to elderly, disabled, and families with children, others may experience delays",
+        "tip": "If your loved one is already receiving SNAP, TANF, SSI, or utility assistance, mention this upfront, it speeds up the approval process significantly.",
         "urls": [
           {
             "label": "Official Maryland Weatherization Page",
@@ -1301,9 +1301,9 @@
         }
       ],
       "applicationNotes": [
-        "Elderly households (60+) and those with disabilities get priority processing — mention this when you call",
-        "If your parent receives SNAP, TANF, SSI, or OHEP utility assistance, they automatically qualify income-wise",
-        "Renters must get landlord approval before the energy assessment — this is often the biggest delay",
+        "Elderly households (60+) and those with disabilities get priority processing, mention this when you call",
+        "If your loved one receives SNAP, TANF, SSI, or OHEP utility assistance, they automatically qualify income-wise",
+        "Renters must get landlord approval before the energy assessment, this is often the biggest delay",
         "The program cannot repeat services at the same address within 12 months, even under different ownership"
       ],
       "relatedPrograms": [
@@ -1315,40 +1315,40 @@
         {
           "type": "callout",
           "title": "Priority Households Get Faster Service",
-          "content": "Maryland gives priority to households with seniors 60+, people with disabilities, families with children under 5, and those with extremely high energy costs. If your parent fits any of these categories, mention it when you apply — it can significantly reduce wait times."
+          "content": "Maryland gives priority to households with seniors 60+, people with disabilities, families with children under 5, and those with extremely high energy costs. If your loved one fits any of these categories, mention it when you apply, it can significantly reduce wait times."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they're renting their home?",
+          "question": "Can my loved one apply if they're renting their home?",
           "answer": "Yes, but the landlord must sign an approval form agreeing to the weatherization work. This is often the biggest hurdle for renters. The local agency will provide the landlord agreement form and can explain the benefits to property owners."
         },
         {
-          "question": "What if my parent already gets SNAP or other benefits — do they still need to prove income?",
-          "answer": "If your parent receives OHEP Utility Bill Pay Assistance, SNAP, TANF, or SSI, they automatically qualify without additional income verification. However, Medicaid and Fuel Fund assistance don't automatically qualify — you'll still need to prove income meets the limits."
+          "question": "What if my loved one already gets SNAP or other benefits, do they still need to prove income?",
+          "answer": "If your loved one receives OHEP Utility Bill Pay Assistance, SNAP, TANF, or SSI, they automatically qualify without additional income verification. However, Medicaid and Fuel Fund assistance don't automatically qualify, you'll still need to prove income meets the limits."
         },
         {
           "question": "How long does the actual weatherization work take once approved?",
           "answer": "The work typically takes 1-3 days depending on what improvements are needed. The energy auditor will give you a timeline after the home assessment. All work is done by certified contractors at no cost to your family."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can help with the application process. However, the income and household information must be based on your parent's situation, not yours. Have their financial documents ready when you call."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can help with the application process. However, the income and household information must be based on your loved one's situation, not yours. Have their financial documents ready when you call."
         },
         {
-          "question": "What happens if my parent's home needs major repairs before weatherization work can begin?",
+          "question": "What happens if my loved one's home needs major repairs before weatherization work can begin?",
           "answer": "The energy assessment will identify any health and safety issues that must be addressed first. The program can make basic safety repairs as part of weatherization, but major structural work may need to be completed separately before energy improvements can proceed."
         },
         {
           "question": "Is there really no limit on how much weatherization work can be done?",
-          "answer": "Correct — there's no fixed dollar cap per home. The improvements are based on the energy audit results and what will provide the best energy savings. This can include extensive insulation, furnace replacement, and multiple other upgrades if the assessment shows they're needed."
+          "answer": "Correct, there's no fixed dollar cap per home. The improvements are based on the energy audit results and what will provide the best energy savings. This can include extensive insulation, furnace replacement, and multiple other upgrades if the assessment shows they're needed."
         },
         {
-          "question": "Can my parent apply for this and energy bill assistance at the same time?",
-          "answer": "Yes, and it's often recommended. Call 855-583-8976 for OHEP utility bill assistance while also applying for weatherization. The programs complement each other — bill assistance provides immediate help while weatherization reduces long-term costs."
+          "question": "Can my loved one apply for this and energy bill assistance at the same time?",
+          "answer": "Yes, and it's often recommended. Call 855-583-8976 for OHEP utility bill assistance while also applying for weatherization. The programs complement each other, bill assistance provides immediate help while weatherization reduces long-term costs."
         },
         {
-          "question": "What if my parent received weatherization help years ago from a different program?",
+          "question": "What if my loved one received weatherization help years ago from a different program?",
           "answer": "They can still apply if it's been more than 12 months since any weatherization services. The 12-month restriction applies to any similar energy efficiency program, not just Maryland's WAP. If you're unsure about past services, the local agency can check their records."
         }
       ],
@@ -1370,7 +1370,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
-      "tagline": "Free Medicare counseling to help your parent understand options and save on premiums.",
+      "tagline": "Free Medicare counseling to help your loved one understand options and save on premiums.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1395,7 +1395,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medicare or turning 65 soon, they can get free, unbiased counseling to navigate their options and save money on premiums. Maryland's SHIP program provides one-on-one help comparing Medicare Advantage plans, understanding Part D prescription coverage, and applying for programs that can reduce Medicare costs.\n\nThe service is completely free with no income requirements. Trained counselors help with everything from Medicare basics to filing appeals when claims are denied. Because counselors aren't insurance salespeople, they focus solely on what works best for your parent's health and budget.\n\nSHIP is available in all 23 Maryland counties through local senior centers and Area Agencies on Aging. Services are provided by appointment via phone or in-person meetings.",
+      "intro": "If your loved one is on Medicare or turning 65 soon, they can get free, unbiased counseling to navigate their options and save money on premiums. Maryland's SHIP program provides one-on-one help comparing Medicare Advantage plans, understanding Part D prescription coverage, and applying for programs that can reduce Medicare costs.\n\nThe service is completely free with no income requirements. Trained counselors help with everything from Medicare basics to filing appeals when claims are denied. Because counselors aren't insurance salespeople, they focus solely on what works best for your loved one's health and budget.\n\nSHIP is available in all 23 Maryland counties through local senior centers and Area Agencies on Aging. Services are provided by appointment via phone or in-person meetings.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1416,7 +1416,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide number to schedule free counseling — no application needed.",
+        "summary": "Call the statewide number to schedule free counseling, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1484,11 +1484,11 @@
         },
         {
           "question": "What's the difference between SHIP counseling and the financial assistance programs they help with?",
-          "answer": "SHIP counseling itself is free for everyone regardless of income. However, SHIP counselors can also help you apply for income-based programs like Medicare Savings Programs or Extra Help that do have income and asset limits. The counseling is the free service — the financial assistance programs have separate eligibility rules."
+          "answer": "SHIP counseling itself is free for everyone regardless of income. However, SHIP counselors can also help you apply for income-based programs like Medicare Savings Programs or Extra Help that do have income and asset limits. The counseling is the free service, the financial assistance programs have separate eligibility rules."
         },
         {
           "question": "Can I get help outside of Medicare Open Enrollment period?",
-          "answer": "Yes. While October 15 - December 7 is the busiest time for plan comparisons, SHIP provides year-round help with Medicare questions, billing problems, claims appeals, and applying for cost-saving programs. Special enrollment periods may also be available if your parent's situation changes."
+          "answer": "Yes. While October 15 - December 7 is the busiest time for plan comparisons, SHIP provides year-round help with Medicare questions, billing problems, claims appeals, and applying for cost-saving programs. Special enrollment periods may also be available if your loved one's situation changes."
         }
       ],
       "layoutIntent": {
@@ -1509,7 +1509,7 @@
       "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Delivered Meals",
-      "tagline": "Hot, nutritious meals delivered to your parent's door if they can't shop or cook safely.",
+      "tagline": "Hot, nutritious meals delivered to your loved one's door if they can't shop or cook safely.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1538,7 +1538,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and can't safely leave home to shop or cook, they may qualify for hot, nutritious meals delivered to their door. Most programs provide one hot meal plus one cold meal Monday through Friday — that's 10 meals per week.\n\nThe meals are physician-approved and provide at least one-third of daily nutritional requirements. Some programs like Moveable Feast in Baltimore deliver 10 frozen medically-tailored meals weekly plus fresh produce. Because this is administered by local providers, availability and costs vary by county — some charge sliding-scale fees based on income while others are free.\n\nThe core requirement is being homebound (unable to leave home without assistance) and having no caregiver available to help with meal preparation. A friendly volunteer typically delivers the meals, providing a daily safety check.",
+      "intro": "If your loved one is 60+ and can't safely leave home to shop or cook, they may qualify for hot, nutritious meals delivered to their door. Most programs provide one hot meal plus one cold meal Monday through Friday, that's 10 meals per week.\n\nThe meals are physician-approved and provide at least one-third of daily nutritional requirements. Some programs like Moveable Feast in Baltimore deliver 10 frozen medically-tailored meals weekly plus fresh produce. Because this is administered by local providers, availability and costs vary by county, some charge sliding-scale fees based on income while others are free.\n\nThe core requirement is being homebound (unable to leave home without assistance) and having no caregiver available to help with meal preparation. A friendly volunteer typically delivers the meals, providing a daily safety check.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1562,7 +1562,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider directly — most start service within a few days after a brief phone interview.",
+        "summary": "Call your local provider directly, most start service within a few days after a brief phone interview.",
         "steps": [
           {
             "step": 1,
@@ -1623,10 +1623,10 @@
         }
       ],
       "applicationNotes": [
-        "This is not one statewide program — each county has different providers, fees, and delivery areas",
+        "This is not one statewide program, each county has different providers, fees, and delivery areas",
         "Some providers like Meals on Wheels Central Maryland charge sliding-scale fees based on your reported income, while others are completely free",
         "Specialized programs like Moveable Feast require healthcare provider referrals and serve specific medical conditions",
-        "If your parent is on a Medicaid waiver, meals may be covered as part of their service plan with a maximum of 14 meals per week"
+        "If your loved one is on a Medicaid waiver, meals may be covered as part of their service plan with a maximum of 14 meals per week"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -1636,36 +1636,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get meals if they live with me but I work full-time?",
-          "answer": "Yes, if your parent meets the homebound requirement and you're not available during the day to help with meal preparation. The key is that they can't safely shop or cook for themselves, not whether someone else lives in the home."
+          "question": "Can my loved one get meals if they live with me but I work full-time?",
+          "answer": "Yes, if your loved one meets the homebound requirement and you're not available during the day to help with meal preparation. The key is that they can't safely shop or cook for themselves, not whether someone else lives in the home."
         },
         {
-          "question": "What if my parent doesn't like the meals or has very specific dietary needs?",
+          "question": "What if my loved one doesn't like the meals or has very specific dietary needs?",
           "answer": "Most programs accommodate special diets including diabetic, low-sodium, pureed, or culturally-specific meals. Programs like Moveable Feast specialize in medically-tailored nutrition for conditions like diabetes or heart disease. Discuss preferences during the intake call."
         },
         {
-          "question": "How much will this cost if my parent has limited income?",
-          "answer": "It varies by provider. Some programs are completely free, while others like Meals on Wheels Central Maryland assess sliding-scale fees based on monthly income and expenses during phone intake. They don't require financial documentation — just self-reported numbers."
+          "question": "How much will this cost if my loved one has limited income?",
+          "answer": "It varies by provider. Some programs are completely free, while others like Meals on Wheels Central Maryland assess sliding-scale fees based on monthly income and expenses during phone intake. They don't require financial documentation, just self-reported numbers."
         },
         {
-          "question": "What happens if my parent is in the hospital or temporarily in rehab?",
-          "answer": "Most programs can pause delivery and resume when your parent returns home. Call your provider immediately to avoid wasted deliveries. Some programs work with discharge planners to restart service before hospital release."
+          "question": "What happens if my loved one is in the hospital or temporarily in rehab?",
+          "answer": "Most programs can pause delivery and resume when your loved one returns home. Call your provider immediately to avoid wasted deliveries. Some programs work with discharge planners to restart service before hospital release."
         },
         {
-          "question": "Can my parent under 60 get these meals if they're disabled?",
+          "question": "Can my loved one under 60 get these meals if they're disabled?",
           "answer": "It depends on the provider. The federal program requires age 60+, but some local providers serve younger disabled adults. However, one source mentioned a quadriplegic son being disqualified due to age requirements, so call your specific provider to confirm."
         },
         {
-          "question": "What if there's no provider in my parent's rural area?",
-          "answer": "Rural areas may have limited or no delivery service. Contact your county's Area Agency on Aging first — they may know of smaller local programs or alternative options like congregate meal sites with transportation."
+          "question": "What if there's no provider in my loved one's rural area?",
+          "answer": "Rural areas may have limited or no delivery service. Contact your county's Area Agency on Aging first, they may know of smaller local programs or alternative options like congregate meal sites with transportation."
         },
         {
-          "question": "Can my parent get both home-delivered meals and SNAP food benefits?",
+          "question": "Can my loved one get both home-delivered meals and SNAP food benefits?",
           "answer": "Yes, these programs complement each other. SNAP provides grocery money while home-delivered meals ensure at least one nutritious meal daily. Having one doesn't disqualify you from the other."
         },
         {
-          "question": "What if my parent's needs change and they need more meals per week?",
-          "answer": "Most standard programs provide 10 meals weekly (hot plus cold, Monday-Friday). If your parent needs more, ask about additional services or look into Medicaid waiver programs that can provide up to 14 meals per week as part of a broader care plan."
+          "question": "What if my loved one's needs change and they need more meals per week?",
+          "answer": "Most standard programs provide 10 meals weekly (hot plus cold, Monday-Friday). If your loved one needs more, ask about additional services or look into Medicaid waiver programs that can provide up to 14 meals per week as part of a broader care plan."
         }
       ],
       "layoutIntent": {
@@ -1686,7 +1686,7 @@
       "id": "national-family-caregiver-support",
       "name": "National Family Caregiver Support Program",
       "shortName": "Caregiver Support",
-      "tagline": "Free respite care, counseling, and training for family caregivers — no income limits.",
+      "tagline": "Free respite care, counseling, and training for family caregivers, no income limits.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1703,7 +1703,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a parent 60+ or someone with Alzheimer's, you can get free support services through Maryland's caregiver program. Because this program has no income or asset limits, any family caregiver qualifies regardless of financial situation.\n\nThe program provides five specific services: information about available resources, help accessing other services, individual counseling and support groups, respite care (temporary relief so you can take a break), and limited supplemental services. Because services are delivered through your local Area Agency on Aging, what's available and wait times vary by county — but the core support is statewide.",
+      "intro": "If you're caring for a loved one 60+ or someone with Alzheimer's, you can get free support services through Maryland's caregiver program. Because this program has no income or asset limits, any family caregiver qualifies regardless of financial situation.\n\nThe program provides five specific services: information about available resources, help accessing other services, individual counseling and support groups, respite care (temporary relief so you can take a break), and limited supplemental services. Because services are delivered through your local Area Agency on Aging, what's available and wait times vary by county, but the core support is statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1727,7 +1727,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging — no formal application required and services can often start immediately.",
+        "summary": "Contact your local Area Agency on Aging, no formal application required and services can often start immediately.",
         "steps": [
           {
             "step": 1,
@@ -1745,9 +1745,9 @@
             "description": "Many agencies can provide information and referrals immediately, but respite care and counseling may require an in-person or phone assessment first."
           }
         ],
-        "processingTime": "Not specified — varies by local provider",
+        "processingTime": "Not specified, varies by local provider",
         "waitlist": null,
-        "tip": "Ask specifically about respite care availability when you call — this service often has the longest wait times.",
+        "tip": "Ask specifically about respite care availability when you call, this service often has the longest wait times.",
         "urls": [
           {
             "label": "Maryland Aging Services",
@@ -1779,7 +1779,7 @@
       "applicationNotes": [
         "Services are delivered by different local providers, so availability and wait times vary significantly by county",
         "Core services like information and referrals are usually available immediately, but respite care may have waiting lists",
-        "Some agencies provide services in multiple languages — ask when you call"
+        "Some agencies provide services in multiple languages, ask when you call"
       ],
       "relatedPrograms": [
         "Maryland Senior Prescription Drug Assistance Program",
@@ -1789,12 +1789,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get respite care if my parent has dementia but isn't officially diagnosed?",
+          "question": "Can I get respite care if my loved one has dementia but isn't officially diagnosed?",
           "answer": "Yes. The program covers caregivers helping anyone with Alzheimer's disease and related disorders, which includes dementia symptoms even without a formal diagnosis. Your local agency will assess your situation individually."
         },
         {
           "question": "How much respite care can I actually get?",
-          "answer": "The program doesn't specify hours per week or month — it varies by local provider and their current capacity. Some agencies offer a few hours weekly, others provide occasional full-day or weekend relief. Ask about typical amounts when you call."
+          "answer": "The program doesn't specify hours per week or month, it varies by local provider and their current capacity. Some agencies offer a few hours weekly, others provide occasional full-day or weekend relief. Ask about typical amounts when you call."
         },
         {
           "question": "What if I'm caring for my spouse who's under 60?",
@@ -1802,15 +1802,15 @@
         },
         {
           "question": "Can I access services in a different county if they have shorter wait times?",
-          "answer": "Generally no — you're served by the Area Agency on Aging in your county of residence. However, some agencies have mutual agreements for certain services, so it's worth asking your local provider about options."
+          "answer": "Generally no, you're served by the Area Agency on Aging in your county of residence. However, some agencies have mutual agreements for certain services, so it's worth asking your local provider about options."
         },
         {
-          "question": "What happens if I'm already getting paid to care for my parent through another program?",
+          "question": "What happens if I'm already getting paid to care for my loved one through another program?",
           "answer": "You won't qualify because this program is specifically for unpaid, informal family caregivers. If you receive compensation through Medicaid waiver programs or other sources, you're considered a paid caregiver."
         },
         {
-          "question": "Do I qualify if I'm caring for my grandchild and my aging parent at the same time?",
-          "answer": "Yes, if you're 55+ caring for a grandchild under 18, or if you're 18+ caring for a parent 60+. The program recognizes that many people have multiple caregiving responsibilities and can provide support for your situation."
+          "question": "Do I qualify if I'm caring for my grandchild and my aging loved one at the same time?",
+          "answer": "Yes, if you're 55+ caring for a grandchild under 18, or if you're 18+ caring for a loved one 60+. The program recognizes that many people have multiple caregiving responsibilities and can provide support for your situation."
         }
       ],
       "layoutIntent": {
@@ -1852,7 +1852,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and struggling to find work on a fixed income, SCSEP provides part-time paid job training at community organizations like schools, hospitals, and senior centers. Your parent earns at least minimum wage for an average of 20 hours per week while gaining skills to transition to permanent employment.\n\nBecause SCSEP wages don't count as income for federal housing programs or SNAP benefits, your parent can earn this stipend without losing other assistance. The program includes personal counseling, job training, and job placement services to help participants move into unsubsidized private sector employment.",
+      "intro": "If your loved one is 55+ and struggling to find work on a fixed income, SCSEP provides part-time paid job training at community organizations like schools, hospitals, and senior centers. Your loved one earns at least minimum wage for an average of 20 hours per week while gaining skills to transition to permanent employment.\n\nBecause SCSEP wages don't count as income for federal housing programs or SNAP benefits, your loved one can earn this stipend without losing other assistance. The program includes personal counseling, job training, and job placement services to help participants move into unsubsidized private sector employment.",
       "savingsRange": "$600 – $1,200/month in 2026",
       "savingsSource": "20 hours/week at federal minimum wage ($7.25) to state/local minimum wage rates",
       "savingsVerified": true,
@@ -1878,7 +1878,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the Maryland Department of Labor at 410-767-2160 or your local provider — processing time varies by provider availability.",
+        "summary": "Call the Maryland Department of Labor at 410-767-2160 or your local provider, processing time varies by provider availability.",
         "steps": [
           {
             "step": 1,
@@ -1901,9 +1901,9 @@
             "description": "If eligible and selected, you'll be matched with a host agency for on-the-job training based on your interests and the community's needs."
           }
         ],
-        "processingTime": "Not specified — varies by local provider demand and available positions",
-        "waitlist": "May vary by provider demand and priority tier — priority given to veterans, those over 65, and other qualifying categories",
-        "tip": "If your parent qualifies for priority status (veteran, over 65, disabled, etc.), mention this when applying as it may reduce wait time.",
+        "processingTime": "Not specified, varies by local provider demand and available positions",
+        "waitlist": "May vary by provider demand and priority tier, priority given to veterans, those over 65, and other qualifying categories",
+        "tip": "If your loved one qualifies for priority status (veteran, over 65, disabled, etc.), mention this when applying as it may reduce wait time.",
         "urls": [
           {
             "label": "Prince George's County Online Application",
@@ -1956,9 +1956,9 @@
       ],
       "applicationNotes": [
         "Priority applicants (veterans, over 65, disabled, low literacy, rural, homeless, or Job Center users) may have shorter wait times than general applicants",
-        "Income calculations include all household members and sources from the past 6-12 months — don't attempt to self-calculate the 125% poverty level threshold",
-        "County-specific residency requirements may apply depending on your local provider — confirm eligibility before applying",
-        "This is temporary training leading to permanent employment, not long-term subsidized work — expect transition planning from day one"
+        "Income calculations include all household members and sources from the past 6-12 months, don't attempt to self-calculate the 125% poverty level threshold",
+        "County-specific residency requirements may apply depending on your local provider, confirm eligibility before applying",
+        "This is temporary training leading to permanent employment, not long-term subsidized work, expect transition planning from day one"
       ],
       "relatedPrograms": [
         "Maryland SNAP (food assistance)",
@@ -1969,28 +1969,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work at SCSEP and keep their SNAP or housing benefits?",
-          "answer": "Yes. SCSEP wages are specifically exempt from income calculations for federal housing programs and SNAP benefits. Your parent can earn their SCSEP stipend without losing other assistance they receive."
+          "question": "Can my loved one work at SCSEP and keep their SNAP or housing benefits?",
+          "answer": "Yes. SCSEP wages are specifically exempt from income calculations for federal housing programs and SNAP benefits. Your loved one can earn their SCSEP stipend without losing other assistance they receive."
         },
         {
-          "question": "What if my parent is already working part-time — are they still eligible?",
+          "question": "What if my loved one is already working part-time, are they still eligible?",
           "answer": "Generally no. SCSEP requires participants to be unemployed or have poor employment prospects. Currently employed individuals, even part-time, typically don't qualify unless their employment situation is considered inadequate by program standards."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is designed as temporary training leading to unsubsidized employment. The goal is transition to permanent private sector jobs, not long-term program participation. Specific time limits vary by provider and individual progress."
         },
         {
-          "question": "What happens if my parent lives in Prince George's County but wants to work in another county?",
+          "question": "What happens if my loved one lives in Prince George's County but wants to work in another county?",
           "answer": "Local providers often have specific service area requirements. Prince George's County Family Services requires county residency. Contact the Maryland SCSEP coordinators at 410-767-2160 to discuss options for cross-county placements."
         },
         {
-          "question": "Can I apply for my parent, or do they need to apply themselves?",
-          "answer": "Your parent generally needs to apply themselves since they'll be the employee. However, you can help with paperwork and initial contact. Call 410-767-2160 to discuss accommodation options if your parent needs assistance with the application process."
+          "question": "Can I apply for my loved one, or do they need to apply themselves?",
+          "answer": "Your loved one generally needs to apply themselves since they'll be the employee. However, you can help with paperwork and initial contact. Call 410-767-2160 to discuss accommodation options if your loved one needs assistance with the application process."
         },
         {
           "question": "What types of work sites are available through SCSEP?",
-          "answer": "Host agencies are typically non-profits and government organizations like schools, hospitals, senior centers, libraries, and community service agencies. The specific placement depends on available positions in your area and your parent's interests and skills."
+          "answer": "Host agencies are typically non-profits and government organizations like schools, hospitals, senior centers, libraries, and community service agencies. The specific placement depends on available positions in your area and your loved one's interests and skills."
         },
         {
           "question": "Is there really priority for veterans and people over 65?",
@@ -1998,7 +1998,7 @@
         },
         {
           "question": "What if our household income is exactly at 125% of the poverty level?",
-          "answer": "Don't try to calculate this yourself. Income limits are updated annually and staff must verify all household income sources from the past 6-12 months. Contact program staff at 410-767-2160 for official determination — borderline cases require professional calculation."
+          "answer": "Don't try to calculate this yourself. Income limits are updated annually and staff must verify all household income sources from the past 6-12 months. Contact program staff at 410-767-2160 for official determination, borderline cases require professional calculation."
         }
       ],
       "layoutIntent": {
@@ -2044,7 +2044,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal problems with housing, benefits denials, or elder abuse, Maryland provides free legal help through local attorneys and law centers. The Senior Legal Assistance Program prioritizes civil legal issues like income maintenance, public benefits disputes, housing problems, and protective services cases.\n\nBecause this program focuses on seniors' most common legal crises, your parent gets priority help with Social Security appeals, Medicare disputes, landlord problems, utility shutoffs, and elder abuse cases. Income limits apply (typically around $39,125/year for a single person), but the program serves those with the greatest economic or social need first.",
+      "intro": "If your loved one is 60+ and facing legal problems with housing, benefits denials, or elder abuse, Maryland provides free legal help through local attorneys and law centers. The Senior Legal Assistance Program prioritizes civil legal issues like income maintenance, public benefits disputes, housing problems, and protective services cases.\n\nBecause this program focuses on seniors' most common legal crises, your loved one gets priority help with Social Security appeals, Medicare disputes, landlord problems, utility shutoffs, and elder abuse cases. Income limits apply (typically around $39,125/year for a single person), but the program serves those with the greatest economic or social need first.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2216,7 +2216,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities.",
+      "tagline": "Free advocacy when your loved one faces problems in nursing homes or assisted living facilities.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2233,7 +2233,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home or assisted living facility and faces problems with care, billing, or rights violations, Maryland's Long-Term Care Ombudsman Program provides free advocacy. Because ombudsmen are independent of facilities, they can investigate complaints, mediate disputes, and protect your parent's rights without conflicts of interest.\n\nThe program resolves approximately 3,300 complaints per year across Maryland's 227 nursing homes and 1,756 assisted living facilities. Ombudsmen conduct regular facility visits (about 7,000 annually) and work directly with residents until disputes are resolved. Services are completely free and confidential — there are no income limits or application forms required.",
+      "intro": "If your loved one lives in a nursing home or assisted living facility and faces problems with care, billing, or rights violations, Maryland's Long-Term Care Ombudsman Program provides free advocacy. Because ombudsmen are independent of facilities, they can investigate complaints, mediate disputes, and protect your loved one's rights without conflicts of interest.\n\nThe program resolves approximately 3,300 complaints per year across Maryland's 227 nursing homes and 1,756 assisted living facilities. Ombudsmen conduct regular facility visits (about 7,000 annually) and work directly with residents until disputes are resolved. Services are completely free and confidential, there are no income limits or application forms required.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2257,7 +2257,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local ombudsman by phone to discuss concerns — no forms required and services begin immediately.",
+        "summary": "Contact your local ombudsman by phone to discuss concerns, no forms required and services begin immediately.",
         "steps": [
           {
             "step": 1,
@@ -2277,7 +2277,7 @@
         ],
         "processingTime": "Immediate response for consultation; complaint resolution varies by case complexity",
         "waitlist": null,
-        "tip": "Keep detailed notes about incidents — dates, times, staff involved, and what happened. This helps ombudsmen investigate more effectively.",
+        "tip": "Keep detailed notes about incidents, dates, times, staff involved, and what happened. This helps ombudsmen investigate more effectively.",
         "urls": [
           {
             "label": "Maryland Department of Aging Ombudsman Page",
@@ -2315,11 +2315,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman on behalf of my parent?",
-          "answer": "Yes, anyone can contact an ombudsman with concerns about a resident's care or rights. However, for the ombudsman to take formal action like investigating complaints or advocating directly with the facility, they need consent from your parent or their legal representative. The ombudsman works at the resident's direction, not automatically."
+          "question": "Can I contact the ombudsman on behalf of my loved one?",
+          "answer": "Yes, anyone can contact an ombudsman with concerns about a resident's care or rights. However, for the ombudsman to take formal action like investigating complaints or advocating directly with the facility, they need consent from your loved one or their legal representative. The ombudsman works at the resident's direction, not automatically."
         },
         {
-          "question": "What if my parent is afraid of retaliation from facility staff?",
+          "question": "What if my loved one is afraid of retaliation from facility staff?",
           "answer": "Ombudsman services are confidential, and federal law prohibits facilities from retaliating against residents who file complaints. If retaliation occurs, ombudsmen can investigate this as a separate violation. For serious safety concerns or regulatory violations, ombudsmen may refer cases to Maryland's Office of Health Care Quality (OHCQ) for formal investigation."
         }
       ],
@@ -2341,14 +2341,14 @@
       "id": "senior-call-check-program",
       "name": "Maryland Senior Call Check Program (SCC)",
       "shortName": "Senior Call Check",
-      "tagline": "Daily automated wellness check calls ensure someone is looking out for your parent's safety every day.",
+      "tagline": "Daily automated wellness check calls ensure someone is looking out for your loved one's safety every day.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent lives alone in Maryland, the Senior Call Check Program provides daily automated wellness calls at a time they choose between 8 a.m. and 4 p.m. When your parent doesn't answer after three attempts, the program calls you or another contact person to encourage a welfare check.\n\nBecause the program operates every day except six holidays, your parent gets consistent daily contact even when family schedules are busy. If both your parent and the alternate contact can't be reached, local non-emergency law enforcement conducts a welfare check.\n\nThe program is completely free with no income or asset limits — your parent just needs to be 60 or older and live in Maryland with access to a phone.",
+      "intro": "If your loved one lives alone in Maryland, the Senior Call Check Program provides daily automated wellness calls at a time they choose between 8 a.m. and 4 p.m. When your loved one doesn't answer after three attempts, the program calls you or another contact person to encourage a welfare check.\n\nBecause the program operates every day except six holidays, your loved one gets consistent daily contact even when family schedules are busy. If both your loved one and the alternate contact can't be reached, local non-emergency law enforcement conducts a welfare check.\n\nThe program is completely free with no income or asset limits, your loved one just needs to be 60 or older and live in Maryland with access to a phone.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2375,7 +2375,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online or call 1-866-502-0560 — enrollment typically happens within 24 hours.",
+        "summary": "Apply online or call 1-866-502-0560, enrollment typically happens within 24 hours.",
         "steps": [
           {
             "step": 1,
@@ -2405,7 +2405,7 @@
         ],
         "processingTime": "Typically immediate enrollment upon acceptance; verification and enrollment completed within 24 hours Monday-Saturday",
         "waitlist": null,
-        "tip": "Choose a time block when your parent is usually home and alert — consistency helps the system work effectively.",
+        "tip": "Choose a time block when your loved one is usually home and alert, consistency helps the system work effectively.",
         "urls": [
           {
             "label": "Online Application",
@@ -2429,9 +2429,9 @@
         }
       ],
       "applicationNotes": [
-        "Your parent must apply themselves — family members cannot apply on their behalf",
-        "Both your parent's phone and the alternate contact's phone must allow automated calls to get through",
-        "Without an alternate contact, the system goes directly to non-emergency law enforcement if your parent doesn't answer"
+        "Your loved one must apply themselves, family members cannot apply on their behalf",
+        "Both your loved one's phone and the alternate contact's phone must allow automated calls to get through",
+        "Without an alternate contact, the system goes directly to non-emergency law enforcement if your loved one doesn't answer"
       ],
       "relatedPrograms": [
         "Maryland Senior Rides",
@@ -2441,28 +2441,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for my elderly parent who has dementia?",
-          "answer": "No, your parent must apply themselves — the program does not allow proxy applications. If your parent cannot understand or consent to the program due to cognitive impairment, they are not eligible. The person receiving calls must be able to respond appropriately to the automated system."
+          "question": "Can I apply for my elderly loved one who has dementia?",
+          "answer": "No, your loved one must apply themselves, the program does not allow proxy applications. If your loved one cannot understand or consent to the program due to cognitive impairment, they are not eligible. The person receiving calls must be able to respond appropriately to the automated system."
         },
         {
-          "question": "What happens if my parent doesn't answer the call?",
-          "answer": "The system tries three times during the chosen time block. If there's no answer, it calls the alternate contact you provided to encourage them to check on your parent. If the alternate contact also can't be reached, the program contacts local non-emergency law enforcement for a welfare check."
+          "question": "What happens if my loved one doesn't answer the call?",
+          "answer": "The system tries three times during the chosen time block. If there's no answer, it calls the alternate contact you provided to encourage them to check on your loved one. If the alternate contact also can't be reached, the program contacts local non-emergency law enforcement for a welfare check."
         },
         {
           "question": "How reliable are the police welfare checks if no one answers?",
-          "answer": "The program contacts non-emergency law enforcement, but they cannot guarantee timely welfare checks due to limited resources and competing priorities. This is why having a reliable alternate contact person is strongly recommended — they can usually respond faster than law enforcement."
+          "answer": "The program contacts non-emergency law enforcement, but they cannot guarantee timely welfare checks due to limited resources and competing priorities. This is why having a reliable alternate contact person is strongly recommended, they can usually respond faster than law enforcement."
         },
         {
-          "question": "Can my parent change their call time after enrollment?",
+          "question": "Can my loved one change their call time after enrollment?",
           "answer": "Yes, call 1-866-502-0560 to update the preferred time block. Changes typically take effect within 24 hours. You can also update the alternate contact information the same way."
         },
         {
-          "question": "What if my parent travels or goes to the hospital?",
-          "answer": "Your parent or alternate contact should call 1-866-502-0560 to temporarily suspend calls during hospital stays or travel. The program can restart calls when your parent returns home. Without notification, missed calls will trigger welfare check procedures."
+          "question": "What if my loved one travels or goes to the hospital?",
+          "answer": "Your loved one or alternate contact should call 1-866-502-0560 to temporarily suspend calls during hospital stays or travel. The program can restart calls when your loved one returns home. Without notification, missed calls will trigger welfare check procedures."
         },
         {
           "question": "Does the program work with cell phones and hearing aids?",
-          "answer": "Yes, the program works with both landlines and cell phones. TTY service is available for hearing-impaired participants. However, your parent must ensure their phone can receive the automated calls — some call blocking features or spam filters may interfere with the system."
+          "answer": "Yes, the program works with both landlines and cell phones. TTY service is available for hearing-impaired participants. However, your loved one must ensure their phone can receive the automated calls, some call blocking features or spam filters may interfere with the system."
         }
       ],
       "layoutIntent": {
@@ -2483,7 +2483,7 @@
       "id": "sals-assisted-living-subsidy",
       "name": "Senior Assisted Living Subsidy Program (SALS)",
       "shortName": "SALS Subsidy",
-      "tagline": "Help your parent afford assisted living in Maryland with up to $1,000/month toward care costs.",
+      "tagline": "Help your loved one afford assisted living in Maryland with up to $1,000/month toward care costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2496,7 +2496,7 @@
           }
         ]
       },
-      "intro": "If your parent needs assisted living care in Maryland but can't afford the full monthly cost, SALS can bridge the gap. The program pays the difference between what your parent can afford and their assisted living bill — up to $1,000 per month. Your parent keeps $130 monthly for personal expenses, and SALS covers the rest of approved care costs including meals, personal care, and 24-hour supervision.\n\nYour parent must be 62+ with a monthly income below $4,350 and less than $20,064 in countable assets. They also need a clinical assessment showing they require help with daily activities like bathing or dressing, plus 24-hour supervision. The biggest hurdle: your parent must already live in (or be approved for) a participating assisted living facility, and there's a statewide waitlist due to limited funding.",
+      "intro": "If your loved one needs assisted living care in Maryland but can't afford the full monthly cost, SALS can bridge the gap. The program pays the difference between what your loved one can afford and their assisted living bill, up to $1,000 per month. Your loved one keeps $130 monthly for personal expenses, and SALS covers the rest of approved care costs including meals, personal care, and 24-hour supervision.\n\nYour loved one must be 62+ with a monthly income below $4,350 and less than $20,064 in countable assets. They also need a clinical assessment showing they require help with daily activities like bathing or dressing, plus 24-hour supervision. The biggest hurdle: your loved one must already live in (or be approved for) a participating assisted living facility, and there's a statewide waitlist due to limited funding.",
       "savingsRange": "$3,000 – $12,000/year in 2026",
       "savingsSource": "Maximum monthly subsidy of $1,000",
       "savingsVerified": true,
@@ -2534,7 +2534,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging to request an application — processing time varies by funding availability and you'll likely join a waitlist.",
+        "summary": "Call your local Area Agency on Aging to request an application, processing time varies by funding availability and you'll likely join a waitlist.",
         "steps": [
           {
             "step": 1,
@@ -2549,12 +2549,12 @@
           {
             "step": 3,
             "title": "Schedule functional assessment",
-            "description": "Arrange for the required AERS functional assessment to document your parent's need for assistance with daily activities and 24-hour supervision."
+            "description": "Arrange for the required AERS functional assessment to document your loved one's need for assistance with daily activities and 24-hour supervision."
           },
           {
             "step": 4,
             "title": "Secure participating facility placement",
-            "description": "Your parent must be living in or approved for admission to a participating assisted living facility. Request a list of participating facilities from your local AAA office."
+            "description": "Your loved one must be living in or approved for admission to a participating assisted living facility. Request a list of participating facilities from your local AAA office."
           },
           {
             "step": 5,
@@ -2564,7 +2564,7 @@
         ],
         "processingTime": "Processing time varies based on funding availability",
         "waitlist": "Yes, statewide and county-specific waitlists due to limited funding - first-come, first-served after complete application",
-        "tip": "Start the process early and get on the waitlist before your parent needs care — funding is limited and waits can be lengthy.",
+        "tip": "Start the process early and get on the waitlist before your loved one needs care, funding is limited and waits can be lengthy.",
         "urls": [
           {
             "label": "Maryland Aging Services",
@@ -2613,10 +2613,10 @@
         }
       ],
       "applicationNotes": [
-        "You must find and secure placement in a participating assisted living facility before or during the application process — the program won't help you find one",
+        "You must find and secure placement in a participating assisted living facility before or during the application process, the program won't help you find one",
         "Applications are processed first-come, first-served only after all required documents are submitted, so incomplete applications lose their place in line",
-        "Income and asset limits are tied to state median income and adjust periodically — verify current limits when applying",
-        "VA Aid & Attendance benefits are excluded from income calculations, which may help your parent qualify if they receive both"
+        "Income and asset limits are tied to state median income and adjust periodically, verify current limits when applying",
+        "VA Aid & Attendance benefits are excluded from income calculations, which may help your loved one qualify if they receive both"
       ],
       "relatedPrograms": [
         "Medical Assistance Program for Assisted Living (MA-P)",
@@ -2627,23 +2627,23 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent is already paying for assisted living — can they still apply?",
-          "answer": "Yes, your parent can apply while already living in assisted living, but they must be in a facility that participates in the SALS program. If their current facility doesn't participate, they would need to transfer to one that does. Contact your local Area Agency on Aging for a list of participating facilities in your county."
+          "question": "What if my loved one is already paying for assisted living, can they still apply?",
+          "answer": "Yes, your loved one can apply while already living in assisted living, but they must be in a facility that participates in the SALS program. If their current facility doesn't participate, they would need to transfer to one that does. Contact your local Area Agency on Aging for a list of participating facilities in your county."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlist times vary significantly by county and funding availability, but expect several months to over a year in most areas. The program has limited funding, and applications are processed first-come, first-served only after complete documentation is submitted. Getting on the waitlist early is crucial."
         },
         {
-          "question": "Can I apply on behalf of my parent?",
-          "answer": "Yes, adult children can help complete the application process, but you'll need proper legal authority (power of attorney) to sign documents on your parent's behalf. The functional assessment and facility placement still require your parent's direct involvement or legal guardianship."
+          "question": "Can I apply on behalf of my loved one?",
+          "answer": "Yes, adult children can help complete the application process, but you'll need proper legal authority (power of attorney) to sign documents on your loved one's behalf. The functional assessment and facility placement still require your loved one's direct involvement or legal guardianship."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
-          "answer": "The subsidy amount is recalculated based on your parent's current income minus the $130 personal allowance. If income increases significantly, they may lose eligibility. If income decreases, the subsidy may increase up to the $1,000 monthly maximum. Report income changes to your local Area Agency on Aging promptly."
+          "question": "What happens if my loved one's income changes after they're approved?",
+          "answer": "The subsidy amount is recalculated based on your loved one's current income minus the $130 personal allowance. If income increases significantly, they may lose eligibility. If income decreases, the subsidy may increase up to the $1,000 monthly maximum. Report income changes to your local Area Agency on Aging promptly."
         },
         {
-          "question": "Can my parent own their home and still qualify?",
+          "question": "Can my loved one own their home and still qualify?",
           "answer": "The asset limits focus on countable assets like bank accounts and investments. The research doesn't specify whether primary residence equity counts toward the $20,064 limit. Contact your local Area Agency on Aging to clarify how home ownership affects eligibility in your specific situation."
         },
         {
@@ -2651,12 +2651,12 @@
           "answer": "This is a common problem since families must secure facility placement independently. Contact multiple participating facilities to get on their waiting lists, and ask your local Area Agency on Aging for their complete list of participating providers. Some families consider facilities further from home to get faster placement."
         },
         {
-          "question": "Can my parent use SALS and Medicaid waiver programs at the same time?",
-          "answer": "SALS is separate from Medicaid waiver programs like MA-P for Assisted Living, which has different eligibility rules (age 50+ instead of 62+). You cannot typically combine these programs, but you should explore which option provides better coverage for your parent's situation. Contact both programs to compare benefits."
+          "question": "Can my loved one use SALS and Medicaid waiver programs at the same time?",
+          "answer": "SALS is separate from Medicaid waiver programs like MA-P for Assisted Living, which has different eligibility rules (age 50+ instead of 62+). You cannot typically combine these programs, but you should explore which option provides better coverage for your loved one's situation. Contact both programs to compare benefits."
         },
         {
           "question": "What services are covered beyond the basic room and board?",
-          "answer": "SALS covers the full approved monthly assisted living fee, which includes meals, personal care assistance with activities like bathing and dressing, medication management, and 24-hour supervision. The total monthly care rate is capped by county (for example, $3,300 in Montgomery County), and your parent keeps $130 monthly for personal expenses."
+          "answer": "SALS covers the full approved monthly assisted living fee, which includes meals, personal care assistance with activities like bathing and dressing, medication management, and 24-hour supervision. The total monthly care rate is capped by county (for example, $3,300 in Montgomery County), and your loved one keeps $130 monthly for personal expenses."
         }
       ],
       "layoutIntent": {
@@ -2702,7 +2702,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs help with daily activities like bathing or dressing, Maryland's Senior Care Program provides both care services and gap-filling funds to help them stay in their home instead of moving to a nursing facility. The program covers in-home personal care, transportation, medical supplies, emergency response systems, and adult day care when funding is available.\n\nYour parent must meet both financial limits (income under $3,998/month for a single person, assets under $11,000) and need assistance with at least one activity of daily living. Because this is grant-funded rather than an entitlement program, approval depends on available funding in your county — even if your parent qualifies, there may be a waitlist.\n\nEach county administers the program differently, so eligibility timelines, available services, and waitlist status vary significantly by location. Montgomery County might have different funding availability than Carroll County, for example.",
+      "intro": "If your loved one is 65+ and needs help with daily activities like bathing or dressing, Maryland's Senior Care Program provides both care services and gap-filling funds to help them stay in their home instead of moving to a nursing facility. The program covers in-home personal care, transportation, medical supplies, emergency response systems, and adult day care when funding is available.\n\nYour loved one must meet both financial limits (income under $3,998/month for a single person, assets under $11,000) and need assistance with at least one activity of daily living. Because this is grant-funded rather than an entitlement program, approval depends on available funding in your county, even if your loved one qualifies, there may be a waitlist.\n\nEach county administers the program differently, so eligibility timelines, available services, and waitlist status vary significantly by location. Montgomery County might have different funding availability than Carroll County, for example.",
       "savingsRange": "",
       "savingsSource": "Free service with case management and gap-filling funds",
       "savingsVerified": false,
@@ -2748,7 +2748,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's Area Agency on Aging by phone — state law requires a decision within 30 days, but actual approval time varies by county funding.",
+        "summary": "Contact your county's Area Agency on Aging by phone, state law requires a decision within 30 days, but actual approval time varies by county funding.",
         "steps": [
           {
             "step": 1,
@@ -2763,22 +2763,22 @@
           {
             "step": 3,
             "title": "Schedule in-home assessment",
-            "description": "A social worker will visit your parent's home to assess their need for activities of daily living assistance and review financial documentation."
+            "description": "A social worker will visit your loved one's home to assess their need for activities of daily living assistance and review financial documentation."
           },
           {
             "step": 4,
             "title": "Medical documentation review",
-            "description": "Provide physician certification of your parent's disability or need for ADL assistance as part of the clinical assessment."
+            "description": "Provide physician certification of your loved one's disability or need for ADL assistance as part of the clinical assessment."
           },
           {
             "step": 5,
             "title": "Wait for funding decision",
-            "description": "Even if your parent meets all eligibility criteria, approval depends on available grant funding in your county. You'll be notified of approval or waitlist status."
+            "description": "Even if your loved one meets all eligibility criteria, approval depends on available grant funding in your county. You'll be notified of approval or waitlist status."
           }
         ],
         "processingTime": "30 days (required by state law), but actual approval time varies by county and funding availability",
         "waitlist": "Program is grant-funded and not an entitlement program. Waitlist times vary dramatically by county and funding availability. Some counties may have significant delays.",
-        "tip": "Apply even if you're unsure about eligibility — the in-home assessment will determine both financial and functional qualification, and caseworkers can explain county-specific variations.",
+        "tip": "Apply even if you're unsure about eligibility, the in-home assessment will determine both financial and functional qualification, and caseworkers can explain county-specific variations.",
         "urls": [
           {
             "label": "Maryland Department of Aging",
@@ -2787,7 +2787,7 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for your parent",
+        "Valid government-issued photo ID for your loved one",
         "Proof of Maryland residency (utility bill, lease agreement, or state-issued document)",
         "Social Security award letter or other income verification",
         "Bank statements for all accounts (last 3 months)",
@@ -2800,7 +2800,7 @@
         "Medicare card (both parts A and B)",
         "Any other health insurance cards",
         "Documentation of current medical expenses",
-        "Legal documents if someone else is applying on behalf of your parent"
+        "Legal documents if someone else is applying on behalf of your loved one"
       ],
       "contacts": [
         {
@@ -2823,10 +2823,10 @@
         }
       ],
       "applicationNotes": [
-        "Final eligibility is determined at the county level, not state level — requirements and available services may differ significantly between counties",
-        "This is NOT an entitlement program, so approval is not guaranteed even if your parent meets all eligibility criteria due to limited grant funding",
-        "Income and asset limits are updated annually — verify current 2025 limits with your county office as they may differ from these figures",
-        "Similar programs exist (Community First Choice, Community Personal Assistance Services) with different eligibility criteria — ensure you're applying to the correct program"
+        "Final eligibility is determined at the county level, not state level, requirements and available services may differ significantly between counties",
+        "This is NOT an entitlement program, so approval is not guaranteed even if your loved one meets all eligibility criteria due to limited grant funding",
+        "Income and asset limits are updated annually, verify current 2025 limits with your county office as they may differ from these figures",
+        "Similar programs exist (Community First Choice, Community Personal Assistance Services) with different eligibility criteria, ensure you're applying to the correct program"
       ],
       "relatedPrograms": [
         "Community First Choice",
@@ -2837,36 +2837,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary residence may be exempt from asset limits, but this varies by county and program variant. During the in-home assessment, the caseworker will determine what assets count toward the $11,000 limit for single persons or $14,000 for couples."
         },
         {
-          "question": "What happens if my parent qualifies but there's no funding available?",
-          "answer": "Your parent will be placed on a waitlist. Because this is a grant-funded program, approval depends on available money in your specific county. Waitlist times vary dramatically — some counties may have immediate openings while others have significant delays."
+          "question": "What happens if my loved one qualifies but there's no funding available?",
+          "answer": "Your loved one will be placed on a waitlist. Because this is a grant-funded program, approval depends on available money in your specific county. Waitlist times vary dramatically, some counties may have immediate openings while others have significant delays."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply on behalf of aging parents. You'll need legal documentation showing your authority to act on their behalf, such as power of attorney. The in-home assessment will still need to evaluate your parent directly."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply on behalf of aging loved ones. You'll need legal documentation showing your authority to act on their behalf, such as power of attorney. The in-home assessment will still need to evaluate your loved one directly."
         },
         {
           "question": "How is this different from other Maryland aging programs?",
           "answer": "Senior Care Program is specifically for seniors 65+ at risk of nursing home placement who need ADL assistance. Community First Choice and Community Personal Assistance Services have different eligibility criteria and may serve different age groups or disability levels."
         },
         {
-          "question": "What if my parent's needs change after they're enrolled?",
-          "answer": "The program includes ongoing case management, so your parent's caseworker will reassess their needs regularly. Services can be adjusted based on changing health conditions, but any increases depend on continued funding availability."
+          "question": "What if my loved one's needs change after they're enrolled?",
+          "answer": "The program includes ongoing case management, so your loved one's caseworker will reassess their needs regularly. Services can be adjusted based on changing health conditions, but any increases depend on continued funding availability."
         },
         {
-          "question": "Can my parent apply for this and Medicaid at the same time?",
-          "answer": "Yes, your parent can apply for multiple programs simultaneously. In fact, some Medicaid waiver programs work alongside Senior Care Program services. The county caseworker can help coordinate applications and explain how programs interact."
+          "question": "Can my loved one apply for this and Medicaid at the same time?",
+          "answer": "Yes, your loved one can apply for multiple programs simultaneously. In fact, some Medicaid waiver programs work alongside Senior Care Program services. The county caseworker can help coordinate applications and explain how programs interact."
         },
         {
           "question": "Why do approval times vary so much between counties?",
           "answer": "Each county administers its own Senior Care Program with separate funding allocations. Montgomery County might have different grant money available than Carroll County, affecting both approval speed and waitlist length. Contact your specific county office for current status."
         },
         {
-          "question": "What specific help with daily activities qualifies my parent?",
-          "answer": "Your parent typically needs assistance with at least one activity of daily living: bathing, dressing, medication management, mobility, or eating. The in-home social work assessment will evaluate their specific functional limitations and determine clinical eligibility."
+          "question": "What specific help with daily activities qualifies my loved one?",
+          "answer": "Your loved one typically needs assistance with at least one activity of daily living: bathing, dressing, medication management, mobility, or eating. The in-home social work assessment will evaluate their specific functional limitations and determine clinical eligibility."
         }
       ],
       "layoutIntent": {
@@ -2885,17 +2885,17 @@
     }
   ],
   "stateOverview": {
-    "intro": "Maryland offers 16 programs to help your aging parent — 11 provide direct financial assistance or services, 4 offer free resources regardless of income, and 1 provides employment opportunities. These range from major savings like Community First Choice (covers full in-home care through Medicaid) to smaller but crucial help like LIHEAP ($25–750 toward heating bills). Maryland also provides unique programs like the Senior Call Check Program for daily wellness calls and a Durable Medical Equipment Reuse Program for free wheelchairs and hospital beds.\n\nStart with programs that offer the biggest financial impact: Community First Choice if your parent needs daily care, Maryland Medicare Savings Program for automatic Medicare cost relief, or SNAP for monthly grocery assistance. Then explore free resources like SHIP for Medicare guidance and Senior Legal Assistance for any legal issues.",
+    "intro": "Maryland offers 16 programs to help your aging loved one, 11 provide direct financial assistance or services, 4 offer free resources regardless of income, and 1 provides employment opportunities. These range from major savings like Community First Choice (covers full in-home care through Medicaid) to smaller but crucial help like LIHEAP ($25–750 toward heating bills). Maryland also provides unique programs like the Senior Call Check Program for daily wellness calls and a Durable Medical Equipment Reuse Program for free wheelchairs and hospital beds.\n\nStart with programs that offer the biggest financial impact: Community First Choice if your loved one needs daily care, Maryland Medicare Savings Program for automatic Medicare cost relief, or SNAP for monthly grocery assistance. Then explore free resources like SHIP for Medicare guidance and Senior Legal Assistance for any legal issues.",
     "startHere": [
       {
         "name": "Community First Choice (CFC)",
         "programId": "community-first-choice-cfc",
-        "why": "Covers full cost of in-home personal care, home modifications, and medical support through Medicaid — potentially saving thousands monthly."
+        "why": "Covers full cost of in-home personal care, home modifications, and medical support through Medicaid, potentially saving thousands monthly."
       },
       {
         "name": "Maryland Medicare Savings Program (MSP)",
         "programId": "maryland-medicare-savings-program-msp",
-        "why": "Maryland automatically pays Medicare premiums, deductibles, and coinsurance — saving up to $2,000+ annually with no ongoing paperwork."
+        "why": "Maryland automatically pays Medicare premiums, deductibles, and coinsurance, saving up to $2,000+ annually with no ongoing paperwork."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
@@ -2905,7 +2905,7 @@
       {
         "name": "State Health Insurance Assistance Program (SHIP)",
         "programId": "state-health-insurance-assistance-program-ship",
-        "why": "Free Medicare counseling available to everyone — helps optimize coverage and find savings without income requirements."
+        "why": "Free Medicare counseling available to everyone, helps optimize coverage and find savings without income requirements."
       }
     ],
     "byNeed": [
@@ -2962,11 +2962,11 @@
       }
     ],
     "quickFacts": [
-      "Maryland provides unique daily wellness check calls through the Senior Call Check Program — automated calls every day to ensure someone is monitoring your parent's safety.",
+      "Maryland provides unique daily wellness check calls through the Senior Call Check Program, automated calls every day to ensure someone is monitoring your loved one's safety.",
       "The state runs a free medical equipment reuse program where any Maryland resident can get wheelchairs, walkers, and hospital beds regardless of income or insurance.",
-      "Maryland PACE operates in specific counties only — check availability before assuming your parent can access complete integrated care.",
+      "Maryland PACE operates in specific counties only, check availability before assuming your loved one can access complete integrated care.",
       "Most income-based programs use similar thresholds: SNAP allows up to $2,266/month for a single person, while MSP goes up to $1,715/month for full benefits."
     ],
-    "resourcesVsBenefits": "Maryland's benefit programs require income or medical qualification — like Community First Choice (needs Medicaid eligibility) or LIHEAP (income limits apply). But four programs are available to any Maryland senior regardless of income: free medical equipment through the DME Reuse Program, Medicare counseling through SHIP, legal help for those 60+, and nursing home advocacy through the Ombudsman Program. Start with free resources first, then apply for benefits your parent qualifies for."
+    "resourcesVsBenefits": "Maryland's benefit programs require income or medical qualification, like Community First Choice (needs Medicaid eligibility) or LIHEAP (income limits apply). But four programs are available to any Maryland senior regardless of income: free medical equipment through the DME Reuse Program, Medicare counseling through SHIP, legal help for those 60+, and nursing home advocacy through the Ombudsman Program. Start with free resources first, then apply for benefits your loved one qualifies for."
   }
 }

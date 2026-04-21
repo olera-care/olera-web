@@ -320,16 +320,19 @@ export async function POST(req: NextRequest) {
       }
 
       // Application already completed — returning user
-      // Fire-and-forget: returning user email with sign-in link
+      // Generate auto-sign-in token so they can access dashboard immediately
+      const supabaseAdmin = getSupabaseAdmin();
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      let returningUserToken: string | undefined;
+
       try {
-        const supabaseAdmin = getSupabaseAdmin();
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
           type: "magiclink",
           email: normalizedEmailEarly,
           options: { redirectTo: `${siteUrl}/portal/medjobs` },
         });
         const magicLink = linkData?.properties?.action_link;
+        returningUserToken = linkData?.properties?.hashed_token;
 
         await sendEmail({
           to: normalizedEmailEarly,
@@ -350,6 +353,7 @@ export async function POST(req: NextRequest) {
         profileId: existingProfile.id,
         slug: existingProfile.slug,
         existing: true,
+        tokenHash: returningUserToken,
       });
     }
 

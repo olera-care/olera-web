@@ -30,7 +30,7 @@
           }
         ]
       },
-      "intro": "If your parent needs help with daily activities like bathing, dressing, or eating and lives in a licensed basic care facility, North Dakota's Basic Care Assistance Program (BCAP) may help cover facility costs. BCAP pays a portion of basic care facility expenses for people who qualify for North Dakota Medicaid and need assistance with activities of daily living. Your parent keeps $150 per month for personal needs, while their other income goes toward facility costs and BCAP covers the remaining expenses directly to the facility.\n\nTo qualify, your parent must be 65+ (or 18+ if blind or disabled), meet North Dakota Medicaid income and asset requirements (typically $3,000 asset limit for singles), and pass a functional assessment showing they need help with daily activities. Because this program requires living in a licensed basic care facility, it's designed for people who cannot safely remain at home even with assistance.\n\nBCAP is administered through the same system as Medicaid, so if your parent already receives Medicaid long-term care services, the eligibility process may be streamlined through redetermination rather than a completely new application.",
+      "intro": "If your loved one needs help with daily activities like bathing, dressing, or eating and lives in a licensed basic care facility, North Dakota's Basic Care Assistance Program (BCAP) may help cover facility costs. BCAP pays a portion of basic care facility expenses for people who qualify for North Dakota Medicaid and need assistance with activities of daily living. Your loved one keeps $150 per month for personal needs, while their other income goes toward facility costs and BCAP covers the remaining expenses directly to the facility.\n\nTo qualify, your loved one must be 65+ (or 18+ if blind or disabled), meet North Dakota Medicaid income and asset requirements (typically $3,000 asset limit for singles), and pass a functional assessment showing they need help with daily activities. Because this program requires living in a licensed basic care facility, it's designed for people who cannot safely remain at home even with assistance.\n\nBCAP is administered through the same system as Medicaid, so if your loved one already receives Medicaid long-term care services, the eligibility process may be streamlined through redetermination rather than a completely new application.",
       "savingsRange": "",
       "savingsSource": "Varies by income - program covers facility costs beyond what recipient can pay",
       "savingsVerified": false,
@@ -66,7 +66,7 @@
           {
             "step": 1,
             "title": "Check Medicaid eligibility first",
-            "description": "Since BCAP requires North Dakota Medicaid qualification, ensure your parent meets Medicaid income and asset requirements. If already on Medicaid, this may be handled through redetermination."
+            "description": "Since BCAP requires North Dakota Medicaid qualification, ensure your loved one meets Medicaid income and asset requirements. If already on Medicaid, this may be handled through redetermination."
           },
           {
             "step": 2,
@@ -76,17 +76,17 @@
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "A county social worker will conduct a Personal Care Services Assessment to determine if your parent needs help with activities of daily living like bathing, dressing, or eating."
+            "description": "A county social worker will conduct a Personal Care Services Assessment to determine if your loved one needs help with activities of daily living like bathing, dressing, or eating."
           },
           {
             "step": 4,
             "title": "Ensure facility placement",
-            "description": "Your parent must reside in a licensed basic care facility in North Dakota. Contact agingbcreferrals@nd.gov for assistance with facility referrals."
+            "description": "Your loved one must reside in a licensed basic care facility in North Dakota. Contact agingbcreferrals@nd.gov for assistance with facility referrals."
           }
         ],
         "processingTime": "Eligibility begins on the date of application if qualified",
         "waitlist": null,
-        "tip": "If your parent is already receiving Medicaid long-term care services, the BCAP application may be processed through redetermination, which can be faster than a new application.",
+        "tip": "If your loved one is already receiving Medicaid long-term care services, the BCAP application may be processed through redetermination, which can be faster than a new application.",
         "urls": [
           {
             "label": "Apply for Assistance Online",
@@ -128,7 +128,7 @@
         }
       ],
       "applicationNotes": [
-        "If your parent already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than a new application",
+        "If your loved one already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than a new application",
         "Some applicants may need to have resided in a nursing facility for at least 6 months before qualifying for BCAP if they don't meet nursing facility level of care",
         "The functional assessment must show need for help with activities of daily living - personal care assessment alone may not be sufficient",
         "Eligibility is tied directly to North Dakota Medicaid requirements, so ensuring Medicaid qualification is the first critical step"
@@ -142,36 +142,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for BCAP if they're already receiving North Dakota Medicaid?",
-          "answer": "Yes, if your parent already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than requiring a completely new application. Contact the Customer Support Center at (866) 614-6005 to discuss the specific process for current Medicaid recipients."
+          "question": "Can my loved one apply for BCAP if they're already receiving North Dakota Medicaid?",
+          "answer": "Yes, if your loved one already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than requiring a completely new application. Contact the Customer Support Center at (866) 614-6005 to discuss the specific process for current Medicaid recipients."
         },
         {
           "question": "What's the difference between basic care facilities and nursing homes for BCAP eligibility?",
           "answer": "BCAP specifically covers costs for licensed basic care facilities, not nursing homes. Basic care facilities provide assistance with activities of daily living but offer less intensive medical care than nursing facilities. Some applicants may need to have resided in a nursing facility for at least 6 months before qualifying for BCAP in certain circumstances."
         },
         {
-          "question": "How much of my parent's income will go toward facility costs?",
-          "answer": "Your parent keeps $150 per month for personal needs. All other income must be applied toward facility costs and medical expenses, with BCAP covering the remaining facility expenses directly. The exact amount BCAP pays depends on your parent's total income and the facility's costs."
+          "question": "How much of my loved one's income will go toward facility costs?",
+          "answer": "Your loved one keeps $150 per month for personal needs. All other income must be applied toward facility costs and medical expenses, with BCAP covering the remaining facility expenses directly. The exact amount BCAP pays depends on your loved one's total income and the facility's costs."
         },
         {
-          "question": "What if my parent needs nursing home level care but wants to try basic care first?",
-          "answer": "This requires careful coordination with healthcare providers and the county social worker doing the functional assessment. The assessment must show that basic care facility services are appropriate for your parent's needs. Contact agingbcreferrals@nd.gov to discuss facility options and care level requirements."
+          "question": "What if my loved one needs nursing home level care but wants to try basic care first?",
+          "answer": "This requires careful coordination with healthcare providers and the county social worker doing the functional assessment. The assessment must show that basic care facility services are appropriate for your loved one's needs. Contact agingbcreferrals@nd.gov to discuss facility options and care level requirements."
         },
         {
-          "question": "Can I apply for BCAP on behalf of my elderly parent?",
-          "answer": "Yes, family members can typically apply on behalf of elderly parents, especially if the parent has cognitive impairment or difficulty managing paperwork. You may need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
+          "question": "Can I apply for BCAP on behalf of my elderly loved one?",
+          "answer": "Yes, family members can typically apply on behalf of elderly loved ones, especially if the loved one has cognitive impairment or difficulty managing paperwork. You may need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
         },
         {
-          "question": "What happens if my parent's care needs increase while on BCAP?",
-          "answer": "If your parent's care needs change significantly, they'll need a new functional assessment. This could result in a recommendation for a different level of care, such as nursing facility placement, which would involve transitioning to different Medicaid long-term care services."
+          "question": "What happens if my loved one's care needs increase while on BCAP?",
+          "answer": "If your loved one's care needs change significantly, they'll need a new functional assessment. This could result in a recommendation for a different level of care, such as nursing facility placement, which would involve transitioning to different Medicaid long-term care services."
         },
         {
-          "question": "Are there any assets my parent can keep while on BCAP?",
-          "answer": "BCAP follows North Dakota Medicaid asset rules, which typically allow $3,000 in countable assets for single individuals. However, specific exemptions and rules for what counts as assets aren't detailed in BCAP program materials - contact the Customer Support Center at (866) 614-6005 for specific guidance about your parent's assets."
+          "question": "Are there any assets my loved one can keep while on BCAP?",
+          "answer": "BCAP follows North Dakota Medicaid asset rules, which typically allow $3,000 in countable assets for single individuals. However, specific exemptions and rules for what counts as assets aren't detailed in BCAP program materials - contact the Customer Support Center at (866) 614-6005 for specific guidance about your loved one's assets."
         },
         {
-          "question": "What if there are no licensed basic care facilities available in my parent's area?",
-          "answer": "Contact agingbcreferrals@nd.gov for assistance finding available licensed basic care facilities statewide. While your parent must be a North Dakota resident, they don't necessarily need to stay in their current community if appropriate facilities aren't available locally."
+          "question": "What if there are no licensed basic care facilities available in my loved one's area?",
+          "answer": "Contact agingbcreferrals@nd.gov for assistance finding available licensed basic care facilities statewide. While your loved one must be a North Dakota resident, they don't necessarily need to stay in their current community if appropriate facilities aren't available locally."
         }
       ],
       "layoutIntent": {
@@ -192,7 +192,7 @@
       "id": "aging-in-community-project",
       "name": "North Dakota Aging in Community (AIC) Project",
       "shortName": "AIC Project",
-      "tagline": "Community volunteers help your parent stay safely at home in rural North Dakota — transportation, fall prevention, and local connections.",
+      "tagline": "Community volunteers help your loved one stay safely at home in rural North Dakota, transportation, fall prevention, and local connections.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -209,7 +209,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in rural North Dakota and wants to stay at home but needs help with transportation, learning about technology, or connecting with local resources, the Aging in Community Project may provide volunteer assistance at no cost. Because this is a community-based pilot program, it's only available in select rural areas like Lisbon and western Morton Counties.\n\nThe program focuses on practical daily support — volunteer drivers for medical appointments, nutrition and fall prevention classes, help learning to use smartphones or tablets, and connections to other local services. Because it relies on volunteers and local partnerships rather than paid staff, the specific services vary by location but all aim to help older adults remain safely independent in their rural homes.",
+      "intro": "If your loved one lives in rural North Dakota and wants to stay at home but needs help with transportation, learning about technology, or connecting with local resources, the Aging in Community Project may provide volunteer assistance at no cost. Because this is a community-based pilot program, it's only available in select rural areas like Lisbon and western Morton Counties.\n\nThe program focuses on practical daily support, volunteer drivers for medical appointments, nutrition and fall prevention classes, help learning to use smartphones or tablets, and connections to other local services. Because it relies on volunteers and local partnerships rather than paid staff, the specific services vary by location but all aim to help older adults remain safely independent in their rural homes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -233,12 +233,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact NDSU Extension Service in your area to connect with local AIC project coordinators — no formal application required.",
+        "summary": "Contact NDSU Extension Service in your area to connect with local AIC project coordinators, no formal application required.",
         "steps": [
           {
             "step": 1,
             "title": "Check if your area is served",
-            "description": "Confirm your parent lives in an active AIC project area like Lisbon or western Morton Counties by visiting ndsu.edu/agriculture/extension."
+            "description": "Confirm your loved one lives in an active AIC project area like Lisbon or western Morton Counties by visiting ndsu.edu/agriculture/extension."
           },
           {
             "step": 2,
@@ -248,17 +248,17 @@
           {
             "step": 3,
             "title": "Meet with local coordinator",
-            "description": "A local coordinator will assess your parent's needs and interests, then match them with appropriate volunteer assistance and community resources."
+            "description": "A local coordinator will assess your loved one's needs and interests, then match them with appropriate volunteer assistance and community resources."
           },
           {
             "step": 4,
             "title": "Begin services",
-            "description": "Start receiving volunteer support for transportation, classes, or technology help based on what's available in your community and your parent's preferences."
+            "description": "Start receiving volunteer support for transportation, classes, or technology help based on what's available in your community and your loved one's preferences."
           }
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Because services depend on local volunteers, ask specifically what's currently available in your parent's community — offerings can change based on volunteer capacity.",
+        "tip": "Because services depend on local volunteers, ask specifically what's currently available in your loved one's community, offerings can change based on volunteer capacity.",
         "urls": [
           {
             "label": "NDSU Extension Programs",
@@ -282,7 +282,7 @@
         }
       ],
       "applicationNotes": [
-        "This is a pilot program in select rural communities only — not available statewide",
+        "This is a pilot program in select rural communities only, not available statewide",
         "Services depend on local volunteer availability and may vary by season or community capacity",
         "Success is measured in community connections and confidence building rather than guaranteed hours of service"
       ],
@@ -294,15 +294,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Is this program available where my parent lives?",
-          "answer": "The AIC Project operates only in select rural communities like Lisbon and western Morton Counties. Contact your local NDSU Extension office to confirm if your parent's area is served, as this is a pilot program with limited geographic reach."
+          "question": "Is this program available where my loved one lives?",
+          "answer": "The AIC Project operates only in select rural communities like Lisbon and western Morton Counties. Contact your local NDSU Extension office to confirm if your loved one's area is served, as this is a pilot program with limited geographic reach."
         },
         {
-          "question": "What if my parent needs more intensive help than volunteers can provide?",
-          "answer": "The AIC Project focuses on community connections and prevention rather than medical care or intensive daily assistance. If your parent needs help with bathing, medication management, or clinical care, ask the coordinator about referrals to programs like SPED or Medicaid waiver services."
+          "question": "What if my loved one needs more intensive help than volunteers can provide?",
+          "answer": "The AIC Project focuses on community connections and prevention rather than medical care or intensive daily assistance. If your loved one needs help with bathing, medication management, or clinical care, ask the coordinator about referrals to programs like SPED or Medicaid waiver services."
         },
         {
-          "question": "Can my parent count on regular transportation every week?",
+          "question": "Can my loved one count on regular transportation every week?",
           "answer": "Transportation depends on volunteer driver availability in your specific community, so it may not be as reliable as paid services. Ask the local coordinator about typical availability and consider this as supplemental to other transportation arrangements."
         },
         {
@@ -310,8 +310,8 @@
           "answer": "Unlike SPED (which pays for services) or Medicaid waivers (which provide clinical care), the AIC Project uses volunteers to build community connections and teach practical skills. It's designed to prevent isolation and help people stay independent longer, not replace medical services."
         },
         {
-          "question": "What happens if my parent moves to a different rural town?",
-          "answer": "If your parent moves outside an active AIC project area, they would no longer be eligible for services. The program is location-specific and depends on local volunteer networks and NDSU Extension partnerships in each community."
+          "question": "What happens if my loved one moves to a different rural town?",
+          "answer": "If your loved one moves outside an active AIC project area, they would no longer be eligible for services. The program is location-specific and depends on local volunteer networks and NDSU Extension partnerships in each community."
         }
       ],
       "layoutIntent": {
@@ -332,7 +332,7 @@
       "id": "assistive-senior-safety-program",
       "name": "ND Assistive Senior Safety Program",
       "shortName": "Senior Safety Program",
-      "tagline": "Free safety devices and professional setup to help your parent stay safely at home",
+      "tagline": "Free safety devices and professional setup to help your loved one stay safely at home",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -345,7 +345,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs safety devices to remain at home, North Dakota provides free assistive equipment with professional installation. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment — plus setup assistance to ensure everything works properly.\n\nThis is a last-resort program — your parent must first be denied coverage through insurance, Medicare, or Medicaid. Because the program prioritizes requests, you'll rank devices in order of importance on your application. Income guidelines apply, but specific limits are detailed in the current year's application form.",
+      "intro": "If your loved one is 60+ and needs safety devices to remain at home, North Dakota provides free assistive equipment with professional installation. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment, plus setup assistance to ensure everything works properly.\n\nThis is a last-resort program, your loved one must first be denied coverage through insurance, Medicare, or Medicaid. Because the program prioritizes requests, you'll rank devices in order of importance on your application. Income guidelines apply, but specific limits are detailed in the current year's application form.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -369,7 +369,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online or by mail with proof of income and device needs — typically takes 3-4 weeks to process.",
+        "summary": "Apply online or by mail with proof of income and device needs, typically takes 3-4 weeks to process.",
         "steps": [
           {
             "step": 1,
@@ -379,7 +379,7 @@
           {
             "step": 2,
             "title": "List devices in priority order",
-            "description": "Rank the safety devices you need most — only one device per line on the application"
+            "description": "Rank the safety devices you need most, only one device per line on the application"
           },
           {
             "step": 3,
@@ -394,7 +394,7 @@
         ],
         "processingTime": "Typically 3-4 weeks",
         "waitlist": null,
-        "tip": "List devices in order of importance — the program may not approve everything you request, so prioritize what your parent needs most.",
+        "tip": "List devices in order of importance, the program may not approve everything you request, so prioritize what your loved one needs most.",
         "urls": [
           {
             "label": "Online Application",
@@ -436,15 +436,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives in assisted living — can they still get these devices?",
+          "question": "What if my loved one lives in assisted living, can they still get these devices?",
           "answer": "Yes, the program is available to seniors in assisted living facilities if they need additional safety devices beyond what the facility provides. The application process is the same."
         },
         {
-          "question": "Can I apply if my parent was denied by Medicare but we haven't tried Medicaid yet?",
-          "answer": "No — you must exhaust all other funding sources first, including Medicaid. The Senior Safety Program only serves as a last resort when insurance, Medicare, Medicaid, and other programs won't cover the devices."
+          "question": "Can I apply if my loved one was denied by Medicare but we haven't tried Medicaid yet?",
+          "answer": "No, you must exhaust all other funding sources first, including Medicaid. The Senior Safety Program only serves as a last resort when insurance, Medicare, Medicaid, and other programs won't cover the devices."
         },
         {
-          "question": "How many devices can my parent receive through this program?",
+          "question": "How many devices can my loved one receive through this program?",
           "answer": "The application doesn't specify a limit, but you must rank devices in order of importance because the program may not approve everything you request. Priority is given based on safety need and available funding."
         }
       ],
@@ -464,7 +464,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "North Dakota offers 3 key programs to help your aging parent stay safe and supported. Two provide direct financial assistance for care services, while one offers free safety resources for any North Dakota senior. The Basic Care Assistance Program helps cover facility care costs, the Aging in Community Project provides volunteer support specifically in rural areas, and the Assistive Senior Safety Program delivers free safety devices with professional installation. Start by identifying your parent's most immediate need — whether that's paying for care, staying connected in a rural community, or making their home safer.",
+    "intro": "North Dakota offers 3 key programs to help your aging loved one stay safe and supported. Two provide direct financial assistance for care services, while one offers free safety resources for any North Dakota senior. The Basic Care Assistance Program helps cover facility care costs, the Aging in Community Project provides volunteer support specifically in rural areas, and the Assistive Senior Safety Program delivers free safety devices with professional installation. Start by identifying your loved one's most immediate need, whether that's paying for care, staying connected in a rural community, or making their home safer.",
     "startHere": [
       {
         "name": "ND Assistive Senior Safety Program",
@@ -479,7 +479,7 @@
       {
         "name": "North Dakota Basic Care Assistance Program (BCAP)",
         "programId": "north-dakota-basic-care-assistance-program-bcap",
-        "why": "Provides direct financial help for facility care when your parent needs more support than home-based options can provide."
+        "why": "Provides direct financial help for facility care when your loved one needs more support than home-based options can provide."
       }
     ],
     "byNeed": [
@@ -510,6 +510,6 @@
       "The state offers both income-qualified benefits and universal free safety resources",
       "Two programs require eligibility screening while one is available to all North Dakota seniors"
     ],
-    "resourcesVsBenefits": "North Dakota offers both types of help: qualification-based benefits like BCAP that require income and asset screening to help pay for care, and free resources like the Assistive Senior Safety Program that any North Dakota senior can access regardless of income. The AIC Project falls in between — it's free but specifically serves rural communities where volunteer networks are available."
+    "resourcesVsBenefits": "North Dakota offers both types of help: qualification-based benefits like BCAP that require income and asset screening to help pay for care, and free resources like the Assistive Senior Safety Program that any North Dakota senior can access regardless of income. The AIC Project falls in between, it's free but specifically serves rural communities where volunteer networks are available."
   }
 }

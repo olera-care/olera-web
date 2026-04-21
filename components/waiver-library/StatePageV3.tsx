@@ -10,6 +10,9 @@ import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
+import { getStateVerifier } from "@/data/benefits-verifiers";
+import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -396,6 +399,28 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           <p className="mt-3 text-lg text-gray-500">
             {programs.length} programs to help your family
           </p>
+
+          {(() => {
+            const { author, reviewedAt } = getStateVerifier(state.abbreviation);
+            return (
+              <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                <ReviewerAvatar author={author} />
+                <span className="text-gray-400">Reviewed by</span>
+                <Link
+                  href={`/author/${author.slug}`}
+                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  {author.name}
+                </Link>
+                {reviewedAt && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-gray-400">Last verified {formatReviewDate(reviewedAt)}</span>
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </header>
 

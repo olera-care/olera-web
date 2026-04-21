@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medicare and struggles with monthly premiums or the 20% Medicare doesn't cover, Colorado's Medicare Savings Programs can help. These federal programs pay Medicare Part B premiums (around $185/month in 2026) and, depending on income level, cover deductibles and copays that Medicare leaves behind.\n\nThere are three tiers: QMB provides the most comprehensive coverage, paying both premiums and all out-of-pocket costs. SLMB and QI cover just the monthly premium, leaving your parent responsible for deductibles and copays. Because these programs have both income and asset limits (typically around $9,660 for individuals, $14,490 for couples), your parent's savings and investments count toward eligibility.",
+      "intro": "If your loved one is on Medicare and struggles with monthly premiums or the 20% Medicare doesn't cover, Colorado's Medicare Savings Programs can help. These federal programs pay Medicare Part B premiums (around $185/month in 2026) and, depending on income level, cover deductibles and copays that Medicare leaves behind.\n\nThere are three tiers: QMB provides the most comprehensive coverage, paying both premiums and all out-of-pocket costs. SLMB and QI cover just the monthly premium, leaving your loved one responsible for deductibles and copays. Because these programs have both income and asset limits (typically around $9,660 for individuals, $14,490 for couples), your loved one's savings and investments count toward eligibility.",
       "savingsRange": "$2,220 – $4,500/year in 2026",
       "savingsSource": "Medicare Part B premium ($185/month) plus potential deductible and coinsurance coverage",
       "savingsVerified": false,
@@ -62,7 +62,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your county human services office online, by phone, or in person — typically takes 45 days to process.",
+        "summary": "Apply through your county human services office online, by phone, or in person, typically takes 45 days to process.",
         "steps": [
           {
             "step": 1,
@@ -92,7 +92,7 @@
         ],
         "processingTime": "Typically 45 days for standard applications",
         "waitlist": "QI tier often has federal funding caps and waitlists; QMB and SLMB generally no waitlist",
-        "tip": "Apply for the highest tier you might qualify for — the county will place you in the appropriate program based on your income.",
+        "tip": "Apply for the highest tier you might qualify for, the county will place you in the appropriate program based on your income.",
         "urls": [
           {
             "label": "Health First Colorado Application",
@@ -140,9 +140,9 @@
         }
       ],
       "applicationNotes": [
-        "QI tier has limited federal funding and often maintains waitlists — QMB and SLMB typically have no waiting periods",
+        "QI tier has limited federal funding and often maintains waitlists, QMB and SLMB typically have no waiting periods",
         "Asset limits exclude your primary home and one vehicle, but count all bank accounts and investments",
-        "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs — different eligibility rules apply",
+        "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs, different eligibility rules apply",
         "If approved for QMB, you'll get the most comprehensive coverage including all Medicare copays and deductibles"
       ],
       "relatedPrograms": [
@@ -179,36 +179,36 @@
         {
           "type": "callout",
           "title": "QI Funding Limitations",
-          "content": "The QI program has limited federal funding and often maintains waitlists when funding runs out each year. If your parent's income qualifies for QI but slots aren't available, ask your county office to put them on the waitlist and consider applying again early in the next federal fiscal year."
+          "content": "The QI program has limited federal funding and often maintains waitlists when funding runs out each year. If your loved one's income qualifies for QI but slots aren't available, ask your county office to put them on the waitlist and consider applying again early in the next federal fiscal year."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. The asset limits only apply to countable assets like bank accounts, stocks, and investment accounts."
         },
         {
           "question": "What's the difference between getting QMB versus SLMB or QI?",
-          "answer": "QMB covers everything — premiums, deductibles, and the 20% Medicare doesn't pay. SLMB and QI only cover the monthly premium, so your parent still pays deductibles (around $240/year) and 20% of medical costs. QMB provides much more comprehensive financial protection."
+          "answer": "QMB covers everything, premiums, deductibles, and the 20% Medicare doesn't pay. SLMB and QI only cover the monthly premium, so your loved one still pays deductibles (around $240/year) and 20% of medical costs. QMB provides much more comprehensive financial protection."
         },
         {
           "question": "Can I apply for this and regular Health First Colorado Medicaid at the same time?",
-          "answer": "Yes, use the same application for both. The county will determine which programs your parent qualifies for. If they qualify for full Medicaid, that typically provides more comprehensive coverage than just the Medicare Savings Programs."
+          "answer": "Yes, use the same application for both. The county will determine which programs your loved one qualifies for. If they qualify for full Medicaid, that typically provides more comprehensive coverage than just the Medicare Savings Programs."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
+          "question": "What happens if my loved one's income changes after approval?",
           "answer": "Report income changes to your county office within 10 days. If income increases, they might move to a different tier (QMB to SLMB) or lose eligibility entirely. If income decreases, they might qualify for a higher tier with better coverage."
         },
         {
-          "question": "How long does my parent stay on this program once approved?",
+          "question": "How long does my loved one stay on this program once approved?",
           "answer": "Approval typically lasts one year, then requires annual renewal. The county will send renewal forms before the expiration date. Some counties may review eligibility more frequently if circumstances change."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent gives permission or if you have legal authority (power of attorney, guardianship). You'll need to provide documentation of your authority to act on their behalf."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one gives permission or if you have legal authority (power of attorney, guardianship). You'll need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "What if my parent is denied — can they reapply?",
+          "question": "What if my loved one is denied, can they reapply?",
           "answer": "Yes, they can reapply anytime, especially if their financial situation changes. They also have the right to appeal the denial within 30 days. Contact your county office for appeal forms and deadlines."
         },
         {
@@ -234,14 +234,14 @@
       "id": "hcbs-waivers",
       "name": "Home and Community-Based Services (HCBS) Waivers in Colorado",
       "shortName": "HCBS Waivers",
-      "tagline": "If your parent needs help with daily activities but wants to stay home, Colorado may cover personal care, home modifications, and other support services.",
+      "tagline": "If your loved one needs help with daily activities but wants to stay home, Colorado may cover personal care, home modifications, and other support services.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65+ and needs help with bathing, dressing, or other daily activities, Colorado's Elderly, Blind, and Disabled (EBD) Waiver covers in-home services that would otherwise cost hundreds to thousands per month. This program provides personal care, homemaker services, home modifications, meal delivery, and respite care to help your parent stay in their home instead of moving to a nursing facility.\n\nBecause the waiver uses individual income limits ($2,199/month), not household income, your parent may qualify even if your family has higher earnings. Your parent must need the same level of care provided in a nursing home (assistance with at least 2 activities like bathing, dressing, or medication management) and have less than $2,000 in countable assets.\n\nThe program coordinates all services through one case manager, so you won't juggle multiple providers. Services are tailored to your parent's specific needs based on a professional assessment.",
+      "intro": "If your loved one is 65+ and needs help with bathing, dressing, or other daily activities, Colorado's Elderly, Blind, and Disabled (EBD) Waiver covers in-home services that would otherwise cost hundreds to thousands per month. This program provides personal care, homemaker services, home modifications, meal delivery, and respite care to help your loved one stay in their home instead of moving to a nursing facility.\n\nBecause the waiver uses individual income limits ($2,199/month), not household income, your loved one may qualify even if your family has higher earnings. Your loved one must need the same level of care provided in a nursing home (assistance with at least 2 activities like bathing, dressing, or medication management) and have less than $2,000 in countable assets.\n\nThe program coordinates all services through one case manager, so you won't juggle multiple providers. Services are tailored to your loved one's specific needs based on a professional assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -283,7 +283,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Health First Colorado office or a certified provider for assessment — processing time varies but involves both medical and financial eligibility review.",
+        "summary": "Contact your local Health First Colorado office or a certified provider for assessment, processing time varies but involves both medical and financial eligibility review.",
         "steps": [
           {
             "step": 1,
@@ -293,7 +293,7 @@
           {
             "step": 2,
             "title": "Complete medical assessment",
-            "description": "A case manager will assess your parent's need for nursing facility level of care using the Level of Care (LOC) Determination Screening Instrument to determine if they need help with at least 2 activities of daily living."
+            "description": "A case manager will assess your loved one's need for nursing facility level of care using the Level of Care (LOC) Determination Screening Instrument to determine if they need help with at least 2 activities of daily living."
           },
           {
             "step": 3,
@@ -303,12 +303,12 @@
           {
             "step": 4,
             "title": "Wait for approval and service planning",
-            "description": "Once approved, work with your assigned case manager to develop an individualized service plan based on your parent's specific needs and preferences."
+            "description": "Once approved, work with your assigned case manager to develop an individualized service plan based on your loved one's specific needs and preferences."
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and required assessments",
+        "processingTime": "Not specified, varies by case complexity and required assessments",
         "waitlist": "Possible regional variations in wait times but specific timeframes not documented",
-        "tip": "Gather medical documentation showing your parent's need for daily assistance before applying — this speeds up the nursing facility level of care assessment.",
+        "tip": "Gather medical documentation showing your loved one's need for daily assistance before applying, this speeds up the nursing facility level of care assessment.",
         "urls": []
       },
       "documentsNeeded": [
@@ -341,10 +341,10 @@
         }
       ],
       "applicationNotes": [
-        "The 60-month Look-Back Rule applies — assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
-        "Income test uses only your parent's individual income, not household income — this can make elderly parents on fixed incomes eligible even in higher-income households",
-        "Multiple HCBS waivers exist in Colorado — make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
-        "Home equity cannot exceed $1,130,000 — homes worth more may disqualify applicants regardless of other assets"
+        "The 60-month Look-Back Rule applies, assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
+        "Income test uses only your loved one's individual income, not household income, this can make elderly loved ones on fixed incomes eligible even in higher-income households",
+        "Multiple HCBS waivers exist in Colorado, make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
+        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets"
       ],
       "relatedPrograms": [
         "Health First Colorado (Colorado Medicaid)",
@@ -355,36 +355,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
           "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as the home equity interest doesn't exceed $1,130,000 (2026 limit). The house doesn't count toward the asset limit regardless of its total value, only the equity matters."
         },
         {
-          "question": "What if my parent's income is $2,300/month — just over the $2,199 limit?",
-          "answer": "Your parent would not qualify based on income alone. However, if they have high medical expenses, they may still qualify through a \"spend-down\" process where medical costs reduce their countable income to the qualifying level."
+          "question": "What if my loved one's income is $2,300/month, just over the $2,199 limit?",
+          "answer": "Your loved one would not qualify based on income alone. However, if they have high medical expenses, they may still qualify through a \"spend-down\" process where medical costs reduce their countable income to the qualifying level."
         },
         {
-          "question": "Can I apply for my parent if they have dementia and can't understand the process?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to complete a Release of Information (ROI) form and may need to provide documentation of your authority to act on their behalf, such as power of attorney."
+          "question": "Can I apply for my loved one if they have dementia and can't understand the process?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to complete a Release of Information (ROI) form and may need to provide documentation of your authority to act on their behalf, such as power of attorney."
         },
         {
           "question": "How long is the waitlist really, and are there ways to get services faster?",
           "answer": "Specific wait times aren't published and likely vary by region and service needs. Contact your local HCPF office for current wait times in your area. Crisis situations or immediate risk of nursing home placement may receive priority."
         },
         {
-          "question": "Can my parent get HCBS waiver services and still keep their Medicare and other health insurance?",
+          "question": "Can my loved one get HCBS waiver services and still keep their Medicare and other health insurance?",
           "answer": "Yes, waiver participants keep all their existing health coverage and also receive Health First Colorado (Colorado Medicaid) benefits. This provides additional coverage that Medicare doesn't offer, like long-term personal care services."
         },
         {
-          "question": "What happens if my parent's condition gets worse and they need more help?",
-          "answer": "Case managers conduct regular reassessments and can adjust services based on changing needs. If your parent eventually needs nursing facility care, they can transition while maintaining their Health First Colorado eligibility."
+          "question": "What happens if my loved one's condition gets worse and they need more help?",
+          "answer": "Case managers conduct regular reassessments and can adjust services based on changing needs. If your loved one eventually needs nursing facility care, they can transition while maintaining their Health First Colorado eligibility."
         },
         {
           "question": "Can we choose which home care agency provides the services?",
           "answer": "Services must be provided by certified Health First Colorado providers, but you can typically choose among qualified providers in your area. Your case manager will help identify available options and coordinate services."
         },
         {
-          "question": "What if we gave away money or assets in the past few years — will that affect eligibility?",
-          "answer": "Yes, the 60-month Look-Back Rule means any assets given away or sold below fair market value in the past 5 years can create a penalty period where your parent is temporarily ineligible for benefits. The penalty length depends on the amount transferred."
+          "question": "What if we gave away money or assets in the past few years, will that affect eligibility?",
+          "answer": "Yes, the 60-month Look-Back Rule means any assets given away or sold below fair market value in the past 5 years can create a penalty period where your loved one is temporarily ineligible for benefits. The penalty length depends on the amount transferred."
         }
       ],
       "layoutIntent": {
@@ -418,7 +418,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical and social care under one program. Because PACE covers everything from primary care to nursing to therapy to transportation, your parent won't need to coordinate between separate providers — one team manages their entire care plan.\n\nPACE becomes your parent's sole source of Medicare and Medicaid benefits, meaning they cannot use other Medicare or Medicaid providers while enrolled. The program is only available in certain Colorado service areas, and your parent must be assessed as needing nursing home level of care while still being able to live safely in the community with PACE support.\n\nThis is a major commitment — PACE replaces all other Medicare/Medicaid services. However, participants can leave the program at any time for any reason, though re-enrollment may have different requirements.",
+      "intro": "If your loved one is 55+ and needs significant daily help with bathing, dressing, or medication management, PACE provides all their medical and social care under one program. Because PACE covers everything from primary care to nursing to therapy to transportation, your loved one won't need to coordinate between separate providers, one team manages their entire care plan.\n\nPACE becomes your loved one's sole source of Medicare and Medicaid benefits, meaning they cannot use other Medicare or Medicaid providers while enrolled. The program is only available in certain Colorado service areas, and your loved one must be assessed as needing nursing home level of care while still being able to live safely in the community with PACE support.\n\nThis is a major commitment, PACE replaces all other Medicare/Medicaid services. However, participants can leave the program at any time for any reason, though re-enrollment may have different requirements.",
       "savingsRange": "",
       "savingsSource": "Comprehensive care service",
       "savingsVerified": false,
@@ -446,7 +446,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet nursing home level of care requirement (clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must meet nursing home level of care requirement (clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "Must live in a PACE-covered service area in Colorado",
           "Must be able to live safely in the community at time of enrollment",
@@ -456,12 +456,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Colorado PACE directly for a comprehensive medical and social assessment — approval typically takes 7-14 days after assessment.",
+        "summary": "Contact Colorado PACE directly for a comprehensive medical and social assessment, approval typically takes 7-14 days after assessment.",
         "steps": [
           {
             "step": 1,
             "title": "Verify service area coverage",
-            "description": "Confirm your parent lives in a Colorado PACE service area by calling Colorado PACE or visiting coloradopace.org."
+            "description": "Confirm your loved one lives in a Colorado PACE service area by calling Colorado PACE or visiting coloradopace.org."
           },
           {
             "step": 2,
@@ -471,7 +471,7 @@
           {
             "step": 3,
             "title": "Complete comprehensive assessment",
-            "description": "PACE team conducts multi-disciplinary assessment to determine if your parent meets nursing home level of care and can live safely in community with support."
+            "description": "PACE team conducts multi-disciplinary assessment to determine if your loved one meets nursing home level of care and can live safely in community with support."
           },
           {
             "step": 4,
@@ -486,7 +486,7 @@
         ],
         "processingTime": "7-14 days after comprehensive assessment submission",
         "waitlist": null,
-        "tip": "PACE replaces ALL other Medicare and Medicaid providers, so discuss this major change thoroughly with your parent before applying.",
+        "tip": "PACE replaces ALL other Medicare and Medicaid providers, so discuss this major change thoroughly with your loved one before applying.",
         "urls": [
           {
             "label": "Colorado PACE",
@@ -526,9 +526,9 @@
       ],
       "applicationNotes": [
         "Medicare-only participants have no income or asset limits, but must still meet age and nursing home level of care requirements",
-        "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify — Medicaid planning strategies may help establish eligibility",
-        "Assessment includes evaluation of safety to live in community — your parent must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
-        "Once enrolled, PACE becomes the exclusive source of Medicare and Medicaid benefits — participants cannot see providers outside the PACE network"
+        "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify, Medicaid planning strategies may help establish eligibility",
+        "Assessment includes evaluation of safety to live in community, your loved one must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
+        "Once enrolled, PACE becomes the exclusive source of Medicare and Medicaid benefits, participants cannot see providers outside the PACE network"
       ],
       "relatedPrograms": [
         "Colorado Medicaid (Community Living Services)",
@@ -539,31 +539,31 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep seeing their current doctors after enrolling in PACE?",
-          "answer": "No. PACE becomes your parent's sole source of Medicare and Medicaid benefits, meaning they must receive all care through the PACE provider network. They cannot see outside providers or specialists unless referred by the PACE team."
+          "question": "Can my loved one keep seeing their current doctors after enrolling in PACE?",
+          "answer": "No. PACE becomes your loved one's sole source of Medicare and Medicaid benefits, meaning they must receive all care through the PACE provider network. They cannot see outside providers or specialists unless referred by the PACE team."
         },
         {
-          "question": "What if my parent's income is slightly over the $2,901/month Medicaid limit?",
-          "answer": "Your parent can still qualify for PACE through Medicare alone (no income limits), or through Medicaid planning strategies that may help meet financial requirements. The PACE team can help evaluate options during the assessment process."
+          "question": "What if my loved one's income is slightly over the $2,901/month Medicaid limit?",
+          "answer": "Your loved one can still qualify for PACE through Medicare alone (no income limits), or through Medicaid planning strategies that may help meet financial requirements. The PACE team can help evaluate options during the assessment process."
         },
         {
-          "question": "How do I know if my parent's area is covered by Colorado PACE?",
+          "question": "How do I know if my loved one's area is covered by Colorado PACE?",
           "answer": "PACE is only available in certain Colorado service areas. You must verify coverage before applying by contacting Colorado PACE directly or checking their website at coloradopace.org. Not all areas of Colorado are covered."
         },
         {
-          "question": "What happens if my parent wants to leave PACE after enrolling?",
+          "question": "What happens if my loved one wants to leave PACE after enrolling?",
           "answer": "Participants can leave PACE at any time for any reason and return to regular Medicare/Medicaid services. However, re-enrollment in PACE later may require meeting different requirements and going through the full assessment process again."
         },
         {
-          "question": "Can I apply for PACE on behalf of my elderly parent?",
-          "answer": "Yes, adult children can initiate the PACE application process for their parents. However, you'll need proper legal documentation if your parent cannot make decisions independently, such as power of attorney or guardianship papers."
+          "question": "Can I apply for PACE on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can initiate the PACE application process for their loved ones. However, you'll need proper legal documentation if your loved one cannot make decisions independently, such as power of attorney or guardianship papers."
         },
         {
           "question": "What exactly qualifies as 'nursing home level of care' in Colorado?",
-          "answer": "This requires a state assessment determining your parent needs daily help with activities like bathing, dressing, medication management, or mobility. The specific criteria are determined by Colorado's assessment process and require evaluation by the PACE team."
+          "answer": "This requires a state assessment determining your loved one needs daily help with activities like bathing, dressing, medication management, or mobility. The specific criteria are determined by Colorado's assessment process and require evaluation by the PACE team."
         },
         {
-          "question": "Does my parent's house count toward the $2,000 asset limit?",
+          "question": "Does my loved one's house count toward the $2,000 asset limit?",
           "answer": "No, the primary residence is exempt from Medicaid asset limits. However, other property, investments, and bank accounts above $2,000 would need to be addressed for Medicaid eligibility, though Medicare-only participants face no asset restrictions."
         },
         {
@@ -602,7 +602,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your parent might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your parent can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income — a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their parent qualifies.",
+      "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your loved one might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your loved one can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income, a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their loved one qualifies.",
       "savingsRange": "$1,200 – $4,800/year in 2026",
       "savingsSource": "Based on typical monthly allotments for elderly households",
       "savingsVerified": true,
@@ -664,7 +664,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Colorado PEAK or call your local county human services office — processing takes up to several weeks.",
+        "summary": "Apply online through Colorado PEAK or call your local county human services office, processing takes up to several weeks.",
         "steps": [
           {
             "step": 1,
@@ -689,12 +689,12 @@
           {
             "step": 5,
             "title": "Receive EBT card",
-            "description": "Once approved, your parent will receive an EBT card in the mail with their monthly benefit amount loaded each month."
+            "description": "Once approved, your loved one will receive an EBT card in the mail with their monthly benefit amount loaded each month."
           }
         ],
         "processingTime": "Up to several weeks",
         "waitlist": null,
-        "tip": "Seniors over 60 can often qualify even if their Social Security puts them over the standard income limit — always apply if your parent's monthly income is under $3,000.",
+        "tip": "Seniors over 60 can often qualify even if their Social Security puts them over the standard income limit, always apply if your loved one's monthly income is under $3,000.",
         "urls": [
           {
             "label": "Colorado PEAK Application Portal",
@@ -736,8 +736,8 @@
       ],
       "applicationNotes": [
         "Seniors 60+ who exceed the gross income limit can still qualify through the net income test if medical expenses bring their countable income down",
-        "Colorado has no asset limit for most households, but if your parent uses the special elderly rules, federal asset limits of $4,500 may apply",
-        "Medical deduction only applies to out-of-pocket expenses over $35/month — keep receipts for Medicare premiums, prescription costs, and medical bills",
+        "Colorado has no asset limit for most households, but if your loved one uses the special elderly rules, federal asset limits of $4,500 may apply",
+        "Medical deduction only applies to out-of-pocket expenses over $35/month, keep receipts for Medicare premiums, prescription costs, and medical bills",
         "You must recertify every 6-12 months and report income changes annually to keep benefits active"
       ],
       "relatedPrograms": [
@@ -749,36 +749,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get SNAP if their Social Security is $2,200/month but they have high medical bills?",
-          "answer": "Yes, if your parent is 60+ and has medical expenses over $35/month, those costs reduce their countable income. A senior with $2,200 Social Security but $400/month in medical expenses would have a net income around $1,635, likely qualifying them for benefits."
+          "question": "Can my loved one get SNAP if their Social Security is $2,200/month but they have high medical bills?",
+          "answer": "Yes, if your loved one is 60+ and has medical expenses over $35/month, those costs reduce their countable income. A senior with $2,200 Social Security but $400/month in medical expenses would have a net income around $1,635, likely qualifying them for benefits."
         },
         {
-          "question": "Will my parent's house or car count against the asset limit?",
+          "question": "Will my loved one's house or car count against the asset limit?",
           "answer": "No, homes and vehicles are exempt from asset limits. In Colorado, most households have no asset limit anyway due to broad-based categorical eligibility. Only seniors using special income rules might face the federal $4,500 asset limit."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply as authorized representatives. You'll need to complete an authorized representative form during the application process and may need to attend the interview with your parent."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply as authorized representatives. You'll need to complete an authorized representative form during the application process and may need to attend the interview with your loved one."
         },
         {
           "question": "What medical expenses count toward the deduction for seniors?",
           "answer": "Medicare premiums, prescription costs, doctor copays, dental bills, eyeglasses, medical equipment, and health insurance premiums all count. Only expenses over $35/month total get deducted from income, and only out-of-pocket costs you actually pay."
         },
         {
-          "question": "Can my parent use SNAP benefits to buy groceries online?",
-          "answer": "Yes, Colorado participates in SNAP online purchasing. Your parent can use their EBT card for grocery delivery or pickup from participating retailers like Amazon, Walmart, and many local stores."
+          "question": "Can my loved one use SNAP benefits to buy groceries online?",
+          "answer": "Yes, Colorado participates in SNAP online purchasing. Your loved one can use their EBT card for grocery delivery or pickup from participating retailers like Amazon, Walmart, and many local stores."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
+          "question": "What happens if my loved one's income changes after they're approved?",
           "answer": "Report income increases over $1,600/month within 10 days. Decreases in income should be reported to potentially increase benefits. You'll have annual recertification where all income and expenses are reviewed."
         },
         {
-          "question": "Can my parent get SNAP if they live in senior housing that provides meals?",
-          "answer": "It depends on the meal arrangement. If your parent is required to purchase a meal plan, they generally cannot get SNAP. If meals are optional or your parent prepares their own food, they can likely qualify for SNAP benefits."
+          "question": "Can my loved one get SNAP if they live in senior housing that provides meals?",
+          "answer": "It depends on the meal arrangement. If your loved one is required to purchase a meal plan, they generally cannot get SNAP. If meals are optional or your loved one prepares their own food, they can likely qualify for SNAP benefits."
         },
         {
           "question": "How long does it take to get the first SNAP payment after approval?",
-          "answer": "EBT cards typically arrive within 7-10 days of approval. Benefits are loaded on the same day each month based on the last digit of your parent's Social Security number. Emergency SNAP can be processed within 7 days for qualifying households."
+          "answer": "EBT cards typically arrive within 7-10 days of approval. Benefits are loaded on the same day each month based on the last digit of your loved one's Social Security number. Emergency SNAP can be processed within 7 days for qualifying households."
         }
       ],
       "layoutIntent": {
@@ -799,7 +799,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP Weatherization",
-      "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills by hundreds of dollars yearly",
+      "tagline": "Free home energy upgrades that can cut your loved one's heating and cooling bills by hundreds of dollars yearly",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -824,7 +824,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating and cooling bills, the Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, duct repairs, and water heater improvements. Because these modifications reduce energy waste, many families see utility bill savings of $200-400 annually after weatherization.\n\nYour parent may qualify based on income limits that vary by household size and county — ranging from about $45,000-67,000 for a single person depending on their utility provider and location. The program automatically accepts families already receiving SNAP, LEAP (energy assistance), or SSI. Because funding is limited and demand is high, waitlists are common and can extend several months depending on your region.",
+      "intro": "If your loved one struggles with high heating and cooling bills, the Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, duct repairs, and water heater improvements. Because these modifications reduce energy waste, many families see utility bill savings of $200-400 annually after weatherization.\n\nYour loved one may qualify based on income limits that vary by household size and county, ranging from about $45,000-67,000 for a single person depending on their utility provider and location. The program automatically accepts families already receiving SNAP, LEAP (energy assistance), or SSI. Because funding is limited and demand is high, waitlists are common and can extend several months depending on your region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -849,7 +849,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through the Colorado Energy Office portal or contact your regional provider directly — processing times vary by local demand and funding availability.",
+        "summary": "Apply online through the Colorado Energy Office portal or contact your regional provider directly, processing times vary by local demand and funding availability.",
         "steps": [
           {
             "step": 1,
@@ -877,9 +877,9 @@
             "description": "Approval depends on income verification and available funding. Due to high demand, you may be placed on a waitlist before work can be scheduled."
           }
         ],
-        "processingTime": "Varies by regional demand and funding availability — contact your local provider for current timelines",
-        "waitlist": "Waitlists are common due to funding limits — timelines vary by program demand, capacity, and region",
-        "tip": "If you're a renter, contact your landlord early about signing the release form — this is often the biggest delay in the application process.",
+        "processingTime": "Varies by regional demand and funding availability, contact your local provider for current timelines",
+        "waitlist": "Waitlists are common due to funding limits, timelines vary by program demand, capacity, and region",
+        "tip": "If you're a renter, contact your landlord early about signing the release form, this is often the biggest delay in the application process.",
         "urls": [
           {
             "label": "Colorado Energy Office Weatherization Portal",
@@ -893,7 +893,7 @@
         "Income documentation for all working household members from the past 30 days (pay stubs, Social Security letters)",
         "Complete household list with names, ages, disabilities, and income sources for all members",
         "Legal presence affidavit if applicable",
-        "Landlord Release Form (renters only — must be signed before services can begin)"
+        "Landlord Release Form (renters only, must be signed before services can begin)"
       ],
       "contacts": [
         {
@@ -916,10 +916,10 @@
         }
       ],
       "applicationNotes": [
-        "Income limits vary significantly by county and utility provider — what qualifies in one area may not in another, so always check with your local provider",
+        "Income limits vary significantly by county and utility provider, what qualifies in one area may not in another, so always check with your local provider",
         "Families receiving public assistance still need to provide their award letters and valid ID even though they auto-qualify income-wise",
-        "The 15-year rule is strict — homes previously weatherized through any program cannot receive services again until the full period has passed",
-        "Meeting income requirements doesn't guarantee services due to funding limitations — approval depends on available budget and regional priorities"
+        "The 15-year rule is strict, homes previously weatherized through any program cannot receive services again until the full period has passed",
+        "Meeting income requirements doesn't guarantee services due to funding limitations, approval depends on available budget and regional priorities"
       ],
       "relatedPrograms": [
         "Low-Income Energy Assistance Program (LEAP)",
@@ -933,31 +933,31 @@
           "answer": "No weatherization work can be performed without landlord permission. The signed Landlord Release Form is mandatory because the program makes permanent modifications to the property. If your landlord refuses, you cannot receive services through this program."
         },
         {
-          "question": "How do I know which income limit applies to my parent?",
+          "question": "How do I know which income limit applies to my loved one?",
           "answer": "Income limits depend on your county, household size, and utility provider. For example, Xcel and Black Hills customers follow 80% Area Median Income while others may use 60% State Median Income. Call your regional provider with your utility company name for exact numbers."
         },
         {
-          "question": "Can my parent apply if they had weatherization work done 14 years ago?",
+          "question": "Can my loved one apply if they had weatherization work done 14 years ago?",
           "answer": "No, homes must wait the full 15 years before becoming eligible again. This applies to weatherization through any program, not just Colorado's. The rule ensures funding reaches homes that haven't received recent energy efficiency improvements."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Waitlist times vary dramatically by region and funding cycles — some areas may have openings within months while others extend over a year. Families with elderly members, disabilities, or very high energy burdens may receive priority. Contact your local provider for current estimates."
+          "answer": "Waitlist times vary dramatically by region and funding cycles, some areas may have openings within months while others extend over a year. Families with elderly members, disabilities, or very high energy burdens may receive priority. Contact your local provider for current estimates."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
-          "answer": "There are no exceptions for income limits, but double-check which limit applies since different utility customers have different thresholds. If your parent receives any qualifying public assistance (SNAP, LEAP, SSI), they automatically meet income requirements regardless of the dollar amount."
+          "question": "What happens if my loved one's income is slightly over the limit?",
+          "answer": "There are no exceptions for income limits, but double-check which limit applies since different utility customers have different thresholds. If your loved one receives any qualifying public assistance (SNAP, LEAP, SSI), they automatically meet income requirements regardless of the dollar amount."
         },
         {
           "question": "Can I apply for both LEAP energy assistance and weatherization?",
-          "answer": "Yes, these are separate programs that complement each other. LEAP provides immediate help with energy bills while weatherization makes long-term efficiency improvements. In fact, having LEAP automatically qualifies your parent income-wise for weatherization."
+          "answer": "Yes, these are separate programs that complement each other. LEAP provides immediate help with energy bills while weatherization makes long-term efficiency improvements. In fact, having LEAP automatically qualifies your loved one income-wise for weatherization."
         },
         {
           "question": "Does weatherization work get done in winter?",
           "answer": "Most weatherization work happens during moderate weather months when homes can be opened up safely for insulation and air sealing. Your regional provider will schedule work based on weather conditions, crew availability, and the specific improvements your home needs."
         },
         {
-          "question": "What if my parent's home needs major repairs before weatherization?",
+          "question": "What if my loved one's home needs major repairs before weatherization?",
           "answer": "The program focuses on energy efficiency improvements, not major structural repairs. However, minor repairs necessary for weatherization (like fixing small roof leaks before adding attic insulation) may be included. Major issues could disqualify a home until repairs are completed independently."
         }
       ],
@@ -979,7 +979,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
-      "tagline": "Free expert help navigating Medicare options and enrollment for your parent.",
+      "tagline": "Free expert help navigating Medicare options and enrollment for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -996,7 +996,7 @@
           }
         ]
       },
-      "intro": "If your parent is approaching Medicare eligibility or already enrolled but confused by their options, Colorado's SHIP provides free one-on-one counseling to help them navigate Medicare Parts A, B, C, D, and Medigap plans. Because SHIP counselors receive intensive 8-10 hour training and cannot sell insurance, they provide unbiased advice tailored to your parent's specific health needs and budget.\n\nSHIP also helps with Medicare enrollment, appeals, prescription drug cost analysis, coordinating benefits with other insurance, and applying for low-income assistance programs like Medicaid and Extra Help. Contact them 3 months before your parent's Medicare starts to avoid enrollment penalties and ensure they choose the best plan for their situation.",
+      "intro": "If your loved one is approaching Medicare eligibility or already enrolled but confused by their options, Colorado's SHIP provides free one-on-one counseling to help them navigate Medicare Parts A, B, C, D, and Medigap plans. Because SHIP counselors receive intensive 8-10 hour training and cannot sell insurance, they provide unbiased advice tailored to your loved one's specific health needs and budget.\n\nSHIP also helps with Medicare enrollment, appeals, prescription drug cost analysis, coordinating benefits with other insurance, and applying for low-income assistance programs like Medicaid and Extra Help. Contact them 3 months before your loved one's Medicare starts to avoid enrollment penalties and ensure they choose the best plan for their situation.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1019,7 +1019,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free helpline for immediate counseling — no application or processing time required.",
+        "summary": "Call the toll-free helpline for immediate counseling, no application or processing time required.",
         "steps": [
           {
             "step": 1,
@@ -1028,8 +1028,8 @@
           },
           {
             "step": 2,
-            "title": "Describe your parent's situation",
-            "description": "Tell the counselor your parent's current Medicare status, health needs, and any specific questions about plans or enrollment."
+            "title": "Describe your loved one's situation",
+            "description": "Tell the counselor your loved one's current Medicare status, health needs, and any specific questions about plans or enrollment."
           },
           {
             "step": 3,
@@ -1039,7 +1039,7 @@
         ],
         "processingTime": "Services provided immediately via phone or in-person counseling",
         "waitlist": null,
-        "tip": "Have your parent's Medicare card, current insurance details, and prescription list ready for the most helpful guidance.",
+        "tip": "Have your loved one's Medicare card, current insurance details, and prescription list ready for the most helpful guidance.",
         "urls": [
           {
             "label": "Colorado SHIP website",
@@ -1072,16 +1072,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can SHIP counselors recommend which Medicare plan my parent should choose?",
-          "answer": "SHIP counselors provide unbiased information and help compare plan options, but they cannot recommend specific insurance products or sell plans. Because they're not licensed insurance agents, they focus on education and helping your parent understand the pros and cons of different choices based on their health needs and budget."
+          "question": "Can SHIP counselors recommend which Medicare plan my loved one should choose?",
+          "answer": "SHIP counselors provide unbiased information and help compare plan options, but they cannot recommend specific insurance products or sell plans. Because they're not licensed insurance agents, they focus on education and helping your loved one understand the pros and cons of different choices based on their health needs and budget."
         },
         {
-          "question": "What if my parent missed their Medicare enrollment deadline?",
-          "answer": "SHIP counselors can explain Special Enrollment Periods and help determine if your parent qualifies for an exception. They can also help navigate late enrollment penalties and find the next available enrollment opportunity. Contact SHIP immediately if this happens — waiting longer can increase penalties."
+          "question": "What if my loved one missed their Medicare enrollment deadline?",
+          "answer": "SHIP counselors can explain Special Enrollment Periods and help determine if your loved one qualifies for an exception. They can also help navigate late enrollment penalties and find the next available enrollment opportunity. Contact SHIP immediately if this happens, waiting longer can increase penalties."
         },
         {
-          "question": "Can I call SHIP on behalf of my parent who has dementia?",
-          "answer": "Yes, family caregivers can access SHIP services to get information about Medicare options for their aging parents. However, for specific account actions like enrollment or appeals, Medicare may require your parent's direct consent or formal documentation of your authority to act on their behalf."
+          "question": "Can I call SHIP on behalf of my loved one who has dementia?",
+          "answer": "Yes, family caregivers can access SHIP services to get information about Medicare options for their aging loved ones. However, for specific account actions like enrollment or appeals, Medicare may require your loved one's direct consent or formal documentation of your authority to act on their behalf."
         }
       ],
       "layoutIntent": {
@@ -1123,7 +1123,7 @@
           }
         ]
       },
-      "intro": "If your adult child or spouse has a developmental disability, brain injury, or physical disability that started before age 22, Colorado's Community Access Services may provide home care support, day programs, and respite care to give you breaks from caregiving. These services help adults with disabilities live at home instead of in institutions while providing family caregivers temporary relief.\n\nThe program covers services like personal care assistance, community activities, employment planning, and respite care hours. Because this connects to multiple Home and Community-Based Services (HCBS) waivers, the specific services and hours depend on your loved one's disability type and support needs. Financial eligibility varies by county, with some family support services exempt from income limits.\n\nAvailability depends heavily on where you live — rural Southwest Colorado has fewer service options than urban areas. You'll work with a local Case Management Agency that coordinates all services and determines what level of support your family member qualifies for.",
+      "intro": "If your adult child or spouse has a developmental disability, brain injury, or physical disability that started before age 22, Colorado's Community Access Services may provide home care support, day programs, and respite care to give you breaks from caregiving. These services help adults with disabilities live at home instead of in institutions while providing family caregivers temporary relief.\n\nThe program covers services like personal care assistance, community activities, employment planning, and respite care hours. Because this connects to multiple Home and Community-Based Services (HCBS) waivers, the specific services and hours depend on your loved one's disability type and support needs. Financial eligibility varies by county, with some family support services exempt from income limits.\n\nAvailability depends heavily on where you live, rural Southwest Colorado has fewer service options than urban areas. You'll work with a local Case Management Agency that coordinates all services and determines what level of support your family member qualifies for.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1147,7 +1147,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Case Management Agency to start eligibility determination — processing time varies by county.",
+        "summary": "Call your local Case Management Agency to start eligibility determination, processing time varies by county.",
         "steps": [
           {
             "step": 1,
@@ -1217,7 +1217,7 @@
         }
       ],
       "applicationNotes": [
-        "Not all services are available in rural areas — Southwest Colorado has limited provider networks",
+        "Not all services are available in rural areas, Southwest Colorado has limited provider networks",
         "You must qualify for both financial eligibility (through county Human Services) and functional eligibility (through the Case Management Agency)",
         "Natural supports and family resources are considered first before waiver services can be approved",
         "Different disability types connect to different HCBS waivers with varying service options and availability"
@@ -1240,7 +1240,7 @@
         },
         {
           "question": "How do I find my local Case Management Agency?",
-          "answer": "Call 2-1-1 and they'll connect you to the correct Case Management Agency for your county. Different regions have different CMAs — for example, Community Connections serves Southwest Colorado while DDRC serves the Denver metro area."
+          "answer": "Call 2-1-1 and they'll connect you to the correct Case Management Agency for your county. Different regions have different CMAs, for example, Community Connections serves Southwest Colorado while DDRC serves the Denver metro area."
         },
         {
           "question": "Can I apply while my loved one is in the hospital or nursing home?",
@@ -1252,7 +1252,7 @@
         },
         {
           "question": "Do I need to choose between different disability waivers?",
-          "answer": "Your Case Management Agency will determine which waiver best fits your family member's diagnosis and needs. Different waivers serve different disability types — developmental disabilities, brain injury, or physical disabilities — each with different service packages."
+          "answer": "Your Case Management Agency will determine which waiver best fits your family member's diagnosis and needs. Different waivers serve different disability types, developmental disabilities, brain injury, or physical disabilities, each with different service packages."
         },
         {
           "question": "Can family members provide some of the care and still get services?",
@@ -1281,7 +1281,7 @@
       "id": "senior-community-service-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
-      "tagline": "If your parent is 55+ and unemployed with low income, they can earn a paycheck while learning job skills through nonprofit work placements.",
+      "tagline": "If your loved one is 55+ and unemployed with low income, they can earn a paycheck while learning job skills through nonprofit work placements.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -1302,7 +1302,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with family income below 125% of the federal poverty level, SCSEP provides paid work experience while they develop skills for permanent employment. Because this combines job training with immediate income, your parent earns minimum wage for up to 20 hours per week at community nonprofits like schools, hospitals, or senior centers while preparing for their next career chapter.\n\nThe program averages 6 months of training and requires participants to create an Individual Employment Plan with specific goals toward unsubsidized work. Because SCSEP isn't first-come, first-served, enrollment priority goes to veterans, people over 65, those with disabilities, and others facing employment barriers — a Project Director reviews each application for suitability and fit.\n\nSCSEP operates only in specific Colorado areas served by grantees like SER National and IPDC, so your parent must live in a covered region. Because this is a bridge to permanent employment rather than long-term support, participants must register with Colorado's State Workforce system and commit to professional conduct throughout the program.",
+      "intro": "If your loved one is 55+ and unemployed with family income below 125% of the federal poverty level, SCSEP provides paid work experience while they develop skills for permanent employment. Because this combines job training with immediate income, your loved one earns minimum wage for up to 20 hours per week at community nonprofits like schools, hospitals, or senior centers while preparing for their next career chapter.\n\nThe program averages 6 months of training and requires participants to create an Individual Employment Plan with specific goals toward unsubsidized work. Because SCSEP isn't first-come, first-served, enrollment priority goes to veterans, people over 65, those with disabilities, and others facing employment barriers, a Project Director reviews each application for suitability and fit.\n\nSCSEP operates only in specific Colorado areas served by grantees like SER National and IPDC, so your loved one must live in a covered region. Because this is a bridge to permanent employment rather than long-term support, participants must register with Colorado's State Workforce system and commit to professional conduct throughout the program.",
       "savingsRange": "$3,120 – $6,240/year in 2026",
       "savingsSource": "Part-time wages at minimum wage for up to 20 hours/week",
       "savingsVerified": true,
@@ -1329,12 +1329,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through program grantees or contact local providers directly — processing time varies as applications are reviewed by Project Directors, not processed first-come, first-served.",
+        "summary": "Apply online through program grantees or contact local providers directly, processing time varies as applications are reviewed by Project Directors, not processed first-come, first-served.",
         "steps": [
           {
             "step": 1,
             "title": "Check if your area is served",
-            "description": "Contact SER National (https://ser-national.org/scsep-2/) or IPDC to confirm they serve your parent's county in Colorado."
+            "description": "Contact SER National (https://ser-national.org/scsep-2/) or IPDC to confirm they serve your loved one's county in Colorado."
           },
           {
             "step": 2,
@@ -1354,11 +1354,11 @@
           {
             "step": 5,
             "title": "Set up direct deposit",
-            "description": "Provide bank account information for wage payments — direct deposit is required for all participants."
+            "description": "Provide bank account information for wage payments, direct deposit is required for all participants."
           }
         ],
-        "processingTime": "Not specified — applications reviewed by Project Director based on eligibility, suitability, and priority criteria rather than first-come, first-served",
-        "waitlist": "Possible if no immediate spots available — priority status affects placement timing",
+        "processingTime": "Not specified, applications reviewed by Project Director based on eligibility, suitability, and priority criteria rather than first-come, first-served",
+        "waitlist": "Possible if no immediate spots available, priority status affects placement timing",
         "tip": "Veterans and their qualified spouses get first priority, so mention military service prominently on the application if applicable.",
         "urls": [
           {
@@ -1412,9 +1412,9 @@
         }
       ],
       "applicationNotes": [
-        "Applications are not processed first-come, first-served — Project Directors evaluate each applicant's eligibility, suitability, and priority level before making placement decisions",
+        "Applications are not processed first-come, first-served, Project Directors evaluate each applicant's eligibility, suitability, and priority level before making placement decisions",
         "Priority enrollees (veterans, age 65+, disabled, rural, homeless, low literacy) have better chances of quick placement even if program has limited spots",
-        "You must have a bank account before starting work — direct deposit is mandatory and paper checks are not issued",
+        "You must have a bank account before starting work, direct deposit is mandatory and paper checks are not issued",
         "Willful misrepresentation of income or other eligibility factors results in permanent disqualification from the program"
       ],
       "relatedPrograms": [
@@ -1426,36 +1426,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work at SCSEP and collect Social Security at the same time?",
-          "answer": "Yes, but Social Security may reduce benefits if your parent earns above their annual limit while collecting early retirement benefits. For 2026, people under full retirement age can earn up to $22,320 before Social Security reduces benefits by $1 for every $2 earned above the limit. Contact Social Security at (800) 772-1213 to understand how SCSEP wages will affect their specific benefits."
+          "question": "Can my loved one work at SCSEP and collect Social Security at the same time?",
+          "answer": "Yes, but Social Security may reduce benefits if your loved one earns above their annual limit while collecting early retirement benefits. For 2026, people under full retirement age can earn up to $22,320 before Social Security reduces benefits by $1 for every $2 earned above the limit. Contact Social Security at (800) 772-1213 to understand how SCSEP wages will affect their specific benefits."
         },
         {
-          "question": "What happens if my parent lives in rural Colorado — are they more likely to get accepted?",
-          "answer": "Yes, rural residents receive enrollment priority under federal guidelines, which can improve placement chances when spots are limited. However, your parent must still live in an area actually served by a Colorado grantee like SER National or IPDC — rural priority doesn't create service in unserved counties."
+          "question": "What happens if my loved one lives in rural Colorado, are they more likely to get accepted?",
+          "answer": "Yes, rural residents receive enrollment priority under federal guidelines, which can improve placement chances when spots are limited. However, your loved one must still live in an area actually served by a Colorado grantee like SER National or IPDC, rural priority doesn't create service in unserved counties."
         },
         {
           "question": "How long does the 6-month average training really last, and can it be extended?",
-          "answer": "The 6-month average varies significantly by individual progress and local job market conditions. Extensions are possible if your parent needs additional skill development or if suitable unsubsidized jobs aren't available, but SCSEP is designed as temporary bridge employment, not permanent work. The goal is always transition to unsubsidized employment."
+          "answer": "The 6-month average varies significantly by individual progress and local job market conditions. Extensions are possible if your loved one needs additional skill development or if suitable unsubsidized jobs aren't available, but SCSEP is designed as temporary bridge employment, not permanent work. The goal is always transition to unsubsidized employment."
         },
         {
-          "question": "What if my parent gets hired permanently by their SCSEP host site?",
-          "answer": "This is encouraged and considered a successful program outcome. The nonprofit or public agency where your parent trains can hire them into a regular position, but it must be truly unsubsidized work (not funded by SCSEP dollars) and meet all normal hiring requirements including competitive selection if required."
+          "question": "What if my loved one gets hired permanently by their SCSEP host site?",
+          "answer": "This is encouraged and considered a successful program outcome. The nonprofit or public agency where your loved one trains can hire them into a regular position, but it must be truly unsubsidized work (not funded by SCSEP dollars) and meet all normal hiring requirements including competitive selection if required."
         },
         {
-          "question": "Can my parent apply for SCSEP while receiving unemployment benefits?",
-          "answer": "No — SCSEP requires participants to be unemployed, and receiving unemployment benefits indicates active job-seeking status that may conflict with the 20-hour weekly commitment. Your parent should clarify their unemployment status and benefit eligibility with Colorado Department of Labor before applying, as SCSEP wages may affect unemployment benefit eligibility."
+          "question": "Can my loved one apply for SCSEP while receiving unemployment benefits?",
+          "answer": "No, SCSEP requires participants to be unemployed, and receiving unemployment benefits indicates active job-seeking status that may conflict with the 20-hour weekly commitment. Your loved one should clarify their unemployment status and benefit eligibility with Colorado Department of Labor before applying, as SCSEP wages may affect unemployment benefit eligibility."
         },
         {
-          "question": "What happens if my parent's income increases above 125% of poverty level while in SCSEP?",
-          "answer": "Income changes during participation are evaluated case-by-case, but significant increases may affect continued eligibility since SCSEP targets low-income seniors. However, the SCSEP wages themselves don't count against the income limit for continued participation — the concern is other income sources like Social Security increases or family support changes."
+          "question": "What happens if my loved one's income increases above 125% of poverty level while in SCSEP?",
+          "answer": "Income changes during participation are evaluated case-by-case, but significant increases may affect continued eligibility since SCSEP targets low-income seniors. However, the SCSEP wages themselves don't count against the income limit for continued participation, the concern is other income sources like Social Security increases or family support changes."
         },
         {
           "question": "How do we find out which specific Colorado counties are actually served?",
-          "answer": "Contact SER National directly through their website (ser-national.org/scsep-2/) or call IPDC for their service areas, as grantee territories can change annually and aren't consistently published online. Colorado 2-1-1 can also help identify the correct local provider based on your parent's specific address."
+          "answer": "Contact SER National directly through their website (ser-national.org/scsep-2/) or call IPDC for their service areas, as grantee territories can change annually and aren't consistently published online. Colorado 2-1-1 can also help identify the correct local provider based on your loved one's specific address."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent who has trouble with applications?",
-          "answer": "The parent must be the actual applicant since they'll be the employee, but family members can help complete paperwork and attend meetings as representatives. You may need to provide written authorization to discuss the application with program staff, and your parent will still need to complete I-9 work authorization and other employment requirements personally."
+          "question": "Can a family member apply on behalf of an elderly loved one who has trouble with applications?",
+          "answer": "The parent must be the actual applicant since they'll be the employee, but family members can help complete paperwork and attend meetings as representatives. You may need to provide written authorization to discuss the application with program staff, and your loved one will still need to complete I-9 work authorization and other employment requirements personally."
         }
       ],
       "layoutIntent": {
@@ -1489,7 +1489,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing eviction, Medicare denials, or elder abuse, Colorado Legal Services provides free attorney representation and advice. Because seniors 60+ don't face income limits for most services, your parent can get legal help regardless of their Social Security or pension income.\n\nThe program covers housing issues (evictions, landlord disputes), public benefits appeals (Social Security, Medicare, Medicaid), advance directives (living wills, powers of attorney), debt problems, and elder abuse cases. Some offices also provide social worker support. However, resources are limited — in 2021, 323 eligible seniors were turned away due to capacity.",
+      "intro": "If your loved one is 60+ and facing eviction, Medicare denials, or elder abuse, Colorado Legal Services provides free attorney representation and advice. Because seniors 60+ don't face income limits for most services, your loved one can get legal help regardless of their Social Security or pension income.\n\nThe program covers housing issues (evictions, landlord disputes), public benefits appeals (Social Security, Medicare, Medicaid), advance directives (living wills, powers of attorney), debt problems, and elder abuse cases. Some offices also provide social worker support. However, resources are limited, in 2021, 323 eligible seniors were turned away due to capacity.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1513,7 +1513,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at coloradolegalservices.org or call your local office — all cases require intake screening before assignment.",
+        "summary": "Apply online at coloradolegalservices.org or call your local office, all cases require intake screening before assignment.",
         "steps": [
           {
             "step": 1,
@@ -1532,8 +1532,8 @@
           }
         ],
         "processingTime": "Team contacts after application, but no specific timeline provided",
-        "waitlist": "Limited resources mean some eligible applicants are turned away — 323 seniors were declined in 2021",
-        "tip": "Have specific details about your legal issue ready — intake staff need to understand the urgency and type of case to prioritize properly.",
+        "waitlist": "Limited resources mean some eligible applicants are turned away, 323 seniors were declined in 2021",
+        "tip": "Have specific details about your legal issue ready, intake staff need to understand the urgency and type of case to prioritize properly.",
         "urls": [
           {
             "label": "Apply Online",
@@ -1572,11 +1572,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, family members can start the application process, but the attorneys will need to determine if formal guardianship or power of attorney is required depending on your parent's capacity and the legal issue. Be prepared to provide documentation of your authority to act on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, family members can start the application process, but the attorneys will need to determine if formal guardianship or power of attorney is required depending on your loved one's capacity and the legal issue. Be prepared to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "What happens if my parent's case gets rejected due to limited resources?",
+          "question": "What happens if my loved one's case gets rejected due to limited resources?",
           "answer": "Colorado Legal Services will try to provide referrals to other legal aid organizations or pro bono attorneys in your area. You can also contact your local Area Agency on Aging, which contracts with 21 different legal assistance providers across Colorado's 16 regions."
         },
         {
@@ -1602,7 +1602,7 @@
       "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy if your parent is in a nursing home or assisted living and facing care problems, rights violations, or unsafe conditions.",
+      "tagline": "Free advocacy if your loved one is in a nursing home or assisted living and facing care problems, rights violations, or unsafe conditions.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1623,7 +1623,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a Colorado nursing home or assisted living facility and faces quality of care issues, medication problems, abuse, or violations of their rights, the Long-Term Care Ombudsman provides free advocacy services. Ombudsmen visit nursing homes weekly and assisted living facilities at least twice monthly to investigate complaints and resolve problems.\n\nThe service is completely free with no income or asset requirements. Anyone can contact an ombudsman — family members, facility staff, or concerned individuals — but all interventions are resident-directed and confidential, meaning your parent must agree to the advocacy. Because ombudsmen specialize in facility regulations and resident rights, they can often resolve issues that families struggle with alone.",
+      "intro": "If your loved one lives in a Colorado nursing home or assisted living facility and faces quality of care issues, medication problems, abuse, or violations of their rights, the Long-Term Care Ombudsman provides free advocacy services. Ombudsmen visit nursing homes weekly and assisted living facilities at least twice monthly to investigate complaints and resolve problems.\n\nThe service is completely free with no income or asset requirements. Anyone can contact an ombudsman, family members, facility staff, or concerned individuals, but all interventions are resident-directed and confidential, meaning your loved one must agree to the advocacy. Because ombudsmen specialize in facility regulations and resident rights, they can often resolve issues that families struggle with alone.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1645,7 +1645,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local ombudsman office directly — no forms or applications needed, and you can get immediate help.",
+        "summary": "Call your local ombudsman office directly, no forms or applications needed, and you can get immediate help.",
         "steps": [
           {
             "step": 1,
@@ -1660,12 +1660,12 @@
           {
             "step": 3,
             "title": "Describe the problem",
-            "description": "Explain the care issue, rights violation, or concern. The ombudsman will work with your parent to determine next steps."
+            "description": "Explain the care issue, rights violation, or concern. The ombudsman will work with your loved one to determine next steps."
           }
         ],
         "processingTime": "Immediate assistance for complaints",
         "waitlist": null,
-        "tip": "Keep notes on specific incidents — dates, staff names, and what happened — to help the ombudsman investigate effectively.",
+        "tip": "Keep notes on specific incidents, dates, staff names, and what happened, to help the ombudsman investigate effectively.",
         "urls": [
           {
             "label": "Find Your Local Ombudsman",
@@ -1703,16 +1703,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman without my parent's permission?",
-          "answer": "Yes, anyone can contact an ombudsman to report concerns. However, the ombudsman cannot take action or investigate without your parent's consent. If your parent has dementia or cannot make decisions, the ombudsman will work within legal guidelines to protect their interests."
+          "question": "Can I contact the ombudsman without my loved one's permission?",
+          "answer": "Yes, anyone can contact an ombudsman to report concerns. However, the ombudsman cannot take action or investigate without your loved one's consent. If your loved one has dementia or cannot make decisions, the ombudsman will work within legal guidelines to protect their interests."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "question": "What if the facility retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and monitor situations closely. If retaliation occurs, the ombudsman can escalate to licensing authorities and other regulatory agencies."
         },
         {
           "question": "Does the ombudsman only handle serious abuse cases?",
-          "answer": "No, ombudsmen handle all types of concerns — from medication mix-ups and poor food quality to staff attitude problems and billing issues. No concern is too small if it affects your parent's quality of life or rights."
+          "answer": "No, ombudsmen handle all types of concerns, from medication mix-ups and poor food quality to staff attitude problems and billing issues. No concern is too small if it affects your loved one's quality of life or rights."
         },
         {
           "question": "How long does it take to resolve a complaint?",
@@ -1750,7 +1750,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first — including Social Security, SSI, and SSDI — this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
+      "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first, including Social Security, SSI, and SSDI, this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
       "savingsRange": "$952 – $12,384/year in 2026",
       "savingsSource": "Maximum monthly benefit varies by county: $952 statewide standard, up to $1,032 in Boulder/Douglas Counties",
       "savingsVerified": true,
@@ -1793,7 +1793,7 @@
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply through your county human services department — call your county office to schedule an interview after submitting your application.",
+        "summary": "Apply through your county human services department, call your county office to schedule an interview after submitting your application.",
         "steps": [
           {
             "step": 1,
@@ -1823,7 +1823,7 @@
         ],
         "processingTime": "Interview scheduled after application receipt; timeline varies by county",
         "waitlist": null,
-        "tip": "Apply for Social Security or SSI first if you think your parent might qualify — OAP requires proof you've pursued all other available benefits.",
+        "tip": "Apply for Social Security or SSI first if you think your loved one might qualify, OAP requires proof you've pursued all other available benefits.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1854,9 +1854,9 @@
         }
       ],
       "applicationNotes": [
-        "Each county has different maximum benefit amounts — Boulder and Douglas Counties pay up to $1,032/month while Grand County pays up to $750/month",
-        "Your parent's spouse's income counts fully toward the income limit, reducing benefits dollar-for-dollar",
-        "If your parent becomes eligible for Social Security at 62 or Medicare at 65, they must reapply for those programs and OAP benefits may change"
+        "Each county has different maximum benefit amounts, Boulder and Douglas Counties pay up to $1,032/month while Grand County pays up to $750/month",
+        "Your loved one's spouse's income counts fully toward the income limit, reducing benefits dollar-for-dollar",
+        "If your loved one becomes eligible for Social Security at 62 or Medicare at 65, they must reapply for those programs and OAP benefits may change"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -1867,24 +1867,24 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
           "answer": "Yes, the primary residence is exempt from asset limits regardless of value. Only one automobile is also exempt, but additional vehicles, boats, or secondary property count toward the $2,000 limit."
         },
         {
-          "question": "What if my parent is already receiving Social Security — can they still get OAP?",
-          "answer": "Yes, but Social Security income reduces OAP benefits dollar-for-dollar. If your parent receives $800 in Social Security and lives in a county with a $952 maximum, they would only get $152 from OAP."
+          "question": "What if my loved one is already receiving Social Security, can they still get OAP?",
+          "answer": "Yes, but Social Security income reduces OAP benefits dollar-for-dollar. If your loved one receives $800 in Social Security and lives in a county with a $952 maximum, they would only get $152 from OAP."
         },
         {
-          "question": "Does my parent need to be disabled to qualify for OAP?",
+          "question": "Does my loved one need to be disabled to qualify for OAP?",
           "answer": "Not if they're 65+ (OAP-A). For ages 60-64 (OAP-B), they typically need to meet disability criteria such as prior State Aid to Needy Disabled, medical records showing disability, or no employment in the last 5 years."
         },
         {
-          "question": "Can I apply for OAP on behalf of my elderly parent?",
-          "answer": "You can help your parent apply, but they generally need to be involved in the application process and interview. Contact your county human services department to discuss specific accommodations if your parent has cognitive limitations."
+          "question": "Can I apply for OAP on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply, but they generally need to be involved in the application process and interview. Contact your county human services department to discuss specific accommodations if your loved one has cognitive limitations."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
-          "answer": "OAP benefits are recalculated based on current income, so benefits may increase or decrease. Your parent must report income changes and complete annual redetermination to continue receiving benefits."
+          "question": "What happens if my loved one's income changes after they're approved?",
+          "answer": "OAP benefits are recalculated based on current income, so benefits may increase or decrease. Your loved one must report income changes and complete annual redetermination to continue receiving benefits."
         },
         {
           "question": "Why do some counties pay different amounts for OAP?",
@@ -1909,7 +1909,7 @@
       "id": "home-care-allowance-hca",
       "name": "Home Care Allowance (HCA)",
       "shortName": "Home Care Allowance",
-      "tagline": "Get up to $1,500/month to help your parent pay for personal care, respite, and home modifications in Colorado.",
+      "tagline": "Get up to $1,500/month to help your loved one pay for personal care, respite, and home modifications in Colorado.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1930,7 +1930,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and struggling financially while needing daily help with bathing, dressing, or other personal care, Colorado's Home Care Allowance provides up to $1,500 per month for unskilled care services. This state program serves individuals with the lowest functional abilities who don't qualify for Medicaid home services but still need paid assistance.\n\nTo qualify, your parent must have income below approximately $3,200/month, assets under $2,000, and pass two functional assessments: a Capacity Score of 21+ and a Need for Paid Care Score that determines their priority tier. The money can pay for personal care, respite services, home modifications, and supplies — but not skilled nursing care. Because this program requires you to be evaluated for Medicaid home services first (and be denied), the application process can take up to 90 days.",
+      "intro": "If your loved one is 65+ and struggling financially while needing daily help with bathing, dressing, or other personal care, Colorado's Home Care Allowance provides up to $1,500 per month for unskilled care services. This state program serves individuals with the lowest functional abilities who don't qualify for Medicaid home services but still need paid assistance.\n\nTo qualify, your loved one must have income below approximately $3,200/month, assets under $2,000, and pass two functional assessments: a Capacity Score of 21+ and a Need for Paid Care Score that determines their priority tier. The money can pay for personal care, respite services, home modifications, and supplies, but not skilled nursing care. Because this program requires you to be evaluated for Medicaid home services first (and be denied), the application process can take up to 90 days.",
       "savingsRange": "$1,200 – $18,000/year in 2026",
       "savingsSource": "Based on up to $1,500/month benefit amount",
       "savingsVerified": true,
@@ -1969,7 +1969,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Colorado PEAK or contact your county office — processing takes up to 90 days and requires a functional assessment interview.",
+        "summary": "Apply online through Colorado PEAK or contact your county office, processing takes up to 90 days and requires a functional assessment interview.",
         "steps": [
           {
             "step": 1,
@@ -1994,7 +1994,7 @@
         ],
         "processingTime": "Within 90 days from the date the office receives your completed application and all required documents",
         "waitlist": null,
-        "tip": "Start the Medicaid home services evaluation early — you cannot be considered for HCA until you've been evaluated and denied for the Medicaid program first.",
+        "tip": "Start the Medicaid home services evaluation early, you cannot be considered for HCA until you've been evaluated and denied for the Medicaid program first.",
         "urls": [
           {
             "label": "Colorado PEAK Online Application",
@@ -2040,9 +2040,9 @@
         }
       ],
       "applicationNotes": [
-        "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline — start early",
-        "Skilled personal care (like wound care or medication administration) is explicitly not covered — only unskilled daily living assistance qualifies",
-        "Asset limits are strict at $2,000 — spend down excess assets before applying or consider exempt assets like prepaid burial plans",
+        "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline, start early",
+        "Skilled personal care (like wound care or medication administration) is explicitly not covered, only unskilled daily living assistance qualifies",
+        "Asset limits are strict at $2,000, spend down excess assets before applying or consider exempt assets like prepaid burial plans",
         "Married couples often benefit from applying separately since income and asset limits apply individually rather than as a household"
       ],
       "relatedPrograms": [
@@ -2054,35 +2054,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get both HCA and Medicaid home services?",
-          "answer": "No, these programs are mutually exclusive — you cannot receive both simultaneously. Your parent must be evaluated for Medicaid home services first and be denied before HCA can be considered. HCA serves as an alternative for those who don't qualify for the Medicaid program."
+          "question": "Can my loved one get both HCA and Medicaid home services?",
+          "answer": "No, these programs are mutually exclusive, you cannot receive both simultaneously. Your loved one must be evaluated for Medicaid home services first and be denied before HCA can be considered. HCA serves as an alternative for those who don't qualify for the Medicaid program."
         },
         {
           "question": "What's the difference between skilled and unskilled personal care?",
-          "answer": "HCA only covers unskilled care like help with bathing, dressing, transfers, money management, and appointment scheduling. Skilled care (wound care, medication administration, or nursing tasks) is not covered. If your parent needs skilled care, they would need to pursue Medicaid home services instead."
+          "answer": "HCA only covers unskilled care like help with bathing, dressing, transfers, money management, and appointment scheduling. Skilled care (wound care, medication administration, or nursing tasks) is not covered. If your loved one needs skilled care, they would need to pursue Medicaid home services instead."
         },
         {
-          "question": "How much will my parent actually receive each month?",
-          "answer": "The maximum is $1,500/month, but the actual amount depends on your parent's priority tier determined by their functional assessment scores. Tier 1 (Need Score 1-23), Tier 2 (24-37), and Tier 3 (38-51) receive different amounts, though specific dollar amounts aren't published."
+          "question": "How much will my loved one actually receive each month?",
+          "answer": "The maximum is $1,500/month, but the actual amount depends on your loved one's priority tier determined by their functional assessment scores. Tier 1 (Need Score 1-23), Tier 2 (24-37), and Tier 3 (38-51) receive different amounts, though specific dollar amounts aren't published."
         },
         {
-          "question": "Does my parent's house count toward the $2,000 asset limit?",
-          "answer": "No, the primary residence is exempt from asset limits, along with one vehicle. However, other property, bank accounts, investments, and life insurance policies do count. If total countable assets exceed $2,000, your parent won't qualify."
+          "question": "Does my loved one's house count toward the $2,000 asset limit?",
+          "answer": "No, the primary residence is exempt from asset limits, along with one vehicle. However, other property, bank accounts, investments, and life insurance policies do count. If total countable assets exceed $2,000, your loved one won't qualify."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "You can help with the application process, but if your parent cannot make decisions due to dementia, you'll need legal guardianship or power of attorney documents. The county will require these during the application review and functional assessment process."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "You can help with the application process, but if your loved one cannot make decisions due to dementia, you'll need legal guardianship or power of attorney documents. The county will require these during the application review and functional assessment process."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "Your parent will be reassessed periodically to determine if they still meet functional requirements and if their priority tier should change. If their needs increase significantly, they may need to be re-evaluated for Medicaid home services, which would end their HCA eligibility."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "Your loved one will be reassessed periodically to determine if they still meet functional requirements and if their priority tier should change. If their needs increase significantly, they may need to be re-evaluated for Medicaid home services, which would end their HCA eligibility."
         },
         {
           "question": "Why does the application take so long?",
           "answer": "The 90-day timeline includes the required Medicaid home services evaluation (which must happen first), financial eligibility review, functional assessment interview, and scoring for priority tier placement. Counties need time to coordinate between different programs and complete all required evaluations."
         },
         {
-          "question": "What if my parent is married but only one spouse needs care?",
+          "question": "What if my loved one is married but only one spouse needs care?",
           "answer": "Each spouse must apply separately since income and asset limits apply individually. This can actually be advantageous since household income isn't combined. The spouse needing care applies based on their own income and assets, not the couple's total resources."
         }
       ],
@@ -2104,7 +2104,7 @@
       "id": "older-coloradans-cash-fund",
       "name": "Older Coloradans Cash Fund",
       "shortName": "Cash Fund",
-      "tagline": "One-time grants up to $1,200 for home safety repairs and equipment when your parent is 60+ and low-income",
+      "tagline": "One-time grants up to $1,200 for home safety repairs and equipment when your loved one is 60+ and low-income",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2117,7 +2117,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling financially in Colorado, they may qualify for a one-time grant up to $1,200 to make their home safer and more accessible. The Older Coloradans Cash Fund covers essential items like grab bars, ramps, walkers, shower chairs, utility assistance, and minor home modifications that help aging adults stay independent.\n\nIncome limit: $2,400/month for a single person ($29,160/year) in 2026, based on 200% of Federal Poverty Level. Because this is a one-time grant rather than ongoing monthly assistance, your parent can use the funds for immediate safety needs without affecting other benefits like Social Security or Medicare.\n\nThe program is administered through Colorado's Office on Aging, but you apply through your parent's local county Department of Human Services. Each county processes applications differently, so processing times and availability may vary by location.",
+      "intro": "If your loved one is 60+ and struggling financially in Colorado, they may qualify for a one-time grant up to $1,200 to make their home safer and more accessible. The Older Coloradans Cash Fund covers essential items like grab bars, ramps, walkers, shower chairs, utility assistance, and minor home modifications that help aging adults stay independent.\n\nIncome limit: $2,400/month for a single person ($29,160/year) in 2026, based on 200% of Federal Poverty Level. Because this is a one-time grant rather than ongoing monthly assistance, your loved one can use the funds for immediate safety needs without affecting other benefits like Social Security or Medicare.\n\nThe program is administered through Colorado's Office on Aging, but you apply through your loved one's local county Department of Human Services. Each county processes applications differently, so processing times and availability may vary by location.",
       "savingsRange": "Up to $1,200 one-time in 2026",
       "savingsSource": "Maximum grant amount from Colorado Office on Aging",
       "savingsVerified": true,
@@ -2157,12 +2157,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county Department of Human Services office — processing time not specified by the state.",
+        "summary": "Contact your county Department of Human Services office, processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
             "title": "Find your county office",
-            "description": "Locate your parent's county Department of Human Services office. Each of Colorado's 64 counties administers this program locally."
+            "description": "Locate your loved one's county Department of Human Services office. Each of Colorado's 64 counties administers this program locally."
           },
           {
             "step": 2,
@@ -2182,7 +2182,7 @@
         ],
         "processingTime": "Varies by county",
         "waitlist": null,
-        "tip": "Call your county office first to ask about current funding availability — some counties may have waiting periods when funds are exhausted.",
+        "tip": "Call your county office first to ask about current funding availability, some counties may have waiting periods when funds are exhausted.",
         "urls": [
           {
             "label": "Colorado Department of Human Services",
@@ -2215,9 +2215,9 @@
         }
       ],
       "applicationNotes": [
-        "This is a one-time grant — your parent cannot receive funds again in future years, even if circumstances change",
+        "This is a one-time grant, your loved one cannot receive funds again in future years, even if circumstances change",
         "Some counties may require estimates or quotes for home modifications before approving funds",
-        "Funding availability varies by county and fiscal year — some areas may have waiting periods when annual allocations are exhausted"
+        "Funding availability varies by county and fiscal year, some areas may have waiting periods when annual allocations are exhausted"
       ],
       "relatedPrograms": [
         "Colorado Old Age Pension (OAP)",
@@ -2228,28 +2228,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply for this if they already receive Social Security or other benefits?",
-          "answer": "Yes. Social Security, Medicare, and other federal benefits don't disqualify your parent, but the income from those benefits does count toward the $2,400/month limit. Include all sources of income when calculating eligibility."
+          "question": "Can my loved one apply for this if they already receive Social Security or other benefits?",
+          "answer": "Yes. Social Security, Medicare, and other federal benefits don't disqualify your loved one, but the income from those benefits does count toward the $2,400/month limit. Include all sources of income when calculating eligibility."
         },
         {
-          "question": "What if my parent needs more than $1,200 worth of home modifications?",
-          "answer": "The program caps at $1,200 per person. Your parent would need to cover additional costs through other programs, insurance, or personal funds. Ask the county office about other local assistance programs that might help with remaining costs."
+          "question": "What if my loved one needs more than $1,200 worth of home modifications?",
+          "answer": "The program caps at $1,200 per person. Your loved one would need to cover additional costs through other programs, insurance, or personal funds. Ask the county office about other local assistance programs that might help with remaining costs."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, but you'll need proper authorization. Contact the county office to ask about their specific requirements for family members applying on behalf of an aging parent. Some counties may require power of attorney or other legal documentation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, but you'll need proper authorization. Contact the county office to ask about their specific requirements for family members applying on behalf of an aging loved one. Some counties may require power of attorney or other legal documentation."
         },
         {
-          "question": "What happens if my parent's county runs out of funding?",
-          "answer": "Each county receives an annual allocation. If funds are exhausted, your parent may need to wait until the next fiscal year or be placed on a waiting list. Call early in the fiscal year (July) for the best chance of receiving funds."
+          "question": "What happens if my loved one's county runs out of funding?",
+          "answer": "Each county receives an annual allocation. If funds are exhausted, your loved one may need to wait until the next fiscal year or be placed on a waiting list. Call early in the fiscal year (July) for the best chance of receiving funds."
         },
         {
           "question": "Can this money be used for anything other than home modifications and equipment?",
           "answer": "Yes. The program also covers utility assistance, personal care services, respite care, and supplies related to aging in place. However, you cannot use funds for routine living expenses like groceries or rent."
         },
         {
-          "question": "How long does my parent have to spend the money once approved?",
-          "answer": "Each county sets its own timeframe for using approved funds. Ask your county office about their specific deadline — some may require purchases within 30-90 days of approval."
+          "question": "How long does my loved one have to spend the money once approved?",
+          "answer": "Each county sets its own timeframe for using approved funds. Ask your county office about their specific deadline, some may require purchases within 30-90 days of approval."
         }
       ],
       "layoutIntent": {
@@ -2268,7 +2268,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Colorado offers 12 programs that can reduce costs and provide support for aging parents — from monthly cash assistance to free home energy upgrades. Nine of these are benefits requiring qualification (income limits, age, or care needs), while three are free resources available to most Colorado seniors. Programs range from Old Age Pension providing monthly cash to seniors 60+ with limited income, to PACE covering all medical and social care under one coordinated team. Start by checking the highest-impact programs first: those offering the most financial relief or comprehensive support for your parent's biggest challenges.",
+    "intro": "Colorado offers 12 programs that can reduce costs and provide support for aging loved ones, from monthly cash assistance to free home energy upgrades. Nine of these are benefits requiring qualification (income limits, age, or care needs), while three are free resources available to most Colorado seniors. Programs range from Old Age Pension providing monthly cash to seniors 60+ with limited income, to PACE covering all medical and social care under one coordinated team. Start by checking the highest-impact programs first: those offering the most financial relief or comprehensive support for your loved one's biggest challenges.",
     "startHere": [
       {
         "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
@@ -2278,7 +2278,7 @@
       {
         "name": "Home and Community-Based Services (HCBS) Waivers",
         "programId": "colorado-hcbs-waivers",
-        "why": "Covers personal care and home modifications so your parent can stay home instead of moving to a facility."
+        "why": "Covers personal care and home modifications so your loved one can stay home instead of moving to a facility."
       },
       {
         "name": "SNAP",
@@ -2341,6 +2341,6 @@
       "Older Coloradans Cash Fund provides one-time grants up to $1,200 for immediate home safety needs",
       "PACE operates in Colorado as an all-in-one alternative to traditional Medicare for parents needing nursing home level care"
     ],
-    "resourcesVsBenefits": "Benefits like Old Age Pension, SNAP, and HCBS Waivers require meeting specific income, age, or care level requirements and provide ongoing financial assistance or services. Resources like SHIP (Medicare guidance) and Colorado Legal Services offer free help to most seniors regardless of income — no qualification process needed, just call for assistance."
+    "resourcesVsBenefits": "Benefits like Old Age Pension, SNAP, and HCBS Waivers require meeting specific income, age, or care level requirements and provide ongoing financial assistance or services. Resources like SHIP (Medicare guidance) and Colorado Legal Services offer free help to most seniors regardless of income, no qualification process needed, just call for assistance."
   }
 }

@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ with limited income and needs help with daily activities like bathing or dressing, Utah Medicaid can cover nursing home care, home-based services, or assisted living. The program has multiple pathways depending on your parent's care needs and income level — from nursing home coverage where most income goes toward care costs (keeping just $45/month for personal needs) to home waiver programs with income limits of $1,255-$2,901/month.\n\nAsset limits are $2,000 for single applicants or $3,000-$4,000 for couples, but your parent can keep their home (if equity is under $730,000), one vehicle, and personal belongings. Even if your parent's income is too high, they may still qualify through the Medically Needy program by \"spending down\" excess income on medical expenses.\n\nCoverage can start up to 3 months before approval, and the program covers services as long as your parent remains eligible — potentially for life. Because there are multiple program types with different rules, understanding which pathway fits your parent's situation is crucial.",
+      "intro": "If your loved one is 65+ with limited income and needs help with daily activities like bathing or dressing, Utah Medicaid can cover nursing home care, home-based services, or assisted living. The program has multiple pathways depending on your loved one's care needs and income level, from nursing home coverage where most income goes toward care costs (keeping just $45/month for personal needs) to home waiver programs with income limits of $1,255-$2,901/month.\n\nAsset limits are $2,000 for single applicants or $3,000-$4,000 for couples, but your loved one can keep their home (if equity is under $730,000), one vehicle, and personal belongings. Even if your loved one's income is too high, they may still qualify through the Medically Needy program by \"spending down\" excess income on medical expenses.\n\nCoverage can start up to 3 months before approval, and the program covers services as long as your loved one remains eligible, potentially for life. Because there are multiple program types with different rules, understanding which pathway fits your loved one's situation is crucial.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -64,7 +64,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through MyCase at medicaid.utah.gov/apply or call 1-866-435-7414 — coverage can begin up to 3 months before approval.",
+        "summary": "Apply online through MyCase at medicaid.utah.gov/apply or call 1-866-435-7414, coverage can begin up to 3 months before approval.",
         "steps": [
           {
             "step": 1,
@@ -84,12 +84,12 @@
           {
             "step": 4,
             "title": "Complete clinical assessment",
-            "description": "For long-term care programs, your parent will need a Nursing Home Level of Care assessment to determine functional eligibility."
+            "description": "For long-term care programs, your loved one will need a Nursing Home Level of Care assessment to determine functional eligibility."
           },
           {
             "step": 5,
             "title": "Follow up on processing",
-            "description": "Applications can take longer than expected — contact your caseworker if you don't hear back within the estimated timeframe."
+            "description": "Applications can take longer than expected, contact your caseworker if you don't hear back within the estimated timeframe."
           }
         ],
         "processingTime": "Coverage may begin 3 months prior to approval; applications sometimes take longer than expected",
@@ -103,7 +103,7 @@
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your parent and spouse",
+        "Social Security cards for your loved one and spouse",
         "Medicare card (both parts)",
         "Birth certificate or passport for proof of age",
         "Proof of Utah residency (utility bill, lease agreement, or state-issued document)",
@@ -140,9 +140,9 @@
         }
       ],
       "applicationNotes": [
-        "Multiple program types exist with different income limits — nursing home Medicaid has no strict income limit but most income pays toward care, while home waiver programs have specific monthly caps",
-        "Your parent's home is exempt from asset limits but subject to estate recovery after death — the state may seek repayment from the home's value",
-        "If your parent's income exceeds the limits, they may still qualify through Medically Needy by spending down excess income on medical expenses",
+        "Multiple program types exist with different income limits, nursing home Medicaid has no strict income limit but most income pays toward care, while home waiver programs have specific monthly caps",
+        "Your loved one's home is exempt from asset limits but subject to estate recovery after death, the state may seek repayment from the home's value",
+        "If your loved one's income exceeds the limits, they may still qualify through Medically Needy by spending down excess income on medical expenses",
         "Spousal protections allow a community spouse to keep significant assets ($31,584-$157,920) and income when their partner needs nursing home care"
       ],
       "relatedPrograms": [
@@ -155,19 +155,19 @@
         {
           "type": "tier-comparison",
           "title": "Utah Medicaid Program Types",
-          "description": "Utah Medicaid offers different pathways based on your parent's care needs and income level:",
+          "description": "Utah Medicaid offers different pathways based on your loved one's care needs and income level:",
           "tiers": [
             {
               "name": "Nursing Home Medicaid",
-              "income": "No strict limit — most income pays toward care",
+              "income": "No strict limit, most income pays toward care",
               "personalAllowance": "$45/month",
-              "description": "Covers full nursing home care costs. Your parent keeps only $45/month for personal needs."
+              "description": "Covers full nursing home care costs. Your loved one keeps only $45/month for personal needs."
             },
             {
               "name": "New Choices Waiver",
               "income": "$2,901/month maximum",
               "personalAllowance": "Keep full income",
-              "description": "Home and community-based services to help your parent stay at home longer."
+              "description": "Home and community-based services to help your loved one stay at home longer."
             },
             {
               "name": "Aging Waiver",
@@ -192,36 +192,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
-          "answer": "Yes, the primary home is exempt from asset limits as long as your parent intends to return and the equity doesn't exceed $730,000. However, the state may seek repayment from the home's value after your parent's death through estate recovery."
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as your loved one intends to return and the equity doesn't exceed $730,000. However, the state may seek repayment from the home's value after your loved one's death through estate recovery."
         },
         {
-          "question": "What if my parent's income is too high for the waiver programs but they need home care?",
-          "answer": "Your parent may qualify through the Medically Needy program by spending down excess income on medical expenses. The income limit for this pathway is $1,330/month for a single person or $1,803/month for couples (2026 figures)."
+          "question": "What if my loved one's income is too high for the waiver programs but they need home care?",
+          "answer": "Your loved one may qualify through the Medically Needy program by spending down excess income on medical expenses. The income limit for this pathway is $1,330/month for a single person or $1,803/month for couples (2026 figures)."
         },
         {
-          "question": "How does nursing home Medicaid work if my parent has $3,000/month in Social Security?",
-          "answer": "Your parent can still qualify for nursing home Medicaid regardless of income level. They would pay $2,955/month toward their care costs and keep $45/month for personal needs. Medicaid covers the remaining nursing home expenses."
+          "question": "How does nursing home Medicaid work if my loved one has $3,000/month in Social Security?",
+          "answer": "Your loved one can still qualify for nursing home Medicaid regardless of income level. They would pay $2,955/month toward their care costs and keep $45/month for personal needs. Medicaid covers the remaining nursing home expenses."
         },
         {
-          "question": "Can I apply for Utah Medicaid on behalf of my elderly parent?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need legal documentation if you're acting as their representative, and you'll need access to all their financial and medical information for the application."
+          "question": "Can I apply for Utah Medicaid on behalf of my elderly loved one?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need legal documentation if you're acting as their representative, and you'll need access to all their financial and medical information for the application."
         },
         {
-          "question": "What happens to my parent's spouse if one needs nursing home care?",
+          "question": "What happens to my loved one's spouse if one needs nursing home care?",
           "answer": "The community spouse (staying at home) gets special protections. They can keep between $31,584 and $157,920 in assets, plus their own income. These spousal impoverishment protections prevent the at-home spouse from becoming destitute."
         },
         {
-          "question": "Can my parent apply for both Medicare and Utah Medicaid at the same time?",
+          "question": "Can my loved one apply for both Medicare and Utah Medicaid at the same time?",
           "answer": "Yes, and it's often beneficial to have both. Medicare covers medical services while Medicaid can cover long-term care costs and help pay Medicare premiums. Many Utah Medicaid recipients also have Medicare coverage."
         },
         {
           "question": "How long does the clinical assessment take for nursing home level of care?",
-          "answer": "The Nursing Home Level of Care assessment evaluates whether your parent needs daily help with activities like bathing, dressing, or medication management. This assessment is separate from the financial eligibility review and must be completed for long-term care programs."
+          "answer": "The Nursing Home Level of Care assessment evaluates whether your loved one needs daily help with activities like bathing, dressing, or medication management. This assessment is separate from the financial eligibility review and must be completed for long-term care programs."
         },
         {
-          "question": "What happens if my parent's needs change after they're enrolled?",
-          "answer": "Your parent will have periodic reassessments to determine continued eligibility and appropriate level of care. If their needs increase, they may qualify for a different program tier with more comprehensive services."
+          "question": "What happens if my loved one's needs change after they're enrolled?",
+          "answer": "Your loved one will have periodic reassessments to determine continued eligibility and appropriate level of care. If their needs increase, they may qualify for a different program tier with more comprehensive services."
         }
       ],
       "layoutIntent": {
@@ -242,14 +242,14 @@
       "id": "pace-elder-care",
       "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Utah PACE",
-      "tagline": "All-in-one medical and long-term care under one team — but not currently available in Utah.",
+      "tagline": "All-in-one medical and long-term care under one team, but not currently available in Utah.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent needs nursing home level care but wants to stay home, PACE would provide all their medical care, medications, therapy, and daily support under one coordinated team with no copays or deductibles. Because everything is managed by a single organization, your parent wouldn't need to coordinate between different doctors, insurance plans, or service providers.\n\nPACE is available in 31 states and serves adults 55+ who qualify for nursing home care but can live safely at home with support. Unfortunately, Utah is one of 19 states that does not offer PACE — there are no providers or service areas anywhere in the state.",
+      "intro": "If your loved one needs nursing home level care but wants to stay home, PACE would provide all their medical care, medications, therapy, and daily support under one coordinated team with no copays or deductibles. Because everything is managed by a single organization, your loved one wouldn't need to coordinate between different doctors, insurance plans, or service providers.\n\nPACE is available in 31 states and serves adults 55+ who qualify for nursing home care but can live safely at home with support. Unfortunately, Utah is one of 19 states that does not offer PACE, there are no providers or service areas anywhere in the state.",
       "savingsRange": "",
       "savingsSource": "Comprehensive medical and social services with no copays or deductibles",
       "savingsVerified": false,
@@ -283,7 +283,7 @@
           {
             "step": 2,
             "title": "Consider relocation",
-            "description": "If PACE is essential for your parent's care, consider moving to a neighboring state like Colorado or Nevada that offers PACE programs."
+            "description": "If PACE is essential for your loved one's care, consider moving to a neighboring state like Colorado or Nevada that offers PACE programs."
           }
         ],
         "processingTime": "Not applicable",
@@ -307,8 +307,8 @@
         }
       ],
       "applicationNotes": [
-        "PACE is fundamentally different from traditional Medicare — it replaces all your parent's doctors and specialists with one integrated care team",
-        "Some families relocate to access PACE if their parent has complex medical needs that require intensive coordination"
+        "PACE is fundamentally different from traditional Medicare, it replaces all your loved one's doctors and specialists with one integrated care team",
+        "Some families relocate to access PACE if their loved one has complex medical needs that require intensive coordination"
       ],
       "relatedPrograms": [
         "Utah Home and Community-Based Services Waivers",
@@ -318,8 +318,8 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Could my parent get PACE if we moved to a neighboring state?",
-          "answer": "Yes, Colorado, Nevada, and New Mexico all have PACE programs. Your parent would need to establish residency and live within the service area of a PACE organization. Each state has different PACE providers with specific geographic boundaries."
+          "question": "Could my loved one get PACE if we moved to a neighboring state?",
+          "answer": "Yes, Colorado, Nevada, and New Mexico all have PACE programs. Your loved one would need to establish residency and live within the service area of a PACE organization. Each state has different PACE providers with specific geographic boundaries."
         },
         {
           "question": "What Utah programs provide similar coordinated care?",
@@ -352,7 +352,7 @@
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's monthly income is under $1,823, Medicare may cover their premiums, deductibles, and copays.",
+      "tagline": "If your loved one's monthly income is under $1,823, Medicare may cover their premiums, deductibles, and copays.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -365,7 +365,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351–$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621–$1,823/month.\n\nBecause these programs work through Utah Medicaid, your parent gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
+      "intro": "If your loved one struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351–$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621–$1,823/month.\n\nBecause these programs work through Utah Medicaid, your loved one gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
       "savingsRange": "$1,968 – $7,872/year in 2026",
       "savingsSource": "Based on Medicare Part B premium ($185/month) plus typical deductibles and coinsurance",
       "savingsVerified": true,
@@ -501,10 +501,10 @@
         }
       ],
       "applicationNotes": [
-        "Income limits update every April based on federal poverty guidelines — verify current limits when applying",
+        "Income limits update every April based on federal poverty guidelines, verify current limits when applying",
         "QMB recipients must show their Medicaid card to prevent provider billing for Medicare costs",
         "SLMB and QI recipients won't receive a card because Utah pays Medicare directly for premiums",
-        "QI funding is not guaranteed — apply as early in the year as possible to avoid being shut out"
+        "QI funding is not guaranteed, apply as early in the year as possible to avoid being shut out"
       ],
       "relatedPrograms": [
         "Utah Medicaid",
@@ -528,50 +528,50 @@
               "tier": "SLMB (Specified Low-income Medicare Beneficiary)",
               "income": "$1,351–$1,620/month (single), $1,825–$2,189/month (couple)",
               "covers": "Medicare Part B premiums only",
-              "card": "No card issued — premium paid directly",
+              "card": "No card issued, premium paid directly",
               "notes": "Must be enrolled in Medicare Part A and Part B"
             },
             {
               "tier": "QI (Qualifying Individual)",
               "income": "$1,621–$1,823/month (single), $2,190–$2,462/month (couple)",
               "covers": "Medicare Part B premiums only",
-              "card": "No card issued — premium paid directly",
-              "notes": "Limited funding — may close to new applicants"
+              "card": "No card issued, premium paid directly",
+              "notes": "Limited funding, may close to new applicants"
             }
           ]
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent apply for QMB and still keep their house?",
-          "answer": "Yes. The primary home is completely exempt from asset limits regardless of value. Your parent can own a home worth any amount and still qualify as long as their other countable assets stay under $9,950 (single) or $14,910 (couple)."
+          "question": "Can my loved one apply for QMB and still keep their house?",
+          "answer": "Yes. The primary home is completely exempt from asset limits regardless of value. Your loved one can own a home worth any amount and still qualify as long as their other countable assets stay under $9,950 (single) or $14,910 (couple)."
         },
         {
-          "question": "What happens if my parent's income is right at the limit?",
-          "answer": "Utah uses a $20 monthly income disregard for all programs, meaning $20 of monthly income doesn't count. For example, if your parent earns $1,370/month, only $1,350 counts toward the QMB limit of $1,350, so they would qualify."
+          "question": "What happens if my loved one's income is right at the limit?",
+          "answer": "Utah uses a $20 monthly income disregard for all programs, meaning $20 of monthly income doesn't count. For example, if your loved one earns $1,370/month, only $1,350 counts toward the QMB limit of $1,350, so they would qualify."
         },
         {
-          "question": "Can I apply for my parent who has dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all the same documentation plus proof of your authority to act (power of attorney or guardianship papers). Contact Utah Medicaid to discuss the specific process for representative applications."
+          "question": "Can I apply for my loved one who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You'll need to provide all the same documentation plus proof of your authority to act (power of attorney or guardianship papers). Contact Utah Medicaid to discuss the specific process for representative applications."
         },
         {
           "question": "How is the QI waitlist different from the other programs?",
           "answer": "QI has a federal funding cap that can run out mid-year, while QMB and SLMB are entitlements with guaranteed funding. When QI funds are exhausted, Utah stops accepting new applications until the next federal fiscal year begins in October."
         },
         {
-          "question": "What if my parent already has full Medicaid coverage?",
-          "answer": "Parents with full Medicaid automatically get QMB-level benefits and don't need to apply separately. However, if your parent has QI coverage, they cannot also have full Medicaid — these programs are mutually exclusive."
+          "question": "What if my loved one already has full Medicaid coverage?",
+          "answer": "Parents with full Medicaid automatically get QMB-level benefits and don't need to apply separately. However, if your loved one has QI coverage, they cannot also have full Medicaid, these programs are mutually exclusive."
         },
         {
           "question": "Do these programs cover Medicare Advantage plan costs?",
           "answer": "Yes, but it depends on the program level. QMB covers all Medicare Advantage copays, deductibles, and premiums. SLMB and QI only cover the Medicare Part B premium portion, not the additional plan-specific costs."
         },
         {
-          "question": "What happens if providers try to bill my parent for Medicare costs?",
-          "answer": "For QMB recipients, providers cannot legally bill your parent for any Medicare-covered services. Show the Medicaid card marked 'MEDICARE COST-SHARING ONLY.' If billing continues, contact Utah Medicaid immediately to resolve the issue."
+          "question": "What happens if providers try to bill my loved one for Medicare costs?",
+          "answer": "For QMB recipients, providers cannot legally bill your loved one for any Medicare-covered services. Show the Medicaid card marked 'MEDICARE COST-SHARING ONLY.' If billing continues, contact Utah Medicaid immediately to resolve the issue."
         },
         {
-          "question": "How often does my parent need to renew their coverage?",
+          "question": "How often does my loved one need to renew their coverage?",
           "answer": "These programs typically require annual renewal through Utah Medicaid. You'll receive renewal paperwork by mail approximately 60 days before the coverage expires. Income and asset limits are updated each April based on federal poverty guidelines."
         }
       ],
@@ -593,7 +593,7 @@
       "id": "snap-food-benefits",
       "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Utah SNAP",
-      "tagline": "Monthly grocery money for Utah seniors 60+ on fixed incomes — up to $415/month loaded on an EBT card.",
+      "tagline": "Monthly grocery money for Utah seniors 60+ on fixed incomes, up to $415/month loaded on an EBT card.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -606,7 +606,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs in Utah, they may qualify for monthly SNAP benefits loaded onto an EBT card. Because Utah has simplified rules for seniors, your parent doesn't need to pass the gross income test — only net income after deductions for medical expenses over $35/month and high shelter costs.\n\nBecause households with seniors get higher asset limits ($4,500 instead of $3,000), your parent can keep their home, car, and retirement savings and still qualify. A typical 2-person elderly household might receive $415/month after calculations, though the exact amount depends on net income and allowable deductions.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors, which means one interview and approval for 3 years instead of frequent recertifications. Despite these benefits, only about half of eligible seniors currently apply for SNAP in Utah.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs in Utah, they may qualify for monthly SNAP benefits loaded onto an EBT card. Because Utah has simplified rules for seniors, your loved one doesn't need to pass the gross income test, only net income after deductions for medical expenses over $35/month and high shelter costs.\n\nBecause households with seniors get higher asset limits ($4,500 instead of $3,000), your loved one can keep their home, car, and retirement savings and still qualify. A typical 2-person elderly household might receive $415/month after calculations, though the exact amount depends on net income and allowable deductions.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors, which means one interview and approval for 3 years instead of frequent recertifications. Despite these benefits, only about half of eligible seniors currently apply for SNAP in Utah.",
       "savingsRange": "$1,200 – $4,980/year in 2026",
       "savingsSource": "Based on monthly EBT benefits calculated from net income and household size",
       "savingsVerified": true,
@@ -658,7 +658,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mycase.utah.gov or call 1-866-526-3663 — seniors get simplified processing with approval for 3 years.",
+        "summary": "Apply online at mycase.utah.gov or call 1-866-526-3663, seniors get simplified processing with approval for 3 years.",
         "steps": [
           {
             "step": 1,
@@ -688,7 +688,7 @@
         ],
         "processingTime": "30 days for standard processing, faster for ESAP elderly applications with 3-year approval",
         "waitlist": null,
-        "tip": "Seniors can deduct medical expenses over $35/month and high shelter costs from gross income — gather these receipts to potentially qualify with higher income.",
+        "tip": "Seniors can deduct medical expenses over $35/month and high shelter costs from gross income, gather these receipts to potentially qualify with higher income.",
         "urls": [
           {
             "label": "Apply online at mycase.utah.gov",
@@ -726,10 +726,10 @@
         }
       ],
       "applicationNotes": [
-        "ESAP (Elderly Simplified Application Project) lets seniors 60+ skip frequent recertifications — approved for 3 years with just one interview",
-        "No gross income limit for households with seniors — you only need to pass the net income test after medical and shelter deductions",
+        "ESAP (Elderly Simplified Application Project) lets seniors 60+ skip frequent recertifications, approved for 3 years with just one interview",
+        "No gross income limit for households with seniors, you only need to pass the net income test after medical and shelter deductions",
         "Include all people who live together and buy/prepare food together, even if some have separate income",
-        "Medical expenses over $35/month can be deducted from income — this includes insurance premiums, prescription costs, and out-of-pocket medical bills"
+        "Medical expenses over $35/month can be deducted from income, this includes insurance premiums, prescription costs, and out-of-pocket medical bills"
       ],
       "relatedPrograms": [
         "Utah LIHEAP (Low Income Home Energy Assistance Program)",
@@ -740,36 +740,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car if they're worth more than $4,500?",
-          "answer": "Yes. The primary home and vehicles are exempt from the $4,500 asset limit. Your parent can own their home outright and keep their car regardless of value. The $4,500 limit only applies to countable assets like bank accounts, stocks, and cash."
+          "question": "Can my loved one keep their house and car if they're worth more than $4,500?",
+          "answer": "Yes. The primary home and vehicles are exempt from the $4,500 asset limit. Your loved one can own their home outright and keep their car regardless of value. The $4,500 limit only applies to countable assets like bank accounts, stocks, and cash."
         },
         {
-          "question": "What if my parent's Social Security is higher than the income limit?",
-          "answer": "Because your parent is 60+, Utah doesn't count gross income — only net income after deductions. Medical expenses over $35/month and high shelter costs reduce the counted income. Many seniors with Social Security above the gross limit still qualify after deductions."
+          "question": "What if my loved one's Social Security is higher than the income limit?",
+          "answer": "Because your loved one is 60+, Utah doesn't count gross income, only net income after deductions. Medical expenses over $35/month and high shelter costs reduce the counted income. Many seniors with Social Security above the gross limit still qualify after deductions."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent cannot apply themselves due to age or disability. You'll need to complete the application and attend the interview on their behalf. Call 1-866-526-3663 to discuss representative arrangements."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one cannot apply themselves due to age or disability. You'll need to complete the application and attend the interview on their behalf. Call 1-866-526-3663 to discuss representative arrangements."
         },
         {
           "question": "Do both spouses need to be 60+ to get the senior benefits?",
-          "answer": "No. If either spouse is 60+ or disabled, the entire household gets the senior rules — no gross income test, $4,500 asset limit instead of $3,000, and simplified recertification every 3 years instead of more frequent reviews."
+          "answer": "No. If either spouse is 60+ or disabled, the entire household gets the senior rules, no gross income test, $4,500 asset limit instead of $3,000, and simplified recertification every 3 years instead of more frequent reviews."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
-          "answer": "Report changes within 10 days by calling 1-866-526-3663 or logging into mycase.utah.gov. Because seniors get 3-year certifications through ESAP, minor changes won't require a full reapplication — just updated documentation and possibly adjusted benefit amounts."
+          "question": "What happens if my loved one's income changes after approval?",
+          "answer": "Report changes within 10 days by calling 1-866-526-3663 or logging into mycase.utah.gov. Because seniors get 3-year certifications through ESAP, minor changes won't require a full reapplication, just updated documentation and possibly adjusted benefit amounts."
         },
         {
-          "question": "Can my parent get SNAP if they're not a U.S. citizen?",
-          "answer": "Many non-citizens qualify for SNAP in Utah. Legal residents who have lived in the U.S. for 5+ years, people receiving disability benefits, and certain other categories are eligible. Citizenship is not required — call 1-866-526-3663 to discuss specific immigration status."
+          "question": "Can my loved one get SNAP if they're not a U.S. citizen?",
+          "answer": "Many non-citizens qualify for SNAP in Utah. Legal residents who have lived in the U.S. for 5+ years, people receiving disability benefits, and certain other categories are eligible. Citizenship is not required, call 1-866-526-3663 to discuss specific immigration status."
         },
         {
           "question": "How long does the ESAP approval really last?",
-          "answer": "ESAP approvals for elderly households last 3 years with no interim reviews unless you report significant changes. This means one interview and one set of paperwork covers your parent for 3 years, compared to annual or more frequent recertifications for younger households."
+          "answer": "ESAP approvals for elderly households last 3 years with no interim reviews unless you report significant changes. This means one interview and one set of paperwork covers your loved one for 3 years, compared to annual or more frequent recertifications for younger households."
         },
         {
-          "question": "What if my parent lives in assisted living — do they still qualify?",
-          "answer": "It depends on the living arrangement. If your parent buys and prepares their own food, they can qualify. If the facility provides all meals as part of the fee, they typically cannot get SNAP. Each situation is different — call 1-866-526-3663 to discuss the specific living arrangement."
+          "question": "What if my loved one lives in assisted living, do they still qualify?",
+          "answer": "It depends on the living arrangement. If your loved one buys and prepares their own food, they can qualify. If the facility provides all meals as part of the fee, they typically cannot get SNAP. Each situation is different, call 1-866-526-3663 to discuss the specific living arrangement."
         }
       ],
       "layoutIntent": {
@@ -790,7 +790,7 @@
       "id": "liheap-heat-energy-assistance",
       "name": "Utah LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "Utah HEAT",
-      "tagline": "Get $190-$850 toward your parent's heating and cooling bills, plus crisis help up to $2,000",
+      "tagline": "Get $190-$850 toward your loved one's heating and cooling bills, plus crisis help up to $2,000",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -815,7 +815,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling with utility bills on a fixed income, Utah's HEAT program (Home Energy Assistance Target) can provide $190 to $850 toward annual heating and cooling costs. Crisis assistance goes up to $2,000 for households facing disconnection or out of fuel.\n\nYour parent qualifies if their household income is at or below 150% of federal poverty level — that's $1,956/month for a single person or $2,644/month for a two-person household in 2026. The program runs October through September each year, but funds are limited and distributed first-come, first-served.\n\nIf your parent is 60 or older, disabled, or lives with a child under 6, they get priority access starting October 1. Everyone else can apply starting November 1. The money goes directly to the utility company, not to your parent.",
+      "intro": "If your loved one is struggling with utility bills on a fixed income, Utah's HEAT program (Home Energy Assistance Target) can provide $190 to $850 toward annual heating and cooling costs. Crisis assistance goes up to $2,000 for households facing disconnection or out of fuel.\n\nYour loved one qualifies if their household income is at or below 150% of federal poverty level, that's $1,956/month for a single person or $2,644/month for a two-person household in 2026. The program runs October through September each year, but funds are limited and distributed first-come, first-served.\n\nIf your loved one is 60 or older, disabled, or lives with a child under 6, they get priority access starting October 1. Everyone else can apply starting November 1. The money goes directly to the utility company, not to your loved one.",
       "savingsRange": "$190 – $850/year in 2026",
       "savingsSource": "Utah Jobs and Family Services heating/cooling assistance amounts, plus crisis assistance up to $2,000",
       "savingsVerified": true,
@@ -865,7 +865,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional HEAT office by phone or visit in person — applications typically process within several weeks if funds remain available.",
+        "summary": "Contact your regional HEAT office by phone or visit in person, applications typically process within several weeks if funds remain available.",
         "steps": [
           {
             "step": 1,
@@ -880,7 +880,7 @@
           {
             "step": 3,
             "title": "Apply early if you have priority",
-            "description": "If your parent is 60+, disabled, or lives with a child under 6, apply starting October 1. General applications start November 1."
+            "description": "If your loved one is 60+, disabled, or lives with a child under 6, apply starting October 1. General applications start November 1."
           },
           {
             "step": 4,
@@ -889,7 +889,7 @@
           }
         ],
         "processingTime": "Several weeks, but funds are limited and distributed first-come, first-served",
-        "waitlist": "No waitlist — applications stop when annual funds are exhausted",
+        "waitlist": "No waitlist, applications stop when annual funds are exhausted",
         "tip": "Priority households (elderly, disabled, families with young children) should apply immediately when their window opens October 1.",
         "urls": [
           {
@@ -941,10 +941,10 @@
         }
       ],
       "applicationNotes": [
-        "Priority applications for elderly (60+), disabled, or households with children under 6 start October 1 — general public starts November 1",
+        "Priority applications for elderly (60+), disabled, or households with children under 6 start October 1, general public starts November 1",
         "You cannot apply to both state HEAT and tribal LIHEAP programs",
         "Household definition includes all people sharing the address and utility bill, which is different from SNAP",
-        "The program runs year-round but operates on October 1 to September 30 program years — funds typically exhaust before September"
+        "The program runs year-round but operates on October 1 to September 30 program years, funds typically exhaust before September"
       ],
       "relatedPrograms": [
         "Utah Weatherization Assistance Program",
@@ -955,35 +955,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they pay utilities through their rent?",
+          "question": "Can my loved one apply if they pay utilities through their rent?",
           "answer": "Yes, as long as they're responsible for energy costs either directly or indirectly through rent. The household must be responsible for paying home energy costs in some form."
         },
         {
-          "question": "What if my parent missed the priority application period?",
+          "question": "What if my loved one missed the priority application period?",
           "answer": "They can still apply during the general application period starting November 1, but funds are distributed first-come, first-served. Priority households (elderly, disabled, families with young children) get served first, so general applications face higher risk of funds being exhausted."
         },
         {
-          "question": "How much will my parent actually receive?",
+          "question": "How much will my loved one actually receive?",
           "answer": "Heating and cooling assistance ranges from $190 minimum to $850 maximum based on household income, size, and fuel type. Crisis assistance can go up to $2,000 for households facing disconnection or out of fuel. The exact amount is determined when the application is approved."
         },
         {
-          "question": "Can my parent apply for crisis help and regular assistance?",
+          "question": "Can my loved one apply for crisis help and regular assistance?",
           "answer": "Yes, these are separate components of the same program. Crisis assistance is for immediate emergencies like disconnection notices or running out of fuel, while regular heating/cooling assistance is for ongoing seasonal energy costs."
         },
         {
-          "question": "What happens if my parent lives on a reservation?",
+          "question": "What happens if my loved one lives on a reservation?",
           "answer": "Tribal members may be eligible for the separate Paiute Tribal LIHEAP program at 435-586-1112, but they cannot apply to both state HEAT and tribal programs. They must choose one."
         },
         {
-          "question": "Does the money go to my parent or the utility company?",
-          "answer": "The assistance is paid directly to the utility vendor or energy provider, not to your parent. This ensures the funds go toward energy costs and helps prevent disconnection."
+          "question": "Does the money go to my loved one or the utility company?",
+          "answer": "The assistance is paid directly to the utility vendor or energy provider, not to your loved one. This ensures the funds go toward energy costs and helps prevent disconnection."
         },
         {
           "question": "What counts as household income for the 150% poverty limit?",
           "answer": "All gross income for all household members from the prior month, including wages, Social Security, SSI, pensions, unemployment, child support, and any other income sources. Medical expenses and some other costs may be deducted."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled relatives. You'll need all the required documentation and should contact your local HEAT office to discuss the process for representative applications."
         }
       ],
@@ -1005,7 +1005,7 @@
       "id": "weatherization-assistance-program",
       "name": "Utah Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy improvements to reduce your parent's heating and cooling bills long-term",
+      "tagline": "Free home energy improvements to reduce your loved one's heating and cooling bills long-term",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1030,7 +1030,7 @@
           }
         ]
       },
-      "intro": "If your parent is struggling with high heating or cooling bills on a fixed income, Utah's Weatherization Assistance Program provides free professional energy improvements to make their home more efficient. Your parent's home gets a computerized energy audit, then qualified contractors install insulation, seal air leaks, and repair or replace furnaces, air conditioners, or water heaters at no cost.\n\nPriority goes to households with adults 60+, people with disabilities, families with children under 6, or those with especially high energy costs. The program covers homeowners and renters (with landlord permission), and there are no asset limits — just income requirements at or below 200% of federal poverty level.\n\nBecause weatherization improvements are permanent, your parent saves on energy bills for years after the work is completed. The program is administered through seven regional agencies across Utah, each serving specific counties.",
+      "intro": "If your loved one is struggling with high heating or cooling bills on a fixed income, Utah's Weatherization Assistance Program provides free professional energy improvements to make their home more efficient. Your loved one's home gets a computerized energy audit, then qualified contractors install insulation, seal air leaks, and repair or replace furnaces, air conditioners, or water heaters at no cost.\n\nPriority goes to households with adults 60+, people with disabilities, families with children under 6, or those with especially high energy costs. The program covers homeowners and renters (with landlord permission), and there are no asset limits, just income requirements at or below 200% of federal poverty level.\n\nBecause weatherization improvements are permanent, your loved one saves on energy bills for years after the work is completed. The program is administered through seven regional agencies across Utah, each serving specific counties.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1081,7 +1081,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's weatherization agency by phone, email, or mail — applications are placed on a priority waitlist after eligibility review.",
+        "summary": "Contact your county's weatherization agency by phone, email, or mail, applications are placed on a priority waitlist after eligibility review.",
         "steps": [
           {
             "step": 1,
@@ -1111,7 +1111,7 @@
         ],
         "processingTime": "Processing time varies by agency and demand",
         "waitlist": "Yes, applications are prioritized by need (elderly, disabled, families with young children) and placed on waiting list",
-        "tip": "HEAT program recipients get priority placement — mention if your parent receives heating assistance when applying.",
+        "tip": "HEAT program recipients get priority placement, mention if your loved one receives heating assistance when applying.",
         "urls": [
           {
             "label": "Agency contact directory",
@@ -1157,10 +1157,10 @@
         }
       ],
       "applicationNotes": [
-        "HEAT program recipients get priority processing — mention this when applying if your parent receives heating assistance",
-        "Renters must get landlord permission before applying — the notarized agreement is required before work can begin",
-        "Each agency serves specific counties only — calling the wrong agency will delay your application",
-        "Priority waitlists favor elderly, disabled, and households with children under 6 — others may wait significantly longer"
+        "HEAT program recipients get priority processing, mention this when applying if your loved one receives heating assistance",
+        "Renters must get landlord permission before applying, the notarized agreement is required before work can begin",
+        "Each agency serves specific counties only, calling the wrong agency will delay your application",
+        "Priority waitlists favor elderly, disabled, and households with children under 6, others may wait significantly longer"
       ],
       "relatedPrograms": [
         "Utah HEAT Program",
@@ -1170,11 +1170,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're renting their home?",
+          "question": "Can my loved one apply if they're renting their home?",
           "answer": "Yes, renters are eligible but need a notarized Weatherization Rental Agreement signed by the landlord before any work can begin. The agency provides this form. Many landlords agree because the improvements increase property value at no cost to them."
         },
         {
-          "question": "What if my parent's home was weatherized years ago?",
+          "question": "What if my loved one's home was weatherized years ago?",
           "answer": "Homes are eligible if they've never been weatherized or if weatherization was completed more than 15 years ago. The energy audit will determine eligibility based on the home's current condition and past improvements."
         },
         {
@@ -1182,24 +1182,24 @@
           "answer": "Waitlist times vary significantly by region and priority level. Elderly, disabled, and households with children under 6 get priority placement. Others may wait months to over a year depending on local demand and funding."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process, but the eligible household member must sign the application. All income and household information must be for your parent's household, not yours."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process, but the eligible household member must sign the application. All income and household information must be for your loved one's household, not yours."
         },
         {
-          "question": "What if my parent receives HEAT assistance?",
-          "answer": "HEAT recipients automatically meet income requirements and get priority placement on the waitlist. Bring the HEAT approval letter when applying — this can significantly reduce wait times."
+          "question": "What if my loved one receives HEAT assistance?",
+          "answer": "HEAT recipients automatically meet income requirements and get priority placement on the waitlist. Bring the HEAT approval letter when applying, this can significantly reduce wait times."
         },
         {
-          "question": "Can my parent apply for both weatherization and HEAT?",
+          "question": "Can my loved one apply for both weatherization and HEAT?",
           "answer": "Yes, these are separate programs that work well together. HEAT provides immediate help with energy bills while weatherization provides long-term energy savings through home improvements. Apply for both if eligible."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
-          "answer": "Income limits are firm at 200% of federal poverty level ($2,510/month for a single person in 2026). However, if your parent pays high medical expenses, ask the agency about allowable deductions that might bring gross income under the threshold."
+          "question": "What happens if my loved one's income is slightly over the limit?",
+          "answer": "Income limits are firm at 200% of federal poverty level ($2,510/month for a single person in 2026). However, if your loved one pays high medical expenses, ask the agency about allowable deductions that might bring gross income under the threshold."
         },
         {
-          "question": "Which agency do I call if my parent lives on the border between counties?",
-          "answer": "Contact the agency for the county where your parent's home is physically located. Cache County calls Bear River AoG at (435) 752-7242. Salt Lake County calls Utah Community Action at (801) 214-3215. Each agency only serves specific counties."
+          "question": "Which agency do I call if my loved one lives on the border between counties?",
+          "answer": "Contact the agency for the county where your loved one's home is physically located. Cache County calls Bear River AoG at (435) 752-7242. Salt Lake County calls Utah Community Action at (801) 214-3215. Each agency only serves specific counties."
         }
       ],
       "layoutIntent": {
@@ -1220,7 +1220,7 @@
       "id": "ship-medicare-counseling",
       "name": "Utah SHIP (State Health Insurance Assistance Program)",
       "shortName": "Utah SHIP",
-      "tagline": "Free one-on-one Medicare counseling to help your parent navigate coverage options and find cost assistance programs.",
+      "tagline": "Free one-on-one Medicare counseling to help your loved one navigate coverage options and find cost assistance programs.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1233,7 +1233,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medicare or turning 65 soon, Utah SHIP provides free, personalized counseling to help them understand their options. SHIP counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and walk through enrollment deadlines and penalties.\n\nBecause SHIP counselors are trained specifically on Medicare rules and receive 8-10 hours of intensive program training, they can help identify cost-assistance programs your parent may qualify for — including Medicare Savings Programs that can cover premiums and Extra Help for prescription drugs. The service is available to all Medicare beneficiaries regardless of income, and family caregivers can also access counseling on behalf of their parents.",
+      "intro": "If your loved one is on Medicare or turning 65 soon, Utah SHIP provides free, personalized counseling to help them understand their options. SHIP counselors explain Medicare Parts A, B, C, and D, help compare Medigap policies, and walk through enrollment deadlines and penalties.\n\nBecause SHIP counselors are trained specifically on Medicare rules and receive 8-10 hours of intensive program training, they can help identify cost-assistance programs your loved one may qualify for, including Medicare Savings Programs that can cover premiums and Extra Help for prescription drugs. The service is available to all Medicare beneficiaries regardless of income, and family caregivers can also access counseling on behalf of their loved ones.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1255,7 +1255,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Utah SHIP at 1-800-541-7735 to schedule free counseling — no application needed.",
+        "summary": "Call Utah SHIP at 1-800-541-7735 to schedule free counseling, no application needed.",
         "steps": [
           {
             "step": 1,
@@ -1275,7 +1275,7 @@
         ],
         "processingTime": "Immediate consultation available. Counselors suggest contacting SHIP 3 months before Medicare starts.",
         "waitlist": null,
-        "tip": "Contact SHIP 3 months before your parent's Medicare starts, but assistance is available at any point after that.",
+        "tip": "Contact SHIP 3 months before your loved one's Medicare starts, but assistance is available at any point after that.",
         "urls": [
           {
             "label": "Find Local Medicare Help",
@@ -1318,12 +1318,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get SHIP counseling on behalf of my elderly parent?",
-          "answer": "Yes. Family members and caregivers of Medicare beneficiaries can access SHIP services. When you call 1-800-541-7735, let them know you're calling for your parent and ask what information you'll need to bring to the counseling session."
+          "question": "Can I get SHIP counseling on behalf of my elderly loved one?",
+          "answer": "Yes. Family members and caregivers of Medicare beneficiaries can access SHIP services. When you call 1-800-541-7735, let them know you're calling for your loved one and ask what information you'll need to bring to the counseling session."
         },
         {
-          "question": "Will SHIP help my parent apply for Medicare cost assistance programs?",
-          "answer": "SHIP counselors can help identify if your parent qualifies for Medicare Savings Programs or Extra Help prescription assistance, but you must apply separately for those programs through the Social Security Administration or other channels. SHIP provides guidance and information, not direct enrollment."
+          "question": "Will SHIP help my loved one apply for Medicare cost assistance programs?",
+          "answer": "SHIP counselors can help identify if your loved one qualifies for Medicare Savings Programs or Extra Help prescription assistance, but you must apply separately for those programs through the Social Security Administration or other channels. SHIP provides guidance and information, not direct enrollment."
         },
         {
           "question": "Is this the same as CHIP for children?",
@@ -1377,7 +1377,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to leave home to shop for groceries or cook meals, Utah Meals on Wheels delivers hot, nutritious lunches directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs and includes protein, vegetables, fruit, grains, and milk — with no income limits or asset tests.\n\nBecause the program requires your parent to be homebound (unable to leave home without assistance) and have an in-person assessment, delivery is only available within specific service zones that vary by county. The suggested donation is $3.50-$4 per meal but is completely voluntary — no one is denied meals for inability to pay.\n\nDelivery volunteers also provide a daily wellness check during each visit. Some areas offer weekend meals delivered Thursday or Friday, while high-demand counties like Utah County currently have waitlists.",
+      "intro": "If your loved one is 60+ and struggles to leave home to shop for groceries or cook meals, Utah Meals on Wheels delivers hot, nutritious lunches directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs and includes protein, vegetables, fruit, grains, and milk, with no income limits or asset tests.\n\nBecause the program requires your loved one to be homebound (unable to leave home without assistance) and have an in-person assessment, delivery is only available within specific service zones that vary by county. The suggested donation is $3.50-$4 per meal but is completely voluntary, no one is denied meals for inability to pay.\n\nDelivery volunteers also provide a daily wellness check during each visit. Some areas offer weekend meals delivered Thursday or Friday, while high-demand counties like Utah County currently have waitlists.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1412,22 +1412,22 @@
           {
             "step": 2,
             "title": "Schedule assessment",
-            "description": "A staff member will schedule an in-person visit to assess your parent's homebound status, mobility challenges, and dietary needs."
+            "description": "A staff member will schedule an in-person visit to assess your loved one's homebound status, mobility challenges, and dietary needs."
           },
           {
             "step": 3,
             "title": "Complete assessment",
-            "description": "The assessor will verify age, residence, and document why your parent qualifies as homebound and unable to shop or cook."
+            "description": "The assessor will verify age, residence, and document why your loved one qualifies as homebound and unable to shop or cook."
           },
           {
             "step": 4,
             "title": "Start delivery",
-            "description": "If approved and no waitlist, meals begin delivery Monday-Friday. Cancel by 9am if your parent won't be home."
+            "description": "If approved and no waitlist, meals begin delivery Monday-Friday. Cancel by 9am if your loved one won't be home."
           }
         ],
         "processingTime": "Some programs start within a week, others have longer waits due to waitlists",
         "waitlist": "Yes, some areas like Utah County have had waitlists since January 2022",
-        "tip": "Call early in the day — meals aren't left if your parent isn't home and cancellations must be made by 9am.",
+        "tip": "Call early in the day, meals aren't left if your loved one isn't home and cancellations must be made by 9am.",
         "urls": [
           {
             "label": "MAG Utah Meals Referral",
@@ -1470,8 +1470,8 @@
         }
       ],
       "applicationNotes": [
-        "Each county operates independently with different providers, costs, and waitlist lengths — call your specific county program",
-        "The homebound requirement is strictly enforced and reassessed annually — parents who can easily leave home or have regular caregivers for shopping may not qualify",
+        "Each county operates independently with different providers, costs, and waitlist lengths, call your specific county program",
+        "The homebound requirement is strictly enforced and reassessed annually, parents who can easily leave home or have regular caregivers for shopping may not qualify",
         "Weekend meals are available in some areas but must be requested separately and delivered Thursday or Friday",
         "Under-60 spouses or disabled dependents may qualify in some programs, often with payment required"
       ],
@@ -1484,11 +1484,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent can still drive but has trouble cooking?",
-          "answer": "Your parent must be both homebound (unable to leave without assistance) AND unable to shop or cook. In some counties like Davis, owning or driving a vehicle automatically disqualifies them. Contact your local program to discuss specific mobility limitations versus driving ability."
+          "question": "What if my loved one can still drive but has trouble cooking?",
+          "answer": "Your loved one must be both homebound (unable to leave without assistance) AND unable to shop or cook. In some counties like Davis, owning or driving a vehicle automatically disqualifies them. Contact your local program to discuss specific mobility limitations versus driving ability."
         },
         {
-          "question": "Can my parent get weekend meals too?",
+          "question": "Can my loved one get weekend meals too?",
           "answer": "Weekend meals are available in some areas, typically delivered Thursday or Friday for Saturday and Sunday. Not all counties offer this service, and it usually requires a separate request during the assessment process."
         },
         {
@@ -1496,15 +1496,15 @@
           "answer": "Utah County has had a waitlist since January 2022 with no specific timeline given for new applicants. Other counties may have immediate availability. Call your specific county program to check current wait times in your area."
         },
         {
-          "question": "What happens if my parent isn't home when meals are delivered?",
-          "answer": "Meals are not left if your parent isn't home for safety and food quality reasons. You must cancel by 9am the day of delivery. Repeated missed deliveries without cancellation may affect continued service."
+          "question": "What happens if my loved one isn't home when meals are delivered?",
+          "answer": "Meals are not left if your loved one isn't home for safety and food quality reasons. You must cancel by 9am the day of delivery. Repeated missed deliveries without cancellation may affect continued service."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can initiate the contact and application process, but an in-person assessment of your parent is still required. The assessor needs to directly evaluate your parent's homebound status and dietary needs."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can initiate the contact and application process, but an in-person assessment of your loved one is still required. The assessor needs to directly evaluate your loved one's homebound status and dietary needs."
         },
         {
-          "question": "Does my parent have to pay the suggested donation?",
+          "question": "Does my loved one have to pay the suggested donation?",
           "answer": "No, the $3.50-$4 suggested donation per meal is completely voluntary. No one is denied meals for inability to pay. However, donations help expand the program to serve more people in the community."
         }
       ],
@@ -1551,7 +1551,7 @@
           }
         ]
       },
-      "intro": "If you're caring for an aging parent who needs help with daily activities like bathing or dressing, Utah's Caregiver Support Program provides up to $1,500 in services each year to help you manage. The program covers respite care, personal care aides, adult day care, overnight respite, case management, caregiver support groups, counseling, and training — services that typically cost $15-25/hour out of pocket.\n\nBecause this program has no income limits but requires you to demonstrate caregiver stress through a formal assessment, eligibility depends on your caregiving burden rather than your financial situation. Your parent must be 60+ (or any age with Alzheimer's or dementia) and need help with at least two daily activities.\n\nThe program operates through county Area Agencies on Aging and often maintains a waiting list. Caregivers 55+ and those with the highest stress scores get priority.",
+      "intro": "If you're caring for an aging loved one who needs help with daily activities like bathing or dressing, Utah's Caregiver Support Program provides up to $1,500 in services each year to help you manage. The program covers respite care, personal care aides, adult day care, overnight respite, case management, caregiver support groups, counseling, and training, services that typically cost $15-25/hour out of pocket.\n\nBecause this program has no income limits but requires you to demonstrate caregiver stress through a formal assessment, eligibility depends on your caregiving burden rather than your financial situation. Your loved one must be 60+ (or any age with Alzheimer's or dementia) and need help with at least two daily activities.\n\nThe program operates through county Area Agencies on Aging and often maintains a waiting list. Caregivers 55+ and those with the highest stress scores get priority.",
       "savingsRange": "$500 – $1,500/year",
       "savingsSource": "Service value based on $15-25/hour typical cost for respite and personal care services",
       "savingsVerified": false,
@@ -1576,7 +1576,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county Area Agency on Aging for assessment — expect several weeks to months on waiting list.",
+        "summary": "Call your county Area Agency on Aging for assessment, expect several weeks to months on waiting list.",
         "steps": [
           {
             "step": 1,
@@ -1599,9 +1599,9 @@
             "description": "You'll be placed on a priority list based on your assessment scores. Older caregivers and those with highest stress scores are served first."
           }
         ],
-        "processingTime": "Not specified — program often maintains waiting list",
+        "processingTime": "Not specified, program often maintains waiting list",
         "waitlist": "Yes, program often maintains a waiting list; applicants served in priority order based on assessment scores",
-        "tip": "Priority goes to caregivers 55+ with greatest social and economic need — be thorough when describing your stress level and caregiving challenges during the assessment.",
+        "tip": "Priority goes to caregivers 55+ with greatest social and economic need, be thorough when describing your stress level and caregiving challenges during the assessment.",
         "urls": [
           {
             "label": "Utah DAAS Seniors Page",
@@ -1651,9 +1651,9 @@
         }
       ],
       "applicationNotes": [
-        "No income requirement means eligibility is broader than most programs, but you must demonstrate significant caregiver stress — this isn't automatic",
-        "Services are capped at $1,500 per 12-month period — plan carefully if you need ongoing intensive support",
-        "Different counties may have different wait times and service availability — ask about current waiting list length when you call",
+        "No income requirement means eligibility is broader than most programs, but you must demonstrate significant caregiver stress, this isn't automatic",
+        "Services are capped at $1,500 per 12-month period, plan carefully if you need ongoing intensive support",
+        "Different counties may have different wait times and service availability, ask about current waiting list length when you call",
         "Caregivers 55+ get priority, but younger caregivers can still qualify if they demonstrate high stress levels"
       ],
       "relatedPrograms": [
@@ -1666,26 +1666,26 @@
       "faqs": [
         {
           "question": "Can I qualify even if my family has a good income?",
-          "answer": "Yes. Utah's Caregiver Support Program has no income limits or caps. Eligibility is based entirely on your caregiver stress level and your parent's functional needs, not your financial situation."
+          "answer": "Yes. Utah's Caregiver Support Program has no income limits or caps. Eligibility is based entirely on your caregiver stress level and your loved one's functional needs, not your financial situation."
         },
         {
           "question": "How long is the waiting list really?",
           "answer": "Wait times vary by county and your priority score. Caregivers 55+ with the highest stress scores are served first. Some counties may have several months wait, while others could be longer."
         },
         {
-          "question": "What if my parent only needs help with one daily activity like bathing?",
-          "answer": "Your parent must have deficits in at least two activities of daily living to qualify. Single-activity limitations typically don't meet the program requirements."
+          "question": "What if my loved one only needs help with one daily activity like bathing?",
+          "answer": "Your loved one must have deficits in at least two activities of daily living to qualify. Single-activity limitations typically don't meet the program requirements."
         },
         {
           "question": "Can I get more than $1,500 if my needs are really high?",
           "answer": "No. The program caps services at $1,500 per 12-month period regardless of need level. If you need more intensive support, ask your case worker about other programs you might qualify for."
         },
         {
-          "question": "What if I'm already getting paid to care for my parent through another program?",
+          "question": "What if I'm already getting paid to care for my loved one through another program?",
           "answer": "You cannot qualify for UCSP if you're receiving payment for caregiving through Medicaid waivers or other programs. The caregiver must be unpaid and informal."
         },
         {
-          "question": "Can my parent have Alzheimer's even if they're under 60?",
+          "question": "Can my loved one have Alzheimer's even if they're under 60?",
           "answer": "Yes. Care recipients of any age with Alzheimer's disease or related neurological disorders qualify, even if they're younger than 60. The age requirement only applies to general caregiving situations."
         },
         {
@@ -1728,7 +1728,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides paid part-time work training up to 20 hours per week at community organizations. Your parent earns wages while gaining job skills in fields like customer service, health care, or computer technology — creating a bridge to permanent employment.\n\nYour parent's family income must be below 125% of the federal poverty level ($2,500/month for a household of two in 2026). Because this isn't first-come, first-served, the program director reviews each application for suitability and may maintain a waitlist. Veterans and adults over 65 get priority for available positions.\n\nParticipants can stay in the program for up to 48 months total across their lifetime. The goal is to develop skills and connections that lead to unsubsidized employment in the community.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work training up to 20 hours per week at community organizations. Your loved one earns wages while gaining job skills in fields like customer service, health care, or computer technology, creating a bridge to permanent employment.\n\nYour loved one's family income must be below 125% of the federal poverty level ($2,500/month for a household of two in 2026). Because this isn't first-come, first-served, the program director reviews each application for suitability and may maintain a waitlist. Veterans and adults over 65 get priority for available positions.\n\nParticipants can stay in the program for up to 48 months total across their lifetime. The goal is to develop skills and connections that lead to unsubsidized employment in the community.",
       "savingsRange": "",
       "savingsSource": "Part-time employment training with wages",
       "savingsVerified": false,
@@ -1772,7 +1772,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at ipdcscsep.org or call (800) 771-2153 — processing time varies and acceptance isn't guaranteed.",
+        "summary": "Apply online at ipdcscsep.org or call (800) 771-2153, processing time varies and acceptance isn't guaranteed.",
         "steps": [
           {
             "step": 1,
@@ -1792,7 +1792,7 @@
           {
             "step": 4,
             "title": "Wait for Project Director review",
-            "description": "Your application will be reviewed for eligibility and suitability — this is not first-come, first-served. You may be placed on a waitlist."
+            "description": "Your application will be reviewed for eligibility and suitability, this is not first-come, first-served. You may be placed on a waitlist."
           },
           {
             "step": 5,
@@ -1800,9 +1800,9 @@
             "description": "If accepted, work with staff to create your personalized training and employment goals plan."
           }
         ],
-        "processingTime": "Not specified — application reviewed by Project Director based on eligibility and suitability",
+        "processingTime": "Not specified, application reviewed by Project Director based on eligibility and suitability",
         "waitlist": "Possible waitlist if no immediate openings after eligibility determination",
-        "tip": "Veterans and their qualified spouses get first priority, followed by adults over 65 — mention veteran status when applying.",
+        "tip": "Veterans and their qualified spouses get first priority, followed by adults over 65, mention veteran status when applying.",
         "urls": [
           {
             "label": "SCSEP Online Application",
@@ -1837,7 +1837,7 @@
         }
       ],
       "applicationNotes": [
-        "Enrollment decisions are based on suitability and priority tiers, not application order — veterans and adults over 65 get preference",
+        "Enrollment decisions are based on suitability and priority tiers, not application order, veterans and adults over 65 get preference",
         "The 48-month lifetime limit applies even if you switch between different SCSEP providers across states",
         "You must be willing to work up to 20 hours per week and follow your Individual Employment Plan requirements",
         "Willfully misreporting income information will disqualify you from the program"
@@ -1851,35 +1851,35 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're currently working part-time but worried about losing their job?",
-          "answer": "Yes, if your parent has received notice of pending termination or layoff, they can apply even while still employed. They need to provide the termination notice as part of their application."
+          "question": "Can my loved one apply if they're currently working part-time but worried about losing their job?",
+          "answer": "Yes, if your loved one has received notice of pending termination or layoff, they can apply even while still employed. They need to provide the termination notice as part of their application."
         },
         {
-          "question": "What happens if my parent has already used SCSEP in another state — does that count toward the 48-month limit?",
-          "answer": "Yes, the 48-month limit applies across all SCSEP providers nationwide. If your parent participated in SCSEP in California for 12 months, they would have 36 months of eligibility remaining for Utah SCSEP."
+          "question": "What happens if my loved one has already used SCSEP in another state, does that count toward the 48-month limit?",
+          "answer": "Yes, the 48-month limit applies across all SCSEP providers nationwide. If your loved one participated in SCSEP in California for 12 months, they would have 36 months of eligibility remaining for Utah SCSEP."
         },
         {
-          "question": "How long is the waitlist really, and will we know where my parent stands?",
+          "question": "How long is the waitlist really, and will we know where my loved one stands?",
           "answer": "The program doesn't publish specific waitlist times since acceptance depends on suitability assessment, not application order. Veterans and adults over 65 get priority, which can affect wait times for others."
         },
         {
-          "question": "Can my parent choose what type of work they'll be trained for?",
-          "answer": "Your parent will work with staff to create an Individual Employment Plan based on their interests and local opportunities. Common placements include customer service, health care support, computer technician roles, and teachers' aide positions."
+          "question": "Can my loved one choose what type of work they'll be trained for?",
+          "answer": "Your loved one will work with staff to create an Individual Employment Plan based on their interests and local opportunities. Common placements include customer service, health care support, computer technician roles, and teachers' aide positions."
         },
         {
-          "question": "What if my parent needs to move to a different area of Utah during the program?",
-          "answer": "Since SCSEP isn't available statewide, your parent would need to move to an area served by Easterseals-Goodwill. Call (800) 771-2153 to confirm whether their new location has program coverage."
+          "question": "What if my loved one needs to move to a different area of Utah during the program?",
+          "answer": "Since SCSEP isn't available statewide, your loved one would need to move to an area served by Easterseals-Goodwill. Call (800) 771-2153 to confirm whether their new location has program coverage."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has trouble with paperwork?",
-          "answer": "You can help your parent complete the application, but they must be legally able to work and participate in the program themselves. The program requires active participation in work training, not just benefit receipt."
+          "question": "Can I apply on behalf of my elderly loved one who has trouble with paperwork?",
+          "answer": "You can help your loved one complete the application, but they must be legally able to work and participate in the program themselves. The program requires active participation in work training, not just benefit receipt."
         },
         {
-          "question": "What happens if my parent's income changes while they're in the program?",
-          "answer": "Income is verified at enrollment, but participants must report significant changes. If income rises above 125% of the federal poverty level, your parent may need to transition out of the program."
+          "question": "What happens if my loved one's income changes while they're in the program?",
+          "answer": "Income is verified at enrollment, but participants must report significant changes. If income rises above 125% of the federal poverty level, your loved one may need to transition out of the program."
         },
         {
-          "question": "Can my parent apply for SCSEP and regular unemployment benefits at the same time?",
+          "question": "Can my loved one apply for SCSEP and regular unemployment benefits at the same time?",
           "answer": "Check with both programs about simultaneous enrollment. SCSEP requires registration with Utah State Workforce, which also handles unemployment benefits, so they can provide guidance on any conflicts."
         }
       ],
@@ -1914,7 +1914,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs legal help with Social Security, Medicare, elder abuse, or estate planning, they may qualify for free legal services in Utah. Utah Legal Services provides attorneys and legal advocates at no cost for seniors with limited income.\n\nBecause the program covers everything from benefit appeals to powers of attorney, your parent gets professional legal help without the typical $200-500/hour attorney fees. The program handles senior-specific legal issues including public benefits disputes, guardianship proceedings, housing problems, consumer fraud, and wills.\n\nYour parent must be 60+ with income at or below 125% of federal poverty guidelines ($18,310/year for a single person in 2024). In cases of documented hardship like high medical expenses, income up to 200% of poverty guidelines ($29,160/year) may be allowed with approval.",
+      "intro": "If your loved one is 60+ and needs legal help with Social Security, Medicare, elder abuse, or estate planning, they may qualify for free legal services in Utah. Utah Legal Services provides attorneys and legal advocates at no cost for seniors with limited income.\n\nBecause the program covers everything from benefit appeals to powers of attorney, your loved one gets professional legal help without the typical $200-500/hour attorney fees. The program handles senior-specific legal issues including public benefits disputes, guardianship proceedings, housing problems, consumer fraud, and wills.\n\nYour loved one must be 60+ with income at or below 125% of federal poverty guidelines ($18,310/year for a single person in 2024). In cases of documented hardship like high medical expenses, income up to 200% of poverty guidelines ($29,160/year) may be allowed with approval.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1945,7 +1945,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call Utah Legal Services for intake screening — approval depends on income verification and case type.",
+        "summary": "Call Utah Legal Services for intake screening, approval depends on income verification and case type.",
         "steps": [
           {
             "step": 1,
@@ -1968,9 +1968,9 @@
             "description": "Staff reviews your case and income eligibility. If approved, you'll be matched with an attorney or legal advocate."
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and attorney availability",
+        "processingTime": "Not specified, varies by case complexity and attorney availability",
         "waitlist": null,
-        "tip": "Document any hardship expenses (medical bills, disability costs) if your income is above 125% FPL — you may still qualify up to 200% with Executive Director approval.",
+        "tip": "Document any hardship expenses (medical bills, disability costs) if your income is above 125% FPL, you may still qualify up to 200% with Executive Director approval.",
         "urls": [
           {
             "label": "Utah Legal Services",
@@ -2007,7 +2007,7 @@
         }
       ],
       "applicationNotes": [
-        "Income exceptions up to 200% FPL require Executive Director approval and documented hardship — don't assume automatic approval",
+        "Income exceptions up to 200% FPL require Executive Director approval and documented hardship, don't assume automatic approval",
         "Some services are provided through county contracts or volunteer attorneys, so availability may vary by region"
       ],
       "relatedPrograms": [
@@ -2018,19 +2018,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, if you have legal authority through power of attorney or guardianship. If your parent cannot make legal decisions and you don't have legal authority, Utah Legal Services can help with guardianship proceedings. Bring documentation of your parent's condition and any existing legal documents."
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, if you have legal authority through power of attorney or guardianship. If your loved one cannot make legal decisions and you don't have legal authority, Utah Legal Services can help with guardianship proceedings. Bring documentation of your loved one's condition and any existing legal documents."
         },
         {
-          "question": "What if my parent's income is slightly above the limit but they have high medical expenses?",
-          "answer": "Your parent may still qualify up to 200% of federal poverty guidelines ($29,160/year for a single person) if they can document economic hardship like high medical expenses or disability-related costs. This requires Executive Director approval, so gather all medical bills and expense documentation before applying."
+          "question": "What if my loved one's income is slightly above the limit but they have high medical expenses?",
+          "answer": "Your loved one may still qualify up to 200% of federal poverty guidelines ($29,160/year for a single person) if they can document economic hardship like high medical expenses or disability-related costs. This requires Executive Director approval, so gather all medical bills and expense documentation before applying."
         },
         {
           "question": "Does this cover help with Social Security disability appeals?",
-          "answer": "Yes, Utah Legal Services handles public benefits cases including Social Security, SSI, and disability appeals. Because these cases have strict deadlines, call immediately if your parent received a denial letter — you typically have only 60 days to appeal."
+          "answer": "Yes, Utah Legal Services handles public benefits cases including Social Security, SSI, and disability appeals. Because these cases have strict deadlines, call immediately if your loved one received a denial letter, you typically have only 60 days to appeal."
         },
         {
-          "question": "Can my parent get help with a will even if they don't qualify for other services?",
+          "question": "Can my loved one get help with a will even if they don't qualify for other services?",
           "answer": "Yes, wills and estate planning are handled through the Senior Law Project using volunteer attorneys, which may have different eligibility requirements than other services. Call Utah Legal Services to ask specifically about will preparation for seniors."
         }
       ],
@@ -2052,7 +2052,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Utah Long-Term Care Ombudsman Program",
       "shortName": "Long-Term Care Ombudsman",
-      "tagline": "Free advocacy for your parent if they're already in a nursing home, assisted living, or memory care facility.",
+      "tagline": "Free advocacy for your loved one if they're already in a nursing home, assisted living, or memory care facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2077,7 +2077,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living, memory care, or skilled rehab facility and faces problems with care, billing, or their rights, the Utah Long-Term Care Ombudsman Program provides free advocacy. Approximately 50 trained staff and volunteer ombudsmen across 11 regional offices investigate complaints, resolve disputes, and ensure facilities respect residents' rights.\n\nThis program serves any resident already living in a long-term care facility — no age, income, or asset requirements. Because ombudsmen operate independently from facility regulators, they focus purely on advocacy and problem-solving rather than enforcement. Services are completely confidential except in life-threatening emergencies.\n\nImportant: This program advocates for people already in facilities. It does not help with funding care, finding facilities, or getting admitted to care.",
+      "intro": "If your loved one lives in a nursing home, assisted living, memory care, or skilled rehab facility and faces problems with care, billing, or their rights, the Utah Long-Term Care Ombudsman Program provides free advocacy. Approximately 50 trained staff and volunteer ombudsmen across 11 regional offices investigate complaints, resolve disputes, and ensure facilities respect residents' rights.\n\nThis program serves any resident already living in a long-term care facility, no age, income, or asset requirements. Because ombudsmen operate independently from facility regulators, they focus purely on advocacy and problem-solving rather than enforcement. Services are completely confidential except in life-threatening emergencies.\n\nImportant: This program advocates for people already in facilities. It does not help with funding care, finding facilities, or getting admitted to care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2099,17 +2099,17 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local Area Agency on Aging ombudsman program — no forms or documentation required.",
+        "summary": "Call your local Area Agency on Aging ombudsman program, no forms or documentation required.",
         "steps": [
           {
             "step": 1,
             "title": "Contact your local ombudsman",
-            "description": "Call your regional Area Agency on Aging to reach the ombudsman serving your parent's facility. For example, Mountain Association of Governments serves Summit, Utah, and Wasatch counties at 801-229-3809."
+            "description": "Call your regional Area Agency on Aging to reach the ombudsman serving your loved one's facility. For example, Mountain Association of Governments serves Summit, Utah, and Wasatch counties at 801-229-3809."
           },
           {
             "step": 2,
             "title": "Describe the situation",
-            "description": "Explain the problem your parent is experiencing — billing issues, care quality, facility policies, or rights violations. The ombudsman will determine next steps."
+            "description": "Explain the problem your loved one is experiencing, billing issues, care quality, facility policies, or rights violations. The ombudsman will determine next steps."
           },
           {
             "step": 3,
@@ -2119,7 +2119,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "You can file a complaint on behalf of your parent, but the ombudsman will need your parent's permission to investigate unless it's an emergency.",
+        "tip": "You can file a complaint on behalf of your loved one, but the ombudsman will need your loved one's permission to investigate unless it's an emergency.",
         "urls": [
           {
             "label": "Utah Division of Aging and Adult Services",
@@ -2151,12 +2151,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint if my parent has dementia and can't speak for themselves?",
-          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman may still need to speak with your parent if possible, but they understand cognitive limitations and will work within those constraints. In cases involving immediate safety concerns, the ombudsman can act without explicit resident consent."
+          "question": "Can I file a complaint if my loved one has dementia and can't speak for themselves?",
+          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman may still need to speak with your loved one if possible, but they understand cognitive limitations and will work within those constraints. In cases involving immediate safety concerns, the ombudsman can act without explicit resident consent."
         },
         {
           "question": "What's the difference between calling the ombudsman versus reporting to state regulators?",
-          "answer": "Ombudsmen focus on advocacy and problem-solving — they work with facilities to resolve issues and protect residents' rights. State regulators investigate compliance violations and can impose penalties. The ombudsman often resolves problems faster through direct facility engagement, while regulatory complaints may take longer but can result in formal citations."
+          "answer": "Ombudsmen focus on advocacy and problem-solving, they work with facilities to resolve issues and protect residents' rights. State regulators investigate compliance violations and can impose penalties. The ombudsman often resolves problems faster through direct facility engagement, while regulatory complaints may take longer but can result in formal citations."
         }
       ],
       "layoutIntent": {
@@ -2177,7 +2177,7 @@
       "id": "aging-waiver",
       "name": "Utah Aging Waiver",
       "shortName": "Aging Waiver",
-      "tagline": "Helps your parent get personal care, home modifications, and other services to stay home instead of moving to a nursing facility.",
+      "tagline": "Helps your loved one get personal care, home modifications, and other services to stay home instead of moving to a nursing facility.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2190,7 +2190,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems — all tailored to your parent's specific needs through a care plan.\n\nTo qualify, your parent must be 65+ with income below $1,305/month (effective March 2025–February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems, all tailored to your loved one's specific needs through a care plan.\n\nTo qualify, your loved one must be 65+ with income below $1,305/month (effective March 2025–February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2230,7 +2230,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Aging & Adult Services office for phone intake and assessment — processing time varies.",
+        "summary": "Call your county's Aging & Adult Services office for phone intake and assessment, processing time varies.",
         "steps": [
           {
             "step": 1,
@@ -2240,22 +2240,22 @@
           {
             "step": 2,
             "title": "Complete financial screening",
-            "description": "Provide income and asset documentation to determine if your parent meets the financial eligibility requirements ($1,305/month income limit and $2,000 asset limit)."
+            "description": "Provide income and asset documentation to determine if your loved one meets the financial eligibility requirements ($1,305/month income limit and $2,000 asset limit)."
           },
           {
             "step": 3,
             "title": "Undergo clinical assessment",
-            "description": "A registered nurse will use the InterRAI MDS-HC assessment tool to determine if your parent meets Nursing Facility Level of Care based on daily living assistance needs and medical condition."
+            "description": "A registered nurse will use the InterRAI MDS-HC assessment tool to determine if your loved one meets Nursing Facility Level of Care based on daily living assistance needs and medical condition."
           },
           {
             "step": 4,
             "title": "Develop care plan",
-            "description": "If approved, work with a case manager to create a personalized plan of care that identifies which services your parent needs (personal care, home modifications, respite, etc.)."
+            "description": "If approved, work with a case manager to create a personalized plan of care that identifies which services your loved one needs (personal care, home modifications, respite, etc.)."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Dementia diagnosis alone is not sufficient to meet the clinical requirements — your parent must need significant physical assistance with daily activities or have poor orientation requiring nursing facility-level care.",
+        "tip": "Dementia diagnosis alone is not sufficient to meet the clinical requirements, your loved one must need significant physical assistance with daily activities or have poor orientation requiring nursing facility-level care.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2290,10 +2290,10 @@
         }
       ],
       "applicationNotes": [
-        "Income limits update annually in March (not January like federal programs) — current limit is $1,305/month through February 2026, then increases to $1,330/month in March 2026",
+        "Income limits update annually in March (not January like federal programs), current limit is $1,305/month through February 2026, then increases to $1,330/month in March 2026",
         "Spousal income is exempt even if living together, but each spouse has separate asset limits if both are applying",
-        "60-month look-back rule applies — transfers of assets below fair market value in the past 5 years may result in a penalty period",
-        "This is different from New Choices Waiver (which has higher income limit of $2,901/month) — make sure you're applying for the right program"
+        "60-month look-back rule applies, transfers of assets below fair market value in the past 5 years may result in a penalty period",
+        "This is different from New Choices Waiver (which has higher income limit of $2,901/month), make sure you're applying for the right program"
       ],
       "relatedPrograms": [
         "New Choices Waiver",
@@ -2304,32 +2304,32 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as the home equity is under $730,000 and your parent (or their spouse) lives there or intends to return. The home value doesn't count toward the asset limit regardless of how much it's worth."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as the home equity is under $730,000 and your loved one (or their spouse) lives there or intends to return. The home value doesn't count toward the asset limit regardless of how much it's worth."
         },
         {
-          "question": "What if my parent has dementia but can still dress and bathe themselves?",
-          "answer": "Dementia diagnosis alone is not sufficient to qualify. Your parent must meet 2 of 3 specific conditions: need significant physical help with at least 2 daily activities, have poor orientation requiring nursing facility care, or have a medical condition that can't be safely managed without waiver services."
+          "question": "What if my loved one has dementia but can still dress and bathe themselves?",
+          "answer": "Dementia diagnosis alone is not sufficient to qualify. Your loved one must meet 2 of 3 specific conditions: need significant physical help with at least 2 daily activities, have poor orientation requiring nursing facility care, or have a medical condition that can't be safely managed without waiver services."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can help with the application process and speak on behalf of their parent. You'll need to provide all the required documentation and participate in the assessment process with your parent."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can help with the application process and speak on behalf of their loved one. You'll need to provide all the required documentation and participate in the assessment process with your loved one."
         },
         {
-          "question": "How much will my parent receive in services each month?",
-          "answer": "There are no fixed dollar or hour limits. Services are tailored to your parent's specific needs through a personalized care plan developed with a case manager. The amount depends on what services they need and what the assessment determines is necessary."
+          "question": "How much will my loved one receive in services each month?",
+          "answer": "There are no fixed dollar or hour limits. Services are tailored to your loved one's specific needs through a personalized care plan developed with a case manager. The amount depends on what services they need and what the assessment determines is necessary."
         },
         {
           "question": "What's the difference between Utah Aging Waiver and New Choices Waiver?",
-          "answer": "Utah Aging Waiver is for people 65+ with lower incomes ($1,305/month limit). New Choices Waiver has a higher income limit ($2,901/month) but serves a different target group. Make sure you're applying for the program that matches your parent's age and income level."
+          "answer": "Utah Aging Waiver is for people 65+ with lower incomes ($1,305/month limit). New Choices Waiver has a higher income limit ($2,901/month) but serves a different target group. Make sure you're applying for the program that matches your loved one's age and income level."
         },
         {
-          "question": "What happens if my parent's income increases after enrollment?",
-          "answer": "Income limits are checked during annual renewals. If your parent's income exceeds the limit ($1,305/month currently), they may lose eligibility for the waiver. However, small increases due to cost-of-living adjustments may be accommodated since the income limits also increase annually in March."
+          "question": "What happens if my loved one's income increases after enrollment?",
+          "answer": "Income limits are checked during annual renewals. If your loved one's income exceeds the limit ($1,305/month currently), they may lose eligibility for the waiver. However, small increases due to cost-of-living adjustments may be accommodated since the income limits also increase annually in March."
         },
         {
-          "question": "Can my parent get personal care services right away after approval?",
-          "answer": "Once approved, you'll work with a case manager to develop a care plan and identify service providers. The timeline for starting services depends on provider availability in your area and the specific services needed in your parent's care plan."
+          "question": "Can my loved one get personal care services right away after approval?",
+          "answer": "Once approved, you'll work with a case manager to develop a care plan and identify service providers. The timeline for starting services depends on provider availability in your area and the specific services needed in your loved one's care plan."
         },
         {
           "question": "What if we gave money to family members in the past 5 years?",
@@ -2352,12 +2352,12 @@
     }
   ],
   "stateOverview": {
-    "intro": "Utah offers 8 financial benefit programs and 2 free resource programs to help your aging parent. Financial help ranges from $190-$850 toward utility bills (LIHEAP) to up to $1,500/year in caregiver support services, plus monthly grocery assistance up to $415 and comprehensive Medicaid coverage for medical and long-term care costs. Free resources include one-on-one Medicare counseling and legal help for seniors facing benefit issues or elder abuse.\n\nMost financial programs require income verification, but free resources like Medicare counseling through Utah SHIP are available regardless of income. Start by checking if your parent qualifies for Medicaid — it's Utah's most comprehensive program covering both medical costs and home-based care services.",
+    "intro": "Utah offers 8 financial benefit programs and 2 free resource programs to help your aging loved one. Financial help ranges from $190-$850 toward utility bills (LIHEAP) to up to $1,500/year in caregiver support services, plus monthly grocery assistance up to $415 and comprehensive Medicaid coverage for medical and long-term care costs. Free resources include one-on-one Medicare counseling and legal help for seniors facing benefit issues or elder abuse.\n\nMost financial programs require income verification, but free resources like Medicare counseling through Utah SHIP are available regardless of income. Start by checking if your loved one qualifies for Medicaid, it's Utah's most comprehensive program covering both medical costs and home-based care services.",
     "startHere": [
       {
         "name": "Utah Medicaid Program",
         "programId": "utah-medicaid",
-        "why": "Covers the biggest expenses — nursing home care, home-based services, and medical costs for seniors on limited incomes."
+        "why": "Covers the biggest expenses, nursing home care, home-based services, and medical costs for seniors on limited incomes."
       },
       {
         "name": "Utah SNAP",
@@ -2367,7 +2367,7 @@
       {
         "name": "Utah SHIP",
         "programId": "utah-ship",
-        "why": "Free Medicare counseling available to everyone — helps find cost assistance programs you might be missing."
+        "why": "Free Medicare counseling available to everyone, helps find cost assistance programs you might be missing."
       }
     ],
     "byNeed": [
@@ -2416,6 +2416,6 @@
       "Crisis energy assistance through LIHEAP can provide up to $2,000 for emergency heating or cooling situations",
       "Most financial programs require income verification, but exact limits vary by program and household size"
     ],
-    "resourcesVsBenefits": "Utah's benefit programs require qualification based on income, assets, or care needs — like Medicaid's income limits or SNAP's fixed-income requirements. But Utah's free resource programs are available to any senior regardless of financial situation: Utah SHIP provides Medicare counseling to anyone 60+, and Utah Legal Services offers free legal help to any senior facing benefit issues, housing problems, or elder abuse."
+    "resourcesVsBenefits": "Utah's benefit programs require qualification based on income, assets, or care needs, like Medicaid's income limits or SNAP's fixed-income requirements. But Utah's free resource programs are available to any senior regardless of financial situation: Utah SHIP provides Medicare counseling to anyone 60+, and Utah Legal Services offers free legal help to any senior facing benefit issues, housing problems, or elder abuse."
   }
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.914Z
+ * Last updated: 2026-04-20T23:39:07.866Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -21,7 +21,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is 65 or older, blind at any age, or disabled, New Hampshire's ABD Medicaid covers medical care and may include home-based services to help them age in place. ABD is actually an umbrella covering multiple programs — from basic health coverage to comprehensive long-term care with case management for bathing, dressing, meals, and housework.\n\nThe financial rules are complex and vary by specific ABD program. For long-term care services, your parent can have up to $7,500 in assets (New Hampshire applies a $5,000 disregard above the base $2,500 limit). Their home is automatically protected if a spouse or disabled child lives there — otherwise, home equity cannot exceed $752,000 in 2026. Income limits differ by program type, and some working disabled adults qualify for higher thresholds.\n\nBecause each ABD program has different eligibility rules and benefits, the state recommends applying even if you think income or assets are too high — exceptions and disregards often apply that aren't obvious upfront.",
+      "intro": "If your loved one is 65 or older, blind at any age, or disabled, New Hampshire's ABD Medicaid covers medical care and may include home-based services to help them age in place. ABD is actually an umbrella covering multiple programs, from basic health coverage to comprehensive long-term care with case management for bathing, dressing, meals, and housework.\n\nThe financial rules are complex and vary by specific ABD program. For long-term care services, your loved one can have up to $7,500 in assets (New Hampshire applies a $5,000 disregard above the base $2,500 limit). Their home is automatically protected if a spouse or disabled child lives there, otherwise, home equity cannot exceed $752,000 in 2026. Income limits differ by program type, and some working disabled adults qualify for higher thresholds.\n\nBecause each ABD program has different eligibility rules and benefits, the state recommends applying even if you think income or assets are too high, exceptions and disregards often apply that aren't obvious upfront.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -61,7 +61,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through HealthCare.gov or call New Hampshire DHHS at 1-800-852-3345, ext. 9700 — processing time not specified.",
+        "summary": "Apply online through HealthCare.gov or call New Hampshire DHHS at 1-800-852-3345, ext. 9700, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -91,7 +91,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Apply even if you think your parent's income or assets are too high — New Hampshire has disregards and exceptions that aren't obvious, and each ABD program has different financial limits.",
+        "tip": "Apply even if you think your loved one's income or assets are too high, New Hampshire has disregards and exceptions that aren't obvious, and each ABD program has different financial limits.",
         "urls": [
           {
             "label": "HealthCare.gov Application",
@@ -131,9 +131,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each ABD program (Aid to the Needy Blind, APTD, MOAD, Choices for Independence) has different income limits and benefits — make sure you're applying for the right one",
-        "For long-term care ABD, your parent will pay all monthly income except $93 Personal Needs Allowance toward care costs — this is called Patient Liability",
-        "Home equity protection is NOT automatic — it only applies if a spouse, child under 21, or permanently disabled child lives in the home",
+        "Each ABD program (Aid to the Needy Blind, APTD, MOAD, Choices for Independence) has different income limits and benefits, make sure you're applying for the right one",
+        "For long-term care ABD, your loved one will pay all monthly income except $93 Personal Needs Allowance toward care costs, this is called Patient Liability",
+        "Home equity protection is NOT automatic, it only applies if a spouse, child under 21, or permanently disabled child lives in the home",
         "Working disabled adults (MEAD/MOAD programs) have higher income and asset limits than other ABD categories, but specific amounts vary"
       ],
       "relatedPrograms": [
@@ -145,32 +145,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, if a spouse, child under 21, or permanently blind/disabled child lives in the home — it's automatically exempt regardless of value. If your parent lives alone, the home equity cannot exceed $752,000 in 2026. The home's assessed value doesn't matter, only the equity (value minus mortgage debt)."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, if a spouse, child under 21, or permanently blind/disabled child lives in the home, it's automatically exempt regardless of value. If your loved one lives alone, the home equity cannot exceed $752,000 in 2026. The home's assessed value doesn't matter, only the equity (value minus mortgage debt)."
         },
         {
           "question": "What's the difference between the various ABD programs?",
           "answer": "Aid to the Needy Blind serves blind individuals, APTD covers permanently disabled adults, MOAD helps working disabled adults 65+, and Choices for Independence provides home-based long-term care. Each has different income limits, asset rules, and benefits. Contact DHHS at 1-800-852-3345 ext. 9700 to determine which applies to your situation."
         },
         {
-          "question": "How much of my parent's income will go toward care costs?",
-          "answer": "For long-term care ABD programs, your parent keeps only $93 per month for personal needs, plus Medicare premiums and potentially a spouse's needs allowance. All other income goes toward care costs — this is called Patient Liability and can be substantial."
+          "question": "How much of my loved one's income will go toward care costs?",
+          "answer": "For long-term care ABD programs, your loved one keeps only $93 per month for personal needs, plus Medicare premiums and potentially a spouse's needs allowance. All other income goes toward care costs, this is called Patient Liability and can be substantial."
         },
         {
           "question": "Can I apply for multiple ABD programs at the same time?",
           "answer": "You typically apply for the ABD category that fits your situation, not multiple programs simultaneously. However, you may qualify for regular Medicaid and long-term care services together. DHHS will determine all programs you're eligible for during the application process."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "ABD Medicaid requires annual renewal, and you must report significant changes in income, assets, or care needs within 10 days. For long-term care programs, reassessments determine if your parent still meets Nursing Facility Level of Care requirements."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "ABD Medicaid requires annual renewal, and you must report significant changes in income, assets, or care needs within 10 days. For long-term care programs, reassessments determine if your loved one still meets Nursing Facility Level of Care requirements."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Yes, adult children can apply for their parents, but you'll need legal documentation such as power of attorney or guardianship papers. Include these documents with your application to show you're authorized to act on your parent's behalf."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Yes, adult children can apply for their loved ones, but you'll need legal documentation such as power of attorney or guardianship papers. Include these documents with your application to show you're authorized to act on your loved one's behalf."
         },
         {
-          "question": "Should we apply if my parent has too much income or assets?",
-          "answer": "Yes — New Hampshire recommends applying anyway. There are income disregards, asset exemptions, and spend-down options that aren't obvious. For example, the state applies a $5,000 asset disregard above the federal limit, and medical expenses can reduce countable income."
+          "question": "Should we apply if my loved one has too much income or assets?",
+          "answer": "Yes, New Hampshire recommends applying anyway. There are income disregards, asset exemptions, and spend-down options that aren't obvious. For example, the state applies a $5,000 asset disregard above the federal limit, and medical expenses can reduce countable income."
         },
         {
           "question": "How long does the application process really take?",
@@ -208,7 +208,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing home, New Hampshire's Choices for Independence (CFI) Waiver provides care coordination, case management, and home-based services. Your parent must qualify medically for nursing home placement and meet Medicaid financial guidelines.\n\nBecause this is a Medicaid waiver program, one care coordinator manages all services — you won't need to coordinate between multiple providers. Services are tailored to your parent's assessed needs and may include personal care, home modifications, respite care, and other supports that help them remain safely at home.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of moving to a nursing home, New Hampshire's Choices for Independence (CFI) Waiver provides care coordination, case management, and home-based services. Your loved one must qualify medically for nursing home placement and meet Medicaid financial guidelines.\n\nBecause this is a Medicaid waiver program, one care coordinator manages all services, you won't need to coordinate between multiple providers. Services are tailored to your loved one's assessed needs and may include personal care, home modifications, respite care, and other supports that help them remain safely at home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -222,7 +222,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "18+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must meet nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must meet nursing home level of care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "New Hampshire resident",
           "In need of services to live safely at home",
@@ -232,7 +232,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at NHEasy.NH.gov or call ServiceLink at 1-866-634-9412 — processing time varies by case complexity.",
+        "summary": "Apply online at NHEasy.NH.gov or call ServiceLink at 1-866-634-9412, processing time varies by case complexity.",
         "steps": [
           {
             "step": 1,
@@ -247,7 +247,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Medical assessment",
-            "description": "A clinical team will assess whether your parent meets nursing home level of care requirements through medical records review and functional evaluation."
+            "description": "A clinical team will assess whether your loved one meets nursing home level of care requirements through medical records review and functional evaluation."
           },
           {
             "step": 4,
@@ -255,9 +255,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, you'll be assigned to a case management agency. You can request a specific agency. The care coordinator will assess needs and develop a service plan."
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and medical assessment requirements",
+        "processingTime": "Not specified, varies by case complexity and medical assessment requirements",
         "waitlist": null,
-        "tip": "Start gathering medical records early — the nursing home level of care determination requires detailed documentation of your parent's functional needs.",
+        "tip": "Start gathering medical records early, the nursing home level of care determination requires detailed documentation of your loved one's functional needs.",
         "urls": [
           {
             "label": "Online Application",
@@ -306,10 +306,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Financial eligibility follows Medicaid long-term care guidelines, which may be stricter than standard Medicaid — confirm current income and asset limits with DHHS",
-        "You can request assignment to a specific case management agency after approval — ask about agencies serving your area",
-        "If your parent doesn't qualify, ADRC counselors will help identify alternative services and supports",
-        "Services are based on assessed needs and local provider availability — the same assessment may result in different services depending on your region"
+        "Financial eligibility follows Medicaid long-term care guidelines, which may be stricter than standard Medicaid, confirm current income and asset limits with DHHS",
+        "You can request assignment to a specific case management agency after approval, ask about agencies serving your area",
+        "If your loved one doesn't qualify, ADRC counselors will help identify alternative services and supports",
+        "Services are based on assessed needs and local provider availability, the same assessment may result in different services depending on your region"
       ],
       "relatedPrograms": [
         "New Hampshire Medicaid",
@@ -319,15 +319,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than typical Medicaid limits?",
-          "answer": "Yes, the primary residence is typically exempt from Medicaid asset limits regardless of value, as long as your parent lives in it or intends to return. However, there may be equity caps — confirm current rules with DHHS at 603-271-9700."
+          "question": "Can my loved one keep their house if it's worth more than typical Medicaid limits?",
+          "answer": "Yes, the primary residence is typically exempt from Medicaid asset limits regardless of value, as long as your loved one lives in it or intends to return. However, there may be equity caps, confirm current rules with DHHS at 603-271-9700."
         },
         {
-          "question": "What if my parent needs nursing home care but the CFI Waiver has no openings?",
-          "answer": "Your parent can receive nursing home care through regular Medicaid while waiting for a CFI Waiver opening. ServiceLink counselors at 1-866-634-9412 can help coordinate interim services and keep your application active."
+          "question": "What if my loved one needs nursing home care but the CFI Waiver has no openings?",
+          "answer": "Your loved one can receive nursing home care through regular Medicaid while waiting for a CFI Waiver opening. ServiceLink counselors at 1-866-634-9412 can help coordinate interim services and keep your application active."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, family members can apply on behalf of parents who cannot manage their own affairs. You may need power of attorney or guardianship documentation. The DHHS office will guide you through authorized representative procedures."
         },
         {
@@ -335,16 +335,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Ask ServiceLink about agencies serving your area, their specialties, and current capacity. Some focus on specific conditions like dementia or have shorter wait times for services."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
+          "question": "What happens if my loved one's needs change after enrollment?",
           "answer": "The care coordinator reassesses needs regularly and can adjust services. If needs increase significantly, they may recommend nursing home placement. If needs decrease, services can be reduced while maintaining waiver enrollment."
         },
         {
-          "question": "Can my parent have other insurance and still use CFI Waiver services?",
+          "question": "Can my loved one have other insurance and still use CFI Waiver services?",
           "answer": "Yes, Medicare and private insurance are used first for covered services. CFI Waiver covers services not paid by other insurance and provides care coordination that ties everything together."
         },
         {
-          "question": "What if my parent's income is slightly over Medicaid limits?",
-          "answer": "New Hampshire may have spend-down options or qualified income trusts for people over income limits. Discuss options with a ServiceLink counselor at 1-866-634-9412 — don't assume your parent won't qualify."
+          "question": "What if my loved one's income is slightly over Medicaid limits?",
+          "answer": "New Hampshire may have spend-down options or qualified income trusts for people over income limits. Discuss options with a ServiceLink counselor at 1-866-634-9412, don't assume your loved one won't qualify."
         },
         {
           "question": "How quickly can services start after approval?",
@@ -369,14 +369,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-comprehensive-care",
       "name": "NH PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "PACE",
-      "tagline": "All-inclusive medical and social care under one team — if your parent needs nursing home-level care but can live safely at home.",
+      "tagline": "All-inclusive medical and social care under one team, if your loved one needs nursing home-level care but can live safely at home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay at home, PACE provides everything under one roof: primary care, specialists, nursing, therapy, personal care, transportation, meals, medications, and adult day services. Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one interdisciplinary team manages everything with no deductibles or copays.\n\nNew Hampshire does not currently have any operational PACE programs. The state has discussed bringing PACE to NH, but no providers are licensed yet. If your parent needs comprehensive care coordination now, you'll need to explore other options or consider PACE programs in neighboring states if your parent could relocate to their service areas.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay at home, PACE provides everything under one roof: primary care, specialists, nursing, therapy, personal care, transportation, meals, medications, and adult day services. Because PACE covers all medical care under one program, your loved one won't need to coordinate between separate providers, one interdisciplinary team manages everything with no deductibles or copays.\n\nNew Hampshire does not currently have any operational PACE programs. The state has discussed bringing PACE to NH, but no providers are licensed yet. If your loved one needs comprehensive care coordination now, you'll need to explore other options or consider PACE programs in neighboring states if your loved one could relocate to their service areas.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care service",
       "savingsVerified": false,
@@ -390,7 +390,7 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must require Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities that would typically require nursing home placement)",
+        "functionalRequirement": "Must require Nursing Facility Level of Care (a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other activities that would typically require nursing home placement)",
         "otherRequirements": [
           "Must be able to live safely in the community with PACE services",
           "Must live within 30-45 minutes of a PACE center",
@@ -400,7 +400,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "PACE is not currently available in New Hampshire — no providers are operational yet.",
+        "summary": "PACE is not currently available in New Hampshire, no providers are operational yet.",
         "steps": [
           {
             "step": 1,
@@ -410,7 +410,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Consider neighboring states",
-            "description": "If your parent could relocate, research PACE programs in Massachusetts, Vermont, or Maine. Visit https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE to find operational programs."
+            "description": "If your loved one could relocate, research PACE programs in Massachusetts, Vermont, or Maine. Visit https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE to find operational programs."
           },
           {
             "step": 3,
@@ -418,8 +418,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "Contact ServiceLink at (866) 634-9412 to discuss NH waiver programs, home care services, or other comprehensive care options while waiting for PACE availability."
           }
         ],
-        "processingTime": "Not applicable — program not operational in NH",
-        "waitlist": "Unknown — depends on when NH launches PACE and provider capacity",
+        "processingTime": "Not applicable, program not operational in NH",
+        "waitlist": "Unknown, depends on when NH launches PACE and provider capacity",
         "tip": "If PACE becomes available in NH, enrollment may be limited initially. Get on interest lists early with potential providers.",
         "urls": [
           {
@@ -454,10 +454,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "New Hampshire has no PACE programs currently — families cannot enroll today",
+        "New Hampshire has no PACE programs currently, families cannot enroll today",
         "PACE requires living within 30-45 minutes of a center, so availability will be geographically limited even when launched",
-        "Once enrolled in PACE, you must use PACE providers except for emergencies — out-of-network care may not be covered",
-        "Private pay premiums for non-Medicaid participants can be substantial — exact NH costs unknown until programs launch"
+        "Once enrolled in PACE, you must use PACE providers except for emergencies, out-of-network care may not be covered",
+        "Private pay premiums for non-Medicaid participants can be substantial, exact NH costs unknown until programs launch"
       ],
       "relatedPrograms": [
         "NH Medicaid Home and Community-Based Waiver",
@@ -473,23 +473,23 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can we apply to a PACE program in Massachusetts or Vermont instead?",
-          "answer": "Only if your parent moves to that state and lives within the PACE center's service area (typically 30-45 minutes drive time). You cannot commute from NH to another state's PACE program — residency in the service area is required."
+          "answer": "Only if your loved one moves to that state and lives within the PACE center's service area (typically 30-45 minutes drive time). You cannot commute from NH to another state's PACE program, residency in the service area is required."
         },
         {
           "question": "What's the difference between PACE and regular home care services?",
           "answer": "PACE provides all medical care (doctors, specialists, hospital, prescriptions) plus social services under one team with no copays. Regular home care typically covers personal care only, and you still coordinate separately with doctors, specialists, and pay Medicare/insurance copays."
         },
         {
-          "question": "How do I know if my parent would qualify for Nursing Facility Level of Care?",
-          "answer": "If your parent needs daily help with bathing, dressing, medication management, or has cognitive impairment requiring supervision, they may qualify. Contact ServiceLink at (866) 634-9412 for a preliminary assessment — they can evaluate this need for other NH programs."
+          "question": "How do I know if my loved one would qualify for Nursing Facility Level of Care?",
+          "answer": "If your loved one needs daily help with bathing, dressing, medication management, or has cognitive impairment requiring supervision, they may qualify. Contact ServiceLink at (866) 634-9412 for a preliminary assessment, they can evaluate this need for other NH programs."
         },
         {
-          "question": "If my parent has Medicare and some savings, would PACE cost anything?",
+          "question": "If my loved one has Medicare and some savings, would PACE cost anything?",
           "answer": "For Medicaid-eligible participants, PACE is free. For Medicare-only participants with income/assets above Medicaid limits, there's a monthly premium that can be substantial. Exact NH rates are unknown since no programs exist yet."
         },
         {
-          "question": "Can my parent keep their current doctors if they join PACE?",
-          "answer": "No. PACE operates as a 'lock-in' program — all care must go through the PACE team except for emergencies. This is why PACE works best for people who need care coordination and are willing to change providers for comprehensive service."
+          "question": "Can my loved one keep their current doctors if they join PACE?",
+          "answer": "No. PACE operates as a 'lock-in' program, all care must go through the PACE team except for emergencies. This is why PACE works best for people who need care coordination and are willing to change providers for comprehensive service."
         }
       ],
       "layoutIntent": {
@@ -510,14 +510,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Cut your parent's Medicare costs by up to $4,000+ per year if their income is under $1,660/month.",
+      "tagline": "Cut your loved one's Medicare costs by up to $4,000+ per year if their income is under $1,660/month.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your parent struggles with Medicare premiums, deductibles, and copays, New Hampshire's Medicare Savings Programs can dramatically reduce these costs. Because these programs are tiered by income, your parent might qualify for full coverage of Medicare costs (QMB tier: saves $4,000+ annually) or just premium help (SLMB/QI tiers: saves $2,435 annually on Part B premiums).\n\nNew Hampshire offers a $13 monthly income disregard that many families miss — this means your parent can earn up to $1,660 monthly as a single person and still qualify for the highest tier. Because these programs automatically trigger Extra Help for prescription drug costs, your parent gets additional Medicare Part D savings without separate applications.",
+      "intro": "If your loved one struggles with Medicare premiums, deductibles, and copays, New Hampshire's Medicare Savings Programs can dramatically reduce these costs. Because these programs are tiered by income, your loved one might qualify for full coverage of Medicare costs (QMB tier: saves $4,000+ annually) or just premium help (SLMB/QI tiers: saves $2,435 annually on Part B premiums).\n\nNew Hampshire offers a $13 monthly income disregard that many families miss, this means your loved one can earn up to $1,660 monthly as a single person and still qualify for the highest tier. Because these programs automatically trigger Extra Help for prescription drug costs, your loved one gets additional Medicare Part D savings without separate applications.",
       "savingsRange": "$2,435 – $4,000+/year in 2026",
       "savingsSource": "Part B premiums ($2,435 annually) plus deductibles and copays for QMB tier",
       "savingsVerified": true,
@@ -563,7 +563,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through New Hampshire Medicaid — processing time not specified by state.",
+        "summary": "Apply through New Hampshire Medicaid, processing time not specified by state.",
         "steps": [
           {
             "step": 1,
@@ -578,17 +578,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Complete the Medicaid application through DHHS — multiple submission methods likely available (online, phone, mail, in-person)."
+            "description": "Complete the Medicaid application through DHHS, multiple submission methods likely available (online, phone, mail, in-person)."
           },
           {
             "step": 4,
             "title": "Wait for income tier determination",
-            "description": "DHHS will determine which tier your parent qualifies for based on their income level and notify you of approval."
+            "description": "DHHS will determine which tier your loved one qualifies for based on their income level and notify you of approval."
           }
         ],
         "processingTime": "Processing time not specified by New Hampshire",
         "waitlist": "QI tier may have funding limits with first-come, first-served priority",
-        "tip": "Mention the $13 unearned income disregard when applying — many families miss this New Hampshire-specific benefit that can bump your parent into a better tier.",
+        "tip": "Mention the $13 unearned income disregard when applying, many families miss this New Hampshire-specific benefit that can bump your loved one into a better tier.",
         "urls": [
           {
             "label": "New Hampshire DHHS Medicaid",
@@ -623,9 +623,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "New Hampshire's $13 unearned income disregard is often overlooked — this can make the difference between tiers and save thousands annually",
-        "QI tier (SLMB-135) may have limited funding, so apply as early in the year as possible if your parent's income is in the 120-135% FPL range",
-        "Providers cannot bill QMB beneficiaries for Medicare cost-sharing, but ensure your parent's providers know about their QMB status to avoid billing errors",
+        "New Hampshire's $13 unearned income disregard is often overlooked, this can make the difference between tiers and save thousands annually",
+        "QI tier (SLMB-135) may have limited funding, so apply as early in the year as possible if your loved one's income is in the 120-135% FPL range",
+        "Providers cannot bill QMB beneficiaries for Medicare cost-sharing, but ensure your loved one's providers know about their QMB status to avoid billing errors",
         "Automatic Extra Help eligibility for prescription drugs is a major additional benefit that many families don't realize comes with these programs"
       ],
       "relatedPrograms": [
@@ -637,25 +637,25 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "tier-comparison",
           "title": "Three Tiers Based on Income",
-          "content": "**QMB (up to $1,235 single/$1,663 married)**: Covers ALL Medicare costs — Part A premiums (up to $565/month if applicable), Part A deductible ($1,736 per benefit period), Part A copays, Part B premium ($202.90/month), Part B deductible ($283/year), and Part B 20% coinsurance.\n\n**SLMB ($1,235-$1,478 single/$1,663-$1,992 married)**: Covers Part B premiums only ($202.90/month in 2026).\n\n**QI ($1,478-$1,660 single/$1,992-$2,239 married)**: Covers Part B premiums only, but funding may be limited with first-come priority."
+          "content": "**QMB (up to $1,235 single/$1,663 married)**: Covers ALL Medicare costs, Part A premiums (up to $565/month if applicable), Part A deductible ($1,736 per benefit period), Part A copays, Part B premium ($202.90/month), Part B deductible ($283/year), and Part B 20% coinsurance.\n\n**SLMB ($1,235-$1,478 single/$1,663-$1,992 married)**: Covers Part B premiums only ($202.90/month in 2026).\n\n**QI ($1,478-$1,660 single/$1,992-$2,239 married)**: Covers Part B premiums only, but funding may be limited with first-come priority."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limits?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limits?",
           "answer": "Yes. The primary residence is exempt from the $9,090 individual/$13,630 couple asset limits. Only additional real estate, retirement accounts, and savings count toward the limits."
         },
         {
-          "question": "What happens if my parent's income is right at the border between tiers?",
-          "answer": "New Hampshire disregards the first $13 of unearned income (like Social Security), which could bump your parent into a better tier. A single person earning $1,248 in Social Security would qualify for QMB because $1,248 - $13 = $1,235."
+          "question": "What happens if my loved one's income is right at the border between tiers?",
+          "answer": "New Hampshire disregards the first $13 of unearned income (like Social Security), which could bump your loved one into a better tier. A single person earning $1,248 in Social Security would qualify for QMB because $1,248 - $13 = $1,235."
         },
         {
-          "question": "Will my parent automatically get Extra Help for prescriptions?",
-          "answer": "Yes. All three Medicare Savings Program tiers automatically qualify your parent for Extra Help (Low-Income Subsidy) for Medicare Part D prescription costs. No separate application needed."
+          "question": "Will my loved one automatically get Extra Help for prescriptions?",
+          "answer": "Yes. All three Medicare Savings Program tiers automatically qualify your loved one for Extra Help (Low-Income Subsidy) for Medicare Part D prescription costs. No separate application needed."
         },
         {
-          "question": "Can providers still bill my parent if they have QMB coverage?",
-          "answer": "No. Providers cannot bill QMB beneficiaries for any Medicare-covered cost-sharing. If your parent receives bills for Medicare copays or deductibles, contact the provider immediately to inform them of QMB status."
+          "question": "Can providers still bill my loved one if they have QMB coverage?",
+          "answer": "No. Providers cannot bill QMB beneficiaries for any Medicare-covered cost-sharing. If your loved one receives bills for Medicare copays or deductibles, contact the provider immediately to inform them of QMB status."
         },
         {
           "question": "Is there a waitlist for these programs?",
@@ -663,15 +663,15 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for this and regular Medicaid at the same time?",
-          "answer": "Yes. Medicare Savings Programs are part of the Medicaid application process through New Hampshire DHHS. Your parent may qualify for both programs depending on their income and needs."
+          "answer": "Yes. Medicare Savings Programs are part of the Medicaid application process through New Hampshire DHHS. Your loved one may qualify for both programs depending on their income and needs."
         },
         {
-          "question": "What if my parent's income changes after enrollment?",
-          "answer": "Report income changes to New Hampshire DHHS immediately. Your parent may move between tiers or lose eligibility, but they could also qualify for a better tier if income decreases."
+          "question": "What if my loved one's income changes after enrollment?",
+          "answer": "Report income changes to New Hampshire DHHS immediately. Your loved one may move between tiers or lose eligibility, but they could also qualify for a better tier if income decreases."
         },
         {
-          "question": "Does my parent need to be enrolled in Medicare Parts A and B to apply?",
-          "answer": "Your parent must be eligible for Medicare Parts A and B but doesn't need to be currently enrolled. The savings program can help pay the premiums once they do enroll."
+          "question": "Does my loved one need to be enrolled in Medicare Parts A and B to apply?",
+          "answer": "Your loved one must be eligible for Medicare Parts A and B but doesn't need to be currently enrolled. The savings program can help pay the premiums once they do enroll."
         }
       ],
       "layoutIntent": {
@@ -705,7 +705,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs on a fixed income, SNAP provides monthly benefits loaded onto an EBT card to buy food. Because New Hampshire expanded eligibility beyond federal minimums, your parent may qualify even with income up to $2,608/month for a single person — higher than most states.\n\nBecause many seniors don't realize they qualify, only about 40% of eligible elderly participate. Your parent can use SNAP benefits at grocery stores for most food items, but not hot prepared foods, alcohol, or tobacco. Medical expenses over $35/month count as deductions for seniors, which can significantly boost eligibility.\n\nBecause New Hampshire eliminated asset limits for most households, your parent's savings or home value won't disqualify them unless their income exceeds 200% of federal poverty guidelines and they have more than $4,500 in countable assets.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs on a fixed income, SNAP provides monthly benefits loaded onto an EBT card to buy food. Because New Hampshire expanded eligibility beyond federal minimums, your loved one may qualify even with income up to $2,608/month for a single person, higher than most states.\n\nBecause many seniors don't realize they qualify, only about 40% of eligible elderly participate. Your loved one can use SNAP benefits at grocery stores for most food items, but not hot prepared foods, alcohol, or tobacco. Medical expenses over $35/month count as deductions for seniors, which can significantly boost eligibility.\n\nBecause New Hampshire eliminated asset limits for most households, your loved one's savings or home value won't disqualify them unless their income exceeds 200% of federal poverty guidelines and they have more than $4,500 in countable assets.",
       "savingsRange": "$100 – $400+/month in 2026",
       "savingsSource": "Monthly EBT benefits based on household size and net income",
       "savingsVerified": true,
@@ -770,7 +770,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at NHEasy or call 1-877-347-SNAP — processing takes 30 days, or 7 days for urgent cases.",
+        "summary": "Apply online at NHEasy or call 1-877-347-SNAP, processing takes 30 days, or 7 days for urgent cases.",
         "steps": [
           {
             "step": 1,
@@ -800,7 +800,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Generally 30 days; expedited for urgent cases within 7 days if qualify",
         "waitlist": null,
-        "tip": "Medical expenses over $35/month for seniors count as deductions — gather receipts for prescriptions, insurance premiums, and medical bills.",
+        "tip": "Medical expenses over $35/month for seniors count as deductions, gather receipts for prescriptions, insurance premiums, and medical bills.",
         "urls": [
           {
             "label": "NHEasy Online Application",
@@ -862,36 +862,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get SNAP if they own their home?",
-          "answer": "Yes. Your parent's primary home is completely exempt from asset limits regardless of value. New Hampshire also eliminated asset limits for most households, so home ownership won't affect SNAP eligibility."
+          "question": "Can my loved one get SNAP if they own their home?",
+          "answer": "Yes. Your loved one's primary home is completely exempt from asset limits regardless of value. New Hampshire also eliminated asset limits for most households, so home ownership won't affect SNAP eligibility."
         },
         {
-          "question": "What if my parent's Social Security puts them over the income limit?",
+          "question": "What if my loved one's Social Security puts them over the income limit?",
           "answer": "They may still qualify through the net income test. Medical expenses over $35/month and high shelter costs count as deductions for seniors, which can bring net income below the eligibility threshold even if gross income seems too high."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, you can apply as an authorized representative if your parent gives permission or if you have legal authority through power of attorney or guardianship. You'll need to provide documentation of your authority to act on their behalf."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, you can apply as an authorized representative if your loved one gives permission or if you have legal authority through power of attorney or guardianship. You'll need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "How much in SNAP benefits will my parent actually receive?",
+          "question": "How much in SNAP benefits will my loved one actually receive?",
           "answer": "Benefits depend on net income and household size. Generally, every $100 increase in net monthly income reduces SNAP benefits by about $30. A typical elderly single person might receive $200-400/month, while a couple could receive $300-600/month."
         },
         {
-          "question": "What grocery items can my parent buy with SNAP benefits?",
+          "question": "What grocery items can my loved one buy with SNAP benefits?",
           "answer": "Most food items including fresh produce, meat, dairy, bread, cereals, and seeds for growing food. SNAP cannot be used for hot prepared foods, alcohol, tobacco, vitamins, household supplies, or pet food."
         },
         {
-          "question": "Can my parent apply for SNAP and LIHEAP energy assistance at the same time?",
+          "question": "Can my loved one apply for SNAP and LIHEAP energy assistance at the same time?",
           "answer": "Yes, these are separate programs and applying for one doesn't affect the other. Both use NHEasy online system, so you can often apply for multiple benefits in one session."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved for SNAP?",
+          "question": "What happens if my loved one's income changes after they're approved for SNAP?",
           "answer": "Report income changes to DHHS within 10 days. Benefits will be recalculated based on the new income. If income increases significantly, benefits may be reduced or stopped, but if income drops, benefits may increase."
         },
         {
-          "question": "How quickly can my parent start using SNAP benefits after approval?",
-          "answer": "The EBT card typically arrives by mail within 7-10 days of approval. Benefits are loaded monthly on the same day each month based on the last digit of your parent's case number."
+          "question": "How quickly can my loved one start using SNAP benefits after approval?",
+          "answer": "The EBT card typically arrives by mail within 7-10 days of approval. Benefits are loaded monthly on the same day each month based on the last digit of your loved one's case number."
         }
       ],
       "layoutIntent": {
@@ -912,7 +912,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "Get $94 to $2,177 toward your parent's heating bills if their income is under $3,967/month.",
+      "tagline": "Get $94 to $2,177 toward your loved one's heating bills if their income is under $3,967/month.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -937,7 +937,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills on a fixed income, LIHEAP can provide $94 to $2,177 toward their annual heating costs. Because this program pays vendors directly, your parent never handles the money — payments go straight to their oil, gas, or electric company. The program prioritizes seniors, disabled adults, and households with young children under 6.\n\nIncome limits are higher than many programs: $3,967/month for a single person, $5,187 for two people (2025). Because LIHEAP includes everyone at the address on the same utility bill as one household, roommate situations can affect eligibility even if your parent doesn't share expenses with them.\n\nApplications open July 30, 2025 for the heating season, but priority groups (elderly and disabled) can submit pre-applications starting July 1. Because funding runs out each year, apply as early as possible through your regional Community Action Agency.",
+      "intro": "If your loved one struggles to pay heating bills on a fixed income, LIHEAP can provide $94 to $2,177 toward their annual heating costs. Because this program pays vendors directly, your loved one never handles the money, payments go straight to their oil, gas, or electric company. The program prioritizes seniors, disabled adults, and households with young children under 6.\n\nIncome limits are higher than many programs: $3,967/month for a single person, $5,187 for two people (2025). Because LIHEAP includes everyone at the address on the same utility bill as one household, roommate situations can affect eligibility even if your loved one doesn't share expenses with them.\n\nApplications open July 30, 2025 for the heating season, but priority groups (elderly and disabled) can submit pre-applications starting July 1. Because funding runs out each year, apply as early as possible through your regional Community Action Agency.",
       "savingsRange": "$94 – $2,177/year in 2025",
       "savingsSource": "Direct heating assistance payments to energy vendors",
       "savingsVerified": true,
@@ -986,7 +986,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Community Action Agency to schedule an intake appointment — processing time varies but funds are limited each season.",
+        "summary": "Call your regional Community Action Agency to schedule an intake appointment, processing time varies but funds are limited each season.",
         "steps": [
           {
             "step": 1,
@@ -996,7 +996,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Submit pre-application if priority eligible",
-            "description": "If your parent is elderly, disabled, or has young children under 6, submit pre-application starting July 1, 2025. All others can start September 1, 2025."
+            "description": "If your loved one is elderly, disabled, or has young children under 6, submit pre-application starting July 1, 2025. All others can start September 1, 2025."
           },
           {
             "step": 3,
@@ -1011,12 +1011,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Receive vendor payment",
-            "description": "If approved, payments go directly to your parent's heating vendor — oil company, gas utility, or electric company."
+            "description": "If approved, payments go directly to your loved one's heating vendor, oil company, gas utility, or electric company."
           }
         ],
-        "processingTime": "Not specified — apply early as funds are limited each season",
+        "processingTime": "Not specified, apply early as funds are limited each season",
         "waitlist": null,
-        "tip": "Apply immediately when your priority window opens — funding is distributed first-come, first-served until depleted each heating season.",
+        "tip": "Apply immediately when your priority window opens, funding is distributed first-come, first-served until depleted each heating season.",
         "urls": [
           {
             "label": "NH Department of Energy LIHEAP Info",
@@ -1067,9 +1067,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority households (elderly, disabled, families with children under 6) can submit pre-applications starting July 1, while others wait until September 1",
-        "Everyone living at your parent's address counts as the household if they're on the same utility bill, even if they don't share expenses",
+        "Everyone living at your loved one's address counts as the household if they're on the same utility bill, even if they don't share expenses",
         "Emergency crisis assistance is available year-round for heating emergencies like shutoffs or broken furnaces, up to $2,177",
-        "Payments never go to your parent — all assistance is paid directly to the heating vendor or utility company"
+        "Payments never go to your loved one, all assistance is paid directly to the heating vendor or utility company"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1080,35 +1080,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they have a roommate who isn't related to them?",
+          "question": "Can my loved one apply if they have a roommate who isn't related to them?",
           "answer": "Yes, but everyone at the address counts as one household if they're on the same utility bill, even if they don't share expenses. This affects the income calculation and household size determination. The total household income cannot exceed the limit for the total number of people living there."
         },
         {
-          "question": "What if my parent's heating company won't accept LIHEAP payments?",
-          "answer": "Most heating vendors in New Hampshire accept LIHEAP payments, but if yours doesn't, contact your Community Action Agency immediately. They can help resolve vendor issues or find alternative solutions. Don't let this delay your application — apply first and resolve vendor problems during processing."
+          "question": "What if my loved one's heating company won't accept LIHEAP payments?",
+          "answer": "Most heating vendors in New Hampshire accept LIHEAP payments, but if yours doesn't, contact your Community Action Agency immediately. They can help resolve vendor issues or find alternative solutions. Don't let this delay your application, apply first and resolve vendor problems during processing."
         },
         {
-          "question": "Can my parent get both regular heating assistance and emergency crisis help in the same year?",
-          "answer": "Yes, if your parent qualifies for regular seasonal heating assistance, they can still receive emergency crisis assistance up to $2,177 if they face a heating emergency like a shutoff or broken furnace. Crisis assistance is available year-round, not just during heating season."
+          "question": "Can my loved one get both regular heating assistance and emergency crisis help in the same year?",
+          "answer": "Yes, if your loved one qualifies for regular seasonal heating assistance, they can still receive emergency crisis assistance up to $2,177 if they face a heating emergency like a shutoff or broken furnace. Crisis assistance is available year-round, not just during heating season."
         },
         {
           "question": "How early should we apply when the season opens?",
-          "answer": "Apply immediately when your window opens — priority groups on July 1 for pre-applications, others September 1, with full applications starting July 30, 2025. Funding is distributed first-come, first-served until depleted. Many agencies run out of funds before winter ends."
+          "answer": "Apply immediately when your window opens, priority groups on July 1 for pre-applications, others September 1, with full applications starting July 30, 2025. Funding is distributed first-come, first-served until depleted. Many agencies run out of funds before winter ends."
         },
         {
           "question": "Does LIHEAP assistance count as income for other programs like Medicaid or SNAP?",
-          "answer": "No, LIHEAP payments do not count as income for other federal benefit programs. Because payments go directly to heating vendors, your parent never receives cash that could affect other program eligibility."
+          "answer": "No, LIHEAP payments do not count as income for other federal benefit programs. Because payments go directly to heating vendors, your loved one never receives cash that could affect other program eligibility."
         },
         {
-          "question": "What happens if my parent moves to a different county in New Hampshire during the heating season?",
-          "answer": "Contact the Community Action Agency in your parent's new county immediately. They'll need to transfer the case or reapply through the new regional agency. Don't assume coverage automatically transfers — each county has its own Community Action Agency with separate funding."
+          "question": "What happens if my loved one moves to a different county in New Hampshire during the heating season?",
+          "answer": "Contact the Community Action Agency in your loved one's new county immediately. They'll need to transfer the case or reapply through the new regional agency. Don't assume coverage automatically transfers, each county has its own Community Action Agency with separate funding."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled parents who cannot manage the application themselves. You'll need documentation of your authority to act on their behalf, such as power of attorney papers. Discuss this with the intake worker when you call to schedule the appointment."
         },
         {
-          "question": "What if my parent's income varies month to month because of part-time work or irregular Social Security?",
+          "question": "What if my loved one's income varies month to month because of part-time work or irregular Social Security?",
           "answer": "Provide documentation for the most recent 30 days of income as requested. If income varies significantly, the agency may ask for additional months to calculate an average. Be prepared to explain any unusual income fluctuations during your intake appointment."
         }
       ],
@@ -1130,7 +1130,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP",
-      "tagline": "Free energy-saving home improvements that can cut your parent's heating bills by hundreds of dollars each year.",
+      "tagline": "Free energy-saving home improvements that can cut your loved one's heating bills by hundreds of dollars each year.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1151,7 +1151,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills and qualifies for fuel assistance, they may be eligible for free home weatherization services. Because the Weatherization Assistance Program covers all energy-saving improvements at no cost, your parent could see significant reductions in monthly utility bills without any upfront investment.\n\nThe program provides a comprehensive energy audit followed by improvements like air sealing, insulation, LED bulbs, low-flow devices, and potentially even heating system repairs or refrigerator replacement. Because services are determined by what will be most cost-effective for your parent's specific home, the improvements are tailored to deliver maximum energy savings.\n\nYou must first qualify through New Hampshire's Fuel Assistance Program (FAP) or Electric Assistance Program (EAP) — typically at or below 200% of Federal Poverty Guidelines. Priority goes to elderly households, disabled individuals, families with young children, and those with high energy burdens.",
+      "intro": "If your loved one struggles with high heating bills and qualifies for fuel assistance, they may be eligible for free home weatherization services. Because the Weatherization Assistance Program covers all energy-saving improvements at no cost, your loved one could see significant reductions in monthly utility bills without any upfront investment.\n\nThe program provides a comprehensive energy audit followed by improvements like air sealing, insulation, LED bulbs, low-flow devices, and potentially even heating system repairs or refrigerator replacement. Because services are determined by what will be most cost-effective for your loved one's specific home, the improvements are tailored to deliver maximum energy savings.\n\nYou must first qualify through New Hampshire's Fuel Assistance Program (FAP) or Electric Assistance Program (EAP), typically at or below 200% of Federal Poverty Guidelines. Priority goes to elderly households, disabled individuals, families with young children, and those with high energy burdens.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1177,7 +1177,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your regional Community Action Partnership when applying for fuel assistance — answer 'YES' to the weatherization question.",
+        "summary": "Apply through your regional Community Action Partnership when applying for fuel assistance, answer 'YES' to the weatherization question.",
         "steps": [
           {
             "step": 1,
@@ -1192,7 +1192,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Get landlord permission if renting",
-            "description": "If your parent rents, obtain written permission from the landlord before scheduling the energy audit."
+            "description": "If your loved one rents, obtain written permission from the landlord before scheduling the energy audit."
           },
           {
             "step": 4,
@@ -1202,7 +1202,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Review audit recommendations",
-            "description": "The auditor will assess what improvements are most cost-effective and meet health/safety standards for your parent's home."
+            "description": "The auditor will assess what improvements are most cost-effective and meet health/safety standards for your loved one's home."
           },
           {
             "step": 6,
@@ -1253,7 +1253,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You cannot apply directly for weatherization — you must first qualify through Fuel Assistance or Electric Assistance programs",
+        "You cannot apply directly for weatherization, you must first qualify through Fuel Assistance or Electric Assistance programs",
         "Renters need landlord cooperation throughout the process, not just initial permission",
         "Homes with major structural problems must be repaired before weatherization services can begin",
         "Previous weatherization work after September 1994 typically disqualifies a home from new services"
@@ -1266,8 +1266,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's landlord refuses to give permission?",
-          "answer": "Renters must have landlord permission to receive weatherization services. Try explaining that the improvements increase property value at no cost to the landlord. If they still refuse, your parent cannot participate in the program."
+          "question": "What if my loved one's landlord refuses to give permission?",
+          "answer": "Renters must have landlord permission to receive weatherization services. Try explaining that the improvements increase property value at no cost to the landlord. If they still refuse, your loved one cannot participate in the program."
         },
         {
           "question": "Can we apply for weatherization if our home was improved years ago?",
@@ -1279,11 +1279,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much will this actually save on heating bills?",
-          "answer": "Savings vary by home size, condition, and current energy efficiency. The energy audit will provide specific projections for your parent's home based on recommended improvements."
+          "answer": "Savings vary by home size, condition, and current energy efficiency. The energy audit will provide specific projections for your loved one's home based on recommended improvements."
         },
         {
-          "question": "Can my parent apply for both fuel assistance and weatherization at the same time?",
-          "answer": "Yes — in fact, you must apply for fuel assistance first. Answer 'YES' to weatherization interest on the fuel assistance application to be considered for both programs."
+          "question": "Can my loved one apply for both fuel assistance and weatherization at the same time?",
+          "answer": "Yes, in fact, you must apply for fuel assistance first. Answer 'YES' to weatherization interest on the fuel assistance application to be considered for both programs."
         },
         {
           "question": "What if we live in an apartment building?",
@@ -1321,7 +1321,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand benefits, compare plans, and avoid overpaying. Because SHIP counselors are trained volunteers with no financial stake in your decisions, they can give unbiased advice about Medicare Part A/B, Part D prescription coverage, Medigap supplements, and Medicare Advantage plans.\n\nSHIP is available to all Medicare beneficiaries and their families regardless of income. The service includes help with Medicare Savings Programs that could lower your parent's costs, prescription assistance programs, and referrals to other benefits they might qualify for. Counseling is confidential and no personal information is shared unless you request it.",
+      "intro": "If your loved one has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help you understand benefits, compare plans, and avoid overpaying. Because SHIP counselors are trained volunteers with no financial stake in your decisions, they can give unbiased advice about Medicare Part A/B, Part D prescription coverage, Medigap supplements, and Medicare Advantage plans.\n\nSHIP is available to all Medicare beneficiaries and their families regardless of income. The service includes help with Medicare Savings Programs that could lower your loved one's costs, prescription assistance programs, and referrals to other benefits they might qualify for. Counseling is confidential and no personal information is shared unless you request it.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1357,7 +1357,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Gather Medicare information",
-            "description": "Have your parent's Medicare card and current insurance information ready if discussing specific enrollment or plan changes."
+            "description": "Have your loved one's Medicare card and current insurance information ready if discussing specific enrollment or plan changes."
           }
         ],
         "processingTime": "Immediate counseling available by phone during business hours",
@@ -1394,11 +1394,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can SHIP help me enroll my parent in a Medicare plan?",
+          "question": "Can SHIP help me enroll my loved one in a Medicare plan?",
           "answer": "SHIP counselors explain your options and guide you through the process, but they don't handle enrollments directly. They'll help you compare plans and refer you to the right place to enroll, whether that's Medicare.gov, the insurance company, or another agency."
         },
         {
-          "question": "My parent has both Medicare and Medicaid. Can SHIP still help?",
+          "question": "My loved one has both Medicare and Medicaid. Can SHIP still help?",
           "answer": "Yes, SHIP counselors understand dual eligibility and can explain how Medicare and Medicaid work together. They can also help you understand Special Needs Plans (SNPs) designed specifically for people with both programs."
         },
         {
@@ -1449,7 +1449,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to shop for groceries or prepare meals, Meals on Wheels delivers nutritionally balanced meals directly to their home — typically one meal per weekday (5 meals per week). The meals are certified by dietitians and designed to help your parent maintain independence while getting proper nutrition.\n\nUnlike many programs, there are no income limits for adults 60+. Your parent only needs to be homebound or have difficulty leaving home safely, shopping, or preparing meals. Because each county operates its own program through local nonprofits, you must confirm your parent lives within a specific provider's delivery zone.\n\nThe biggest gotcha: this program is not statewide. If your parent lives outside a provider's service area — even by a few miles — they cannot receive meals. Some areas also have waitlists that can extend weeks or months depending on demand.",
+      "intro": "If your loved one is 60+ and struggles to shop for groceries or prepare meals, Meals on Wheels delivers nutritionally balanced meals directly to their home, typically one meal per weekday (5 meals per week). The meals are certified by dietitians and designed to help your loved one maintain independence while getting proper nutrition.\n\nUnlike many programs, there are no income limits for adults 60+. Your loved one only needs to be homebound or have difficulty leaving home safely, shopping, or preparing meals. Because each county operates its own program through local nonprofits, you must confirm your loved one lives within a specific provider's delivery zone.\n\nThe biggest gotcha: this program is not statewide. If your loved one lives outside a provider's service area, even by a few miles, they cannot receive meals. Some areas also have waitlists that can extend weeks or months depending on demand.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1472,12 +1472,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local provider directly through the Meals on Wheels NH website or call their regional number — processing typically takes within a week if no waitlist.",
+        "summary": "Contact your local provider directly through the Meals on Wheels NH website or call their regional number, processing typically takes within a week if no waitlist.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Visit https://mealsonwheelsnh.org or https://www.mealsonwheelsamerica.org/find-meals-and-services/ to locate the provider serving your parent's address. Each county has different organizations."
+            "description": "Visit https://mealsonwheelsnh.org or https://www.mealsonwheelsamerica.org/find-meals-and-services/ to locate the provider serving your loved one's address. Each county has different organizations."
           },
           {
             "step": 2,
@@ -1487,7 +1487,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete intake assessment",
-            "description": "The provider will assess your parent's needs, living situation, dietary restrictions, and emergency contacts. Some programs require a physician referral for applicants under 60."
+            "description": "The provider will assess your loved one's needs, living situation, dietary restrictions, and emergency contacts. Some programs require a physician referral for applicants under 60."
           },
           {
             "step": 4,
@@ -1495,9 +1495,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Once approved, the provider will coordinate delivery times and any special dietary accommodations. Meals typically arrive on weekdays during morning or lunch hours."
           }
         ],
-        "processingTime": "Varies by provider — some within a week, longer if waitlist exists",
+        "processingTime": "Varies by provider, some within a week, longer if waitlist exists",
         "waitlist": "Possible depending on program and local demand",
-        "tip": "Contact your parent's Area Agency on Aging first rather than national websites — they handle local applications and can tell you immediately if service is available in that address.",
+        "tip": "Contact your loved one's Area Agency on Aging first rather than national websites, they handle local applications and can tell you immediately if service is available in that address.",
         "urls": [
           {
             "label": "Meals on Wheels New Hampshire",
@@ -1539,10 +1539,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Living even slightly outside a provider's delivery zone means no service — confirm your parent's exact address is covered before applying",
-        "Car ownership or ability to leave home easily may disqualify your parent, as the program prioritizes truly homebound individuals",
-        "Spouses may be eligible for meals even if they don't meet age requirements — ask the local provider about household eligibility",
-        "If your parent is under 60, they'll need physician documentation of disability and may face income limits that don't apply to older adults"
+        "Living even slightly outside a provider's delivery zone means no service, confirm your loved one's exact address is covered before applying",
+        "Car ownership or ability to leave home easily may disqualify your loved one, as the program prioritizes truly homebound individuals",
+        "Spouses may be eligible for meals even if they don't meet age requirements, ask the local provider about household eligibility",
+        "If your loved one is under 60, they'll need physician documentation of disability and may face income limits that don't apply to older adults"
       ],
       "relatedPrograms": [
         "SNAP (Food Benefits)",
@@ -1552,35 +1552,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get meals if they live just outside the official service area?",
-          "answer": "No. Each provider has strict geographic boundaries, often by county or specific towns. Even living a few miles outside the zone means no service. Check the exact address with the local provider before applying — this is the most common reason people can't access the program."
+          "question": "Can my loved one get meals if they live just outside the official service area?",
+          "answer": "No. Each provider has strict geographic boundaries, often by county or specific towns. Even living a few miles outside the zone means no service. Check the exact address with the local provider before applying, this is the most common reason people can't access the program."
         },
         {
-          "question": "What if my parent can still drive but has trouble cooking?",
-          "answer": "This depends on the local provider's assessment. Some accept difficulty with meal preparation alone, while others require true homebound status. Be honest about your parent's specific limitations during the intake assessment — many providers also offer congregate dining or grab-and-go options for people who can still leave home."
+          "question": "What if my loved one can still drive but has trouble cooking?",
+          "answer": "This depends on the local provider's assessment. Some accept difficulty with meal preparation alone, while others require true homebound status. Be honest about your loved one's specific limitations during the intake assessment, many providers also offer congregate dining or grab-and-go options for people who can still leave home."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "It varies dramatically by region and season. Some providers can start service within a week, while others have waitlists lasting months. Winter months typically have longer waits due to higher demand. Ask about current wait times when you call, and consider asking to be notified if someone cancels service."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, family members can apply on behalf of parents who cannot manage the process themselves. You'll need to provide emergency contacts and may need to be present during the assessment. Some providers also coordinate with healthcare teams for clients with cognitive impairments."
         },
         {
-          "question": "What happens if my parent needs special dietary meals for diabetes or heart conditions?",
+          "question": "What happens if my loved one needs special dietary meals for diabetes or heart conditions?",
           "answer": "Most providers accommodate dietary restrictions and medical needs. During the assessment, provide detailed information about prescribed diets, food allergies, and texture modifications. Meals are certified by dietitians, but availability of specialized meals varies by provider."
         },
         {
-          "question": "Can my parent get meals temporarily while recovering from surgery?",
-          "answer": "Yes, many providers offer temporary service for people recovering from illness, surgery, or medical procedures. These short-term cases are often prioritized over long-term applicants. Hospital discharge planners sometimes help initiate the process before your parent comes home."
+          "question": "Can my loved one get meals temporarily while recovering from surgery?",
+          "answer": "Yes, many providers offer temporary service for people recovering from illness, surgery, or medical procedures. These short-term cases are often prioritized over long-term applicants. Hospital discharge planners sometimes help initiate the process before your loved one comes home."
         },
         {
           "question": "What if there's no Meals on Wheels in our area of New Hampshire?",
-          "answer": "Some rural areas lack coverage. Contact New Hampshire 2-1-1 to ask about alternative meal programs, senior centers with congregate dining, or food delivery services that accept benefit payments. Your parent's Area Agency on Aging may also know about smaller local programs not listed on statewide directories."
+          "answer": "Some rural areas lack coverage. Contact New Hampshire 2-1-1 to ask about alternative meal programs, senior centers with congregate dining, or food delivery services that accept benefit payments. Your loved one's Area Agency on Aging may also know about smaller local programs not listed on statewide directories."
         },
         {
-          "question": "Does my parent's income affect eligibility if they're over 60?",
+          "question": "Does my loved one's income affect eligibility if they're over 60?",
           "answer": "No income limits apply to adults 60+. The program prioritizes functional need (difficulty shopping or cooking) over financial need for seniors. Income limits only apply to adults 18-59 with disabilities who want to access the program early."
         }
       ],
@@ -1602,7 +1602,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "family-caregiver-support",
       "name": "Family Caregiver Support Program",
       "shortName": "Caregiver Support",
-      "tagline": "Free respite care, counseling, and support services for family members caring for aging parents or relatives with disabilities.",
+      "tagline": "Free respite care, counseling, and support services for family members caring for aging loved ones or relatives with disabilities.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1619,7 +1619,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging parent 60+ or a relative with Alzheimer's, you can get free respite care, counseling, and support services through New Hampshire's Family Caregiver Support Program. The program provides temporary breaks from caregiving, support groups, caregiver training, and limited help with home modifications, transportation, and assistive equipment.\n\nNo income limits apply — services are available to all family caregivers regardless of financial situation. Because this program is funded through the Older Americans Act, you access services through regional Aging and Disability Resource Centers statewide rather than applying for benefits directly.\n\nThe program serves different caregiver types: adult children caring for parents 60+, caregivers of people with dementia (must live together), and grandparents 55+ raising grandchildren or caring for disabled adult relatives.",
+      "intro": "If you're caring for an aging loved one 60+ or a relative with Alzheimer's, you can get free respite care, counseling, and support services through New Hampshire's Family Caregiver Support Program. The program provides temporary breaks from caregiving, support groups, caregiver training, and limited help with home modifications, transportation, and assistive equipment.\n\nNo income limits apply, services are available to all family caregivers regardless of financial situation. Because this program is funded through the Older Americans Act, you access services through regional Aging and Disability Resource Centers statewide rather than applying for benefits directly.\n\nThe program serves different caregiver types: adult children caring for parents 60+, caregivers of people with dementia (must live together), and grandparents 55+ raising grandchildren or caring for disabled adult relatives.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1643,7 +1643,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 866-634-9412 — no formal application required.",
+        "summary": "Call the statewide helpline at 866-634-9412, no formal application required.",
         "steps": [
           {
             "step": 1,
@@ -1694,9 +1694,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority is given to caregivers of adults with severe disabilities and certain vulnerable populations",
-        "Respite care availability varies by region — some areas may have immediate openings while others have waiting periods",
+        "Respite care availability varies by region, some areas may have immediate openings while others have waiting periods",
         "Services are delivered through regional providers, so the specific programs available may differ slightly depending on your location",
-        "You can access multiple services simultaneously — for example, respite care, support groups, and caregiver training"
+        "You can access multiple services simultaneously, for example, respite care, support groups, and caregiver training"
       ],
       "relatedPrograms": [
         "Medicaid Consumer Directed Family Care",
@@ -1707,19 +1707,19 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help if my parent doesn't have dementia but needs daily care?",
-          "answer": "Yes, if your parent is 60+ and needs help with at least two activities of daily living (bathing, dressing, eating, toileting, walking, or getting in/out of bed). The program serves all older adult caregiving situations, not just dementia. Call 866-634-9412 to discuss your specific situation."
+          "question": "Can I get help if my loved one doesn't have dementia but needs daily care?",
+          "answer": "Yes, if your loved one is 60+ and needs help with at least two activities of daily living (bathing, dressing, eating, toileting, walking, or getting in/out of bed). The program serves all older adult caregiving situations, not just dementia. Call 866-634-9412 to discuss your specific situation."
         },
         {
           "question": "What's the difference between respite care and regular home care?",
-          "answer": "Respite care through this program is temporary relief for you as the caregiver — someone comes to stay with your parent while you take a break, run errands, or attend appointments. It's not ongoing daily care, but rather scheduled breaks to prevent caregiver burnout."
+          "answer": "Respite care through this program is temporary relief for you as the caregiver, someone comes to stay with your loved one while you take a break, run errands, or attend appointments. It's not ongoing daily care, but rather scheduled breaks to prevent caregiver burnout."
         },
         {
           "question": "Can I get financial help paying a family member to provide care?",
           "answer": "No, this program does not provide direct payments to caregivers. It focuses on support services like respite care, counseling, and training. If you need paid family caregiving, ask about Medicaid programs like Consumer Directed Family Care when you call."
         },
         {
-          "question": "What if my parent lives in assisted living — can I still get caregiver support?",
+          "question": "What if my loved one lives in assisted living, can I still get caregiver support?",
           "answer": "Yes, family members providing care to relatives in assisted living can still access support groups, counseling, and caregiver training through this program. However, respite care may not be needed if professional care is already in place."
         },
         {
@@ -1732,11 +1732,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my caregiving situation changes?",
-          "answer": "Services can be adjusted as your needs change. If your parent's condition worsens or improves, or if your own circumstances change, contact your ADRC to reassess and modify your service plan accordingly."
+          "answer": "Services can be adjusted as your needs change. If your loved one's condition worsens or improves, or if your own circumstances change, contact your ADRC to reassess and modify your service plan accordingly."
         },
         {
           "question": "Can I use this program while also receiving other aging services?",
-          "answer": "Yes, caregiver support services can complement other programs your parent may be receiving like Meals on Wheels, senior transportation, or medical services. The ADRC can help coordinate multiple services to avoid duplication."
+          "answer": "Yes, caregiver support services can complement other programs your loved one may be receiving like Meals on Wheels, senior transportation, or medical services. The ADRC can help coordinate multiple services to avoid duplication."
         }
       ],
       "layoutIntent": {
@@ -1770,7 +1770,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work (average 20 hours per week) at community organizations like schools, hospitals, and senior centers. Participants earn at least minimum wage while gaining job training and support to find permanent employment.\n\nBecause SCSEP prioritizes certain groups first — veterans, adults 65+, disabled individuals, and those with limited English or low literacy — your parent may face a waitlist depending on their situation. Income limit: no more than 125% of federal poverty level (varies by household size and updates annually).\n\nThe program is temporary training, not permanent employment. The goal is to help participants transition to unsubsidized jobs in the community.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid work (average 20 hours per week) at community organizations like schools, hospitals, and senior centers. Participants earn at least minimum wage while gaining job training and support to find permanent employment.\n\nBecause SCSEP prioritizes certain groups first, veterans, adults 65+, disabled individuals, and those with limited English or low literacy, your loved one may face a waitlist depending on their situation. Income limit: no more than 125% of federal poverty level (varies by household size and updates annually).\n\nThe program is temporary training, not permanent employment. The goal is to help participants transition to unsubsidized jobs in the community.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1859,7 +1859,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority enrollment is given to veterans and qualified spouses first, then adults 65+, disabled individuals, those with limited English proficiency, low literacy, rural residents, homeless individuals, and those with poor employment prospects",
-        "Income limits are based on total household income at 125% of federal poverty level — check current HHS Poverty Guidelines as they update annually",
+        "Income limits are based on total household income at 125% of federal poverty level, check current HHS Poverty Guidelines as they update annually",
         "This is a temporary training program designed to lead to permanent unsubsidized employment, not long-term community service work",
         "Work assignments are typically at non-profit organizations, schools, hospitals, day-care centers, and senior centers in your community"
       ],
@@ -1871,35 +1871,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're collecting Social Security or pension benefits?",
+          "question": "Can my loved one apply if they're collecting Social Security or pension benefits?",
           "answer": "Yes, as long as their total household income stays at or below 125% of federal poverty level. Social Security and pension income count toward the income limit, but the program allows participants to work part-time while receiving these benefits."
         },
         {
-          "question": "How long can my parent stay in the SCSEP program?",
+          "question": "How long can my loved one stay in the SCSEP program?",
           "answer": "SCSEP is designed as temporary training, not permanent employment. The goal is to help participants gain skills and transition to unsubsidized jobs in the community. Specific time limits vary by individual circumstances and local provider policies."
         },
         {
-          "question": "What if my parent doesn't fall into any priority groups — how long is the waitlist?",
+          "question": "What if my loved one doesn't fall into any priority groups, how long is the waitlist?",
           "answer": "Waitlist times vary by local demand and aren't specified in program guidelines. Priority goes first to veterans/spouses, then adults 65+, disabled individuals, those with limited English, low literacy, rural residents, homeless individuals, and those with poor employment prospects."
         },
         {
-          "question": "Can my parent choose what type of work they do in the program?",
+          "question": "Can my loved one choose what type of work they do in the program?",
           "answer": "Participants are matched with community service positions based on their skills, interests, and available host sites. Common placements include schools, hospitals, day-care centers, and senior centers, but specific assignments depend on local opportunities."
         },
         {
-          "question": "What happens if my parent finds a regular job while in SCSEP?",
+          "question": "What happens if my loved one finds a regular job while in SCSEP?",
           "answer": "That's the program's goal. SCSEP includes job search assistance and is designed to help participants transition to permanent unsubsidized employment. Finding regular work is considered a successful program completion."
         },
         {
-          "question": "Does my parent need specific job skills or education to qualify?",
+          "question": "Does my loved one need specific job skills or education to qualify?",
           "answer": "No specific skills or education requirements are listed. The program is designed for people who want to learn or refresh job skills, regardless of their current skill level or educational background."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "Contact Operation ABLE or call 1-877-872-5627 to discuss application procedures for elderly applicants who may need assistance. Program providers can explain what documentation and authorization might be needed for family members to help with the process."
         },
         {
-          "question": "Will SCSEP work affect my parent's other benefits like Medicaid or SNAP?",
+          "question": "Will SCSEP work affect my loved one's other benefits like Medicaid or SNAP?",
           "answer": "SCSEP earnings count as income for other benefit programs. Because participants earn at least minimum wage for part-time work, this could affect eligibility for income-based programs. Contact each benefit program directly to understand how SCSEP income will impact existing benefits."
         }
       ],
@@ -1934,7 +1934,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal issues like landlord disputes, Medicare appeals, debt collection, or needs help with wills and power of attorney, New Hampshire provides free civil legal services specifically for seniors. Because this program covers everything from housing problems to healthcare appeals under one umbrella, your parent won't need to find separate lawyers for different issues.\n\nThe program prioritizes low-income and isolated seniors but serves all New Hampshire residents age 60+ regardless of income or assets. Services include court representation, advice calls, negotiation with creditors or landlords, and help navigating government benefits appeals.",
+      "intro": "If your loved one is 60+ and facing legal issues like landlord disputes, Medicare appeals, debt collection, or needs help with wills and power of attorney, New Hampshire provides free civil legal services specifically for seniors. Because this program covers everything from housing problems to healthcare appeals under one umbrella, your loved one won't need to find separate lawyers for different issues.\n\nThe program prioritizes low-income and isolated seniors but serves all New Hampshire residents age 60+ regardless of income or assets. Services include court representation, advice calls, negotiation with creditors or landlords, and help navigating government benefits appeals.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2015,16 +2015,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get help even if they have savings or own their home?",
+          "question": "Can my loved one get help even if they have savings or own their home?",
           "answer": "Yes. The program serves all New Hampshire residents age 60+ regardless of income or assets. Low-income and isolated seniors get priority, but services are available to everyone who qualifies by age and has civil legal issues."
         },
         {
           "question": "What types of legal problems can they help with?",
-          "answer": "Civil legal issues only — housing disputes, landlord problems, consumer contracts, debt collection, utility shutoffs, healthcare appeals, Medicare/Medicaid issues, family law, estate planning, wills, and power of attorney. They cannot help with criminal cases."
+          "answer": "Civil legal issues only, housing disputes, landlord problems, consumer contracts, debt collection, utility shutoffs, healthcare appeals, Medicare/Medicaid issues, family law, estate planning, wills, and power of attorney. They cannot help with criminal cases."
         },
         {
-          "question": "Can I call on behalf of my parent?",
-          "answer": "Contact the intake line to discuss your specific situation. Generally, legal aid programs need to speak directly with the client, but they can guide you on how to help your parent access services if they have cognitive or communication challenges."
+          "question": "Can I call on behalf of my loved one?",
+          "answer": "Contact the intake line to discuss your specific situation. Generally, legal aid programs need to speak directly with the client, but they can guide you on how to help your loved one access services if they have cognitive or communication challenges."
         }
       ],
       "layoutIntent": {
@@ -2045,7 +2045,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Care Ombudsman",
-      "tagline": "Free advocate to resolve complaints and protect your parent's rights in nursing homes and assisted living facilities.",
+      "tagline": "Free advocate to resolve complaints and protect your loved one's rights in nursing homes and assisted living facilities.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2058,7 +2058,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a New Hampshire nursing home, assisted living facility, or other long-term care facility, they have a free advocate available when problems arise. The Long-Term Care Ombudsman investigates complaints about care quality, helps resolve conflicts with facility staff, and ensures your parent's rights are protected — all at no cost regardless of income.\n\nThis program covers all types of long-term care facilities in New Hampshire, including nursing homes, assisted living, adult day care, long-term rehabilitation centers, and hospice facilities. Because ombudsmen work independently from facilities and government agencies, they can advocate solely for your parent's interests without conflicts of interest.\n\nServices are completely confidential and available to residents, family members, and facility staff. The program focuses on advocacy and complaint resolution — they don't provide direct medical care or financial assistance, but they can help ensure your parent receives the care and respect they deserve.",
+      "intro": "If your loved one lives in a New Hampshire nursing home, assisted living facility, or other long-term care facility, they have a free advocate available when problems arise. The Long-Term Care Ombudsman investigates complaints about care quality, helps resolve conflicts with facility staff, and ensures your loved one's rights are protected, all at no cost regardless of income.\n\nThis program covers all types of long-term care facilities in New Hampshire, including nursing homes, assisted living, adult day care, long-term rehabilitation centers, and hospice facilities. Because ombudsmen work independently from facilities and government agencies, they can advocate solely for your loved one's interests without conflicts of interest.\n\nServices are completely confidential and available to residents, family members, and facility staff. The program focuses on advocacy and complaint resolution, they don't provide direct medical care or financial assistance, but they can help ensure your loved one receives the care and respect they deserve.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2080,7 +2080,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the toll-free number to discuss your concerns — no forms or application process required.",
+        "summary": "Call the toll-free number to discuss your concerns, no forms or application process required.",
         "steps": [
           {
             "step": 1,
@@ -2095,10 +2095,10 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Ombudsman investigates and advocates",
-            "description": "The ombudsman will work with the facility, your parent, and family members to resolve the issue and ensure proper care standards are met."
+            "description": "The ombudsman will work with the facility, your loved one, and family members to resolve the issue and ensure proper care standards are met."
           }
         ],
-        "processingTime": "Services provided as needed upon contact — no waiting period for complaint resolution to begin",
+        "processingTime": "Services provided as needed upon contact, no waiting period for complaint resolution to begin",
         "waitlist": null,
         "tip": "You can also fax concerns to (603) 271-5574 or visit in person at 129 Pleasant Street in Concord if phone contact isn't convenient.",
         "urls": [
@@ -2132,20 +2132,20 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman without my parent knowing?",
-          "answer": "Yes, services are confidential and you can remain anonymous if needed. However, the ombudsman will likely need to speak with your parent at some point to fully understand the situation and advocate effectively. They will discuss the best approach with you first."
+          "question": "Can I contact the ombudsman without my loved one knowing?",
+          "answer": "Yes, services are confidential and you can remain anonymous if needed. However, the ombudsman will likely need to speak with your loved one at some point to fully understand the situation and advocate effectively. They will discuss the best approach with you first."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "question": "What if the facility retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation is illegal and the ombudsman is specifically trained to prevent and address this. They monitor the situation after complaints are filed and can take additional action if any form of retaliation occurs. Call (800) 442-5640 immediately if you suspect retaliation."
         },
         {
           "question": "Does the ombudsman help with billing disputes or insurance problems?",
-          "answer": "The ombudsman focuses on care quality and resident rights, not financial disputes with facilities or insurance companies. For billing issues, contact NH Legal Aid or your parent's insurance company directly. The ombudsman can help if poor care quality is related to payment disputes."
+          "answer": "The ombudsman focuses on care quality and resident rights, not financial disputes with facilities or insurance companies. For billing issues, contact NH Legal Aid or your loved one's insurance company directly. The ombudsman can help if poor care quality is related to payment disputes."
         },
         {
-          "question": "Can the ombudsman help us choose a good facility before my parent moves in?",
-          "answer": "Yes, ombudsmen can provide information about facilities and help you understand what questions to ask during visits. Call (800) 442-5640 to discuss your parent's needs and get guidance on evaluating potential facilities."
+          "question": "Can the ombudsman help us choose a good facility before my loved one moves in?",
+          "answer": "Yes, ombudsmen can provide information about facilities and help you understand what questions to ask during visits. Call (800) 442-5640 to discuss your loved one's needs and get guidance on evaluating potential facilities."
         }
       ],
       "layoutIntent": {
@@ -2166,7 +2166,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "adult-day-services",
       "name": "Adult Day Services",
       "shortName": "Adult Day Services",
-      "tagline": "Medical day care with nursing supervision to help your parent stay home longer while you work.",
+      "tagline": "Medical day care with nursing supervision to help your loved one stay home longer while you work.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2179,7 +2179,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily medical supervision but doesn't require 24-hour nursing home care, Adult Day Services provides structured medical day care with registered nurses on-site. Your parent gets health monitoring, medication management, therapeutic activities, and meals for at least 4 hours per day while living at home.\n\nThis is a Medicaid-covered service for New Hampshire residents who are at risk of immediate institutionalization without support. Because all services are provided under medical supervision with care plans reviewed every 90 days, your parent receives coordinated health care rather than fragmented services from multiple providers.\n\nTo qualify, your parent must be Medicaid-eligible with income below $2,901/month and assets under $2,500 for a single person. They need a physician referral and physical exam within 60 days of starting services.",
+      "intro": "If your loved one needs daily medical supervision but doesn't require 24-hour nursing home care, Adult Day Services provides structured medical day care with registered nurses on-site. Your loved one gets health monitoring, medication management, therapeutic activities, and meals for at least 4 hours per day while living at home.\n\nThis is a Medicaid-covered service for New Hampshire residents who are at risk of immediate institutionalization without support. Because all services are provided under medical supervision with care plans reviewed every 90 days, your loved one receives coordinated health care rather than fragmented services from multiple providers.\n\nTo qualify, your loved one must be Medicaid-eligible with income below $2,901/month and assets under $2,500 for a single person. They need a physician referral and physical exam within 60 days of starting services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2246,7 +2246,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Provider assessment",
-            "description": "The provider evaluates whether your parent's needs can be safely met at their facility and develops an individualized care plan with physician orders."
+            "description": "The provider evaluates whether your loved one's needs can be safely met at their facility and develops an individualized care plan with physician orders."
           }
         ],
         "processingTime": null,
@@ -2293,7 +2293,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "You must be approved for Medicaid before you can access adult day services - this is not a standalone program",
         "The physician exam and referral must be completed within 60 days of requesting services, so timing matters",
-        "Providers can deny admission if your parent's needs exceed their capacity or pose safety risks to others",
+        "Providers can deny admission if your loved one's needs exceed their capacity or pose safety risks to others",
         "Primary mental illness or intellectual/developmental disabilities are excluded - this program is for medical conditions requiring nursing supervision"
       ],
       "relatedPrograms": [
@@ -2304,36 +2304,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,500 asset limit?",
-          "answer": "Yes, the primary home is exempt from asset limits if your parent intends to return home. This exemption applies regardless of the home's value as long as it remains their primary residence."
+          "question": "Can my loved one keep their house if it's worth more than the $2,500 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits if your loved one intends to return home. This exemption applies regardless of the home's value as long as it remains their primary residence."
         },
         {
-          "question": "What happens if the adult day provider says they can't meet my parent's needs?",
-          "answer": "Providers can legally deny admission if your parent's care needs exceed their capacity or create safety risks. You'll need to find another licensed provider or explore different care options like home health services or nursing home care."
+          "question": "What happens if the adult day provider says they can't meet my loved one's needs?",
+          "answer": "Providers can legally deny admission if your loved one's care needs exceed their capacity or create safety risks. You'll need to find another licensed provider or explore different care options like home health services or nursing home care."
         },
         {
           "question": "Can I apply for adult day services and nursing home Medicaid at the same time?",
           "answer": "Yes, you can apply for both since they use the same Medicaid eligibility criteria. This gives you backup options if adult day services become insufficient or unavailable."
         },
         {
-          "question": "How often does my parent need to see their doctor for this program?",
-          "answer": "The initial physician exam and referral must be within 60 days of starting services. After that, the care plan is reviewed every 90 days, which may require physician input depending on your parent's condition."
+          "question": "How often does my loved one need to see their doctor for this program?",
+          "answer": "The initial physician exam and referral must be within 60 days of starting services. After that, the care plan is reviewed every 90 days, which may require physician input depending on your loved one's condition."
         },
         {
-          "question": "What if my parent's income is too high for regular Medicaid but they need these services?",
-          "answer": "New Hampshire has a Medicaid spend-down program where you can deduct medical expenses to meet the income limit of $2,901/month. Contact DHHS to see if your parent's medical costs qualify for spend-down."
+          "question": "What if my loved one's income is too high for regular Medicaid but they need these services?",
+          "answer": "New Hampshire has a Medicaid spend-down program where you can deduct medical expenses to meet the income limit of $2,901/month. Contact DHHS to see if your loved one's medical costs qualify for spend-down."
         },
         {
-          "question": "Can my parent attend adult day services just one day per week?",
-          "answer": "Yes, the minimum requirement is at least 4 hours per day on a regularly scheduled basis, which can be as little as one day per week. The schedule depends on your parent's care plan and the provider's availability."
+          "question": "Can my loved one attend adult day services just one day per week?",
+          "answer": "Yes, the minimum requirement is at least 4 hours per day on a regularly scheduled basis, which can be as little as one day per week. The schedule depends on your loved one's care plan and the provider's availability."
         },
         {
-          "question": "What happens if my parent's condition gets worse while in adult day services?",
-          "answer": "The care plan is reviewed every 90 days and can be modified if needs change. However, if your parent requires more care than the provider can safely deliver, they may need to transition to a higher level of care like nursing home placement."
+          "question": "What happens if my loved one's condition gets worse while in adult day services?",
+          "answer": "The care plan is reviewed every 90 days and can be modified if needs change. However, if your loved one requires more care than the provider can safely deliver, they may need to transition to a higher level of care like nursing home placement."
         },
         {
-          "question": "If my parent has dementia, does that disqualify them from adult day services?",
-          "answer": "Not necessarily. Dementia with medical complications qualifies, but primary mental illness or developmental disabilities are excluded. The provider will assess whether they can safely manage your parent's specific combination of conditions."
+          "question": "If my loved one has dementia, does that disqualify them from adult day services?",
+          "answer": "Not necessarily. Dementia with medical complications qualifies, but primary mental illness or developmental disabilities are excluded. The provider will assess whether they can safely manage your loved one's specific combination of conditions."
         }
       ],
       "layoutIntent": {
@@ -2354,7 +2354,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "easterseals-in-home-care",
       "name": "Easterseals NH In-Home Care & Health Services",
       "shortName": "Easterseals NH",
-      "tagline": "Professional in-home nursing, personal care, and homemaker services when your parent needs help staying at home safely.",
+      "tagline": "Professional in-home nursing, personal care, and homemaker services when your loved one needs help staying at home safely.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2367,7 +2367,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help with daily tasks like bathing, medication management, or light housekeeping but wants to stay at home, Easterseals NH provides professional in-home care services statewide. They offer nursing services (medication management and health monitoring), personal care assistance (bathing and daily routines), and homemaker services (meal preparation, errands, light cleaning).\n\nUnlike government waiver programs with strict income limits, Easterseals NH accepts multiple payment methods including Medicaid, long-term care insurance, Veterans vouchers, and private pay. Because they create personalized care plans after a home visit, services are tailored to your parent's specific needs rather than following a one-size-fits-all approach.\n\nServices are available statewide but depend on staff availability in your area. The program focuses primarily on the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester regions, though their Caring Companions non-medical program serves the entire state.",
+      "intro": "If your loved one needs help with daily tasks like bathing, medication management, or light housekeeping but wants to stay at home, Easterseals NH provides professional in-home care services statewide. They offer nursing services (medication management and health monitoring), personal care assistance (bathing and daily routines), and homemaker services (meal preparation, errands, light cleaning).\n\nUnlike government waiver programs with strict income limits, Easterseals NH accepts multiple payment methods including Medicaid, long-term care insurance, Veterans vouchers, and private pay. Because they create personalized care plans after a home visit, services are tailored to your loved one's specific needs rather than following a one-size-fits-all approach.\n\nServices are available statewide but depend on staff availability in your area. The program focuses primarily on the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester regions, though their Caring Companions non-medical program serves the entire state.",
       "savingsRange": "",
       "savingsSource": "Service program with various payment options",
       "savingsVerified": false,
@@ -2395,7 +2395,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call for consultation",
-            "description": "Contact Easterseals NH at 603-845-9318 to discuss your parent's needs and schedule a free consultation."
+            "description": "Contact Easterseals NH at 603-845-9318 to discuss your loved one's needs and schedule a free consultation."
           },
           {
             "step": 2,
@@ -2415,7 +2415,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Home visit scheduled after initial contact; specific timeline depends on staff availability",
         "waitlist": "Services subject to staff availability and may have delays in some regions",
-        "tip": "Have information ready about your parent's specific care needs, current medications, and preferred payment method when you call.",
+        "tip": "Have information ready about your loved one's specific care needs, current medications, and preferred payment method when you call.",
         "urls": [
           {
             "label": "Easterseals NH In-Home Care Services",
@@ -2462,14 +2462,14 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "What's the difference between this and a state Medicaid waiver program?",
-          "answer": "Easterseals NH is a private provider that accepts various payment methods, including Medicaid, insurance, and private pay. Unlike state waiver programs with strict income limits and long waitlists, you can start services once staff availability allows, regardless of your parent's income if paying privately or through insurance."
+          "answer": "Easterseals NH is a private provider that accepts various payment methods, including Medicaid, insurance, and private pay. Unlike state waiver programs with strict income limits and long waitlists, you can start services once staff availability allows, regardless of your loved one's income if paying privately or through insurance."
         },
         {
-          "question": "How much will this cost if my parent doesn't qualify for Medicaid?",
-          "answer": "Costs vary based on services needed and payment method. The program accepts long-term care insurance, Veterans vouchers, and private pay. You'll receive specific pricing during the home visit assessment based on your parent's personalized care plan."
+          "question": "How much will this cost if my loved one doesn't qualify for Medicaid?",
+          "answer": "Costs vary based on services needed and payment method. The program accepts long-term care insurance, Veterans vouchers, and private pay. You'll receive specific pricing during the home visit assessment based on your loved one's personalized care plan."
         },
         {
-          "question": "What if there's no staff available in my parent's area?",
+          "question": "What if there's no staff available in my loved one's area?",
           "answer": "Services depend on staff availability and are concentrated in Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester regions. If nursing or personal care isn't available, ask about the statewide Caring Companions program for non-medical support."
         },
         {
@@ -2477,7 +2477,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, you can begin services with private pay or insurance while Medicaid processes, then switch payment methods once approved. Discuss this transition plan during your initial consultation at 603-845-9318."
         },
         {
-          "question": "What happens if my parent's care needs change after we start services?",
+          "question": "What happens if my loved one's care needs change after we start services?",
           "answer": "Care plans are personalized and can be adjusted as needs change. Contact your care coordinator to reassess services, modify schedules, or add new types of support like transitioning from homemaker services to personal care."
         },
         {
@@ -2503,7 +2503,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "caregiver-respite-volunteer-programs",
       "name": "Caregiver Respite and Senior Volunteer Programs",
       "shortName": "Caregiver Respite",
-      "tagline": "Get a break from caregiving with in-home help, adult day programs, or short-term stays for your parent.",
+      "tagline": "Get a break from caregiving with in-home help, adult day programs, or short-term stays for your loved one.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2536,7 +2536,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging parent and need a break, New Hampshire offers respite grants and volunteer programs to give you temporary relief. These services include in-home caregivers hired by agencies for personal care and companionship, adult day programs, and emergency respite when you face an unexpected crisis. Priority goes to caregivers of adults 55+ with severe disabilities.\n\nThe program operates regionally through local Aging and Disability Resource Centers, with different services available in different parts of the state. Because availability varies by location and beds are limited, you may not get your first choice of provider, but counselors work to find options that fit your family's needs. Some services are funded through state grants, while others are private pay arrangements.",
+      "intro": "If you're caring for an aging loved one and need a break, New Hampshire offers respite grants and volunteer programs to give you temporary relief. These services include in-home caregivers hired by agencies for personal care and companionship, adult day programs, and emergency respite when you face an unexpected crisis. Priority goes to caregivers of adults 55+ with severe disabilities.\n\nThe program operates regionally through local Aging and Disability Resource Centers, with different services available in different parts of the state. Because availability varies by location and beds are limited, you may not get your first choice of provider, but counselors work to find options that fit your family's needs. Some services are funded through state grants, while others are private pay arrangements.",
       "savingsRange": "",
       "savingsSource": "Free service coordination and grant-funded respite",
       "savingsVerified": false,
@@ -2570,7 +2570,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete needs assessment",
-            "description": "The counselor will assess your caregiving situation and your parent's needs to determine what respite services are available in your area."
+            "description": "The counselor will assess your caregiving situation and your loved one's needs to determine what respite services are available in your area."
           },
           {
             "step": 3,
@@ -2645,11 +2645,11 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Both options are available depending on the provider and your needs. In-home respite can range from a few hours per week to 24/7 care. Facilities like St. Teresa offer short-term stays of 3+ days. Adult day programs typically provide daytime care. Your needs assessment will help determine what duration works best for your situation."
         },
         {
-          "question": "Can I choose which caregiver comes to my parent's home?",
-          "answer": "For grant-funded services, the agency hires and assigns caregivers, though you can request specific qualifications or express preferences. Private providers may offer more choice in caregiver selection. All in-home respite workers provide personal care, homemaking, and companionship based on your parent's assessed needs."
+          "question": "Can I choose which caregiver comes to my loved one's home?",
+          "answer": "For grant-funded services, the agency hires and assigns caregivers, though you can request specific qualifications or express preferences. Private providers may offer more choice in caregiver selection. All in-home respite workers provide personal care, homemaking, and companionship based on your loved one's assessed needs."
         },
         {
-          "question": "What happens if my parent doesn't qualify for priority services?",
+          "question": "What happens if my loved one doesn't qualify for priority services?",
           "answer": "Priority goes to caregivers of adults 55+ with severe disabilities, but all unpaid family caregivers are encouraged to explore options. Even if you don't get priority, you may still access services based on availability. The assessment process will identify what programs might work for your family's specific situation."
         }
       ],
@@ -2671,7 +2671,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "americorps-senior-companion",
       "name": "AmeriCorps Senior Companion Program (NH)",
       "shortName": "Senior Companion",
-      "tagline": "Your parent can earn $3/hour helping homebound adults while gaining insurance coverage and meaningful work",
+      "tagline": "Your loved one can earn $3/hour helping homebound adults while gaining insurance coverage and meaningful work",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2688,7 +2688,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and earns less than $25,760/year (single) or $34,840/year (couple), they can join New Hampshire's AmeriCorps Senior Companion Program. Because this combines volunteer work with income support, your parent earns $3/hour tax-free while providing companionship to homebound adults — plus mileage reimbursement, accident insurance, and paid holidays.\n\nYour parent would visit isolated seniors Monday through Friday, 8:30am–4:30pm, providing conversation and friendship (not housekeeping or personal care). Because companions must commit to at least 10 hours per week, this works best for parents who want structured social interaction and modest supplemental income. The program operates in 7 New Hampshire counties with 70 current volunteers statewide.",
+      "intro": "If your loved one is 55+ and earns less than $25,760/year (single) or $34,840/year (couple), they can join New Hampshire's AmeriCorps Senior Companion Program. Because this combines volunteer work with income support, your loved one earns $3/hour tax-free while providing companionship to homebound adults, plus mileage reimbursement, accident insurance, and paid holidays.\n\nYour loved one would visit isolated seniors Monday through Friday, 8:30am–4:30pm, providing conversation and friendship (not housekeeping or personal care). Because companions must commit to at least 10 hours per week, this works best for parents who want structured social interaction and modest supplemental income. The program operates in 7 New Hampshire counties with 70 current volunteers statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2712,7 +2712,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call (603) 225-3295 to speak with the Program Coordinator — no forms needed to start.",
+        "summary": "Call (603) 225-3295 to speak with the Program Coordinator, no forms needed to start.",
         "steps": [
           {
             "step": 1,
@@ -2732,7 +2732,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Out-of-pocket medical expenses may be deducted from income to meet eligibility standards — bring documentation if your parent's income is slightly over the limit.",
+        "tip": "Out-of-pocket medical expenses may be deducted from income to meet eligibility standards, bring documentation if your loved one's income is slightly over the limit.",
         "urls": [
           {
             "label": "Manchester Senior Services",
@@ -2777,20 +2777,20 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Will the $3/hour stipend affect my parent's Social Security or other benefits?",
-          "answer": "The stipend is tax-free and non-reportable, so it should not affect Social Security, SNAP, or housing assistance. However, confirm this with your benefits administrator before enrolling, especially if your parent receives SSI or Medicaid with strict income limits."
+          "question": "Will the $3/hour stipend affect my loved one's Social Security or other benefits?",
+          "answer": "The stipend is tax-free and non-reportable, so it should not affect Social Security, SNAP, or housing assistance. However, confirm this with your benefits administrator before enrolling, especially if your loved one receives SSI or Medicaid with strict income limits."
         },
         {
-          "question": "What if my parent doesn't feel comfortable driving clients in their car?",
-          "answer": "Transportation of clients is required, and companions must have their own reliable vehicle with required auto insurance coverage. If your parent cannot drive clients safely, this program may not be suitable — contact Kathleen Stuart at (603) 225-3295 to discuss alternatives."
+          "question": "What if my loved one doesn't feel comfortable driving clients in their car?",
+          "answer": "Transportation of clients is required, and companions must have their own reliable vehicle with required auto insurance coverage. If your loved one cannot drive clients safely, this program may not be suitable, contact Kathleen Stuart at (603) 225-3295 to discuss alternatives."
         },
         {
-          "question": "Can my parent choose which days and hours to volunteer?",
-          "answer": "Visits are only available Monday through Friday, 8:30am–4:30pm, with a minimum 10-hour weekly commitment. The Program Coordinator will work with your parent to arrange a schedule that fits within these parameters and matches them with compatible clients."
+          "question": "Can my loved one choose which days and hours to volunteer?",
+          "answer": "Visits are only available Monday through Friday, 8:30am–4:30pm, with a minimum 10-hour weekly commitment. The Program Coordinator will work with your loved one to arrange a schedule that fits within these parameters and matches them with compatible clients."
         },
         {
           "question": "What counties does this program cover in New Hampshire?",
-          "answer": "The program operates in Belknap, Grafton, Hillsborough, Merrimack, Rockingham, Strafford, and Sullivan counties. Contact (603) 225-3295 to confirm availability in your parent's specific area and current volunteer openings."
+          "answer": "The program operates in Belknap, Grafton, Hillsborough, Merrimack, Rockingham, Strafford, and Sullivan counties. Contact (603) 225-3295 to confirm availability in your loved one's specific area and current volunteer openings."
         }
       ],
       "layoutIntent": {
@@ -2824,7 +2824,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in Dublin, Fitzwilliam, Greenfield, Hancock, Harrisville, Jaffrey, Marlborough, New Ipswich, Peterborough, Rindge, Sharon, or Temple, they can access a comprehensive support network designed to help them stay in their home safely. Monadnock at Home provides one phone number for multiple services: volunteers for basic home maintenance, vetted home health aides, grocery and medication delivery, transportation to medical appointments, and regular check-in calls.\n\nThe program operates as a membership-based service with a nominal fee, connecting seniors to pre-screened local providers and volunteers. Because all services coordinate through one central contact, your parent won't need to manage multiple provider relationships or wonder who to call when they need help with everything from changing a lightbulb to finding reliable pet care.\n\nThe service area is limited to 12 towns in the Monadnock Region, and the program partners with local entities like Monadnock Community Hospital to ensure comprehensive care coordination.",
+      "intro": "If your loved one lives in Dublin, Fitzwilliam, Greenfield, Hancock, Harrisville, Jaffrey, Marlborough, New Ipswich, Peterborough, Rindge, Sharon, or Temple, they can access a comprehensive support network designed to help them stay in their home safely. Monadnock at Home provides one phone number for multiple services: volunteers for basic home maintenance, vetted home health aides, grocery and medication delivery, transportation to medical appointments, and regular check-in calls.\n\nThe program operates as a membership-based service with a nominal fee, connecting seniors to pre-screened local providers and volunteers. Because all services coordinate through one central contact, your loved one won't need to manage multiple provider relationships or wonder who to call when they need help with everything from changing a lightbulb to finding reliable pet care.\n\nThe service area is limited to 12 towns in the Monadnock Region, and the program partners with local entities like Monadnock Community Hospital to ensure comprehensive care coordination.",
       "savingsRange": "",
       "savingsSource": "Membership-based service with nominal fee",
       "savingsVerified": false,
@@ -2852,7 +2852,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Check your town",
-            "description": "Confirm your parent lives in one of these 12 towns: Dublin, Fitzwilliam, Greenfield, Hancock, Harrisville, Jaffrey, Marlborough, New Ipswich, Peterborough, Rindge, Sharon, or Temple."
+            "description": "Confirm your loved one lives in one of these 12 towns: Dublin, Fitzwilliam, Greenfield, Hancock, Harrisville, Jaffrey, Marlborough, New Ipswich, Peterborough, Rindge, Sharon, or Temple."
           },
           {
             "step": 2,
@@ -2903,7 +2903,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This is not a free government program — membership requires a nominal fee that is not income-tested",
+        "This is not a free government program, membership requires a nominal fee that is not income-tested",
         "Service availability depends on volunteer capacity and vetted provider networks in your specific town",
         "Transportation services focus on medical appointments and weekly grocery trips, not general errands"
       ],
@@ -2919,20 +2919,20 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The program requires a 'nominal fee' but the exact amount is not published online. Contact Catholic Charities NH through their website form to get current pricing and payment options. The fee is not income-tested, so all members pay the same amount regardless of financial situation."
         },
         {
-          "question": "What if my parent lives in Keene or another nearby town not on the list?",
-          "answer": "Monadnock at Home only serves 12 specific towns east of Mount Monadnock. If your parent lives outside these towns, they won't be eligible for this program. Contact NH ServiceLink at 1-866-634-9412 to find similar aging-in-place services in other areas."
+          "question": "What if my loved one lives in Keene or another nearby town not on the list?",
+          "answer": "Monadnock at Home only serves 12 specific towns east of Mount Monadnock. If your loved one lives outside these towns, they won't be eligible for this program. Contact NH ServiceLink at 1-866-634-9412 to find similar aging-in-place services in other areas."
         },
         {
-          "question": "Can I sign up my parent if they have dementia or can't make their own decisions?",
-          "answer": "The program doesn't specify cognitive requirements for enrollment. Contact Catholic Charities NH to discuss your parent's situation and whether family members can enroll on behalf of someone with cognitive impairment. They may have specific protocols for working with power of attorney or guardianship situations."
+          "question": "Can I sign up my loved one if they have dementia or can't make their own decisions?",
+          "answer": "The program doesn't specify cognitive requirements for enrollment. Contact Catholic Charities NH to discuss your loved one's situation and whether family members can enroll on behalf of someone with cognitive impairment. They may have specific protocols for working with power of attorney or guardianship situations."
         },
         {
-          "question": "How quickly can my parent get help after enrolling?",
-          "answer": "The program doesn't publish response times for different services. Volunteer availability for basic tasks like home maintenance may vary seasonally, while vetted provider services likely have their own scheduling. Ask about typical response times for the specific services your parent needs most when you enroll."
+          "question": "How quickly can my loved one get help after enrolling?",
+          "answer": "The program doesn't publish response times for different services. Volunteer availability for basic tasks like home maintenance may vary seasonally, while vetted provider services likely have their own scheduling. Ask about typical response times for the specific services your loved one needs most when you enroll."
         },
         {
-          "question": "What happens if my parent needs more help than this program provides?",
-          "answer": "Monadnock at Home focuses on helping seniors maintain independence, not providing intensive care. If your parent's needs increase beyond what volunteers and vetted providers can handle, the program can likely help connect you to home health agencies, assisted living facilities, or other care options through their network."
+          "question": "What happens if my loved one needs more help than this program provides?",
+          "answer": "Monadnock at Home focuses on helping seniors maintain independence, not providing intensive care. If your loved one's needs increase beyond what volunteers and vetted providers can handle, the program can likely help connect you to home health agencies, assisted living facilities, or other care options through their network."
         },
         {
           "question": "Does this program work with Medicare or other insurance?",
@@ -2955,12 +2955,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "New Hampshire offers 17 programs to help your aging parent — 13 direct benefits that require qualification and 4 free resources available to everyone. These range from monthly grocery assistance ($100-400+ through SNAP) and heating bill help ($94-2,177 through LIHEAP) to comprehensive medical care under one team (NH PACE) and free in-home respite so you can take a break from caregiving. If your parent is 60+ on a fixed income or needs help with daily activities, multiple programs likely apply — and you can combine them.\n\nMost income-based programs use similar thresholds: around $1,660/month for Medicare savings programs, $3,967/month for heating assistance, with higher limits for programs like Medicaid long-term care. Start with the biggest financial impacts first, then layer in free resources for ongoing support.",
+    "intro": "New Hampshire offers 17 programs to help your aging loved one, 13 direct benefits that require qualification and 4 free resources available to everyone. These range from monthly grocery assistance ($100-400+ through SNAP) and heating bill help ($94-2,177 through LIHEAP) to comprehensive medical care under one team (NH PACE) and free in-home respite so you can take a break from caregiving. If your loved one is 60+ on a fixed income or needs help with daily activities, multiple programs likely apply, and you can combine them.\n\nMost income-based programs use similar thresholds: around $1,660/month for Medicare savings programs, $3,967/month for heating assistance, with higher limits for programs like Medicaid long-term care. Start with the biggest financial impacts first, then layer in free resources for ongoing support.",
     "startHere": [
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
         "programId": "qmb-slmb-qi",
-        "why": "Can save $4,000+ per year on Medicare costs if your parent's income is under $1,660/month."
+        "why": "Can save $4,000+ per year on Medicare costs if your loved one's income is under $1,660/month."
       },
       {
         "name": "Medicaid for Aged, Blind, Disabled (ABD)",
@@ -2975,7 +2975,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
         "programId": "ship-nh",
-        "why": "Free expert help to avoid overpaying for Medicare plans — available to everyone regardless of income."
+        "why": "Free expert help to avoid overpaying for Medicare plans, available to everyone regardless of income."
       }
     ],
     "byNeed": [
@@ -2986,7 +2986,7 @@ export const drafts: PipelineStateDrafts = {
           "NH PACE (Program of All-Inclusive Care for the Elderly)",
           "Easterseals NH In-Home Care & Health Services"
         ],
-        "description": "Programs that provide medical care and daily living support so your parent can remain home safely."
+        "description": "Programs that provide medical care and daily living support so your loved one can remain home safely."
       },
       {
         "need": "Monthly financial assistance",
@@ -3035,10 +3035,10 @@ export const drafts: PipelineStateDrafts = {
       }
     ],
     "quickFacts": [
-      "New Hampshire has no statewide online portal — most benefit applications require calling individual programs or visiting local offices.",
+      "New Hampshire has no statewide online portal, most benefit applications require calling individual programs or visiting local offices.",
       "The Monadnock at Home program serves only 12 specific towns in the Monadnock Region, while other programs are statewide.",
       "Income limits vary widely: $1,660/month for Medicare savings programs, $3,967/month for heating assistance, with asset limits typically under $4,000 for individuals."
     ],
-    "resourcesVsBenefits": "Benefits like SNAP, LIHEAP, and Medicaid require your parent to meet specific income and asset limits — but the payoff can be hundreds or thousands in monthly assistance. Resources like SHIP counseling, legal aid, and ombudsman services are free to all New Hampshire seniors regardless of income, making them your first stop for advice before applying to qualification-based programs."
+    "resourcesVsBenefits": "Benefits like SNAP, LIHEAP, and Medicaid require your loved one to meet specific income and asset limits, but the payoff can be hundreds or thousands in monthly assistance. Resources like SHIP counseling, legal aid, and ombudsman services are free to all New Hampshire seniors regardless of income, making them your first stop for advice before applying to qualification-based programs."
   }
 };

@@ -17,6 +17,9 @@ import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
+import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
+import { getProgramVerifier } from "@/data/benefits-verifiers";
+import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Design atoms — shared visual vocabulary from the state page, adapted
@@ -242,7 +245,7 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
       {limits.exemptAssets && limits.exemptAssets.length > 0 && (
         <div className="pl-11">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">
-            What your parent can keep
+            What doesn't count
           </p>
           <ul className="space-y-1">
             {limits.exemptAssets.map((a, i) => (
@@ -534,99 +537,6 @@ function RenderContentSection({ section }: { section: ContentSection }) {
   }
 
   return null;
-}
-
-// --- Quick Eligibility Check (interactive) ---
-
-function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
-  const [age, setAge] = useState("");
-  const [income, setIncome] = useState("");
-  const [result, setResult] = useState<"likely" | "unlikely" | "maybe" | null>(null);
-
-  const handleCheck = () => {
-    const ageNum = parseInt(age);
-    const incomeNum = parseInt(income.replace(/[,$]/g, ""));
-    if (isNaN(ageNum) || isNaN(incomeNum)) return;
-
-    const ageReq = elig.ageRequirement;
-    let ageOk = true;
-    if (ageReq) {
-      const ageMatch = ageReq.match(/(\d+)\+/);
-      if (ageMatch && ageNum < parseInt(ageMatch[1])) ageOk = false;
-    }
-
-    let incomeOk = true;
-    let incomeUnknown = false;
-    if (elig.incomeTable && elig.incomeTable.length > 0) {
-      const row1 = elig.incomeTable.find((r) => r.householdSize === 1);
-      if (row1 && typeof row1.monthlyLimit === "number") {
-        incomeOk = incomeNum <= row1.monthlyLimit;
-      } else {
-        incomeUnknown = true;
-      }
-    } else {
-      const incomeLine = elig.summary.find((s) => /income|below|\$/i.test(s));
-      if (incomeLine) {
-        const limitMatch = incomeLine.match(/\$[\d,]+/);
-        if (limitMatch) {
-          const limit = parseInt(limitMatch[0].replace(/[,$]/g, ""));
-          incomeOk = incomeNum <= limit;
-        } else { incomeUnknown = true; }
-      } else { incomeUnknown = true; }
-    }
-
-    if (!ageOk) setResult("unlikely");
-    else if (incomeUnknown) setResult("maybe");
-    else if (!incomeOk) setResult("unlikely");
-    else setResult("likely");
-  };
-
-  return (
-    <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
-      <p className="text-xl font-bold text-gray-900 mb-5">Check if you qualify</p>
-      <div className="flex flex-col sm:flex-row gap-3 mb-3">
-        <div className="flex-1">
-          <label htmlFor="elig-age" className="text-sm text-gray-600 mb-1.5 block">Your age</label>
-          <input id="elig-age" type="number" value={age} onChange={(e) => { setAge(e.target.value); setResult(null); }} placeholder="65" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors" />
-        </div>
-        <div className="flex-1">
-          <label htmlFor="elig-income" className="text-sm text-gray-600 mb-1.5 block">Monthly income</label>
-          <input id="elig-income" type="text" value={income} onChange={(e) => { setIncome(e.target.value); setResult(null); }} placeholder="$2,000" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors" />
-        </div>
-        <div className="flex items-end">
-          <button onClick={handleCheck} disabled={!age || !income} className="px-6 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors whitespace-nowrap">Check</button>
-        </div>
-      </div>
-      <p className="text-xs text-gray-400">Rough estimate — not a guarantee.</p>
-      {result === "likely" && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50 border border-emerald-200/50">
-          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" weight="fill" />
-          <div>
-            <p className="text-sm font-medium text-emerald-800">You likely qualify based on age and income.</p>
-            <p className="text-xs text-emerald-600 mt-0.5">Other factors (assets, residency, functional need) also apply. See full details below.</p>
-          </div>
-        </div>
-      )}
-      {result === "unlikely" && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200/50">
-          <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-amber-800">You may not meet the basic age or income requirements.</p>
-            <p className="text-xs text-amber-600 mt-0.5">Some exceptions exist (disability, spend-down). Review the full criteria or call the program directly.</p>
-          </div>
-        </div>
-      )}
-      {result === "maybe" && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 border border-blue-200/50">
-          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-blue-800">We couldn&apos;t determine income limits for this program.</p>
-            <p className="text-xs text-blue-600 mt-0.5">Age looks good. Contact the program directly to confirm income eligibility.</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -946,12 +856,40 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               ) : program.savingsSource === "Free service" ? (
                 <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
               ) : null}
-              <ContentStatusBadge
-                contentStatus={program.contentStatus}
-                draftedAt={program.draftedAt}
-                reviewedAt={program.reviewedAt}
-                className="mt-3"
-              />
+              {(() => {
+                const { author, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
+                const verifiedAt = reviewedAt || program.reviewedAt || program.lastVerifiedDate;
+                return (
+                  <>
+                    {!hasExplicitReview && (
+                      <ContentStatusBadge
+                        contentStatus={program.contentStatus}
+                        draftedAt={program.draftedAt}
+                        reviewedAt={program.reviewedAt}
+                        className="mt-3"
+                      />
+                    )}
+                    <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                      <ReviewerAvatar author={author} />
+                      <span className="text-gray-400">Reviewed by</span>
+                      <Link
+                        href={`/author/${author.slug}`}
+                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        {author.name}
+                      </Link>
+                      {verifiedAt && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className="text-gray-400">
+                            Last verified {formatReviewDate(verifiedAt)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-2">
               <button
@@ -986,14 +924,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           </div>
         ) : (
           <>
-            {/* ─── 2. Quick eligibility check ─── */}
-            {elig && (
-              <section id="overview" className="max-w-3xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
-                <QuickEligibilityCheck elig={elig} />
-              </section>
-            )}
-
-            {/* ─── 3. Intro prose ─── */}
+            {/* ─── 2. Intro prose ─── */}
             {program.intro && (
               <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
                 <div className="text-lg text-gray-600 leading-relaxed space-y-4">

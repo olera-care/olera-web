@@ -6,6 +6,7 @@ import { renderContentToHTML } from "@/lib/render-content";
 import { CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { processArticleHtml } from "@/lib/article-html";
 import { getAuthorByName } from "@/lib/authors";
+import { getBylineRules } from "@/lib/article-byline";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -115,8 +116,6 @@ export default async function TexasArticlePage({
   const authorRole = article.author_role;
   let authorAvatar = article.author_avatar;
   const readingTime = article.reading_time;
-  const publishedAt = article.published_at;
-  const updatedAt = article.updated_at;
   const coverImage = article.cover_image_url;
   const careTypes = (article.care_types ?? []) as CareTypeId[];
   const tags = article.tags ?? [];
@@ -130,7 +129,10 @@ export default async function TexasArticlePage({
   if (!authorAvatar && knownAuthor?.avatar) {
     authorAvatar = knownAuthor.avatar;
   }
-  const verifier = getAuthorByName("Dr. Logan DuBose");
+  // DB-driven reviewer with Dr. Logan DuBose as the default when unset.
+  const reviewerName = article.reviewer_name || "Dr. Logan DuBose";
+  const verifier = getAuthorByName(reviewerName);
+  const byline = getBylineRules({ authorName, reviewerName });
 
   // Render content
   let contentHtml = article.content_html || "";
@@ -159,6 +161,13 @@ export default async function TexasArticlePage({
       name: authorName,
       ...(authorRole && { jobTitle: authorRole }),
     },
+    ...(verifier && {
+      reviewedBy: {
+        "@type": "Person",
+        name: verifier.name,
+        ...(verifier.role && { jobTitle: verifier.role }),
+      },
+    }),
     publisher: {
       "@type": "Organization",
       name: "Olera",
@@ -238,25 +247,32 @@ export default async function TexasArticlePage({
 
             {/* Author / Verifier / Date row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 mb-10">
-              <div className="flex items-center gap-2">
-                {authorAvatar ? (
-                  <img src={authorAvatar} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center">
-                    <span className="text-white text-[10px] font-medium">{authorName.split(" ").map((n) => n[0]).join("")}</span>
-                  </div>
-                )}
-                <span>
-                  <span className="text-gray-400">Written by </span>
-                  {authorSlug ? (
-                    <Link href={`/author/${authorSlug}`} className="font-medium text-gray-700 hover:text-primary-600 transition-colors">{authorName}</Link>
+              {showAuthorCard ? (
+                <div className="flex items-center gap-2">
+                  {authorAvatar ? (
+                    <img src={authorAvatar} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
                   ) : (
-                    <span className="font-medium text-gray-700">{authorName}</span>
+                    <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center">
+                      <span className="text-white text-[10px] font-medium">{authorName.split(" ").map((n) => n[0]).join("")}</span>
+                    </div>
                   )}
+                  <span>
+                    <span className="text-gray-400">Written by </span>
+                    {authorSlug ? (
+                      <Link href={`/author/${authorSlug}`} className="font-medium text-gray-700 hover:text-primary-600 transition-colors">{authorName}</Link>
+                    ) : (
+                      <span className="font-medium text-gray-700">{authorName}</span>
+                    )}
+                  </span>
+                </div>
+              ) : (
+                <span>
+                  <span className="text-gray-400">Published by </span>
+                  <span className="font-medium text-gray-700">Olera team</span>
                 </span>
-              </div>
+              )}
 
-              {verifier && (
+              {verifier && !byline.isSamePerson && (
                 <>
                   <span className="text-gray-300">|</span>
                   <div className="flex items-center gap-2">
@@ -271,9 +287,17 @@ export default async function TexasArticlePage({
                 </>
               )}
 
-              <span className="text-gray-300">|</span>
-              {updatedAt && (
-                <span className="text-gray-400">Updated {formatDate(updatedAt)}</span>
+              {article.published_at && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Published {formatDate(article.published_at)}</span>
+                </>
+              )}
+              {article.reviewed_at && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Verified {formatDate(article.reviewed_at)}</span>
+                </>
               )}
               {readingTime && (
                 <>

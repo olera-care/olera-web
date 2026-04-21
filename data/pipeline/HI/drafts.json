@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and has limited income, Med-QUEST provides comprehensive health coverage including nursing home care, home modifications, and community support services to help them stay safely at home. Because this is Hawaii's Medicaid program for seniors and disabled adults, it covers services that Medicare doesn't — like long-term care and non-medical home supports.\n\nThe program has different categories with different rules. For nursing home care, your parent must contribute nearly all their monthly income toward care costs but keeps coverage. For community-based care, income limits are around $24,826/year for a single person, with asset limits of $2,000. You must also demonstrate that your parent needs nursing home level of care or daily help with activities like bathing, dressing, or medication management.",
+      "intro": "If your loved one is 65+ or disabled and has limited income, Med-QUEST provides comprehensive health coverage including nursing home care, home modifications, and community support services to help them stay safely at home. Because this is Hawaii's Medicaid program for seniors and disabled adults, it covers services that Medicare doesn't, like long-term care and non-medical home supports.\n\nThe program has different categories with different rules. For nursing home care, your loved one must contribute nearly all their monthly income toward care costs but keeps coverage. For community-based care, income limits are around $24,826/year for a single person, with asset limits of $2,000. You must also demonstrate that your loved one needs nursing home level of care or daily help with activities like bathing, dressing, or medication management.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -55,7 +55,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at My Medical Benefits or call 1-877-628-5076 — processing time varies by complexity of case.",
+        "summary": "Apply online at My Medical Benefits or call 1-877-628-5076, processing time varies by complexity of case.",
         "steps": [
           {
             "step": 1,
@@ -65,7 +65,7 @@
           {
             "step": 2,
             "title": "Complete the Med-QUEST application",
-            "description": "Apply online at mybenefits.hawaii.gov or call 1-877-628-5076. If your parent is 65+, disabled, or receives SSI, you'll also need form 1100B."
+            "description": "Apply online at mybenefits.hawaii.gov or call 1-877-628-5076. If your loved one is 65+, disabled, or receives SSI, you'll also need form 1100B."
           },
           {
             "step": 3,
@@ -80,7 +80,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Even if you think your parent's income or assets are too high, apply anyway — the program has exceptions and different pathways that may still qualify them.",
+        "tip": "Even if you think your loved one's income or assets are too high, apply anyway, the program has exceptions and different pathways that may still qualify them.",
         "urls": [
           {
             "label": "My Medical Benefits (primary application site)",
@@ -126,10 +126,10 @@
         }
       ],
       "applicationNotes": [
-        "Asset limits apply differently by age — they apply to seniors and disabled adults but NOT to adults under 65",
-        "Multiple program categories exist with different rules — don't assume one category applies to your situation",
+        "Asset limits apply differently by age, they apply to seniors and disabled adults but NOT to adults under 65",
+        "Multiple program categories exist with different rules, don't assume one category applies to your situation",
         "For long-term care, you must contribute nearly all monthly income to care costs, but this isn't a simple income cutoff",
-        "The 1100B form is specifically required for those 65+, disabled, blind, or receiving SSI/Social Security — don't skip this step"
+        "The 1100B form is specifically required for those 65+, disabled, blind, or receiving SSI/Social Security, don't skip this step"
       ],
       "relatedPrograms": [
         "SNAP (food benefits)",
@@ -140,36 +140,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for Med-QUEST long-term care?",
-          "answer": "Asset limits for Med-QUEST focus on financial assets like bank accounts and investments. The home exemption rules aren't specified in available information, so call 1-877-628-5076 to get specific guidance about real estate and your parent's situation."
+          "question": "Can my loved one keep their house if they qualify for Med-QUEST long-term care?",
+          "answer": "Asset limits for Med-QUEST focus on financial assets like bank accounts and investments. The home exemption rules aren't specified in available information, so call 1-877-628-5076 to get specific guidance about real estate and your loved one's situation."
         },
         {
           "question": "What's the difference between regular Med-QUEST and nursing home Med-QUEST?",
-          "answer": "Regular Med-QUEST has income limits around 138% of Federal Poverty Level ($24,826 for singles). Nursing home Med-QUEST requires your parent to contribute nearly all their monthly income toward care costs but provides comprehensive long-term care coverage. Both require demonstrating medical need."
+          "answer": "Regular Med-QUEST has income limits around 138% of Federal Poverty Level ($24,826 for singles). Nursing home Med-QUEST requires your loved one to contribute nearly all their monthly income toward care costs but provides comprehensive long-term care coverage. Both require demonstrating medical need."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of aging parents who cannot manage the process themselves. You'll need to provide all their documentation and may need to become their authorized representative through the application process."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of aging loved ones who cannot manage the process themselves. You'll need to provide all their documentation and may need to become their authorized representative through the application process."
         },
         {
           "question": "Will Med-QUEST cover care at home or just nursing homes?",
           "answer": "Med-QUEST covers both nursing home care and community-based services including home modifications, non-medical support services, and assisted living residences. The goal is helping seniors stay safely at home when possible."
         },
         {
-          "question": "What if my parent receives Social Security — does that count as income?",
-          "answer": "Yes, Social Security counts as income toward the limits. For nursing home care, your parent would contribute nearly all their Social Security toward care costs. For community-based care, Social Security counts toward the income threshold of approximately $24,826/year for singles."
+          "question": "What if my loved one receives Social Security, does that count as income?",
+          "answer": "Yes, Social Security counts as income toward the limits. For nursing home care, your loved one would contribute nearly all their Social Security toward care costs. For community-based care, Social Security counts toward the income threshold of approximately $24,826/year for singles."
         },
         {
-          "question": "Can my parent have both Medicare and Med-QUEST?",
-          "answer": "Yes, many seniors have both Medicare and Med-QUEST (called dual eligibles). Med-QUEST can help pay Medicare premiums and cover services Medicare doesn't, like long-term care and home modifications. Don't apply through Healthcare.gov if your parent has Medicare — use mybenefits.hawaii.gov instead."
+          "question": "Can my loved one have both Medicare and Med-QUEST?",
+          "answer": "Yes, many seniors have both Medicare and Med-QUEST (called dual eligibles). Med-QUEST can help pay Medicare premiums and cover services Medicare doesn't, like long-term care and home modifications. Don't apply through Healthcare.gov if your loved one has Medicare, use mybenefits.hawaii.gov instead."
         },
         {
           "question": "How long does it take to get approved and start receiving services?",
           "answer": "Processing time varies depending on your case complexity and whether clinical assessments are needed to determine nursing home level of care. Contact 1-877-628-5076 for current processing times and to check your application status."
         },
         {
-          "question": "What happens if my parent's needs change after they're enrolled?",
-          "answer": "Med-QUEST reviews cases periodically and when circumstances change. If your parent's care needs increase or decrease, contact the Med-QUEST Division to report changes and potentially adjust their services or coverage category."
+          "question": "What happens if my loved one's needs change after they're enrolled?",
+          "answer": "Med-QUEST reviews cases periodically and when circumstances change. If your loved one's care needs increase or decrease, contact the Med-QUEST Division to report changes and potentially adjust their services or coverage category."
         }
       ],
       "layoutIntent": {
@@ -190,7 +190,7 @@
       "id": "kupuna-care-program",
       "name": "Kūpuna Care Program",
       "shortName": "Kūpuna Care",
-      "tagline": "If your parent is 60+ in Hawaii and needs daily care help but doesn't qualify for Medicaid, this state program provides attendant care, meals, and transportation.",
+      "tagline": "If your loved one is 60+ in Hawaii and needs daily care help but doesn't qualify for Medicaid, this state program provides attendant care, meals, and transportation.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -207,7 +207,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with daily activities like bathing, dressing, or getting to appointments, but earns too much to qualify for Medicaid, Hawaii's Kūpuna Care Program can provide attendant care, transportation, home-delivered meals, and case management services. The program serves as a safety net for older adults who fall into the gap between Medicaid eligibility and being able to afford private care.\n\nUnlike federal programs with strict income cutoffs, Kūpuna Care uses sliding-scale cost-sharing based on your parent's ability to pay. Services are provided through contracted agencies, not cash payments. The program requires an in-home assessment to determine functional needs and cannot serve anyone already receiving Medicaid or comparable government long-term care services.\n\nPriority goes to those at greatest risk of nursing home placement, with low income, or living in rural areas. Some services may have waitlists depending on county and demand.",
+      "intro": "If your loved one is 60+ and needs help with daily activities like bathing, dressing, or getting to appointments, but earns too much to qualify for Medicaid, Hawaii's Kūpuna Care Program can provide attendant care, transportation, home-delivered meals, and case management services. The program serves as a safety net for older adults who fall into the gap between Medicaid eligibility and being able to afford private care.\n\nUnlike federal programs with strict income cutoffs, Kūpuna Care uses sliding-scale cost-sharing based on your loved one's ability to pay. Services are provided through contracted agencies, not cash payments. The program requires an in-home assessment to determine functional needs and cannot serve anyone already receiving Medicaid or comparable government long-term care services.\n\nPriority goes to those at greatest risk of nursing home placement, with low income, or living in rural areas. Some services may have waitlists depending on county and demand.",
       "savingsRange": "",
       "savingsSource": "Free or sliding-scale service",
       "savingsVerified": false,
@@ -243,12 +243,12 @@
           {
             "step": 2,
             "title": "Complete intake with county agency",
-            "description": "Your county Area Agency on Aging will conduct initial screening and determine if your parent meets basic eligibility requirements."
+            "description": "Your county Area Agency on Aging will conduct initial screening and determine if your loved one meets basic eligibility requirements."
           },
           {
             "step": 3,
             "title": "Schedule in-home assessment",
-            "description": "A trained assessor will visit your parent's home to evaluate functional needs, safety concerns, and care requirements. This assessment determines eligibility and service levels."
+            "description": "A trained assessor will visit your loved one's home to evaluate functional needs, safety concerns, and care requirements. This assessment determines eligibility and service levels."
           },
           {
             "step": 4,
@@ -263,7 +263,7 @@
         ],
         "processingTime": "Processing time varies by county and assessment scheduling availability",
         "waitlist": "Some services may have waitlists. Priority given to those with greatest economic or social need and risk of institutional placement",
-        "tip": "Have employment information ready if you're a working caregiver — there's a separate Kūpuna Caregivers Program for employed family members working 30+ hours per week.",
+        "tip": "Have employment information ready if you're a working caregiver, there's a separate Kūpuna Caregivers Program for employed family members working 30+ hours per week.",
         "urls": [
           {
             "label": "Hawaii ADRC Website",
@@ -306,10 +306,10 @@
         }
       ],
       "applicationNotes": [
-        "Medicaid eligibility is the primary disqualifier — if your parent qualifies for Medicaid long-term care services, they cannot receive Kūpuna Care",
+        "Medicaid eligibility is the primary disqualifier, if your loved one qualifies for Medicaid long-term care services, they cannot receive Kūpuna Care",
         "The program welcomes voluntary contributions to help sustain services for others in the community",
         "Employed caregivers working 30+ hours per week should ask about the separate Kūpuna Caregivers Program which provides up to $70/day in services",
-        "Assessment must be done in the home where your parent lives — facility residents are not eligible"
+        "Assessment must be done in the home where your loved one lives, facility residents are not eligible"
       ],
       "relatedPrograms": [
         "Older Americans Act Title III Services",
@@ -320,36 +320,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they have some assets but don't qualify for Medicaid?",
+          "question": "Can my loved one apply if they have some assets but don't qualify for Medicaid?",
           "answer": "Yes, this is exactly who Kūpuna Care serves. The program fills the gap for older adults who have too much income or assets to qualify for Medicaid but can't afford private long-term care. You'll pay based on a sliding scale according to ability to pay."
         },
         {
-          "question": "What if my parent already receives some Medicare home health services?",
-          "answer": "Medicare home health is generally allowed, but your parent cannot receive comparable government or private home and community-based care services. The assessment team will review all current services to determine if there's any conflict."
+          "question": "What if my loved one already receives some Medicare home health services?",
+          "answer": "Medicare home health is generally allowed, but your loved one cannot receive comparable government or private home and community-based care services. The assessment team will review all current services to determine if there's any conflict."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlist length varies by county, specific services needed, and priority level. Those at greatest risk of nursing home placement, with lowest income, or in rural areas get priority. Contact your county's Area Agency on Aging for current wait times."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can initiate the application process, but your parent must participate in the in-home assessment unless you have legal guardianship or power of attorney for healthcare decisions."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can initiate the application process, but your loved one must participate in the in-home assessment unless you have legal guardianship or power of attorney for healthcare decisions."
         },
         {
-          "question": "What happens if my parent's needs increase after enrollment?",
-          "answer": "The program includes ongoing case management and can adjust services based on changing needs. Contact your assigned case manager to request a reassessment if your parent's functional abilities decline."
+          "question": "What happens if my loved one's needs increase after enrollment?",
+          "answer": "The program includes ongoing case management and can adjust services based on changing needs. Contact your assigned case manager to request a reassessment if your loved one's functional abilities decline."
         },
         {
-          "question": "Can my parent receive both Kūpuna Care and federal Older Americans Act services?",
+          "question": "Can my loved one receive both Kūpuna Care and federal Older Americans Act services?",
           "answer": "Generally yes, since OAA Title III services (like senior centers and information services) are different from the hands-on care services Kūpuna Care provides. The assessment will determine what combination of services is appropriate."
         },
         {
-          "question": "What if my parent lives in an assisted living facility?",
-          "answer": "Your parent cannot live in an adult residential care home, intermediate care facility, or skilled nursing facility to be eligible. However, independent living arrangements or senior housing may be acceptable depending on the level of care provided by the facility."
+          "question": "What if my loved one lives in an assisted living facility?",
+          "answer": "Your loved one cannot live in an adult residential care home, intermediate care facility, or skilled nursing facility to be eligible. However, independent living arrangements or senior housing may be acceptable depending on the level of care provided by the facility."
         },
         {
           "question": "Is there a difference between Kūpuna Care and the Kūpuna Caregivers Program?",
-          "answer": "Yes, they're separate programs. Kūpuna Care provides services directly to your parent. The Kūpuna Caregivers Program provides up to $70/day in services to support employed family caregivers working 30+ hours per week. You may be able to access both."
+          "answer": "Yes, they're separate programs. Kūpuna Care provides services directly to your loved one. The Kūpuna Caregivers Program provides up to $70/day in services to support employed family caregivers working 30+ hours per week. You may be able to access both."
         }
       ],
       "layoutIntent": {
@@ -370,7 +370,7 @@
       "id": "sage-plus-medicare-counseling",
       "name": "Sage PLUS Program (PACE equivalent)",
       "shortName": "Sage PLUS Medicare Counseling",
-      "tagline": "Free one-on-one Medicare counseling to help navigate benefits and coverage decisions for your Hawaii parent.",
+      "tagline": "Free one-on-one Medicare counseling to help navigate benefits and coverage decisions for your Hawaii loved one.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -383,7 +383,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and lives in Hawaii, Sage PLUS provides free, unbiased counseling to help navigate Medicare benefits, supplement options, and health insurance decisions. This is not comprehensive medical care like traditional PACE programs — instead, trained volunteers offer one-on-one guidance on Medicare enrollment, plan comparisons, and benefit questions.\n\nBecause Medicare rules change annually and Hawaii has unique plan options, having an objective counselor can prevent costly mistakes when choosing coverage. The program serves Medicare-eligible individuals, their families, and caregivers statewide through the Hawaii State Health Insurance Assistance Program (SHIP).\n\nYour parent must have Medicare Part A and/or Part B and live in Hawaii to qualify. There are no income or asset limits for the counseling service itself, though some Medicare programs they help with may have financial requirements.",
+      "intro": "If your loved one has Medicare and lives in Hawaii, Sage PLUS provides free, unbiased counseling to help navigate Medicare benefits, supplement options, and health insurance decisions. This is not comprehensive medical care like traditional PACE programs, instead, trained volunteers offer one-on-one guidance on Medicare enrollment, plan comparisons, and benefit questions.\n\nBecause Medicare rules change annually and Hawaii has unique plan options, having an objective counselor can prevent costly mistakes when choosing coverage. The program serves Medicare-eligible individuals, their families, and caregivers statewide through the Hawaii State Health Insurance Assistance Program (SHIP).\n\nYour loved one must have Medicare Part A and/or Part B and live in Hawaii to qualify. There are no income or asset limits for the counseling service itself, though some Medicare programs they help with may have financial requirements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -408,7 +408,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Hawaii SHIP online or by phone — no formal application required for counseling services.",
+        "summary": "Contact Hawaii SHIP online or by phone, no formal application required for counseling services.",
         "steps": [
           {
             "step": 1,
@@ -423,17 +423,17 @@
           {
             "step": 3,
             "title": "Gather Medicare documents",
-            "description": "Before your session, collect your parent's Medicare card, current plan documents, and any specific questions about coverage or costs."
+            "description": "Before your session, collect your loved one's Medicare card, current plan documents, and any specific questions about coverage or costs."
           },
           {
             "step": 4,
             "title": "Attend counseling session",
-            "description": "The counselor will provide objective guidance on Medicare options, help compare plans, and explain benefits — no sales pressure or enrollment required."
+            "description": "The counselor will provide objective guidance on Medicare options, help compare plans, and explain benefits, no sales pressure or enrollment required."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Service availability may vary since it's volunteer-based — contact Hawaii SHIP as early as possible, especially during Medicare open enrollment periods.",
+        "tip": "Service availability may vary since it's volunteer-based, contact Hawaii SHIP as early as possible, especially during Medicare open enrollment periods.",
         "urls": [
           {
             "label": "Hawaii SHIP",
@@ -465,10 +465,10 @@
         }
       ],
       "applicationNotes": [
-        "This is a counseling service, not comprehensive medical care like traditional PACE programs — you'll still need separate healthcare providers",
+        "This is a counseling service, not comprehensive medical care like traditional PACE programs, you'll still need separate healthcare providers",
         "Volunteer-based service means availability may vary by location and time of year",
         "Most helpful during Medicare open enrollment (October 15 - December 7) when plan changes are allowed",
-        "Counselors provide education only — they cannot enroll you in plans or make coverage decisions for you"
+        "Counselors provide education only, they cannot enroll you in plans or make coverage decisions for you"
       ],
       "relatedPrograms": [
         "Hawaii Medicaid",
@@ -483,12 +483,12 @@
           "answer": "Yes, Sage PLUS counselors can explain the differences between available Medicare Advantage plans in Hawaii, compare costs and benefits, and help you understand network restrictions. They cannot recommend specific plans but will provide objective information to help you decide."
         },
         {
-          "question": "What if my parent needs actual medical care, not just Medicare counseling?",
-          "answer": "Sage PLUS only provides counseling and education about Medicare benefits — it's not a healthcare program. For comprehensive medical care similar to traditional PACE, you'll need to explore other Hawaii programs or work with your parent's existing healthcare providers."
+          "question": "What if my loved one needs actual medical care, not just Medicare counseling?",
+          "answer": "Sage PLUS only provides counseling and education about Medicare benefits, it's not a healthcare program. For comprehensive medical care similar to traditional PACE, you'll need to explore other Hawaii programs or work with your loved one's existing healthcare providers."
         },
         {
-          "question": "Can a family member call on behalf of an elderly parent?",
-          "answer": "Yes, family members and caregivers can contact Hawaii SHIP for information and to schedule counseling sessions. However, your parent may need to be present or provide consent for discussions about their specific Medicare coverage and personal information."
+          "question": "Can a family member call on behalf of an elderly loved one?",
+          "answer": "Yes, family members and caregivers can contact Hawaii SHIP for information and to schedule counseling sessions. However, your loved one may need to be present or provide consent for discussions about their specific Medicare coverage and personal information."
         },
         {
           "question": "Is there a cost for Medicare counseling through Sage PLUS?",
@@ -499,7 +499,7 @@
           "answer": "Session length varies based on your needs and questions, but most one-on-one counseling sessions last 30-60 minutes. More complex situations involving multiple Medicare programs may require longer sessions or follow-up meetings."
         },
         {
-          "question": "Can I get help if my parent is already enrolled in Medicare but having problems with coverage?",
+          "question": "Can I get help if my loved one is already enrolled in Medicare but having problems with coverage?",
           "answer": "Yes, Sage PLUS counselors can help with ongoing Medicare questions, coverage problems, billing issues, and understanding benefits even after enrollment. They can also explain appeal processes and help you understand your rights under Medicare."
         }
       ],
@@ -521,7 +521,7 @@
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,095/month",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your loved one's income is under $2,095/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -534,7 +534,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums, deductibles, and copays on a fixed income, Medicare Savings Programs can cover these costs — potentially saving $2,000-4,000 per year. Three tiers exist based on income: QMB (Qualified Medicare Beneficiary) for incomes under $1,550/month covers all Medicare costs including the $202.90 monthly Part B premium, $1,604 Part A deductible, and all copays. SLMB and QI cover the Part B premium only for incomes up to $2,095/month.\n\nBecause Hawaii has higher income limits than the mainland, your parent may qualify even if they wouldn't elsewhere. The program also automatically triggers Extra Help for prescription drug costs. Asset limits are $9,950 for individuals ($14,910 for couples) but don't count the home, one car, or burial plots.\n\nThe QI tier operates first-come, first-served with limited annual funding and requires yearly reapplication — so timing matters if your parent qualifies at that income level.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, and copays on a fixed income, Medicare Savings Programs can cover these costs, potentially saving $2,000-4,000 per year. Three tiers exist based on income: QMB (Qualified Medicare Beneficiary) for incomes under $1,550/month covers all Medicare costs including the $202.90 monthly Part B premium, $1,604 Part A deductible, and all copays. SLMB and QI cover the Part B premium only for incomes up to $2,095/month.\n\nBecause Hawaii has higher income limits than the mainland, your loved one may qualify even if they wouldn't elsewhere. The program also automatically triggers Extra Help for prescription drug costs. Asset limits are $9,950 for individuals ($14,910 for couples) but don't count the home, one car, or burial plots.\n\nThe QI tier operates first-come, first-served with limited annual funding and requires yearly reapplication, so timing matters if your loved one qualifies at that income level.",
       "savingsRange": "$2,434 – $4,200/year in 2026",
       "savingsSource": "Part B premium ($2,434/year) plus deductibles and copays for QMB",
       "savingsVerified": true,
@@ -607,7 +607,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Hawaii's MedQUEST portal at medquest.hawaii.gov or call (808) 587-7500 — processing typically takes 45 days.",
+        "summary": "Apply online through Hawaii's MedQUEST portal at medquest.hawaii.gov or call (808) 587-7500, processing typically takes 45 days.",
         "steps": [
           {
             "step": 1,
@@ -627,12 +627,12 @@
           {
             "step": 4,
             "title": "Follow up on processing",
-            "description": "Processing takes about 45 days. If approved for QMB, providers cannot bill your parent for Medicare copays or deductibles — keep approval letter as proof."
+            "description": "Processing takes about 45 days. If approved for QMB, providers cannot bill your loved one for Medicare copays or deductibles, keep approval letter as proof."
           }
         ],
         "processingTime": "Typically 45 days",
         "waitlist": "QI tier has first-come, first-served funding limits and may have waitlist if annual funds are exhausted",
-        "tip": "QI tier requires annual reapplication, so set a calendar reminder if your parent qualifies at that income level.",
+        "tip": "QI tier requires annual reapplication, so set a calendar reminder if your loved one qualifies at that income level.",
         "urls": [
           {
             "label": "Hawaii MedQUEST Application Portal",
@@ -682,10 +682,10 @@
         }
       ],
       "applicationNotes": [
-        "QI tier funding is limited annually — apply early in the calendar year if your parent's income is in the $1,860-2,095 range",
-        "If approved for QMB, providers cannot balance bill your parent for Medicare costs — keep approval letter as proof of protection",
-        "Automatic Extra Help for prescription drugs is triggered by approval — no separate application needed",
-        "Hawaii's income limits are higher than mainland states, so your parent may qualify even if they wouldn't elsewhere"
+        "QI tier funding is limited annually, apply early in the calendar year if your loved one's income is in the $1,860-2,095 range",
+        "If approved for QMB, providers cannot balance bill your loved one for Medicare costs, keep approval letter as proof of protection",
+        "Automatic Extra Help for prescription drugs is triggered by approval, no separate application needed",
+        "Hawaii's income limits are higher than mainland states, so your loved one may qualify even if they wouldn't elsewhere"
       ],
       "relatedPrograms": [
         "Hawaii Medicaid (Quest Integration)",
@@ -696,27 +696,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home doesn't count toward the $9,950 asset limit regardless of value. Only countable assets like bank accounts, stocks, and bonds matter for qualification."
         },
         {
           "question": "What's the real difference between QMB, SLMB, and QI if they all help with Medicare costs?",
-          "answer": "QMB covers everything — Part B premiums, deductibles, copays, and protects from provider billing. SLMB and QI only cover the $202.90/month Part B premium. QMB provides the most comprehensive coverage but has the lowest income limit."
+          "answer": "QMB covers everything, Part B premiums, deductibles, copays, and protects from provider billing. SLMB and QI only cover the $202.90/month Part B premium. QMB provides the most comprehensive coverage but has the lowest income limit."
         },
         {
           "question": "How long is the waitlist for QI really?",
-          "answer": "QI operates on first-come, first-served annual funding that can be exhausted mid-year. If funds run out, you wait until the next calendar year when funding resets. Apply early in January if your parent's income qualifies for QI."
+          "answer": "QI operates on first-come, first-served annual funding that can be exhausted mid-year. If funds run out, you wait until the next calendar year when funding resets. Apply early in January if your loved one's income qualifies for QI."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "Yes, but you'll need legal documentation like power of attorney or guardianship papers. Include these documents with the application and clearly indicate you're applying as their representative."
         },
         {
-          "question": "Can my parent have Medicare Savings Programs and regular Hawaii Medicaid at the same time?",
-          "answer": "QMB and SLMB can be combined with Medicaid, but QI specifically requires that your parent not be eligible for full Medicaid. The programs are designed to fill gaps for people who don't qualify for comprehensive Medicaid."
+          "question": "Can my loved one have Medicare Savings Programs and regular Hawaii Medicaid at the same time?",
+          "answer": "QMB and SLMB can be combined with Medicaid, but QI specifically requires that your loved one not be eligible for full Medicaid. The programs are designed to fill gaps for people who don't qualify for comprehensive Medicaid."
         },
         {
-          "question": "What happens if my parent's income goes up after they're approved?",
+          "question": "What happens if my loved one's income goes up after they're approved?",
           "answer": "Report income changes to MedQUEST at (808) 587-7500. If income exceeds the limit, they may lose coverage or move to a different tier. QI requires annual reapplication anyway, but QMB and SLMB continue unless circumstances change significantly."
         }
       ],
@@ -738,7 +738,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — Hawaii residents may qualify for food aid even with higher incomes than other states.",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes, Hawaii residents may qualify for food aid even with higher incomes than other states.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -751,7 +751,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling to afford groceries in Hawaii, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at grocery stores. Hawaii has more generous income limits than many states — a single person can earn up to $2,998/month and still qualify, and there's no asset limit for most applicants.\n\nBecause Hawaii recognizes the state's high cost of living, your parent may qualify even if they wouldn't in other states. The program covers groceries, produce, and basic food items but cannot be used for prepared foods, alcohol, or tobacco. Monthly benefit amounts depend on household size and income after deductions, with special deductions available for seniors including medical expenses over $35/month.\n\nMany eligible seniors don't apply because they assume their Social Security or pension income is too high. Hawaii's Broad-Based Categorical Eligibility means traditional federal limits don't apply — it's worth checking even if your parent's income seems borderline.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries in Hawaii, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at grocery stores. Hawaii has more generous income limits than many states, a single person can earn up to $2,998/month and still qualify, and there's no asset limit for most applicants.\n\nBecause Hawaii recognizes the state's high cost of living, your loved one may qualify even if they wouldn't in other states. The program covers groceries, produce, and basic food items but cannot be used for prepared foods, alcohol, or tobacco. Monthly benefit amounts depend on household size and income after deductions, with special deductions available for seniors including medical expenses over $35/month.\n\nMany eligible seniors don't apply because they assume their Social Security or pension income is too high. Hawaii's Broad-Based Categorical Eligibility means traditional federal limits don't apply, it's worth checking even if your loved one's income seems borderline.",
       "savingsRange": "$100 – $300/month in 2026",
       "savingsSource": "Monthly EBT benefits based on household size and income after deductions",
       "savingsVerified": false,
@@ -811,7 +811,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mybenefitshawaii.org — processing typically takes 30 days, or 7 days for urgent cases.",
+        "summary": "Apply online at mybenefitshawaii.org, processing typically takes 30 days, or 7 days for urgent cases.",
         "steps": [
           {
             "step": 1,
@@ -836,7 +836,7 @@
         ],
         "processingTime": "30 days for standard applications, 7 days for expedited cases with very low income or cash on hand",
         "waitlist": null,
-        "tip": "Don't forget to report medical expenses over $35/month — this deduction can significantly increase your parent's monthly benefits.",
+        "tip": "Don't forget to report medical expenses over $35/month, this deduction can significantly increase your loved one's monthly benefits.",
         "urls": [
           {
             "label": "Apply Online",
@@ -887,8 +887,8 @@
       "applicationNotes": [
         "Expedited processing (7 days) is available if your household has less than $150 in monthly income and $100 or less in cash/bank accounts",
         "Medical deductions over $35/month are often overlooked but can significantly increase benefit amounts for seniors",
-        "Hawaii's no-asset-limit rule means your parent can keep their home, car, and reasonable savings without affecting eligibility",
-        "If your parent receives SSI or TANF, they may have categorical eligibility with no income limits at all"
+        "Hawaii's no-asset-limit rule means your loved one can keep their home, car, and reasonable savings without affecting eligibility",
+        "If your loved one receives SSI or TANF, they may have categorical eligibility with no income limits at all"
       ],
       "relatedPrograms": [
         "LIHEAP (Energy Assistance)",
@@ -899,36 +899,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car if they apply for SNAP?",
-          "answer": "Yes. Hawaii uses Broad-Based Categorical Eligibility, which means there's no asset limit for most applicants. Your parent can own their home, vehicles, and reasonable savings without affecting SNAP eligibility. Only income matters for most households."
+          "question": "Can my loved one keep their house and car if they apply for SNAP?",
+          "answer": "Yes. Hawaii uses Broad-Based Categorical Eligibility, which means there's no asset limit for most applicants. Your loved one can own their home, vehicles, and reasonable savings without affecting SNAP eligibility. Only income matters for most households."
         },
         {
-          "question": "What if my parent's Social Security puts them over the income limit?",
-          "answer": "Hawaii's income limit is higher than most states — $2,998/month for a single person (200% of federal poverty level). Even if gross income is higher, seniors can qualify through net income after deductions like medical expenses over $35/month, housing costs, and a 20% deduction on earned income."
+          "question": "What if my loved one's Social Security puts them over the income limit?",
+          "answer": "Hawaii's income limit is higher than most states, $2,998/month for a single person (200% of federal poverty level). Even if gross income is higher, seniors can qualify through net income after deductions like medical expenses over $35/month, housing costs, and a 20% deduction on earned income."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, if your parent cannot apply themselves due to age or disability. You can serve as an authorized representative by completing the appropriate forms during the application process. You'll need to provide your contact information and may be asked to attend the eligibility interview."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, if your loved one cannot apply themselves due to age or disability. You can serve as an authorized representative by completing the appropriate forms during the application process. You'll need to provide your contact information and may be asked to attend the eligibility interview."
         },
         {
-          "question": "How much will my parent actually receive in SNAP benefits?",
+          "question": "How much will my loved one actually receive in SNAP benefits?",
           "answer": "Benefit amounts vary based on household size and net income after deductions. Hawaii benefits are higher than mainland states due to cost of living. A rough estimate: every $100 increase in net income reduces benefits by about $30. Medical expenses over $35/month and high shelter costs can significantly increase the final amount."
         },
         {
-          "question": "Can my parent use SNAP benefits to buy prepared foods or meals?",
+          "question": "Can my loved one use SNAP benefits to buy prepared foods or meals?",
           "answer": "No, SNAP benefits cannot be used for hot/prepared foods, alcohol, tobacco, vitamins, or non-food items. They can buy groceries, produce, meat, dairy, bread, cereals, and other food for home preparation. Some states have restaurant programs for elderly/disabled, but Hawaii does not currently participate."
         },
         {
-          "question": "What happens if my parent's income or medical expenses change after enrollment?",
+          "question": "What happens if my loved one's income or medical expenses change after enrollment?",
           "answer": "Report changes within 10 days to avoid overpayments. Increased medical expenses or reduced income can increase benefits, while higher income may reduce them. Hawaii conducts periodic reviews (usually every 12 months for seniors) to adjust benefits. Call your local DHS office or the benefits helpline at (855) 643-1643 to report changes."
         },
         {
-          "question": "Can my parent apply for SNAP and Medicaid at the same time?",
+          "question": "Can my loved one apply for SNAP and Medicaid at the same time?",
           "answer": "Yes, you can apply for both programs simultaneously through the same mybenefitshawaii.org portal. Many documents overlap, and applying together can save time. Both programs have similar residency and citizenship requirements, though income limits differ."
         },
         {
           "question": "How long do SNAP benefits last, and when do they expire?",
-          "answer": "SNAP benefits are loaded monthly onto an EBT card. Unused benefits remain on the card for 365 days from the date they were issued — after that, they expire. Benefits are typically loaded on the same date each month based on the last digit of your case number."
+          "answer": "SNAP benefits are loaded monthly onto an EBT card. Unused benefits remain on the card for 365 days from the date they were issued, after that, they expire. Benefits are typically loaded on the same date each month based on the last digit of your case number."
         }
       ],
       "layoutIntent": {
@@ -949,7 +949,7 @@
       "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Help with electric and gas bills when your parent can't keep up with rising energy costs",
+      "tagline": "Help with electric and gas bills when your loved one can't keep up with rising energy costs",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -970,7 +970,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to pay electric or gas bills in Hawaii, LIHEAP provides one-time payments directly to the utility company to keep their power on. This federal program helps with both emergency situations (when service is about to be shut off) and regular assistance to reduce energy costs for households earning below 150% of federal poverty guidelines.\n\nBecause LIHEAP is administered separately on each island, your parent must apply through their local Community Action Agency — HCAP on Oahu, HCEOC on Hawaii Island, or MEO on Maui County. Each island has different application windows and processing limits, with some accepting only 20 applications per month.\n\nYour parent may automatically qualify if they already receive SSI, SNAP, or TANF benefits, regardless of their other income. The program covers one assistance payment per program year (October 1 to September 30), so families must choose between regular energy credit or emergency crisis intervention.",
+      "intro": "If your loved one struggles to pay electric or gas bills in Hawaii, LIHEAP provides one-time payments directly to the utility company to keep their power on. This federal program helps with both emergency situations (when service is about to be shut off) and regular assistance to reduce energy costs for households earning below 150% of federal poverty guidelines.\n\nBecause LIHEAP is administered separately on each island, your loved one must apply through their local Community Action Agency, HCAP on Oahu, HCEOC on Hawaii Island, or MEO on Maui County. Each island has different application windows and processing limits, with some accepting only 20 applications per month.\n\nYour loved one may automatically qualify if they already receive SSI, SNAP, or TANF benefits, regardless of their other income. The program covers one assistance payment per program year (October 1 to September 30), so families must choose between regular energy credit or emergency crisis intervention.",
       "savingsRange": "",
       "savingsSource": "One-time utility payment assistance",
       "savingsVerified": false,
@@ -1083,11 +1083,11 @@
         }
       ],
       "applicationNotes": [
-        "Oahu residents must apply in-person only — no mail, phone, or online applications accepted by HCAP",
+        "Oahu residents must apply in-person only, no mail, phone, or online applications accepted by HCAP",
         "Hawaii Island residents face strict monthly limits of 20 applications, so apply early in the monthly cycle",
         "You cannot receive both Energy Credit and Energy Crisis Intervention in the same program year (October-September)",
         "Households receiving SSI, SNAP, or TANF automatically qualify regardless of other income sources",
-        "All adults in the household must sign the application in person — plan accordingly for family schedules"
+        "All adults in the household must sign the application in person, plan accordingly for family schedules"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1134,36 +1134,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent apply for both Energy Credit and Crisis Intervention in the same year?",
-          "answer": "No, households can only receive one type of LIHEAP assistance per program year (October 1 to September 30). Your parent must choose between regular Energy Credit or emergency Crisis Intervention, but not both."
+          "question": "Can my loved one apply for both Energy Credit and Crisis Intervention in the same year?",
+          "answer": "No, households can only receive one type of LIHEAP assistance per program year (October 1 to September 30). Your loved one must choose between regular Energy Credit or emergency Crisis Intervention, but not both."
         },
         {
-          "question": "What if my parent already receives SNAP or SSI — do they still need to prove income?",
-          "answer": "Your parent automatically qualifies for LIHEAP if they receive SSI, SNAP, or TANF benefits, regardless of other income. However, they still need to provide proof of these benefits and complete the full application with all required documents."
+          "question": "What if my loved one already receives SNAP or SSI, do they still need to prove income?",
+          "answer": "Your loved one automatically qualifies for LIHEAP if they receive SSI, SNAP, or TANF benefits, regardless of other income. However, they still need to provide proof of these benefits and complete the full application with all required documents."
         },
         {
-          "question": "How quickly can my parent get help if their electricity is about to be shut off?",
+          "question": "How quickly can my loved one get help if their electricity is about to be shut off?",
           "answer": "Crisis intervention cases with disconnection notices may receive priority processing, but you still need to apply through the monthly cycle system. Hawaii Island accepts only 20 applications per month, so call early in the monthly cycle for the best chance."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who lives on Hawaii Island?",
-          "answer": "Your parent must sign the application themselves, but you can help gather documents and accompany them through the process. Contact HCEOC to discuss accommodation options if your parent has difficulty with the application process due to age or disability."
+          "question": "Can I apply on behalf of my elderly loved one who lives on Hawaii Island?",
+          "answer": "Your loved one must sign the application themselves, but you can help gather documents and accompany them through the process. Contact HCEOC to discuss accommodation options if your loved one has difficulty with the application process due to age or disability."
         },
         {
-          "question": "What happens if my parent misses the June application window on Oahu?",
-          "answer": "Regular Energy Credit applications are only accepted June 1-30 annually on Oahu through HCAP. If your parent misses this window, they can only apply for Crisis Intervention if they face disconnection. Otherwise, they must wait until the following June."
+          "question": "What happens if my loved one misses the June application window on Oahu?",
+          "answer": "Regular Energy Credit applications are only accepted June 1-30 annually on Oahu through HCAP. If your loved one misses this window, they can only apply for Crisis Intervention if they face disconnection. Otherwise, they must wait until the following June."
         },
         {
-          "question": "Does my parent's house value affect their LIHEAP eligibility?",
-          "answer": "No, LIHEAP has no asset limits. Your parent can own their home regardless of value and still qualify based on income. The program focuses on household income below 150% of federal poverty guidelines, not assets or property ownership."
+          "question": "Does my loved one's house value affect their LIHEAP eligibility?",
+          "answer": "No, LIHEAP has no asset limits. Your loved one can own their home regardless of value and still qualify based on income. The program focuses on household income below 150% of federal poverty guidelines, not assets or property ownership."
         },
         {
-          "question": "Can my parent get LIHEAP assistance for propane or other heating fuels?",
+          "question": "Can my loved one get LIHEAP assistance for propane or other heating fuels?",
           "answer": "LIHEAP in Hawaii specifically covers electric and gas bills for heating and cooling assistance. Contact your island's Community Action Agency to confirm if propane or other fuel sources qualify under their local program implementation."
         },
         {
-          "question": "What if my parent rents and the utility bill is in the landlord's name?",
-          "answer": "Your parent must be responsible for and provide proof of the utility bill to qualify for LIHEAP. If utilities are included in rent, they typically won't be eligible unless they can show separate billing responsibility for electric or gas service."
+          "question": "What if my loved one rents and the utility bill is in the landlord's name?",
+          "answer": "Your loved one must be responsible for and provide proof of the utility bill to qualify for LIHEAP. If utilities are included in rent, they typically won't be eligible unless they can show separate billing responsibility for electric or gas service."
         }
       ],
       "layoutIntent": {
@@ -1209,7 +1209,7 @@
           }
         ]
       },
-      "intro": "If your parent's income is below $31,200 (for a single person) or $42,240 (for a two-person household), they may qualify for free home energy improvements worth thousands of dollars. The Weatherization Assistance Program provides energy audits and installs improvements like solar water heaters, energy-efficient air conditioners, LED lighting, and refrigerator replacements at no cost.\n\nPriority goes to households with adults 60+ or 65+, people with disabilities, and families with high energy bills. Because funding is limited each year, not all eligible applicants receive services — applying early in the year increases your parent's chances. The program is administered by different organizations on each island: HCAP on Oahu, HCEOC on Hawaii County, and KEO on Kauai.",
+      "intro": "If your loved one's income is below $31,200 (for a single person) or $42,240 (for a two-person household), they may qualify for free home energy improvements worth thousands of dollars. The Weatherization Assistance Program provides energy audits and installs improvements like solar water heaters, energy-efficient air conditioners, LED lighting, and refrigerator replacements at no cost.\n\nPriority goes to households with adults 60+ or 65+, people with disabilities, and families with high energy bills. Because funding is limited each year, not all eligible applicants receive services, applying early in the year increases your loved one's chances. The program is administered by different organizations on each island: HCAP on Oahu, HCEOC on Hawaii County, and KEO on Kauai.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1266,7 +1266,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county provider directly — applications are processed by different organizations on each island with limited funding.",
+        "summary": "Contact your county provider directly, applications are processed by different organizations on each island with limited funding.",
         "steps": [
           {
             "step": 1,
@@ -1286,12 +1286,12 @@
           {
             "step": 4,
             "title": "Wait for energy audit scheduling",
-            "description": "If approved, a technician will schedule a home energy audit to determine which improvements your parent's home needs and qualifies for."
+            "description": "If approved, a technician will schedule a home energy audit to determine which improvements your loved one's home needs and qualifies for."
           }
         ],
-        "processingTime": "Not specified — depends on available funding",
-        "waitlist": "Limited applications approved due to funding constraints — potential wait or denial if funds exhausted",
-        "tip": "Households receiving TANF, SSI, LIHEAP, or living in HUD housing automatically qualify income-wise — mention this when applying.",
+        "processingTime": "Not specified, depends on available funding",
+        "waitlist": "Limited applications approved due to funding constraints, potential wait or denial if funds exhausted",
+        "tip": "Households receiving TANF, SSI, LIHEAP, or living in HUD housing automatically qualify income-wise, mention this when applying.",
         "urls": [
           {
             "label": "Oahu (HCAP) Application",
@@ -1347,9 +1347,9 @@
         }
       ],
       "applicationNotes": [
-        "Households already receiving TANF, SSI, LIHEAP, or HUD assistance automatically qualify income-wise — no need to prove income limits",
+        "Households already receiving TANF, SSI, LIHEAP, or HUD assistance automatically qualify income-wise, no need to prove income limits",
         "Priority is given to elderly households, but high energy users and families with disabilities also get preference",
-        "Eligibility certification lasts 12 months — if work hasn't started, you'll need to reapply and prove eligibility again",
+        "Eligibility certification lasts 12 months, if work hasn't started, you'll need to reapply and prove eligibility again",
         "Some improvements like solar water heaters require existing electric water heaters and proof of 12-month residency with energy bills"
       ],
       "relatedPrograms": [
@@ -1361,27 +1361,27 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent their home?",
+          "question": "Can my loved one apply if they rent their home?",
           "answer": "Yes, renters can qualify, but the landlord must give written permission for the improvements. The landlord cannot raise rent for one year after improvements are completed, and the tenant gets the energy savings benefits."
         },
         {
-          "question": "What if my parent's income is slightly over the limit but they have high medical expenses?",
-          "answer": "The program uses gross income without medical expense deductions. However, if your parent receives any amount of TANF, SSI, LIHEAP, or lives in HUD housing, they automatically qualify regardless of other income."
+          "question": "What if my loved one's income is slightly over the limit but they have high medical expenses?",
+          "answer": "The program uses gross income without medical expense deductions. However, if your loved one receives any amount of TANF, SSI, LIHEAP, or lives in HUD housing, they automatically qualify regardless of other income."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "There's no formal waitlist — it's based on annual funding limits. Applications submitted early in the federal fiscal year (October-December) have better chances. If funding runs out, you'll need to reapply the following year."
+          "answer": "There's no formal waitlist, it's based on annual funding limits. Applications submitted early in the federal fiscal year (October-December) have better chances. If funding runs out, you'll need to reapply the following year."
         },
         {
-          "question": "What improvements will my parent actually get?",
+          "question": "What improvements will my loved one actually get?",
           "answer": "After approval, a technician conducts a home energy audit to determine what improvements provide the most energy savings for that specific home. Common improvements include LED lighting, energy-efficient air conditioners, solar or hybrid heat pump water heaters, and refrigerator replacement."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. However, the eligible person (your parent) must be present during the home energy audit and sign necessary paperwork as the homeowner or authorized tenant."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. However, the eligible person (your loved one) must be present during the home energy audit and sign necessary paperwork as the homeowner or authorized tenant."
         },
         {
-          "question": "Can my parent get both Weatherization and LIHEAP benefits?",
+          "question": "Can my loved one get both Weatherization and LIHEAP benefits?",
           "answer": "Yes, coordination between these programs may provide additional benefits. LIHEAP recipients automatically qualify for Weatherization income-wise, and receiving both can maximize energy assistance benefits."
         }
       ],
@@ -1403,7 +1403,7 @@
       "id": "ship-medicare-counseling",
       "name": "Hawaii SHIP (State Health Insurance Assistance Program)",
       "shortName": "Hawaii SHIP",
-      "tagline": "Free, expert Medicare counseling to help your parent navigate coverage options and find cost-saving programs.",
+      "tagline": "Free, expert Medicare counseling to help your loved one navigate coverage options and find cost-saving programs.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1416,7 +1416,7 @@
           }
         ]
       },
-      "intro": "If your parent is on Medicare or turning 65 soon, Hawaii SHIP provides free, one-on-one counseling to help them understand their coverage options. Because Medicare has multiple parts (A, B, C, D), Medigap policies, and prescription drug plans, many families feel overwhelmed trying to choose the right combination. Hawaii SHIP trained counselors explain these options in plain English and help identify cost-saving programs your parent might qualify for.\n\nThe service covers all Medicare decisions — from initial enrollment to annual Open Enrollment changes to appeals if coverage is denied. Because it's funded by federal grants, there are no income limits or fees. Counselors also help families understand programs like Medicaid, Medicare Savings Program, and Extra Help that can reduce Medicare costs for people with limited incomes.",
+      "intro": "If your loved one is on Medicare or turning 65 soon, Hawaii SHIP provides free, one-on-one counseling to help them understand their coverage options. Because Medicare has multiple parts (A, B, C, D), Medigap policies, and prescription drug plans, many families feel overwhelmed trying to choose the right combination. Hawaii SHIP trained counselors explain these options in plain English and help identify cost-saving programs your loved one might qualify for.\n\nThe service covers all Medicare decisions, from initial enrollment to annual Open Enrollment changes to appeals if coverage is denied. Because it's funded by federal grants, there are no income limits or fees. Counselors also help families understand programs like Medicaid, Medicare Savings Program, and Extra Help that can reduce Medicare costs for people with limited incomes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1438,7 +1438,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Hawaii SHIP helpline — counseling is provided immediately by phone or virtual appointment.",
+        "summary": "Call the Hawaii SHIP helpline, counseling is provided immediately by phone or virtual appointment.",
         "steps": [
           {
             "step": 1,
@@ -1448,7 +1448,7 @@
           {
             "step": 2,
             "title": "Describe your needs",
-            "description": "Tell the counselor what Medicare questions you have — enrollment, plan comparison, appeals, or cost-saving programs."
+            "description": "Tell the counselor what Medicare questions you have, enrollment, plan comparison, appeals, or cost-saving programs."
           },
           {
             "step": 3,
@@ -1456,9 +1456,9 @@
             "description": "Receive free, unbiased guidance by phone or virtual meeting. No time limits on sessions."
           }
         ],
-        "processingTime": "Immediate — counseling provided during your call or scheduled virtual appointment",
+        "processingTime": "Immediate, counseling provided during your call or scheduled virtual appointment",
         "waitlist": null,
-        "tip": "Have your parent's Medicare card and current plan documents ready when you call for the most personalized guidance.",
+        "tip": "Have your loved one's Medicare card and current plan documents ready when you call for the most personalized guidance.",
         "urls": [
           {
             "label": "Hawaii SHIP Website",
@@ -1496,15 +1496,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who has Medicare?",
-          "answer": "Yes, Hawaii SHIP counsels family caregivers who are helping aging parents navigate Medicare. You don't need written permission to get general information, though specific account details may require your parent on the call."
+          "question": "Can I call on behalf of my loved one who has Medicare?",
+          "answer": "Yes, Hawaii SHIP counsels family caregivers who are helping aging loved ones navigate Medicare. You don't need written permission to get general information, though specific account details may require your loved one on the call."
         },
         {
           "question": "Will the counselor try to sell me insurance or favor certain plans?",
           "answer": "No. Hawaii SHIP counselors are trained volunteers who provide unbiased information. They don't sell insurance or receive commissions from any insurance company. Their job is to explain your options neutrally so you can make informed decisions."
         },
         {
-          "question": "Can Hawaii SHIP help if my parent's Medicare claim was denied?",
+          "question": "Can Hawaii SHIP help if my loved one's Medicare claim was denied?",
           "answer": "Yes, Hawaii SHIP counselors can walk you through the Medicare appeals process and help you understand your rights. They can explain the different levels of appeal and what documentation you'll need to challenge a denial."
         },
         {
@@ -1530,7 +1530,7 @@
       "id": "home-delivered-meals-kupuna",
       "name": "Home-Delivered Meals (via Kūpuna Aging in Place grantees)",
       "shortName": "Home-Delivered Meals",
-      "tagline": "If your parent can't shop or cook safely, they may qualify for free weekly meal delivery to their home.",
+      "tagline": "If your loved one can't shop or cook safely, they may qualify for free weekly meal delivery to their home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1555,7 +1555,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and homebound (unable to safely shop for or prepare meals), they may qualify for free weekly meal delivery through Hawaii's Kūpuna Aging in Place grantees. Because this program operates through 16 different nonprofits statewide, delivery options vary — some provide hot meals, others deliver frozen meals weekly, and coverage areas differ by island.\n\nThis isn't a single centralized program. Instead, you'll work directly with local providers like Lanakila Pacific (Oahu island-wide frozen meals), Hawaii Meals on Wheels (hot and frozen options), or Our Kupuna (Hawaii island). Some meals are free through Aging and Disability Resource Centers or health insurance, while others can be purchased with cash, check, or SNAP EBT.\n\nBecause someone must be home for deliveries (typically Monday-Friday, 8:30am-1pm), this works best for parents who have predictable schedules or caregivers who can coordinate delivery times.",
+      "intro": "If your loved one is 60+ and homebound (unable to safely shop for or prepare meals), they may qualify for free weekly meal delivery through Hawaii's Kūpuna Aging in Place grantees. Because this program operates through 16 different nonprofits statewide, delivery options vary, some provide hot meals, others deliver frozen meals weekly, and coverage areas differ by island.\n\nThis isn't a single centralized program. Instead, you'll work directly with local providers like Lanakila Pacific (Oahu island-wide frozen meals), Hawaii Meals on Wheels (hot and frozen options), or Our Kupuna (Hawaii island). Some meals are free through Aging and Disability Resource Centers or health insurance, while others can be purchased with cash, check, or SNAP EBT.\n\nBecause someone must be home for deliveries (typically Monday-Friday, 8:30am-1pm), this works best for parents who have predictable schedules or caregivers who can coordinate delivery times.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1580,7 +1580,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call providers directly or your county's Aging office for assessment — most require professional referral and someone must be home for deliveries.",
+        "summary": "Call providers directly or your county's Aging office for assessment, most require professional referral and someone must be home for deliveries.",
         "steps": [
           {
             "step": 1,
@@ -1590,12 +1590,12 @@
           {
             "step": 2,
             "title": "Complete needs assessment",
-            "description": "Provider or county Aging office will assess your parent's ability to shop and prepare meals safely. For Honolulu County, contact Elderly Affairs at 550 Paiea St. Suite 226."
+            "description": "Provider or county Aging office will assess your loved one's ability to shop and prepare meals safely. For Honolulu County, contact Elderly Affairs at 550 Paiea St. Suite 226."
           },
           {
             "step": 3,
             "title": "Arrange delivery schedule",
-            "description": "Confirm someone will be home during delivery windows (typically Monday-Friday, 8:30am-1pm). Discuss payment options — some qualify for free meals through resource centers or insurance."
+            "description": "Confirm someone will be home during delivery windows (typically Monday-Friday, 8:30am-1pm). Discuss payment options, some qualify for free meals through resource centers or insurance."
           },
           {
             "step": 4,
@@ -1603,9 +1603,9 @@
             "description": "Some providers like Our Kupuna require a referral letter from a social worker, case manager, or doctor before starting service."
           }
         ],
-        "processingTime": "Not specified — varies by provider",
+        "processingTime": "Not specified, varies by provider",
         "waitlist": null,
-        "tip": "Apply for insurance coverage or grocery assistance programs first — many providers offer free meals if you qualify through other programs.",
+        "tip": "Apply for insurance coverage or grocery assistance programs first, many providers offer free meals if you qualify through other programs.",
         "urls": [
           {
             "label": "Lanakila Pacific",
@@ -1652,9 +1652,9 @@
         }
       ],
       "applicationNotes": [
-        "This is not one program but multiple providers — you may need to call several to find service in your parent's area",
+        "This is not one program but multiple providers, you may need to call several to find service in your loved one's area",
         "Free meal eligibility depends on qualifying through Aging and Disability Resource Centers or having health insurance coverage",
-        "Professional referrals are often required — start with your parent's doctor or case manager if they have one",
+        "Professional referrals are often required, start with your loved one's doctor or case manager if they have one",
         "Delivery schedules are fixed (Monday-Friday, 8:30am-1pm typically) so someone must be reliably home"
       ],
       "relatedPrograms": [
@@ -1667,35 +1667,35 @@
       "faqs": [
         {
           "question": "Can I apply for multiple meal delivery services at the same time?",
-          "answer": "Yes, but most providers coordinate to avoid duplication. Because these are separate nonprofits, you may need different services — for example, Lanakila Pacific for frozen meals and another provider for hot meal delivery. Each provider will assess your parent's specific needs and coordinate with other services they're already receiving."
+          "answer": "Yes, but most providers coordinate to avoid duplication. Because these are separate nonprofits, you may need different services, for example, Lanakila Pacific for frozen meals and another provider for hot meal delivery. Each provider will assess your loved one's specific needs and coordinate with other services they're already receiving."
         },
         {
           "question": "What happens if no one is home during delivery hours?",
-          "answer": "Delivery typically requires someone home Monday-Friday, 8:30am-1pm. If your parent lives alone and can't reliably be home, this program may not work. Some providers offer flexibility for medical appointments, but consistent missed deliveries usually result in service suspension. Consider coordinating with neighbors or family members for delivery times."
+          "answer": "Delivery typically requires someone home Monday-Friday, 8:30am-1pm. If your loved one lives alone and can't reliably be home, this program may not work. Some providers offer flexibility for medical appointments, but consistent missed deliveries usually result in service suspension. Consider coordinating with neighbors or family members for delivery times."
         },
         {
-          "question": "How do I know if my parent qualifies for free meals versus paying?",
-          "answer": "Free meals depend on qualifying through your county's Aging and Disability Resource Center or having health insurance that covers nutrition services. If your parent doesn't qualify for free meals, most providers accept cash, check, or SNAP EBT. Start by calling your county Aging office for assessment before contacting individual providers."
+          "question": "How do I know if my loved one qualifies for free meals versus paying?",
+          "answer": "Free meals depend on qualifying through your county's Aging and Disability Resource Center or having health insurance that covers nutrition services. If your loved one doesn't qualify for free meals, most providers accept cash, check, or SNAP EBT. Start by calling your county Aging office for assessment before contacting individual providers."
         },
         {
-          "question": "Can my parent get both hot and frozen meals?",
-          "answer": "This depends on the provider and your parent's needs assessment. Hawaii Meals on Wheels offers both hot and frozen options, while Lanakila Pacific specializes in weekly frozen meal delivery. Providers typically coordinate to avoid over-serving, but different meal types may serve different needs — hot meals for daily delivery, frozen for weekly batch cooking."
+          "question": "Can my loved one get both hot and frozen meals?",
+          "answer": "This depends on the provider and your loved one's needs assessment. Hawaii Meals on Wheels offers both hot and frozen options, while Lanakila Pacific specializes in weekly frozen meal delivery. Providers typically coordinate to avoid over-serving, but different meal types may serve different needs, hot meals for daily delivery, frozen for weekly batch cooking."
         },
         {
-          "question": "What if my parent lives on an island without listed providers?",
-          "answer": "The Kūpuna Aging in Place program operates through 16 nonprofits statewide, but not all are listed in available sources. Contact your county's Elderly Affairs division — Maui, Kauai, and other islands have their own aging offices that can connect you with local meal delivery options. Hawaii 2-1-1 can also help locate island-specific providers."
+          "question": "What if my loved one lives on an island without listed providers?",
+          "answer": "The Kūpuna Aging in Place program operates through 16 nonprofits statewide, but not all are listed in available sources. Contact your county's Elderly Affairs division, Maui, Kauai, and other islands have their own aging offices that can connect you with local meal delivery options. Hawaii 2-1-1 can also help locate island-specific providers."
         },
         {
-          "question": "Does my parent need a doctor's referral for all meal delivery services?",
-          "answer": "Not all providers require professional referrals, but many do. Our Kupuna specifically requires a referral letter from a social worker, case manager, or doctor. Lanakila Pacific and Hawaii Meals on Wheels may accept direct applications but still require needs assessment. If your parent has a case manager or regular doctor, start there for the referral process."
+          "question": "Does my loved one need a doctor's referral for all meal delivery services?",
+          "answer": "Not all providers require professional referrals, but many do. Our Kupuna specifically requires a referral letter from a social worker, case manager, or doctor. Lanakila Pacific and Hawaii Meals on Wheels may accept direct applications but still require needs assessment. If your loved one has a case manager or regular doctor, start there for the referral process."
         },
         {
           "question": "Can family caregivers get meal delivery if they're caring for a spouse?",
           "answer": "Yes, spouses serving as primary caregivers may qualify for meal delivery as respite support. This recognizes that caregiving can make it difficult to shop and prepare meals regularly. The needs assessment will consider both the care recipient's needs and the caregiver's situation. Younger household members with disabilities may also qualify regardless of age."
         },
         {
-          "question": "What happens if my parent's needs change after starting meal delivery?",
-          "answer": "Providers typically reassess needs periodically and can adjust service levels. If your parent's condition improves and they can shop/cook again, service may end. If needs increase, they may qualify for more frequent delivery or additional services. Contact your provider directly when your parent's situation changes rather than waiting for scheduled reassessment."
+          "question": "What happens if my loved one's needs change after starting meal delivery?",
+          "answer": "Providers typically reassess needs periodically and can adjust service levels. If your loved one's condition improves and they can shop/cook again, service may end. If needs increase, they may qualify for more frequent delivery or additional services. Contact your provider directly when your loved one's situation changes rather than waiting for scheduled reassessment."
         }
       ],
       "layoutIntent": {
@@ -1741,7 +1741,7 @@
           }
         ]
       },
-      "intro": "If you're caring for a parent age 60+ in Hawaii, you may qualify for free respite care, caregiver training, and emotional support through the state's Family Caregiver Support Program. Because this program operates through your local Area Agency on Aging, you'll get connected to services specifically available in your county — from support groups to temporary relief care when you need a break.\n\nThe program serves family caregivers age 18+ who are caring for someone 60 or older, with expanded eligibility for special situations like grandparents 55+ caring for children or adults caring for family members with developmental disabilities. Priority goes to caregivers with the greatest economic or social need, including minorities, rural residents, and those with limited English proficiency. You must contact your local Area Agency on Aging to apply — there's no centralized online application.",
+      "intro": "If you're caring for a loved one age 60+ in Hawaii, you may qualify for free respite care, caregiver training, and emotional support through the state's Family Caregiver Support Program. Because this program operates through your local Area Agency on Aging, you'll get connected to services specifically available in your county, from support groups to temporary relief care when you need a break.\n\nThe program serves family caregivers age 18+ who are caring for someone 60 or older, with expanded eligibility for special situations like grandparents 55+ caring for children or adults caring for family members with developmental disabilities. Priority goes to caregivers with the greatest economic or social need, including minorities, rural residents, and those with limited English proficiency. You must contact your local Area Agency on Aging to apply, there's no centralized online application.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1766,7 +1766,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your county's Area Agency on Aging — processing time not specified.",
+        "summary": "Call your county's Area Agency on Aging, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -1786,7 +1786,7 @@
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Call even if you're not sure you qualify — the assessment process will determine your priority level and available services.",
+        "tip": "Call even if you're not sure you qualify, the assessment process will determine your priority level and available services.",
         "urls": [
           {
             "label": "Hawaii Executive Office on Aging",
@@ -1822,7 +1822,7 @@
       ],
       "applicationNotes": [
         "Two different programs available: Federal Title III services (free, priority-based) and state Kupuna Care (functional needs assessment, income-based cost-sharing)",
-        "Must contact your specific county's Area Agency on Aging — no centralized application process",
+        "Must contact your specific county's Area Agency on Aging, no centralized application process",
         "Voluntary contributions are encouraged for federal Title III services but not required",
         "Special populations like grandparents 55+ have expanded eligibility beyond standard age requirements"
       ],
@@ -1881,7 +1881,7 @@
           "answer": "Yes, Native Hawaiian caregivers of Native Hawaiian adults 60+ with chronic illness/disability have specific eligibility, as do Native Hawaiian grandparents/relatives caring for children 18 and younger. Contact your local Area Agency about culturally specific programming."
         },
         {
-          "question": "What happens if my parent becomes Medicaid-eligible while I'm receiving services?",
+          "question": "What happens if my loved one becomes Medicaid-eligible while I'm receiving services?",
           "answer": "Federal Title III services can continue regardless of Medicaid status. However, state Kupuna Care specifically excludes Medicaid-eligible individuals, so you'd need to transition to different support services if receiving that track."
         }
       ],
@@ -1903,7 +1903,7 @@
       "id": "scsep-employment-training",
       "name": "Retired Senior Volunteer Program (RSVP, related to SCSEP)",
       "shortName": "SCSEP Training",
-      "tagline": "If your parent is 55+ and unemployed, they can earn Hawaii minimum wage while learning job skills through paid training placements.",
+      "tagline": "If your loved one is 55+ and unemployed, they can earn Hawaii minimum wage while learning job skills through paid training placements.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -1928,7 +1928,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55 or older and struggling to find work, the Senior Community Service Employment Program (SCSEP) provides paid job training at Hawaii's minimum wage. Because the program places participants in supervised training positions at government and nonprofit organizations, your parent earns income while building skills for permanent employment.\n\nYour parent must have family income at or below 125% of the federal poverty level and be unemployed to qualify. Priority goes to veterans and their spouses, people 65+, those with disabilities, and rural residents. Training averages 19-20 hours per week for 20-27 months, with a lifetime limit of 48 months if continuously eligible.\n\nBecause SCSEP is managed by local operators in each county, availability and waitlists vary by location. Positions are limited, so many eligible participants are placed on waiting lists until training slots open up.",
+      "intro": "If your loved one is 55 or older and struggling to find work, the Senior Community Service Employment Program (SCSEP) provides paid job training at Hawaii's minimum wage. Because the program places participants in supervised training positions at government and nonprofit organizations, your loved one earns income while building skills for permanent employment.\n\nYour loved one must have family income at or below 125% of the federal poverty level and be unemployed to qualify. Priority goes to veterans and their spouses, people 65+, those with disabilities, and rural residents. Training averages 19-20 hours per week for 20-27 months, with a lifetime limit of 48 months if continuously eligible.\n\nBecause SCSEP is managed by local operators in each county, availability and waitlists vary by location. Positions are limited, so many eligible participants are placed on waiting lists until training slots open up.",
       "savingsRange": "",
       "savingsSource": "Paid employment training",
       "savingsVerified": false,
@@ -2027,7 +2027,7 @@
         "Funding fluctuations may cause program pauses or slowdowns, particularly noted in 2025",
         "Annual recertification is required to continue in the program",
         "You must be unemployed at enrollment, but the goal is to transition to unsubsidized employment after training",
-        "Don't confuse this with unpaid volunteer RSVP programs — SCSEP provides paid training positions"
+        "Don't confuse this with unpaid volunteer RSVP programs, SCSEP provides paid training positions"
       ],
       "relatedPrograms": [
         "SNAP Food Benefits",
@@ -2038,7 +2038,7 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're receiving Social Security benefits?",
+          "question": "Can my loved one apply if they're receiving Social Security benefits?",
           "answer": "Yes, receiving Social Security doesn't disqualify them, but the total family income (including Social Security) must be at or below 125% of the federal poverty level. Check current poverty guidelines at aspe.hhs.gov to see if your family qualifies."
         },
         {
@@ -2050,11 +2050,11 @@
           "answer": "Waitlists vary by county because each area has limited training positions. Counties with higher populations or more applicants typically have longer waits. Your county operator can give you a realistic timeline when you apply."
         },
         {
-          "question": "Can my parent keep training if they find part-time work?",
+          "question": "Can my loved one keep training if they find part-time work?",
           "answer": "No, participants must be unemployed throughout the training period. The program's goal is to transition to unsubsidized employment, so finding work means successfully completing the program."
         },
         {
-          "question": "What happens if my parent can't complete the full training period?",
+          "question": "What happens if my loved one can't complete the full training period?",
           "answer": "Participants can leave the program at any time, and there are valid reasons for early exit including finding employment, health issues, or family circumstances. Early exit doesn't affect future eligibility if they become unemployed again."
         },
         {
@@ -2062,12 +2062,12 @@
           "answer": "The sources don't mention asset limits, only income requirements. Contact your local SCSEP operator to confirm whether assets like savings accounts or property ownership affect eligibility."
         },
         {
-          "question": "Can my parent apply for SCSEP and unemployment benefits at the same time?",
+          "question": "Can my loved one apply for SCSEP and unemployment benefits at the same time?",
           "answer": "You'll need to check with both programs about overlapping benefits. SCSEP requires being unemployed, while unemployment benefits are for people actively seeking work, so there may be coordination requirements between the programs."
         },
         {
-          "question": "What if my parent has limited English or can't read well?",
-          "answer": "People with limited English proficiency or low literacy actually get priority enrollment in SCSEP. The program is designed to help people with employment barriers, so language or literacy challenges make your parent more likely to be accepted."
+          "question": "What if my loved one has limited English or can't read well?",
+          "answer": "People with limited English proficiency or low literacy actually get priority enrollment in SCSEP. The program is designed to help people with employment barriers, so language or literacy challenges make your loved one more likely to be accepted."
         }
       ],
       "layoutIntent": {
@@ -2101,7 +2101,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing eviction, benefit denials, or family disputes, they can get free legal advice from licensed attorneys over the phone. The Senior Legal Helpline connects Hawaii seniors with state-barred lawyers who provide immediate guidance on civil legal issues — no income limits for priority cases like foreclosure or benefits loss.\n\nThe service covers housing problems, consumer issues, public benefits appeals, and family law matters. Because attorneys handle calls directly, your parent gets professional legal advice without needing to travel to an office or navigate complex paperwork. One phone call provides screening, brief application, and immediate consultation.",
+      "intro": "If your loved one is 60+ and facing eviction, benefit denials, or family disputes, they can get free legal advice from licensed attorneys over the phone. The Senior Legal Helpline connects Hawaii seniors with state-barred lawyers who provide immediate guidance on civil legal issues, no income limits for priority cases like foreclosure or benefits loss.\n\nThe service covers housing problems, consumer issues, public benefits appeals, and family law matters. Because attorneys handle calls directly, your loved one gets professional legal advice without needing to travel to an office or navigate complex paperwork. One phone call provides screening, brief application, and immediate consultation.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2125,7 +2125,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the helpline and complete a brief application over the phone — immediate advice during the same call.",
+        "summary": "Call the helpline and complete a brief application over the phone, immediate advice during the same call.",
         "steps": [
           {
             "step": 1,
@@ -2145,7 +2145,7 @@
         ],
         "processingTime": "Immediate phone advice upon eligibility screening during call",
         "waitlist": null,
-        "tip": "Have details about your legal problem and household income ready — the more specific you are, the better advice you'll receive.",
+        "tip": "Have details about your legal problem and household income ready, the more specific you are, the better advice you'll receive.",
         "urls": []
       },
       "documentsNeeded": null,
@@ -2171,7 +2171,7 @@
       ],
       "applicationNotes": [
         "Seniors 60+ can access the hotline even if their income exceeds 125% of poverty level for priority issues like foreclosure or public benefits loss",
-        "Service is limited to phone advice and brief services — full legal representation depends on case type and available resources"
+        "Service is limited to phone advice and brief services, full legal representation depends on case type and available resources"
       ],
       "relatedPrograms": [
         "ADRC (Aging and Disability Resource Center)",
@@ -2181,16 +2181,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, family members can call for basic information, but the attorney may need to speak directly with your parent or require legal documentation showing you can act on their behalf. Have your parent's consent ready, and be prepared to provide power of attorney documents if needed for specific legal advice."
+          "question": "Can I call on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, family members can call for basic information, but the attorney may need to speak directly with your loved one or require legal documentation showing you can act on their behalf. Have your loved one's consent ready, and be prepared to provide power of attorney documents if needed for specific legal advice."
         },
         {
-          "question": "What if my parent's income is too high for regular Legal Aid services?",
+          "question": "What if my loved one's income is too high for regular Legal Aid services?",
           "answer": "Seniors 60+ can still access the hotline for priority issues like foreclosure, eviction, or public benefits loss regardless of income. The 125% poverty limit applies to full Legal Aid services, but the Senior Legal Helpline has more flexible eligibility for older adults facing urgent legal problems."
         },
         {
           "question": "Will the attorney write letters or review documents during the call?",
-          "answer": "Yes, attorneys can provide brief services like writing demand letters to landlords or reviewing simple documents during the call. More complex document preparation may require follow-up services or referrals to other legal resources, depending on your parent's situation and case complexity."
+          "answer": "Yes, attorneys can provide brief services like writing demand letters to landlords or reviewing simple documents during the call. More complex document preparation may require follow-up services or referrals to other legal resources, depending on your loved one's situation and case complexity."
         }
       ],
       "layoutIntent": {
@@ -2211,7 +2211,7 @@
       "id": "ltc-ombudsman-program",
       "name": "Long-Term Care Ombudsman Program (LTCOP)",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility.",
+      "tagline": "Free advocacy and complaint resolution if your loved one lives in a nursing home or assisted living facility.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2224,7 +2224,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or adult residential care home in Hawaii and you have concerns about their care, treatment, or rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint investigation. Certified ombudsmen investigate issues like inadequate care, medication errors, billing problems, or violations of your parent's rights as a resident.\n\nThe program is available to any resident or family member regardless of income or assets. Because ombudsmen are trained advocates who know facility regulations, they can often resolve complaints faster than families trying to navigate the system alone. They also provide confidential face-to-face visits and help families understand resident rights, payment options, and how to choose quality facilities.",
+      "intro": "If your loved one lives in a nursing home, assisted living facility, or adult residential care home in Hawaii and you have concerns about their care, treatment, or rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint investigation. Certified ombudsmen investigate issues like inadequate care, medication errors, billing problems, or violations of your loved one's rights as a resident.\n\nThe program is available to any resident or family member regardless of income or assets. Because ombudsmen are trained advocates who know facility regulations, they can often resolve complaints faster than families trying to navigate the system alone. They also provide confidential face-to-face visits and help families understand resident rights, payment options, and how to choose quality facilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2246,7 +2246,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the ombudsman hotline to report concerns or request help — no paperwork required.",
+        "summary": "Call the ombudsman hotline to report concerns or request help, no paperwork required.",
         "steps": [
           {
             "step": 1,
@@ -2266,7 +2266,7 @@
         ],
         "processingTime": "Investigation and resolution handled promptly as needed",
         "waitlist": null,
-        "tip": "You don't need permission from your parent to file a complaint, but the ombudsman will respect confidentiality rules and may need consent before taking certain actions.",
+        "tip": "You don't need permission from your loved one to file a complaint, but the ombudsman will respect confidentiality rules and may need consent before taking certain actions.",
         "urls": [
           {
             "label": "Hawaii DOH Ombudsman Program",
@@ -2308,15 +2308,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint even if my parent doesn't want me to get involved?",
-          "answer": "Yes, you can report concerns to the ombudsman, but they must follow confidentiality rules. The ombudsman may need your parent's consent before taking certain investigative actions or sharing specific information with you. They can still provide general guidance and may observe conditions during routine facility visits."
+          "question": "Can I file a complaint even if my loved one doesn't want me to get involved?",
+          "answer": "Yes, you can report concerns to the ombudsman, but they must follow confidentiality rules. The ombudsman may need your loved one's consent before taking certain investigative actions or sharing specific information with you. They can still provide general guidance and may observe conditions during routine facility visits."
         },
         {
           "question": "What kinds of problems can the ombudsman actually fix?",
           "answer": "Ombudsmen can investigate and help resolve issues like inadequate care, medication errors, billing disputes, violations of resident rights, problems with personal belongings, and concerns about facility conditions. They work directly with facility staff and administrators to address problems and can escalate to regulatory agencies when necessary."
         },
         {
-          "question": "Does using the ombudsman program affect my parent's relationship with the facility?",
+          "question": "Does using the ombudsman program affect my loved one's relationship with the facility?",
           "answer": "Ombudsmen are trained to handle complaints professionally and facilities are prohibited from retaliating against residents or families who file complaints. The program focuses on resolving issues constructively rather than creating adversarial situations. However, ombudsmen can escalate to regulatory enforcement if facilities don't cooperate."
         }
       ],
@@ -2338,7 +2338,7 @@
       "id": "kahi-malama-care-coordination",
       "name": "Kahi Malama – A Place of Caring",
       "shortName": "Kahi Malama",
-      "tagline": "Free care coordination to help your Big Island parent find and navigate aging services.",
+      "tagline": "Free care coordination to help your Big Island loved one find and navigate aging services.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2355,7 +2355,7 @@
           }
         ]
       },
-      "intro": "If your parent lives on Hawaii's Big Island and needs help navigating aging services, Kahi Malama provides free care coordination and options counseling. Because this is Hawaii County's official Aging & Disability Resource Center (ADRC), one care coordinator can help connect your parent to multiple programs — from meal delivery and respite care to Medicaid waivers and long-term care alternatives.\n\nThe program serves Hawaii County residents age 60 and older, plus adults with disabilities and their caregivers. There are no strict income limits, though services prioritize those with lower incomes. You can access help through offices in both Hilo and Kona, with island-wide service coordination.",
+      "intro": "If your loved one lives on Hawaii's Big Island and needs help navigating aging services, Kahi Malama provides free care coordination and options counseling. Because this is Hawaii County's official Aging & Disability Resource Center (ADRC), one care coordinator can help connect your loved one to multiple programs, from meal delivery and respite care to Medicaid waivers and long-term care alternatives.\n\nThe program serves Hawaii County residents age 60 and older, plus adults with disabilities and their caregivers. There are no strict income limits, though services prioritize those with lower incomes. You can access help through offices in both Hilo and Kona, with island-wide service coordination.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2378,7 +2378,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your closest office for a free assessment — no formal application needed.",
+        "summary": "Call your closest office for a free assessment, no formal application needed.",
         "steps": [
           {
             "step": 1,
@@ -2388,7 +2388,7 @@
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Staff will ask about your parent's care needs, current services, and goals for aging in place. This can be done by phone or in-person."
+            "description": "Staff will ask about your loved one's care needs, current services, and goals for aging in place. This can be done by phone or in-person."
           },
           {
             "step": 3,
@@ -2398,7 +2398,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have a list of your parent's current challenges ready — difficulty with bathing, medication management, meal preparation, or transportation — to help staff identify the best services.",
+        "tip": "Have a list of your loved one's current challenges ready, difficulty with bathing, medication management, meal preparation, or transportation, to help staff identify the best services.",
         "urls": [
           {
             "label": "Hawaii County Office on Aging",
@@ -2436,8 +2436,8 @@
       ],
       "applicationNotes": [
         "Native Hawaiians may have access to additional specialized programs through Title VI funding, but services are open to all Hawaii County residents",
-        "This is primarily a coordination service — staff will help you apply to other programs rather than providing direct care services",
-        "Both family members and the elder themselves can initiate contact — care coordinators work with whoever is available"
+        "This is primarily a coordination service, staff will help you apply to other programs rather than providing direct care services",
+        "Both family members and the elder themselves can initiate contact, care coordinators work with whoever is available"
       ],
       "relatedPrograms": [
         "Kupuna Care (Hawaii state home and community-based services)",
@@ -2448,19 +2448,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my parent who lives on the Big Island?",
-          "answer": "Yes, family members can initiate contact and participate in care planning. Staff will work with you to assess your parent's needs and identify appropriate services, though they may need to speak directly with your parent for some program applications."
+          "question": "Can I call on behalf of my loved one who lives on the Big Island?",
+          "answer": "Yes, family members can initiate contact and participate in care planning. Staff will work with you to assess your loved one's needs and identify appropriate services, though they may need to speak directly with your loved one for some program applications."
         },
         {
           "question": "What's the difference between the Hilo and Kona offices?",
-          "answer": "Both offices provide the same aging and disability resource services island-wide. Choose based on convenience — Hilo serves (808) 961-8626, Kona serves (808) 323-4390 or 323-4392. Either office can help residents anywhere on the Big Island."
+          "answer": "Both offices provide the same aging and disability resource services island-wide. Choose based on convenience, Hilo serves (808) 961-8626, Kona serves (808) 323-4390 or 323-4392. Either office can help residents anywhere on the Big Island."
         },
         {
           "question": "Does this program provide actual services or just referrals?",
           "answer": "Kahi Malama primarily provides care coordination, options counseling, and referrals to other programs. They'll help you navigate and apply for services like meal delivery, transportation, respite care, or Medicaid waivers, but don't directly provide those services themselves."
         },
         {
-          "question": "My parent lives on Maui — can they use this program?",
+          "question": "My loved one lives on Maui, can they use this program?",
           "answer": "No, Kahi Malama only serves Hawaii County (Big Island) residents. Each Hawaiian island has its own Area Agency on Aging. Maui, Oahu, and Kauai residents need to contact their local aging offices for similar services."
         },
         {
@@ -2468,7 +2468,7 @@
           "answer": "The research doesn't specify waitlist information for initial consultations. Call your regional office directly to ask about current availability. Care coordination is typically available fairly quickly, though specific programs they refer you to may have their own waitlists."
         },
         {
-          "question": "What if my parent doesn't meet the age requirement but has a disability?",
+          "question": "What if my loved one doesn't meet the age requirement but has a disability?",
           "answer": "Adults of any age with disabilities can access services through Kahi Malama, along with their caregivers. You'll need documentation of the disability when you call for your initial assessment."
         }
       ],
@@ -2490,7 +2490,7 @@
       "id": "ead-honolulu-adrc",
       "name": "Elderly Affairs Division (EAD) / Honolulu ADRC",
       "shortName": "Honolulu EAD",
-      "tagline": "Get home care services, meal delivery, and caregiver support for your aging parent in Honolulu County.",
+      "tagline": "Get home care services, meal delivery, and caregiver support for your aging loved one in Honolulu County.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -2515,7 +2515,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs help with daily activities in Honolulu County, the Elderly Affairs Division provides home care services, meal delivery, and caregiver support at no cost based on income. Services include personal care assistance (bathing, grooming), homemaker help (meal prep, shopping), delivered meals, home modifications like grab bars, and respite support for you as the caregiver.\n\nTo qualify, your parent must have cognitive impairment OR be unable to perform at least two daily activities (bathing, dressing, medication management, cooking, housework). They cannot be receiving similar services from other government programs or living in a nursing home or assisted living facility. Income and asset limits apply but are not published — you must call to learn if your parent qualifies financially.\n\nThis program serves Honolulu County only. If your parent lives on another Hawaiian island, contact their county's separate Area Agency on Aging for similar services.",
+      "intro": "If your loved one is 60+ and needs help with daily activities in Honolulu County, the Elderly Affairs Division provides home care services, meal delivery, and caregiver support at no cost based on income. Services include personal care assistance (bathing, grooming), homemaker help (meal prep, shopping), delivered meals, home modifications like grab bars, and respite support for you as the caregiver.\n\nTo qualify, your loved one must have cognitive impairment OR be unable to perform at least two daily activities (bathing, dressing, medication management, cooking, housework). They cannot be receiving similar services from other government programs or living in a nursing home or assisted living facility. Income and asset limits apply but are not published, you must call to learn if your loved one qualifies financially.\n\nThis program serves Honolulu County only. If your loved one lives on another Hawaiian island, contact their county's separate Area Agency on Aging for similar services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2556,17 +2556,17 @@
           {
             "step": 3,
             "title": "Complete assessment",
-            "description": "A staff member will visit your parent's home to assess functional abilities, living situation, and service needs."
+            "description": "A staff member will visit your loved one's home to assess functional abilities, living situation, and service needs."
           },
           {
             "step": 4,
             "title": "Receive service plan",
-            "description": "If approved, EAD will create a personalized service plan and connect your parent with appropriate providers."
+            "description": "If approved, EAD will create a personalized service plan and connect your loved one with appropriate providers."
           }
         ],
-        "processingTime": "Not specified — processing time depends on scheduling availability for in-home assessment",
+        "processingTime": "Not specified, processing time depends on scheduling availability for in-home assessment",
         "waitlist": null,
-        "tip": "Have information ready about your parent's current abilities with bathing, dressing, cooking, and managing medications — this helps staff determine eligibility faster.",
+        "tip": "Have information ready about your loved one's current abilities with bathing, dressing, cooking, and managing medications, this helps staff determine eligibility faster.",
         "urls": [
           {
             "label": "EAD Website",
@@ -2575,7 +2575,7 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for your parent",
+        "Valid government-issued photo ID for your loved one",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Proof of U.S. citizenship or qualified alien status",
         "Proof of Honolulu County residency (utility bill, lease, or state-issued document)",
@@ -2599,8 +2599,8 @@
         }
       ],
       "applicationNotes": [
-        "Income and asset limits are not published — you must call to learn if your parent qualifies financially",
-        "If your parent already receives similar services from Medicare, Medicaid, or private agencies, they cannot use Kupuna Care services"
+        "Income and asset limits are not published, you must call to learn if your loved one qualifies financially",
+        "If your loved one already receives similar services from Medicare, Medicaid, or private agencies, they cannot use Kupuna Care services"
       ],
       "relatedPrograms": [
         "Hawaii County Area Agency on Aging",
@@ -2611,20 +2611,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get services if they live in assisted living?",
+          "question": "Can my loved one get services if they live in assisted living?",
           "answer": "No. Anyone residing in an assisted living facility, nursing home, adult residential care home, or similar institution cannot receive EAD services. The program is designed for people living independently in their own homes."
         },
         {
-          "question": "What if my parent already gets some help from a private caregiver?",
-          "answer": "Your parent cannot receive EAD services if they're already getting comparable home care from other government programs or private services. However, if their current help doesn't cover all needed services, call (808) 768-7700 to discuss what might be available."
+          "question": "What if my loved one already gets some help from a private caregiver?",
+          "answer": "Your loved one cannot receive EAD services if they're already getting comparable home care from other government programs or private services. However, if their current help doesn't cover all needed services, call (808) 768-7700 to discuss what might be available."
         },
         {
-          "question": "Can I apply on behalf of my parent?",
-          "answer": "Yes, adult children can call (808) 768-7700 to start the application process for their parent. However, the in-home assessment will need to include your parent directly to evaluate their functional abilities and care needs."
+          "question": "Can I apply on behalf of my loved one?",
+          "answer": "Yes, adult children can call (808) 768-7700 to start the application process for their loved one. However, the in-home assessment will need to include your loved one directly to evaluate their functional abilities and care needs."
         },
         {
-          "question": "What if my parent lives on the Big Island or Maui?",
-          "answer": "Honolulu EAD only serves Honolulu County (Oahu). If your parent lives on other Hawaiian islands, contact their county's Area Agency on Aging: Hawaii County at (808) 961-8626, Maui County Executive Office on Aging, or Kauai County at (808) 241-4470."
+          "question": "What if my loved one lives on the Big Island or Maui?",
+          "answer": "Honolulu EAD only serves Honolulu County (Oahu). If your loved one lives on other Hawaiian islands, contact their county's Area Agency on Aging: Hawaii County at (808) 961-8626, Maui County Executive Office on Aging, or Kauai County at (808) 241-4470."
         }
       ],
       "layoutIntent": {
@@ -2658,7 +2658,7 @@
           }
         ]
       },
-      "intro": "If your parent lives on Kaua'i and needs help with bathing, dressing, or medication management, they may qualify for free in-home care services through the county's elderly affairs office. The agency provides two types of support: Title III services (completely free for anyone 60+) and Kupuna Care (sliding-scale cost based on income for those with documented functional limitations).\n\nBecause this program covers personal care, meal delivery, and care coordination under one umbrella, your parent won't need to navigate multiple agencies. Services include help with Activities of Daily Living (bathing, dressing, eating) and Instrumental Activities of Daily Living (shopping, housework, medication management). Your parent must live in their own home — the program doesn't serve nursing home residents or anyone in institutional care.",
+      "intro": "If your loved one lives on Kaua'i and needs help with bathing, dressing, or medication management, they may qualify for free in-home care services through the county's elderly affairs office. The agency provides two types of support: Title III services (completely free for anyone 60+) and Kupuna Care (sliding-scale cost based on income for those with documented functional limitations).\n\nBecause this program covers personal care, meal delivery, and care coordination under one umbrella, your loved one won't need to navigate multiple agencies. Services include help with Activities of Daily Living (bathing, dressing, eating) and Instrumental Activities of Daily Living (shopping, housework, medication management). Your loved one must live in their own home, the program doesn't serve nursing home residents or anyone in institutional care.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2687,27 +2687,27 @@
           {
             "step": 1,
             "title": "Call the Senior Helpline",
-            "description": "Call (808) 241-4470 to speak with a case worker. If your parent has cognitive limitations, you can call as their caregiver or Power of Attorney."
+            "description": "Call (808) 241-4470 to speak with a case worker. If your loved one has cognitive limitations, you can call as their caregiver or Power of Attorney."
           },
           {
             "step": 2,
             "title": "Complete phone assessment",
-            "description": "Provide information about your parent's functional needs, current services, and financial situation for cost-sharing determination."
+            "description": "Provide information about your loved one's functional needs, current services, and financial situation for cost-sharing determination."
           },
           {
             "step": 3,
             "title": "Schedule in-home assessment",
-            "description": "If your parent appears eligible, a case worker will schedule a visit to assess care needs in person."
+            "description": "If your loved one appears eligible, a case worker will schedule a visit to assess care needs in person."
           },
           {
             "step": 4,
             "title": "Receive service determination",
-            "description": "The agency will determine which services your parent qualifies for and any cost-sharing requirements."
+            "description": "The agency will determine which services your loved one qualifies for and any cost-sharing requirements."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have your parent's current medications, doctor contact information, and any existing care services documented before calling.",
+        "tip": "Have your loved one's current medications, doctor contact information, and any existing care services documented before calling.",
         "urls": [
           {
             "label": "Kaua'i Agency on Elderly Affairs",
@@ -2745,19 +2745,19 @@
       "faqs": [
         {
           "question": "Can I apply for both Title III and Kupuna Care services at the same time?",
-          "answer": "No, these are separate programs with different eligibility requirements. Title III is for any senior 60+ regardless of functional status, while Kupuna Care requires documented cognitive impairment or inability to perform at least two daily activities. The agency will determine which program fits your parent's situation during the assessment."
+          "answer": "No, these are separate programs with different eligibility requirements. Title III is for any senior 60+ regardless of functional status, while Kupuna Care requires documented cognitive impairment or inability to perform at least two daily activities. The agency will determine which program fits your loved one's situation during the assessment."
         },
         {
-          "question": "What if my parent already gets some help from Medicaid or VA benefits?",
-          "answer": "Your parent cannot receive services that duplicate existing coverage from government programs or private insurance. However, gaps in coverage may qualify for supplemental services. The case worker will review all current benefits during the phone assessment to avoid conflicts."
+          "question": "What if my loved one already gets some help from Medicaid or VA benefits?",
+          "answer": "Your loved one cannot receive services that duplicate existing coverage from government programs or private insurance. However, gaps in coverage may qualify for supplemental services. The case worker will review all current benefits during the phone assessment to avoid conflicts."
         },
         {
-          "question": "Can a family member call if my parent has dementia?",
-          "answer": "Yes, if your parent cannot call due to cognitive limitations, a Power of Attorney or primary caregiver can initiate the application by calling (808) 241-4470. Have your legal documents ready to verify your authority to act on their behalf."
+          "question": "Can a family member call if my loved one has dementia?",
+          "answer": "Yes, if your loved one cannot call due to cognitive limitations, a Power of Attorney or primary caregiver can initiate the application by calling (808) 241-4470. Have your legal documents ready to verify your authority to act on their behalf."
         },
         {
-          "question": "What happens if my parent lives in other Hawaiian counties?",
-          "answer": "This program only serves Kaua'i County residents. Each Hawaiian county has its own Area Agency on Aging with separate contact information and local administration. Contact your parent's county office directly for services."
+          "question": "What happens if my loved one lives in other Hawaiian counties?",
+          "answer": "This program only serves Kaua'i County residents. Each Hawaiian county has its own Area Agency on Aging with separate contact information and local administration. Contact your loved one's county office directly for services."
         }
       ],
       "layoutIntent": {
@@ -2778,14 +2778,14 @@
       "id": "home-community-services-eoa",
       "name": "Home and Community Services (Statewide via EOA)",
       "shortName": "Home & Community Services",
-      "tagline": "Keep your parent at home with Medicaid-funded care services instead of nursing home placement.",
+      "tagline": "Keep your loved one at home with Medicaid-funded care services instead of nursing home placement.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Hawaii's Home and Community Services program can provide care at home instead of requiring nursing home placement. Because this program covers assistance with daily activities, adult day care, and even community care foster family homes through Hawaii's Medicaid system (Med-QUEST), your parent can receive the care they need while staying in familiar surroundings.\n\nThis isn't automatic for seniors — your parent must qualify for Hawaii Medicaid and meet Nursing Facility Level of Care requirements (meaning they need the same level of daily assistance that would otherwise require nursing home care). Income over $1,530/month for a single person living at home must go toward care costs, and countable assets must stay below $2,000 for individuals or $3,000 for couples.\n\nThe program operates statewide through Med-QUEST's managed care system, but enrollment caps can create waiting lists for services. Services include in-home assistance, adult day care, and supervised community living options, but exclude certain facilities like Expanded Adult Residential Care Homes.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Hawaii's Home and Community Services program can provide care at home instead of requiring nursing home placement. Because this program covers assistance with daily activities, adult day care, and even community care foster family homes through Hawaii's Medicaid system (Med-QUEST), your loved one can receive the care they need while staying in familiar surroundings.\n\nThis isn't automatic for seniors, your loved one must qualify for Hawaii Medicaid and meet Nursing Facility Level of Care requirements (meaning they need the same level of daily assistance that would otherwise require nursing home care). Income over $1,530/month for a single person living at home must go toward care costs, and countable assets must stay below $2,000 for individuals or $3,000 for couples.\n\nThe program operates statewide through Med-QUEST's managed care system, but enrollment caps can create waiting lists for services. Services include in-home assistance, adult day care, and supervised community living options, but exclude certain facilities like Expanded Adult Residential Care Homes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2805,7 +2805,7 @@
           "exemptAssets": [],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care — a clinical assessment showing your parent needs full-time care equivalent to nursing home placement due to inability to perform daily activities like bathing, dressing, eating, toileting, mobility, plus tasks like shopping, cooking, cleaning, or medication management",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care, a clinical assessment showing your loved one needs full-time care equivalent to nursing home placement due to inability to perform daily activities like bathing, dressing, eating, toileting, mobility, plus tasks like shopping, cooking, cleaning, or medication management",
         "otherRequirements": [
           "Hawaii resident",
           "Med-QUEST (Hawaii Medicaid) enrollment",
@@ -2825,7 +2825,7 @@
           {
             "step": 2,
             "title": "Complete functional assessment",
-            "description": "Med-QUEST will arrange assessment to determine if your parent meets Nursing Facility Level of Care requirements for daily assistance needs."
+            "description": "Med-QUEST will arrange assessment to determine if your loved one meets Nursing Facility Level of Care requirements for daily assistance needs."
           },
           {
             "step": 3,
@@ -2840,7 +2840,7 @@
         ],
         "processingTime": null,
         "waitlist": "Possible enrollment caps for home and community-based services may create waiting lists",
-        "tip": "Apply for Medicaid even if you think income is too high — income over limits can still qualify if it goes toward care costs",
+        "tip": "Apply for Medicaid even if you think income is too high, income over limits can still qualify if it goes toward care costs",
         "urls": [
           {
             "label": "Med-QUEST Application",
@@ -2880,10 +2880,10 @@
         }
       ],
       "applicationNotes": [
-        "Income over $1,530/month doesn't disqualify you — excess income must go toward care costs but you can still receive services",
+        "Income over $1,530/month doesn't disqualify you, excess income must go toward care costs but you can still receive services",
         "SSI recipients in community care foster family homes contribute all monthly income except $75 personal needs allowance",
-        "Some managed care organizations may have immediate openings while others maintain waitlists — ask about availability when choosing plans",
-        "Functional assessment is separate from financial eligibility — you need both Medicaid approval and nursing home level of care determination"
+        "Some managed care organizations may have immediate openings while others maintain waitlists, ask about availability when choosing plans",
+        "Functional assessment is separate from financial eligibility, you need both Medicaid approval and nursing home level of care determination"
       ],
       "relatedPrograms": [
         "Med-QUEST (Hawaii Medicaid)",
@@ -2894,11 +2894,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for this program?",
+          "question": "Can my loved one keep their house if they qualify for this program?",
           "answer": "Yes, the primary residence is typically exempt from the $2,000 asset limit in Medicaid programs, though specific home equity caps may apply. The program is specifically designed to help people stay at home rather than enter nursing facilities."
         },
         {
-          "question": "What if my parent's income is $1,600/month — can they still get services?",
+          "question": "What if my loved one's income is $1,600/month, can they still get services?",
           "answer": "Yes, but they'll need to pay $70/month toward their care costs (the amount over the $1,530 limit). They can still receive all covered services through the program."
         },
         {
@@ -2906,7 +2906,7 @@
           "answer": "Waitlist times aren't specified in available information and likely vary by island and managed care organization. Contact Med-QUEST directly to ask about current availability in your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
+          "question": "Can I apply on behalf of my elderly loved one?",
           "answer": "You can assist with the application process, but you may need legal documentation like power of attorney to act on their behalf. Contact the Med-QUEST program to clarify what authorization they require for family members to apply."
         },
         {
@@ -2914,11 +2914,11 @@
           "answer": "This program is funded through Medicaid and provides services at no cost to eligible participants (beyond any required income contribution). Private care can cost $4,000-8,000+ monthly, while this covers the same services through Hawaii's managed care system."
         },
         {
-          "question": "Can my parent get both this program and regular Medicare benefits?",
-          "answer": "Yes, this program works alongside Medicare. Your parent keeps their Medicare coverage for medical services, while this program specifically covers long-term care assistance that Medicare doesn't provide."
+          "question": "Can my loved one get both this program and regular Medicare benefits?",
+          "answer": "Yes, this program works alongside Medicare. Your loved one keeps their Medicare coverage for medical services, while this program specifically covers long-term care assistance that Medicare doesn't provide."
         },
         {
-          "question": "What happens if my parent's condition improves and they no longer need nursing home level care?",
+          "question": "What happens if my loved one's condition improves and they no longer need nursing home level care?",
           "answer": "They would no longer qualify for this specific program, but they should maintain their Med-QUEST Medicaid coverage for medical services. The managed care organization will reassess functional needs periodically to determine ongoing eligibility."
         },
         {
@@ -2961,7 +2961,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and lives alone on Oahu with mobility or memory challenges, they may qualify for free transportation and companionship to essential appointments. Transportation Friends for Kupuna pairs your parent with a trained volunteer who provides rides to doctor visits, grocery stores, the post office, and other necessary destinations.\n\nBecause volunteers are age 55+ themselves, many clients find genuine friendship alongside practical help. The program enforces gender matching (female volunteers with female clients, male with male) and requires 1-2 weeks advance notice for appointments. Your parent must live independently in their own home and have minimal family or community support available.",
+      "intro": "If your loved one is 60+ and lives alone on Oahu with mobility or memory challenges, they may qualify for free transportation and companionship to essential appointments. Transportation Friends for Kupuna pairs your loved one with a trained volunteer who provides rides to doctor visits, grocery stores, the post office, and other necessary destinations.\n\nBecause volunteers are age 55+ themselves, many clients find genuine friendship alongside practical help. The program enforces gender matching (female volunteers with female clients, male with male) and requires 1-2 weeks advance notice for appointments. Your loved one must live independently in their own home and have minimal family or community support available.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2985,12 +2985,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call to discuss eligibility and complete the screening process — some cases may require a professional referral letter.",
+        "summary": "Call to discuss eligibility and complete the screening process, some cases may require a professional referral letter.",
         "steps": [
           {
             "step": 1,
             "title": "Call Catholic Charities Hawaii",
-            "description": "Discuss your parent's situation and transportation needs. They will screen for eligibility based on age, location, mobility issues, and support system."
+            "description": "Discuss your loved one's situation and transportation needs. They will screen for eligibility based on age, location, mobility issues, and support system."
           },
           {
             "step": 2,
@@ -3005,12 +3005,12 @@
           {
             "step": 4,
             "title": "Wait for volunteer match",
-            "description": "Program staff will pair your parent with an appropriate volunteer based on gender and availability."
+            "description": "Program staff will pair your loved one with an appropriate volunteer based on gender and availability."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Call even if you're unsure about eligibility — the program staff can help determine if your parent qualifies and explain how volunteer matching works.",
+        "tip": "Call even if you're unsure about eligibility, the program staff can help determine if your loved one qualifies and explain how volunteer matching works.",
         "urls": [
           {
             "label": "Program Information",
@@ -3042,20 +3042,20 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives on the Big Island or Maui — can they still get this service?",
+          "question": "What if my loved one lives on the Big Island or Maui, can they still get this service?",
           "answer": "No, Transportation Friends for Kupuna only serves Oahu residents. However, Hawaii Island has a similar program called 'Our Kupuna' that provides transportation assistance. Contact your island's Area Agency on Aging to find local transportation options."
         },
         {
-          "question": "Can my parent get same-day rides for urgent appointments?",
-          "answer": "No, this program requires 1-2 weeks advance notice and depends on volunteer availability. This is not an emergency transportation service. For urgent medical needs, your parent should use ambulance services or Handi-Van if they qualify."
+          "question": "Can my loved one get same-day rides for urgent appointments?",
+          "answer": "No, this program requires 1-2 weeks advance notice and depends on volunteer availability. This is not an emergency transportation service. For urgent medical needs, your loved one should use ambulance services or Handi-Van if they qualify."
         },
         {
-          "question": "Will my parent always get the same volunteer driver?",
-          "answer": "The program aims to create consistent pairings when possible, but volunteer availability varies. Gender matching is strictly enforced — female volunteers only drive female clients, and male volunteers only drive male clients."
+          "question": "Will my loved one always get the same volunteer driver?",
+          "answer": "The program aims to create consistent pairings when possible, but volunteer availability varies. Gender matching is strictly enforced, female volunteers only drive female clients, and male volunteers only drive male clients."
         },
         {
-          "question": "What if my parent has some family support but still struggles with transportation?",
-          "answer": "The program prioritizes seniors with minimal support, but call to discuss your parent's specific situation. Program staff evaluate each case individually and may still accept clients who have some family help but face transportation barriers."
+          "question": "What if my loved one has some family support but still struggles with transportation?",
+          "answer": "The program prioritizes seniors with minimal support, but call to discuss your loved one's specific situation. Program staff evaluate each case individually and may still accept clients who have some family help but face transportation barriers."
         }
       ],
       "layoutIntent": {
@@ -3093,7 +3093,7 @@
           }
         ]
       },
-      "intro": "If your parent needs companionship and light assistance to remain safely at home, Hawaii's Senior Companion Program matches them with trained volunteer seniors who provide up to 20 hours per week of support. Companions help with grocery shopping, accompany your parent to medical appointments, prepare simple meals, and provide the social connection that prevents isolation.\n\nThe program serves frail elders (60+) who have been assessed as needing person-to-person assistance to maintain independent living or who are scheduled for release from a healthcare facility within 2-4 weeks and need support to return home safely. Because companions are trained volunteers rather than paid caregivers, there's no cost to families — though services are subject to funding availability and volunteer recruitment.\n\nThis is particularly valuable for families who live far from an aging parent or need respite from daily caregiving duties. The program operates statewide through Hawaii's Department of Human Services, with the main office on Oahu and partnerships with nonprofit agencies serving kupuna across the islands.",
+      "intro": "If your loved one needs companionship and light assistance to remain safely at home, Hawaii's Senior Companion Program matches them with trained volunteer seniors who provide up to 20 hours per week of support. Companions help with grocery shopping, accompany your loved one to medical appointments, prepare simple meals, and provide the social connection that prevents isolation.\n\nThe program serves frail elders (60+) who have been assessed as needing person-to-person assistance to maintain independent living or who are scheduled for release from a healthcare facility within 2-4 weeks and need support to return home safely. Because companions are trained volunteers rather than paid caregivers, there's no cost to families, though services are subject to funding availability and volunteer recruitment.\n\nThis is particularly valuable for families who live far from an aging loved one or need respite from daily caregiving duties. The program operates statewide through Hawaii's Department of Human Services, with the main office on Oahu and partnerships with nonprofit agencies serving kupuna across the islands.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -3117,32 +3117,32 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the program office to request an assessment — no formal application needed, but availability depends on volunteer capacity and funding.",
+        "summary": "Call the program office to request an assessment, no formal application needed, but availability depends on volunteer capacity and funding.",
         "steps": [
           {
             "step": 1,
             "title": "Call for initial screening",
-            "description": "Contact the Senior Companion Program at (808) 832-0340 to discuss your parent's needs and determine if they meet program criteria."
+            "description": "Contact the Senior Companion Program at (808) 832-0340 to discuss your loved one's needs and determine if they meet program criteria."
           },
           {
             "step": 2,
             "title": "Schedule assessment",
-            "description": "Program staff will arrange an in-home or phone assessment to evaluate your parent's need for companion services and create a written care plan."
+            "description": "Program staff will arrange an in-home or phone assessment to evaluate your loved one's need for companion services and create a written care plan."
           },
           {
             "step": 3,
             "title": "Sign care plan",
-            "description": "You or your parent (or legal guardian) must sign the care plan that specifies what activities the companion will provide and how often visits will occur."
+            "description": "You or your loved one (or legal guardian) must sign the care plan that specifies what activities the companion will provide and how often visits will occur."
           },
           {
             "step": 4,
             "title": "Wait for volunteer match",
-            "description": "The program will match your parent with an available trained companion volunteer based on location, schedule, and compatibility."
+            "description": "The program will match your loved one with an available trained companion volunteer based on location, schedule, and compatibility."
           }
         ],
         "processingTime": null,
-        "waitlist": "Services are subject to availability of funds and volunteer recruitment — potential waitlist depending on your area and volunteer capacity",
-        "tip": "Contact the program even if you're not sure your parent qualifies — program staff can help assess needs and may suggest alternative resources if this program isn't the right fit.",
+        "waitlist": "Services are subject to availability of funds and volunteer recruitment, potential waitlist depending on your area and volunteer capacity",
+        "tip": "Contact the program even if you're not sure your loved one qualifies, program staff can help assess needs and may suggest alternative resources if this program isn't the right fit.",
         "urls": [
           {
             "label": "Hawaii Senior Companion Program",
@@ -3151,11 +3151,11 @@
         ]
       },
       "documentsNeeded": [
-        "Government-issued photo ID for your parent",
+        "Government-issued photo ID for your loved one",
         "Medical records or physician statement documenting need for assistance",
-        "Contact information for your parent's primary care physician",
+        "Contact information for your loved one's primary care physician",
         "Emergency contact information for family members",
-        "List of current medications your parent takes",
+        "List of current medications your loved one takes",
         "Documentation of planned hospital or facility discharge (if applicable)"
       ],
       "contacts": [
@@ -3173,8 +3173,8 @@
         }
       ],
       "applicationNotes": [
-        "The program serves two groups — your parent would be a client receiving services, not a volunteer companion (volunteers must be low-income seniors 55-60+ who can commit to 20 hours/week)",
-        "Services are limited to companionship and light assistance — this is not medical care or full attendant services",
+        "The program serves two groups, your loved one would be a client receiving services, not a volunteer companion (volunteers must be low-income seniors 55-60+ who can commit to 20 hours/week)",
+        "Services are limited to companionship and light assistance, this is not medical care or full attendant services",
         "Volunteer availability varies by island and region, with strongest presence on Oahu where the main office operates"
       ],
       "relatedPrograms": [
@@ -3186,26 +3186,26 @@
       "faqs": [
         {
           "question": "What's the difference between a client and a volunteer in this program?",
-          "answer": "The program has two groups: volunteer companions (low-income seniors 55-60+ who provide the services) and clients (frail elders 60+ who receive the services). Your parent would apply to be a client receiving companion visits, not to become a volunteer. Volunteers must meet income guidelines and commit to 20 hours per week."
+          "answer": "The program has two groups: volunteer companions (low-income seniors 55-60+ who provide the services) and clients (frail elders 60+ who receive the services). Your loved one would apply to be a client receiving companion visits, not to become a volunteer. Volunteers must meet income guidelines and commit to 20 hours per week."
         },
         {
-          "question": "Can my parent get a companion if they live on the Big Island or Maui?",
-          "answer": "The program is statewide, but the main office is on Oahu at (808) 832-0340. They work with nonprofit partners on other islands, but volunteer availability may be more limited. Call the main office to ask about services in your parent's specific area."
+          "question": "Can my loved one get a companion if they live on the Big Island or Maui?",
+          "answer": "The program is statewide, but the main office is on Oahu at (808) 832-0340. They work with nonprofit partners on other islands, but volunteer availability may be more limited. Call the main office to ask about services in your loved one's specific area."
         },
         {
-          "question": "What if my parent's needs are too complex for a companion volunteer?",
-          "answer": "Companions provide social support and light assistance, not medical care or full attendant services. If your parent needs help with bathing, medication management, or other clinical care, ask program staff about referrals to Kupuna Care or other home-based services that provide more intensive support."
+          "question": "What if my loved one's needs are too complex for a companion volunteer?",
+          "answer": "Companions provide social support and light assistance, not medical care or full attendant services. If your loved one needs help with bathing, medication management, or other clinical care, ask program staff about referrals to Kupuna Care or other home-based services that provide more intensive support."
         },
         {
-          "question": "How long will my parent have to wait for a companion?",
-          "answer": "Wait times depend on volunteer availability in your area and program funding. The program relies on recruiting senior volunteers, so availability can fluctuate. Some areas may have immediate matches while others have waiting periods — program staff can give you a realistic timeline for your location."
+          "question": "How long will my loved one have to wait for a companion?",
+          "answer": "Wait times depend on volunteer availability in your area and program funding. The program relies on recruiting senior volunteers, so availability can fluctuate. Some areas may have immediate matches while others have waiting periods, program staff can give you a realistic timeline for your location."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, if you're the legal guardian, you can sign the care plan on your parent's behalf. The program requires either the individual or their legal guardian to authorize visits and specify activities. You'll need to provide documentation of your guardianship status."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, if you're the legal guardian, you can sign the care plan on your loved one's behalf. The program requires either the individual or their legal guardian to authorize visits and specify activities. You'll need to provide documentation of your guardianship status."
         },
         {
-          "question": "What happens if the companion and my parent don't get along?",
+          "question": "What happens if the companion and my loved one don't get along?",
           "answer": "Program staff supervise the volunteer matches and can reassign a different companion if personalities don't mesh. Because companions are trained volunteers rather than employees, the program has flexibility to make changes when needed to ensure a good fit."
         }
       ],
@@ -3227,7 +3227,7 @@
       "id": "foster-grandparent-program",
       "name": "Foster Grandparent Program",
       "shortName": "Foster Grandparent",
-      "tagline": "Paid volunteer work helping special needs children if your parent is 55+ and on a low income.",
+      "tagline": "Paid volunteer work helping special needs children if your loved one is 55+ and on a low income.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -3244,7 +3244,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and has limited income, they can earn a non-taxable stipend working 15-20 hours per week as a Foster Grandparent, providing one-on-one support to children with special needs in schools and childcare centers. The program requires commitment to serving children (not adult caregiving) and your parent must be physically and mentally able to work with children who have developmental, learning, or behavioral challenges.\n\nThis is a structured volunteer position with employment benefits including meal allowances, travel reimbursement, paid vacation and sick leave. Your parent must have annual income around 125% of the federal poverty level (exact amounts vary by household size and change yearly), pass a physical exam, and complete a background check. The program serves children up to age 21 and requires a minimum 15-hour weekly commitment.",
+      "intro": "If your loved one is 55+ and has limited income, they can earn a non-taxable stipend working 15-20 hours per week as a Foster Grandparent, providing one-on-one support to children with special needs in schools and childcare centers. The program requires commitment to serving children (not adult caregiving) and your loved one must be physically and mentally able to work with children who have developmental, learning, or behavioral challenges.\n\nThis is a structured volunteer position with employment benefits including meal allowances, travel reimbursement, paid vacation and sick leave. Your loved one must have annual income around 125% of the federal poverty level (exact amounts vary by household size and change yearly), pass a physical exam, and complete a background check. The program serves children up to age 21 and requires a minimum 15-hour weekly commitment.",
       "savingsRange": "",
       "savingsSource": "Paid volunteer position with stipend",
       "savingsVerified": false,
@@ -3271,7 +3271,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the program office to start the application process — processing time not specified but subject to funding availability.",
+        "summary": "Call the program office to start the application process, processing time not specified but subject to funding availability.",
         "steps": [
           {
             "step": 1,
@@ -3301,7 +3301,7 @@
         ],
         "processingTime": null,
         "waitlist": "Subject to availability of funds",
-        "tip": "Contact the program office first to confirm current income guidelines — these change annually and vary by household size.",
+        "tip": "Contact the program office first to confirm current income guidelines, these change annually and vary by household size.",
         "urls": [
           {
             "label": "Hawaii Foster Grandparent Program",
@@ -3336,10 +3336,10 @@
         }
       ],
       "applicationNotes": [
-        "Income guidelines are revised annually — you must verify current levels and note that eligibility continues if income doesn't exceed guidelines by more than 20%",
-        "This program serves children with special needs, not elderly adults — it's employment for your parent, not services for them",
+        "Income guidelines are revised annually, you must verify current levels and note that eligibility continues if income doesn't exceed guidelines by more than 20%",
+        "This program serves children with special needs, not elderly adults, it's employment for your loved one, not services for them",
         "Background checks include criminal history, employment history, and any record that could pose risk to children",
-        "The commitment is substantial — 15-20 hours per week working directly with children who have developmental, learning, or behavioral challenges"
+        "The commitment is substantial, 15-20 hours per week working directly with children who have developmental, learning, or behavioral challenges"
       ],
       "relatedPrograms": [
         "Senior Community Service Employment Program",
@@ -3349,24 +3349,24 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're already receiving Social Security or have a small pension?",
+          "question": "Can my loved one apply if they're already receiving Social Security or have a small pension?",
           "answer": "Yes, but total annual income from all sources must stay at or below program guidelines (typically around 125% of federal poverty level). Social Security and pension income count toward this limit. Contact (808) 832-5169 for current income thresholds for your household size."
         },
         {
-          "question": "What if my parent has never worked with special needs children before?",
-          "answer": "No prior experience required, but your parent must be willing and able to work with children who have developmental, learning, or behavioral challenges. The program provides required training after acceptance. The key requirement is genuine desire to help children and ability to handle the physical and emotional demands."
+          "question": "What if my loved one has never worked with special needs children before?",
+          "answer": "No prior experience required, but your loved one must be willing and able to work with children who have developmental, learning, or behavioral challenges. The program provides required training after acceptance. The key requirement is genuine desire to help children and ability to handle the physical and emotional demands."
         },
         {
-          "question": "Can my parent choose which school or childcare center to work at?",
-          "answer": "Placement depends on program needs and available positions. Your parent will work where Foster Grandparents are most needed, typically in schools, Head Start programs, or childcare centers serving children with special needs. Location preferences can be discussed but aren't guaranteed."
+          "question": "Can my loved one choose which school or childcare center to work at?",
+          "answer": "Placement depends on program needs and available positions. Your loved one will work where Foster Grandparents are most needed, typically in schools, Head Start programs, or childcare centers serving children with special needs. Location preferences can be discussed but aren't guaranteed."
         },
         {
-          "question": "What happens if my parent's income changes after they're accepted?",
-          "answer": "Income is reviewed periodically. If income exceeds guidelines by more than 20%, your parent may lose eligibility. Report income changes to the program office promptly. Temporary increases might be acceptable, but sustained income above limits ends participation."
+          "question": "What happens if my loved one's income changes after they're accepted?",
+          "answer": "Income is reviewed periodically. If income exceeds guidelines by more than 20%, your loved one may lose eligibility. Report income changes to the program office promptly. Temporary increases might be acceptable, but sustained income above limits ends participation."
         },
         {
-          "question": "Does my parent need their own transportation to work sites?",
-          "answer": "Your parent needs reliable transportation to assigned locations. The program provides travel reimbursement, but doesn't provide transportation itself. Public transit, personal vehicle, or family transportation arrangements all work as long as your parent can consistently reach their assigned site."
+          "question": "Does my loved one need their own transportation to work sites?",
+          "answer": "Your loved one needs reliable transportation to assigned locations. The program provides travel reimbursement, but doesn't provide transportation itself. Public transit, personal vehicle, or family transportation arrangements all work as long as your loved one can consistently reach their assigned site."
         },
         {
           "question": "How long is the wait to get placed after being accepted?",
@@ -3404,7 +3404,7 @@
           }
         ]
       },
-      "intro": "If your parent has memory loss and lives alone with minimal caregiving support, they may qualify for free volunteer visits through Catholic Charities Hawaiʻi. Volunteers provide friendly visits, safety checks, grocery shopping, help reviewing mail, and medication reminders — all at no cost.\n\nThe program focuses on seniors who are isolated and need basic daily support but don't qualify for or require comprehensive medical care programs. Because it's volunteer-driven, availability depends on volunteer capacity in your area.",
+      "intro": "If your loved one has memory loss and lives alone with minimal caregiving support, they may qualify for free volunteer visits through Catholic Charities Hawaiʻi. Volunteers provide friendly visits, safety checks, grocery shopping, help reviewing mail, and medication reminders, all at no cost.\n\nThe program focuses on seniors who are isolated and need basic daily support but don't qualify for or require comprehensive medical care programs. Because it's volunteer-driven, availability depends on volunteer capacity in your area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -3426,27 +3426,27 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Senior Intake Line at (808) 527-4777 — no formal application required.",
+        "summary": "Call the Senior Intake Line at (808) 527-4777, no formal application required.",
         "steps": [
           {
             "step": 1,
             "title": "Call the intake line",
-            "description": "Contact the Senior Intake Line at (808) 527-4777 to discuss your parent's situation and needs."
+            "description": "Contact the Senior Intake Line at (808) 527-4777 to discuss your loved one's situation and needs."
           },
           {
             "step": 2,
             "title": "Describe current support",
-            "description": "Explain your parent's memory loss symptoms and current living situation to help determine appropriate services."
+            "description": "Explain your loved one's memory loss symptoms and current living situation to help determine appropriate services."
           },
           {
             "step": 3,
             "title": "Schedule volunteer match",
-            "description": "Staff will work to match your parent with available volunteers based on location and needs."
+            "description": "Staff will work to match your loved one with available volunteers based on location and needs."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have information ready about your parent's specific memory challenges and what daily tasks they need help with.",
+        "tip": "Have information ready about your loved one's specific memory challenges and what daily tasks they need help with.",
         "urls": []
       },
       "documentsNeeded": null,
@@ -3473,12 +3473,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if there are no volunteers available in my parent's area?",
+          "question": "What if there are no volunteers available in my loved one's area?",
           "answer": "Because this is a volunteer-based program, availability depends on volunteer capacity in your specific location on Oʻahu. Call (808) 527-4777 to check current availability and ask about being placed on a waiting list if needed."
         },
         {
-          "question": "Can my parent receive these services if they already have some family help?",
-          "answer": "The program is designed for seniors with \"little or no caregiving support,\" but Catholic Charities evaluates each situation individually. If your parent needs additional support beyond what family can provide, they may still qualify."
+          "question": "Can my loved one receive these services if they already have some family help?",
+          "answer": "The program is designed for seniors with \"little or no caregiving support,\" but Catholic Charities evaluates each situation individually. If your loved one needs additional support beyond what family can provide, they may still qualify."
         }
       ],
       "layoutIntent": {
@@ -3497,12 +3497,12 @@
     }
   ],
   "stateOverview": {
-    "intro": "Hawaii offers 19 senior programs that can save your aging parent hundreds to thousands of dollars monthly while keeping them safely at home. These range from Medicaid coverage (Med-QUEST) that pays for all health care including nursing home costs, to the Kūpuna Care Program that provides daily care help when Medicaid isn't available, to smaller supports like free meal delivery and transportation.\n\nMany programs have income limits around $2,000-3,000 monthly for a single person, but several free resources — like Medicare counseling through Hawaii SHIP and advocacy through the Long-Term Care Ombudsman — are available regardless of income. Start with the health and care programs below, as these typically offer the highest dollar value and can prevent costly emergency situations.",
+    "intro": "Hawaii offers 19 senior programs that can save your aging loved one hundreds to thousands of dollars monthly while keeping them safely at home. These range from Medicaid coverage (Med-QUEST) that pays for all health care including nursing home costs, to the Kūpuna Care Program that provides daily care help when Medicaid isn't available, to smaller supports like free meal delivery and transportation.\n\nMany programs have income limits around $2,000-3,000 monthly for a single person, but several free resources, like Medicare counseling through Hawaii SHIP and advocacy through the Long-Term Care Ombudsman, are available regardless of income. Start with the health and care programs below, as these typically offer the highest dollar value and can prevent costly emergency situations.",
     "startHere": [
       {
         "name": "Med-QUEST",
         "programId": "med-quest",
-        "why": "Covers all health care costs including nursing home care for seniors with limited income — potentially worth thousands monthly."
+        "why": "Covers all health care costs including nursing home care for seniors with limited income, potentially worth thousands monthly."
       },
       {
         "name": "Kūpuna Care Program",
@@ -3536,7 +3536,7 @@
           "Home and Community Services",
           "Senior Companion Program"
         ],
-        "description": "Attendant care, companionship, and support services to help your parent remain independent at home."
+        "description": "Attendant care, companionship, and support services to help your loved one remain independent at home."
       },
       {
         "need": "Food and nutrition",

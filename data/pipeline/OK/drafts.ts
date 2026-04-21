@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.918Z
+ * Last updated: 2026-04-20T23:39:07.870Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicaid-soonercare",
       "name": "Oklahoma Medicaid SoonerCare",
       "shortName": "SoonerCare",
-      "tagline": "If your parent is 65+ and needs help paying for medical care, long-term care, or prescription drugs, Oklahoma Medicaid may cover these costs.",
+      "tagline": "If your loved one is 65+ and needs help paying for medical care, long-term care, or prescription drugs, Oklahoma Medicaid may cover these costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ and struggling with medical bills, Oklahoma Medicaid SoonerCare covers doctor visits, hospital stays, prescription drugs, and long-term care — including nursing home care and home services like personal care assistance. The program has different categories with different income and asset limits: Aged, Blind, and Disabled (ABD) Medicaid allows up to $9,950 in assets with basic medical coverage, while Nursing Home Medicaid allows only $2,000 in assets but covers full long-term care costs.\n\nBecause SoonerCare works through managed care plans like Aetna Better Health, your parent gets coordinated care rather than dealing with separate providers for each service. Income limits vary by category — ABD follows SSI levels while Nursing Home Medicaid allows up to $2,982/month for a single person in 2026.\n\nIf your parent needs daily help with bathing, dressing, or medication management, they may qualify for Home and Community Based Services (HCBS) waivers that provide care at home instead of in a nursing facility. These waivers have waitlists due to limited slots, but can help your parent stay in their own home longer.",
+      "intro": "If your loved one is 65+ and struggling with medical bills, Oklahoma Medicaid SoonerCare covers doctor visits, hospital stays, prescription drugs, and long-term care, including nursing home care and home services like personal care assistance. The program has different categories with different income and asset limits: Aged, Blind, and Disabled (ABD) Medicaid allows up to $9,950 in assets with basic medical coverage, while Nursing Home Medicaid allows only $2,000 in assets but covers full long-term care costs.\n\nBecause SoonerCare works through managed care plans like Aetna Better Health, your loved one gets coordinated care rather than dealing with separate providers for each service. Income limits vary by category, ABD follows SSI levels while Nursing Home Medicaid allows up to $2,982/month for a single person in 2026.\n\nIf your loved one needs daily help with bathing, dressing, or medication management, they may qualify for Home and Community Based Services (HCBS) waivers that provide care at home instead of in a nursing facility. These waivers have waitlists due to limited slots, but can help your loved one stay in their own home longer.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -67,7 +67,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive.org or call 1-800-987-7767 — processing can take weeks to months depending on documentation review.",
+        "summary": "Apply online at OKDHSLive.org or call 1-800-987-7767, processing can take weeks to months depending on documentation review.",
         "steps": [
           {
             "step": 1,
@@ -82,7 +82,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete functional assessment if needed",
-            "description": "If applying for long-term care services, you'll need a clinical assessment to determine if your parent meets Nursing Facility Level of Care requirements."
+            "description": "If applying for long-term care services, you'll need a clinical assessment to determine if your loved one meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 4,
@@ -91,8 +91,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Weeks to months depending on documentation review and assessments needed",
-        "waitlist": "HCBS waivers have waitlists due to limited slots — basic ABD Medicaid does not have waitlists",
-        "tip": "Apply even if your parent's income is slightly over the limits — there may be spend-down options or other pathways to qualification.",
+        "waitlist": "HCBS waivers have waitlists due to limited slots, basic ABD Medicaid does not have waitlists",
+        "tip": "Apply even if your loved one's income is slightly over the limits, there may be spend-down options or other pathways to qualification.",
         "urls": [
           {
             "label": "Online Application",
@@ -135,10 +135,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Incomplete applications cause major delays — submit all required documentation at once to avoid processing holds",
+        "Incomplete applications cause major delays, submit all required documentation at once to avoid processing holds",
         "Different SoonerCare categories have different rules: ABD allows higher assets but basic coverage only, while Nursing Home Medicaid has stricter asset limits but covers long-term care",
-        "Spousal impoverishment rules protect the community spouse's assets and income if your parent needs nursing home care",
-        "HCBS waiver waitlists vary by region and priority level — ask about current wait times when applying"
+        "Spousal impoverishment rules protect the community spouse's assets and income if your loved one needs nursing home care",
+        "HCBS waiver waitlists vary by region and priority level, ask about current wait times when applying"
       ],
       "relatedPrograms": [
         "Oklahoma SNAP (food benefits)",
@@ -149,8 +149,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for Nursing Home Medicaid?",
-          "answer": "Yes, the primary home is typically exempt from the $2,000 asset limit as long as your parent intends to return or a spouse/disabled child lives there. However, the state may place a lien on the home to recover costs after your parent passes away."
+          "question": "Can my loved one keep their house if they qualify for Nursing Home Medicaid?",
+          "answer": "Yes, the primary home is typically exempt from the $2,000 asset limit as long as your loved one intends to return or a spouse/disabled child lives there. However, the state may place a lien on the home to recover costs after your loved one passes away."
         },
         {
           "question": "What's the difference between ABD Medicaid and Nursing Home Medicaid?",
@@ -161,24 +161,24 @@ export const drafts: PipelineStateDrafts = {
           "answer": "HCBS waiver waitlists vary by region and can range from several months to multiple years. The state has limited slots available, so priority goes to those with the highest functional needs and those at risk of nursing home placement."
         },
         {
-          "question": "Can I apply for SoonerCare while my parent is still in the hospital?",
-          "answer": "Yes, and you should apply immediately. Hospital discharge planners can often help initiate the application process. This is especially important if your parent will need long-term care services after discharge."
+          "question": "Can I apply for SoonerCare while my loved one is still in the hospital?",
+          "answer": "Yes, and you should apply immediately. Hospital discharge planners can often help initiate the application process. This is especially important if your loved one will need long-term care services after discharge."
         },
         {
-          "question": "What happens to my parent's spouse's income and assets?",
+          "question": "What happens to my loved one's spouse's income and assets?",
           "answer": "Oklahoma has spousal impoverishment protections that allow the community spouse to keep a portion of income and assets. The exact amounts depend on current federal limits and are calculated during the application process."
         },
         {
-          "question": "Can my parent have both Medicare and SoonerCare?",
+          "question": "Can my loved one have both Medicare and SoonerCare?",
           "answer": "Yes, many people have both. SoonerCare can work as a supplement to Medicare, covering costs like long-term care that Medicare doesn't cover, or helping pay Medicare premiums and deductibles for those who qualify."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
-          "answer": "Apply anyway. Oklahoma has spend-down options where high medical expenses can reduce countable income, and there may be other pathways to qualification depending on your parent's specific situation."
+          "question": "What if my loved one's income is slightly over the limit?",
+          "answer": "Apply anyway. Oklahoma has spend-down options where high medical expenses can reduce countable income, and there may be other pathways to qualification depending on your loved one's specific situation."
         },
         {
           "question": "How do I choose between managed care plans like Aetna Better Health?",
-          "answer": "Check which doctors and specialists your parent wants to keep are in each plan's network. Some plans may have immediate availability while others have waitlists for certain services. Call the plans directly to compare benefits and provider networks."
+          "answer": "Check which doctors and specialists your loved one wants to keep are in each plan's network. Some plans may have immediate availability while others have waitlists for certain services. Call the plans directly to compare benefits and provider networks."
         }
       ],
       "layoutIntent": {
@@ -199,7 +199,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "advantage-waiver-hcbs",
       "name": "Home and Community-Based Services (HCBS) Waivers (ADvantage Waiver)",
       "shortName": "ADvantage Waiver",
-      "tagline": "Medicaid waiver program that pays for home care services to help your parent avoid nursing home placement.",
+      "tagline": "Medicaid waiver program that pays for home care services to help your loved one avoid nursing home placement.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -212,7 +212,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, Oklahoma's ADvantage Waiver can pay for home care services that would otherwise require nursing home placement. This Medicaid program covers case management, personal care, and other support services tailored to your parent's specific needs.\n\nYour parent must be 65+ or have a qualifying physical disability, meet nursing facility level of care requirements, and have income under $2,901/month in 2025. Because this waiver has limited enrollment slots, eligible applicants are placed on a waitlist until an opening becomes available. The program requires living in your own home or a family member's home — not in assisted living or other facilities.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Oklahoma's ADvantage Waiver can pay for home care services that would otherwise require nursing home placement. This Medicaid program covers case management, personal care, and other support services tailored to your loved one's specific needs.\n\nYour loved one must be 65+ or have a qualifying physical disability, meet nursing facility level of care requirements, and have income under $2,901/month in 2025. Because this waiver has limited enrollment slots, eligible applicants are placed on a waitlist until an opening becomes available. The program requires living in your own home or a family member's home, not in assisted living or other facilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -252,7 +252,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call Oklahoma Human Services for assessment — processing includes financial interview, nurse assessment, and waitlist placement if no slots available.",
+        "summary": "Call Oklahoma Human Services for assessment, processing includes financial interview, nurse assessment, and waitlist placement if no slots available.",
         "steps": [
           {
             "step": 1,
@@ -262,17 +262,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete financial eligibility interview",
-            "description": "An Adult and Family Services specialist will conduct a phone interview to determine if your parent meets SoonerCare Medicaid income and asset requirements."
+            "description": "An Adult and Family Services specialist will conduct a phone interview to determine if your loved one meets SoonerCare Medicaid income and asset requirements."
           },
           {
             "step": 3,
             "title": "Undergo nursing assessment",
-            "description": "A nurse will assess your parent's functional abilities either by phone or in-person visit using the Uniform Comprehensive Assessment Tool (UCAT III) to determine nursing facility level of care."
+            "description": "A nurse will assess your loved one's functional abilities either by phone or in-person visit using the Uniform Comprehensive Assessment Tool (UCAT III) to determine nursing facility level of care."
           },
           {
             "step": 4,
             "title": "Wait for waiver slot availability",
-            "description": "If eligible but no slots available, your parent will be placed on a waitlist. When a slot opens, a case manager will develop an individualized service plan."
+            "description": "If eligible but no slots available, your loved one will be placed on a waitlist. When a slot opens, a case manager will develop an individualized service plan."
           },
           {
             "step": 5,
@@ -281,7 +281,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Processing time varies and includes financial interview, nurse assessment, and case manager plan development",
-        "waitlist": "Yes — limited enrollment slots mean eligible applicants are placed on waitlist until opening becomes available",
+        "waitlist": "Yes, limited enrollment slots mean eligible applicants are placed on waitlist until opening becomes available",
         "tip": "Gather all financial documents before calling to speed up the eligibility interview process.",
         "urls": [
           {
@@ -322,9 +322,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Limited waiver slots mean even eligible applicants may wait months or years for services to begin",
-        "Annual income and asset limits update each year — 2025 limits are $2,901/month income and $730,000 home equity",
+        "Annual income and asset limits update each year, 2025 limits are $2,901/month income and $730,000 home equity",
         "Participants aged 19-64 with physical disabilities cannot have intellectual disabilities or developmental cognitive impairments",
-        "Services must be needed at least monthly to prevent nursing home placement — not just for general Medicaid eligibility"
+        "Services must be needed at least monthly to prevent nursing home placement, not just for general Medicaid eligibility"
       ],
       "relatedPrograms": [
         "SoonerCare Medicaid",
@@ -335,36 +335,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your parent lives there or intends to return, and the home equity doesn't exceed $730,000 in 2025. If a spouse or dependent child lives in the home, there's no equity limit."
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your loved one lives there or intends to return, and the home equity doesn't exceed $730,000 in 2025. If a spouse or dependent child lives in the home, there's no equity limit."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Oklahoma doesn't publish specific waitlist times, but waiver programs typically have waitlists ranging from several months to multiple years depending on funding and regional demand. Your county OKDHS office can provide current estimates for your area."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "You can help with the application process, but note that people aged 19-64 cannot qualify if they have cognitive impairments related to developmental disabilities. Those 65+ with any type of dementia can qualify if they meet other requirements."
         },
         {
-          "question": "What happens if my parent's income goes over $2,901/month after enrollment?",
-          "answer": "Your parent would lose eligibility during the annual redetermination process. However, they might qualify for other Medicaid programs or special income trusts — discuss options with your case manager before this happens."
+          "question": "What happens if my loved one's income goes over $2,901/month after enrollment?",
+          "answer": "Your loved one would lose eligibility during the annual redetermination process. However, they might qualify for other Medicaid programs or special income trusts, discuss options with your case manager before this happens."
         },
         {
-          "question": "Can my parent live in assisted living and still get ADvantage Waiver services?",
+          "question": "Can my loved one live in assisted living and still get ADvantage Waiver services?",
           "answer": "No, participants must live in their own home or a family member's home. Assisted living facilities are not eligible residences for this waiver program."
         },
         {
           "question": "What specific services does ADvantage Waiver actually cover?",
-          "answer": "Services are individualized based on your parent's assessment and can include personal care, case management, and other supports needed to avoid nursing home placement. The exact services are determined by your case manager after enrollment and assessment."
+          "answer": "Services are individualized based on your loved one's assessment and can include personal care, case management, and other supports needed to avoid nursing home placement. The exact services are determined by your case manager after enrollment and assessment."
         },
         {
-          "question": "Can my parent have both Medicare and ADvantage Waiver services?",
-          "answer": "Yes, Medicare and the ADvantage Waiver work together. Medicare covers medical services while the waiver covers long-term care services not covered by Medicare. Your parent must also qualify for SoonerCare Medicaid."
+          "question": "Can my loved one have both Medicare and ADvantage Waiver services?",
+          "answer": "Yes, Medicare and the ADvantage Waiver work together. Medicare covers medical services while the waiver covers long-term care services not covered by Medicare. Your loved one must also qualify for SoonerCare Medicaid."
         },
         {
-          "question": "What if my parent needs nursing home care while on the waitlist?",
-          "answer": "Your parent can receive Medicaid coverage in a nursing facility while waiting for a waiver slot. When a slot becomes available, they can transition to home-based services if they still meet eligibility requirements and want to return home."
+          "question": "What if my loved one needs nursing home care while on the waitlist?",
+          "answer": "Your loved one can receive Medicaid coverage in a nursing facility while waiting for a waiver slot. When a slot becomes available, they can transition to home-based services if they still meet eligibility requirements and want to return home."
         }
       ],
       "layoutIntent": {
@@ -402,7 +402,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your parent won't need to coordinate between separate Medicare and Medicaid providers — one interdisciplinary team manages all their care.\n\nYour parent must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,901/month for a single person in 2025. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is only available in specific service areas around Oklahoma City and Shawnee — not statewide. Your parent must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your loved one won't need to coordinate between separate Medicare and Medicaid providers, one interdisciplinary team manages all their care.\n\nYour loved one must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,901/month for a single person in 2025. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is only available in specific service areas around Oklahoma City and Shawnee, not statewide. Your loved one must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service covered by Medicare/Medicaid",
       "savingsVerified": false,
@@ -443,12 +443,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 405-522-7044 to start the process — PACE staff will help complete both medical and financial eligibility assessments.",
+        "summary": "Call 405-522-7044 to start the process, PACE staff will help complete both medical and financial eligibility assessments.",
         "steps": [
           {
             "step": 1,
             "title": "Call the PACE inquiry line",
-            "description": "Call 405-522-7044 or email PACEInquiry@okhca.org to determine if your parent lives in a PACE service area and get connected to local PACE providers like Valir PACE or LIFE PACE."
+            "description": "Call 405-522-7044 or email PACEInquiry@okhca.org to determine if your loved one lives in a PACE service area and get connected to local PACE providers like Valir PACE or LIFE PACE."
           },
           {
             "step": 2,
@@ -458,7 +458,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete UCAT assessment",
-            "description": "A PACE or Oklahoma Human Services nurse will conduct the Uniform Comprehensive Assessment Tool (UCAT) to determine if your parent meets nursing facility level of care."
+            "description": "A PACE or Oklahoma Human Services nurse will conduct the Uniform Comprehensive Assessment Tool (UCAT) to determine if your loved one meets nursing facility level of care."
           },
           {
             "step": 4,
@@ -468,10 +468,10 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Interdisciplinary team assessment",
-            "description": "PACE's interdisciplinary team evaluates whether your parent can live safely in the community with PACE services and support."
+            "description": "PACE's interdisciplinary team evaluates whether your loved one can live safely in the community with PACE services and support."
           }
         ],
-        "processingTime": "Processing time not specified — new medical assessment required if any prior UCAT is more than 6 months old",
+        "processingTime": "Processing time not specified, new medical assessment required if any prior UCAT is more than 6 months old",
         "waitlist": null,
         "tip": "PACE providers help coordinate both the medical and financial eligibility processes, so start with them rather than applying for Medicaid separately.",
         "urls": [
@@ -519,10 +519,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must live in a specific PACE service area — the program is not available statewide, only around Oklahoma City and Shawnee",
-        "Your parent cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services — PACE becomes the sole provider",
-        "If your parent needs emergency care outside the PACE network, PACE will coordinate and cover it, but routine care must go through PACE",
-        "The interdisciplinary team can deny enrollment if they determine your parent cannot live safely in the community even with PACE services"
+        "You must live in a specific PACE service area, the program is not available statewide, only around Oklahoma City and Shawnee",
+        "Your loved one cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services, PACE becomes the sole provider",
+        "If your loved one needs emergency care outside the PACE network, PACE will coordinate and cover it, but routine care must go through PACE",
+        "The interdisciplinary team can deny enrollment if they determine your loved one cannot live safely in the community even with PACE services"
       ],
       "relatedPrograms": [
         "ADvantage Waiver",
@@ -532,36 +532,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their current doctors if they enroll in PACE?",
-          "answer": "No. PACE requires participants to use only PACE providers and contractors for all medical care except emergencies. Your parent will be assigned to PACE doctors, specialists, and other providers. If they receive unauthorized care outside the PACE network, they may be financially liable for those costs."
+          "question": "Can my loved one keep their current doctors if they enroll in PACE?",
+          "answer": "No. PACE requires participants to use only PACE providers and contractors for all medical care except emergencies. Your loved one will be assigned to PACE doctors, specialists, and other providers. If they receive unauthorized care outside the PACE network, they may be financially liable for those costs."
         },
         {
-          "question": "What if my parent's house is worth more than $2,000 — does that disqualify them?",
-          "answer": "No. The primary home is exempt from the $2,000 asset limit, regardless of value. The asset limit applies to countable assets like bank accounts, investments, and additional properties. Your parent can keep their home, one vehicle, personal belongings, and burial plots."
+          "question": "What if my loved one's house is worth more than $2,000, does that disqualify them?",
+          "answer": "No. The primary home is exempt from the $2,000 asset limit, regardless of value. The asset limit applies to countable assets like bank accounts, investments, and additional properties. Your loved one can keep their home, one vehicle, personal belongings, and burial plots."
         },
         {
-          "question": "How do I know if my parent lives in a PACE service area?",
-          "answer": "Call 405-522-7044 with your parent's address to verify coverage. Currently, PACE is only available in specific areas around Oklahoma City and Shawnee through Valir PACE and LIFE PACE. The program is not available statewide — most Oklahoma counties do not have PACE coverage."
+          "question": "How do I know if my loved one lives in a PACE service area?",
+          "answer": "Call 405-522-7044 with your loved one's address to verify coverage. Currently, PACE is only available in specific areas around Oklahoma City and Shawnee through Valir PACE and LIFE PACE. The program is not available statewide, most Oklahoma counties do not have PACE coverage."
         },
         {
           "question": "Can I apply for PACE and the ADvantage Waiver at the same time?",
-          "answer": "You can apply for both, but your parent cannot be enrolled in both programs simultaneously. Both serve people needing nursing facility level of care, but PACE provides comprehensive medical care while ADvantage focuses on home and community-based services. You may want to compare options before choosing."
+          "answer": "You can apply for both, but your loved one cannot be enrolled in both programs simultaneously. Both serve people needing nursing facility level of care, but PACE provides comprehensive medical care while ADvantage focuses on home and community-based services. You may want to compare options before choosing."
         },
         {
-          "question": "What happens if my parent's care needs increase after enrollment?",
-          "answer": "PACE is designed to provide all necessary care as needs change, including skilled nursing, physical therapy, and increased personal care hours. The interdisciplinary team regularly reassesses participants and adjusts services. However, if your parent can no longer live safely in the community, they may need to transition to facility-based care."
+          "question": "What happens if my loved one's care needs increase after enrollment?",
+          "answer": "PACE is designed to provide all necessary care as needs change, including skilled nursing, physical therapy, and increased personal care hours. The interdisciplinary team regularly reassesses participants and adjusts services. However, if your loved one can no longer live safely in the community, they may need to transition to facility-based care."
         },
         {
           "question": "How long does the PACE enrollment process take?",
-          "answer": "Processing time is not specified in Oklahoma's program documentation. The process involves both medical assessment (UCAT) and financial eligibility determination through OKDHS. If your parent had a prior UCAT assessment more than 6 months ago, a new assessment will be required, which may extend the timeline."
+          "answer": "Processing time is not specified in Oklahoma's program documentation. The process involves both medical assessment (UCAT) and financial eligibility determination through OKDHS. If your loved one had a prior UCAT assessment more than 6 months ago, a new assessment will be required, which may extend the timeline."
         },
         {
-          "question": "Can a family member apply for PACE on behalf of an elderly parent?",
-          "answer": "Yes, adult children can help initiate the PACE application process by calling 405-522-7044. However, your parent must participate in the medical assessments and agree to use PACE as their sole provider. If your parent cannot make decisions due to dementia or other conditions, legal guardianship or power of attorney documentation will be needed."
+          "question": "Can a family member apply for PACE on behalf of an elderly loved one?",
+          "answer": "Yes, adult children can help initiate the PACE application process by calling 405-522-7044. However, your loved one must participate in the medical assessments and agree to use PACE as their sole provider. If your loved one cannot make decisions due to dementia or other conditions, legal guardianship or power of attorney documentation will be needed."
         },
         {
-          "question": "What if my parent has Medicare Advantage — can they switch to PACE?",
-          "answer": "Your parent must disenroll from Medicare Advantage before joining PACE, as they cannot be enrolled in both programs. PACE staff can help coordinate this transition during the enrollment process. Your parent will need to return to original Medicare as part of PACE enrollment."
+          "question": "What if my loved one has Medicare Advantage, can they switch to PACE?",
+          "answer": "Your loved one must disenroll from Medicare Advantage before joining PACE, as they cannot be enrolled in both programs. PACE staff can help coordinate this transition during the enrollment process. Your loved one will need to return to original Medicare as part of PACE enrollment."
         }
       ],
       "layoutIntent": {
@@ -582,7 +582,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's monthly income is below $1,660, Oklahoma may pay their Medicare premiums and reduce their out-of-pocket costs.",
+      "tagline": "If your loved one's monthly income is below $1,660, Oklahoma may pay their Medicare premiums and reduce their out-of-pocket costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -595,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or coinsurance, Oklahoma's Medicare Savings Programs can help. These three programs — QMB, SLMB, and QI — pay different levels of Medicare costs based on income. QMB covers the most (all Medicare Part A and B costs), while SLMB and QI cover Medicare Part B premiums only.\n\nOklahoma uses stricter income limits than many states. Monthly limits range from $1,235 for QMB up to $1,660 for QI (single person). Your parent must also have assets below $9,090 (single) or $13,630 (married couple). Because QI has limited funding and works first-come, first-served, apply early in the year if your parent qualifies.\n\nAll three programs automatically qualify your parent for Extra Help with prescription drug costs. Apply through your local OKDHS Human Services Center — you cannot apply through Medicare directly.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or coinsurance, Oklahoma's Medicare Savings Programs can help. These three programs, QMB, SLMB, and QI, pay different levels of Medicare costs based on income. QMB covers the most (all Medicare Part A and B costs), while SLMB and QI cover Medicare Part B premiums only.\n\nOklahoma uses stricter income limits than many states. Monthly limits range from $1,235 for QMB up to $1,660 for QI (single person). Your loved one must also have assets below $9,090 (single) or $13,630 (married couple). Because QI has limited funding and works first-come, first-served, apply early in the year if your loved one qualifies.\n\nAll three programs automatically qualify your loved one for Extra Help with prescription drug costs. Apply through your local OKDHS Human Services Center, you cannot apply through Medicare directly.",
       "savingsRange": "$200 – $2,400/year in 2026",
       "savingsSource": "Medicare Part B premium savings plus potential deductible and coinsurance coverage",
       "savingsVerified": false,
@@ -662,7 +662,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Apply at your local OKDHS Human Services Center — processing time varies by office and QI has limited annual funding.",
+        "summary": "Apply at your local OKDHS Human Services Center, processing time varies by office and QI has limited annual funding.",
         "steps": [
           {
             "step": 1,
@@ -685,8 +685,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "OKDHS will review your application and contact you if additional information is needed. QI applications are processed first-come, first-served due to limited funding."
           }
         ],
-        "processingTime": "Varies by office — contact your local OKDHS center for current processing times",
-        "waitlist": "QI has first-come, first-served processing with priority to prior-year recipients — limited funds may create waitlist",
+        "processingTime": "Varies by office, contact your local OKDHS center for current processing times",
+        "waitlist": "QI has first-come, first-served processing with priority to prior-year recipients, limited funds may create waitlist",
         "tip": "Apply early in the year for QI since funding is limited and distributed first-come, first-served.",
         "urls": [
           {
@@ -724,7 +724,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits update every April 1 — verify current amounts with OKDHS when applying",
+        "Income limits update every April 1, verify current amounts with OKDHS when applying",
         "Oklahoma uses stricter income limits than federal baselines, so you may not qualify even if eligible in other states",
         "QI requires annual reapplication and excludes those eligible for other Medicaid programs",
         "You must apply through Oklahoma's Medicaid agency (OKDHS), not Medicare directly"
@@ -771,7 +771,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
           "answer": "Yes, the primary home is exempt from the $9,090 asset limit regardless of value. Only countable assets like bank accounts, stocks, and investment accounts are included in the limit."
         },
         {
@@ -779,27 +779,27 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The main difference is funding and income limits. SLMB has guaranteed funding for all who qualify up to $1,478/month income. QI covers higher incomes (up to $1,660/month) but has limited funding distributed first-come, first-served each year."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents. You may need to provide documentation of your authority to act for them, such as power of attorney. Contact your local OKDHS office about specific requirements."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones. You may need to provide documentation of your authority to act for them, such as power of attorney. Contact your local OKDHS office about specific requirements."
         },
         {
-          "question": "What happens if my parent's income goes up after they're enrolled?",
-          "answer": "You must report income changes to OKDHS. If income exceeds the limits, your parent may lose coverage or move to a different program tier. QMB recipients might move to SLMB, for example, if income rises above $1,235 but stays below $1,478."
+          "question": "What happens if my loved one's income goes up after they're enrolled?",
+          "answer": "You must report income changes to OKDHS. If income exceeds the limits, your loved one may lose coverage or move to a different program tier. QMB recipients might move to SLMB, for example, if income rises above $1,235 but stays below $1,478."
         },
         {
           "question": "Why are Oklahoma's income limits lower than what I see online for other states?",
           "answer": "States can set their own limits within federal guidelines. Oklahoma uses stricter income limits than the federal baselines. Always verify with OKDHS rather than national websites, as Oklahoma-specific limits apply."
         },
         {
-          "question": "Can my parent apply for Medicare Savings Programs and SoonerCare at the same time?",
-          "answer": "Yes, you can apply for both through the same OKDHS application. However, QI applicants cannot be eligible for other Medicaid programs — if your parent qualifies for regular SoonerCare, they wouldn't be eligible for QI specifically."
+          "question": "Can my loved one apply for Medicare Savings Programs and SoonerCare at the same time?",
+          "answer": "Yes, you can apply for both through the same OKDHS application. However, QI applicants cannot be eligible for other Medicaid programs, if your loved one qualifies for regular SoonerCare, they wouldn't be eligible for QI specifically."
         },
         {
           "question": "How long does the Extra Help prescription coverage last once approved?",
-          "answer": "Extra Help is automatic and continuous as long as your parent remains enrolled in any Medicare Savings Program. They don't need to apply separately — it starts when their Medicare Savings Program begins."
+          "answer": "Extra Help is automatic and continuous as long as your loved one remains enrolled in any Medicare Savings Program. They don't need to apply separately, it starts when their Medicare Savings Program begins."
         },
         {
-          "question": "What if my parent needs QI but applies late in the year when funding might be gone?",
+          "question": "What if my loved one needs QI but applies late in the year when funding might be gone?",
           "answer": "Apply anyway and ask to be put on the waiting list for the following year. Prior-year recipients get priority, but new applicants can still be approved if funding becomes available or is restored the next year."
         }
       ],
@@ -821,7 +821,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — potentially $100-400/month on an EBT card.",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes, potentially $100-400/month on an EBT card.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -834,7 +834,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly funds on an EBT card for food purchases. The amount depends on household size and income — a typical 2-person elderly household might receive $415/month after deductions, with a minimum of $24 for smaller households.\n\nSeniors get special advantages: they only need to meet the net income test (not gross), can deduct medical expenses over $35/month, and have higher asset limits. Because Oklahoma processes applications within 30 days (7 days if expedited), your parent could be getting food assistance within weeks of applying.\n\nThe EBT card works like a debit card at grocery stores for food purchases, but cannot be used for alcohol, tobacco, or hot prepared foods. All Social Security, pension, and other income counts, but medical expenses and housing costs are deducted from income calculations.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly funds on an EBT card for food purchases. The amount depends on household size and income, a typical 2-person elderly household might receive $415/month after deductions, with a minimum of $24 for smaller households.\n\nSeniors get special advantages: they only need to meet the net income test (not gross), can deduct medical expenses over $35/month, and have higher asset limits. Because Oklahoma processes applications within 30 days (7 days if expedited), your loved one could be getting food assistance within weeks of applying.\n\nThe EBT card works like a debit card at grocery stores for food purchases, but cannot be used for alcohol, tobacco, or hot prepared foods. All Social Security, pension, and other income counts, but medical expenses and housing costs are deducted from income calculations.",
       "savingsRange": "$288 – $4,980/year in 2026",
       "savingsSource": "Based on minimum $24/month benefit to typical elderly household benefit of $415/month",
       "savingsVerified": true,
@@ -892,7 +892,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive! or call 1-877-760-0114 — takes about 20 minutes to start, with required interview within 30 days.",
+        "summary": "Apply online at OKDHSLive! or call 1-877-760-0114, takes about 20 minutes to start, with required interview within 30 days.",
         "steps": [
           {
             "step": 1,
@@ -922,7 +922,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "30 days for regular applications, 7 days for expedited processing if very low income",
         "waitlist": null,
-        "tip": "Seniors 60+ should emphasize medical expenses over $35/month — these are deducted from income and can significantly increase your benefit amount.",
+        "tip": "Seniors 60+ should emphasize medical expenses over $35/month, these are deducted from income and can significantly increase your benefit amount.",
         "urls": [
           {
             "label": "OKDHSLive! Online Application",
@@ -971,8 +971,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Expedited processing (7 days) is available if your household has less than $150 in monthly income and $100 or less in cash/bank accounts",
-        "Medical expenses over $35/month can be deducted from your income calculation — keep all receipts for copays, prescriptions, and health insurance premiums",
-        "If your parent lives with others but can't shop or cook for themselves due to disability or age 60+, they may qualify as a separate household",
+        "Medical expenses over $35/month can be deducted from your income calculation, keep all receipts for copays, prescriptions, and health insurance premiums",
+        "If your loved one lives with others but can't shop or cook for themselves due to disability or age 60+, they may qualify as a separate household",
         "Changes in income or household size must be reported within 10 days to avoid overpayments that need to be repaid"
       ],
       "relatedPrograms": [
@@ -984,24 +984,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep SNAP benefits if they move to assisted living?",
-          "answer": "Yes, if the assisted living facility doesn't provide meals or if your parent pays for their own food separately. They would need to report the address change within 10 days and their benefit amount might change based on new housing costs."
+          "question": "Can my loved one keep SNAP benefits if they move to assisted living?",
+          "answer": "Yes, if the assisted living facility doesn't provide meals or if your loved one pays for their own food separately. They would need to report the address change within 10 days and their benefit amount might change based on new housing costs."
         },
         {
-          "question": "What happens if my parent's Social Security goes up — will they lose SNAP?",
-          "answer": "Not necessarily. Small Social Security increases are often offset by standard deductions and medical expenses. Report the change within 10 days — OKDHS will recalculate benefits and may reduce the amount rather than eliminate them entirely."
+          "question": "What happens if my loved one's Social Security goes up, will they lose SNAP?",
+          "answer": "Not necessarily. Small Social Security increases are often offset by standard deductions and medical expenses. Report the change within 10 days, OKDHS will recalculate benefits and may reduce the amount rather than eliminate them entirely."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent who has dementia?",
-          "answer": "Yes, if you're their legal guardian or have power of attorney. You'll need to provide those legal documents with the application. If you don't have legal authority, your parent must apply themselves or you can help them apply as their representative during the interview."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one who has dementia?",
+          "answer": "Yes, if you're their legal guardian or have power of attorney. You'll need to provide those legal documents with the application. If you don't have legal authority, your loved one must apply themselves or you can help them apply as their representative during the interview."
         },
         {
           "question": "Does money in a retirement account count toward the $4,250 asset limit?",
-          "answer": "No, 401(k)s, IRAs, and pension plans don't count as assets. However, any money your parent withdraws from these accounts does count as income in the month they withdraw it."
+          "answer": "No, 401(k)s, IRAs, and pension plans don't count as assets. However, any money your loved one withdraws from these accounts does count as income in the month they withdraw it."
         },
         {
-          "question": "Can my parent use SNAP and get Meals on Wheels at the same time?",
-          "answer": "Yes, there's no conflict between SNAP benefits and Meals on Wheels. SNAP helps with grocery shopping while Meals on Wheels provides prepared meals — they serve different needs and can complement each other."
+          "question": "Can my loved one use SNAP and get Meals on Wheels at the same time?",
+          "answer": "Yes, there's no conflict between SNAP benefits and Meals on Wheels. SNAP helps with grocery shopping while Meals on Wheels provides prepared meals, they serve different needs and can complement each other."
         },
         {
           "question": "How long do SNAP benefits last once approved?",
@@ -1012,7 +1012,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "By federal law, they must complete your interview within 30 days of application (7 days if expedited). If they can't meet this deadline, ask to speak with a supervisor or call the state SNAP hotline at (877) 760-0114 to escalate."
         },
         {
-          "question": "Can my parent shop online with their EBT card?",
+          "question": "Can my loved one shop online with their EBT card?",
           "answer": "Yes, major retailers like Amazon, Walmart, and many grocery stores accept EBT cards for online grocery orders in Oklahoma. Delivery fees cannot be paid with SNAP benefits, but the groceries themselves can be."
         }
       ],
@@ -1034,7 +1034,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Help",
-      "tagline": "Get $40-$750 toward heating, cooling, or emergency utility bills if your parent qualifies by income",
+      "tagline": "Get $40-$750 toward heating, cooling, or emergency utility bills if your loved one qualifies by income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1047,7 +1047,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating, cooling, or emergency utility bills, LIHEAP provides one-time payments of $40-$750 directly to their utility company. The amount depends on household size, income level, fuel type, and which component they qualify for — heating assistance (December-February), cooling assistance (summer), or crisis assistance (year-round emergencies).\n\nBecause LIHEAP pays the utility company directly, your parent won't handle cash — the credit appears on their next bill. Income limits are set at 130% of federal poverty level: $1,695/month for one person or $2,291/month for a couple. Everyone living under the same roof sharing a utility meter counts as one household, even if they don't share expenses.\n\nFunding runs out each year based on priority (elderly and households with young children get preference), and there's no formal waitlist — once money is gone, applications close until the next federal fiscal year. Processing takes up to 60 days for regular heating and cooling assistance, though crisis situations get individual evaluation.",
+      "intro": "If your loved one struggles to pay heating, cooling, or emergency utility bills, LIHEAP provides one-time payments of $40-$750 directly to their utility company. The amount depends on household size, income level, fuel type, and which component they qualify for, heating assistance (December-February), cooling assistance (summer), or crisis assistance (year-round emergencies).\n\nBecause LIHEAP pays the utility company directly, your loved one won't handle cash, the credit appears on their next bill. Income limits are set at 130% of federal poverty level: $1,695/month for one person or $2,291/month for a couple. Everyone living under the same roof sharing a utility meter counts as one household, even if they don't share expenses.\n\nFunding runs out each year based on priority (elderly and households with young children get preference), and there's no formal waitlist, once money is gone, applications close until the next federal fiscal year. Processing takes up to 60 days for regular heating and cooling assistance, though crisis situations get individual evaluation.",
       "savingsRange": "$40 – $750/year in 2026",
       "savingsSource": "Oklahoma LIHEAP benefit amounts vary by income, household size, fuel type, dwelling type",
       "savingsVerified": true,
@@ -1096,7 +1096,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at OKDHSLive.org or call (405) 522-5050 — processing takes up to 60 days for heating/cooling assistance.",
+        "summary": "Apply online at OKDHSLive.org or call (405) 522-5050, processing takes up to 60 days for heating/cooling assistance.",
         "steps": [
           {
             "step": 1,
@@ -1106,7 +1106,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "You'll need 30 days of income proof for everyone in the household (unless you already have an open OKDHS benefits case) and a recent utility bill showing your parent is responsible for payment"
+            "description": "You'll need 30 days of income proof for everyone in the household (unless you already have an open OKDHS benefits case) and a recent utility bill showing your loved one is responsible for payment"
           },
           {
             "step": 3,
@@ -1121,11 +1121,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Receive payment notification",
-            "description": "If approved, OKDHS pays your utility company directly. The credit will appear on your parent's next bill — no cash changes hands"
+            "description": "If approved, OKDHS pays your utility company directly. The credit will appear on your loved one's next bill, no cash changes hands"
           }
         ],
         "processingTime": "Up to 60 calendar days for heating/cooling assistance; crisis applications evaluated individually",
-        "waitlist": "No formal waitlist — funding distributed by priority (elderly and young children first) until exhausted",
+        "waitlist": "No formal waitlist, funding distributed by priority (elderly and young children first) until exhausted",
         "tip": "For crisis situations involving disconnection notices or life-threatening conditions, call (405) 522-5050 immediately and ask for emergency energy assistance referral.",
         "urls": [
           {
@@ -1162,7 +1162,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If someone outside your household pays the utility bill directly, your parent is ineligible — they must be responsible for the payment themselves",
+        "If someone outside your household pays the utility bill directly, your loved one is ineligible, they must be responsible for the payment themselves",
         "Tribal members can choose either OKDHS or their tribal LIHEAP program, but cannot use both in the same federal fiscal year",
         "Crisis assistance may be available year-round for emergencies, but regular heating assistance is only available December through February",
         "Everyone living under the same roof and sharing a utility meter must apply together as one household, even if they don't share living expenses"
@@ -1176,36 +1176,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's landlord pays the utilities and my parent pays the landlord?",
-          "answer": "Your parent would be ineligible for LIHEAP because they're not directly responsible for the utility payment. LIHEAP requires the applicant's name to be on the utility account and responsible for direct payment to the utility company."
+          "question": "What if my loved one's landlord pays the utilities and my loved one pays the landlord?",
+          "answer": "Your loved one would be ineligible for LIHEAP because they're not directly responsible for the utility payment. LIHEAP requires the applicant's name to be on the utility account and responsible for direct payment to the utility company."
         },
         {
-          "question": "Can my parent apply for both heating and cooling assistance in the same year?",
+          "question": "Can my loved one apply for both heating and cooling assistance in the same year?",
           "answer": "Yes, but they're separate applications for separate components. Heating assistance runs December-February, cooling assistance runs during summer months, and crisis assistance is available year-round for emergencies. Each has its own application and benefit amount."
         },
         {
-          "question": "My parent lives with other family members who have income. Do we count everyone's income?",
+          "question": "My loved one lives with other family members who have income. Do we count everyone's income?",
           "answer": "Yes. Everyone living under the same roof and sharing the same utility meter counts as one household for income purposes, even if they don't share living expenses. You must include all household members' income and apply together."
         },
         {
-          "question": "What happens if the funding runs out before my parent's application is processed?",
-          "answer": "Applications close when funding is exhausted, typically prioritizing elderly households and those with young children first. There's no waitlist — you would need to reapply when the next federal fiscal year's funding becomes available."
+          "question": "What happens if the funding runs out before my loved one's application is processed?",
+          "answer": "Applications close when funding is exhausted, typically prioritizing elderly households and those with young children first. There's no waitlist, you would need to reapply when the next federal fiscal year's funding becomes available."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help your parent apply, but the application must be in their name since they're the one responsible for the utility bill. If you have legal authority (power of attorney), mention this when applying through OKDHSLive.org or calling (405) 522-5050."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help your loved one apply, but the application must be in their name since they're the one responsible for the utility bill. If you have legal authority (power of attorney), mention this when applying through OKDHSLive.org or calling (405) 522-5050."
         },
         {
-          "question": "My parent already receives other benefits like SNAP. Does this affect LIHEAP eligibility?",
-          "answer": "No, receiving other benefits doesn't disqualify your parent from LIHEAP. However, if you already have an open case with OKDHS for other benefits, you may not need to provide all income documentation again when applying for energy assistance."
+          "question": "My loved one already receives other benefits like SNAP. Does this affect LIHEAP eligibility?",
+          "answer": "No, receiving other benefits doesn't disqualify your loved one from LIHEAP. However, if you already have an open case with OKDHS for other benefits, you may not need to provide all income documentation again when applying for energy assistance."
         },
         {
           "question": "What counts as a crisis situation for emergency energy assistance?",
           "answer": "Crisis assistance includes disconnection notices, broken heating/cooling equipment, or life-threatening medical conditions that require specific temperatures. You'll need documentation like a disconnection notice or a note from a licensed healthcare professional to qualify for crisis assistance."
         },
         {
-          "question": "If my parent is Native American, should they apply through the tribe or through OKDHS?",
-          "answer": "Tribal members can choose either their tribal LIHEAP program or the OKDHS program, but cannot use both in the same federal fiscal year. Compare eligibility requirements and benefit amounts — for example, the Wichita Tribe can be reached at (405) 247-2425 to discuss their program."
+          "question": "If my loved one is Native American, should they apply through the tribe or through OKDHS?",
+          "answer": "Tribal members can choose either their tribal LIHEAP program or the OKDHS program, but cannot use both in the same federal fiscal year. Compare eligibility requirements and benefit amounts, for example, the Wichita Tribe can be reached at (405) 247-2425 to discuss their program."
         }
       ],
       "layoutIntent": {
@@ -1226,7 +1226,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "home-delivered-meals",
       "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
-      "tagline": "Free hot meals delivered to your parent's door if they're homebound and can't prepare food safely.",
+      "tagline": "Free hot meals delivered to your loved one's door if they're homebound and can't prepare food safely.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1251,7 +1251,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and truly homebound — meaning they can't leave home without help and have no one available to cook for them — they may qualify for free hot meals delivered Monday through Friday. Each meal is planned by a registered dietitian and typically includes an entrée, sides, and sometimes frozen or shelf-stable items for weekends.\n\nThis program serves homebound seniors who cannot safely prepare their own meals. Your parent must be unable to leave home without assistance (using a taxi or having a friend drive doesn't count as homebound) and have no household member who can cook or shop for groceries. Priority goes to those with the lowest incomes, but there's no strict income requirement under the federal Older Americans Act funding.\n\nWaitlists are common — expect about 2 months in Oklahoma City and similar delays in other areas due to limited capacity. The program runs Monday through Friday only, with no weekend delivery in most areas.",
+      "intro": "If your loved one is 60+ and truly homebound, meaning they can't leave home without help and have no one available to cook for them, they may qualify for free hot meals delivered Monday through Friday. Each meal is planned by a registered dietitian and typically includes an entrée, sides, and sometimes frozen or shelf-stable items for weekends.\n\nThis program serves homebound seniors who cannot safely prepare their own meals. Your loved one must be unable to leave home without assistance (using a taxi or having a friend drive doesn't count as homebound) and have no household member who can cook or shop for groceries. Priority goes to those with the lowest incomes, but there's no strict income requirement under the federal Older Americans Act funding.\n\nWaitlists are common, expect about 2 months in Oklahoma City and similar delays in other areas due to limited capacity. The program runs Monday through Friday only, with no weekend delivery in most areas.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1275,7 +1275,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider — no forms required to start, but expect a 2-month waitlist in most areas.",
+        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider, no forms required to start, but expect a 2-month waitlist in most areas.",
         "steps": [
           {
             "step": 1,
@@ -1285,7 +1285,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Provider will assess your parent's homebound status, meal preparation ability, and household situation. This can be done by phone or in-person."
+            "description": "Provider will assess your loved one's homebound status, meal preparation ability, and household situation. This can be done by phone or in-person."
           },
           {
             "step": 3,
@@ -1300,7 +1300,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate eligibility determination, but service start depends on capacity and waitlist",
         "waitlist": "Approximately 2 months in Oklahoma City; varies by region due to funding and capacity limits",
-        "tip": "Apply as soon as your parent becomes homebound — waitlists move slowly and early application helps secure a spot.",
+        "tip": "Apply as soon as your loved one becomes homebound, waitlists move slowly and early application helps secure a spot.",
         "urls": [
           {
             "label": "Oklahoma City Meals on Wheels Application",
@@ -1331,10 +1331,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your parent needs nursing home level of care, ask about ADvantage Waiver meal services which may have different availability",
+        "If your loved one needs nursing home level of care, ask about ADvantage Waiver meal services which may have different availability",
         "Some private Meals on Wheels programs charge around $9 per meal if federal funding isn't available",
-        "Homebound status is strictly enforced — being able to leave with a friend's help or use taxi service typically disqualifies applicants",
-        "Weekend meal coverage is limited — ask about frozen or shelf-stable options for Saturday and Sunday"
+        "Homebound status is strictly enforced, being able to leave with a friend's help or use taxi service typically disqualifies applicants",
+        "Weekend meal coverage is limited, ask about frozen or shelf-stable options for Saturday and Sunday"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -1346,41 +1346,41 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "title": "Homebound Definition",
-          "content": "Your parent is considered homebound if they cannot leave home without help from another person. This means they cannot safely use public transportation, drive themselves, or walk to get groceries or medical care. Being able to use a taxi or ride with friends typically means they don't qualify as homebound."
+          "content": "Your loved one is considered homebound if they cannot leave home without help from another person. This means they cannot safely use public transportation, drive themselves, or walk to get groceries or medical care. Being able to use a taxi or ride with friends typically means they don't qualify as homebound."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent still get meals if they can leave home with my help occasionally?",
-          "answer": "Yes, needing assistance from another person to leave home still qualifies as homebound. The key is that your parent cannot safely leave home independently — requiring help from family, friends, or caregivers to get around meets the homebound requirement."
+          "question": "Can my loved one still get meals if they can leave home with my help occasionally?",
+          "answer": "Yes, needing assistance from another person to leave home still qualifies as homebound. The key is that your loved one cannot safely leave home independently, requiring help from family, friends, or caregivers to get around meets the homebound requirement."
         },
         {
-          "question": "What happens if there's a 2-month waitlist but my parent needs meals now?",
+          "question": "What happens if there's a 2-month waitlist but my loved one needs meals now?",
           "answer": "Call local food banks, senior centers, or ask about private pay Meals on Wheels options (around $9/meal). Some areas have emergency meal programs for crisis situations. Your local Area Agency on Aging can provide interim resources while you wait for regular service."
         },
         {
-          "question": "My parent can microwave frozen dinners — do they still qualify?",
-          "answer": "Possibly. The program looks at whether your parent can safely shop for groceries, prepare nutritious meals, and manage cooking equipment. Being able to microwave food doesn't disqualify them if they can't safely shop or cook fresh meals."
+          "question": "My loved one can microwave frozen dinners, do they still qualify?",
+          "answer": "Possibly. The program looks at whether your loved one can safely shop for groceries, prepare nutritious meals, and manage cooking equipment. Being able to microwave food doesn't disqualify them if they can't safely shop or cook fresh meals."
         },
         {
-          "question": "Can I apply on behalf of my parent who has dementia?",
-          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage the application themselves. You'll need to provide information about your parent's living situation, health status, and care needs during the intake assessment."
+          "question": "Can I apply on behalf of my loved one who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly loved ones who cannot manage the application themselves. You'll need to provide information about your loved one's living situation, health status, and care needs during the intake assessment."
         },
         {
-          "question": "What if my parent lives with me but I work all day?",
-          "answer": "This may disqualify them since there's a household member who could potentially prepare meals, even if you're at work during the day. However, providers assess each situation individually — call to discuss your specific circumstances and work schedule."
+          "question": "What if my loved one lives with me but I work all day?",
+          "answer": "This may disqualify them since there's a household member who could potentially prepare meals, even if you're at work during the day. However, providers assess each situation individually, call to discuss your specific circumstances and work schedule."
         },
         {
           "question": "Are there meals available on weekends and holidays?",
           "answer": "Most programs deliver Monday through Friday only. Some providers include frozen or shelf-stable meals for weekends, but this varies by area. Holiday schedules typically follow the provider's calendar with possible delivery adjustments."
         },
         {
-          "question": "Can my parent get meals if they're already receiving food stamps?",
-          "answer": "Yes, receiving SNAP benefits doesn't disqualify your parent from Meals on Wheels. These programs can work together — SNAP helps with grocery costs while Meals on Wheels provides prepared meals for someone who cannot cook safely."
+          "question": "Can my loved one get meals if they're already receiving food stamps?",
+          "answer": "Yes, receiving SNAP benefits doesn't disqualify your loved one from Meals on Wheels. These programs can work together, SNAP helps with grocery costs while Meals on Wheels provides prepared meals for someone who cannot cook safely."
         },
         {
-          "question": "What happens if my parent's health improves and they're no longer homebound?",
-          "answer": "Providers typically reassess participants annually or when circumstances change. If your parent regains mobility and can safely prepare meals or leave home independently, they would no longer qualify and services would end."
+          "question": "What happens if my loved one's health improves and they're no longer homebound?",
+          "answer": "Providers typically reassess participants annually or when circumstances change. If your loved one regains mobility and can safely prepare meals or leave home independently, they would no longer qualify and services would end."
         }
       ],
       "layoutIntent": {
@@ -1401,14 +1401,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "respite-voucher-programs",
       "name": "Respite Voucher Programs in Oklahoma",
       "shortName": "Respite Vouchers",
-      "tagline": "Get financial vouchers to hire someone to watch your parent while you take a break from caregiving.",
+      "tagline": "Get financial vouchers to hire someone to watch your loved one while you take a break from caregiving.",
       "programType": "benefit",
       "complexity": "simple",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If you're caring for an aging parent or disabled child in Oklahoma, you may qualify for vouchers that pay for respite care — someone to watch your loved one while you take a break. Oklahoma runs three separate respite voucher programs based on your care recipient's age and condition: one for seniors 60+, one for people under 60 with disabilities, and one specifically for children 18 and under with developmental disabilities.\n\nThe programs have different income limits and benefit amounts. The National Family Caregiver Support Program has no income limit and provides $400 per quarter ($1,600/year) for grandparents raising grandchildren. The Lifespan program serves households under $90,000/year, while the Developmental Disabilities program serves those under $75,000/year. You can use vouchers to hire family members, friends, or anyone over 18 to provide care in your home or another location.",
+      "intro": "If you're caring for an aging loved one or disabled child in Oklahoma, you may qualify for vouchers that pay for respite care, someone to watch your loved one while you take a break. Oklahoma runs three separate respite voucher programs based on your care recipient's age and condition: one for seniors 60+, one for people under 60 with disabilities, and one specifically for children 18 and under with developmental disabilities.\n\nThe programs have different income limits and benefit amounts. The National Family Caregiver Support Program has no income limit and provides $400 per quarter ($1,600/year) for grandparents raising grandchildren. The Lifespan program serves households under $90,000/year, while the Developmental Disabilities program serves those under $75,000/year. You can use vouchers to hire family members, friends, or anyone over 18 to provide care in your home or another location.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1432,7 +1432,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the program that matches your care recipient's age — processing takes up to 30 days for developmental disabilities program, timeline varies for others.",
+        "summary": "Call the program that matches your care recipient's age, processing takes up to 30 days for developmental disabilities program, timeline varies for others.",
         "steps": [
           {
             "step": 1,
@@ -1504,9 +1504,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "DDS program requires you provide at least 8 hours per day of care to qualify — this is more intensive than other programs",
+        "DDS program requires you provide at least 8 hours per day of care to qualify, this is more intensive than other programs",
         "Applications are valid only for the state fiscal year (July 1-June 30) so you must reapply annually",
-        "Incomplete applications get returned for correction which delays processing — submit everything at once"
+        "Incomplete applications get returned for correction which delays processing, submit everything at once"
       ],
       "relatedPrograms": [
         "ADvantage Waiver Program",
@@ -1517,7 +1517,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply for multiple respite programs at the same time?",
-          "answer": "No, you cannot receive respite services from multiple state or federal programs simultaneously. The programs are designed to serve different populations with minimal overlap — seniors 60+ through National Family Caregiver Support, people under 60 through Lifespan, and children with developmental disabilities through DDS."
+          "answer": "No, you cannot receive respite services from multiple state or federal programs simultaneously. The programs are designed to serve different populations with minimal overlap, seniors 60+ through National Family Caregiver Support, people under 60 through Lifespan, and children with developmental disabilities through DDS."
         },
         {
           "question": "What if my household income is right at the limit?",
@@ -1525,7 +1525,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long do I have to use the vouchers once I get them?",
-          "answer": "DDS vouchers are valid for 90 days from the date of issuance — use them or lose them. The other programs don't specify voucher expiration timelines in available sources, so ask when you apply. Plan your respite care needs in advance to maximize your voucher use."
+          "answer": "DDS vouchers are valid for 90 days from the date of issuance, use them or lose them. The other programs don't specify voucher expiration timelines in available sources, so ask when you apply. Plan your respite care needs in advance to maximize your voucher use."
         },
         {
           "question": "Can my sister who lives in another state provide the respite care?",
@@ -1575,7 +1575,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and unemployed with very low income, SCSEP provides paid job training at $7.25/hour for 20 hours per week while they build skills for permanent employment. Your parent works at nonprofits, senior centers, libraries, or government offices while receiving on-the-job training in computer skills or vocational areas.\n\nTo qualify, family income must not exceed 125% of the federal poverty level — significantly stricter than many assistance programs. This is temporary employment designed as a bridge to permanent work, not a long-term job. Priority goes to veterans, adults over 65, those with disabilities, and rural residents.",
+      "intro": "If your loved one is 55+ and unemployed with very low income, SCSEP provides paid job training at $7.25/hour for 20 hours per week while they build skills for permanent employment. Your loved one works at nonprofits, senior centers, libraries, or government offices while receiving on-the-job training in computer skills or vocational areas.\n\nTo qualify, family income must not exceed 125% of the federal poverty level, significantly stricter than many assistance programs. This is temporary employment designed as a bridge to permanent work, not a long-term job. Priority goes to veterans, adults over 65, those with disabilities, and rural residents.",
       "savingsRange": "$3,770 – $7,540/year in 2026",
       "savingsSource": "Federal minimum wage $7.25/hour × 20 hours/week × 26-52 weeks",
       "savingsVerified": true,
@@ -1600,12 +1600,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 405-521-2281 to apply — processing time varies by county and provider.",
+        "summary": "Call 405-521-2281 to apply, processing time varies by county and provider.",
         "steps": [
           {
             "step": 1,
             "title": "Find your county provider",
-            "description": "Visit oklahoma.gov/okdhs/services/cap/scsep.html to see the statewide map and find which organization serves your parent's county."
+            "description": "Visit oklahoma.gov/okdhs/services/cap/scsep.html to see the statewide map and find which organization serves your loved one's county."
           },
           {
             "step": 2,
@@ -1620,17 +1620,17 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete assessment",
-            "description": "Your county provider will assess your parent's skills, work interests, and job placement goals to match them with appropriate host agencies."
+            "description": "Your county provider will assess your loved one's skills, work interests, and job placement goals to match them with appropriate host agencies."
           },
           {
             "step": 5,
             "title": "Begin training placement",
-            "description": "If accepted, your parent starts part-time paid training at a local nonprofit, senior center, library, or government office while actively seeking permanent employment."
+            "description": "If accepted, your loved one starts part-time paid training at a local nonprofit, senior center, library, or government office while actively seeking permanent employment."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Priority enrollment goes to veterans, adults over 65, those with disabilities, and rural residents — mention these qualifications when calling.",
+        "tip": "Priority enrollment goes to veterans, adults over 65, those with disabilities, and rural residents, mention these qualifications when calling.",
         "urls": [
           {
             "label": "Oklahoma SCSEP County Map",
@@ -1673,9 +1673,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Veterans and qualified spouses receive first priority, followed by adults over 65, those with disabilities, low literacy, limited English proficiency, rural residents, homeless individuals, and those with poor employment prospects",
-        "Different counties are served by different providers — some by state contractors, others by national grantees — which may affect wait times and available positions",
-        "This is temporary training employment, not permanent work — participants must actively seek unsubsidized employment and may be required to document job search activities",
-        "Host agencies include senior centers, libraries, museums, thrift stores, YWCA, homeless centers, and government offices — the type of work varies significantly by placement"
+        "Different counties are served by different providers, some by state contractors, others by national grantees, which may affect wait times and available positions",
+        "This is temporary training employment, not permanent work, participants must actively seek unsubsidized employment and may be required to document job search activities",
+        "Host agencies include senior centers, libraries, museums, thrift stores, YWCA, homeless centers, and government offices, the type of work varies significantly by placement"
       ],
       "relatedPrograms": [
         "Oklahoma Works (American Job Centers)",
@@ -1686,35 +1686,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep SCSEP if they find a part-time job?",
-          "answer": "No. SCSEP is designed to transition participants to permanent unsubsidized employment. Once your parent finds any paying job, they must leave the program. The goal is to use SCSEP training as a bridge to permanent work."
+          "question": "Can my loved one keep SCSEP if they find a part-time job?",
+          "answer": "No. SCSEP is designed to transition participants to permanent unsubsidized employment. Once your loved one finds any paying job, they must leave the program. The goal is to use SCSEP training as a bridge to permanent work."
         },
         {
-          "question": "What if my parent's county isn't served by Oklahoma Department of Human Services?",
+          "question": "What if my loved one's county isn't served by Oklahoma Department of Human Services?",
           "answer": "Several Oklahoma counties are served by National SCSEP Grantees instead of state contractors. Use the county map at oklahoma.gov/okdhs/services/cap/scsep.html to find your specific provider, or call 405-521-2281 for referral to the right organization."
         },
         {
-          "question": "How long can my parent stay in SCSEP?",
+          "question": "How long can my loved one stay in SCSEP?",
           "answer": "The program is designed as temporary training, not long-term employment. Participants are expected to actively seek permanent work and transition out once they gain sufficient skills and experience. Specific time limits vary by individual circumstances and provider policies."
         },
         {
-          "question": "What happens if my parent can't work the full 20 hours per week?",
-          "answer": "SCSEP requires participants to work an average of 20 hours per week. If your parent has health limitations that prevent this schedule, discuss accommodations with the program coordinator. Severe limitations may affect eligibility or placement options."
+          "question": "What happens if my loved one can't work the full 20 hours per week?",
+          "answer": "SCSEP requires participants to work an average of 20 hours per week. If your loved one has health limitations that prevent this schedule, discuss accommodations with the program coordinator. Severe limitations may affect eligibility or placement options."
         },
         {
-          "question": "Can my parent choose where they work or what type of training they get?",
-          "answer": "Placements depend on available host agencies in your county and your parent's skills assessment. Host agencies include senior centers, libraries, museums, government offices, and nonprofits. The program tries to match interests and career goals, but options are limited to participating organizations."
+          "question": "Can my loved one choose where they work or what type of training they get?",
+          "answer": "Placements depend on available host agencies in your county and your loved one's skills assessment. Host agencies include senior centers, libraries, museums, government offices, and nonprofits. The program tries to match interests and career goals, but options are limited to participating organizations."
         },
         {
-          "question": "Will SCSEP affect my parent's Social Security or other benefits?",
+          "question": "Will SCSEP affect my loved one's Social Security or other benefits?",
           "answer": "SCSEP wages count as earned income and may affect some benefit programs. Contact Social Security at 1-800-772-1213 to understand how earnings will impact Social Security benefits, and notify other benefit programs about the income change."
         },
         {
-          "question": "What if there's no SCSEP opening in my parent's county right now?",
+          "question": "What if there's no SCSEP opening in my loved one's county right now?",
           "answer": "Wait times and availability vary significantly by county and provider. Some areas have immediate openings while others maintain waiting lists. Call your county provider directly to ask about current availability and estimated wait times for new participants."
         },
         {
-          "question": "Does my parent need computer skills to participate?",
+          "question": "Does my loved one need computer skills to participate?",
           "answer": "No. Computer training is often part of what participants learn through SCSEP. The program is designed to teach job skills, including basic computer literacy, to help participants become more employable in today's job market."
         }
       ],
@@ -1736,7 +1736,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
       "shortName": "Legal Aid Seniors",
-      "tagline": "Free legal help for civil matters when your parent is 60+ and low-income.",
+      "tagline": "Free legal help for civil matters when your loved one is 60+ and low-income.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1749,7 +1749,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with civil legal issues like landlord disputes, debt collection, or benefit denials, they may qualify for free legal help through Legal Aid Services of Oklahoma. This program provides attorneys and paralegals at no cost for seniors who meet income guidelines — generally up to 200% of the federal poverty level (about $2,510/month for a single person in 2024).\n\nThe service covers non-criminal legal matters only, with priority given to seniors. Because this is funded through the Older Americans Act, seniors get higher income thresholds than other adults. However, your parent will still need to pay court costs and service fees if their case goes to court, and not all qualifying cases can be accepted due to high demand.",
+      "intro": "If your loved one is 60+ and struggling with civil legal issues like landlord disputes, debt collection, or benefit denials, they may qualify for free legal help through Legal Aid Services of Oklahoma. This program provides attorneys and paralegals at no cost for seniors who meet income guidelines, generally up to 200% of the federal poverty level (about $2,510/month for a single person in 2024).\n\nThe service covers non-criminal legal matters only, with priority given to seniors. Because this is funded through the Older Americans Act, seniors get higher income thresholds than other adults. However, your loved one will still need to pay court costs and service fees if their case goes to court, and not all qualifying cases can be accepted due to high demand.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1773,7 +1773,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the seniors helpline at 1-855-488-6814 or apply online — intake specialist reviews income and legal issue details to determine eligibility.",
+        "summary": "Call the seniors helpline at 1-855-488-6814 or apply online, intake specialist reviews income and legal issue details to determine eligibility.",
         "steps": [
           {
             "step": 1,
@@ -1793,7 +1793,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Call Monday-Thursday 9am-4pm only — they don't take voicemails, so you must reach them during these hours.",
+        "tip": "Call Monday-Thursday 9am-4pm only, they don't take voicemails, so you must reach them during these hours.",
         "urls": [
           {
             "label": "Online Application",
@@ -1836,16 +1836,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's case goes to court — do they have to pay?",
-          "answer": "Yes, your parent must pay all court costs and service fees even if they qualify for free legal representation. The attorneys and legal advice are free, but court filing fees and other court costs are still your parent's responsibility."
+          "question": "What if my loved one's case goes to court, do they have to pay?",
+          "answer": "Yes, your loved one must pay all court costs and service fees even if they qualify for free legal representation. The attorneys and legal advice are free, but court filing fees and other court costs are still your loved one's responsibility."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You'll need to call during intake hours (Monday-Thursday 9am-4pm) to discuss your parent's situation. The intake specialist can guide you on whether you can apply for them or if they need to be involved directly, depending on the legal issue and your parent's capacity."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You'll need to call during intake hours (Monday-Thursday 9am-4pm) to discuss your loved one's situation. The intake specialist can guide you on whether you can apply for them or if they need to be involved directly, depending on the legal issue and your loved one's capacity."
         },
         {
-          "question": "What happens if my parent qualifies but they can't take the case?",
-          "answer": "Even if your parent meets income and age requirements, Legal Aid may not be able to accept their case due to high demand and capacity limits. The intake specialist will let you know during the review process and may be able to refer you to other resources."
+          "question": "What happens if my loved one qualifies but they can't take the case?",
+          "answer": "Even if your loved one meets income and age requirements, Legal Aid may not be able to accept their case due to high demand and capacity limits. The intake specialist will let you know during the review process and may be able to refer you to other resources."
         }
       ],
       "layoutIntent": {
@@ -1866,7 +1866,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "advantage-waiver-program",
       "name": "ADvantage Waiver Program",
       "shortName": "ADvantage Waiver",
-      "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home, this program can cover in-home care services instead of nursing home placement.",
+      "tagline": "If your loved one needs daily help with bathing, dressing, or medication but wants to stay home, this program can cover in-home care services instead of nursing home placement.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1879,7 +1879,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and needs daily help with basic tasks like bathing, dressing, or meal preparation, the ADvantage Waiver Program can provide in-home care services as an alternative to nursing home placement. Because this program covers personalized home and community-based services through Medicaid, your parent can remain in their own home while receiving the care they need.\n\nThe program requires your parent to qualify for both SoonerCare (Oklahoma Medicaid) financially and meet Nursing Facility Level of Care medically. Income limit: $2,199/month for an individual. Asset limit: $2,000 (home equity up to $730,000 if living there). Because slots are limited, there's a statewide waitlist when the program is full.",
+      "intro": "If your loved one is 65+ or disabled and needs daily help with basic tasks like bathing, dressing, or meal preparation, the ADvantage Waiver Program can provide in-home care services as an alternative to nursing home placement. Because this program covers personalized home and community-based services through Medicaid, your loved one can remain in their own home while receiving the care they need.\n\nThe program requires your loved one to qualify for both SoonerCare (Oklahoma Medicaid) financially and meet Nursing Facility Level of Care medically. Income limit: $2,199/month for an individual. Asset limit: $2,000 (home equity up to $730,000 if living there). Because slots are limited, there's a statewide waitlist when the program is full.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1909,7 +1909,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must need Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with basic activities like bathing, dressing, mobility, or medication management)",
+        "functionalRequirement": "Must need Nursing Facility Level of Care (a clinical assessment showing your loved one needs daily help with basic activities like bathing, dressing, mobility, or medication management)",
         "otherRequirements": [
           "Oklahoma resident and US citizen or qualified immigrant",
           "Must be able to live safely at home with waiver services",
@@ -1919,10 +1919,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your county OKDHS office for assessment — both medical and financial evaluations are required.",
+        "summary": "Call your county OKDHS office for assessment, both medical and financial evaluations are required.",
         "processingTime": "Processing time not specified; annual redetermination required",
         "waitlist": "Limited slots available; if program is full, placed on statewide waitlist until a slot opens",
-        "tip": "Gather all financial documents before calling — income verification and asset documentation will be needed for the interview",
+        "tip": "Gather all financial documents before calling, income verification and asset documentation will be needed for the interview",
         "steps": [
           {
             "step": 1,
@@ -1984,10 +1984,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "If your parent has intellectual disability or cognitive impairment, they may not qualify for ADvantage — ask about other waiver programs that serve those conditions",
-        "Home equity over $730,000 can disqualify your parent unless a spouse, minor child, or disabled adult child lives in the home",
-        "Annual redetermination is required — financial and medical eligibility must be renewed each year",
-        "Even if income is slightly over $2,199, deductions for medical expenses may bring it within limits — don't assume disqualification"
+        "If your loved one has intellectual disability or cognitive impairment, they may not qualify for ADvantage, ask about other waiver programs that serve those conditions",
+        "Home equity over $730,000 can disqualify your loved one unless a spouse, minor child, or disabled adult child lives in the home",
+        "Annual redetermination is required, financial and medical eligibility must be renewed each year",
+        "Even if income is slightly over $2,199, deductions for medical expenses may bring it within limits, don't assume disqualification"
       ],
       "relatedPrograms": [
         "SoonerCare (Oklahoma Medicaid)",
@@ -1998,11 +1998,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
-          "answer": "Yes, the family home is exempt from the $2,000 asset limit as long as your parent lives there or intends to return. However, home equity cannot exceed $730,000 in 2025. If a spouse, minor child under 21, or permanently disabled adult child lives in the home, there's no equity limit at all."
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the family home is exempt from the $2,000 asset limit as long as your loved one lives there or intends to return. However, home equity cannot exceed $730,000 in 2025. If a spouse, minor child under 21, or permanently disabled adult child lives in the home, there's no equity limit at all."
         },
         {
-          "question": "What if my parent's income is $2,250/month — just over the $2,199 limit?",
+          "question": "What if my loved one's income is $2,250/month, just over the $2,199 limit?",
           "answer": "They may still qualify if they have medical expenses that reduce their countable income below $2,199. Things like Medicare premiums, prescription costs, and other medical expenses can be deducted. The OKDHS financial interview will calculate this for you."
         },
         {
@@ -2010,7 +2010,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The research doesn't specify current wait times, but slots are limited statewide. When you apply, ask the OKDHS office about current waitlist length in your area. Priority may be given based on urgency of need."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "You can initiate the application process, but dementia alone may not qualify for ADvantage if it's the primary issue. ADvantage specifically excludes intellectual disability or cognitive impairment as the qualifying condition. However, if dementia affects physical functioning (like bathing, dressing, mobility), they may qualify."
         },
         {
@@ -2018,16 +2018,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Nursing Facility Level of Care is a clinical assessment using the UCAT III tool. It requires documented need for daily assistance with activities like bathing, dressing, mobility, or medication management due to physical impairment. Occasional help or supervision typically doesn't meet this standard."
         },
         {
-          "question": "Can my parent get ADvantage services while living in my home instead of their own?",
+          "question": "Can my loved one get ADvantage services while living in my home instead of their own?",
           "answer": "Yes, as long as they reside in their own home or a family member's home and their needs can be safely met with waiver services and supports. The key is that it's not an institutional setting like a nursing home."
         },
         {
-          "question": "What happens if my parent's condition gets worse after they're enrolled?",
+          "question": "What happens if my loved one's condition gets worse after they're enrolled?",
           "answer": "The case manager will reassess their needs and can modify the individualized service plan to provide additional services. Annual redetermination reviews both medical and financial eligibility, so changes in care needs can be addressed."
         },
         {
-          "question": "Can my parent have both Medicare and ADvantage Waiver services at the same time?",
-          "answer": "Yes, ADvantage works alongside Medicare. Medicare covers medical services while ADvantage covers home and community-based services that Medicare doesn't cover. Your parent will also need SoonerCare (Oklahoma Medicaid) as part of the program."
+          "question": "Can my loved one have both Medicare and ADvantage Waiver services at the same time?",
+          "answer": "Yes, ADvantage works alongside Medicare. Medicare covers medical services while ADvantage covers home and community-based services that Medicare doesn't cover. Your loved one will also need SoonerCare (Oklahoma Medicaid) as part of the program."
         }
       ],
       "layoutIntent": {
@@ -2061,7 +2061,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with heavy housework or yard maintenance, Oklahoma's Chore Services provides free help with tasks they can no longer handle safely. The program covers heavy cleaning, yard work, and sidewalk maintenance, plus up to $150 per year for materials and supplies needed to complete the work.\n\nUnlike many programs, there are no income limits or asset tests. Your parent simply needs to be 60+, own and live in their home, and have difficulty with one or more daily living activities like managing household tasks. Services are prioritized for those with the greatest need, including low-income seniors, minorities, rural residents, and those at risk of nursing home placement.\n\nThe program operates through 11 Area Agencies on Aging across Oklahoma, so availability and wait times vary by region. Each agency contracts with local providers to deliver services after completing a needs assessment.",
+      "intro": "If your loved one is 60+ and struggling with heavy housework or yard maintenance, Oklahoma's Chore Services provides free help with tasks they can no longer handle safely. The program covers heavy cleaning, yard work, and sidewalk maintenance, plus up to $150 per year for materials and supplies needed to complete the work.\n\nUnlike many programs, there are no income limits or asset tests. Your loved one simply needs to be 60+, own and live in their home, and have difficulty with one or more daily living activities like managing household tasks. Services are prioritized for those with the greatest need, including low-income seniors, minorities, rural residents, and those at risk of nursing home placement.\n\nThe program operates through 11 Area Agencies on Aging across Oklahoma, so availability and wait times vary by region. Each agency contracts with local providers to deliver services after completing a needs assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2094,12 +2094,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Request a needs assessment",
-            "description": "Call your AAA to schedule an assessment. They'll evaluate your parent's ability to perform household tasks and determine service needs."
+            "description": "Call your AAA to schedule an assessment. They'll evaluate your loved one's ability to perform household tasks and determine service needs."
           },
           {
             "step": 3,
             "title": "Complete the assessment",
-            "description": "An AAA representative will assess your parent's functional abilities and home situation. They may ask for income information for referrals to other programs, but it's not required for chore services."
+            "description": "An AAA representative will assess your loved one's functional abilities and home situation. They may ask for income information for referrals to other programs, but it's not required for chore services."
           },
           {
             "step": 4,
@@ -2136,7 +2136,7 @@ export const drafts: PipelineStateDrafts = {
         "Each of Oklahoma's 11 Area Agencies on Aging operates independently, so service availability and wait times differ significantly by region",
         "Priority is given to seniors with greatest economic or social need, but all income levels are eligible",
         "Services are free, but voluntary donations are accepted to help sustain the program",
-        "Annual reassessment is required if your parent's needs change or increase"
+        "Annual reassessment is required if your loved one's needs change or increase"
       ],
       "relatedPrograms": [
         "Oklahoma SNAP (food assistance)",
@@ -2147,24 +2147,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's house needs major repairs, not just chores?",
+          "question": "What if my loved one's house needs major repairs, not just chores?",
           "answer": "Chore Services only covers routine maintenance like heavy cleaning, yard work, and basic upkeep. For major home repairs or modifications, ask your Area Agency on Aging about weatherization programs or home modification assistance through other funding sources."
         },
         {
-          "question": "Can my parent get chore services if they live in a mobile home they own?",
-          "answer": "Yes, as long as your parent owns and lives in the mobile home. The key requirement is home ownership and residence, regardless of the type of dwelling."
+          "question": "Can my loved one get chore services if they live in a mobile home they own?",
+          "answer": "Yes, as long as your loved one owns and lives in the mobile home. The key requirement is home ownership and residence, regardless of the type of dwelling."
         },
         {
-          "question": "How often can my parent receive chore services?",
+          "question": "How often can my loved one receive chore services?",
           "answer": "Service frequency depends on assessed need and local provider availability. Some seniors may receive weekly help while others get monthly or seasonal assistance. The $150 annual materials allowance suggests ongoing rather than one-time service."
         },
         {
-          "question": "What happens if my parent's income is too high for other programs but they still need help?",
+          "question": "What happens if my loved one's income is too high for other programs but they still need help?",
           "answer": "Chore Services has no income limits, so higher-income seniors can still qualify. However, those with greatest economic need receive priority, which may mean longer wait times for middle-income applicants in high-demand areas."
         },
         {
           "question": "Can family members be present during the needs assessment?",
-          "answer": "Yes, family caregivers can and should participate in the assessment to help explain your parent's limitations and safety concerns. Your input helps ensure an accurate evaluation of needs."
+          "answer": "Yes, family caregivers can and should participate in the assessment to help explain your loved one's limitations and safety concerns. Your input helps ensure an accurate evaluation of needs."
         },
         {
           "question": "What if the local Area Agency on Aging says they don't have providers available?",
@@ -2189,7 +2189,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "senior-farmers-market-nutrition-program",
       "name": "Senior Farmers' Market Nutrition Program (SFMNP)",
       "shortName": "Senior Farmers' Market",
-      "tagline": "Your parent can get $50-100 per year for fresh fruits and vegetables at local farmers' markets.",
+      "tagline": "Your loved one can get $50-100 per year for fresh fruits and vegetables at local farmers' markets.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2210,7 +2210,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and has a household income below 185% of federal poverty guidelines, they can get $50 per year to buy fresh fruits, vegetables, herbs, and honey at authorized farmers' markets in Oklahoma. The program provides an EBT debit card that works at participating markets from May through November.\n\nNative Americans may qualify at age 55 through tribal programs. Chickasaw citizens 55+ can receive up to $100 per year, while other tribal programs provide $50. Because funding is limited and depletes before the season ends, you should apply early—state applications open online, while tribal programs start accepting applications in February (Choctaw) or June (Chickasaw).\n\nThis program only operates in participating counties and tribal service areas, not statewide. You'll need to confirm your area is covered and that there are authorized markets nearby before applying.",
+      "intro": "If your loved one is 60+ and has a household income below 185% of federal poverty guidelines, they can get $50 per year to buy fresh fruits, vegetables, herbs, and honey at authorized farmers' markets in Oklahoma. The program provides an EBT debit card that works at participating markets from May through November.\n\nNative Americans may qualify at age 55 through tribal programs. Chickasaw citizens 55+ can receive up to $100 per year, while other tribal programs provide $50. Because funding is limited and depletes before the season ends, you should apply early, state applications open online, while tribal programs start accepting applications in February (Choctaw) or June (Chickasaw).\n\nThis program only operates in participating counties and tribal service areas, not statewide. You'll need to confirm your area is covered and that there are authorized markets nearby before applying.",
       "savingsRange": "$50 – $100/year in 2026",
       "savingsSource": "EBT benefit amount varies by program tier",
       "savingsVerified": true,
@@ -2235,7 +2235,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at oksfmnp.org for the state program, or contact tribal programs directly—applications are processed in real-time online with EBT cards issued after approval.",
+        "summary": "Apply online at oksfmnp.org for the state program, or contact tribal programs directly, applications are processed in real-time online with EBT cards issued after approval.",
         "steps": [
           {
             "step": 1,
@@ -2307,10 +2307,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Native Americans living in tribal service areas should check both state and tribal programs—tribal programs may offer higher benefits ($100 vs $50) and earlier age eligibility (55 vs 60)",
-        "Funding is limited and programs stop accepting applications once money runs out—state program may close before November, tribal programs typically run February-September (Choctaw) or June-October (Chickasaw)",
-        "Your EBT card only works at authorized farmers' markets and roadside stands for specific items—you cannot use it at grocery stores or for non-eligible foods",
-        "Income documentation must be current within 30 days of application—outdated pay stubs or benefit letters will cause delays"
+        "Native Americans living in tribal service areas should check both state and tribal programs, tribal programs may offer higher benefits ($100 vs $50) and earlier age eligibility (55 vs 60)",
+        "Funding is limited and programs stop accepting applications once money runs out, state program may close before November, tribal programs typically run February-September (Choctaw) or June-October (Chickasaw)",
+        "Your EBT card only works at authorized farmers' markets and roadside stands for specific items, you cannot use it at grocery stores or for non-eligible foods",
+        "Income documentation must be current within 30 days of application, outdated pay stubs or benefit letters will cause delays"
       ],
       "relatedPrograms": [
         "SNAP (Food Stamps)",
@@ -2358,35 +2358,35 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply for both state and tribal programs if I live in a tribal area?",
-          "answer": "You can only participate in one program per year. If you're eligible for both, compare the benefits—Chickasaw offers up to $100 vs $50 for state program, while Choctaw offers the same $50 but may have different application timing."
+          "answer": "You can only participate in one program per year. If you're eligible for both, compare the benefits, Chickasaw offers up to $100 vs $50 for state program, while Choctaw offers the same $50 but may have different application timing."
         },
         {
           "question": "What happens if funding runs out before I apply?",
-          "answer": "The programs stop accepting applications once federal funding is depleted, which can happen before the official season ends. There's no waitlist—you'll need to reapply when the next year's program opens."
+          "answer": "The programs stop accepting applications once federal funding is depleted, which can happen before the official season ends. There's no waitlist, you'll need to reapply when the next year's program opens."
         },
         {
-          "question": "Can my parent use the EBT card at regular grocery stores?",
+          "question": "Can my loved one use the EBT card at regular grocery stores?",
           "answer": "No, the SFMNP EBT card only works at authorized farmers' markets and roadside stands. It cannot be used at supermarkets, convenience stores, or restaurants, even for eligible items."
         },
         {
-          "question": "Does my parent's house or savings count against the income limit?",
-          "answer": "No, there are no asset limits for this program. Only household income matters—it must be below 185% of federal poverty guidelines based on household size."
+          "question": "Does my loved one's house or savings count against the income limit?",
+          "answer": "No, there are no asset limits for this program. Only household income matters, it must be below 185% of federal poverty guidelines based on household size."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can typically apply for elderly parents, but you'll need all their documentation including proof of income, age, and residency. Contact the specific program (state, Choctaw, or Chickasaw) to confirm their representative policies."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can typically apply for elderly loved ones, but you'll need all their documentation including proof of income, age, and residency. Contact the specific program (state, Choctaw, or Chickasaw) to confirm their representative policies."
         },
         {
-          "question": "What if there are no farmers' markets near my parent's home?",
-          "answer": "The program only benefits people with access to authorized markets and stands. Before applying, check if there are participating vendors in your parent's area—the benefit is useless without nearby authorized sellers."
+          "question": "What if there are no farmers' markets near my loved one's home?",
+          "answer": "The program only benefits people with access to authorized markets and stands. Before applying, check if there are participating vendors in your loved one's area, the benefit is useless without nearby authorized sellers."
         },
         {
-          "question": "Can my parent get this benefit if they already receive SNAP food stamps?",
-          "answer": "Yes, SFMNP is separate from SNAP and receiving food stamps doesn't disqualify your parent. However, both programs count toward the 185% poverty income limit calculation."
+          "question": "Can my loved one get this benefit if they already receive SNAP food stamps?",
+          "answer": "Yes, SFMNP is separate from SNAP and receiving food stamps doesn't disqualify your loved one. However, both programs count toward the 185% poverty income limit calculation."
         },
         {
           "question": "When should we apply to have the best chance of getting benefits?",
-          "answer": "Apply as early as possible when applications open—February 1st for Choctaw Nation, June 1st for Chickasaw Nation, and check oksfmnp.org for state program dates. Programs close once funding runs out, often before the official season ends."
+          "answer": "Apply as early as possible when applications open, February 1st for Choctaw Nation, June 1st for Chickasaw Nation, and check oksfmnp.org for state program dates. Programs close once funding runs out, often before the official season ends."
         }
       ],
       "layoutIntent": {
@@ -2405,17 +2405,17 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Oklahoma offers 11 programs to help your aging parent — 9 provide direct financial benefits or services, plus 1 employment program and 1 free legal resource. These range from comprehensive medical care through PACE to specific help like $50-100 yearly for fresh produce through the Senior Farmers' Market program. Most benefits require income qualification, but several services like legal assistance and chore services are available regardless of income. Start by checking if your parent qualifies for Oklahoma Medicaid SoonerCare — it opens the door to multiple other programs including home care services that can help them stay in their own home.",
+    "intro": "Oklahoma offers 11 programs to help your aging loved one, 9 provide direct financial benefits or services, plus 1 employment program and 1 free legal resource. These range from comprehensive medical care through PACE to specific help like $50-100 yearly for fresh produce through the Senior Farmers' Market program. Most benefits require income qualification, but several services like legal assistance and chore services are available regardless of income. Start by checking if your loved one qualifies for Oklahoma Medicaid SoonerCare, it opens the door to multiple other programs including home care services that can help them stay in their own home.",
     "startHere": [
       {
         "name": "Oklahoma Medicaid SoonerCare",
         "programId": "oklahoma-medicaid-soonercare",
-        "why": "Covers medical care, long-term care, and prescriptions while qualifying your parent for other home care programs."
+        "why": "Covers medical care, long-term care, and prescriptions while qualifying your loved one for other home care programs."
       },
       {
         "name": "ADvantage Waiver Program",
         "programId": "advantage-waiver-program",
-        "why": "Pays for in-home care services to help your parent avoid nursing home placement."
+        "why": "Pays for in-home care services to help your loved one avoid nursing home placement."
       },
       {
         "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
@@ -2460,7 +2460,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "Respite Voucher Programs in Oklahoma"
         ],
-        "description": "Financial vouchers to hire someone to watch your parent while you take a break from caregiving."
+        "description": "Financial vouchers to hire someone to watch your loved one while you take a break from caregiving."
       },
       {
         "need": "Legal help and employment",
@@ -2472,11 +2472,11 @@ export const drafts: PipelineStateDrafts = {
       }
     ],
     "quickFacts": [
-      "Most benefit programs require income qualification — specific limits vary by program and household size.",
+      "Most benefit programs require income qualification, specific limits vary by program and household size.",
       "Oklahoma's ADvantage Waiver is the state's main program for avoiding nursing home placement through home care services.",
       "Several programs like Legal Aid Services and Oklahoma Chore Services are available based on age (60+) regardless of income level.",
       "PACE programs coordinate all medical care under one team but are only available in certain Oklahoma counties."
     ],
-    "resourcesVsBenefits": "Oklahoma offers both qualification-based benefits that require meeting income or health criteria (like Medicaid SoonerCare or the ADvantage Waiver) and free resources available to all seniors (like Legal Aid Services for those 60+ or Oklahoma Chore Services). Benefits provide ongoing financial assistance or services, while resources offer one-time help or guidance — both can significantly reduce your parent's expenses and your caregiving burden."
+    "resourcesVsBenefits": "Oklahoma offers both qualification-based benefits that require meeting income or health criteria (like Medicaid SoonerCare or the ADvantage Waiver) and free resources available to all seniors (like Legal Aid Services for those 60+ or Oklahoma Chore Services). Benefits provide ongoing financial assistance or services, while resources offer one-time help or guidance, both can significantly reduce your loved one's expenses and your caregiving burden."
   }
 };

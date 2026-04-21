@@ -26,7 +26,7 @@
           }
         ]
       },
-      "intro": "If your parent needs nursing home level care but wants to stay home, Big Sky Waiver can provide personal assistance, adult day health, respite care, and other services to make that possible. The program covers everything from help with bathing and dressing to environmental modifications and specialized medical equipment — services that would otherwise cost thousands monthly out of pocket.\n\nYour parent must qualify for Medicaid and meet Montana's nursing facility level of care assessment. Income limit: $967/month for individuals in 2025. Asset limit: $2,000 (primary home doesn't count). Currently has a waiting list, so applying early matters even if your parent doesn't need services immediately.",
+      "intro": "If your loved one needs nursing home level care but wants to stay home, Big Sky Waiver can provide personal assistance, adult day health, respite care, and other services to make that possible. The program covers everything from help with bathing and dressing to environmental modifications and specialized medical equipment, services that would otherwise cost thousands monthly out of pocket.\n\nYour loved one must qualify for Medicaid and meet Montana's nursing facility level of care assessment. Income limit: $967/month for individuals in 2025. Asset limit: $2,000 (primary home doesn't count). Currently has a waiting list, so applying early matters even if your loved one doesn't need services immediately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -55,7 +55,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must qualify for nursing facility level of care through a clinical assessment — meaning your parent needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision",
+        "functionalRequirement": "Must qualify for nursing facility level of care through a clinical assessment, meaning your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision",
         "otherRequirements": [
           "Montana resident",
           "Financially eligible for Medicaid",
@@ -66,7 +66,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Mountain Pacific at (800) 219-7035 for a referral and apply for Medicaid through your county office — processing time varies and there's currently a waiting list",
+        "summary": "Call Mountain Pacific at (800) 219-7035 for a referral and apply for Medicaid through your county office, processing time varies and there's currently a waiting list",
         "steps": [
           {
             "step": 1,
@@ -76,22 +76,22 @@
           {
             "step": 2,
             "title": "Apply for Medicaid",
-            "description": "Visit or call your county Office of Public Assistance (OPA) to apply for Medicaid financial eligibility — this is required before waiver approval"
+            "description": "Visit or call your county Office of Public Assistance (OPA) to apply for Medicaid financial eligibility, this is required before waiver approval"
           },
           {
             "step": 3,
             "title": "Complete nursing facility assessment",
-            "description": "Schedule the nursing facility level of care assessment — this can be done in-person or over the phone to determine if your parent's care needs qualify"
+            "description": "Schedule the nursing facility level of care assessment, this can be done in-person or over the phone to determine if your loved one's care needs qualify"
           },
           {
             "step": 4,
             "title": "Wait for approval and placement",
-            "description": "If approved, you'll be placed on the waiting list — priority is given based on urgency of need and risk factors"
+            "description": "If approved, you'll be placed on the waiting list, priority is given based on urgency of need and risk factors"
           }
         ],
-        "processingTime": "Not specified — varies by case complexity and current waitlist length",
-        "waitlist": "Currently has a waiting list — placement depends on priority level and regional availability",
-        "tip": "Apply even if your parent doesn't need services immediately — the waiting list means earlier applications get priority when services become available",
+        "processingTime": "Not specified, varies by case complexity and current waitlist length",
+        "waitlist": "Currently has a waiting list, placement depends on priority level and regional availability",
+        "tip": "Apply even if your loved one doesn't need services immediately, the waiting list means earlier applications get priority when services become available",
         "urls": [
           {
             "label": "Official Big Sky Waiver page",
@@ -137,10 +137,10 @@
         }
       ],
       "applicationNotes": [
-        "For married couples, if only one spouse applies for the waiver, both spouses' assets are still counted as jointly owned — Medicaid planning may be needed",
+        "For married couples, if only one spouse applies for the waiver, both spouses' assets are still counted as jointly owned, Medicaid planning may be needed",
         "The primary home is exempt from asset limits regardless of value, but other property may need to be addressed",
         "Priority for services is given to people at immediate risk of nursing home placement or safety concerns",
-        "You can apply for Medicaid and request the waiver referral simultaneously — don't wait for Medicaid approval to start the waiver process"
+        "You can apply for Medicaid and request the waiver referral simultaneously, don't wait for Medicaid approval to start the waiver process"
       ],
       "relatedPrograms": [
         "Montana Medicaid",
@@ -151,36 +151,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home is completely exempt from Big Sky Waiver asset limits regardless of value. Your parent can own a $500,000 home and still qualify. However, other assets like second homes, rental properties, or excess vehicles would count toward the $2,000 limit."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is completely exempt from Big Sky Waiver asset limits regardless of value. Your loved one can own a $500,000 home and still qualify. However, other assets like second homes, rental properties, or excess vehicles would count toward the $2,000 limit."
         },
         {
           "question": "How long is the waiting list really?",
-          "answer": "The state doesn't publish specific wait times, and it varies by region and your parent's priority level. People at immediate risk of nursing home placement or with safety concerns get priority. Call Mountain Pacific at (800) 219-7035 for current wait time estimates in your area."
+          "answer": "The state doesn't publish specific wait times, and it varies by region and your loved one's priority level. People at immediate risk of nursing home placement or with safety concerns get priority. Call Mountain Pacific at (800) 219-7035 for current wait time estimates in your area."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. You'll need to contact Mountain Pacific for the waiver referral and help your parent apply for Medicaid at the county OPA office. If your parent cannot make decisions, you may need legal guardianship or power of attorney documentation."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. You'll need to contact Mountain Pacific for the waiver referral and help your loved one apply for Medicaid at the county OPA office. If your loved one cannot make decisions, you may need legal guardianship or power of attorney documentation."
         },
         {
-          "question": "What if my parent has too much income for Medicaid but needs these services?",
-          "answer": "Montana has Medicaid spend-down rules that may help. If medical expenses reduce your parent's countable income below $967/month, they could still qualify. Contact your county OPA office to discuss spend-down calculations — sometimes even nursing home costs can count toward spend-down."
+          "question": "What if my loved one has too much income for Medicaid but needs these services?",
+          "answer": "Montana has Medicaid spend-down rules that may help. If medical expenses reduce your loved one's countable income below $967/month, they could still qualify. Contact your county OPA office to discuss spend-down calculations, sometimes even nursing home costs can count toward spend-down."
         },
         {
-          "question": "Can my parent get Big Sky Waiver services while also receiving other benefits?",
-          "answer": "Yes, Big Sky Waiver works alongside other benefits like Social Security, Medicare, SNAP, and housing assistance. However, you cannot receive Big Sky Waiver services and be in a nursing home at the same time — it's specifically for community-based care."
+          "question": "Can my loved one get Big Sky Waiver services while also receiving other benefits?",
+          "answer": "Yes, Big Sky Waiver works alongside other benefits like Social Security, Medicare, SNAP, and housing assistance. However, you cannot receive Big Sky Waiver services and be in a nursing home at the same time, it's specifically for community-based care."
         },
         {
-          "question": "What happens if my parent's condition gets worse after enrollment?",
-          "answer": "Your parent's care plan can be modified as needs change. The case manager will reassess service needs regularly and can add services or increase hours. If your parent eventually needs full nursing home care, they would transition off the waiver but remain Medicaid-eligible for facility coverage."
+          "question": "What happens if my loved one's condition gets worse after enrollment?",
+          "answer": "Your loved one's care plan can be modified as needs change. The case manager will reassess service needs regularly and can add services or increase hours. If your loved one eventually needs full nursing home care, they would transition off the waiver but remain Medicaid-eligible for facility coverage."
         },
         {
-          "question": "My spouse doesn't need waiver services — how do income and asset limits work?",
+          "question": "My spouse doesn't need waiver services, how do income and asset limits work?",
           "answer": "When only one spouse applies for Big Sky Waiver, the individual income limit ($967/month) applies and the other spouse's income is disregarded. However, both spouses' assets are still counted together toward the $2,000 limit, which often requires careful Medicaid planning."
         },
         {
-          "question": "What specific services will my parent actually receive?",
-          "answer": "Services depend on your parent's assessed needs and could include personal assistance with bathing and dressing, homemaker services, adult day health, respite care for family caregivers, environmental modifications like ramps or grab bars, specialized medical equipment, or transportation to medical appointments. The case manager develops an individualized care plan."
+          "question": "What specific services will my loved one actually receive?",
+          "answer": "Services depend on your loved one's assessed needs and could include personal assistance with bathing and dressing, homemaker services, adult day health, respite care for family caregivers, environmental modifications like ramps or grab bars, specialized medical equipment, or transportation to medical appointments. The case manager develops an individualized care plan."
         }
       ],
       "layoutIntent": {
@@ -201,7 +201,7 @@
       "id": "cfcs-personal-care-services",
       "name": "Community First Choice Services (CFCS) / Personal Care Services (PCS)",
       "shortName": "CFCS/PCS",
-      "tagline": "Get paid help for your parent's daily care at home — bathing, dressing, and medication management covered by Medicaid.",
+      "tagline": "Get paid help for your loved one's daily care at home, bathing, dressing, and medication management covered by Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -214,7 +214,7 @@
           }
         ]
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your parent gets a personal care attendant who comes to their home — and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $967/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your parent must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your loved one gets a personal care attendant who comes to their home, and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $967/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your loved one must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Medicaid",
       "savingsVerified": true,
@@ -255,7 +255,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local Medicaid office for screening, then complete a nurse assessment — processing time not specified in state resources.",
+        "summary": "Contact your local Medicaid office for screening, then complete a nurse assessment, processing time not specified in state resources.",
         "steps": [
           {
             "step": 1,
@@ -265,12 +265,12 @@
           {
             "step": 2,
             "title": "Complete nurse assessment",
-            "description": "Mountain Pacific Quality Health (MPQH) will schedule a nurse to assess your parent's functional needs and determine PCS or CFCS eligibility."
+            "description": "Mountain Pacific Quality Health (MPQH) will schedule a nurse to assess your loved one's functional needs and determine PCS or CFCS eligibility."
           },
           {
             "step": 3,
             "title": "Get health care authorization",
-            "description": "Your parent's doctor must provide written authorization confirming they need personal care assistance."
+            "description": "Your loved one's doctor must provide written authorization confirming they need personal care assistance."
           },
           {
             "step": 4,
@@ -285,7 +285,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Everyone approved for PCS gets automatically reviewed for CFCS with additional services — don't apply separately for both tiers.",
+        "tip": "Everyone approved for PCS gets automatically reviewed for CFCS with additional services, don't apply separately for both tiers.",
         "urls": [
           {
             "label": "Montana Medicaid Provider Information",
@@ -328,9 +328,9 @@
         }
       ],
       "applicationNotes": [
-        "Spouses, parents, and legal guardians cannot be paid caregivers — only other family members like adult children or ex-spouses",
-        "Self-directed option allows you to hire and manage your parent's caregivers, including family members, through participating agencies",
-        "Provider agencies cover specific counties and reservations — onsite visits required for enrollment in your area",
+        "Spouses, parents, and legal guardians cannot be paid caregivers, only other family members like adult children or ex-spouses",
+        "Self-directed option allows you to hire and manage your loved one's caregivers, including family members, through participating agencies",
+        "Provider agencies cover specific counties and reservations, onsite visits required for enrollment in your area",
         "Home equity over $730,000 may affect eligibility unless spouse or disabled child lives in the home"
       ],
       "relatedPrograms": [
@@ -343,41 +343,41 @@
         {
           "type": "tier-comparison",
           "title": "PCS vs. CFCS: What's the Difference?",
-          "content": "Personal Care Services (PCS) covers basic assistance with bathing, dressing, toileting, transfers, and medication reminders. Community First Choice Services (CFCS) includes everything in PCS plus Personal Emergency Response System, community integration activities, yard hazard removal, and correspondence assistance. CFCS requires Nursing Facility Level of Care determination (meaning your parent needs the same level of daily help provided in nursing homes), while PCS just needs medically necessary assistance. Since 95% of PCS enrollees qualify for CFCS after automatic review, most families end up with the more comprehensive tier."
+          "content": "Personal Care Services (PCS) covers basic assistance with bathing, dressing, toileting, transfers, and medication reminders. Community First Choice Services (CFCS) includes everything in PCS plus Personal Emergency Response System, community integration activities, yard hazard removal, and correspondence assistance. CFCS requires Nursing Facility Level of Care determination (meaning your loved one needs the same level of daily help provided in nursing homes), while PCS just needs medically necessary assistance. Since 95% of PCS enrollees qualify for CFCS after automatic review, most families end up with the more comprehensive tier."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limits?",
-          "answer": "Yes, if your parent lives in the home or intends to return, home equity up to $730,000 is exempt. The home is also fully exempt if a spouse, minor child, or disabled adult child of any age lives there. However, Montana may pursue estate recovery on the home after your parent's death to recoup Medicaid costs."
+          "question": "Can my loved one keep their house if it's worth more than the asset limits?",
+          "answer": "Yes, if your loved one lives in the home or intends to return, home equity up to $730,000 is exempt. The home is also fully exempt if a spouse, minor child, or disabled adult child of any age lives there. However, Montana may pursue estate recovery on the home after your loved one's death to recoup Medicaid costs."
         },
         {
-          "question": "Can I become my parent's paid caregiver through this program?",
+          "question": "Can I become my loved one's paid caregiver through this program?",
           "answer": "Yes, if you're an adult child, you can be hired as a paid caregiver through the self-directed option. However, spouses, parents, and legal guardians cannot be paid caregivers. You'll need to work with agencies like Summit Independent Living to manage the employment paperwork and payments."
         },
         {
           "question": "What's the difference between self-directed and agency-based care?",
-          "answer": "Self-directed means you choose, hire, train, and supervise your parent's caregivers (including family members) with support from agencies like Summit Independent Living. Agency-based means the agency provides pre-screened caregivers. Self-directed offers more control and flexibility, while agency-based requires less management from your family."
+          "answer": "Self-directed means you choose, hire, train, and supervise your loved one's caregivers (including family members) with support from agencies like Summit Independent Living. Agency-based means the agency provides pre-screened caregivers. Self-directed offers more control and flexibility, while agency-based requires less management from your family."
         },
         {
-          "question": "How many hours of care will my parent receive?",
-          "answer": "Hours depend on your parent's assessed needs during the MPQH nurse evaluation. The assessment looks at how much help your parent needs with each activity of daily living and creates an individualized care plan. More complex needs typically result in more authorized hours."
+          "question": "How many hours of care will my loved one receive?",
+          "answer": "Hours depend on your loved one's assessed needs during the MPQH nurse evaluation. The assessment looks at how much help your loved one needs with each activity of daily living and creates an individualized care plan. More complex needs typically result in more authorized hours."
         },
         {
-          "question": "Can my parent apply for both PCS and CFCS at the same time?",
-          "answer": "No need to apply separately. Everyone approved for PCS automatically gets reviewed for CFCS eligibility. If your parent qualifies for nursing-home-level care, they'll be upgraded to CFCS with additional services. The assessment process covers both programs simultaneously."
+          "question": "Can my loved one apply for both PCS and CFCS at the same time?",
+          "answer": "No need to apply separately. Everyone approved for PCS automatically gets reviewed for CFCS eligibility. If your loved one qualifies for nursing-home-level care, they'll be upgraded to CFCS with additional services. The assessment process covers both programs simultaneously."
         },
         {
-          "question": "What happens if my parent's condition gets worse after enrollment?",
-          "answer": "Your parent can request a reassessment through their provider agency or MPQH if their care needs increase. The new assessment may authorize additional hours or services. Similarly, if needs decrease, the plan will be adjusted accordingly during regular reviews."
+          "question": "What happens if my loved one's condition gets worse after enrollment?",
+          "answer": "Your loved one can request a reassessment through their provider agency or MPQH if their care needs increase. The new assessment may authorize additional hours or services. Similarly, if needs decrease, the plan will be adjusted accordingly during regular reviews."
         },
         {
-          "question": "Does this program affect my parent's other Medicaid benefits?",
-          "answer": "No, CFCS and PCS are additional Medicaid services that work alongside regular Medicaid health coverage. Your parent keeps all their existing Medicaid benefits including doctor visits, prescriptions, and hospital care. These programs specifically add the personal care component."
+          "question": "Does this program affect my loved one's other Medicaid benefits?",
+          "answer": "No, CFCS and PCS are additional Medicaid services that work alongside regular Medicaid health coverage. Your loved one keeps all their existing Medicaid benefits including doctor visits, prescriptions, and hospital care. These programs specifically add the personal care component."
         },
         {
-          "question": "What if there are no provider agencies in my parent's area?",
-          "answer": "Provider agencies must cover specific counties and reservations with onsite visits required. If coverage is limited in your area, contact the Montana Medicaid office to discuss available options or agencies willing to serve your parent's location. Rural areas may have fewer choices but should still have at least one participating provider."
+          "question": "What if there are no provider agencies in my loved one's area?",
+          "answer": "Provider agencies must cover specific counties and reservations with onsite visits required. If coverage is limited in your area, contact the Montana Medicaid office to discuss available options or agencies willing to serve your loved one's location. Rural areas may have fewer choices but should still have at least one participating provider."
         }
       ],
       "layoutIntent": {
@@ -405,7 +405,7 @@
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent needs extensive daily help but wants to avoid a nursing home, PACE provides all medical care, medications, therapy, and support services through one coordinated team. Because PACE covers everything under one program, your parent won't need Medicare cards, copays, or coordination between separate doctors — one interdisciplinary team manages all care.\n\nPACE has no income or asset limits, but your parent must be certified as needing nursing facility level of care (daily help with bathing, dressing, medication management, or similar needs) and must live in a PACE service area. Once enrolled, participants never pay deductibles or copays for any PACE-provided care, medication, or service.\n\nAvailability is limited in Montana — PACE operates only in select counties, not statewide. The average participant is 76 years old with multiple chronic conditions, and about 90% qualify for both Medicare and Medicaid.",
+      "intro": "If your loved one needs extensive daily help but wants to avoid a nursing home, PACE provides all medical care, medications, therapy, and support services through one coordinated team. Because PACE covers everything under one program, your loved one won't need Medicare cards, copays, or coordination between separate doctors, one interdisciplinary team manages all care.\n\nPACE has no income or asset limits, but your loved one must be certified as needing nursing facility level of care (daily help with bathing, dressing, medication management, or similar needs) and must live in a PACE service area. Once enrolled, participants never pay deductibles or copays for any PACE-provided care, medication, or service.\n\nAvailability is limited in Montana, PACE operates only in select counties, not statewide. The average participant is 76 years old with multiple chronic conditions, and about 90% qualify for both Medicare and Medicaid.",
       "savingsRange": "",
       "savingsSource": "Comprehensive care service",
       "savingsVerified": false,
@@ -420,7 +420,7 @@
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be certified by Montana as needing nursing facility level of care — the kind of daily supervision and assistance typically provided in a nursing home, such as help with bathing, dressing, medication management, or mobility",
+        "functionalRequirement": "Must be certified by Montana as needing nursing facility level of care, the kind of daily supervision and assistance typically provided in a nursing home, such as help with bathing, dressing, medication management, or mobility",
         "otherRequirements": [
           "Must live in the service area of a PACE organization",
           "Cannot be enrolled in Medicare Advantage (Part C), Medicare prepayment plan, or Medicare prescription drug plan",
@@ -431,12 +431,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local PACE program directly — no standardized application form exists.",
+        "summary": "Contact your local PACE program directly, no standardized application form exists.",
         "steps": [
           {
             "step": 1,
             "title": "Find Montana PACE programs",
-            "description": "Use Medicare's Find a PACE Plan tool at medicare.gov or visit npaonline.org to locate PACE organizations operating in your parent's county."
+            "description": "Use Medicare's Find a PACE Plan tool at medicare.gov or visit npaonline.org to locate PACE organizations operating in your loved one's county."
           },
           {
             "step": 2,
@@ -446,22 +446,22 @@
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "A nurse will conduct an in-home assessment to determine if your parent meets Montana's nursing facility level of care requirement."
+            "description": "A nurse will conduct an in-home assessment to determine if your loved one meets Montana's nursing facility level of care requirement."
           },
           {
             "step": 4,
             "title": "Receive state certification",
-            "description": "Montana must formally certify that your parent qualifies for nursing home level care before PACE enrollment can proceed."
+            "description": "Montana must formally certify that your loved one qualifies for nursing home level care before PACE enrollment can proceed."
           },
           {
             "step": 5,
             "title": "Disenroll from conflicting plans",
-            "description": "If enrolled in Medicare Advantage (Part C) or prescription drug plans, your parent must disenroll before joining PACE."
+            "description": "If enrolled in Medicare Advantage (Part C) or prescription drug plans, your loved one must disenroll before joining PACE."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Geographic availability is the biggest barrier — verify PACE operates in your parent's specific area before starting the assessment process.",
+        "tip": "Geographic availability is the biggest barrier, verify PACE operates in your loved one's specific area before starting the assessment process.",
         "urls": [
           {
             "label": "Medicare Find a PACE Plan",
@@ -489,9 +489,9 @@
         }
       ],
       "applicationNotes": [
-        "PACE is not available statewide in Montana — you must verify a program operates in your parent's specific county before pursuing eligibility",
+        "PACE is not available statewide in Montana, you must verify a program operates in your loved one's specific county before pursuing eligibility",
         "Medicaid beneficiaries receive full coverage while non-Medicaid participants pay a monthly premium for long-term care services",
-        "Your parent cannot be enrolled in Medicare Advantage and PACE simultaneously — disenrollment from Medicare Advantage is required",
+        "Your loved one cannot be enrolled in Medicare Advantage and PACE simultaneously, disenrollment from Medicare Advantage is required",
         "State certification of nursing facility level of care is mandatory and separate from meeting the functional criteria"
       ],
       "relatedPrograms": [
@@ -503,36 +503,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their Medicare supplements and prescription plans when they join PACE?",
-          "answer": "No. Your parent must disenroll from Medicare Advantage (Part C) plans, Medicare prescription drug plans, and Medicare prepayment plans before joining PACE. PACE becomes their comprehensive coverage for all medical services and medications."
+          "question": "Can my loved one keep their Medicare supplements and prescription plans when they join PACE?",
+          "answer": "No. Your loved one must disenroll from Medicare Advantage (Part C) plans, Medicare prescription drug plans, and Medicare prepayment plans before joining PACE. PACE becomes their comprehensive coverage for all medical services and medications."
         },
         {
-          "question": "What if my parent has too much income or assets for Medicaid but still needs PACE services?",
-          "answer": "PACE has no income or asset limits for enrollment. However, if your parent doesn't qualify for Medicaid, they'll pay a monthly premium for the long-term care portion of PACE services. Medicare will still cover the medical services portion."
+          "question": "What if my loved one has too much income or assets for Medicaid but still needs PACE services?",
+          "answer": "PACE has no income or asset limits for enrollment. However, if your loved one doesn't qualify for Medicaid, they'll pay a monthly premium for the long-term care portion of PACE services. Medicare will still cover the medical services portion."
         },
         {
-          "question": "How do I know if my parent really needs 'nursing facility level of care'?",
-          "answer": "Montana defines this as needing the kind of daily supervision and care typically provided in a nursing home — help with bathing, dressing, medication management, mobility, or similar activities. A PACE nurse will conduct an in-home functional assessment to make this determination."
+          "question": "How do I know if my loved one really needs 'nursing facility level of care'?",
+          "answer": "Montana defines this as needing the kind of daily supervision and care typically provided in a nursing home, help with bathing, dressing, medication management, mobility, or similar activities. A PACE nurse will conduct an in-home functional assessment to make this determination."
         },
         {
-          "question": "Can I apply for PACE while my parent is still in the hospital?",
-          "answer": "Yes, and hospital discharge planners often help initiate the PACE application process. However, your parent must be able to live safely in the community with PACE services at the time of enrollment — they cannot be enrolled while requiring ongoing hospitalization."
+          "question": "Can I apply for PACE while my loved one is still in the hospital?",
+          "answer": "Yes, and hospital discharge planners often help initiate the PACE application process. However, your loved one must be able to live safely in the community with PACE services at the time of enrollment, they cannot be enrolled while requiring ongoing hospitalization."
         },
         {
           "question": "What happens if we move to a county that doesn't have PACE?",
-          "answer": "PACE enrollment ends if you move outside the service area. Your parent would need to re-enroll in traditional Medicare, find new healthcare providers, and potentially apply for other long-term care programs in the new location."
+          "answer": "PACE enrollment ends if you move outside the service area. Your loved one would need to re-enroll in traditional Medicare, find new healthcare providers, and potentially apply for other long-term care programs in the new location."
         },
         {
-          "question": "Can my parent choose their own doctors and specialists under PACE?",
-          "answer": "No. PACE provides all care through its interdisciplinary team of employed or contracted providers. Your parent cannot see outside specialists or use outside pharmacies unless the PACE team determines the service isn't available within their network."
+          "question": "Can my loved one choose their own doctors and specialists under PACE?",
+          "answer": "No. PACE provides all care through its interdisciplinary team of employed or contracted providers. Your loved one cannot see outside specialists or use outside pharmacies unless the PACE team determines the service isn't available within their network."
         },
         {
           "question": "How long does it take to get approved for PACE in Montana?",
           "answer": "Processing times vary by local PACE organization and depend on completing the functional assessment and receiving state certification. Contact the specific PACE program in your area for current enrollment timelines."
         },
         {
-          "question": "What if my parent's care needs change after enrolling in PACE?",
-          "answer": "PACE conducts regular reassessments and adjusts services as needs change. If your parent no longer meets nursing facility level of care requirements, they may be disenrolled from PACE and returned to traditional Medicare."
+          "question": "What if my loved one's care needs change after enrolling in PACE?",
+          "answer": "PACE conducts regular reassessments and adjusts services as needs change. If your loved one no longer meets nursing facility level of care requirements, they may be disenrolled from PACE and returned to traditional Medicare."
         }
       ],
       "layoutIntent": {
@@ -553,7 +553,7 @@
       "id": "medicaid-abd",
       "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
       "shortName": "ABD Medicaid",
-      "tagline": "If your parent is 65+, blind, or disabled, they may qualify for comprehensive health coverage including long-term care services",
+      "tagline": "If your loved one is 65+, blind, or disabled, they may qualify for comprehensive health coverage including long-term care services",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -566,7 +566,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65 or older, blind, or disabled, Montana's ABD Medicaid can provide comprehensive health coverage when income is limited. This covers everything from doctor visits and prescriptions to vision and dental care, plus long-term services like nursing home care or home modifications if your parent can't live safely at home.\n\nIncome limits are strict — generally around $1,215 per month for a single person, following federal SSI standards. If your parent receives SSI, they automatically qualify without additional income testing. Assets must stay under $2,000 for an individual or $3,000 for a couple, though their home is typically protected.\n\nFor long-term care services like nursing home coverage or home waivers, your parent must also meet Nursing Facility Level of Care requirements — a clinical assessment showing they need daily help with activities like bathing, dressing, or medication management.",
+      "intro": "If your loved one is 65 or older, blind, or disabled, Montana's ABD Medicaid can provide comprehensive health coverage when income is limited. This covers everything from doctor visits and prescriptions to vision and dental care, plus long-term services like nursing home care or home modifications if your loved one can't live safely at home.\n\nIncome limits are strict, generally around $1,215 per month for a single person, following federal SSI standards. If your loved one receives SSI, they automatically qualify without additional income testing. Assets must stay under $2,000 for an individual or $3,000 for a couple, though their home is typically protected.\n\nFor long-term care services like nursing home coverage or home waivers, your loved one must also meet Nursing Facility Level of Care requirements, a clinical assessment showing they need daily help with activities like bathing, dressing, or medication management.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -596,7 +596,7 @@
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "For long-term care services, must meet Nursing Facility Level of Care — a clinical assessment showing need for daily assistance with bathing, dressing, medication management, or other basic activities",
+        "functionalRequirement": "For long-term care services, must meet Nursing Facility Level of Care, a clinical assessment showing need for daily assistance with bathing, dressing, medication management, or other basic activities",
         "otherRequirements": [
           "Must be Montana resident",
           "U.S. citizen or qualified immigrant",
@@ -606,12 +606,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at apply.mt.gov or contact your local DPHHS office — processing time varies based on disability determination needs.",
+        "summary": "Apply online at apply.mt.gov or contact your local DPHHS office, processing time varies based on disability determination needs.",
         "steps": [
           {
             "step": 1,
-            "title": "Check if your parent already receives SSI",
-            "description": "If your parent gets Supplemental Security Income (SSI), they automatically qualify for ABD Medicaid. Contact your local DPHHS office to enroll."
+            "title": "Check if your loved one already receives SSI",
+            "description": "If your loved one gets Supplemental Security Income (SSI), they automatically qualify for ABD Medicaid. Contact your local DPHHS office to enroll."
           },
           {
             "step": 2,
@@ -626,7 +626,7 @@
           {
             "step": 4,
             "title": "Complete disability determination if needed",
-            "description": "If not already receiving SSI or Social Security Disability, your parent may need medical evaluation to confirm disability status."
+            "description": "If not already receiving SSI or Social Security Disability, your loved one may need medical evaluation to confirm disability status."
           },
           {
             "step": 5,
@@ -636,7 +636,7 @@
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent receives SSI, bring their award letter — this automatically qualifies them for ABD Medicaid without additional income testing.",
+        "tip": "If your loved one receives SSI, bring their award letter, this automatically qualifies them for ABD Medicaid without additional income testing.",
         "urls": [
           {
             "label": "Montana Benefits Application",
@@ -680,7 +680,7 @@
         }
       ],
       "applicationNotes": [
-        "SSI recipients automatically qualify — bring your award letter to speed up enrollment",
+        "SSI recipients automatically qualify, bring your award letter to speed up enrollment",
         "If income exceeds limits, ask about medically needy spenddown which allows qualification by deducting medical expenses",
         "Home equity up to $752,000 is protected if your spouse, disabled child, or child under 21 lives there",
         "Working disabled individuals may qualify for MWD (Medicaid for Working Disabled) with higher income limits up to 250% of federal poverty level"
@@ -694,19 +694,19 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
-          "answer": "Yes, the home is exempt if your parent, their spouse, a disabled child, or a child under 21 lives there. However, home equity cannot exceed $752,000 (2026 limit). If your parent moves to a nursing home permanently, the home may need to be sold unless an exempt family member continues living there."
+          "question": "Can my loved one keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the home is exempt if your loved one, their spouse, a disabled child, or a child under 21 lives there. However, home equity cannot exceed $752,000 (2026 limit). If your loved one moves to a nursing home permanently, the home may need to be sold unless an exempt family member continues living there."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
-          "answer": "Your parent may still qualify through the medically needy program by 'spending down' excess income on medical expenses. Montana calculates how much income exceeds the limit, then your parent can deduct medical costs to meet the threshold. Contact your local DPHHS office to discuss spenddown options."
+          "question": "What if my loved one's income is slightly over the limit?",
+          "answer": "Your loved one may still qualify through the medically needy program by 'spending down' excess income on medical expenses. Montana calculates how much income exceeds the limit, then your loved one can deduct medical costs to meet the threshold. Contact your local DPHHS office to discuss spenddown options."
         },
         {
-          "question": "Does receiving ABD Medicaid affect my parent's Social Security or Medicare benefits?",
-          "answer": "No, ABD Medicaid works alongside Social Security and Medicare without reducing those benefits. In fact, if your parent has Medicare, ABD Medicaid can help pay Medicare premiums, deductibles, and co-pays. This coordination often results in better overall coverage."
+          "question": "Does receiving ABD Medicaid affect my loved one's Social Security or Medicare benefits?",
+          "answer": "No, ABD Medicaid works alongside Social Security and Medicare without reducing those benefits. In fact, if your loved one has Medicare, ABD Medicaid can help pay Medicare premiums, deductibles, and co-pays. This coordination often results in better overall coverage."
         },
         {
-          "question": "Can I apply for ABD Medicaid while my parent is in the hospital?",
+          "question": "Can I apply for ABD Medicaid while my loved one is in the hospital?",
           "answer": "Yes, and you should apply as soon as possible. Hospital discharge planners can often help initiate the application process. ABD Medicaid can cover hospital stays retroactively up to three months before the application date, potentially saving thousands in medical bills."
         },
         {
@@ -714,16 +714,16 @@
           "answer": "MWD allows higher income limits (up to $3,261/month for individuals in 2025) but requires ongoing work activity each month and may include cost-sharing fees. Regular ABD has stricter income limits but no work requirements. MWD also allows higher asset limits and excludes retirement accounts from asset calculations."
         },
         {
-          "question": "How long does the disability determination process take if my parent isn't on SSI?",
-          "answer": "Disability determinations by the Social Security Administration typically take 3-6 months, though this can be longer if additional medical evidence is needed. If your parent has a terminal illness or meets certain severe conditions, they may qualify for expedited processing within days or weeks."
+          "question": "How long does the disability determination process take if my loved one isn't on SSI?",
+          "answer": "Disability determinations by the Social Security Administration typically take 3-6 months, though this can be longer if additional medical evidence is needed. If your loved one has a terminal illness or meets certain severe conditions, they may qualify for expedited processing within days or weeks."
         },
         {
-          "question": "Can my parent get long-term care at home instead of a nursing facility?",
-          "answer": "Yes, if your parent meets Nursing Facility Level of Care requirements, they may qualify for home and community-based waiver services. These can include home modifications, personal care assistance, and other services to help them stay at home safely. Waiver services may have waiting lists depending on funding availability."
+          "question": "Can my loved one get long-term care at home instead of a nursing facility?",
+          "answer": "Yes, if your loved one meets Nursing Facility Level of Care requirements, they may qualify for home and community-based waiver services. These can include home modifications, personal care assistance, and other services to help them stay at home safely. Waiver services may have waiting lists depending on funding availability."
         },
         {
-          "question": "What happens if my parent's condition improves and they no longer meet disability requirements?",
-          "answer": "Montana conducts periodic reviews to confirm continued eligibility. If your parent no longer meets disability criteria but is 65 or older, they can continue receiving ABD Medicaid under the aged category. If under 65 and no longer disabled, they would need to qualify under different Medicaid categories or lose coverage."
+          "question": "What happens if my loved one's condition improves and they no longer meet disability requirements?",
+          "answer": "Montana conducts periodic reviews to confirm continued eligibility. If your loved one no longer meets disability criteria but is 65 or older, they can continue receiving ABD Medicaid under the aged category. If under 65 and no longer disabled, they would need to qualify under different Medicaid categories or lose coverage."
         }
       ],
       "layoutIntent": {
@@ -744,7 +744,7 @@
       "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's income is under $1,761/month, Montana will pay their Medicare premiums and potentially all Medicare out-of-pocket costs.",
+      "tagline": "If your loved one's income is under $1,761/month, Montana will pay their Medicare premiums and potentially all Medicare out-of-pocket costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -757,7 +757,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or copays, Montana's Medicare Savings Programs can eliminate these costs entirely. Because these programs pay Medicare expenses directly to providers, your parent gets full Medicare coverage without the financial stress — QMB covers all Medicare out-of-pocket costs, while SLMB and QI cover at least the monthly Part B premium ($185 in 2026).\n\nThe programs have three tiers based on income: QMB for those earning up to $1,305/month, SLMB for $1,305–$1,565/month, and QI for $1,565–$1,761/month. Because all three tiers automatically qualify your parent for Extra Help with prescription drug costs, they'll also pay minimal amounts for medications. Asset limits apply ($9,950 for individuals, $14,910 for couples), but the primary home and one car don't count toward this limit.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Montana's Medicare Savings Programs can eliminate these costs entirely. Because these programs pay Medicare expenses directly to providers, your loved one gets full Medicare coverage without the financial stress, QMB covers all Medicare out-of-pocket costs, while SLMB and QI cover at least the monthly Part B premium ($185 in 2026).\n\nThe programs have three tiers based on income: QMB for those earning up to $1,305/month, SLMB for $1,305–$1,565/month, and QI for $1,565–$1,761/month. Because all three tiers automatically qualify your loved one for Extra Help with prescription drug costs, they'll also pay minimal amounts for medications. Asset limits apply ($9,950 for individuals, $14,910 for couples), but the primary home and one car don't count toward this limit.",
       "savingsRange": "$2,220 – $6,000/year in 2026",
       "savingsSource": "Medicare Part B premiums ($2,220/year) plus deductibles and coinsurance for QMB tier",
       "savingsVerified": true,
@@ -817,7 +817,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your local Montana DPHS office by phone, online, or in person — processing takes up to 45 days.",
+        "summary": "Apply through your local Montana DPHS office by phone, online, or in person, processing takes up to 45 days.",
         "steps": [
           {
             "step": 1,
@@ -842,7 +842,7 @@
         ],
         "processingTime": "Up to 45 days for QMB (no retroactive coverage), SLMB and QI effective first of application month with up to 3 months retroactive coverage",
         "waitlist": "QI may have federal funding limits and close enrollment if funds are exhausted (first-come, first-served)",
-        "tip": "Apply early in the year for QI since federal funding can run out — and even if income seems slightly over the limit, the $20 general income disregard and SNAP benefit exclusion may still qualify your parent.",
+        "tip": "Apply early in the year for QI since federal funding can run out, and even if income seems slightly over the limit, the $20 general income disregard and SNAP benefit exclusion may still qualify your loved one.",
         "urls": [
           {
             "label": "Montana DPHHS",
@@ -885,10 +885,10 @@
         }
       ],
       "applicationNotes": [
-        "QMB has no retroactive coverage — apply before the month you need coverage to start",
+        "QMB has no retroactive coverage, apply before the month you need coverage to start",
         "SLMB and QI can provide up to 3 months of retroactive coverage if you were eligible during that time",
-        "QI funding is limited federally and may close enrollment if exhausted — apply early in the year",
-        "Providers cannot legally bill QMB recipients for Medicare cost-sharing, but some may try — know your rights",
+        "QI funding is limited federally and may close enrollment if exhausted, apply early in the year",
+        "Providers cannot legally bill QMB recipients for Medicare cost-sharing, but some may try, know your rights",
         "Annual Cost of Living Adjustments (COLA) are disregarded for QMB to prevent loss of eligibility"
       ],
       "relatedPrograms": [
@@ -927,36 +927,36 @@
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than the asset limit?",
-          "answer": "Yes. The primary home where your parent lives doesn't count toward the $9,950 asset limit, regardless of its value. Only additional real estate, bank accounts, investments, and retirement funds count toward the limit."
+          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
+          "answer": "Yes. The primary home where your loved one lives doesn't count toward the $9,950 asset limit, regardless of its value. Only additional real estate, bank accounts, investments, and retirement funds count toward the limit."
         },
         {
-          "question": "What if my parent's income is slightly over the limit?",
+          "question": "What if my loved one's income is slightly over the limit?",
           "answer": "Apply anyway. Montana automatically deducts $20 from monthly income when calculating eligibility, and SNAP benefits don't count as income at all. Cost of Living Adjustments are also disregarded for QMB recipients to prevent loss of coverage."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
+          "question": "Can I apply for my loved one if they have dementia?",
           "answer": "Yes, family members can apply on behalf of elderly or disabled parents. You'll need to provide all the same documentation, and Montana may ask for proof that you're authorized to act on their behalf, such as power of attorney."
         },
         {
-          "question": "What happens if a doctor's office tries to bill my QMB-enrolled parent?",
-          "answer": "This is illegal. QMB recipients cannot be billed for Medicare deductibles, coinsurance, or copays by any provider. Contact the Montana Medicaid office at 1-800-362-1504 if this happens — they will intervene with the provider."
+          "question": "What happens if a doctor's office tries to bill my QMB-enrolled loved one?",
+          "answer": "This is illegal. QMB recipients cannot be billed for Medicare deductibles, coinsurance, or copays by any provider. Contact the Montana Medicaid office at 1-800-362-1504 if this happens, they will intervene with the provider."
         },
         {
           "question": "How long does QI funding typically last each year?",
           "answer": "QI has federal funding caps and operates first-come, first-served. While Montana hasn't specified when funding typically runs out, applying in January or February gives you the best chance of approval before funds are exhausted."
         },
         {
-          "question": "Can my parent have all three programs at the same time?",
-          "answer": "No, these are three different income tiers of the same program. Your parent will qualify for whichever tier matches their income level — QMB provides the most comprehensive coverage for those with the lowest incomes."
+          "question": "Can my loved one have all three programs at the same time?",
+          "answer": "No, these are three different income tiers of the same program. Your loved one will qualify for whichever tier matches their income level, QMB provides the most comprehensive coverage for those with the lowest incomes."
         },
         {
-          "question": "What happens to coverage if my parent's income changes during the year?",
-          "answer": "You must report income changes promptly to Montana Medicaid. If income drops, your parent might qualify for a higher tier (like moving from SLMB to QMB). If income increases above limits, coverage may end, but you'll receive advance notice."
+          "question": "What happens to coverage if my loved one's income changes during the year?",
+          "answer": "You must report income changes promptly to Montana Medicaid. If income drops, your loved one might qualify for a higher tier (like moving from SLMB to QMB). If income increases above limits, coverage may end, but you'll receive advance notice."
         },
         {
-          "question": "Does Montana take money from the estate after my parent dies?",
-          "answer": "No. Since 2010, federal law prohibits estate recovery for Medicare Savings Program benefits. Montana cannot claim repayment from your parent's estate for premiums or cost-sharing paid by these programs."
+          "question": "Does Montana take money from the estate after my loved one dies?",
+          "answer": "No. Since 2010, federal law prohibits estate recovery for Medicare Savings Program benefits. Montana cannot claim repayment from your loved one's estate for premiums or cost-sharing paid by these programs."
         }
       ],
       "layoutIntent": {
@@ -977,7 +977,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Food Stamps)",
       "shortName": "SNAP Benefits",
-      "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to hundreds per month on an EBT card.",
+      "tagline": "Monthly grocery assistance for seniors on fixed incomes, up to hundreds per month on an EBT card.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -990,7 +990,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at most grocery stores. Montana has expanded eligibility for seniors — households with someone 60+ can qualify with gross monthly income up to $2,608 for one person or $3,526 for two people (2026 limits).\n\nBenefit amounts vary based on net income after deductions, but many seniors qualify for $100-300+ monthly. Because Montana allows higher income limits for elderly households and doesn't count retirement accounts or your home as assets, many seniors who think they won't qualify actually do. Medical expenses over $35/month can be deducted from income, which often makes the difference for qualification.\n\nThe program covers most grocery items including fresh produce, meat, dairy, and pantry staples. You cannot use SNAP for alcohol, tobacco, hot prepared foods, or non-food items like soap or vitamins.",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at most grocery stores. Montana has expanded eligibility for seniors, households with someone 60+ can qualify with gross monthly income up to $2,608 for one person or $3,526 for two people (2026 limits).\n\nBenefit amounts vary based on net income after deductions, but many seniors qualify for $100-300+ monthly. Because Montana allows higher income limits for elderly households and doesn't count retirement accounts or your home as assets, many seniors who think they won't qualify actually do. Medical expenses over $35/month can be deducted from income, which often makes the difference for qualification.\n\nThe program covers most grocery items including fresh produce, meat, dairy, and pantry staples. You cannot use SNAP for alcohol, tobacco, hot prepared foods, or non-food items like soap or vitamins.",
       "savingsRange": "$100 – $300/month in 2026",
       "savingsSource": "Estimated based on typical benefit amounts for senior households",
       "savingsVerified": false,
@@ -1060,7 +1060,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at apply.mt.gov or call 1-855-642-8650 — processing typically takes 30 days, or 7 days for expedited cases.",
+        "summary": "Apply online at apply.mt.gov or call 1-855-642-8650, processing typically takes 30 days, or 7 days for expedited cases.",
         "steps": [
           {
             "step": 1,
@@ -1090,7 +1090,7 @@
         ],
         "processingTime": "Typically 30 days; expedited within 7 days if very low income or no resources",
         "waitlist": null,
-        "tip": "If your parent has medical bills over $35/month, gather those receipts — they can significantly lower countable income and increase benefit amount.",
+        "tip": "If your loved one has medical bills over $35/month, gather those receipts, they can significantly lower countable income and increase benefit amount.",
         "urls": [
           {
             "label": "Montana SNAP Online Application",
@@ -1140,8 +1140,8 @@
       ],
       "applicationNotes": [
         "Expedited processing available within 7 days if household has less than $150 monthly income and $100 or less in cash/bank accounts",
-        "Medical expenses over $35/month for seniors can be deducted from income — this often makes the difference between qualifying and not qualifying",
-        "Asset limits only apply if gross income exceeds 200% of poverty level — many seniors won't face asset tests at all",
+        "Medical expenses over $35/month for seniors can be deducted from income, this often makes the difference between qualifying and not qualifying",
+        "Asset limits only apply if gross income exceeds 200% of poverty level, many seniors won't face asset tests at all",
         "Households with all members 60+ or disabled don't have work requirements and get special deductions"
       ],
       "relatedPrograms": [
@@ -1153,32 +1153,32 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car and still qualify for SNAP?",
-          "answer": "Yes. Your parent's home and vehicles are exempt from SNAP asset limits. Only cash, bank accounts, and non-exempt property count toward the $4,500 asset limit, and that limit only applies if income exceeds 200% of poverty level ($2,608/month for one person)."
+          "question": "Can my loved one keep their house and car and still qualify for SNAP?",
+          "answer": "Yes. Your loved one's home and vehicles are exempt from SNAP asset limits. Only cash, bank accounts, and non-exempt property count toward the $4,500 asset limit, and that limit only applies if income exceeds 200% of poverty level ($2,608/month for one person)."
         },
         {
-          "question": "What if my parent's Social Security puts them over the income limit?",
+          "question": "What if my loved one's Social Security puts them over the income limit?",
           "answer": "Montana uses net income after deductions for seniors. Medical expenses over $35/month, shelter costs over half of income, and a standard deduction are subtracted first. Many seniors who appear over the gross limit qualify after these deductions are applied."
         },
         {
-          "question": "Can I apply for SNAP on behalf of my elderly parent?",
-          "answer": "Yes, if your parent authorizes you as their representative. You'll need to complete an authorized representative form during the application process. Your parent will still need to participate in the eligibility interview unless they're unable to due to disability."
+          "question": "Can I apply for SNAP on behalf of my elderly loved one?",
+          "answer": "Yes, if your loved one authorizes you as their representative. You'll need to complete an authorized representative form during the application process. Your loved one will still need to participate in the eligibility interview unless they're unable to due to disability."
         },
         {
-          "question": "How much will my parent actually receive in SNAP benefits?",
+          "question": "How much will my loved one actually receive in SNAP benefits?",
           "answer": "Benefit amounts depend on net income after deductions. Roughly every $100 in net monthly income reduces benefits by about $30. The exact amount varies by household size and expenses, but many seniors receive $100-300+ monthly."
         },
         {
-          "question": "Can my parent use SNAP benefits at farmers markets?",
+          "question": "Can my loved one use SNAP benefits at farmers markets?",
           "answer": "Yes, most farmers markets in Montana accept EBT cards. Many also offer matching programs where SNAP dollars are doubled for fresh produce purchases. Check with individual markets about their EBT policies."
         },
         {
-          "question": "What happens if my parent's income changes after they're approved?",
+          "question": "What happens if my loved one's income changes after they're approved?",
           "answer": "Report significant changes within 10 days to your local DPHHS office. Increases might reduce benefits, but decreases could increase them. Annual recertification is required, typically 12 months after approval for elderly households."
         },
         {
-          "question": "Can my parent get SNAP if they live in senior housing that provides meals?",
-          "answer": "It depends on the meal arrangement. If your parent receives prepared meals as part of their housing, they may not qualify. But if they have their own kitchen and buy/prepare their own food, they can still qualify for SNAP."
+          "question": "Can my loved one get SNAP if they live in senior housing that provides meals?",
+          "answer": "It depends on the meal arrangement. If your loved one receives prepared meals as part of their housing, they may not qualify. But if they have their own kitchen and buy/prepare their own food, they can still qualify for SNAP."
         },
         {
           "question": "What if the application is taking longer than 30 days?",
@@ -1203,7 +1203,7 @@
       "id": "liheap-energy-assistance",
       "name": "Montana Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "Montana LIHEAP",
-      "tagline": "Help your parent get one-time payments to cover heating bills and emergency energy costs during Montana winters.",
+      "tagline": "Help your loved one get one-time payments to cover heating bills and emergency energy costs during Montana winters.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -1224,7 +1224,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating bills during Montana winters, LIHEAP provides direct payments to utility companies to help cover energy costs. This federal program assists low-income households with one-time heating payments and emergency energy assistance when furnaces break or utility shutoffs threaten.\n\nYour parent may qualify with monthly income up to $33,719 for a single person or $44,095 for a two-person household in 2025-2026. The program prioritizes households with seniors over 60, and families already receiving SNAP benefits are automatically eligible. Applications are only accepted October 1 through April 30 each year — Montana doesn't provide cooling assistance, only heating help.",
+      "intro": "If your loved one struggles to pay heating bills during Montana winters, LIHEAP provides direct payments to utility companies to help cover energy costs. This federal program assists low-income households with one-time heating payments and emergency energy assistance when furnaces break or utility shutoffs threaten.\n\nYour loved one may qualify with monthly income up to $33,719 for a single person or $44,095 for a two-person household in 2025-2026. The program prioritizes households with seniors over 60, and families already receiving SNAP benefits are automatically eligible. Applications are only accepted October 1 through April 30 each year, Montana doesn't provide cooling assistance, only heating help.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1295,12 +1295,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at apply.mt.gov or call 1-800-551-3191 if your parent is over 60 or disabled — processing time varies but apply early as funding is limited.",
+        "summary": "Apply online at apply.mt.gov or call 1-800-551-3191 if your loved one is over 60 or disabled, processing time varies but apply early as funding is limited.",
         "steps": [
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at apply.mt.gov, call 1-800-551-3191 if your parent is 60+ or disabled, or visit your local eligibility office."
+            "description": "Apply online at apply.mt.gov, call 1-800-551-3191 if your loved one is 60+ or disabled, or visit your local eligibility office."
           },
           {
             "step": 2,
@@ -1315,12 +1315,12 @@
           {
             "step": 4,
             "title": "Wait for benefit payment",
-            "description": "If approved, LIHEAP pays your parent's utility company directly. Crisis assistance for emergencies may be processed faster than regular heating assistance."
+            "description": "If approved, LIHEAP pays your loved one's utility company directly. Crisis assistance for emergencies may be processed faster than regular heating assistance."
           }
         ],
-        "processingTime": "Not specified — varies by local office and funding availability",
+        "processingTime": "Not specified, varies by local office and funding availability",
         "waitlist": "Funding is limited; some local agencies may stop accepting applications earlier if funds run out",
-        "tip": "If your parent receives SNAP, mention this on the application — SNAP households are categorically eligible and get priority processing.",
+        "tip": "If your loved one receives SNAP, mention this on the application, SNAP households are categorically eligible and get priority processing.",
         "urls": [
           {
             "label": "Montana LIHEAP Online Application",
@@ -1361,7 +1361,7 @@
         }
       ],
       "applicationNotes": [
-        "Crisis LIHEAP is available year-round for energy emergencies like broken furnaces or utility shutoff notices — this is separate from regular heating assistance",
+        "Crisis LIHEAP is available year-round for energy emergencies like broken furnaces or utility shutoff notices, this is separate from regular heating assistance",
         "All household members age 18+ must sign the application, and roommates sharing utility bills count as the same household even if they don't share other expenses"
       ],
       "relatedPrograms": [
@@ -1372,15 +1372,15 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're a renter who doesn't pay utilities directly?",
-          "answer": "Your parent must pay heating costs to qualify, whether as a renter or homeowner. If utilities are included in rent, they may not be eligible unless they can show they're responsible for heating costs. Check with your local LIHEAP office about specific rental situations."
+          "question": "Can my loved one apply if they're a renter who doesn't pay utilities directly?",
+          "answer": "Your loved one must pay heating costs to qualify, whether as a renter or homeowner. If utilities are included in rent, they may not be eligible unless they can show they're responsible for heating costs. Check with your local LIHEAP office about specific rental situations."
         },
         {
           "question": "What counts as a crisis that qualifies for emergency assistance?",
           "answer": "Crisis LIHEAP covers energy emergencies like a broken furnace, utility shutoff notice, or running out of heating fuel. This emergency assistance is available year-round, unlike regular LIHEAP which only accepts applications October through April."
         },
         {
-          "question": "If my parent lives with roommates, how does that affect eligibility?",
+          "question": "If my loved one lives with roommates, how does that affect eligibility?",
           "answer": "All people sharing the same utility bill count as one LIHEAP household, even if they don't share other expenses. This means roommates' income and assets will be counted together for eligibility, which could help or hurt depending on everyone's financial situation."
         }
       ],
@@ -1402,7 +1402,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy improvements that can cut your parent's heating bills by hundreds of dollars per year.",
+      "tagline": "Free home energy improvements that can cut your loved one's heating bills by hundreds of dollars per year.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1415,7 +1415,7 @@
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills or lives in a drafty home, Montana's Weatherization Assistance Program provides free energy efficiency improvements including insulation, air sealing, and heating system repairs. The program serves homeowners and renters whose income is at or below 200% of the Federal Poverty Level ($30,120 for a single person in 2026).\n\nBecause this program is tied to LIHEAP (Low Income Home Energy Assistance Program), your parent must first qualify for energy assistance — households receiving SNAP, SSI, or TANF are automatically eligible. Priority goes to homes with elderly residents, people with disabilities, or young children, based on energy burden and home condition.\n\nThe program uses a priority waitlist system managed by regional providers across Montana. If approved but not immediately served, families must reapply after one year. Applications are accepted October 1 through April 30 for the standard cycle, though local offices may accept applications year-round.",
+      "intro": "If your loved one struggles with high heating bills or lives in a drafty home, Montana's Weatherization Assistance Program provides free energy efficiency improvements including insulation, air sealing, and heating system repairs. The program serves homeowners and renters whose income is at or below 200% of the Federal Poverty Level ($30,120 for a single person in 2026).\n\nBecause this program is tied to LIHEAP (Low Income Home Energy Assistance Program), your loved one must first qualify for energy assistance, households receiving SNAP, SSI, or TANF are automatically eligible. Priority goes to homes with elderly residents, people with disabilities, or young children, based on energy burden and home condition.\n\nThe program uses a priority waitlist system managed by regional providers across Montana. If approved but not immediately served, families must reapply after one year. Applications are accepted October 1 through April 30 for the standard cycle, though local offices may accept applications year-round.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1463,7 +1463,7 @@
           {
             "step": 3,
             "title": "Gather required documents",
-            "description": "You'll need proof of income from the last 30 days, recent fuel/heating bills, citizenship documentation, and Social Security numbers for all household members. If renting, get form DPHHS-EAP-013 (landlord access agreement) signed by your parent's landlord."
+            "description": "You'll need proof of income from the last 30 days, recent fuel/heating bills, citizenship documentation, and Social Security numbers for all household members. If renting, get form DPHHS-EAP-013 (landlord access agreement) signed by your loved one's landlord."
           },
           {
             "step": 4,
@@ -1476,8 +1476,8 @@
             "description": "If approved, you'll be placed on a priority list based on income level, energy burden, and vulnerable household members (elderly, disabled, children). Check your position with your local provider."
           }
         ],
-        "processingTime": "Not specified — priority-based system means timeline varies by ranking and available funding",
-        "waitlist": "Priority-based waitlist ranked by need — elderly and disabled households get special priority. If not served within one year, must reapply.",
+        "processingTime": "Not specified, priority-based system means timeline varies by ranking and available funding",
+        "waitlist": "Priority-based waitlist ranked by need, elderly and disabled households get special priority. If not served within one year, must reapply.",
         "tip": "Households already receiving SNAP, SSI, or TANF automatically meet income requirements but still need to submit the application and required documentation.",
         "urls": [
           {
@@ -1523,8 +1523,8 @@
         }
       ],
       "applicationNotes": [
-        "The application period runs primarily October 1 through April 30, but some local offices accept applications year-round — call your regional provider to confirm",
-        "Renters must get their landlord to sign the access agreement (form DPHHS-EAP-013) before work can begin — this is often the biggest hurdle for rental properties",
+        "The application period runs primarily October 1 through April 30, but some local offices accept applications year-round, call your regional provider to confirm",
+        "Renters must get their landlord to sign the access agreement (form DPHHS-EAP-013) before work can begin, this is often the biggest hurdle for rental properties",
         "If you're approved but placed on the waitlist, you must reapply after one year if no services were provided",
         "Households receiving SNAP, SSI, or TANF are automatically income-eligible but still need to complete the full application process"
       ],
@@ -1536,36 +1536,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they rent their home?",
+          "question": "Can my loved one apply if they rent their home?",
           "answer": "Yes, but the landlord must sign form DPHHS-EAP-013 (Montana Weatherization Assistance Program Access Agreement) giving permission for the work. This signed agreement must be submitted with the application. Many rental applications are delayed or denied because landlords won't sign this form."
         },
         {
-          "question": "What if my parent's home was weatherized years ago?",
-          "answer": "Homes that have been previously weatherized through any federal weatherization program are not eligible. There is no time limit — if weatherization work was done 10 or 20 years ago, the home still cannot receive services again."
+          "question": "What if my loved one's home was weatherized years ago?",
+          "answer": "Homes that have been previously weatherized through any federal weatherization program are not eligible. There is no time limit, if weatherization work was done 10 or 20 years ago, the home still cannot receive services again."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "There's no guaranteed timeline because the program uses priority ranking rather than first-come-first-served. Elderly and disabled households get priority, along with those with the highest energy burden. If your parent isn't served within one year of approval, you must reapply and go through the ranking process again."
+          "answer": "There's no guaranteed timeline because the program uses priority ranking rather than first-come-first-served. Elderly and disabled households get priority, along with those with the highest energy burden. If your loved one isn't served within one year of approval, you must reapply and go through the ranking process again."
         },
         {
           "question": "Can I apply for both LIHEAP and Weatherization at the same time?",
           "answer": "Yes, Montana uses a combined application for both programs. In fact, you must be LIHEAP-eligible to qualify for Weatherization, so most applicants need both programs. The same application covers energy bill assistance and home efficiency improvements."
         },
         {
-          "question": "What happens if my parent's income is slightly above the LIHEAP limit?",
+          "question": "What happens if my loved one's income is slightly above the LIHEAP limit?",
           "answer": "There's a 'Weatherization Only' option for households up to 200% of the Federal Poverty Level ($30,120 for a single person in 2026), even if they don't qualify for LIHEAP energy bill assistance. However, LIHEAP-eligible households get priority on the waitlist."
         },
         {
-          "question": "Can a family member apply on behalf of an elderly parent?",
-          "answer": "Yes, but the application must include the elderly parent's information and documentation since eligibility is based on their household income and circumstances. The parent may need to sign forms or provide consent depending on your local provider's requirements."
+          "question": "Can a family member apply on behalf of an elderly loved one?",
+          "answer": "Yes, but the application must include the elderly loved one's information and documentation since eligibility is based on their household income and circumstances. The parent may need to sign forms or provide consent depending on your local provider's requirements."
         },
         {
           "question": "What exactly does 'energy efficiency improvements' include?",
-          "answer": "Services typically include insulation installation, air sealing, heating system repairs or replacements, weatherstripping, storm windows, and other upgrades identified during a home energy audit. The specific work depends on your parent's home condition and energy needs as determined by the weatherization crew."
+          "answer": "Services typically include insulation installation, air sealing, heating system repairs or replacements, weatherstripping, storm windows, and other upgrades identified during a home energy audit. The specific work depends on your loved one's home condition and energy needs as determined by the weatherization crew."
         },
         {
           "question": "What if we miss the October 1 - April 30 application period?",
-          "answer": "Contact your local provider directly — some offices accept applications year-round even though the official cycle runs October through April. Regional offices like Human Resource Council (406-728-3710) can tell you their specific policies for out-of-cycle applications."
+          "answer": "Contact your local provider directly, some offices accept applications year-round even though the official cycle runs October through April. Regional offices like Human Resource Council (406-728-3710) can tell you their specific policies for out-of-cycle applications."
         }
       ],
       "layoutIntent": {
@@ -1586,7 +1586,7 @@
       "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
-      "tagline": "Free Medicare counseling to help your parent choose the right plans and avoid costly mistakes",
+      "tagline": "Free Medicare counseling to help your loved one choose the right plans and avoid costly mistakes",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1599,7 +1599,7 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare or is approaching 65, they need objective guidance to navigate plan choices, enrollment deadlines, and coverage gaps. Montana's State Health Insurance Assistance Program (SHIP) provides free, one-on-one counseling to help your parent understand their options without sales pressure from insurance companies.\n\nSHIP counselors help with Medicare enrollment, compare Part D prescription plans, explain Medigap options, and connect families to programs like Extra Help that can reduce medication costs. Because counselors aren't affiliated with insurance companies, they provide unbiased advice focused on your parent's specific health needs and budget. Home visits are available for homebound individuals.",
+      "intro": "If your loved one has Medicare or is approaching 65, they need objective guidance to navigate plan choices, enrollment deadlines, and coverage gaps. Montana's State Health Insurance Assistance Program (SHIP) provides free, one-on-one counseling to help your loved one understand their options without sales pressure from insurance companies.\n\nSHIP counselors help with Medicare enrollment, compare Part D prescription plans, explain Medigap options, and connect families to programs like Extra Help that can reduce medication costs. Because counselors aren't affiliated with insurance companies, they provide unbiased advice focused on your loved one's specific health needs and budget. Home visits are available for homebound individuals.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1635,12 +1635,12 @@
           {
             "step": 3,
             "title": "Bring relevant documents to your session",
-            "description": "Have your parent's Medicare card, current insurance details, prescription list, and income information if applying for low-income programs."
+            "description": "Have your loved one's Medicare card, current insurance details, prescription list, and income information if applying for low-income programs."
           }
         ],
         "processingTime": "Immediate phone response with connection to local counselor; appointment scheduling varies by local availability",
         "waitlist": null,
-        "tip": "Call during open enrollment (October 15 - December 7) as early as possible — counselors get busiest near the deadline.",
+        "tip": "Call during open enrollment (October 15 - December 7) as early as possible, counselors get busiest near the deadline.",
         "urls": [
           {
             "label": "Montana SHIP Official Page",
@@ -1672,12 +1672,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get help for my parent if they live in a nursing home?",
-          "answer": "Yes, SHIP counselors can meet with nursing home residents and their families. Call 1-800-551-3191 to arrange counseling at the facility or discuss your parent's Medicare options over the phone."
+          "question": "Can I get help for my loved one if they live in a nursing home?",
+          "answer": "Yes, SHIP counselors can meet with nursing home residents and their families. Call 1-800-551-3191 to arrange counseling at the facility or discuss your loved one's Medicare options over the phone."
         },
         {
           "question": "Will the counselor try to sell us insurance?",
-          "answer": "No. SHIP counselors are not affiliated with insurance companies and do not sell any products. Their job is to provide objective information to help you make the best decision for your parent's situation and budget."
+          "answer": "No. SHIP counselors are not affiliated with insurance companies and do not sell any products. Their job is to provide objective information to help you make the best decision for your loved one's situation and budget."
         },
         {
           "question": "Can we get help outside of open enrollment periods?",
@@ -1702,7 +1702,7 @@
       "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
-      "tagline": "Hot, nutritious meals delivered to your parent's home 5 days a week if they're 60+ and unable to cook for themselves.",
+      "tagline": "Hot, nutritious meals delivered to your loved one's home 5 days a week if they're 60+ and unable to cook for themselves.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -1723,7 +1723,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to prepare meals due to health issues, mobility problems, or recovery from hospitalization, Meals on Wheels delivers hot, nutritious meals directly to their door. Each meal meets half of daily nutritional requirements and follows low-salt, low-fat guidelines.\n\nMeals are delivered Monday through Friday between 10am and 12:30pm by volunteer drivers who provide an informal safety check during each visit. The suggested donation is around $4.50 per meal, but your parent can pay what they're able — income is not a barrier to receiving services. Because delivery is limited to specific service areas, you'll need to confirm your parent lives within a local provider's delivery zone.",
+      "intro": "If your loved one is 60+ and struggles to prepare meals due to health issues, mobility problems, or recovery from hospitalization, Meals on Wheels delivers hot, nutritious meals directly to their door. Each meal meets half of daily nutritional requirements and follows low-salt, low-fat guidelines.\n\nMeals are delivered Monday through Friday between 10am and 12:30pm by volunteer drivers who provide an informal safety check during each visit. The suggested donation is around $4.50 per meal, but your loved one can pay what they're able, income is not a barrier to receiving services. Because delivery is limited to specific service areas, you'll need to confirm your loved one lives within a local provider's delivery zone.",
       "savingsRange": "$1,170 – $1,950/year in 2026",
       "savingsSource": "Based on suggested donation of $4.50/meal for 5 meals/week over 52 weeks",
       "savingsVerified": true,
@@ -1746,7 +1746,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider for a home visit assessment — service can start within a week if no waitlist.",
+        "summary": "Call your local provider for a home visit assessment, service can start within a week if no waitlist.",
         "steps": [
           {
             "step": 1,
@@ -1756,17 +1756,17 @@
           {
             "step": 2,
             "title": "Schedule home assessment",
-            "description": "A staff member will visit your parent's home to assess their age, health, mobility, meal preparation ability, and dietary restrictions. They'll also collect emergency contact information."
+            "description": "A staff member will visit your loved one's home to assess their age, health, mobility, meal preparation ability, and dietary restrictions. They'll also collect emergency contact information."
           },
           {
             "step": 3,
             "title": "Confirm delivery details",
-            "description": "If approved, arrange delivery schedule and discuss suggested donation amount based on your parent's financial situation."
+            "description": "If approved, arrange delivery schedule and discuss suggested donation amount based on your loved one's financial situation."
           }
         ],
         "processingTime": "Service can begin within a week in most areas, longer if there's a waitlist",
         "waitlist": "Some programs have waitlists that may extend processing time",
-        "tip": "Your parent's doctor, social worker, or hospital discharge planner can also make referrals to speed up the process.",
+        "tip": "Your loved one's doctor, social worker, or hospital discharge planner can also make referrals to speed up the process.",
         "urls": [
           {
             "label": "Cascade County Meals on Wheels",
@@ -1807,9 +1807,9 @@
         }
       ],
       "applicationNotes": [
-        "Service areas are limited — confirm your parent lives within delivery boundaries before applying",
-        "If your parent can leave home or has others who can cook for them, they may not qualify for home delivery",
-        "Medicaid waiver participants may qualify for free meals through Mom's Meals program — contact their case manager",
+        "Service areas are limited, confirm your loved one lives within delivery boundaries before applying",
+        "If your loved one can leave home or has others who can cook for them, they may not qualify for home delivery",
+        "Medicaid waiver participants may qualify for free meals through Mom's Meals program, contact their case manager",
         "Service typically requires 5-day-per-week commitment, though short-term post-hospital delivery is available"
       ],
       "relatedPrograms": [
@@ -1821,28 +1821,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives outside a delivery zone?",
-          "answer": "Meals on Wheels is not available statewide in Montana. If your parent lives outside a service area, contact 2-1-1 for alternatives like senior center congregate meals, grocery delivery services, or the Commodity Supplemental Food Program. Some areas may have volunteer driver programs for grocery shopping."
+          "question": "What if my loved one lives outside a delivery zone?",
+          "answer": "Meals on Wheels is not available statewide in Montana. If your loved one lives outside a service area, contact 2-1-1 for alternatives like senior center congregate meals, grocery delivery services, or the Commodity Supplemental Food Program. Some areas may have volunteer driver programs for grocery shopping."
         },
         {
-          "question": "Can my parent get meals if they can still drive but have trouble cooking?",
-          "answer": "Probably not. Home-delivered meals are specifically for homebound seniors or those unable to prepare meals due to disability or health conditions. If your parent can drive, they should be referred to congregate meals at local senior centers instead."
+          "question": "Can my loved one get meals if they can still drive but have trouble cooking?",
+          "answer": "Probably not. Home-delivered meals are specifically for homebound seniors or those unable to prepare meals due to disability or health conditions. If your loved one can drive, they should be referred to congregate meals at local senior centers instead."
         },
         {
-          "question": "What happens if my parent can't afford the suggested donation?",
-          "answer": "Your parent will still receive meals. The $4.50 suggested donation is adjusted based on ability to pay, and many participants pay less or nothing at all. Income is not a factor for eligibility in Montana programs. Medicaid waiver participants may qualify for completely free meals through separate programs."
+          "question": "What happens if my loved one can't afford the suggested donation?",
+          "answer": "Your loved one will still receive meals. The $4.50 suggested donation is adjusted based on ability to pay, and many participants pay less or nothing at all. Income is not a factor for eligibility in Montana programs. Medicaid waiver participants may qualify for completely free meals through separate programs."
         },
         {
-          "question": "How long can my parent receive Meals on Wheels?",
-          "answer": "There's no time limit as long as your parent remains homebound and unable to prepare meals. However, if their condition improves, the program encourages transitioning to congregate meals at senior centers to promote socialization. Regular reassessments determine continued need."
+          "question": "How long can my loved one receive Meals on Wheels?",
+          "answer": "There's no time limit as long as your loved one remains homebound and unable to prepare meals. However, if their condition improves, the program encourages transitioning to congregate meals at senior centers to promote socialization. Regular reassessments determine continued need."
         },
         {
-          "question": "What if my parent needs meals on weekends or holidays?",
+          "question": "What if my loved one needs meals on weekends or holidays?",
           "answer": "Most Montana programs only deliver Monday through Friday. Weekends and holidays typically have no delivery. Some programs may provide shelf-stable emergency meals for these gaps, but coverage varies by provider. Ask your local program about weekend meal options when you apply."
         },
         {
-          "question": "Can I apply for my parent if they have dementia?",
-          "answer": "Yes, family members can initiate the application process. The home assessment will evaluate your parent's cognitive ability to live safely at home and manage meal delivery. If they have significant dementia, the assessor will work with you to determine if home delivery is appropriate or if other care arrangements are needed."
+          "question": "Can I apply for my loved one if they have dementia?",
+          "answer": "Yes, family members can initiate the application process. The home assessment will evaluate your loved one's cognitive ability to live safely at home and manage meal delivery. If they have significant dementia, the assessor will work with you to determine if home delivery is appropriate or if other care arrangements are needed."
         }
       ],
       "layoutIntent": {
@@ -1863,7 +1863,7 @@
       "id": "big-sky-waiver-respite",
       "name": "Respite Care (via Big Sky Waiver)",
       "shortName": "Big Sky Respite",
-      "tagline": "Up to 30 days per year of temporary care for your parent so you can take a break from caregiving.",
+      "tagline": "Up to 30 days per year of temporary care for your loved one so you can take a break from caregiving.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1880,7 +1880,7 @@
           }
         ]
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay home, Montana's Big Sky Waiver provides respite care services that give you temporary relief from caregiving. You can get up to 30 days per year of professional care in your parent's home, your home, or a community setting — with extensions possible for health and safety needs.\n\nThis isn't a standalone program. Your parent must first qualify for Montana Medicaid and meet Nursing Facility Level of Care (a clinical assessment proving they need daily help with activities like bathing, dressing, or medication management). Because the waiver covers comprehensive home and community-based services, your parent gets a full care team rather than just respite hours.\n\nRespite care is delivered as part of a person-centered care plan that may also include personal assistance, homemaker services, adult day health, nursing, and therapies. The program operates statewide through county offices, but waiver slots are limited and waitlists are common.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, Montana's Big Sky Waiver provides respite care services that give you temporary relief from caregiving. You can get up to 30 days per year of professional care in your loved one's home, your home, or a community setting, with extensions possible for health and safety needs.\n\nThis isn't a standalone program. Your loved one must first qualify for Montana Medicaid and meet Nursing Facility Level of Care (a clinical assessment proving they need daily help with activities like bathing, dressing, or medication management). Because the waiver covers comprehensive home and community-based services, your loved one gets a full care team rather than just respite hours.\n\nRespite care is delivered as part of a person-centered care plan that may also include personal assistance, homemaker services, adult day health, nursing, and therapies. The program operates statewide through county offices, but waiver slots are limited and waitlists are common.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1911,7 +1911,7 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment proving your parent needs the same level of daily assistance provided in a nursing home — typically help with bathing, dressing, eating, toileting, transferring, or medication management)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment proving your loved one needs the same level of daily assistance provided in a nursing home, typically help with bathing, dressing, eating, toileting, transferring, or medication management)",
         "otherRequirements": [
           "Must be enrolled in Montana Medicaid",
           "Must have unmet care needs that can only be addressed through waiver services",
@@ -1922,7 +1922,7 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Mountain Pacific at (800) 219-7035 for waiver referral and your county OPA office for Medicaid enrollment — processing time not specified but expect waitlists.",
+        "summary": "Call Mountain Pacific at (800) 219-7035 for waiver referral and your county OPA office for Medicaid enrollment, processing time not specified but expect waitlists.",
         "steps": [
           {
             "step": 1,
@@ -1937,7 +1937,7 @@
           {
             "step": 3,
             "title": "Complete Nursing Facility Level of Care assessment",
-            "description": "A clinical team will assess your parent's functional needs through an in-person or phone evaluation to determine if they meet nursing home level of care requirements."
+            "description": "A clinical team will assess your loved one's functional needs through an in-person or phone evaluation to determine if they meet nursing home level of care requirements."
           },
           {
             "step": 4,
@@ -1947,7 +1947,7 @@
         ],
         "processingTime": "Processing time not specified in program materials",
         "waitlist": "Waitlists are likely due to waiver slot caps, though specific wait times are not published",
-        "tip": "Start the Medicaid application process early — you cannot access waiver services without Medicaid approval first.",
+        "tip": "Start the Medicaid application process early, you cannot access waiver services without Medicaid approval first.",
         "urls": []
       },
       "documentsNeeded": [
@@ -1987,9 +1987,9 @@
         }
       ],
       "applicationNotes": [
-        "You must be approved for Medicaid before you can even apply for waiver services — start that process immediately",
-        "The clinical assessment is thorough and looks at your parent's ability to safely live at home without institutional care",
-        "Waiver slots are limited statewide, so even if your parent qualifies, they may face a waitlist",
+        "You must be approved for Medicaid before you can even apply for waiver services, start that process immediately",
+        "The clinical assessment is thorough and looks at your loved one's ability to safely live at home without institutional care",
+        "Waiver slots are limited statewide, so even if your loved one qualifies, they may face a waitlist",
         "Extensions beyond 30 days of respite per year are possible for health and safety reasons, but require case-by-case approval"
       ],
       "relatedPrograms": [
@@ -2001,36 +2001,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
           "answer": "Yes, the primary home is completely exempt from asset limits regardless of value. Only other assets like bank accounts, investments, and additional property count toward the $2,000 individual limit."
         },
         {
-          "question": "What if my parent has Medicaid but doesn't meet nursing home level of care?",
-          "answer": "They cannot access Big Sky Waiver services. The nursing facility level of care requirement is strict — your parent must need the same daily assistance provided in a nursing home. Consider other Medicaid home services or Area Agency on Aging programs instead."
+          "question": "What if my loved one has Medicaid but doesn't meet nursing home level of care?",
+          "answer": "They cannot access Big Sky Waiver services. The nursing facility level of care requirement is strict, your loved one must need the same daily assistance provided in a nursing home. Consider other Medicaid home services or Area Agency on Aging programs instead."
         },
         {
           "question": "Can I get respite care immediately in a crisis situation?",
-          "answer": "No, there's no emergency respite provision. Your parent must complete the full application process, clinical assessment, and potentially wait for an available waiver slot. For immediate crisis support, contact your county OPA about other emergency services."
+          "answer": "No, there's no emergency respite provision. Your loved one must complete the full application process, clinical assessment, and potentially wait for an available waiver slot. For immediate crisis support, contact your county OPA about other emergency services."
         },
         {
           "question": "How long is the waitlist really?",
-          "answer": "Montana doesn't publish specific waitlist times, but waiver programs typically have months to years-long waits depending on your region and your parent's priority level. Those at immediate risk of nursing home placement often get priority."
+          "answer": "Montana doesn't publish specific waitlist times, but waiver programs typically have months to years-long waits depending on your region and your loved one's priority level. Those at immediate risk of nursing home placement often get priority."
         },
         {
           "question": "Can I choose where the respite care happens?",
-          "answer": "Yes, respite can be provided in your parent's home, your family's home, the care provider's home, or community settings. The location is part of your person-centered care planning process."
+          "answer": "Yes, respite can be provided in your loved one's home, your family's home, the care provider's home, or community settings. The location is part of your person-centered care planning process."
         },
         {
-          "question": "What happens if my parent's needs change after enrollment?",
-          "answer": "The care team will reassess and adjust services as needed. If your parent's condition improves significantly and they no longer meet nursing facility level of care, they may lose waiver eligibility."
+          "question": "What happens if my loved one's needs change after enrollment?",
+          "answer": "The care team will reassess and adjust services as needed. If your loved one's condition improves significantly and they no longer meet nursing facility level of care, they may lose waiver eligibility."
         },
         {
           "question": "Can we apply for both Big Sky Waiver and PACE at the same time?",
-          "answer": "No, you cannot be enrolled in both programs simultaneously. PACE is an alternative to the waiver program. You'll need to choose which program better fits your parent's needs and service preferences."
+          "answer": "No, you cannot be enrolled in both programs simultaneously. PACE is an alternative to the waiver program. You'll need to choose which program better fits your loved one's needs and service preferences."
         },
         {
           "question": "Does the 30-day respite limit reset every year?",
-          "answer": "Yes, you get up to 30 days annually. However, the program documents don't specify if this follows a calendar year or enrollment anniversary year — ask Mountain Pacific when you apply for clarification."
+          "answer": "Yes, you get up to 30 days annually. However, the program documents don't specify if this follows a calendar year or enrollment anniversary year, ask Mountain Pacific when you apply for clarification."
         }
       ],
       "layoutIntent": {
@@ -2051,7 +2051,7 @@
       "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
-      "tagline": "If your parent is 55+ and struggling to find work, they can earn minimum wage while gaining job skills through community service positions.",
+      "tagline": "If your loved one is 55+ and struggling to find work, they can earn minimum wage while gaining job skills through community service positions.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -2072,7 +2072,7 @@
           }
         ]
       },
-      "intro": "If your parent is 55 or older and unemployed, SCSEP provides paid work experience at community organizations like schools, hospitals, and senior centers. Your parent earns minimum wage for an average of 20 hours per week while receiving job training and placement assistance.\n\nBecause SCSEP combines immediate income with skills training, participants work toward unsubsidized employment in the private sector. The program lasts 6-12 months and includes resume workshops, interview training, and computer skills development. To qualify, your parent must be unemployed or underemployed with income at or below 125% of the federal poverty level.\n\nIn Montana, the program is administered by Easterseals-Goodwill Northern Rocky Mountain, with limited federally-funded slots that often create waitlists. Veterans, people over 65, and those with disabilities receive priority placement.",
+      "intro": "If your loved one is 55 or older and unemployed, SCSEP provides paid work experience at community organizations like schools, hospitals, and senior centers. Your loved one earns minimum wage for an average of 20 hours per week while receiving job training and placement assistance.\n\nBecause SCSEP combines immediate income with skills training, participants work toward unsubsidized employment in the private sector. The program lasts 6-12 months and includes resume workshops, interview training, and computer skills development. To qualify, your loved one must be unemployed or underemployed with income at or below 125% of the federal poverty level.\n\nIn Montana, the program is administered by Easterseals-Goodwill Northern Rocky Mountain, with limited federally-funded slots that often create waitlists. Veterans, people over 65, and those with disabilities receive priority placement.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -2097,7 +2097,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact Easterseals-Goodwill Northern Rocky Mountain directly or call the national SCSEP helpline — processing time varies due to limited slots.",
+        "summary": "Contact Easterseals-Goodwill Northern Rocky Mountain directly or call the national SCSEP helpline, processing time varies due to limited slots.",
         "steps": [
           {
             "step": 1,
@@ -2175,36 +2175,36 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent work at SCSEP while receiving Social Security or unemployment benefits?",
-          "answer": "Yes, but earnings from SCSEP may affect other benefits. Your parent should report SCSEP income to Social Security and unemployment offices to determine how it impacts their benefits. The SCSEP provider can help coordinate this reporting."
+          "question": "Can my loved one work at SCSEP while receiving Social Security or unemployment benefits?",
+          "answer": "Yes, but earnings from SCSEP may affect other benefits. Your loved one should report SCSEP income to Social Security and unemployment offices to determine how it impacts their benefits. The SCSEP provider can help coordinate this reporting."
         },
         {
-          "question": "What if my parent has been out of work for several years - are they still eligible?",
-          "answer": "Yes, being unemployed for an extended period doesn't disqualify your parent. In fact, people with low employment prospects receive priority consideration. The program is specifically designed to help older workers who have difficulty finding employment."
+          "question": "What if my loved one has been out of work for several years - are they still eligible?",
+          "answer": "Yes, being unemployed for an extended period doesn't disqualify your loved one. In fact, people with low employment prospects receive priority consideration. The program is specifically designed to help older workers who have difficulty finding employment."
         },
         {
           "question": "How long is the waitlist really, and is there anything we can do to move up?",
           "answer": "Waitlists vary by region due to limited federal funding, but priority applicants (veterans, people 65+, those with disabilities, rural residents) typically get faster placement. Contact Easterseals-Goodwill directly for current wait times in your area."
         },
         {
-          "question": "Can my parent choose what type of work they do in the program?",
-          "answer": "SCSEP places participants based on available community service positions at non-profit and government sites like schools, senior centers, and hospitals. While preferences are considered, placement depends on current openings and your parent's skills and interests."
+          "question": "Can my loved one choose what type of work they do in the program?",
+          "answer": "SCSEP places participants based on available community service positions at non-profit and government sites like schools, senior centers, and hospitals. While preferences are considered, placement depends on current openings and your loved one's skills and interests."
         },
         {
-          "question": "What happens if my parent gets a job offer before the SCSEP program ends?",
+          "question": "What happens if my loved one gets a job offer before the SCSEP program ends?",
           "answer": "That's the goal! SCSEP encourages participants to accept unsubsidized employment. The program provides job placement assistance throughout participation, and leaving for a permanent job is considered a successful completion."
         },
         {
-          "question": "Does my parent have to pay taxes on SCSEP wages?",
+          "question": "Does my loved one have to pay taxes on SCSEP wages?",
           "answer": "Yes, SCSEP wages are taxable income subject to federal and state income taxes and Social Security/Medicare withholding. Participants receive W-2 forms and should factor this into their tax planning."
         },
         {
-          "question": "What if my parent needs transportation to get to their SCSEP work site?",
-          "answer": "Transportation is not provided by SCSEP, but the program may help connect participants with local transportation resources. Discuss transportation needs during the application process to ensure your parent can reliably get to their assigned work site."
+          "question": "What if my loved one needs transportation to get to their SCSEP work site?",
+          "answer": "Transportation is not provided by SCSEP, but the program may help connect participants with local transportation resources. Discuss transportation needs during the application process to ensure your loved one can reliably get to their assigned work site."
         },
         {
-          "question": "Can my parent apply for SCSEP and other job training programs at the same time?",
-          "answer": "Yes, your parent can apply for multiple employment programs, but they cannot participate in SCSEP while enrolled in another federally-funded job training program. Job Service Montana can help coordinate applications to avoid conflicts."
+          "question": "Can my loved one apply for SCSEP and other job training programs at the same time?",
+          "answer": "Yes, your loved one can apply for multiple employment programs, but they cannot participate in SCSEP while enrolled in another federally-funded job training program. Job Service Montana can help coordinate applications to avoid conflicts."
         }
       ],
       "layoutIntent": {
@@ -2250,7 +2250,7 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and needs basic estate planning documents, Montana provides free legal help through statewide clinics and phone consultations. The program helps seniors create wills, powers of attorney, living wills, health care directives, and transfer-on-death deeds at no cost.\n\nBecause these services focus on basic estate planning using standard forms, your parent won't need to hire a private attorney for simple documents. Montana Legal Services Association screens applicants based on income and assets, but there are no fixed dollar limits — eligibility is determined case-by-case for low-income seniors.",
+      "intro": "If your loved one is 60+ and needs basic estate planning documents, Montana provides free legal help through statewide clinics and phone consultations. The program helps seniors create wills, powers of attorney, living wills, health care directives, and transfer-on-death deeds at no cost.\n\nBecause these services focus on basic estate planning using standard forms, your loved one won't need to hire a private attorney for simple documents. Montana Legal Services Association screens applicants based on income and assets, but there are no fixed dollar limits, eligibility is determined case-by-case for low-income seniors.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2275,7 +2275,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at montanalawhelp.org or call 1-800-666-6899 — expect a callback within 3-5 business days.",
+        "summary": "Apply online at montanalawhelp.org or call 1-800-666-6899, expect a callback within 3-5 business days.",
         "steps": [
           {
             "step": 1,
@@ -2285,7 +2285,7 @@
           {
             "step": 2,
             "title": "Complete income screening",
-            "description": "Provide details about your parent's income, assets, household size, and legal needs. MLSA reviews each case individually — there are no fixed income limits."
+            "description": "Provide details about your loved one's income, assets, household size, and legal needs. MLSA reviews each case individually, there are no fixed income limits."
           },
           {
             "step": 3,
@@ -2299,8 +2299,8 @@
           }
         ],
         "processingTime": "3-5 business days for MLSA callback; urgent legal deadlines get priority",
-        "waitlist": "High call volume may cause delays — use online application if phone lines are busy",
-        "tip": "Apply online rather than calling — the phone lines (Tuesday-Thursday only) get very busy.",
+        "waitlist": "High call volume may cause delays, use online application if phone lines are busy",
+        "tip": "Apply online rather than calling, the phone lines (Tuesday-Thursday only) get very busy.",
         "urls": [
           {
             "label": "MLSA Online Application",
@@ -2349,12 +2349,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's estate is too complex for this program?",
-          "answer": "This program only handles basic estate planning using standard forms — no complex estates, large assets, or trusts. If your parent's situation involves significant assets or complicated family arrangements, MLSA will refer you to private attorneys who specialize in elder law."
+          "question": "What if my loved one's estate is too complex for this program?",
+          "answer": "This program only handles basic estate planning using standard forms, no complex estates, large assets, or trusts. If your loved one's situation involves significant assets or complicated family arrangements, MLSA will refer you to private attorneys who specialize in elder law."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply for their parents. When completing the online application or calling MLSA, provide your parent's income and asset information along with details about their legal needs. You'll need their permission and may need to provide documentation of your authority to act on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply for their loved ones. When completing the online application or calling MLSA, provide your loved one's income and asset information along with details about their legal needs. You'll need their permission and may need to provide documentation of your authority to act on their behalf."
         },
         {
           "question": "How long do the estate planning clinic appointments take?",
@@ -2379,7 +2379,7 @@
       "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
-      "tagline": "Free advocacy and complaint resolution when your parent faces problems in nursing homes or assisted living facilities.",
+      "tagline": "Free advocacy and complaint resolution when your loved one faces problems in nursing homes or assisted living facilities.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2392,7 +2392,7 @@
           }
         ]
       },
-      "intro": "If your parent lives in a Montana nursing home, assisted living facility, or Critical Access Hospital and faces problems with care, billing, or their rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. Over 30 certified ombudsmen across Montana investigate issues like improper discharge, abuse, neglect, quality of care concerns, and Medicaid/Medicare problems.\n\nBecause ombudsmen maintain confidentiality and act only at your parent's request, they can address sensitive issues without fear of retaliation. The program serves all residents regardless of income — no financial tests or paperwork required to get help.\n\nOmbudsmen also provide information about long-term care options, help with facility placement decisions, and connect families to other aging services across Montana.",
+      "intro": "If your loved one lives in a Montana nursing home, assisted living facility, or Critical Access Hospital and faces problems with care, billing, or their rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. Over 30 certified ombudsmen across Montana investigate issues like improper discharge, abuse, neglect, quality of care concerns, and Medicaid/Medicare problems.\n\nBecause ombudsmen maintain confidentiality and act only at your loved one's request, they can address sensitive issues without fear of retaliation. The program serves all residents regardless of income, no financial tests or paperwork required to get help.\n\nOmbudsmen also provide information about long-term care options, help with facility placement decisions, and connect families to other aging services across Montana.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2425,7 +2425,7 @@
           {
             "step": 2,
             "title": "Describe the Problem",
-            "description": "Explain the concern verbally — no forms required. Provide details about the facility, resident name, and specific issues with care, rights, or services."
+            "description": "Explain the concern verbally, no forms required. Provide details about the facility, resident name, and specific issues with care, rights, or services."
           },
           {
             "step": 3,
@@ -2435,7 +2435,7 @@
         ],
         "processingTime": "Immediate response to complaints; ombudsmen move into action at resident's request",
         "waitlist": null,
-        "tip": "For emergencies involving immediate danger, call 911 first — the ombudsman hotline operates during business hours only.",
+        "tip": "For emergencies involving immediate danger, call 911 first, the ombudsman hotline operates during business hours only.",
         "urls": [
           {
             "label": "Montana Long-Term Care Ombudsman Directory",
@@ -2467,11 +2467,11 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman even if my parent doesn't want to file a complaint?",
-          "answer": "You can contact the ombudsman for information and guidance, but they can only investigate or take action at your parent's request. Because ombudsmen maintain strict confidentiality, they cannot override a resident's wishes even when family members have concerns."
+          "question": "Can I contact the ombudsman even if my loved one doesn't want to file a complaint?",
+          "answer": "You can contact the ombudsman for information and guidance, but they can only investigate or take action at your loved one's request. Because ombudsmen maintain strict confidentiality, they cannot override a resident's wishes even when family members have concerns."
         },
         {
-          "question": "What if the problem is in my parent's home care, not a facility?",
+          "question": "What if the problem is in my loved one's home care, not a facility?",
           "answer": "The Long-Term Care Ombudsman only covers residents in nursing homes, assisted living facilities, and Critical Access Hospitals with swing beds. For home-based care issues, contact Adult Protective Services or your local Area Agency on Aging for other resources."
         },
         {
@@ -2479,7 +2479,7 @@
           "answer": "Ombudsmen respond immediately and begin investigating right away. Resolution time depends on the complexity of the issue, but ombudsmen make regular facility visits and work persistently until problems are addressed."
         },
         {
-          "question": "Will the facility retaliate against my parent for filing a complaint?",
+          "question": "Will the facility retaliate against my loved one for filing a complaint?",
           "answer": "Retaliation is illegal, and ombudsmen are trained to handle complaints confidentially to minimize this risk. They maintain ongoing relationships with facilities and monitor for any signs of retaliation after complaints are resolved."
         }
       ],
@@ -2499,7 +2499,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Montana offers 13 government programs that can save your parent thousands of dollars per year while keeping them safe at home. These range from monthly cash benefits (like up to $300/month for groceries through SNAP) to comprehensive health coverage that includes home care services. Montana's programs are particularly strong for seniors who want to avoid nursing homes — the Big Sky Waiver Program and PACE both provide full care coordination to keep your parent home safely.\n\nMost financial benefits require income below $1,500-2,200/month for a single person, but several valuable resources like Medicare counseling and legal help are free regardless of income. Start by checking if your parent qualifies for Medicaid — it unlocks the most comprehensive long-term care benefits Montana offers.",
+    "intro": "Montana offers 13 government programs that can save your loved one thousands of dollars per year while keeping them safe at home. These range from monthly cash benefits (like up to $300/month for groceries through SNAP) to comprehensive health coverage that includes home care services. Montana's programs are particularly strong for seniors who want to avoid nursing homes, the Big Sky Waiver Program and PACE both provide full care coordination to keep your loved one home safely.\n\nMost financial benefits require income below $1,500-2,200/month for a single person, but several valuable resources like Medicare counseling and legal help are free regardless of income. Start by checking if your loved one qualifies for Medicaid, it unlocks the most comprehensive long-term care benefits Montana offers.",
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
@@ -2509,12 +2509,12 @@
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
         "programId": "qmb-slmb-qi-montana",
-        "why": "Can eliminate all Medicare out-of-pocket costs if your parent's income is under $1,761/month."
+        "why": "Can eliminate all Medicare out-of-pocket costs if your loved one's income is under $1,761/month."
       },
       {
         "name": "SNAP (Food Stamps)",
         "programId": "snap-montana",
-        "why": "Fastest way to put money back in your parent's budget — up to hundreds per month for groceries."
+        "why": "Fastest way to put money back in your loved one's budget, up to hundreds per month for groceries."
       }
     ],
     "byNeed": [
@@ -2525,7 +2525,7 @@
           "Community First Choice Services (CFCS) / Personal Care Services (PCS)",
           "Program of All-Inclusive Care for the Elderly (PACE)"
         ],
-        "description": "These programs cover paid caregivers to help your parent with bathing, dressing, and daily tasks so they can stay home."
+        "description": "These programs cover paid caregivers to help your loved one with bathing, dressing, and daily tasks so they can stay home."
       },
       {
         "need": "Lower healthcare costs",
@@ -2543,14 +2543,14 @@
           "Weatherization Assistance Program",
           "Meals on Wheels"
         ],
-        "description": "Monthly grocery money, heating bill help, and home-delivered meals to reduce your parent's biggest expenses."
+        "description": "Monthly grocery money, heating bill help, and home-delivered meals to reduce your loved one's biggest expenses."
       },
       {
         "need": "Caregiver support and breaks",
         "programs": [
           "Respite Care (via Big Sky Waiver)"
         ],
-        "description": "Temporary care for your parent so you can take time away from caregiving duties."
+        "description": "Temporary care for your loved one so you can take time away from caregiving duties."
       },
       {
         "need": "Free advice and legal help",
@@ -2564,8 +2564,8 @@
     "quickFacts": [
       "Most Montana benefit programs require income below $1,500-2,200/month for a single person, but several valuable services are free regardless of income",
       "Montana's Big Sky Waiver Program specifically helps seniors avoid nursing homes by covering home care services",
-      "Winter heating assistance through LIHEAP is especially important in Montana — apply early as funds run out each season"
+      "Winter heating assistance through LIHEAP is especially important in Montana, apply early as funds run out each season"
     ],
-    "resourcesVsBenefits": "Montana divides help into two categories: benefits you must qualify for based on income and health needs (like Medicaid home care services or SNAP grocery assistance), and free resources available to any Montana senior regardless of income (like Medicare counseling through SHIP or legal help creating wills). Start with the qualification-based benefits since they offer the largest financial impact, but don't overlook the free resources — they can save you from costly mistakes and provide expert guidance during stressful decisions."
+    "resourcesVsBenefits": "Montana divides help into two categories: benefits you must qualify for based on income and health needs (like Medicaid home care services or SNAP grocery assistance), and free resources available to any Montana senior regardless of income (like Medicare counseling through SHIP or legal help creating wills). Start with the qualification-based benefits since they offer the largest financial impact, but don't overlook the free resources, they can save you from costly mistakes and provide expert guidance during stressful decisions."
   }
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-19T10:13:23.927Z
+ * Last updated: 2026-04-20T23:39:07.878Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in Washington and has limited income, Apple Health provides free comprehensive medical coverage including doctor visits, prescriptions, hospital care, and preventive services. For seniors 65 and older, income limits are $967/month for a single person — but even Medicare recipients may qualify for help with premiums or long-term care services.\n\nApple Health covers all Essential Health Benefits through Managed Care Organizations, which means your parent gets coordinated care plus additional benefits like transportation to appointments. Because this is Washington's Medicaid program, there are no premiums, deductibles, or copays for covered services.",
+      "intro": "If your loved one lives in Washington and has limited income, Apple Health provides free comprehensive medical coverage including doctor visits, prescriptions, hospital care, and preventive services. For seniors 65 and older, income limits are $967/month for a single person, but even Medicare recipients may qualify for help with premiums or long-term care services.\n\nApple Health covers all Essential Health Benefits through Managed Care Organizations, which means your loved one gets coordinated care plus additional benefits like transportation to appointments. Because this is Washington's Medicaid program, there are no premiums, deductibles, or copays for covered services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -77,7 +77,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Washington Healthplanfinder or call 1-877-501-2233 for seniors 65+ — processing time varies but enrollment is open year-round.",
+        "summary": "Apply online through Washington Healthplanfinder or call 1-877-501-2233 for seniors 65+, processing time varies but enrollment is open year-round.",
         "steps": [
           {
             "step": 1,
@@ -92,7 +92,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete screening and enrollment",
-            "description": "Some programs require additional DSHS screening after your initial Healthplanfinder application. You'll be notified if this applies to your parent's situation."
+            "description": "Some programs require additional DSHS screening after your initial Healthplanfinder application. You'll be notified if this applies to your loved one's situation."
           },
           {
             "step": 4,
@@ -100,7 +100,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "Once approved, choose from available MCOs in your area. Each offers the same core benefits plus additional services like transportation."
           }
         ],
-        "processingTime": "Processing time varies — you'll receive renewal notices 60 days before coverage expires",
+        "processingTime": "Processing time varies, you'll receive renewal notices 60 days before coverage expires",
         "waitlist": "No waitlist for eligible residents (undocumented adults face enrollment cap of 13,000)",
         "tip": "Income limits change every April, so verify current amounts when applying.",
         "urls": [
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of citizenship or eligible immigration status",
         "Income verification (Social Security award letter, pay stubs, or tax return)",
-        "Medicare card if your parent has Medicare coverage",
+        "Medicare card if your loved one has Medicare coverage",
         "Bank statements for asset verification (seniors 65+ only)"
       ],
       "contacts": [
@@ -138,7 +138,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits change every April — always verify current amounts before applying",
+        "Income limits change every April, always verify current amounts before applying",
         "Medicare recipients may qualify for premium assistance or long-term services even if income seems too high"
       ],
       "relatedPrograms": [
@@ -149,16 +149,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep Apple Health if they already have Medicare?",
-          "answer": "Yes, many Medicare recipients qualify for Apple Health to help with Medicare premiums, deductibles, or long-term services that Medicare doesn't cover. The income limits and rules are different for Medicare recipients, so call 1-877-501-2233 to discuss your parent's specific situation."
+          "question": "Can my loved one keep Apple Health if they already have Medicare?",
+          "answer": "Yes, many Medicare recipients qualify for Apple Health to help with Medicare premiums, deductibles, or long-term services that Medicare doesn't cover. The income limits and rules are different for Medicare recipients, so call 1-877-501-2233 to discuss your loved one's specific situation."
         },
         {
-          "question": "What happens if my parent's income is slightly over the limit?",
+          "question": "What happens if my loved one's income is slightly over the limit?",
           "answer": "Income limits change annually every April, and there are different limits for different categories. Seniors 65+ have lower income limits ($967/month) than younger adults. Some Medicare recipients may still qualify for partial benefits even with higher income. Call DSHS at 1-877-501-2233 to review all options."
         },
         {
-          "question": "Can I apply for Apple Health on behalf of my elderly parent?",
-          "answer": "Yes, family members can help with the application process. You'll need your parent's consent and their personal information including Social Security number, income details, and citizenship documentation. Call 1-877-501-2233 to discuss how to properly represent your parent during the application."
+          "question": "Can I apply for Apple Health on behalf of my elderly loved one?",
+          "answer": "Yes, family members can help with the application process. You'll need your loved one's consent and their personal information including Social Security number, income details, and citizenship documentation. Call 1-877-501-2233 to discuss how to properly represent your loved one during the application."
         }
       ],
       "layoutIntent": {
@@ -200,7 +200,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent needs help with bathing, dressing, or getting around but doesn't need nursing home-level care, Washington's Medicaid Personal Care program provides in-home assistance with daily activities. Your parent can receive personal care services in their own home, an adult family home, or assisted living facility.\n\nTo qualify, your parent must have limited income (typically under $771/month for single applicants) and need extensive help with at least one daily activity or minimal help with three or more activities. Because this program specifically serves people who don't need nursing facility-level care, it fills the gap between independent living and more intensive care programs.\n\nThe program covers personal hygiene assistance, help with dressing and toileting, transferring support, and mobility assistance. The exact amount of care is determined through a functional assessment called the CARE tool, which evaluates your parent's specific needs.",
+      "intro": "If your loved one needs help with bathing, dressing, or getting around but doesn't need nursing home-level care, Washington's Medicaid Personal Care program provides in-home assistance with daily activities. Your loved one can receive personal care services in their own home, an adult family home, or assisted living facility.\n\nTo qualify, your loved one must have limited income (typically under $771/month for single applicants) and need extensive help with at least one daily activity or minimal help with three or more activities. Because this program specifically serves people who don't need nursing facility-level care, it fills the gap between independent living and more intensive care programs.\n\nThe program covers personal hygiene assistance, help with dressing and toileting, transferring support, and mobility assistance. The exact amount of care is determined through a functional assessment called the CARE tool, which evaluates your loved one's specific needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -260,7 +260,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Complete CARE assessment",
-            "description": "A trained assessor will evaluate your parent's ability to perform daily activities and determine the level of personal care services needed."
+            "description": "A trained assessor will evaluate your loved one's ability to perform daily activities and determine the level of personal care services needed."
           },
           {
             "step": 5,
@@ -320,10 +320,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Personal care services are only available to those who don't need nursing facility level of care - if your parent needs more intensive medical supervision, they'll be referred to waiver programs instead",
-        "Home ownership doesn't disqualify your parent as long as they live there or intend to return - the home is an exempt asset",
-        "Dementia or Alzheimer's diagnosis alone doesn't automatically qualify - your parent must still demonstrate specific functional limitations through the CARE assessment",
-        "Most of your parent's income will go toward room and board costs in adult family homes or assisted living, but they'll retain a small personal needs allowance"
+        "Personal care services are only available to those who don't need nursing facility level of care - if your loved one needs more intensive medical supervision, they'll be referred to waiver programs instead",
+        "Home ownership doesn't disqualify your loved one as long as they live there or intend to return - the home is an exempt asset",
+        "Dementia or Alzheimer's diagnosis alone doesn't automatically qualify - your loved one must still demonstrate specific functional limitations through the CARE assessment",
+        "Most of your loved one's income will go toward room and board costs in adult family homes or assisted living, but they'll retain a small personal needs allowance"
       ],
       "relatedPrograms": [
         "Community First Choice Option (CFCO) waiver",
@@ -334,32 +334,32 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house and still qualify for this program?",
-          "answer": "Yes, the home is exempt from the $2,000 asset limit as long as your parent lives there, intends to return, or a spouse or disabled child lives there. You'll need to document their intent to return if they're temporarily in a care facility."
+          "question": "Can my loved one keep their house and still qualify for this program?",
+          "answer": "Yes, the home is exempt from the $2,000 asset limit as long as your loved one lives there, intends to return, or a spouse or disabled child lives there. You'll need to document their intent to return if they're temporarily in a care facility."
         },
         {
           "question": "What's the difference between this program and nursing home Medicaid?",
-          "answer": "Medicaid Personal Care is for people who need help with daily activities but don't need 24/7 medical supervision. If your parent needs nursing facility level of care, they won't qualify for this program and should apply for institutional Medicaid or waiver programs instead."
+          "answer": "Medicaid Personal Care is for people who need help with daily activities but don't need 24/7 medical supervision. If your loved one needs nursing facility level of care, they won't qualify for this program and should apply for institutional Medicaid or waiver programs instead."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, adult children can apply for their parents if the parent gives permission or if you have legal authority like power of attorney. You'll need to provide documentation of your authority to act on their behalf."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, adult children can apply for their loved ones if the loved one gives permission or if you have legal authority like power of attorney. You'll need to provide documentation of your authority to act on their behalf."
         },
         {
-          "question": "How many hours of care will my parent receive?",
-          "answer": "There's no set number of hours - care is authorized based on your parent's specific needs as determined by the CARE assessment. The assessor evaluates how much help your parent needs with each daily activity and authorizes services accordingly."
+          "question": "How many hours of care will my loved one receive?",
+          "answer": "There's no set number of hours - care is authorized based on your loved one's specific needs as determined by the CARE assessment. The assessor evaluates how much help your loved one needs with each daily activity and authorizes services accordingly."
         },
         {
-          "question": "What happens if my parent's needs change after they're enrolled?",
-          "answer": "You can request a reassessment through your local DSHS office or Area Agency on Aging. If your parent's functional abilities improve or decline, their care plan will be adjusted. Regular reassessments also happen periodically."
+          "question": "What happens if my loved one's needs change after they're enrolled?",
+          "answer": "You can request a reassessment through your local DSHS office or Area Agency on Aging. If your loved one's functional abilities improve or decline, their care plan will be adjusted. Regular reassessments also happen periodically."
         },
         {
-          "question": "Can my parent receive care in assisted living through this program?",
-          "answer": "Yes, personal care services can be provided in licensed assisted living facilities, but your parent must pay for their room and board separately. Most of their income will go toward those costs, leaving them with a small personal needs allowance."
+          "question": "Can my loved one receive care in assisted living through this program?",
+          "answer": "Yes, personal care services can be provided in licensed assisted living facilities, but your loved one must pay for their room and board separately. Most of their income will go toward those costs, leaving them with a small personal needs allowance."
         },
         {
-          "question": "What if my parent has too much income for regular Medicaid but needs these services?",
-          "answer": "Washington has spend-down options where your parent can qualify by having medical expenses that reduce their countable income below the limit. Contact DSHS to discuss spend-down calculations and whether your parent might qualify through this route."
+          "question": "What if my loved one has too much income for regular Medicaid but needs these services?",
+          "answer": "Washington has spend-down options where your loved one can qualify by having medical expenses that reduce their countable income below the limit. Contact DSHS to discuss spend-down calculations and whether your loved one might qualify through this route."
         },
         {
           "question": "How long does it take to start receiving services after approval?",
@@ -384,14 +384,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "mac-waiver",
       "name": "Medicaid Alternative Care (MAC) Waiver",
       "shortName": "MAC Waiver",
-      "tagline": "If your parent needs nursing home-level care but wants to stay home, this waiver can pay for care services while they live with a family caregiver.",
+      "tagline": "If your loved one needs nursing home-level care but wants to stay home, this waiver can pay for care services while they live with a family caregiver.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent is 55+ and needs daily help with bathing, dressing, or medication management, the MAC Waiver lets them receive Medicaid-funded care services at home instead of moving to a nursing facility. Because this waiver requires an unpaid family caregiver, it's designed for situations where a family member can provide hands-on care while the state covers additional support services.\n\nYour parent must qualify financially (income under $2,982/month, assets under $2,000) and clinically (meet Nursing Facility Level of Care through a state assessment). The waiver is available statewide in Washington, but you cannot combine MAC with other long-term care waivers like COPES — families must choose one program.",
+      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, the MAC Waiver lets them receive Medicaid-funded care services at home instead of moving to a nursing facility. Because this waiver requires an unpaid family caregiver, it's designed for situations where a family member can provide hands-on care while the state covers additional support services.\n\nYour loved one must qualify financially (income under $2,982/month, assets under $2,000) and clinically (meet Nursing Facility Level of Care through a state assessment). The waiver is available statewide in Washington, but you cannot combine MAC with other long-term care waivers like COPES, families must choose one program.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -422,7 +422,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed using Washington's CARE tool — requires either daily nursing care OR substantial assistance with at least 2 activities of daily living like bathing, dressing, or eating)",
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (assessed using Washington's CARE tool, requires either daily nursing care OR substantial assistance with at least 2 activities of daily living like bathing, dressing, or eating)",
         "otherRequirements": [
           "Must have eligible unpaid caregiver (age 18+)",
           "Must live at home, not in residential facility",
@@ -434,12 +434,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact Washington State DSHS to apply — processing time not specified in available sources.",
+        "summary": "Contact Washington State DSHS to apply, processing time not specified in available sources.",
         "steps": [
           {
             "step": 1,
             "title": "Verify Medicaid eligibility first",
-            "description": "Your parent must qualify for regular Medicaid before applying for MAC. Contact DSHS at their main benefits line to confirm eligibility status."
+            "description": "Your loved one must qualify for regular Medicaid before applying for MAC. Contact DSHS at their main benefits line to confirm eligibility status."
           },
           {
             "step": 2,
@@ -449,7 +449,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete clinical assessment",
-            "description": "A state assessor will evaluate your parent using the CARE tool to determine if they meet Nursing Facility Level of Care requirements."
+            "description": "A state assessor will evaluate your loved one using the CARE tool to determine if they meet Nursing Facility Level of Care requirements."
           },
           {
             "step": 4,
@@ -459,12 +459,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 5,
             "title": "Choose MAC over other programs",
-            "description": "Confirm you want MAC services instead of other long-term care options like COPES Waiver or Community First Choice — you cannot receive multiple waivers simultaneously."
+            "description": "Confirm you want MAC services instead of other long-term care options like COPES Waiver or Community First Choice, you cannot receive multiple waivers simultaneously."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Start with Medicaid eligibility verification — many families waste time on MAC applications only to discover their parent doesn't qualify for underlying Medicaid coverage.",
+        "tip": "Start with Medicaid eligibility verification, many families waste time on MAC applications only to discover their loved one doesn't qualify for underlying Medicaid coverage.",
         "urls": []
       },
       "documentsNeeded": [
@@ -498,10 +498,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "The 60-month Look-Back Rule is strictly enforced — any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
-        "Your primary home is exempt only if your parent lives in it, intends to return to it, or their spouse/dependent relative lives in it — otherwise it counts toward the $2,000 asset limit",
-        "The unpaid caregiver requirement is non-negotiable — without an eligible family member or friend willing to provide care, your parent cannot qualify even if they meet all other criteria",
-        "MAC is mutually exclusive with other Washington long-term care programs — families often assume they can stack benefits, but you must choose one waiver program"
+        "The 60-month Look-Back Rule is strictly enforced, any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
+        "Your primary home is exempt only if your loved one lives in it, intends to return to it, or their spouse/dependent relative lives in it, otherwise it counts toward the $2,000 asset limit",
+        "The unpaid caregiver requirement is non-negotiable, without an eligible family member or friend willing to provide care, your loved one cannot qualify even if they meet all other criteria",
+        "MAC is mutually exclusive with other Washington long-term care programs, families often assume they can stack benefits, but you must choose one waiver program"
       ],
       "relatedPrograms": [
         "COPES Waiver",
@@ -512,8 +512,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if it's worth more than $2,000?",
-          "answer": "Yes, if your parent lives in the home, intends to return to it, or their spouse/dependent relative lives there. The home is exempt from the $2,000 asset limit under these conditions. If none of these apply, the home counts as an asset and may disqualify them."
+          "question": "Can my loved one keep their house if it's worth more than $2,000?",
+          "answer": "Yes, if your loved one lives in the home, intends to return to it, or their spouse/dependent relative lives there. The home is exempt from the $2,000 asset limit under these conditions. If none of these apply, the home counts as an asset and may disqualify them."
         },
         {
           "question": "What if we gave away money to family members in the last 5 years?",
@@ -521,18 +521,18 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can we apply for MAC and COPES Waiver at the same time?",
-          "answer": "No, you must choose one long-term care program. MAC, COPES, and Community First Choice are mutually exclusive. Families need to compare services and choose the best fit — you cannot receive benefits from multiple waivers simultaneously."
+          "answer": "No, you must choose one long-term care program. MAC, COPES, and Community First Choice are mutually exclusive. Families need to compare services and choose the best fit, you cannot receive benefits from multiple waivers simultaneously."
         },
         {
           "question": "Who qualifies as an unpaid caregiver for MAC?",
-          "answer": "The caregiver must be at least 18 years old but doesn't need to be a Washington resident or family member. They cannot be paid for caregiving services through other programs. This requirement is absolute — without an eligible unpaid caregiver, your parent cannot qualify for MAC."
+          "answer": "The caregiver must be at least 18 years old but doesn't need to be a Washington resident or family member. They cannot be paid for caregiving services through other programs. This requirement is absolute, without an eligible unpaid caregiver, your loved one cannot qualify for MAC."
         },
         {
-          "question": "How do we know if my parent meets Nursing Facility Level of Care?",
-          "answer": "Washington uses the CARE assessment tool to evaluate whether your parent needs either daily nursing care OR substantial help with at least 2 activities of daily living (bathing, dressing, eating, toileting, transferring, continence). A diagnosis alone doesn't qualify — it's about functional need for daily assistance."
+          "question": "How do we know if my loved one meets Nursing Facility Level of Care?",
+          "answer": "Washington uses the CARE assessment tool to evaluate whether your loved one needs either daily nursing care OR substantial help with at least 2 activities of daily living (bathing, dressing, eating, toileting, transferring, continence). A diagnosis alone doesn't qualify, it's about functional need for daily assistance."
         },
         {
-          "question": "What happens if my parent's income is $3,000/month — just over the limit?",
+          "question": "What happens if my loved one's income is $3,000/month, just over the limit?",
           "answer": "They may still qualify if married, since only the applicant's income counts toward the $2,982 limit (spouse income is separate). If single, they would exceed the limit unless they can establish a qualified income trust or spend down medical expenses to reduce countable income below the threshold."
         }
       ],
@@ -554,7 +554,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All medical and social care coordinated under one program to keep your parent living at home instead of a nursing home.",
+      "tagline": "All medical and social care coordinated under one program to keep your loved one living at home instead of a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -567,7 +567,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs daily help with bathing, dressing, or medication management, PACE provides all their medical care, prescriptions, transportation, meals, and home care under one coordinated program. Because PACE covers everything through one interdisciplinary team, your parent won't need to coordinate between separate doctors, specialists, and home care agencies — and there are no co-pays or deductibles.\n\nYour parent must be certified by Washington state as needing nursing home level of care but able to live safely at home with PACE services. In Washington, PACE is only available in King County through Providence PACE (Elderplace). The program replaces all Medicare and Medicaid services, so your parent cannot be enrolled in Medicare Advantage or other supplemental plans.",
+      "intro": "If your loved one is 55+ and needs daily help with bathing, dressing, or medication management, PACE provides all their medical care, prescriptions, transportation, meals, and home care under one coordinated program. Because PACE covers everything through one interdisciplinary team, your loved one won't need to coordinate between separate doctors, specialists, and home care agencies, and there are no co-pays or deductibles.\n\nYour loved one must be certified by Washington state as needing nursing home level of care but able to live safely at home with PACE services. In Washington, PACE is only available in King County through Providence PACE (Elderplace). The program replaces all Medicare and Medicaid services, so your loved one cannot be enrolled in Medicare Advantage or other supplemental plans.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care service",
       "savingsVerified": false,
@@ -595,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by Washington DSHS as needing nursing facility level of care — typically requires assistance with 2 or more activities of daily living like bathing, dressing, grooming, walking, transfers, or medication management",
+        "functionalRequirement": "Must be certified by Washington DSHS as needing nursing facility level of care, typically requires assistance with 2 or more activities of daily living like bathing, dressing, grooming, walking, transfers, or medication management",
         "otherRequirements": [
           "Lives in King County service area",
           "Able to live safely in community with PACE services",
@@ -605,7 +605,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Providence PACE for initial screening, then complete assessment with DSHS social worker — processing time varies.",
+        "summary": "Call Providence PACE for initial screening, then complete assessment with DSHS social worker, processing time varies.",
         "steps": [
           {
             "step": 1,
@@ -620,7 +620,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete clinical evaluation",
-            "description": "DSHS social worker conducts in-person or phone assessment of your parent's functional abilities and care needs to certify nursing home level of care."
+            "description": "DSHS social worker conducts in-person or phone assessment of your loved one's functional abilities and care needs to certify nursing home level of care."
           },
           {
             "step": 4,
@@ -634,8 +634,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified in state sources",
-        "waitlist": "Possible due to capped financing — varies by program capacity",
-        "tip": "If your parent is already receiving CFC/COPES services, their participation levels will stay similar when transitioning to PACE.",
+        "waitlist": "Possible due to capped financing, varies by program capacity",
+        "tip": "If your loved one is already receiving CFC/COPES services, their participation levels will stay similar when transitioning to PACE.",
         "urls": [
           {
             "label": "Washington PACE Information",
@@ -687,10 +687,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "PACE becomes your parent's sole source of Medicare and Medicaid services — they must disenroll from Medicare Advantage, prescription drug plans, and other supplemental coverage",
-        "Private pay option is available at the Medicaid rate if your parent doesn't qualify for Medicaid but needs the comprehensive services",
-        "You must live in or be willing to relocate to the PACE service area — in Washington, this is limited to most of King County",
-        "The nursing home level of care certification is required but doesn't mean your parent needs to move to a nursing home — PACE provides services to keep them at home"
+        "PACE becomes your loved one's sole source of Medicare and Medicaid services, they must disenroll from Medicare Advantage, prescription drug plans, and other supplemental coverage",
+        "Private pay option is available at the Medicaid rate if your loved one doesn't qualify for Medicaid but needs the comprehensive services",
+        "You must live in or be willing to relocate to the PACE service area, in Washington, this is limited to most of King County",
+        "The nursing home level of care certification is required but doesn't mean your loved one needs to move to a nursing home, PACE provides services to keep them at home"
       ],
       "relatedPrograms": [
         "Community First Choice (CFC)",
@@ -701,36 +701,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their current doctors if they join PACE?",
-          "answer": "No, PACE uses its own interdisciplinary team of doctors, nurses, and specialists. Your parent will need to switch to PACE providers because the program coordinates all care through one integrated team. However, many families find this reduces confusion and improves care coordination."
+          "question": "Can my loved one keep their current doctors if they join PACE?",
+          "answer": "No, PACE uses its own interdisciplinary team of doctors, nurses, and specialists. Your loved one will need to switch to PACE providers because the program coordinates all care through one integrated team. However, many families find this reduces confusion and improves care coordination."
         },
         {
-          "question": "What if my parent lives outside King County but wants PACE services?",
-          "answer": "Your parent must live within the Providence PACE service area (most of King County) to enroll. If they live elsewhere in Washington, they would need to relocate to the service area. PACE is not available statewide."
+          "question": "What if my loved one lives outside King County but wants PACE services?",
+          "answer": "Your loved one must live within the Providence PACE service area (most of King County) to enroll. If they live elsewhere in Washington, they would need to relocate to the service area. PACE is not available statewide."
         },
         {
           "question": "How long is the waitlist for PACE in Washington?",
           "answer": "Waitlists are possible due to funding caps, but specific wait times aren't published. Call Providence PACE at 206-320-5325 to ask about current availability and enrollment timeline."
         },
         {
-          "question": "Can my parent be on both PACE and Medicare Advantage?",
-          "answer": "No, your parent cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice while in PACE. PACE replaces all these services with its comprehensive program."
+          "question": "Can my loved one be on both PACE and Medicare Advantage?",
+          "answer": "No, your loved one cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice while in PACE. PACE replaces all these services with its comprehensive program."
         },
         {
-          "question": "What happens if my parent's income is too high for Medicaid but they need PACE?",
-          "answer": "Your parent can pay privately for PACE services at the same rate that Medicaid would pay. This allows access to comprehensive care even without Medicaid eligibility, though costs can be substantial."
+          "question": "What happens if my loved one's income is too high for Medicaid but they need PACE?",
+          "answer": "Your loved one can pay privately for PACE services at the same rate that Medicaid would pay. This allows access to comprehensive care even without Medicaid eligibility, though costs can be substantial."
         },
         {
-          "question": "Will my parent need to pass a test to prove they need nursing home level care?",
-          "answer": "Yes, a DSHS social worker must assess and certify that your parent needs nursing facility level of care — typically requiring help with 2 or more daily activities like bathing, dressing, or medication management. This assessment can be done in-person or by phone."
+          "question": "Will my loved one need to pass a test to prove they need nursing home level care?",
+          "answer": "Yes, a DSHS social worker must assess and certify that your loved one needs nursing facility level of care, typically requiring help with 2 or more daily activities like bathing, dressing, or medication management. This assessment can be done in-person or by phone."
         },
         {
-          "question": "Can I apply for PACE on behalf of my elderly parent?",
-          "answer": "You can help with the application process and attend assessments with your parent, but your parent must be involved in the enrollment process. If you have legal power of attorney for healthcare decisions, bring those documents to the assessment."
+          "question": "Can I apply for PACE on behalf of my elderly loved one?",
+          "answer": "You can help with the application process and attend assessments with your loved one, but your loved one must be involved in the enrollment process. If you have legal power of attorney for healthcare decisions, bring those documents to the assessment."
         },
         {
-          "question": "What happens if my parent's needs change after joining PACE?",
-          "answer": "The PACE team continuously monitors participants and adjusts services as needs change. If your parent's condition improves or declines, the interdisciplinary team will modify the care plan accordingly without needing to switch programs or providers."
+          "question": "What happens if my loved one's needs change after joining PACE?",
+          "answer": "The PACE team continuously monitors participants and adjusts services as needs change. If your loved one's condition improves or declines, the interdisciplinary team will modify the care plan accordingly without needing to switch programs or providers."
         }
       ],
       "layoutIntent": {
@@ -751,7 +751,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "State programs that pay your parent's Medicare premiums, deductibles, and copays if their income is under $1,835/month",
+      "tagline": "State programs that pay your loved one's Medicare premiums, deductibles, and copays if their income is under $1,835/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -764,7 +764,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums and medical bills, Washington's Medicare Savings Programs can eliminate these costs entirely. These state programs pay Medicare Part B premiums ($185/month in 2026), deductibles, and copays for people with monthly incomes under $1,835 for singles or $2,489 for couples.\n\nThere are three tiers: QMB covers all Medicare costs including premiums and copays, SLMB covers just the Part B premium, and QI covers the Part B premium with limited funding. All three programs automatically qualify your parent for Extra Help with prescription drugs, capping medication copays at $12.65 per drug. Washington eliminated asset limits in 2023, so your parent's home, car, and savings don't count against them.\n\nBecause these are state Medicaid programs, you apply through Washington's Health Care Authority, not Medicare directly. QMB takes effect the month after approval, while SLMB and QI can provide up to three months of retroactive coverage.",
+      "intro": "If your loved one struggles to afford Medicare premiums and medical bills, Washington's Medicare Savings Programs can eliminate these costs entirely. These state programs pay Medicare Part B premiums ($185/month in 2026), deductibles, and copays for people with monthly incomes under $1,835 for singles or $2,489 for couples.\n\nThere are three tiers: QMB covers all Medicare costs including premiums and copays, SLMB covers just the Part B premium, and QI covers the Part B premium with limited funding. All three programs automatically qualify your loved one for Extra Help with prescription drugs, capping medication copays at $12.65 per drug. Washington eliminated asset limits in 2023, so your loved one's home, car, and savings don't count against them.\n\nBecause these are state Medicaid programs, you apply through Washington's Health Care Authority, not Medicare directly. QMB takes effect the month after approval, while SLMB and QI can provide up to three months of retroactive coverage.",
       "savingsRange": "$2,220 – $4,500/year in 2026",
       "savingsSource": "Medicare Part B premium ($185/month) plus deductibles and copays for Medicare-covered services",
       "savingsVerified": true,
@@ -798,7 +798,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Washington Connection or call the Health Care Authority at 1-800-562-3022 — processing takes up to 45 days.",
+        "summary": "Apply online at Washington Connection or call the Health Care Authority at 1-800-562-3022, processing takes up to 45 days.",
         "steps": [
           {
             "step": 1,
@@ -813,7 +813,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete the application",
-            "description": "Request QMB, SLMB, or QI on your application — the state will determine which program your parent qualifies for based on income. Don't apply directly to Medicare."
+            "description": "Request QMB, SLMB, or QI on your application, the state will determine which program your loved one qualifies for based on income. Don't apply directly to Medicare."
           },
           {
             "step": 4,
@@ -823,7 +823,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to 45 days for QMB, effective 1st of following month. SLMB/QI similar processing with up to 3 months retroactive coverage",
         "waitlist": "QI program only: first-come, first-served with limited federal funding may create waitlist. Priority given to prior-year recipients.",
-        "tip": "Income limits use 'countable income' after deductions like the $20 general disregard and $65 earned income disregard — don't assume gross income disqualifies your parent.",
+        "tip": "Income limits use 'countable income' after deductions like the $20 general disregard and $65 earned income disregard, don't assume gross income disqualifies your loved one.",
         "urls": [
           {
             "label": "Washington Connection Online Application",
@@ -848,7 +848,7 @@ export const drafts: PipelineStateDrafts = {
         "Investment statements if applicable (stocks, bonds, annuities)",
         "Documentation of medical expenses paid out-of-pocket",
         "Life insurance policies with face values",
-        "Legal documents if someone else is applying on behalf of your parent"
+        "Legal documents if someone else is applying on behalf of your loved one"
       ],
       "contacts": [
         {
@@ -871,9 +871,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "QMB recipients cannot be billed by providers for Medicare-covered services — make sure your parent tells doctors and hospitals about their QMB status",
-        "Income calculations use countable income after deductions, so don't assume gross Social Security or pension income disqualifies your parent",
-        "QI program has funding limits and operates first-come, first-served — apply early in the year for best chances",
+        "QMB recipients cannot be billed by providers for Medicare-covered services, make sure your loved one tells doctors and hospitals about their QMB status",
+        "Income calculations use countable income after deductions, so don't assume gross Social Security or pension income disqualifies your loved one",
+        "QI program has funding limits and operates first-come, first-served, apply early in the year for best chances",
         "You can be enrolled in other Medicaid programs along with QMB or SLMB, but not with QI"
       ],
       "relatedPrograms": [
@@ -907,41 +907,41 @@ export const drafts: PipelineStateDrafts = {
         {
           "type": "callout",
           "title": "Washington Advantage",
-          "content": "Washington eliminated asset limits in 2023 and uses higher income thresholds than federal minimums. Your parent's home, car, and savings don't count against eligibility — only monthly income matters."
+          "content": "Washington eliminated asset limits in 2023 and uses higher income thresholds than federal minimums. Your loved one's home, car, and savings don't count against eligibility, only monthly income matters."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house and car if they qualify for these programs?",
-          "answer": "Yes. Washington eliminated asset limits for Medicare Savings Programs in 2023. Your parent's home, car, savings accounts, and other assets don't count toward eligibility — only monthly income matters."
+          "question": "Can my loved one keep their house and car if they qualify for these programs?",
+          "answer": "Yes. Washington eliminated asset limits for Medicare Savings Programs in 2023. Your loved one's home, car, savings accounts, and other assets don't count toward eligibility, only monthly income matters."
         },
         {
-          "question": "What if my parent's Social Security is $1,500 but they qualify for the $1,463 QMB limit?",
+          "question": "What if my loved one's Social Security is $1,500 but they qualify for the $1,463 QMB limit?",
           "answer": "They likely still qualify. Income limits use 'countable income' after deductions like the $20 general disregard. Their $1,500 Social Security minus the $20 deduction equals $1,480 countable income, which exceeds QMB but qualifies for SLMB ($1,596 limit)."
         },
         {
-          "question": "Can I apply for my parent if they have dementia or can't handle paperwork?",
+          "question": "Can I apply for my loved one if they have dementia or can't handle paperwork?",
           "answer": "Yes, but you'll need legal authority like power of attorney, guardianship, or representative payee status. Bring those legal documents with your application. If you don't have legal authority, contact the local Community Services Office about becoming an authorized representative."
         },
         {
           "question": "How long is the waitlist for QI program really?",
-          "answer": "QI has limited federal funding and operates first-come, first-served each year. Prior-year recipients get priority, but new applicants may face waitlists if funding runs out. Apply early in the year for best chances, and consider SLMB if your parent's income qualifies."
+          "answer": "QI has limited federal funding and operates first-come, first-served each year. Prior-year recipients get priority, but new applicants may face waitlists if funding runs out. Apply early in the year for best chances, and consider SLMB if your loved one's income qualifies."
         },
         {
-          "question": "Can my parent have Medicare Savings Programs and regular Medicaid at the same time?",
-          "answer": "Yes for QMB and SLMB — these can stack with other Medicaid programs. But QI recipients cannot have other Medicaid coverage. The state will automatically enroll your parent in the highest program they qualify for."
+          "question": "Can my loved one have Medicare Savings Programs and regular Medicaid at the same time?",
+          "answer": "Yes for QMB and SLMB, these can stack with other Medicaid programs. But QI recipients cannot have other Medicaid coverage. The state will automatically enroll your loved one in the highest program they qualify for."
         },
         {
-          "question": "What happens if my parent's income changes after enrollment?",
+          "question": "What happens if my loved one's income changes after enrollment?",
           "answer": "Report income changes to Washington Health Care Authority within 10 days. Increases might move them to a different tier or end coverage, while decreases could qualify them for a better program. Coverage changes take effect the month after the change is processed."
         },
         {
-          "question": "Do doctors have to accept QMB patients, and will my parent get billed?",
-          "answer": "Doctors who accept Medicare must accept QMB patients and cannot bill them for copays or deductibles on Medicare-covered services. However, your parent must inform providers of their QMB status — many billing departments don't automatically check."
+          "question": "Do doctors have to accept QMB patients, and will my loved one get billed?",
+          "answer": "Doctors who accept Medicare must accept QMB patients and cannot bill them for copays or deductibles on Medicare-covered services. However, your loved one must inform providers of their QMB status, many billing departments don't automatically check."
         },
         {
-          "question": "Can my parent apply for Medicare Savings Programs and Extra Help for prescriptions separately?",
-          "answer": "No need — all three Medicare Savings Programs automatically qualify your parent for Extra Help (Low-Income Subsidy) for Part D prescription drugs. This caps medication copays at $12.65 per drug in 2026 and eliminates the coverage gap."
+          "question": "Can my loved one apply for Medicare Savings Programs and Extra Help for prescriptions separately?",
+          "answer": "No need, all three Medicare Savings Programs automatically qualify your loved one for Extra Help (Low-Income Subsidy) for Part D prescription drugs. This caps medication copays at $12.65 per drug in 2026 and eliminates the coverage gap."
         }
       ],
       "layoutIntent": {
@@ -969,7 +969,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your parent lives in Washington and earns less than $2,608 per month (or $3,525 for a two-person household), they may qualify for monthly food assistance through the Basic Food Program. This is Washington's version of SNAP that provides $292-$1,158 monthly on an EBT card to buy groceries at most stores.\n\nUnlike other benefit programs, your parent's house, car, and savings don't count against eligibility — only monthly income matters. However, significant changes are coming: starting July 2025, adults aged 18-64 must work at least 80 hours per month to qualify unless they have children under 14 or qualify for other exemptions.\n\nThe program requires an in-person interview after you apply, but the application itself can be completed online at washingtonconnection.org. Benefits are calculated based on household size, income, and living expenses like rent and utilities.",
+      "intro": "If your loved one lives in Washington and earns less than $2,608 per month (or $3,525 for a two-person household), they may qualify for monthly food assistance through the Basic Food Program. This is Washington's version of SNAP that provides $292-$1,158 monthly on an EBT card to buy groceries at most stores.\n\nUnlike other benefit programs, your loved one's house, car, and savings don't count against eligibility, only monthly income matters. However, significant changes are coming: starting July 2025, adults aged 18-64 must work at least 80 hours per month to qualify unless they have children under 14 or qualify for other exemptions.\n\nThe program requires an in-person interview after you apply, but the application itself can be completed online at washingtonconnection.org. Benefits are calculated based on household size, income, and living expenses like rent and utilities.",
       "savingsRange": "$3,504 – $13,896/year in 2025",
       "savingsSource": "Maximum monthly benefits from Washington State Department of Social and Health Services",
       "savingsVerified": true,
@@ -1109,36 +1109,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Will my parent's house or savings disqualify them from Basic Food benefits?",
+          "question": "Will my loved one's house or savings disqualify them from Basic Food benefits?",
           "answer": "No. Resources like a house, car, or money in the bank do not count against Basic Food Program eligibility in Washington. Only monthly income matters for qualification, and the income limits are generous compared to other programs."
         },
         {
-          "question": "How will the new work requirements starting July 2025 affect my elderly parent?",
-          "answer": "Adults aged 18-64 must work 80 hours per month starting July 2025, but there are exceptions for parents with children under 14 and participants in SNAP Employment & Training programs. If your parent is over 64, the work requirement doesn't apply to them."
+          "question": "How will the new work requirements starting July 2025 affect my elderly loved one?",
+          "answer": "Adults aged 18-64 must work 80 hours per month starting July 2025, but there are exceptions for parents with children under 14 and participants in SNAP Employment & Training programs. If your loved one is over 64, the work requirement doesn't apply to them."
         },
         {
-          "question": "Can I apply for Basic Food benefits on behalf of my parent who has dementia?",
+          "question": "Can I apply for Basic Food benefits on behalf of my loved one who has dementia?",
           "answer": "You may be able to apply as an authorized representative, but you'll need legal documentation like power of attorney. Call the Help Me Grow Washington Hotline at 1-800-322-2588 to discuss your specific situation and what documentation is required."
         },
         {
-          "question": "What if my parent lives with me - does my income count toward their eligibility?",
-          "answer": "It depends on your household arrangement. If you buy and prepare food together, you're considered one household and all income counts. If your parent buys and prepares food separately, only their income counts. The interview will clarify your specific living situation."
+          "question": "What if my loved one lives with me - does my income count toward their eligibility?",
+          "answer": "It depends on your household arrangement. If you buy and prepare food together, you're considered one household and all income counts. If your loved one buys and prepares food separately, only their income counts. The interview will clarify your specific living situation."
         },
         {
-          "question": "How quickly can my parent start receiving benefits after approval?",
-          "answer": "The research doesn't specify processing times for Washington's Basic Food Program. During your application interview, ask for a specific timeline. Some urgent cases may qualify for expedited processing if your parent has very low income and resources."
+          "question": "How quickly can my loved one start receiving benefits after approval?",
+          "answer": "The research doesn't specify processing times for Washington's Basic Food Program. During your application interview, ask for a specific timeline. Some urgent cases may qualify for expedited processing if your loved one has very low income and resources."
         },
         {
-          "question": "Can my parent use Basic Food benefits to buy food online or have groceries delivered?",
+          "question": "Can my loved one use Basic Food benefits to buy food online or have groceries delivered?",
           "answer": "EBT cards can be used for online grocery purchases with participating retailers like Amazon and Walmart. This can be especially helpful for seniors with mobility issues. The card works like a debit card for eligible food items but cannot be used for alcohol, tobacco, or prepared hot foods."
         },
         {
-          "question": "What happens if my parent's income changes after they're enrolled in Basic Food?",
+          "question": "What happens if my loved one's income changes after they're enrolled in Basic Food?",
           "answer": "You must report income changes to maintain benefits. Increases in income may reduce benefit amounts or end eligibility, while decreases may increase benefits. Contact your local Community Services Office within 10 days of any significant income change to avoid overpayment issues."
         },
         {
-          "question": "If my parent is an immigrant, how will the December 2025 changes affect their eligibility?",
-          "answer": "Starting December 1, 2025, refugees, asylum seekers, and immigrants with humanitarian protections will lose eligibility under new federal rules. However, if your parent has U.S. citizen children, those children may still qualify for benefits even if the parent doesn't."
+          "question": "If my loved one is an immigrant, how will the December 2025 changes affect their eligibility?",
+          "answer": "Starting December 1, 2025, refugees, asylum seekers, and immigrants with humanitarian protections will lose eligibility under new federal rules. However, if your loved one has U.S. citizen children, those children may still qualify for benefits even if the loved one doesn't."
         }
       ],
       "layoutIntent": {
@@ -1172,7 +1172,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating, cooling, or electric bills on a fixed income, LIHEAP provides grants to help cover energy costs. Because this federal program operates through local community agencies in Washington, your parent must apply directly with their county provider — not through the state.\n\nEligibility requires household income below 150% of federal poverty level and Washington residency. Each household can receive one grant per program year (October through September). Because demand exceeds funding, many areas have waitlists or processing delays.\n\nLIHEAP also provides emergency assistance for households facing utility shutoffs. Grant amounts vary by local provider, household income, energy usage, and fuel type.",
+      "intro": "If your loved one struggles to pay heating, cooling, or electric bills on a fixed income, LIHEAP provides grants to help cover energy costs. Because this federal program operates through local community agencies in Washington, your loved one must apply directly with their county provider, not through the state.\n\nEligibility requires household income below 150% of federal poverty level and Washington residency. Each household can receive one grant per program year (October through September). Because demand exceeds funding, many areas have waitlists or processing delays.\n\nLIHEAP also provides emergency assistance for households facing utility shutoffs. Grant amounts vary by local provider, household income, energy usage, and fuel type.",
       "savingsRange": "",
       "savingsSource": "Grant amounts vary by provider and household circumstances",
       "savingsVerified": false,
@@ -1196,7 +1196,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your county's local LIHEAP provider to schedule an appointment — each agency has its own application process and timeline.",
+        "summary": "Contact your county's local LIHEAP provider to schedule an appointment, each agency has its own application process and timeline.",
         "steps": [
           {
             "step": 1,
@@ -1206,7 +1206,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact your local agency",
-            "description": "Call your local provider to schedule an appointment. Methods vary by agency — some offer phone applications, others require in-person visits. The state Department of Commerce does not schedule appointments."
+            "description": "Call your local provider to schedule an appointment. Methods vary by agency, some offer phone applications, others require in-person visits. The state Department of Commerce does not schedule appointments."
           },
           {
             "step": 3,
@@ -1226,7 +1226,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Varies by provider; applicants notified as soon as possible, but high demand and limited staff cause delays",
         "waitlist": "High demand may create waitlists or delays, varying by region",
-        "tip": "If facing utility shutoff, contact your local provider immediately and arrange a payment plan with your utility company first — emergency cases may get priority processing.",
+        "tip": "If facing utility shutoff, contact your local provider immediately and arrange a payment plan with your utility company first, emergency cases may get priority processing.",
         "urls": [
           {
             "label": "Find Local LIHEAP Provider",
@@ -1267,10 +1267,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "No central state application exists — you must contact and follow your specific local provider's process",
-        "Documentation requirements vary by provider — always call ahead to confirm what you need to avoid appointment delays",
-        "Program year runs October through September — you cannot reapply until the next program year even if circumstances change",
-        "Emergency cases facing utility disconnection may receive priority processing — contact your local provider immediately"
+        "No central state application exists, you must contact and follow your specific local provider's process",
+        "Documentation requirements vary by provider, always call ahead to confirm what you need to avoid appointment delays",
+        "Program year runs October through September, you cannot reapply until the next program year even if circumstances change",
+        "Emergency cases facing utility disconnection may receive priority processing, contact your local provider immediately"
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1280,15 +1280,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply if my parent already received LIHEAP assistance this year?",
-          "answer": "No. Each household can only receive one LIHEAP grant per program year, which runs from October through September. You cannot reapply until the next program year begins, even if your parent's financial situation worsens."
+          "question": "Can I apply if my loved one already received LIHEAP assistance this year?",
+          "answer": "No. Each household can only receive one LIHEAP grant per program year, which runs from October through September. You cannot reapply until the next program year begins, even if your loved one's financial situation worsens."
         },
         {
-          "question": "What if my parent is facing utility shutoff right now?",
+          "question": "What if my loved one is facing utility shutoff right now?",
           "answer": "Contact your local LIHEAP provider immediately and mention the disconnection notice. Emergency cases may receive priority processing within 48 hours. Also contact your utility company to arrange a payment plan while waiting for LIHEAP assistance."
         },
         {
-          "question": "Can I apply for my elderly parent who can't travel to appointments?",
+          "question": "Can I apply for my elderly loved one who can't travel to appointments?",
           "answer": "Yes, but policies vary by local provider. Some agencies allow family members to apply on behalf of elderly or disabled relatives with proper documentation. Call your local provider to ask about their specific representative payee or proxy application process."
         },
         {
@@ -1300,15 +1300,15 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Waitlists vary dramatically by county and time of year. Some areas process applications within weeks, while others have months-long delays due to high demand and limited funding. Your local provider can give you the most current timeline for your specific area."
         },
         {
-          "question": "Can my parent get LIHEAP if they live in subsidized housing?",
-          "answer": "Yes, if they pay their own utility bills and meet income requirements. Many subsidized housing residents qualify because they're responsible for electric, gas, or heating costs even if rent is reduced. Bring utility bills showing your parent's name as the account holder."
+          "question": "Can my loved one get LIHEAP if they live in subsidized housing?",
+          "answer": "Yes, if they pay their own utility bills and meet income requirements. Many subsidized housing residents qualify because they're responsible for electric, gas, or heating costs even if rent is reduced. Bring utility bills showing your loved one's name as the account holder."
         },
         {
           "question": "What happens if I bring the wrong documents to my appointment?",
           "answer": "Your application will likely be delayed until you provide the correct documentation. Each local provider has specific requirements that may differ from neighboring counties. Always call ahead to confirm exactly what documents your local agency needs."
         },
         {
-          "question": "Can my parent apply for both LIHEAP and weatherization assistance?",
+          "question": "Can my loved one apply for both LIHEAP and weatherization assistance?",
           "answer": "Yes, these are separate programs with different purposes. LIHEAP provides grants to pay current energy bills, while weatherization makes permanent home improvements to reduce future energy costs. Many local agencies administer both programs and can help you apply for each."
         }
       ],
@@ -1330,7 +1330,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home upgrades to lower your parent's energy bills and improve heating and cooling safety.",
+      "tagline": "Free home upgrades to lower your loved one's energy bills and improve heating and cooling safety.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1343,7 +1343,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent struggles with high heating or cooling bills, weatherization assistance can provide free home upgrades to reduce energy costs and improve safety. The program covers insulation, air sealing, heating system repairs, and other energy efficiency improvements based on a professional energy audit. No upfront costs, no payback required.\n\nYour parent may qualify if their household income falls below the greater of 200% of the federal poverty level, 60% of state median income, or 80% of area median income. Because income limits vary by household size and location, contact your county's weatherization agency for exact dollar amounts. Homeowners and renters both qualify, though renters need landlord approval before work begins.\n\nPriority goes to households with seniors, young children, or people with disabilities, though these aren't strict requirements. Because funding is limited and demand is high, expect a waitlist once your parent is approved.",
+      "intro": "If your loved one struggles with high heating or cooling bills, weatherization assistance can provide free home upgrades to reduce energy costs and improve safety. The program covers insulation, air sealing, heating system repairs, and other energy efficiency improvements based on a professional energy audit. No upfront costs, no payback required.\n\nYour loved one may qualify if their household income falls below the greater of 200% of the federal poverty level, 60% of state median income, or 80% of area median income. Because income limits vary by household size and location, contact your county's weatherization agency for exact dollar amounts. Homeowners and renters both qualify, though renters need landlord approval before work begins.\n\nPriority goes to households with seniors, young children, or people with disabilities, though these aren't strict requirements. Because funding is limited and demand is high, expect a waitlist once your loved one is approved.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1367,7 +1367,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county's weatherization agency by phone — there's no statewide application form.",
+        "summary": "Contact your county's weatherization agency by phone, there's no statewide application form.",
         "steps": [
           {
             "step": 1,
@@ -1377,7 +1377,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Call to check eligibility",
-            "description": "Call your county agency directly. They'll verify your parent's income against the three thresholds (200% FPL, 60% state median, 80% area median) and determine qualification."
+            "description": "Call your county agency directly. They'll verify your loved one's income against the three thresholds (200% FPL, 60% state median, 80% area median) and determine qualification."
           },
           {
             "step": 3,
@@ -1387,7 +1387,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Schedule energy audit",
-            "description": "If approved and funding is available, a certified professional will conduct a comprehensive energy audit of your parent's home to determine which improvements will be most cost-effective."
+            "description": "If approved and funding is available, a certified professional will conduct a comprehensive energy audit of your loved one's home to determine which improvements will be most cost-effective."
           },
           {
             "step": 5,
@@ -1395,9 +1395,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Approved improvements (insulation, air sealing, heating system repairs, etc.) will be completed at no cost. Timeline depends on contractor availability and scope of work."
           }
         ],
-        "processingTime": "Not specified — varies by county agency and funding availability",
-        "waitlist": "Likely waitlist due to funding limits — contact local agency for current wait times",
-        "tip": "If your parent is a renter, get landlord approval in writing before applying to avoid delays.",
+        "processingTime": "Not specified, varies by county agency and funding availability",
+        "waitlist": "Likely waitlist due to funding limits, contact local agency for current wait times",
+        "tip": "If your loved one is a renter, get landlord approval in writing before applying to avoid delays.",
         "urls": [
           {
             "label": "Find Your County Agency",
@@ -1424,13 +1424,13 @@ export const drafts: PipelineStateDrafts = {
           "label": "Example: OIC of Washington (Adams County)",
           "phone": "(509) 452-7145",
           "description": "Local weatherization provider for Adams County",
-          "hours": "Contact for hours — each county agency has different schedules"
+          "hours": "Contact for hours, each county agency has different schedules"
         }
       ],
       "applicationNotes": [
-        "Each of Washington's 39 counties has a different local agency — you must contact your specific county provider, not a state office",
+        "Each of Washington's 39 counties has a different local agency, you must contact your specific county provider, not a state office",
         "Renters need written landlord approval before services can begin, which can significantly delay the process if landlords are unresponsive",
-        "Income eligibility uses the highest of three different thresholds (200% FPL, 60% state median, 80% area median) — you may qualify under one even if not the others",
+        "Income eligibility uses the highest of three different thresholds (200% FPL, 60% state median, 80% area median), you may qualify under one even if not the others",
         "Priority is given to households with elderly members, but this doesn't guarantee faster service due to funding constraints"
       ],
       "relatedPrograms": [
@@ -1441,27 +1441,27 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's landlord won't give written permission?",
-          "answer": "Without landlord approval, weatherization services cannot proceed for renters. Try explaining that the improvements increase property value and energy efficiency at no cost to the landlord. If the landlord still refuses, your parent may need to wait until they move to an owner-occupied home or find a more cooperative landlord."
+          "question": "What if my loved one's landlord won't give written permission?",
+          "answer": "Without landlord approval, weatherization services cannot proceed for renters. Try explaining that the improvements increase property value and energy efficiency at no cost to the landlord. If the landlord still refuses, your loved one may need to wait until they move to an owner-occupied home or find a more cooperative landlord."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "Yes, family members can contact the county agency on behalf of elderly parents. You'll need to provide your parent's income documentation and have them available to sign consent forms. The agency may require your parent to participate in parts of the application process."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "Yes, family members can contact the county agency on behalf of elderly loved ones. You'll need to provide your loved one's income documentation and have them available to sign consent forms. The agency may require your loved one to participate in parts of the application process."
         },
         {
           "question": "How long is the waitlist really?",
           "answer": "Waitlist times vary significantly by county and available funding. Some areas may have several month waits, while others could be longer. Contact your county agency directly for current wait times, as they change throughout the year based on federal funding allocations."
         },
         {
-          "question": "What happens if my parent's income is close to the limit?",
-          "answer": "Income limits use the highest of three calculations (200% federal poverty, 60% state median, or 80% area median income), so your parent may qualify under one threshold even if they exceed another. The local agency will check all three calculations to determine eligibility."
+          "question": "What happens if my loved one's income is close to the limit?",
+          "answer": "Income limits use the highest of three calculations (200% federal poverty, 60% state median, or 80% area median income), so your loved one may qualify under one threshold even if they exceed another. The local agency will check all three calculations to determine eligibility."
         },
         {
-          "question": "Can my parent get weatherization services and LIHEAP help at the same time?",
-          "answer": "Yes, weatherization and LIHEAP (energy bill assistance) are separate programs that can be used together. In fact, many county agencies coordinate both programs and may suggest applying for both if your parent qualifies."
+          "question": "Can my loved one get weatherization services and LIHEAP help at the same time?",
+          "answer": "Yes, weatherization and LIHEAP (energy bill assistance) are separate programs that can be used together. In fact, many county agencies coordinate both programs and may suggest applying for both if your loved one qualifies."
         },
         {
-          "question": "What if my parent's home needs major repairs beyond weatherization?",
+          "question": "What if my loved one's home needs major repairs beyond weatherization?",
           "answer": "Weatherization focuses on cost-effective energy efficiency improvements. If the energy audit reveals major structural problems that prevent weatherization (like a failing roof), those repairs typically aren't covered. However, the agency may refer you to other housing assistance programs."
         },
         {
@@ -1469,8 +1469,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, mobile homes and manufactured homes typically qualify for weatherization services. However, the specific improvements available may differ from site-built homes. The energy audit will determine which weatherization measures are appropriate and cost-effective for the home type."
         },
         {
-          "question": "What happens after the energy audit if my parent doesn't qualify for services?",
-          "answer": "If the audit shows that cost-effective weatherization measures aren't available for your parent's home, they won't receive services even if income-eligible. However, the audit report may include recommendations for energy-saving improvements your parent could pursue independently or through other programs."
+          "question": "What happens after the energy audit if my loved one doesn't qualify for services?",
+          "answer": "If the audit shows that cost-effective weatherization measures aren't available for your loved one's home, they won't receive services even if income-eligible. However, the audit report may include recommendations for energy-saving improvements your loved one could pursue independently or through other programs."
         }
       ],
       "layoutIntent": {
@@ -1491,7 +1491,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ship-medicare-counseling",
       "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
       "shortName": "SHIP Medicare Counseling",
-      "tagline": "Free, personalized help navigating Medicare options and reducing healthcare costs for your parent.",
+      "tagline": "Free, personalized help navigating Medicare options and reducing healthcare costs for your loved one.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1504,7 +1504,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is approaching 65 or already on Medicare, they can get free, one-on-one counseling to understand their options and potentially save hundreds of dollars on premiums and prescriptions. Washington's SHIBA (Statewide Health Insurance Benefits Advisors) provides unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and low-income assistance programs like the Medicare Savings Program and Extra Help.\n\nBecause SHIBA counselors don't sell insurance, your parent gets objective advice tailored to their specific health needs and budget. Counselors can also help apply for programs that could eliminate Medicare premiums entirely or reduce prescription costs to $4-$10 per month for qualifying individuals.\n\nThe service is available to anyone with Medicare questions — there are no income limits, though counselors prioritize people with limited incomes. Family members and caregivers can also get help understanding options for their loved ones.",
+      "intro": "If your loved one is approaching 65 or already on Medicare, they can get free, one-on-one counseling to understand their options and potentially save hundreds of dollars on premiums and prescriptions. Washington's SHIBA (Statewide Health Insurance Benefits Advisors) provides unbiased guidance on Medicare Parts A, B, C, and D, Medigap policies, and low-income assistance programs like the Medicare Savings Program and Extra Help.\n\nBecause SHIBA counselors don't sell insurance, your loved one gets objective advice tailored to their specific health needs and budget. Counselors can also help apply for programs that could eliminate Medicare premiums entirely or reduce prescription costs to $4-$10 per month for qualifying individuals.\n\nThe service is available to anyone with Medicare questions, there are no income limits, though counselors prioritize people with limited incomes. Family members and caregivers can also get help understanding options for their loved ones.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1526,7 +1526,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-562-6900 for immediate counseling — no application required.",
+        "summary": "Call 1-800-562-6900 for immediate counseling, no application required.",
         "steps": [
           {
             "step": 1,
@@ -1546,7 +1546,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate counseling available upon contact",
         "waitlist": null,
-        "tip": "Contact SHIBA 3 months before your parent becomes Medicare-eligible for the most comprehensive help with initial enrollment decisions.",
+        "tip": "Contact SHIBA 3 months before your loved one becomes Medicare-eligible for the most comprehensive help with initial enrollment decisions.",
         "urls": [
           {
             "label": "Washington SHIBA website",
@@ -1579,20 +1579,20 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call SHIBA on behalf of my parent who has dementia?",
-          "answer": "Yes, family caregivers can get help understanding Medicare options for their loved ones. However, if you need to make actual enrollment changes or access your parent's account information, you may need to establish legal authority through Medicare's authorized representative process."
+          "question": "Can I call SHIBA on behalf of my loved one who has dementia?",
+          "answer": "Yes, family caregivers can get help understanding Medicare options for their loved ones. However, if you need to make actual enrollment changes or access your loved one's account information, you may need to establish legal authority through Medicare's authorized representative process."
         },
         {
           "question": "Will SHIBA counselors try to sell me insurance?",
-          "answer": "No. SHIBA counselors are trained volunteers who provide completely unbiased information and cannot sell any insurance products. Their only goal is helping you understand options and find the best coverage for your parent's specific needs and budget."
+          "answer": "No. SHIBA counselors are trained volunteers who provide completely unbiased information and cannot sell any insurance products. Their only goal is helping you understand options and find the best coverage for your loved one's specific needs and budget."
         },
         {
-          "question": "Can SHIBA help if my parent is already enrolled in Medicare but struggling with costs?",
-          "answer": "Absolutely. SHIBA counselors can review your parent's current coverage and help apply for programs like the Medicare Savings Program (which can eliminate Part B premiums) or Extra Help (which reduces prescription costs). They can also help during Open Enrollment to find better coverage options."
+          "question": "Can SHIBA help if my loved one is already enrolled in Medicare but struggling with costs?",
+          "answer": "Absolutely. SHIBA counselors can review your loved one's current coverage and help apply for programs like the Medicare Savings Program (which can eliminate Part B premiums) or Extra Help (which reduces prescription costs). They can also help during Open Enrollment to find better coverage options."
         },
         {
           "question": "How long does a SHIBA counseling session take?",
-          "answer": "Sessions typically last 30-60 minutes depending on your parent's situation and questions. Complex cases involving multiple insurance options or appeals may require follow-up sessions, all provided free of charge."
+          "answer": "Sessions typically last 30-60 minutes depending on your loved one's situation and questions. Complex cases involving multiple insurance options or appeals may require follow-up sessions, all provided free of charge."
         }
       ],
       "layoutIntent": {
@@ -1613,7 +1613,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
-      "tagline": "If your parent can't safely shop or cook, they may qualify for nutritious meals delivered to their door at little to no cost.",
+      "tagline": "If your loved one can't safely shop or cook, they may qualify for nutritious meals delivered to their door at little to no cost.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1638,7 +1638,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your parent lives—some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Clallam, Grays Harbor, Jefferson, and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider—from income limits to clinical assessments of homebound status—the key first step is identifying which program serves your parent's area.",
+      "intro": "If your loved one is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your loved one lives, some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Clallam, Grays Harbor, Jefferson, and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider, from income limits to clinical assessments of homebound status, the key first step is identifying which program serves your loved one's area.",
       "savingsRange": "$950 – $3,300/year in 2026",
       "savingsSource": "Based on $6.50 suggested donation per meal (Sound Generations) versus typical meal delivery costs",
       "savingsVerified": false,
@@ -1662,12 +1662,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your local provider directly—application methods vary from online forms to phone intake, typically processed within 1-2 weeks.",
+        "summary": "Contact your local provider directly, application methods vary from online forms to phone intake, typically processed within 1-2 weeks.",
         "steps": [
           {
             "step": 1,
             "title": "Identify your local provider",
-            "description": "King County residents contact Sound Generations. Clallam, Grays Harbor, Jefferson, and Pacific counties call Coastal Community Action Programs at 360-533-5100. For Medicaid coverage statewide, contact your parent's health plan or case manager about Mom's Meals."
+            "description": "King County residents contact Sound Generations. Clallam, Grays Harbor, Jefferson, and Pacific counties call Coastal Community Action Programs at 360-533-5100. For Medicaid coverage statewide, contact your loved one's health plan or case manager about Mom's Meals."
           },
           {
             "step": 2,
@@ -1685,9 +1685,9 @@ export const drafts: PipelineStateDrafts = {
             "description": "Some providers may conduct phone or in-person assessment to determine homebound status and meal needs. Medicaid version requires clinical assessment of inability to prepare meals."
           }
         ],
-        "processingTime": "Processing time not specified by providers—varies by region and current capacity",
-        "waitlist": "Waitlists not mentioned but likely vary by provider and region—ask about current availability when applying",
-        "tip": "If your parent has Medicaid, start with their health plan or case manager—they may cover meals completely rather than requiring donations.",
+        "processingTime": "Processing time not specified by providers, varies by region and current capacity",
+        "waitlist": "Waitlists not mentioned but likely vary by provider and region, ask about current availability when applying",
+        "tip": "If your loved one has Medicaid, start with their health plan or case manager, they may cover meals completely rather than requiring donations.",
         "urls": [
           {
             "label": "Sound Generations Meals on Wheels Application",
@@ -1726,9 +1726,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Not available statewide—each county has different providers with different eligibility rules and costs",
+        "Not available statewide, each county has different providers with different eligibility rules and costs",
         "Medicaid version through Mom's Meals requires case manager referral and cannot be applied for directly",
-        "Even 'free' programs often request suggested donations—ask about financial assistance if cost is a concern",
+        "Even 'free' programs often request suggested donations, ask about financial assistance if cost is a concern",
         "Some providers exclude applicants if other meal programs like COPES are already available"
       ],
       "relatedPrograms": [
@@ -1740,11 +1740,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent lives in a county not mentioned here?",
+          "question": "What if my loved one lives in a county not mentioned here?",
           "answer": "Call Washington 2-1-1 to find your local Area Agency on Aging or meal provider. Many counties have programs not listed in state databases, and 2-1-1 maintains the most current directory of local services."
         },
         {
-          "question": "Can my parent get meals if they're not completely homebound but just have trouble cooking?",
+          "question": "Can my loved one get meals if they're not completely homebound but just have trouble cooking?",
           "answer": "Yes, requirements vary by provider. Some accept applicants who have difficulty shopping or cooking safely due to physical or mental limitations, not just those who are completely homebound. Each provider assesses functional limitations differently."
         },
         {
@@ -1752,24 +1752,24 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Medicaid version through Mom's Meals requires existing Medicaid eligibility and case manager referral, but meals are typically free. Older Americans Act programs (like Sound Generations) serve anyone 60+ meeting their criteria but often request suggested donations around $6.50 per meal."
         },
         {
-          "question": "What if my parent already gets COPES or other state services?",
-          "answer": "For the Medicaid version, meals cannot be provided if other programs like COPES already provide meal services. However, Older Americans Act programs may still accept applicants receiving other services—eligibility rules differ between providers."
+          "question": "What if my loved one already gets COPES or other state services?",
+          "answer": "For the Medicaid version, meals cannot be provided if other programs like COPES already provide meal services. However, Older Americans Act programs may still accept applicants receiving other services, eligibility rules differ between providers."
         },
         {
-          "question": "Can I apply on behalf of my parent?",
-          "answer": "Most providers allow family members to initiate the application process, especially for parents with cognitive impairments. However, some assessment of the parent's needs and living situation will be required. Contact the provider to discuss your parent's specific situation."
+          "question": "Can I apply on behalf of my loved one?",
+          "answer": "Most providers allow family members to initiate the application process, especially for parents with cognitive impairments. However, some assessment of the loved one's needs and living situation will be required. Contact the provider to discuss your loved one's specific situation."
         },
         {
-          "question": "What happens if my parent's income is too high for the income-tested programs?",
+          "question": "What happens if my loved one's income is too high for the income-tested programs?",
           "answer": "Many providers use sliding scale donations rather than strict income cutoffs. Sound Generations, for example, uses suggested donations, not mandatory payments. Private-pay options may also be available through the same providers at full cost."
         },
         {
           "question": "How often are meals delivered and what types of food?",
-          "answer": "Delivery frequency varies by provider—Sound Generations delivers weekly or twice monthly. Meals are typically frozen, shelf-stable, or fresh depending on the program, and are designed to meet nutritional requirements for older adults. Ask your local provider about their specific meal schedule and menu options."
+          "answer": "Delivery frequency varies by provider, Sound Generations delivers weekly or twice monthly. Meals are typically frozen, shelf-stable, or fresh depending on the program, and are designed to meet nutritional requirements for older adults. Ask your local provider about their specific meal schedule and menu options."
         },
         {
-          "question": "What if there's a waiting list in my parent's area?",
-          "answer": "Waitlists aren't officially mentioned but may exist due to funding limitations. Ask about priority criteria—some programs prioritize by age, income level, or severity of need. Also ask if your parent qualifies for other meal programs in the meantime, such as congregate meal sites or food banks."
+          "question": "What if there's a waiting list in my loved one's area?",
+          "answer": "Waitlists aren't officially mentioned but may exist due to funding limitations. Ask about priority criteria, some programs prioritize by age, income level, or severity of need. Also ask if your loved one qualifies for other meal programs in the meantime, such as congregate meal sites or food banks."
         }
       ],
       "layoutIntent": {
@@ -1803,7 +1803,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an adult child, parent, or spouse with disabilities or chronic conditions, Washington's Family Caregiver Support Program provides free services to help you manage the stress and demands of caregiving. The program offers caregiver support groups, counseling, hands-on training, respite care, and help finding local resources — all at no cost to you or the person you're caring for.\n\nUnlike paid caregiver programs that have strict income limits, this program focuses on supporting unpaid family caregivers regardless of income. Services vary by community and are delivered through your local Area Agency on Aging, which will conduct a screening and assessment to match you with the most helpful resources in your area.",
+      "intro": "If you're caring for an adult child, parent, or spouse with disabilities or chronic conditions, Washington's Family Caregiver Support Program provides free services to help you manage the stress and demands of caregiving. The program offers caregiver support groups, counseling, hands-on training, respite care, and help finding local resources, all at no cost to you or the person you're caring for.\n\nUnlike paid caregiver programs that have strict income limits, this program focuses on supporting unpaid family caregivers regardless of income. Services vary by community and are delivered through your local Area Agency on Aging, which will conduct a screening and assessment to match you with the most helpful resources in your area.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1879,9 +1879,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This program supports unpaid caregivers only — it does not provide paid caregiving services or financial assistance",
+        "This program supports unpaid caregivers only, it does not provide paid caregiving services or financial assistance",
         "Don't confuse this with Medicaid Personal Care or VA caregiver programs, which have income limits and may pay family caregivers",
-        "Services available in your area may be limited — some communities have more resources than others",
+        "Services available in your area may be limited, some communities have more resources than others",
         "The screening and assessment process helps ensure you get connected with services that match your specific situation"
       ],
       "relatedPrograms": [
@@ -1897,7 +1897,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. The program serves caregivers of adults 18+ with any type of disability or chronic condition that creates caregiving stress, including developmental disabilities, mental health conditions, or physical disabilities."
         },
         {
-          "question": "What if my family makes too much money for other programs — can I still get help?",
+          "question": "What if my family makes too much money for other programs, can I still get help?",
           "answer": "Yes. This program has no income limits because it focuses on supporting unpaid caregivers regardless of financial situation. However, the services themselves are limited to support and training, not financial assistance."
         },
         {
@@ -1935,7 +1935,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
-      "tagline": "If your parent is 55+ and unemployed with low income, they can earn minimum wage while training for permanent employment through community service work.",
+      "tagline": "If your loved one is 55+ and unemployed with low income, they can earn minimum wage while training for permanent employment through community service work.",
       "programType": "employment",
       "complexity": "deep",
       "geographicScope": {
@@ -1952,7 +1952,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 55 or older and struggling to find work, SCSEP provides paid training through community service positions at schools, hospitals, senior centers, and other nonprofits. Your parent earns minimum wage for an average of 20 hours per week while developing job skills and receiving placement assistance for permanent employment.\n\nThis program specifically helps low-income seniors (household income at 125% of federal poverty level or below) who are unemployed. Priority goes to veterans, people over 65, those with disabilities, and rural residents. Because SCSEP is designed as a bridge to permanent work, participants receive both income and intensive job training rather than long-term employment support.\n\nThe program operates statewide through local providers like AARP Foundation and WorkSource, but availability depends on federal funding levels in each region. Wait times and openings vary significantly by location and your parent's priority status.",
+      "intro": "If your loved one is 55 or older and struggling to find work, SCSEP provides paid training through community service positions at schools, hospitals, senior centers, and other nonprofits. Your loved one earns minimum wage for an average of 20 hours per week while developing job skills and receiving placement assistance for permanent employment.\n\nThis program specifically helps low-income seniors (household income at 125% of federal poverty level or below) who are unemployed. Priority goes to veterans, people over 65, those with disabilities, and rural residents. Because SCSEP is designed as a bridge to permanent work, participants receive both income and intensive job training rather than long-term employment support.\n\nThe program operates statewide through local providers like AARP Foundation and WorkSource, but availability depends on federal funding levels in each region. Wait times and openings vary significantly by location and your loved one's priority status.",
       "savingsRange": "",
       "savingsSource": "Training wages at minimum wage",
       "savingsVerified": false,
@@ -1980,7 +1980,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact your regional SCSEP provider by phone or in person — processing time varies by local funding availability.",
+        "summary": "Contact your regional SCSEP provider by phone or in person, processing time varies by local funding availability.",
         "steps": [
           {
             "step": 1,
@@ -1990,22 +1990,22 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete intake assessment",
-            "description": "Your parent will need to verify unemployment status, income level, and any priority factors like veteran status or disability. Bring documentation of all household income and proof of age."
+            "description": "Your loved one will need to verify unemployment status, income level, and any priority factors like veteran status or disability. Bring documentation of all household income and proof of age."
           },
           {
             "step": 3,
             "title": "Wait for placement matching",
-            "description": "If eligible and slots are available, staff will match your parent with appropriate community service positions based on skills and interests. Priority applicants get preference for available openings."
+            "description": "If eligible and slots are available, staff will match your loved one with appropriate community service positions based on skills and interests. Priority applicants get preference for available openings."
           },
           {
             "step": 4,
             "title": "Begin training placement",
-            "description": "Your parent starts part-time community service work (average 20 hours/week) while receiving job skills training and employment assistance toward permanent placement."
+            "description": "Your loved one starts part-time community service work (average 20 hours/week) while receiving job skills training and employment assistance toward permanent placement."
           }
         ],
         "processingTime": "Varies by local provider and funding availability",
         "waitlist": "May vary by local provider and funding availability",
-        "tip": "Priority applicants (veterans, seniors 65+, disabled, rural residents) have better chances of quick placement — gather documentation for any priority factors your parent qualifies for.",
+        "tip": "Priority applicants (veterans, seniors 65+, disabled, rural residents) have better chances of quick placement, gather documentation for any priority factors your loved one qualifies for.",
         "urls": [
           {
             "label": "DOL SCSEP National Directory",
@@ -2051,8 +2051,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Priority applicants (veterans, seniors 65+, disabled, rural residents, homeless) may have shorter wait times when positions are available",
-        "Program availability depends entirely on federal funding to local grantees — some regions may have no current openings",
-        "This is temporary training employment, not permanent work — the goal is placement in unsubsidized jobs",
+        "Program availability depends entirely on federal funding to local grantees, some regions may have no current openings",
+        "This is temporary training employment, not permanent work, the goal is placement in unsubsidized jobs",
         "Different regions have different providers (AARP Foundation, WorkSource, others) with varying application processes and wait times"
       ],
       "relatedPrograms": [
@@ -2064,36 +2064,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they're receiving Social Security retirement benefits?",
+          "question": "Can my loved one apply if they're receiving Social Security retirement benefits?",
           "answer": "Yes, if their total household income (including Social Security) is at or below 125% of federal poverty level and they're currently unemployed. Social Security income counts toward the income limit but doesn't disqualify them from participating."
         },
         {
-          "question": "What happens if there are no openings when my parent applies?",
+          "question": "What happens if there are no openings when my loved one applies?",
           "answer": "They may be placed on a waiting list, but wait times aren't guaranteed since funding varies by region and year. Priority applicants (veterans, seniors 65+, disabled, rural residents) get preference when positions do open up. Contact your local provider quarterly to check status."
         },
         {
-          "question": "How long can my parent stay in the program?",
+          "question": "How long can my loved one stay in the program?",
           "answer": "SCSEP is designed as temporary training to help participants find permanent employment. The exact duration varies, but the goal is to transition participants to unsubsidized jobs through the skills training and job placement assistance provided."
         },
         {
-          "question": "What if my parent lives in a county not served by AARP Foundation or WorkSource?",
-          "answer": "Each region has different SCSEP grantees. Visit dol.gov/agencies/eta/seniors to find the provider for your parent's county, or call 2-1-1 for local referrals. Some counties may not have current SCSEP services depending on federal funding allocations."
+          "question": "What if my loved one lives in a county not served by AARP Foundation or WorkSource?",
+          "answer": "Each region has different SCSEP grantees. Visit dol.gov/agencies/eta/seniors to find the provider for your loved one's county, or call 2-1-1 for local referrals. Some counties may not have current SCSEP services depending on federal funding allocations."
         },
         {
-          "question": "Can my parent choose what type of community service work they do?",
+          "question": "Can my loved one choose what type of community service work they do?",
           "answer": "Staff will try to match participants with positions that fit their skills and interests, but placement depends on available openings at local nonprofits and public agencies. Common placements include schools, hospitals, day-care centers, and senior centers."
         },
         {
-          "question": "What if my parent gets a job offer during SCSEP training?",
+          "question": "What if my loved one gets a job offer during SCSEP training?",
           "answer": "That's the goal of the program. SCSEP provides job placement assistance to help participants transition to permanent, unsubsidized employment. Staff will help evaluate job offers and support the transition to permanent work."
         },
         {
           "question": "Can I apply for SCSEP and other employment programs at the same time?",
-          "answer": "Yes, your parent can apply for multiple employment assistance programs simultaneously. SCSEP often coordinates with American Job Centers and WorkSource offices that also provide WIOA and other employment services."
+          "answer": "Yes, your loved one can apply for multiple employment assistance programs simultaneously. SCSEP often coordinates with American Job Centers and WorkSource offices that also provide WIOA and other employment services."
         },
         {
           "question": "What exactly qualifies as 'unemployed' for this program?",
-          "answer": "Your parent must not be currently employed in any capacity. This includes being laid off, retired and seeking work, or never employed. People who are currently working part-time or full-time jobs don't qualify, even if their income is low."
+          "answer": "Your loved one must not be currently employed in any capacity. This includes being laid off, retired and seeking work, or never employed. People who are currently working part-time or full-time jobs don't qualify, even if their income is low."
         }
       ],
       "layoutIntent": {
@@ -2143,7 +2143,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and dealing with a housing dispute, benefits denial, healthcare coverage problem, or needs help with powers of attorney, they can get free legal help regardless of income. Because Washington's Legal Aid for Seniors serves anyone 60+ without income screening in most counties, your parent won't face financial barriers to getting attorney consultation and representation.\n\nThe program covers civil legal problems affecting basic needs — income maintenance, healthcare, housing protection, consumer issues, and advance directives like powers of attorney and healthcare directives. Because it's delivered statewide through the Northwest Justice Project and regional partners, you can access help whether your parent lives in Seattle, rural counties, or anywhere in between.\n\nMost seniors get immediate phone advice through the CLEAR*Sr hotline at 1-888-387-7111, though high call volume may require patience. One attorney consultation is available in some programs, with ongoing representation possible for qualifying cases.",
+      "intro": "If your loved one is 60+ and dealing with a housing dispute, benefits denial, healthcare coverage problem, or needs help with powers of attorney, they can get free legal help regardless of income. Because Washington's Legal Aid for Seniors serves anyone 60+ without income screening in most counties, your loved one won't face financial barriers to getting attorney consultation and representation.\n\nThe program covers civil legal problems affecting basic needs, income maintenance, healthcare, housing protection, consumer issues, and advance directives like powers of attorney and healthcare directives. Because it's delivered statewide through the Northwest Justice Project and regional partners, you can access help whether your loved one lives in Seattle, rural counties, or anywhere in between.\n\nMost seniors get immediate phone advice through the CLEAR*Sr hotline at 1-888-387-7111, though high call volume may require patience. One attorney consultation is available in some programs, with ongoing representation possible for qualifying cases.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2187,7 +2187,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Immediate advice if possible during call; in-depth interview to assess needs",
         "waitlist": null,
-        "tip": "High call volume may delay connection — be patient and try calling at different times if you can't get through immediately.",
+        "tip": "High call volume may delay connection, be patient and try calling at different times if you can't get through immediately.",
         "urls": [
           {
             "label": "Northwest Justice Project",
@@ -2219,15 +2219,15 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I call on behalf of my elderly parent?",
-          "answer": "Yes, you can call CLEAR*Sr at 1-888-387-7111 to get advice about your parent's legal situation. The attorneys can guide you on what documents to gather and whether your parent needs direct representation. Some situations may require your parent's direct consent or participation."
+          "question": "Can I call on behalf of my elderly loved one?",
+          "answer": "Yes, you can call CLEAR*Sr at 1-888-387-7111 to get advice about your loved one's legal situation. The attorneys can guide you on what documents to gather and whether your loved one needs direct representation. Some situations may require your loved one's direct consent or participation."
         },
         {
-          "question": "What if my parent's legal problem is complicated and needs ongoing help?",
+          "question": "What if my loved one's legal problem is complicated and needs ongoing help?",
           "answer": "CLEAR*Sr provides initial consultation and advice, but can also refer to local legal aid partners for ongoing representation if the case qualifies. Partners like Rural Resources, Columbia Legal Services, and county-specific programs may take complex cases requiring extended attorney involvement."
         },
         {
-          "question": "Does my parent have to be low-income to qualify?",
+          "question": "Does my loved one have to be low-income to qualify?",
           "answer": "No, seniors 60+ are eligible regardless of income in most Washington counties through CLEAR*Sr. However, some regional partners may still apply income screening, and asset limits may apply for certain services. Call 1-888-387-7111 to confirm eligibility for your specific situation."
         }
       ],
@@ -2249,7 +2249,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "long-term-care-ombudsman",
       "name": "Washington State Long-Term Care Ombudsman Program (LTCOP)",
       "shortName": "LTC Ombudsman",
-      "tagline": "Free advocate for your parent in nursing homes, assisted living, or adult family homes when care issues arise.",
+      "tagline": "Free advocate for your loved one in nursing homes, assisted living, or adult family homes when care issues arise.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2266,7 +2266,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent lives in a Washington nursing home, assisted living facility, or adult family home, they automatically have access to a free advocate when problems arise. The Long-Term Care Ombudsman Program investigates complaints about quality of care, abuse, financial exploitation, improper transfers, and violations of resident rights.\n\nBecause ombudsmen are required by law to act only with your parent's consent, they provide confidential advocacy that prioritizes the resident's wishes. You, your parent, or facility staff can contact the ombudsman — no application or eligibility requirements beyond living in a licensed long-term care facility in Washington.\n\nOmbudsmen regularly visit facilities statewide and are required to post their contact information in every nursing home, assisted living facility, and adult family home. Response times vary by region based on staffing and volunteer availability.",
+      "intro": "If your loved one lives in a Washington nursing home, assisted living facility, or adult family home, they automatically have access to a free advocate when problems arise. The Long-Term Care Ombudsman Program investigates complaints about quality of care, abuse, financial exploitation, improper transfers, and violations of resident rights.\n\nBecause ombudsmen are required by law to act only with your loved one's consent, they provide confidential advocacy that prioritizes the resident's wishes. You, your loved one, or facility staff can contact the ombudsman, no application or eligibility requirements beyond living in a licensed long-term care facility in Washington.\n\nOmbudsmen regularly visit facilities statewide and are required to post their contact information in every nursing home, assisted living facility, and adult family home. Response times vary by region based on staffing and volunteer availability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2287,7 +2287,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional ombudsman office directly — no application needed, service begins immediately.",
+        "summary": "Call your regional ombudsman office directly, no application needed, service begins immediately.",
         "steps": [
           {
             "step": 1,
@@ -2302,12 +2302,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Ombudsman investigates",
-            "description": "The advocate will visit the facility, review the situation, and work toward resolution with facility staff and your parent's consent."
+            "description": "The advocate will visit the facility, review the situation, and work toward resolution with facility staff and your loved one's consent."
           }
         ],
-        "processingTime": "Investigation begins immediately — resolution timing varies by case complexity",
+        "processingTime": "Investigation begins immediately, resolution timing varies by case complexity",
         "waitlist": null,
-        "tip": "Check that your parent's facility has posted current ombudsman contact information in a visible location — facilities are legally required to display this.",
+        "tip": "Check that your loved one's facility has posted current ombudsman contact information in a visible location, facilities are legally required to display this.",
         "urls": [
           {
             "label": "Regional Contact Finder",
@@ -2339,11 +2339,11 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I contact the ombudsman if my parent doesn't want me to?",
-          "answer": "You can call to discuss your concerns, but ombudsmen must get your parent's consent before taking any action. Because the program is resident-directed, the advocate works for your parent, not the family. However, ombudsmen can provide general information about resident rights and facility requirements without violating confidentiality."
+          "question": "Can I contact the ombudsman if my loved one doesn't want me to?",
+          "answer": "You can call to discuss your concerns, but ombudsmen must get your loved one's consent before taking any action. Because the program is resident-directed, the advocate works for your loved one, not the family. However, ombudsmen can provide general information about resident rights and facility requirements without violating confidentiality."
         },
         {
-          "question": "What happens if the facility retaliates against my parent for filing a complaint?",
+          "question": "What happens if the facility retaliates against my loved one for filing a complaint?",
           "answer": "Retaliation against residents for filing complaints is illegal under federal and state law. The ombudsman will investigate any suspected retaliation and can work with regulatory agencies to address violations. Facilities cannot discharge, transfer, or otherwise punish residents for exercising their rights or working with advocates."
         },
         {
@@ -2369,7 +2369,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "state-parks-senior-limited-income-pass",
       "name": "Washington State Parks Senior Citizen Limited Income Pass",
       "shortName": "WA Parks Senior Pass",
-      "tagline": "If your parent is 62+ with limited income, they can get 50% off camping fees and free park access at all Washington State Parks.",
+      "tagline": "If your loved one is 62+ with limited income, they can get 50% off camping fees and free park access at all Washington State Parks.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2382,7 +2382,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 62 or older and lives on $40,000 or less per year, they qualify for significant discounts at Washington State Parks. This pass provides 50% off all camping and moorage fees, plus free day-use parking, boat launching, and trailer dump services.\n\nBecause Washington has 120+ state parks, this pass can save hundreds of dollars annually for active seniors who enjoy outdoor recreation. Your parent must be a Washington resident for at least three consecutive months to qualify. If they own property, they must also meet specific property tax exemption requirements.",
+      "intro": "If your loved one is 62 or older and lives on $40,000 or less per year, they qualify for significant discounts at Washington State Parks. This pass provides 50% off all camping and moorage fees, plus free day-use parking, boat launching, and trailer dump services.\n\nBecause Washington has 120+ state parks, this pass can save hundreds of dollars annually for active seniors who enjoy outdoor recreation. Your loved one must be a Washington resident for at least three consecutive months to qualify. If they own property, they must also meet specific property tax exemption requirements.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2426,7 +2426,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Remember this pass does NOT work at Department of Fish and Wildlife or Department of Natural Resources lands — only Washington State Parks.",
+        "tip": "Remember this pass does NOT work at Department of Fish and Wildlife or Department of Natural Resources lands, only Washington State Parks.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2452,16 +2452,16 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent use this pass at all state outdoor areas in Washington?",
-          "answer": "No. This pass only works at Washington State Parks — not at lands managed by the Department of Fish and Wildlife or Department of Natural Resources. It also does not replace the Discover Pass required for some other state lands."
+          "question": "Can my loved one use this pass at all state outdoor areas in Washington?",
+          "answer": "No. This pass only works at Washington State Parks, not at lands managed by the Department of Fish and Wildlife or Department of Natural Resources. It also does not replace the Discover Pass required for some other state lands."
         },
         {
           "question": "What's the difference between this pass and the Off-Season Senior Citizen Pass?",
           "answer": "The Limited Income Pass gives 50% off camping year-round. The Off-Season Senior Citizen Pass ($75, or $37.50 with Limited Income discount) provides free camping October 1–March 31 and weekdays in April. These are two separate passes with different benefits."
         },
         {
-          "question": "If my parent owns their home, do they automatically qualify?",
-          "answer": "Not necessarily. If your parent owns property, they must also meet the requirements for property tax exemption under Washington Revised Code 84.36.381. This is an additional eligibility requirement beyond age and income limits."
+          "question": "If my loved one owns their home, do they automatically qualify?",
+          "answer": "Not necessarily. If your loved one owns property, they must also meet the requirements for property tax exemption under Washington Revised Code 84.36.381. This is an additional eligibility requirement beyond age and income limits."
         }
       ],
       "layoutIntent": {
@@ -2482,14 +2482,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "lifetime-disabled-veteran-pass",
       "name": "Lifetime Disabled Veteran Pass",
       "shortName": "Veteran Park Pass",
-      "tagline": "If your veteran parent has a 30%+ VA disability rating, they can get free lifetime access to all Washington State Parks.",
+      "tagline": "If your veteran loved one has a 30%+ VA disability rating, they can get free lifetime access to all Washington State Parks.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent is a veteran with a 30% or higher VA service-connected disability rating and lives in Washington, they qualify for free lifetime access to all Washington State Parks. This means no more paying $10-30 per visit for day-use parking and entry fees — savings that add up quickly for active families.\n\nThe pass covers vehicle parking and individual entry to over 120 Washington State Parks year-round. Because many county parks also honor this pass, your parent may get free or reduced fees at local recreation sites too. The pass does not cover camping, boat launches, or special events — just the daily access fees that can cost $200-400 per year for regular park visitors.",
+      "intro": "If your loved one is a veteran with a 30% or higher VA service-connected disability rating and lives in Washington, they qualify for free lifetime access to all Washington State Parks. This means no more paying $10-30 per visit for day-use parking and entry fees, savings that add up quickly for active families.\n\nThe pass covers vehicle parking and individual entry to over 120 Washington State Parks year-round. Because many county parks also honor this pass, your loved one may get free or reduced fees at local recreation sites too. The pass does not cover camping, boat launches, or special events, just the daily access fees that can cost $200-400 per year for regular park visitors.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2513,7 +2513,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call (360) 902-8844 to request an application or email the completed form to passes@parks.wa.gov — passes arrive in 3-4 weeks.",
+        "summary": "Call (360) 902-8844 to request an application or email the completed form to passes@parks.wa.gov, passes arrive in 3-4 weeks.",
         "steps": [
           {
             "step": 1,
@@ -2538,7 +2538,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "3-4 weeks after receipt of documentation",
         "waitlist": null,
-        "tip": "Make sure your VA award letter is dated within the last 2 years — older letters may be rejected and delay processing.",
+        "tip": "Make sure your VA award letter is dated within the last 2 years, older letters may be rejected and delay processing.",
         "urls": [
           {
             "label": "Washington State Parks",
@@ -2575,20 +2575,20 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can I apply for this pass on behalf of my veteran parent?",
-          "answer": "Yes, family members can help complete and submit the application. The pass will be issued in your parent's name, and they'll need to present it (along with ID) when visiting parks. The VA documentation must be in your parent's name showing their disability rating."
+          "question": "Can I apply for this pass on behalf of my veteran loved one?",
+          "answer": "Yes, family members can help complete and submit the application. The pass will be issued in your loved one's name, and they'll need to present it (along with ID) when visiting parks. The VA documentation must be in your loved one's name showing their disability rating."
         },
         {
-          "question": "What if my parent's VA award letter is older than 2 years?",
+          "question": "What if my loved one's VA award letter is older than 2 years?",
           "answer": "You'll need to get an updated VA Benefit Summary Letter or contact the VA at (800) 827-1000 to request a current award letter. Older documentation may be rejected, causing delays in processing your application."
         },
         {
           "question": "Does this pass work at national parks or just Washington state parks?",
-          "answer": "This pass only works at Washington State Parks and select county parks that honor it. For national parks, your parent may qualify for the federal Access Pass if they have a permanent disability. These are separate programs with different applications."
+          "answer": "This pass only works at Washington State Parks and select county parks that honor it. For national parks, your loved one may qualify for the federal Access Pass if they have a permanent disability. These are separate programs with different applications."
         },
         {
-          "question": "Can my parent use this pass for camping reservations?",
-          "answer": "No, the pass only covers day-use fees like parking and entry. Camping fees, boat launch fees, moorage, and special event tickets are separate charges. Your parent will still pay regular rates for overnight stays and other amenities."
+          "question": "Can my loved one use this pass for camping reservations?",
+          "answer": "No, the pass only covers day-use fees like parking and entry. Camping fees, boat launch fees, moorage, and special event tickets are separate charges. Your loved one will still pay regular rates for overnight stays and other amenities."
         }
       ],
       "layoutIntent": {
@@ -2609,14 +2609,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "charity-care-program",
       "name": "Washington Charity Care Program",
       "shortName": "Charity Care",
-      "tagline": "Free or discounted hospital bills if your parent's income is below $94,000 for a family of four",
+      "tagline": "Free or discounted hospital bills if your loved one's income is below $94,000 for a family of four",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent faces high hospital bills in Washington, they may qualify for free or heavily discounted care regardless of insurance status. All licensed hospitals in Washington must provide charity care to patients earning up to 300% of the federal poverty level (about $47,000 for a single person in 2026), with partial discounts for those earning slightly more.\n\nBecause this program covers both insured and uninsured patients, your parent can qualify even if they have Medicare or private insurance but face high deductibles or co-pays. The program applies to inpatient hospital stays and emergency room visits at any licensed acute care or psychiatric hospital in the state. Each hospital sets its own specific policies within state guidelines, so income thresholds and asset limits may vary slightly between facilities.",
+      "intro": "If your loved one faces high hospital bills in Washington, they may qualify for free or heavily discounted care regardless of insurance status. All licensed hospitals in Washington must provide charity care to patients earning up to 300% of the federal poverty level (about $47,000 for a single person in 2026), with partial discounts for those earning slightly more.\n\nBecause this program covers both insured and uninsured patients, your loved one can qualify even if they have Medicare or private insurance but face high deductibles or co-pays. The program applies to inpatient hospital stays and emergency room visits at any licensed acute care or psychiatric hospital in the state. Each hospital sets its own specific policies within state guidelines, so income thresholds and asset limits may vary slightly between facilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2634,18 +2634,18 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Must have exhausted any third-party coverage (insurance, Medicaid, etc.) before qualifying",
           "Care must be medically necessary or emergent",
-          "No citizenship requirement—all patients regardless of status can qualify if otherwise eligible"
+          "No citizenship requirement, all patients regardless of status can qualify if otherwise eligible"
         ],
         "povertyLevelReference": "300% FPL for free care, 301-350% FPL for 75% discount"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply directly to the hospital where your parent received care—no deadline, can apply during hospitalization or after discharge.",
+        "summary": "Apply directly to the hospital where your loved one received care, no deadline, can apply during hospitalization or after discharge.",
         "steps": [
           {
             "step": 1,
             "title": "Contact the hospital's financial assistance department",
-            "description": "Call the billing or financial assistance department at the hospital where your parent received care. Ask specifically for 'Charity Care' or financial assistance programs. The phone number is on the hospital website or billing statement."
+            "description": "Call the billing or financial assistance department at the hospital where your loved one received care. Ask specifically for 'Charity Care' or financial assistance programs. The phone number is on the hospital website or billing statement."
           },
           {
             "step": 2,
@@ -2655,7 +2655,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Gather required documents",
-            "description": "Submit income documentation like tax returns, bank statements, and pay stubs. If your parent was denied Medicaid, include that determination letter."
+            "description": "Submit income documentation like tax returns, bank statements, and pay stubs. If your loved one was denied Medicaid, include that determination letter."
           },
           {
             "step": 4,
@@ -2665,7 +2665,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Apply as early as possible—during hospitalization or shortly after—to prevent debt collection activity.",
+        "tip": "Apply as early as possible, during hospitalization or shortly after, to prevent debt collection activity.",
         "urls": []
       },
       "documentsNeeded": [
@@ -2691,7 +2691,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each hospital has different income thresholds and asset limits within state guidelines—check your specific hospital's policy for exact numbers",
+        "Each hospital has different income thresholds and asset limits within state guidelines, check your specific hospital's policy for exact numbers",
         "Charity Care does not cover independent contractors like radiologists or anesthesiologists who may bill separately, even if they work in the hospital"
       ],
       "relatedPrograms": [
@@ -2702,19 +2702,19 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent apply if they already have Medicare or private insurance?",
-          "answer": "Yes. Because many patients with insurance still face high deductibles or co-pays, Washington Charity Care can help cover the remaining patient responsibility after insurance pays. The hospital will bill insurance first, then apply charity care to any remaining balance based on your parent's income level."
+          "question": "Can my loved one apply if they already have Medicare or private insurance?",
+          "answer": "Yes. Because many patients with insurance still face high deductibles or co-pays, Washington Charity Care can help cover the remaining patient responsibility after insurance pays. The hospital will bill insurance first, then apply charity care to any remaining balance based on your loved one's income level."
         },
         {
-          "question": "What if my parent received care at a hospital but also saw specialists who aren't hospital employees?",
+          "question": "What if my loved one received care at a hospital but also saw specialists who aren't hospital employees?",
           "answer": "Charity Care only covers services provided directly by the hospital. Independent contractors like radiologists, anesthesiologists, or consulting specialists may bill separately and are not covered by the hospital's charity care program. You'll need to contact these providers directly about their own financial assistance programs."
         },
         {
           "question": "Is there a deadline to apply for charity care?",
-          "answer": "No, there's no deadline. Your parent can apply while still hospitalized or even months after discharge. However, applying promptly helps prevent debt collection activity, which is suspended while the charity care application is being reviewed."
+          "answer": "No, there's no deadline. Your loved one can apply while still hospitalized or even months after discharge. However, applying promptly helps prevent debt collection activity, which is suspended while the charity care application is being reviewed."
         },
         {
-          "question": "Can I apply on behalf of my aging parent?",
+          "question": "Can I apply on behalf of my aging loved one?",
           "answer": "Yes, family members can apply for charity care on behalf of a patient. You'll need the patient's consent and may need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
         }
       ],
@@ -2749,7 +2749,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is unable to work due to a disability or health condition and facing housing instability, Washington's HEN program may provide emergency rental assistance, utility help, and essential needs items like hygiene supplies. This program serves adults who don't qualify for other cash assistance programs but need temporary support while navigating their health challenges.\n\nYour parent must first apply for and be denied regular cash assistance through DSHS, then receive a referral to local providers who deliver the actual services. Because funding is limited and managed county by county, some areas have waitlists or may not be accepting new clients for rental assistance.\n\nThe program is designed as temporary help — eligibility lasts up to 12 months from the referral date, even if your parent's health condition continues.",
+      "intro": "If your loved one is unable to work due to a disability or health condition and facing housing instability, Washington's HEN program may provide emergency rental assistance, utility help, and essential needs items like hygiene supplies. This program serves adults who don't qualify for other cash assistance programs but need temporary support while navigating their health challenges.\n\nYour loved one must first apply for and be denied regular cash assistance through DSHS, then receive a referral to local providers who deliver the actual services. Because funding is limited and managed county by county, some areas have waitlists or may not be accepting new clients for rental assistance.\n\nThe program is designed as temporary help, eligibility lasts up to 12 months from the referral date, even if your loved one's health condition continues.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2790,17 +2790,17 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at washingtonconnection.org or call DSHS at 877-501-2233 — you must first apply for cash assistance to get a HEN referral.",
+        "summary": "Apply online at washingtonconnection.org or call DSHS at 877-501-2233, you must first apply for cash assistance to get a HEN referral.",
         "steps": [
           {
             "step": 1,
             "title": "Apply for cash assistance through DSHS",
-            "description": "Go to washingtonconnection.org or call 877-501-2233. You must apply for regular cash assistance first — this is required even though you'll likely be denied."
+            "description": "Go to washingtonconnection.org or call 877-501-2233. You must apply for regular cash assistance first, this is required even though you'll likely be denied."
           },
           {
             "step": 2,
             "title": "Complete DSHS interview and health screening",
-            "description": "DSHS will schedule an interview to verify your parent's incapacity and financial situation. Bring all income, asset, and medical documentation."
+            "description": "DSHS will schedule an interview to verify your loved one's incapacity and financial situation. Bring all income, asset, and medical documentation."
           },
           {
             "step": 3,
@@ -2810,11 +2810,11 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Contact your county HEN provider",
-            "description": "Call the provider listed in your referral letter within the timeframe specified — referrals can expire if not acted on promptly. In King County, call 206-328-5755."
+            "description": "Call the provider listed in your referral letter within the timeframe specified, referrals can expire if not acted on promptly. In King County, call 206-328-5755."
           }
         ],
-        "processingTime": "Processing time varies — DSHS must first process the cash assistance application and interview before issuing HEN referral",
-        "waitlist": "Many counties use waitlists for rental assistance — some areas are not accepting new clients for rent help due to funding limits",
+        "processingTime": "Processing time varies, DSHS must first process the cash assistance application and interview before issuing HEN referral",
+        "waitlist": "Many counties use waitlists for rental assistance, some areas are not accepting new clients for rent help due to funding limits",
         "tip": "Start the application process as soon as possible since you must go through DSHS first, then get referred to county providers who may have their own waitlists.",
         "urls": [
           {
@@ -2857,9 +2857,9 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must apply for regular cash assistance first and be denied — this is not optional, even if you know you won't qualify",
+        "You must apply for regular cash assistance first and be denied, this is not optional, even if you know you won't qualify",
         "HEN referrals expire if not used promptly, so contact your county provider immediately after receiving the referral letter",
-        "Each county has different providers and funding levels — rental assistance availability varies significantly by location",
+        "Each county has different providers and funding levels, rental assistance availability varies significantly by location",
         "The 12-month eligibility limit applies from your referral date, regardless of whether you actually receive services during that time"
       ],
       "relatedPrograms": [
@@ -2871,36 +2871,36 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Why do I have to apply for cash assistance if my parent won't qualify?",
-          "answer": "Washington law requires you to apply for and be denied regular cash assistance before you can get a HEN referral. DSHS uses this process to verify your parent's financial situation and incapacity. Even if you're certain they won't qualify for cash assistance, you must complete this step."
+          "question": "Why do I have to apply for cash assistance if my loved one won't qualify?",
+          "answer": "Washington law requires you to apply for and be denied regular cash assistance before you can get a HEN referral. DSHS uses this process to verify your loved one's financial situation and incapacity. Even if you're certain they won't qualify for cash assistance, you must complete this step."
         },
         {
-          "question": "What if my parent is already receiving ABD cash assistance?",
-          "answer": "Recent changes allow ABD recipients to also be eligible for HEN services. Your parent can apply for HEN while receiving ABD benefits, but must report any changes in their situation to both programs."
+          "question": "What if my loved one is already receiving ABD cash assistance?",
+          "answer": "Recent changes allow ABD recipients to also be eligible for HEN services. Your loved one can apply for HEN while receiving ABD benefits, but must report any changes in their situation to both programs."
         },
         {
           "question": "How long is the waitlist for rental assistance really?",
           "answer": "This varies dramatically by county and current funding. Some areas like King County use interest lists and may not be accepting new clients for rental assistance. Others may have immediate availability. When you contact your county provider, ask specifically about current wait times and whether they're accepting new applications."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent?",
-          "answer": "You can help with the application process, but your parent must be the applicant and participate in the DSHS interview unless you have legal authority (power of attorney or guardianship). DSHS needs to verify your parent's incapacity and financial situation directly."
+          "question": "Can I apply on behalf of my elderly loved one?",
+          "answer": "You can help with the application process, but your loved one must be the applicant and participate in the DSHS interview unless you have legal authority (power of attorney or guardianship). DSHS needs to verify your loved one's incapacity and financial situation directly."
         },
         {
-          "question": "What happens if my parent's condition improves and they can work again?",
+          "question": "What happens if my loved one's condition improves and they can work again?",
           "answer": "They must report this change to DSHS immediately, as it would make them ineligible for HEN services. The program is specifically for people who cannot work due to health conditions."
         },
         {
-          "question": "My parent was denied for HEN but I think they should qualify — what now?",
+          "question": "My loved one was denied for HEN but I think they should qualify, what now?",
           "answer": "You can request a fair hearing through DSHS if you disagree with their eligibility decision. Contact the DSHS office that made the decision and ask about the appeal process. You typically have 90 days from the denial notice to request a hearing."
         },
         {
-          "question": "What if my parent's HEN referral expires before they get services?",
+          "question": "What if my loved one's HEN referral expires before they get services?",
           "answer": "Contact your county provider immediately to explain the situation. In some cases, they may be able to work with DSHS to issue a new referral. However, you may need to restart the entire application process, which is why it's crucial to contact providers as soon as you receive the referral letter."
         },
         {
-          "question": "Can my parent get both HEN and food stamps at the same time?",
-          "answer": "Yes, your parent can potentially qualify for SNAP (Basic Food) and HEN simultaneously. These are separate programs with different eligibility rules. Apply for both if your parent meets the income requirements for each program."
+          "question": "Can my loved one get both HEN and food stamps at the same time?",
+          "answer": "Yes, your loved one can potentially qualify for SNAP (Basic Food) and HEN simultaneously. These are separate programs with different eligibility rules. Apply for both if your loved one meets the income requirements for each program."
         }
       ],
       "layoutIntent": {
@@ -2934,7 +2934,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 65+, blind, or disabled and waiting for SSI approval, Washington's ABD program provides monthly cash payments up to $450 for individuals or $570 for couples. This state-funded bridge program helps cover basic needs while federal benefits are being processed — because SSI applications can take months to approve.\n\nThe program requires repayment from future SSI benefits (averaging $4,545 total), but provides immediate financial relief for parents who cannot work due to age or disability. Your parent will also automatically receive referrals to the Housing and Essential Needs program and get assigned an SSI application facilitator to help navigate the federal process.\n\nTo qualify, your parent must have countable income below state limits and resources under $6,000. They cannot already be receiving SSI or TANF, and must sign an agreement to repay ABD benefits when SSI is approved.",
+      "intro": "If your loved one is 65+, blind, or disabled and waiting for SSI approval, Washington's ABD program provides monthly cash payments up to $450 for individuals or $570 for couples. This state-funded bridge program helps cover basic needs while federal benefits are being processed, because SSI applications can take months to approve.\n\nThe program requires repayment from future SSI benefits (averaging $4,545 total), but provides immediate financial relief for parents who cannot work due to age or disability. Your loved one will also automatically receive referrals to the Housing and Essential Needs program and get assigned an SSI application facilitator to help navigate the federal process.\n\nTo qualify, your loved one must have countable income below state limits and resources under $6,000. They cannot already be receiving SSI or TANF, and must sign an agreement to repay ABD benefits when SSI is approved.",
       "savingsRange": "$5,400 – $6,840/year in 2026",
       "savingsSource": "Monthly cash payments up to $450 (single) or $570 (couple)",
       "savingsVerified": false,
@@ -2972,7 +2972,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Washington Connection or contact your local DSHS Community Service Office — processing time not specified.",
+        "summary": "Apply online at Washington Connection or contact your local DSHS Community Service Office, processing time not specified.",
         "steps": [
           {
             "step": 1,
@@ -2987,7 +2987,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete medical verification",
-            "description": "If applying based on disability, provide medical documentation showing your parent's condition prevents work for 12+ months."
+            "description": "If applying based on disability, provide medical documentation showing your loved one's condition prevents work for 12+ months."
           },
           {
             "step": 4,
@@ -3002,7 +3002,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Choose TANF over ABD if your parent is eligible for both — TANF pays higher benefits and doesn't require repayment.",
+        "tip": "Choose TANF over ABD if your loved one is eligible for both, TANF pays higher benefits and doesn't require repayment.",
         "urls": [
           {
             "label": "Washington Connection Application",
@@ -3014,7 +3014,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age if 65+ (birth certificate, passport, or driver's license)",
         "Social Security Administration blindness determination if applying as blind",
         "Medical records showing disability prevents work for 12+ months if applying as disabled",
-        "Social Security number for your parent",
+        "Social Security number for your loved one",
         "Proof of U.S. citizenship or qualified alien status",
         "Washington state residency proof (utility bill, lease, or state-issued document)",
         "Income documentation for all sources (Social Security letters, pension statements, pay stubs)",
@@ -3026,7 +3026,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "DSHS Community Service Offices",
           "phone": null,
-          "description": "Local offices handle ABD applications — find your regional office",
+          "description": "Local offices handle ABD applications, find your regional office",
           "hours": "Varies by location"
         },
         {
@@ -3037,10 +3037,10 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "You must repay ABD benefits from future SSI payments — average repayment is $4,545 when SSI is approved",
-        "If your parent is eligible for both ABD and TANF, choose TANF because it pays higher benefits and doesn't require repayment",
-        "Disability determination requires medical verification that the condition prevents work — substance abuse as primary cause disqualifies",
-        "Income and resource limits are strictly enforced and follow detailed state regulations — gather complete financial documentation"
+        "You must repay ABD benefits from future SSI payments, average repayment is $4,545 when SSI is approved",
+        "If your loved one is eligible for both ABD and TANF, choose TANF because it pays higher benefits and doesn't require repayment",
+        "Disability determination requires medical verification that the condition prevents work, substance abuse as primary cause disqualifies",
+        "Income and resource limits are strictly enforced and follow detailed state regulations, gather complete financial documentation"
       ],
       "relatedPrograms": [
         "Supplemental Security Income (SSI)",
@@ -3051,35 +3051,35 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Will my parent have to pay back the ABD benefits?",
-          "answer": "Yes. Your parent must sign an agreement to repay all ABD benefits from future SSI payments. The average repayment amount is $4,545. This is a loan program, not a grant."
+          "question": "Will my loved one have to pay back the ABD benefits?",
+          "answer": "Yes. Your loved one must sign an agreement to repay all ABD benefits from future SSI payments. The average repayment amount is $4,545. This is a loan program, not a grant."
         },
         {
-          "question": "Can my parent apply for ABD if they're already receiving Social Security retirement benefits?",
+          "question": "Can my loved one apply for ABD if they're already receiving Social Security retirement benefits?",
           "answer": "Yes, as long as their total countable income stays below the ABD limits and they're not receiving SSI or TANF. Social Security retirement benefits count as income but don't disqualify them."
         },
         {
-          "question": "What happens if my parent's SSI application is denied?",
-          "answer": "If SSI is permanently denied, your parent won't have to repay the ABD benefits. However, they should appeal the SSI denial if possible, as most initial applications are rejected but succeed on appeal."
+          "question": "What happens if my loved one's SSI application is denied?",
+          "answer": "If SSI is permanently denied, your loved one won't have to repay the ABD benefits. However, they should appeal the SSI denial if possible, as most initial applications are rejected but succeed on appeal."
         },
         {
-          "question": "Can I apply for ABD on behalf of my parent?",
-          "answer": "You can help with the application process, but your parent must be the applicant unless you have legal authority (power of attorney or guardianship) to sign on their behalf."
+          "question": "Can I apply for ABD on behalf of my loved one?",
+          "answer": "You can help with the application process, but your loved one must be the applicant unless you have legal authority (power of attorney or guardianship) to sign on their behalf."
         },
         {
-          "question": "Does my parent's house count toward the $6,000 resource limit?",
+          "question": "Does my loved one's house count toward the $6,000 resource limit?",
           "answer": "The research doesn't specify home exemptions, but ABD follows similar rules to SSI, which typically exempts the primary residence. Contact your local DSHS office for clarification on specific property exemptions."
         },
         {
-          "question": "Can my parent receive ABD and SNAP benefits at the same time?",
-          "answer": "Yes. ABD is cash assistance and SNAP is food assistance — receiving one doesn't prevent the other. The ABD income will be counted when determining SNAP benefit amounts."
+          "question": "Can my loved one receive ABD and SNAP benefits at the same time?",
+          "answer": "Yes. ABD is cash assistance and SNAP is food assistance, receiving one doesn't prevent the other. The ABD income will be counted when determining SNAP benefit amounts."
         },
         {
           "question": "How long does ABD approval typically take?",
           "answer": "Processing time is not specified in official sources. Contact your local DSHS Community Service Office for current processing timeframes, which may vary by region and case complexity."
         },
         {
-          "question": "What if my parent is under 65 but not sure if they meet the disability requirement?",
+          "question": "What if my loved one is under 65 but not sure if they meet the disability requirement?",
           "answer": "Apply anyway. DSHS will make the disability determination based on medical records. The requirement is that a physical or mental condition prevents work for 12+ months, with medical verification required."
         }
       ],
@@ -3108,7 +3108,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent worked in Washington and paid payroll taxes, they may qualify for WA Cares Fund benefits starting January 1, 2025. This program provides cash assistance for long-term care services like home care, adult day programs, or assisted living — with no income or asset limits.\n\nEligibility depends entirely on work history, not financial need. Your parent needs at least 500 hours of work per year (about 10 hours per week) during qualifying periods. They can get full lifetime benefits if they worked 10 total years without a 5+ year break, or partial benefits if they worked 3 of the last 6 years before applying.\n\nUnlike Medicaid, your parent keeps their house, savings, and investments. The benefit amount isn't specified in official sources yet, but payments go directly to your parent or their care provider once they have qualifying long-term care needs.",
+      "intro": "If your loved one worked in Washington and paid payroll taxes, they may qualify for WA Cares Fund benefits starting January 1, 2025. This program provides cash assistance for long-term care services like home care, adult day programs, or assisted living, with no income or asset limits.\n\nEligibility depends entirely on work history, not financial need. Your loved one needs at least 500 hours of work per year (about 10 hours per week) during qualifying periods. They can get full lifetime benefits if they worked 10 total years without a 5+ year break, or partial benefits if they worked 3 of the last 6 years before applying.\n\nUnlike Medicaid, your loved one keeps their house, savings, and investments. The benefit amount isn't specified in official sources yet, but payments go directly to your loved one or their care provider once they have qualifying long-term care needs.",
       "savingsRange": "",
       "savingsSource": "Cash benefit for long-term care services",
       "savingsVerified": false,
@@ -3133,7 +3133,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "online",
-        "summary": "Apply through Washington Employment Security Department online — processing time not specified in official sources.",
+        "summary": "Apply through Washington Employment Security Department online, processing time not specified in official sources.",
         "steps": [
           {
             "step": 1,
@@ -3158,7 +3158,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified in official sources",
         "waitlist": null,
-        "tip": "Benefits don't start automatically when you're eligible — you must have qualifying care needs and apply when you need services.",
+        "tip": "Benefits don't start automatically when you're eligible, you must have qualifying care needs and apply when you need services.",
         "urls": [
           {
             "label": "WA Cares Fund Application",
@@ -3185,7 +3185,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Near-retirees born before January 1, 1968 get only 10% of full benefits per qualifying year unless they meet other pathways",
         "You must notify your employer and ESD within 90 days if a conditional exemption ends due to moving to Washington or visa changes",
-        "Permanent exemptions make you completely ineligible for benefits — think carefully before claiming them"
+        "Permanent exemptions make you completely ineligible for benefits, think carefully before claiming them"
       ],
       "relatedPrograms": [
         "Washington Apple Health (Medicaid)",
@@ -3195,28 +3195,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent get benefits if they permanently exempted themselves as a veteran?",
-          "answer": "No, permanent exemptions for 70%+ service-connected disability make your parent completely ineligible for WA Cares benefits unless they rescind the exemption through ESD. This is different from conditional exemptions which can be reversed."
+          "question": "Can my loved one get benefits if they permanently exempted themselves as a veteran?",
+          "answer": "No, permanent exemptions for 70%+ service-connected disability make your loved one completely ineligible for WA Cares benefits unless they rescind the exemption through ESD. This is different from conditional exemptions which can be reversed."
         },
         {
-          "question": "What happens if my parent worked in Washington but moved to another state?",
-          "answer": "Your parent can still get benefits if they elected to keep WA Cares coverage when they moved out-of-state. If they didn't make this election, they won't be eligible even if they paid in for years."
+          "question": "What happens if my loved one worked in Washington but moved to another state?",
+          "answer": "Your loved one can still get benefits if they elected to keep WA Cares coverage when they moved out-of-state. If they didn't make this election, they won't be eligible even if they paid in for years."
         },
         {
-          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "question": "Can I apply on behalf of my elderly loved one who has dementia?",
           "answer": "The application process through ESD should accommodate representatives, but specific procedures aren't detailed in official sources. Contact ESD directly through wa-cares.esd.wa.gov to ask about applying for someone with cognitive impairment."
         },
         {
-          "question": "How much will my parent actually receive in benefits?",
-          "answer": "The exact dollar amount isn't specified in current official sources. Benefits are described as 'up to full lifetime benefit amount' for fully vested individuals, with payments going directly to your parent or their care provider."
+          "question": "How much will my loved one actually receive in benefits?",
+          "answer": "The exact dollar amount isn't specified in current official sources. Benefits are described as 'up to full lifetime benefit amount' for fully vested individuals, with payments going directly to your loved one or their care provider."
         },
         {
-          "question": "What if my parent took a long break from working — are they still eligible?",
-          "answer": "Breaks longer than 5 consecutive years reset the 10-year contribution clock. Your parent would need to start accumulating qualifying years again after returning to work, or they might qualify under the '3 of last 6 years' pathway instead."
+          "question": "What if my loved one took a long break from working, are they still eligible?",
+          "answer": "Breaks longer than 5 consecutive years reset the 10-year contribution clock. Your loved one would need to start accumulating qualifying years again after returning to work, or they might qualify under the '3 of last 6 years' pathway instead."
         },
         {
-          "question": "Can my parent use these benefits for any type of care they want?",
-          "answer": "Benefits are for long-term services and supports, but your parent must first qualify by showing they need assistance with activities of daily living. It's not automatic just because they're eligible based on work history — there's a separate assessment for care needs."
+          "question": "Can my loved one use these benefits for any type of care they want?",
+          "answer": "Benefits are for long-term services and supports, but your loved one must first qualify by showing they need assistance with activities of daily living. It's not automatic just because they're eligible based on work history, there's a separate assessment for care needs."
         }
       ],
       "layoutIntent": {
@@ -3237,7 +3237,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "seattle-gold-card-discounts",
       "name": "Seattle Gold Card (Age-Friendly Discount Program)",
       "shortName": "Seattle Gold Card",
-      "tagline": "Your parent can save money at over 110 Seattle-area businesses — no income limits required.",
+      "tagline": "Your loved one can save money at over 110 Seattle-area businesses, no income limits required.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -3250,7 +3250,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your parent is 60+ and lives anywhere in Washington state, they qualify for discounts at over 110 Seattle-area businesses including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, and Seattle Art Museum. Because there are no income or asset limits, any Washington resident 60+ can get this card — even if they live outside Seattle or King County.\n\nThe discounts vary by business, from 50% off pet adoption fees at Seattle Animal Shelter to various percentages at restaurants, fitness centers, and entertainment venues. Your parent will need to confirm with each business that they accept the card, as participation is voluntary and the list updates regularly.",
+      "intro": "If your loved one is 60+ and lives anywhere in Washington state, they qualify for discounts at over 110 Seattle-area businesses including theaters, restaurants, Woodland Park Zoo, Seattle Aquarium, and Seattle Art Museum. Because there are no income or asset limits, any Washington resident 60+ can get this card, even if they live outside Seattle or King County.\n\nThe discounts vary by business, from 50% off pet adoption fees at Seattle Animal Shelter to various percentages at restaurants, fitness centers, and entertainment venues. Your loved one will need to confirm with each business that they accept the card, as participation is voluntary and the list updates regularly.",
       "savingsRange": "",
       "savingsSource": "Free discount card",
       "savingsVerified": false,
@@ -3272,7 +3272,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online in 10 minutes at seattle.gov/AgeFriendlyDiscounts — your card arrives in 1-2 weeks.",
+        "summary": "Apply online in 10 minutes at seattle.gov/AgeFriendlyDiscounts, your card arrives in 1-2 weeks.",
         "steps": [
           {
             "step": 1,
@@ -3297,7 +3297,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "1-2 weeks for mailed cards, immediate for in-person pickup",
         "waitlist": null,
-        "tip": "You can pick up a card immediately at any Seattle Public Library branch — no appointment needed.",
+        "tip": "You can pick up a card immediately at any Seattle Public Library branch, no appointment needed.",
         "urls": [
           {
             "label": "Online Application",
@@ -3326,8 +3326,8 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "The online application may prompt you about other Affordable Seattle programs, but the Gold Card itself has no income requirements",
-        "Don't assume all businesses accept the card — always confirm before making purchases as participation is voluntary",
-        "There's a separate FLASH Card program for people 18-59 with disabilities — make sure you're applying for the right program"
+        "Don't assume all businesses accept the card, always confirm before making purchases as participation is voluntary",
+        "There's a separate FLASH Card program for people 18-59 with disabilities, make sure you're applying for the right program"
       ],
       "relatedPrograms": [
         "FLASH Card (disability discounts)",
@@ -3337,28 +3337,28 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent use this card if they don't live in Seattle?",
-          "answer": "Yes. The card is open to all Washington state residents 60+, including those in King County and beyond. The discounts focus on Seattle-area businesses, but your parent can use it whether they live in Spokane or Bellevue."
+          "question": "Can my loved one use this card if they don't live in Seattle?",
+          "answer": "Yes. The card is open to all Washington state residents 60+, including those in King County and beyond. The discounts focus on Seattle-area businesses, but your loved one can use it whether they live in Spokane or Bellevue."
         },
         {
           "question": "How do I know which businesses actually accept the card?",
           "answer": "Check the online directory at seattle.gov/AgeFriendlyDiscounts, which includes a map searchable by zip code. Always confirm with the business before making a purchase, as participation is voluntary and can change."
         },
         {
-          "question": "What if my parent is under 60 but has a disability?",
+          "question": "What if my loved one is under 60 but has a disability?",
           "answer": "They should apply for the FLASH Card instead, which covers people 18-59 with disabilities. It's a separate program with similar discounts but different eligibility rules."
         },
         {
-          "question": "Can I apply for my parent if they can't do it themselves?",
-          "answer": "Yes. Family members can complete the online application or visit pickup locations on behalf of their parent. No special authorization is required since there are no income verifications."
+          "question": "Can I apply for my loved one if they can't do it themselves?",
+          "answer": "Yes. Family members can complete the online application or visit pickup locations on behalf of their loved one. No special authorization is required since there are no income verifications."
         },
         {
           "question": "What happens if we move out of Washington state?",
-          "answer": "Your parent would no longer be eligible and should stop using the card. The program is specifically for Washington state residents, and continued use after moving would violate the program terms."
+          "answer": "Your loved one would no longer be eligible and should stop using the card. The program is specifically for Washington state residents, and continued use after moving would violate the program terms."
         },
         {
           "question": "Are the discounts worth it if we live far from Seattle?",
-          "answer": "That depends on how often your parent visits Seattle-area attractions. The card works well for occasional trips to places like the zoo, aquarium, or museums, but may have limited value for daily needs if you live hours away."
+          "answer": "That depends on how often your loved one visits Seattle-area attractions. The card works well for occasional trips to places like the zoo, aquarium, or museums, but may have limited value for daily needs if you live hours away."
         }
       ],
       "layoutIntent": {
@@ -3377,12 +3377,12 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Washington offers 19 programs to help your aging parent with everything from monthly grocery money to free home care services. These range from financial benefits like $292-1,158/month for food assistance to free resources like Medicare guidance and legal help — most with no income requirements. Several programs are specifically designed to keep your parent living at home instead of moving to a nursing home, including waivers that pay family caregivers and coordinated care programs.\n\nStart by checking the highest-value programs first: health coverage, home care assistance, and food benefits. Most applications go through the Department of Social and Health Services, though some programs like Medicare help and legal aid have their own intake processes.",
+    "intro": "Washington offers 19 programs to help your aging loved one with everything from monthly grocery money to free home care services. These range from financial benefits like $292-1,158/month for food assistance to free resources like Medicare guidance and legal help, most with no income requirements. Several programs are specifically designed to keep your loved one living at home instead of moving to a nursing home, including waivers that pay family caregivers and coordinated care programs.\n\nStart by checking the highest-value programs first: health coverage, home care assistance, and food benefits. Most applications go through the Department of Social and Health Services, though some programs like Medicare help and legal aid have their own intake processes.",
     "startHere": [
       {
         "name": "Apple Health",
         "programId": "apple-health",
-        "why": "Free comprehensive health coverage eliminates your parent's medical costs and provides the foundation for accessing other care programs."
+        "why": "Free comprehensive health coverage eliminates your loved one's medical costs and provides the foundation for accessing other care programs."
       },
       {
         "name": "Basic Food Program (Washington State SNAP)",
@@ -3392,7 +3392,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Medicaid Personal Care (MPC) Program",
         "programId": "medicaid-personal-care",
-        "why": "Covers in-home personal care assistance so your parent can stay safely at home instead of moving to a facility."
+        "why": "Covers in-home personal care assistance so your loved one can stay safely at home instead of moving to a facility."
       },
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI)",
@@ -3418,7 +3418,7 @@ export const drafts: PipelineStateDrafts = {
           "Program of All-Inclusive Care for the Elderly (PACE)",
           "Family Caregiver Support Program"
         ],
-        "description": "In-home care services, family caregiver payments, and coordinated care to keep your parent living at home."
+        "description": "In-home care services, family caregiver payments, and coordinated care to keep your loved one living at home."
       },
       {
         "need": "Food and utility assistance",
@@ -3458,10 +3458,10 @@ export const drafts: PipelineStateDrafts = {
     ],
     "quickFacts": [
       "Most benefit applications go through the Department of Social and Health Services (DSHS), though some programs have separate intake processes",
-      "Washington has specific programs to pay family caregivers through the MAC Waiver if your parent needs nursing home-level care",
+      "Washington has specific programs to pay family caregivers through the MAC Waiver if your loved one needs nursing home-level care",
       "The state offers both immediate emergency assistance (HEN) and longer-term disability support (ABD) while waiting for federal benefits",
       "Washington workers pay into WA Cares Fund through payroll deductions for future long-term care benefits"
     ],
-    "resourcesVsBenefits": "Benefits require qualifying based on income, assets, or medical need — like Basic Food Program requiring income verification or Medicaid Personal Care requiring a clinical assessment. Resources are available to everyone regardless of income — like free Medicare counseling through HICAP, free legal help for all seniors 60+, or Seattle's Gold Card discount program with no income limits. Start with free resources while you're applying for benefits, since they provide immediate help with no waiting period."
+    "resourcesVsBenefits": "Benefits require qualifying based on income, assets, or medical need, like Basic Food Program requiring income verification or Medicaid Personal Care requiring a clinical assessment. Resources are available to everyone regardless of income, like free Medicare counseling through HICAP, free legal help for all seniors 60+, or Seattle's Gold Card discount program with no income limits. Start with free resources while you're applying for benefits, since they provide immediate help with no waiting period."
   }
 };

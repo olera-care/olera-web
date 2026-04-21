@@ -56,9 +56,14 @@ export default function SetUpProfileSection() {
     }
 
     // Navigate directly to onboarding (auth handled there)
-    const targetUrl = (user && hasProviderProfile)
+    const baseUrl = (user && hasProviderProfile)
       ? "/provider/onboarding?adding=true"
       : "/provider/onboarding";
+
+    // Add returnTo param so Exit button returns here
+    const targetUrl = baseUrl.includes("?")
+      ? `${baseUrl}&returnTo=/for-providers`
+      : `${baseUrl}?returnTo=/for-providers`;
 
     router.push(targetUrl);
   };

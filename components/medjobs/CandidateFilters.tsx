@@ -194,7 +194,7 @@ export default function CandidateFilters({
               onClick={() => setFilterModalOpen(false)}
               className="flex-1 py-3 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
             >
-              Show results
+              Done
             </button>
           </div>
         }

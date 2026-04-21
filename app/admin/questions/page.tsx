@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import PulseHeader from "@/components/admin/PulseHeader";
+import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 
 interface Question {
   id: string;
@@ -131,66 +133,13 @@ function formatDate(dateStr: string): string {
 
 const PAGE_SIZE = 50;
 
-type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d";
-
-const DATE_PRESETS: { label: string; value: DatePreset }[] = [
-  { label: "All time", value: "all" },
-  { label: "Today", value: "today" },
-  { label: "Yesterday", value: "yesterday" },
-  { label: "Last 7 days", value: "7d" },
-  { label: "Last 30 days", value: "30d" },
-];
-
-function getDateRange(
-  preset: DatePreset,
-  customFrom: string,
-  customTo: string,
-): { from: string | null; to: string | null } {
-  if (customFrom) {
-    const start = new Date(customFrom + "T00:00:00");
-    const endBase = customTo || customFrom;
-    const end = new Date(endBase + "T00:00:00");
-    end.setDate(end.getDate() + 1);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }
-
-  if (preset === "all") return { from: null, to: null };
-
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  if (preset === "today") {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return { from: today.toISOString(), to: tomorrow.toISOString() };
-  }
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { from: yesterday.toISOString(), to: today.toISOString() };
-  }
-  if (preset === "7d") {
-    const weekAgo = new Date(today);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return { from: weekAgo.toISOString(), to: null };
-  }
-  if (preset === "30d") {
-    const monthAgo = new Date(today);
-    monthAgo.setDate(monthAgo.getDate() - 30);
-    return { from: monthAgo.toISOString(), to: null };
-  }
-  return { from: null, to: null };
-}
-
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [datePreset, setDatePreset] = useState<DatePreset>("all");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -219,7 +168,7 @@ export default function AdminQuestionsPage() {
       } else if (activeTab) {
         params.set("status", activeTab);
       }
-      const { from, to } = getDateRange(datePreset, customFrom, customTo);
+      const { from, to } = resolveRange(range);
       if (from) params.set("date_from", from);
       if (to) params.set("date_to", to);
       if (debouncedSearch) params.set("search", debouncedSearch);
@@ -235,12 +184,12 @@ export default function AdminQuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page, datePreset, customFrom, customTo, debouncedSearch]);
+  }, [activeTab, page, range, debouncedSearch]);
 
   // Reset page when tab, date, or search changes
   useEffect(() => {
     setPage(0);
-  }, [activeTab, datePreset, customFrom, customTo, debouncedSearch]);
+  }, [activeTab, range, debouncedSearch]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -307,13 +256,13 @@ export default function AdminQuestionsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Questions</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Questions go live immediately. Supply provider emails and remove spam.
-        </p>
-      </div>
+      <PulseHeader
+        title="Questions"
+        kpiSuffix="needing email"
+        statsPath="/api/admin/questions/stats"
+        range={range}
+        onRangeChange={setRange}
+      />
 
       {/* Search bar */}
       <div className="mb-6">
@@ -383,58 +332,6 @@ export default function AdminQuestionsPage() {
             </button>
           );
         })}
-      </div>
-
-      {/* Date filter */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        {DATE_PRESETS.map((preset) => (
-          <button
-            key={preset.value}
-            onClick={() => { setDatePreset(preset.value); setCustomFrom(""); setCustomTo(""); }}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-              datePreset === preset.value && !customFrom
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            }`}
-          >
-            {preset.label}
-          </button>
-        ))}
-        <input
-          type="date"
-          value={customFrom}
-          onChange={(e) => setCustomFrom(e.target.value)}
-          className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
-            customFrom
-              ? "bg-gray-900 text-white border-gray-900"
-              : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
-          }`}
-        />
-        {customFrom && (
-          <>
-            <span className="text-xs text-gray-400">–</span>
-            <input
-              type="date"
-              value={customTo}
-              min={customFrom}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
-                customTo
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
-              }`}
-            />
-            <button
-              onClick={() => { setCustomFrom(""); setCustomTo(""); }}
-              className="ml-1 text-gray-400 hover:text-gray-700 transition-colors"
-              aria-label="Clear custom date range"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
 
       {/* Content */}
@@ -524,14 +421,14 @@ export default function AdminQuestionsPage() {
                         <button
                           onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
                           disabled={actionLoading === q.id}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all disabled:opacity-40"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-600 transition-all duration-200 disabled:opacity-40"
                         >
                           Archive
                         </button>
                         <button
                           onClick={() => handleRemove(q.id)}
                           disabled={actionLoading === q.id}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-red-500 transition-all duration-200 disabled:opacity-40"
                         >
                           Remove
                         </button>

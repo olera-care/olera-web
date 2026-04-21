@@ -7,6 +7,63 @@
 
 ## Current Focus
 
+### 2026-04-21 — Admin Pulse Header (Questions + Leads)
+
+**Branch:** `glad-pare` (tracks `origin/glad-pare`, no PR to `staging` yet — TJ has more feedback to land first)
+**Head:** `540825b3`
+
+Built a "pulse header" for `/admin/questions` and `/admin/leads`:
+- Title + KPI ("X needing email") + delta line + full-width interactive chart
+- Single date-range popover button (7 presets + custom from/to) replacing the old 3-row filter chrome
+- Tabs, search, list, inline email form, archive/delete flows untouched
+
+**Files created:**
+- `lib/admin-stats.ts` — bucket helpers (hour/day/week/month auto-pick)
+- `app/api/admin/questions/stats/route.ts` — returns `{ total, delta, series, bucket }`
+- `app/api/admin/leads/stats/route.ts` — same shape
+- `components/admin/DateRangePopover.tsx` — single-button popover with presets + stacked From/To custom range
+- `components/admin/PulseHeader.tsx` — title/KPI/delta/sparkline + Y-axis max label + gridline + hover tooltip
+
+**Files modified:**
+- `app/admin/questions/page.tsx` — integrated PulseHeader, removed old header + filter chrome
+- `app/admin/leads/page.tsx` — same
+
+**Iteration log (why this took 8 commits):**
+1. `6c9e9a34` — initial 48px sparkline — "looked bad"
+2. `d4eded07` — width bug (ResizeObserver never attached) + empty-state bug (`Math.max(1, …)` masked all-zero case)
+3. `382a49da` — height 140→180, padding 22px, UTC label formatting to fix Apr 13/14 off-by-one
+4. `1811ac49` — added max-value label + dashed gridline at ceiling so peaks read as "at max" not "clipped"
+5. `bb2bbddc` — tried hardcoded Y-max at 120 (TJ asked)
+6. `10b95517` — TJ pushed back: hardcoded ages badly. Replaced with `niceCeiling()` auto-scale (1.5x → round up to 1/1.5/2/2.5/3/4/5/6/8/10 × 10^n). Added 90ms ease-out CSS transitions on SVG hover elements + row action slide-in translate.
+7. `d1cee83a` — **semantic split**: KPI shows needs-email count (time-bounded), chart shows ALL question volume. Single DB query, two metrics computed in memory.
+8. `540825b3` — **linear interpolation** (dropped Fritsch-Carlson monotone cubic). Smooth curves created "upward inflection" illusion — user read intermediate Bezier y-values as data that didn't exist. Also bumped niceCeiling 1.5x → 1.75x for peaks in 40-55% zone. Default range "all" → "30d". Stroke 1.75→2.
+
+**Design decisions locked in:**
+- **Chart ≠ KPI** intentionally. KPI is action queue (needs-email). Chart is platform pulse (all activity). Two metrics on one card — contextualizes the number with volume context.
+- **Linear over smooth.** Monotone cubic's S-shape between discrete daily buckets visually implies intermediate values that don't exist. Linear = most honest read of time-series. Matches Linear / Stripe / Datadog.
+- **Nice-number Y-axis**, not fixed. Hardcoded ceilings don't age with growth. `niceCeiling(realMax)` rounds up to clean steps with 1.75x headroom → peaks always at 40-55% of chart.
+- **Server buckets UTC days**, labels formatted in UTC to match. Admin chart represents UTC-day windows; admin user understands this.
+- **Date range popover > multi-row chips.** One button, one popover. Presets list (all/today/yesterday/7d/30d/90d/1y) + stacked custom From/To at bottom of dropdown. Widened from w-72 to w-80 so From/To inputs don't overflow.
+
+**Hover feel:**
+- Chart hover dot + crosshair + tooltip all smooth-follow (90ms ease-out on SVG cx/cy/x1/x2 and HTML left/top)
+- Row action buttons (Archive/Remove/Delete) slide in 4px from right on row hover (translate-x-1 → translate-x-0 + opacity, 200ms)
+- Popover still hard appears — low priority
+
+**Known cross-page inconsistency (not fixed):**
+- Admin overview card "Needs Email: X" is all-time count
+- `/admin/leads?tab=needs_email` now opens at last-30-days default
+- Numbers will differ between the two views
+- Fixes: either scope the overview card to 30d, or pass `?range=all` when navigating from overview. Awaiting TJ's call.
+
+**Other known limits (not bugs today):**
+- `.limit(50000)` with `ascending: true` means if platform ever has >50k questions/leads, we'd fetch the oldest 50k and miss recent. Olera is at ~1300 questions. Non-issue.
+- Chart first-hover pops in instantly (no fade-in). Subsequent moves smooth. Acceptable.
+
+**TJ said "I have a few things to add"** — next feedback loop incoming. Pausing here.
+
+---
+
 ### 2026-04-20 (evening) — Benefits review workflow operational + 3 FL programs shipped
 
 **End-of-day state. Post-compact continuation notes at the bottom.**

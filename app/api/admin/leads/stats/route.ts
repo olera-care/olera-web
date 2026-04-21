@@ -3,11 +3,12 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 
 /**
- * GET /api/admin/leads/stats — see questions/stats for shape.
+ * GET /api/admin/leads/stats — same shape as questions/stats.
  *
- * Query params:
- *  - `date_from`, `date_to` (same as list endpoint)
- *  - `scope` "needs_email" | "all" (default: needs_email)
+ * - `total` / `delta`: needs-email backlog in the range (KPI)
+ * - `series`: ALL lead creations per bucket (platform pulse chart)
+ *
+ * Chart excludes archived leads (matches list endpoint behavior).
  */
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
-    const scope = searchParams.get("scope") === "all" ? "all" : "needs_email";
 
     const db = getServiceClient();
 
@@ -27,49 +27,58 @@ export async function GET(request: NextRequest) {
     const from = dateFrom ? new Date(dateFrom) : null;
     const to = dateTo ? new Date(dateTo) : now;
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
-
     const queryStart = priorFrom ?? from ?? null;
 
-    let rowsQuery = db
+    // Pull all non-archived leads in range+prior; we'll compute both metrics
+    // from the same result set.
+    let q = db
       .from("connections")
-      .select("created_at")
+      .select("created_at, metadata")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
+    if (queryStart) q = q.gte("created_at", queryStart.toISOString());
+    if (dateTo) q = q.lt("created_at", dateTo);
 
-    if (scope === "needs_email") {
-      rowsQuery = rowsQuery.contains("metadata", { needs_provider_email: true });
-    }
-    if (queryStart) rowsQuery = rowsQuery.gte("created_at", queryStart.toISOString());
-    if (dateTo) rowsQuery = rowsQuery.lt("created_at", dateTo);
-
-    const { data: rows, error } = await rowsQuery;
+    const { data: rows, error } = await q;
     if (error) {
       console.error("Admin leads stats error:", error);
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
 
-    const timestamps = (rows ?? []).map((r) => new Date(r.created_at));
+    const allRows = rows ?? [];
+
+    const isNeedsEmail = (r: (typeof allRows)[number]) => {
+      const meta = r.metadata as Record<string, unknown> | null | undefined;
+      return meta?.needs_provider_email === true;
+    };
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
-    const current = timestamps.filter(inRange);
-    const prior = timestamps.filter(inPrior);
-
-    const total = current.length;
+    let kpiCurrent = 0;
+    let kpiPrior = 0;
+    for (const r of allRows) {
+      if (!isNeedsEmail(r)) continue;
+      const t = new Date(r.created_at);
+      if (inRange(t)) kpiCurrent++;
+      else if (inPrior(t)) kpiPrior++;
+    }
 
     let delta: number | null = null;
     if (from) {
-      if (prior.length === 0) delta = current.length > 0 ? 100 : 0;
-      else delta = Math.round(((current.length - prior.length) / prior.length) * 100);
+      if (kpiPrior === 0) delta = kpiCurrent > 0 ? 100 : 0;
+      else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
     }
 
-    const bucket: Bucket = from ? resolveBucket(from, to) : resolveBucket(timestamps[0] ?? now, now);
-    const seriesStart = from ?? timestamps[0] ?? now;
-    const series = buildSeries(current, seriesStart, to, bucket);
+    const seriesTimestamps = allRows.map((r) => new Date(r.created_at)).filter(inRange);
+    const bucket: Bucket = from
+      ? resolveBucket(from, to)
+      : resolveBucket(seriesTimestamps[0] ?? now, now);
+    const seriesStart = from ?? seriesTimestamps[0] ?? now;
+    const series = buildSeries(seriesTimestamps, seriesStart, to, bucket);
 
-    return NextResponse.json({ total, delta, series, bucket });
+    return NextResponse.json({ total: kpiCurrent, delta, series, bucket });
   } catch (err) {
     console.error("Admin leads stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

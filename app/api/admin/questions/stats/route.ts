@@ -5,17 +5,17 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 /**
  * GET /api/admin/questions/stats
  *
- * Returns `{ total, delta, series, bucket }` for the PulseHeader sparkline.
- * - `total`: count in the selected range
- * - `delta`: percent change vs. the immediately prior window of equal length
- *            (null when "all time" — no prior window to compare against)
- * - `series`: [{ date, count }] — buckets pre-filled with zeros
- * - `bucket`: the granularity used ("hour" | "day" | "week" | "month")
+ * Returns stats for the PulseHeader. Two metrics from one query:
+ *  - `total` / `delta`: needs-email backlog in the range (KPI)
+ *  - `series`: ALL question creations per bucket (platform pulse chart)
+ *
+ * The KPI and the chart are intentionally different metrics. Needs-email is
+ * the operator action queue; the pulse chart shows overall platform activity
+ * so you can spot volume spikes that may precede the backlog growing.
  *
  * Query params:
  *  - `date_from` (ISO, inclusive). Omit for all-time.
  *  - `date_to`   (ISO, exclusive).
- *  - `scope`     "needs_email" (default) | "all"
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
-    const scope = searchParams.get("scope") === "all" ? "all" : "needs_email";
 
     const db = getServiceClient();
 
@@ -37,18 +36,14 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
+    // One query — pull everything in range+prior with metadata so we can
+    // compute both the needs-email KPI and the total-volume series from
+    // the same result set.
     let q = db
       .from("provider_questions")
-      .select("created_at")
+      .select("created_at, status, metadata")
       .order("created_at", { ascending: true })
       .limit(50000);
-
-    if (scope === "needs_email") {
-      q = q
-        .contains("metadata", { needs_provider_email: true })
-        .neq("status", "archived")
-        .neq("status", "rejected");
-    }
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
     if (dateTo) q = q.lt("created_at", dateTo);
 
@@ -58,25 +53,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
 
-    const timestamps = (rows ?? []).map((r) => new Date(r.created_at));
+    const allRows = rows ?? [];
+
+    const isNeedsEmail = (r: (typeof allRows)[number]) => {
+      const meta = r.metadata as Record<string, unknown> | null | undefined;
+      return meta?.needs_provider_email === true && r.status !== "archived" && r.status !== "rejected";
+    };
+
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
-    const current = timestamps.filter(inRange);
-    const prior = timestamps.filter(inPrior);
-    const total = current.length;
+    // KPI: needs-email count in the current range + prior window for delta
+    let kpiCurrent = 0;
+    let kpiPrior = 0;
+    for (const r of allRows) {
+      if (!isNeedsEmail(r)) continue;
+      const t = new Date(r.created_at);
+      if (inRange(t)) kpiCurrent++;
+      else if (inPrior(t)) kpiPrior++;
+    }
 
     let delta: number | null = null;
     if (from) {
-      if (prior.length === 0) delta = current.length > 0 ? 100 : 0;
-      else delta = Math.round(((current.length - prior.length) / prior.length) * 100);
+      if (kpiPrior === 0) delta = kpiCurrent > 0 ? 100 : 0;
+      else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
     }
 
-    const bucket: Bucket = from ? resolveBucket(from, to) : resolveBucket(timestamps[0] ?? now, now);
-    const seriesStart = from ?? timestamps[0] ?? now;
-    const series = buildSeries(current, seriesStart, to, bucket);
+    // Series: ALL questions per bucket in the current range
+    const seriesTimestamps = allRows.map((r) => new Date(r.created_at)).filter(inRange);
+    const bucket: Bucket = from
+      ? resolveBucket(from, to)
+      : resolveBucket(seriesTimestamps[0] ?? now, now);
+    const seriesStart = from ?? seriesTimestamps[0] ?? now;
+    const series = buildSeries(seriesTimestamps, seriesStart, to, bucket);
 
-    return NextResponse.json({ total, delta, series, bucket });
+    return NextResponse.json({ total: kpiCurrent, delta, series, bucket });
   } catch (err) {
     console.error("Admin questions stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

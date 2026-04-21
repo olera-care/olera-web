@@ -388,8 +388,8 @@ export default async function ProviderPage({
         })()
       : Promise.resolve(null),
 
-    // 2. Similar providers
-    getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3),
+    // 2. Similar providers (state-filtered, with global fallback)
+    getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
 
     // 3. Q&A pairs + review count
     (async () => {
@@ -638,6 +638,29 @@ export default async function ProviderPage({
         reviewBody: r.comment,
       })),
     }),
+    // OfferCatalog — maps the list of services offered to schema.org Offers.
+    // Uses careServices (real care_types padded with category-inferred defaults).
+    ...(careServices.length > 0 && {
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Care Services",
+        itemListElement: careServices.map((service) => ({
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: service,
+          },
+        })),
+      },
+    }),
+    // sameAs — identity assertion linking this Olera page to the same
+    // entity on Google Maps via the place_id. Helps search engines
+    // understand the two listings describe the same business.
+    ...(providerPlaceId && {
+      sameAs: [
+        `https://www.google.com/maps/place/?q=place_id:${providerPlaceId}`,
+      ],
+    }),
   };
 
   // FAQPage schema — only emitted when real answered Q&A pairs exist
@@ -767,9 +790,20 @@ export default async function ProviderPage({
                 <div className="flex items-center justify-between mt-3">
                   <div>
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                      <PricingEducationBadge category={profile.category!} />
+                      <PricingEducationBadge
+                        category={profile.category!}
+                        providerName={profile.display_name}
+                        city={profile.city ?? undefined}
+                        state={profile.state ?? undefined}
+                      />
                     ) : hasPriceRange ? (
-                      <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
+                      <PriceEstimate
+                        priceRange={priceRange!}
+                        category={profile.category ?? undefined}
+                        providerName={profile.display_name}
+                        city={profile.city ?? undefined}
+                        state={profile.state ?? undefined}
+                      />
                     ) : (
                       <p className="text-sm text-gray-400">Contact for pricing</p>
                     )}
@@ -816,9 +850,22 @@ export default async function ProviderPage({
                 </div>
 
                 {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                  <div className="mt-1"><PricingEducationBadge category={profile.category!} /></div>
+                  <div className="mt-1">
+                    <PricingEducationBadge
+                      category={profile.category!}
+                      providerName={profile.display_name}
+                      city={profile.city ?? undefined}
+                      state={profile.state ?? undefined}
+                    />
+                  </div>
                 ) : hasPriceRange ? (
-                  <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
+                  <PriceEstimate
+                    priceRange={priceRange!}
+                    category={profile.category ?? undefined}
+                    providerName={profile.display_name}
+                    city={profile.city ?? undefined}
+                    state={profile.state ?? undefined}
+                  />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}
@@ -1053,9 +1100,17 @@ export default async function ProviderPage({
                   </div>
                   {pricingConfig && (
                     <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-                      {pricingConfig.disclaimer}
+                      {pricingConfig.disclaimer({
+                        providerName: profile.display_name,
+                        city: profile.city ?? undefined,
+                        state: profile.state ?? undefined,
+                      })}
                       {pricingConfig.coverageNote && (
-                        <> {pricingConfig.coverageNote}</>
+                        <> {pricingConfig.coverageNote({
+                          providerName: profile.display_name,
+                          city: profile.city ?? undefined,
+                          state: profile.state ?? undefined,
+                        })}</>
                       )}
                     </p>
                   )}
@@ -1177,13 +1232,16 @@ export default async function ProviderPage({
         </div>
 
         {/* ===== Compare Providers ===== */}
-        {similarProviders.length > 0 && (
+        {similarProviders.providers.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
-              Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options
+              {similarProviders.isLocal
+                ? <>Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options</>
+                : <>Compare {profile.display_name} to top-rated {categoryLabel ?? "similar"} providers</>
+              }
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {similarProviders.map((provider) => (
+              {similarProviders.providers.map((provider) => (
                 <CompactProviderCard key={provider.id} provider={provider} />
               ))}
             </div>

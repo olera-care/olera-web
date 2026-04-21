@@ -8,24 +8,34 @@ interface PricingEducationBadgeProps {
   category: string;
   /** Compact mode for cards (single line). Default false shows full note. */
   compact?: boolean;
+  /** Provider name — when supplied, the badge and tooltip are parameterized with it for SEO uniqueness. */
+  providerName?: string;
+  /** Provider city — combined with state to produce " in {city}, {state}" suffix in the tooltip. */
+  city?: string;
+  /** Provider state — see `city`. */
+  state?: string;
 }
 
 /**
  * Education-first pricing badge for Tier 3 categories (Nursing Home, Hospice).
  * Replaces dollar price labels with coverage information.
  *
- * - Nursing Home: "Medicare / Medicaid may cover"
- * - Hospice: "Usually covered by Medicare"
+ * Without providerName: "Medicare / Medicaid may cover" / "Usually covered by Medicare"
+ * With providerName:    "Medicare / Medicaid may cover stays at {providerName}" / "Usually covered by Medicare at {providerName}"
  *
  * Includes an info button that expands to show the full coverage note.
  */
 export default function PricingEducationBadge({
   category,
   compact = false,
+  providerName,
+  city,
+  state,
 }: PricingEducationBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const config = getPricingConfig(category);
+  const copyCtx = { providerName, city, state };
 
   useEffect(() => {
     if (!showTooltip) return;
@@ -45,10 +55,12 @@ export default function PricingEducationBadge({
   // Only render for Tier 3 categories
   if (config.tier !== 3) return null;
 
-  const badgeText =
-    category === "Hospice"
-      ? "Usually covered by Medicare"
-      : "Medicare / Medicaid may cover";
+  const isHospice = category === "Hospice";
+  const badgeText = providerName
+    ? (isHospice
+        ? `Usually covered by Medicare at ${providerName}`
+        : `Medicare / Medicaid may cover stays at ${providerName}`)
+    : (isHospice ? "Usually covered by Medicare" : "Medicare / Medicaid may cover");
 
   if (compact) {
     return (
@@ -97,7 +109,7 @@ export default function PricingEducationBadge({
       {showTooltip && config.coverageNote && (
         <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-30 w-[min(20rem,calc(100vw-2.5rem))]">
           <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
-            <p>{config.coverageNote}</p>
+            <p>{config.coverageNote(copyCtx)}</p>
           </div>
         </div>
       )}

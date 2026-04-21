@@ -277,9 +277,9 @@ export default async function ResourceArticlePage({
                 <span className="text-gray-500">
                   Published <span className="font-medium text-gray-700">{formatDate(publishedAt)}</span>
                 </span>
-                {article?.updated_at && (
+                {article?.reviewed_at && (
                   <span className="text-gray-500">
-                    Updated <span className="font-medium text-gray-700">{formatDate(article.updated_at)}</span>
+                    Verified <span className="font-medium text-gray-700">{formatDate(article.reviewed_at)}</span>
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1 text-gray-400">
@@ -506,6 +506,40 @@ export default async function ResourceArticlePage({
             </div>
           </div>
 
+          {/* Related Articles */}
+          {related.length > 0 && (
+            <section className="mt-14 mb-16">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Recommended</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {related.map((r) => {
+                  const relatedCareType = r.care_types?.[0] as CareTypeId | undefined;
+                  const relatedLabel = relatedCareType ? CARE_TYPE_CONFIG[relatedCareType]?.label : null;
+                  return (
+                    <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
+                      {r.cover_image_url && (
+                        <img
+                          src={r.cover_image_url}
+                          alt={r.title}
+                          className="w-full aspect-[3/2] object-cover rounded-xl mb-3 group-hover:opacity-90 transition-opacity"
+                        />
+                      )}
+                      {relatedLabel && (
+                        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-1">
+                          {relatedLabel}
+                        </p>
+                      )}
+                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
+                        {r.title}
+                      </h3>
+                      {r.reading_time && (
+                        <p className="text-xs text-gray-400">{r.reading_time}</p>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
           </article>
         </div>
 

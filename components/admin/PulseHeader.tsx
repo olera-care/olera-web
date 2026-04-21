@@ -290,7 +290,7 @@ function Chart({
               {series[hoverIndex].count.toLocaleString()}
             </div>
             <div className="text-[10px] text-gray-300 leading-tight mt-0.5">
-              {formatBucketDate(series[hoverIndex].date, bucket)}
+              {formatBucketDate(series[hoverIndex].date, bucket, true)}
             </div>
           </div>
         )}
@@ -306,15 +306,37 @@ function Chart({
   );
 }
 
-function formatBucketDate(iso: string, bucket: Bucket): string {
+/**
+ * Format a bucket's date label for display.
+ *
+ * Server buckets on UTC boundaries; labels are formatted in UTC so they line
+ * up with the bucketing rather than drifting by a timezone offset.
+ *
+ * When `verbose` is true (tooltip context), week/month labels are expanded so
+ * the reader knows they're looking at aggregated totals, not a single day:
+ *   week  → "Apr 12 – Apr 18"
+ *   month → "April 2026"
+ * In non-verbose context (axis corner labels), everything stays short to keep
+ * the chart edges clean.
+ */
+function formatBucketDate(iso: string, bucket: Bucket, verbose = false): string {
   const d = new Date(iso);
-  // Server buckets on UTC day boundaries; format labels in UTC so they
-  // line up with the bucketing rather than drifting by a timezone offset.
   if (bucket === "hour") {
     return d.toLocaleString("en-US", { hour: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
   }
   if (bucket === "month") {
-    return d.toLocaleString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+    return d.toLocaleString("en-US", {
+      month: verbose ? "long" : "short",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  }
+  if (bucket === "week" && verbose) {
+    const end = new Date(d);
+    end.setUTCDate(end.getUTCDate() + 6);
+    const startLabel = d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    const endLabel = end.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    return `${startLabel} – ${endLabel}`;
   }
   return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }

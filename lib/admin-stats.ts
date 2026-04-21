@@ -4,14 +4,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Pick a bucket size so the series stays in a readable range.
- * Weekly stays dominant up to ~2 years so "all time" views show texture,
- * not a near-flat monthly line.
+ *
+ * Thresholds are chosen so common presets land cleanly:
+ *  - "Today" / "Yesterday" → hour
+ *  - "Last 7 / 30 days"    → day
+ *  - "Last 90 days"        → week (preset is ~90.6 days past midnight)
+ *  - "Last 12 months"      → week
+ *  - Custom > ~13 months   → month
  */
 export function resolveBucket(from: Date, to: Date): Bucket {
   const days = (to.getTime() - from.getTime()) / DAY_MS;
   if (days <= 2) return "hour";
-  if (days <= 90) return "day";
-  if (days <= 730) return "week";
+  if (days <= 45) return "day";
+  if (days <= 400) return "week";
   return "month";
 }
 

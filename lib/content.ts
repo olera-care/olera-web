@@ -88,6 +88,7 @@ export async function getArticleBySlugAnyStatus(slug: string): Promise<ContentAr
 
 /**
  * Fetch related articles (same care type, excluding current).
+ * Falls back to same-section articles when care-type match is insufficient.
  */
 export async function getRelatedArticles(
   articleId: string,
@@ -95,26 +96,66 @@ export async function getRelatedArticles(
   limit = 3,
   section?: string
 ): Promise<ContentArticle[]> {
-  if (careTypes.length === 0) return [];
-
   const supabase = await createClient();
 
-  let query = supabase
+  // Try same care type first
+  if (careTypes.length > 0) {
+    let query = supabase
+      .from("content_articles")
+      .select("*")
+      .eq("status", "published")
+      .not("published_at", "is", null)
+      .neq("id", articleId)
+      .contains("care_types", [careTypes[0]])
+      .order("published_at", { ascending: false })
+      .limit(limit);
+
+    if (section) {
+      query = query.eq("section", section);
+    }
+
+    const { data, error } = await query;
+    if (!error && data && data.length >= limit) {
+      return data as ContentArticle[];
+    }
+
+    // If we got some but not enough, keep them and backfill
+    const partial = (!error && data) ? data as ContentArticle[] : [];
+    if (partial.length > 0 && partial.length < limit) {
+      const excludeIds = [articleId, ...partial.map(a => a.id)];
+      let backfill = supabase
+        .from("content_articles")
+        .select("*")
+        .eq("status", "published")
+        .not("published_at", "is", null)
+        .not("id", "in", `(${excludeIds.join(",")})`)
+        .order("published_at", { ascending: false })
+        .limit(limit - partial.length);
+
+      if (section) {
+        backfill = backfill.eq("section", section);
+      }
+
+      const { data: extra } = await backfill;
+      return [...partial, ...((extra ?? []) as ContentArticle[])];
+    }
+  }
+
+  // Fallback: any published article in same section
+  let fallback = supabase
     .from("content_articles")
     .select("*")
     .eq("status", "published")
     .not("published_at", "is", null)
     .neq("id", articleId)
-    .contains("care_types", [careTypes[0]])
     .order("published_at", { ascending: false })
     .limit(limit);
 
   if (section) {
-    query = query.eq("section", section);
+    fallback = fallback.eq("section", section);
   }
 
-  const { data, error } = await query;
-
+  const { data, error } = await fallback;
   if (error) {
     console.error("getRelatedArticles error:", error);
     return [];

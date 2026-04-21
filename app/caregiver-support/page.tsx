@@ -43,7 +43,7 @@ function apiToResource(a: ArticleFromAPI): Resource {
     category: a.category || "",
     author: { name: a.author_name, role: a.author_role || "" },
     publishedAt: a.published_at || new Date().toISOString(),
-    readingTime: (a.reading_time as Resource["readingTime"]) || "5 min",
+    readingTime: (a.reading_time as Resource["readingTime"]) || "5 min read",
     featured: a.featured,
     tags: a.tags || [],
   };
@@ -84,7 +84,7 @@ function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
             </p>
           )}
           <span className="mt-auto text-sm text-gray-400">
-            {resource.readingTime} read
+            {resource.readingTime}
           </span>
         </div>
       </article>
@@ -118,7 +118,7 @@ function FeaturedArticleSecondary({ resource }: { resource: Resource }) {
             {resource.title}
           </h3>
           <span className="mt-1.5 text-xs text-gray-400">
-            {resource.readingTime} read
+            {resource.readingTime}
           </span>
         </div>
       </article>
@@ -204,7 +204,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
           </p>
         )}
         <span className="text-sm text-gray-400">
-          {primary.readingTime} read
+          {primary.readingTime}
         </span>
       </Link>
     </section>
@@ -269,7 +269,7 @@ function ArticleCard({ resource }: { resource: Resource }) {
           {resource.title}
         </h3>
         <span className="mt-2 block text-sm text-gray-400">
-          {resource.readingTime} read
+          {resource.readingTime}
         </span>
       </article>
     </Link>

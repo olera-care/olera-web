@@ -28,8 +28,8 @@ export function DesktopTableOfContents({ headings }: TableOfContentsProps) {
                 pl-3
                 ${
                   activeId === h.id
-                    ? "border-primary-600 text-gray-900 font-medium"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
+                    ? "border-primary-600 text-gray-900 font-medium underline underline-offset-2"
+                    : "border-transparent text-gray-600 hover:text-gray-900 underline underline-offset-2 decoration-gray-300 hover:decoration-gray-500"
                 }
               `}
             >

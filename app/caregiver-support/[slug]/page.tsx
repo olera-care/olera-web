@@ -175,7 +175,7 @@ export default async function ResourceArticlePage({
 
   // Related articles
   const related = article
-    ? await getRelatedArticles(article.id, careTypes, 3)
+    ? await getRelatedArticles(article.id, careTypes, 3, "caregiver-support")
     : [];
 
   // JSON-LD structured data
@@ -269,73 +269,119 @@ export default async function ResourceArticlePage({
               </p>
             )}
 
-            {/* Metadata row */}
-            <div className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">
-              {showAuthorCard ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    {authorAvatar ? (
-                      <img
-                        src={authorAvatar}
-                        alt={authorName}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+            {/* Metadata + Verified by + Share */}
+            <div className="flex items-start gap-6 mb-10">
+            <div className="flex-1 border-l-[3px] border-primary-400 bg-gradient-to-r from-primary-50/60 to-transparent pl-5 pr-4 py-4 rounded-r-lg">
+              {/* Top row: date + reading time */}
+              <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm mb-3">
+                <span className="text-gray-500">
+                  Published <span className="font-medium text-gray-700">{formatDate(publishedAt)}</span>
+                </span>
+                {article?.updated_at && (
+                  <span className="text-gray-500">
+                    Updated <span className="font-medium text-gray-700">{formatDate(article.updated_at)}</span>
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 text-gray-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+                  </svg>
+                  {readingTime}
+                </span>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200/60 mb-3" />
+
+              {/* Author + Reviewer row */}
+              <div className="flex items-center flex-wrap gap-x-6 gap-y-3">
+                {/* Written by */}
+                <div className="flex items-center gap-2">
+                  {showAuthorCard && authorAvatar ? (
+                    <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">Written by</p>
+                    <p className="text-sm font-semibold text-gray-800">{showAuthorCard ? authorName : "Olera team"}</p>
+                  </div>
+                </div>
+
+                {/* Verified by */}
+                {!byline.isSamePerson && reviewerName && (
+                  reviewerSlug ? (
+                    <Link href="/team" className="flex items-center gap-2 group">
+                      {reviewerAvatar ? (
+                        <img src={reviewerAvatar} alt={reviewerName} className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-medium">
+                            {reviewerName.split(" ").map((n) => n[0]).join("")}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">Verified by</p>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">{reviewerName}</p>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-xs font-medium">
-                          {authorName.split(" ").map((n) => n[0]).join("")}
+                          {reviewerName.split(" ").map((n) => n[0]).join("")}
                         </span>
                       </div>
-                    )}
-                    <span>
-                      <span className="text-gray-400">Written by </span>
-                      {authorSlug ? (
-                        <Link href={`/author/${authorSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
-                          {authorName}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-600 font-medium">{authorName}</span>
-                      )}
-                    </span>
-                  </div>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              ) : (
-                <>
-                  <span>
-                    <span className="text-gray-400">Published by </span>
-                    <span className="text-gray-600 font-medium">Olera team</span>
-                  </span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              )}
-              {!byline.isSamePerson && reviewerName && (
-                <>
-                  <span className="text-gray-400">Verified by{" "}
-                    {reviewerSlug ? (
-                      <Link href={`/author/${reviewerSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
-                        {reviewerName}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-600 font-medium">{reviewerName}</span>
-                    )}
-                  </span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              )}
-              {publishedAt && (
-                <>
-                  <span>{formatDate(publishedAt)}</span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              )}
-              {article?.reviewed_at && (
-                <>
-                  <span>Verified {formatDate(article.reviewed_at)}</span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
-              )}
-              <span>{readingTime}</span>
+                      <div>
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">Verified by</p>
+                        <p className="text-sm font-semibold text-gray-800">{reviewerName}</p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Share buttons */}
+            <div className="hidden sm:flex items-center gap-2 pt-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Share</p>
+              <a
+                href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`https://olera.care/caregiver-support/${slug}`)}`}
+                className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:border-gray-400 transition-colors"
+                aria-label="Share via email"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://olera.care/caregiver-support/${slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:border-gray-400 transition-colors"
+                aria-label="Share on LinkedIn"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://olera.care/caregiver-support/${slug}`)}&text=${encodeURIComponent(title)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:border-gray-400 transition-colors"
+                aria-label="Share on X"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+            </div>
             </div>
           </header>
 
@@ -441,37 +487,6 @@ export default async function ResourceArticlePage({
               </div>
             )}
 
-            {/* Reviewer — skip when author is the same person to avoid duplicate card */}
-            {!byline.isSamePerson && reviewerName && (
-              <div className="flex items-center gap-3 mb-6">
-                {reviewerAvatar ? (
-                  <img
-                    src={reviewerAvatar}
-                    alt={reviewerName}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-medium">
-                      {reviewerName.split(" ").map((n) => n[0]).join("")}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-0.5">Verified by</p>
-                  {reviewerSlug ? (
-                    <Link href={`/author/${reviewerSlug}`} className="text-sm font-semibold text-gray-900 hover:text-primary-600 transition-colors">
-                      {reviewerName}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
-                  )}
-                  {reviewerRole && (
-                    <p className="text-sm text-gray-500">{reviewerRole}</p>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Tags */}
             <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -491,40 +506,6 @@ export default async function ResourceArticlePage({
             </div>
           </div>
 
-          {/* Related Articles */}
-          {related.length > 0 && (
-            <section className="mt-14 mb-16">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Recommended</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {related.map((r) => {
-                  const relatedCareType = r.care_types?.[0] as CareTypeId | undefined;
-                  const relatedLabel = relatedCareType ? CARE_TYPE_CONFIG[relatedCareType]?.label : null;
-                  return (
-                    <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
-                      {r.cover_image_url && (
-                        <img
-                          src={r.cover_image_url}
-                          alt={r.title}
-                          className="w-full aspect-[3/2] object-cover rounded-xl mb-3 group-hover:opacity-90 transition-opacity"
-                        />
-                      )}
-                      {relatedLabel && (
-                        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-1">
-                          {relatedLabel}
-                        </p>
-                      )}
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
-                        {r.title}
-                      </h3>
-                      {r.reading_time && (
-                        <p className="text-xs text-gray-400">{r.reading_time}</p>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
           </article>
         </div>
 

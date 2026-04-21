@@ -1220,9 +1220,7 @@ function ProviderOnboardingContent() {
                 Confirm your organization
               </h1>
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                {selectedOrg || createNewSelected
-                  ? "Enter your email to continue."
-                  : "Search our directory of 50,000+ providers. Claim your page or create a new one."}
+                Enter your email to continue.
               </p>
             </div>
 

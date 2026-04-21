@@ -80,8 +80,9 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
       if (!providerProfile) {
+        console.log("[get-document-url] No provider profile for account:", account.id);
         return NextResponse.json(
-          { error: "Access denied" },
+          { error: "No provider profile found for your account" },
           { status: 403 }
         );
       }
@@ -91,10 +92,10 @@ export async function POST(req: NextRequest) {
         // Check for confirmed interview
         const { data: interview } = await admin
           .from("interviews")
-          .select("id")
+          .select("id, status")
           .eq("provider_profile_id", providerProfile.id)
           .eq("student_profile_id", studentProfileId)
-          .eq("status", "confirmed")
+          .in("status", ["confirmed", "completed"])
           .maybeSingle();
 
         // Check for paid access
@@ -107,8 +108,14 @@ export async function POST(req: NextRequest) {
         const isPaid = access && (access as { tier?: string }).tier === "paid";
 
         if (!interview && !isPaid) {
+          console.log("[get-document-url] Access denied:", {
+            providerProfileId: providerProfile.id,
+            studentProfileId,
+            hasInterview: !!interview,
+            accessTier: access?.tier,
+          });
           return NextResponse.json(
-            { error: "Access denied - no confirmed interview or paid access" },
+            { error: "Access denied - requires confirmed interview or paid access" },
             { status: 403 }
           );
         }
@@ -122,8 +129,9 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (!access || (access as { tier?: string }).tier !== "paid") {
+          console.log("[get-document-url] No studentProfileId and no paid access");
           return NextResponse.json(
-            { error: "Access denied" },
+            { error: "Student profile ID required or paid access needed" },
             { status: 403 }
           );
         }

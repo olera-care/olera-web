@@ -15,7 +15,7 @@ export default function CreateProfileRedirect() {
     sessionStorage.removeItem("olera_create_profile_form");
 
     // Redirect to the provider onboarding flow (auth at the end)
-    router.replace("/provider/onboarding");
+    router.replace("/provider/onboarding?returnTo=/for-providers");
   }, [router]);
 
   return (

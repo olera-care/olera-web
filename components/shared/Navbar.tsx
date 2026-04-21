@@ -566,7 +566,9 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/provider/onboarding");
+            // Return to current page on Exit, or /for-providers if on onboarding already
+            const returnTo = pathname.startsWith("/provider/onboarding") ? "/for-providers" : pathname;
+            router.push(`/provider/onboarding?returnTo=${encodeURIComponent(returnTo)}`);
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
@@ -1443,7 +1445,9 @@ export default function Navbar() {
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push("/provider/onboarding");
+                    // Return to current page on Exit, or /for-providers if on onboarding already
+                    const returnTo = pathname.startsWith("/provider/onboarding") ? "/for-providers" : pathname;
+                    router.push(`/provider/onboarding?returnTo=${encodeURIComponent(returnTo)}`);
                   }}
                   className="w-full py-2.5 text-sm text-gray-500 hover:text-primary-600 transition-colors min-h-[44px]"
                 >

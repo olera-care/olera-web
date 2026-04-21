@@ -139,7 +139,7 @@ export default function AdminQuestionsPage() {
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [range, setRange] = useState<DateRangeValue>({ preset: "all", customFrom: "", customTo: "" });
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

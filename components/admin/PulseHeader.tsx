@@ -223,7 +223,7 @@ function Chart({
                 d={chart.linePath}
                 fill="none"
                 stroke="#047857"
-                strokeWidth={1.75}
+                strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -321,19 +321,19 @@ function formatBucketDate(iso: string, bucket: Bucket): string {
 
 /**
  * Round a value up to the next "nice" number (1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10
- * × power of 10). Combined with a 1.5x target, this gives the chart ~60–70%
- * peak proportion regardless of magnitude — visible headroom, clean axis label,
- * scales indefinitely without magic numbers.
+ * × power of 10). Combined with a 1.75x target, peaks land in the 40–55%
+ * zone — visible headroom regardless of magnitude, clean axis label, scales
+ * indefinitely without magic numbers.
  *
- *   9    → 15     (peak 60%)
- *   51   → 80     (peak 64%)
- *   120  → 200    (peak 60%)
- *   250  → 400    (peak 62%)
- *   999  → 1500   (peak 67%)
+ *   9    → 20     (peak 45%)
+ *   51   → 100    (peak 51%)
+ *   120  → 250    (peak 48%)
+ *   650  → 1500   (peak 43%)
+ *   999  → 2000   (peak 50%)
  */
 function niceCeiling(value: number): number {
   if (value <= 0) return 10;
-  const target = value * 1.5;
+  const target = value * 1.75;
   const exp = Math.floor(Math.log10(target));
   const pow = Math.pow(10, exp);
   const normalized = target / pow;
@@ -343,8 +343,13 @@ function niceCeiling(value: number): number {
 }
 
 /**
- * Build a monotone cubic Bezier path (Fritsch–Carlson) from the series.
- * Keeps curves smooth without overshooting between points.
+ * Build a straight polyline from the series.
+ *
+ * Previously used monotone cubic smoothing. Switched to linear because smooth
+ * curves on discrete daily buckets create "upward inflections" — the
+ * S-shape rise between two buckets visually implies data values that don't
+ * exist in the source. Linear interpolation is the most honest read of
+ * discrete time-series, and aligns with Linear / Stripe / Datadog analytics.
  *
  * Y-axis ceiling auto-adjusts to a nice round number above the data max so
  * peaks always have visible headroom and never look clipped.
@@ -366,8 +371,6 @@ function buildPath(
     };
   }
 
-  // realMax drives the empty-state check; scaleMax is the nice-rounded
-  // ceiling used both for scaling and as the axis label.
   const realMax = series.reduce((m, p) => Math.max(m, p.count), 0);
   const scaleMax = Math.max(1, niceCeiling(realMax));
   const n = series.length;
@@ -391,34 +394,9 @@ function buildPath(
     };
   }
 
-  // Fritsch–Carlson monotone cubic interpolation
-  const dx: number[] = [];
-  const dy: number[] = [];
-  for (let i = 0; i < n - 1; i++) {
-    dx.push(points[i + 1].x - points[i].x);
-    dy.push(points[i + 1].y - points[i].y);
-  }
-  const slope: number[] = [];
-  slope[0] = dy[0] / dx[0];
-  for (let i = 1; i < n - 1; i++) {
-    if (dy[i - 1] * dy[i] <= 0) {
-      slope[i] = 0;
-    } else {
-      const common = dx[i - 1] + dx[i];
-      slope[i] =
-        (3 * common) /
-        ((common + dx[i]) / dy[i - 1] + (common + dx[i - 1]) / dy[i]);
-    }
-  }
-  slope[n - 1] = dy[n - 2] / dx[n - 2];
-
   let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-  for (let i = 0; i < n - 1; i++) {
-    const x1 = points[i].x + dx[i] / 3;
-    const y1 = points[i].y + (slope[i] * dx[i]) / 3;
-    const x2 = points[i + 1].x - dx[i] / 3;
-    const y2 = points[i + 1].y - (slope[i + 1] * dx[i]) / 3;
-    d += ` C ${x1.toFixed(2)} ${y1.toFixed(2)}, ${x2.toFixed(2)} ${y2.toFixed(2)}, ${points[i + 1].x.toFixed(2)} ${points[i + 1].y.toFixed(2)}`;
+  for (let i = 1; i < n; i++) {
+    d += ` L ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)}`;
   }
 
   const areaPath = `${d} L ${points[n - 1].x.toFixed(2)} ${height} L ${points[0].x.toFixed(2)} ${height} Z`;

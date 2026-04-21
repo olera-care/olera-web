@@ -206,6 +206,8 @@ function ProviderOnboardingContent() {
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
   // Track when user explicitly clicks "Create new" from autocomplete
   const [createNewSelected, setCreateNewSelected] = useState(false);
+  // Track if org was pre-filled from URL (provider details page) - these should stay read-only
+  const [isPrefilledFromUrl, setIsPrefilledFromUrl] = useState(false);
 
   // City picker state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -695,6 +697,7 @@ function ProviderOnboardingContent() {
             providerId: bp.id,
           };
           setSelectedOrg(org);
+          setIsPrefilledFromUrl(true); // Mark as prefilled from URL - should stay read-only
           setFormData(prev => ({
             ...prev,
             orgName: org.name,
@@ -738,6 +741,7 @@ function ProviderOnboardingContent() {
             providerId: op.provider_id,
           };
           setSelectedOrg(org);
+          setIsPrefilledFromUrl(true); // Mark as prefilled from URL - should stay read-only
           setFormData(prev => ({
             ...prev,
             orgName: org.name,
@@ -754,7 +758,7 @@ function ProviderOnboardingContent() {
     };
 
     fetchProvider();
-  }, [searchParams, selectedOrg]);
+  }, [searchParams, selectedOrg, isPrefilledFromUrl]);
 
   // ──────────────────────────────────────────────────────────
   // Form Handlers
@@ -1226,13 +1230,13 @@ function ProviderOnboardingContent() {
 
             {/* Search Form Card */}
             <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 space-y-5">
-              {/* Organization Name - read-only if claiming existing listing, editable otherwise */}
+              {/* Organization Name - read-only only if prefilled from URL (provider details page) */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
                   Organization name
                 </label>
-                {selectedOrg && !createNewSelected ? (
-                  // Read-only display for claiming existing listing
+                {selectedOrg && !createNewSelected && isPrefilledFromUrl ? (
+                  // Read-only display for claiming from provider details page
                   <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-900">
                     <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -1279,13 +1283,13 @@ function ProviderOnboardingContent() {
                 )}
               </div>
 
-              {/* City, State - read-only if claiming existing listing with location, editable otherwise */}
+              {/* City, State - read-only only if prefilled from URL (provider details page) */}
               <div className="space-y-2">
                 <label htmlFor="city" className="block text-base font-semibold text-gray-900">
                   City, State
                 </label>
-                {selectedOrg && !createNewSelected && selectedOrg.city && selectedOrg.state ? (
-                  // Read-only display for claiming existing listing
+                {selectedOrg && !createNewSelected && isPrefilledFromUrl && selectedOrg.city && selectedOrg.state ? (
+                  // Read-only display for claiming from provider details page
                   <div className="flex items-center gap-2 px-4 py-3 bg-primary-50/50 rounded-xl border-2 border-primary-500 text-gray-900">
                     <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

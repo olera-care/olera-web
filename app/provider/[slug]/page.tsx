@@ -850,9 +850,22 @@ export default async function ProviderPage({
                 </div>
 
                 {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                  <div className="mt-1"><PricingEducationBadge category={profile.category!} /></div>
+                  <div className="mt-1">
+                    <PricingEducationBadge
+                      category={profile.category!}
+                      providerName={profile.display_name}
+                      city={profile.city ?? undefined}
+                      state={profile.state ?? undefined}
+                    />
+                  </div>
                 ) : hasPriceRange ? (
-                  <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
+                  <PriceEstimate
+                    priceRange={priceRange!}
+                    category={profile.category ?? undefined}
+                    providerName={profile.display_name}
+                    city={profile.city ?? undefined}
+                    state={profile.state ?? undefined}
+                  />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}

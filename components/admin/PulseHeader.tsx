@@ -114,9 +114,9 @@ function priorLabel(range: DateRangeValue): string {
   return "period";
 }
 
-const CHART_HEIGHT = 140;
-const CHART_PAD_TOP = 10;
-const CHART_PAD_BOTTOM = 4;
+const CHART_HEIGHT = 180;
+const CHART_PAD_TOP = 22;
+const CHART_PAD_BOTTOM = 8;
 
 function Chart({
   series,
@@ -280,13 +280,15 @@ function Chart({
 
 function formatBucketDate(iso: string, bucket: Bucket): string {
   const d = new Date(iso);
+  // Server buckets on UTC day boundaries; format labels in UTC so they
+  // line up with the bucketing rather than drifting by a timezone offset.
   if (bucket === "hour") {
-    return d.toLocaleString("en-US", { hour: "numeric", month: "short", day: "numeric" });
+    return d.toLocaleString("en-US", { hour: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
   }
   if (bucket === "month") {
-    return d.toLocaleString("en-US", { month: "short", year: "numeric" });
+    return d.toLocaleString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
   }
-  return d.toLocaleString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 /**

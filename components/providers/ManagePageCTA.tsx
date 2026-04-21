@@ -128,7 +128,7 @@ export default function ManagePageCTA({
   const handleClaimClick = useCallback(() => {
     setOpen(false);
     // Add returnTo param so Exit button returns to this provider's page
-    router.push(`/provider/onboarding?org=${providerSlug}&returnTo=/providers/${providerSlug}`);
+    router.push(`/provider/onboarding?org=${providerSlug}&returnTo=/provider/${providerSlug}`);
   }, [router, providerSlug]);
 
   // Dispute flow: go to dispute page

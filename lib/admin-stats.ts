@@ -5,18 +5,18 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /**
  * Pick a bucket size so the series stays in a readable range.
  *
- * Thresholds are chosen so common presets land cleanly:
- *  - "Today" / "Yesterday" → hour
- *  - "Last 7 / 30 days"    → day
- *  - "Last 90 days"        → week (preset is ~90.6 days past midnight)
- *  - "Last 12 months"      → week
- *  - Custom > ~13 months   → month
+ * Each "view" aggregates into units one granularity below it:
+ *   Day view       → hourly
+ *   Week view (7d) → daily
+ *   Month view     → weekly
+ *   Quarter (90d)  → weekly
+ *   Year view (1y) → monthly
  */
 export function resolveBucket(from: Date, to: Date): Bucket {
   const days = (to.getTime() - from.getTime()) / DAY_MS;
   if (days <= 2) return "hour";
-  if (days <= 45) return "day";
-  if (days <= 400) return "week";
+  if (days <= 14) return "day";
+  if (days <= 180) return "week";
   return "month";
 }
 

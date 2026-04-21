@@ -2,12 +2,16 @@ export type Bucket = "hour" | "day" | "week" | "month";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Pick a bucket size so the series stays in the 20–60 point range. */
+/**
+ * Pick a bucket size so the series stays in a readable range.
+ * Weekly stays dominant up to ~2 years so "all time" views show texture,
+ * not a near-flat monthly line.
+ */
 export function resolveBucket(from: Date, to: Date): Bucket {
   const days = (to.getTime() - from.getTime()) / DAY_MS;
   if (days <= 2) return "hour";
-  if (days <= 60) return "day";
-  if (days <= 365) return "week";
+  if (days <= 90) return "day";
+  if (days <= 730) return "week";
   return "month";
 }
 

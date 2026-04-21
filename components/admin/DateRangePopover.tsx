@@ -134,8 +134,9 @@ export default function DateRangePopover({
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-50"
+          className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-50"
           role="dialog"
+          aria-label="Date range"
         >
           <div className="py-1.5">
             {PRESETS.map((p) => {
@@ -143,6 +144,7 @@ export default function DateRangePopover({
               return (
                 <button
                   key={p.value}
+                  type="button"
                   onClick={() => pickPreset(p.value)}
                   className={`flex items-center justify-between w-full px-4 py-2 text-sm text-left transition-colors ${
                     isActive ? "text-gray-900 font-medium" : "text-gray-700 hover:bg-gray-50"
@@ -160,27 +162,31 @@ export default function DateRangePopover({
           </div>
 
           <div className="border-t border-gray-100 px-4 py-3">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400 mb-2">Custom range</p>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={draftFrom}
-                onChange={(e) => setDraftFrom(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-                aria-label="From date"
-              />
-              <span className="text-xs text-gray-400">to</span>
-              <input
-                type="date"
-                value={draftTo}
-                min={draftFrom || undefined}
-                onChange={(e) => setDraftTo(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-                aria-label="To date"
-              />
+            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400 mb-2.5">Custom range</p>
+            <div className="space-y-2">
+              <label className="block">
+                <span className="block text-[11px] text-gray-500 mb-1">From</span>
+                <input
+                  type="date"
+                  value={draftFrom}
+                  onChange={(e) => setDraftFrom(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                />
+              </label>
+              <label className="block">
+                <span className="block text-[11px] text-gray-500 mb-1">To</span>
+                <input
+                  type="date"
+                  value={draftTo}
+                  min={draftFrom || undefined}
+                  onChange={(e) => setDraftTo(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                />
+              </label>
             </div>
             <div className="mt-3 flex justify-end">
               <button
+                type="button"
                 onClick={applyCustom}
                 disabled={!draftFrom}
                 className="px-3.5 h-8 text-xs font-medium text-white bg-gray-900 rounded-full hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"

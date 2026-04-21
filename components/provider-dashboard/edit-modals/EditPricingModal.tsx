@@ -341,11 +341,12 @@ export default function EditPricingModal({
           {/* Category-specific pricing guidance */}
           {profile.category && (() => {
             const config = getPricingConfig(profile.category);
+            // Generic (provider-facing) text — provider knows which facility is theirs.
             if (config.tier === 3 && config.coverageNote) {
               return (
                 <div className="mt-3 px-3.5 py-2.5 bg-teal-50 rounded-lg border border-teal-100">
                   <p className="text-xs text-teal-800 leading-relaxed">
-                    <span className="font-semibold">Note:</span> {config.coverageNote}{" "}
+                    <span className="font-semibold">Note:</span> {config.coverageNote()}{" "}
                     Consider listing both private-pay rates and accepted coverage options.
                   </p>
                 </div>
@@ -355,7 +356,7 @@ export default function EditPricingModal({
               return (
                 <div className="mt-3 px-3.5 py-2.5 bg-blue-50 rounded-lg border border-blue-100">
                   <p className="text-xs text-blue-800 leading-relaxed">
-                    <span className="font-semibold">Tip:</span> {config.coverageNote}
+                    <span className="font-semibold">Tip:</span> {config.coverageNote()}
                   </p>
                 </div>
               );

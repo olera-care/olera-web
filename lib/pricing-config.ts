@@ -19,6 +19,21 @@ export type PricingTier = 1 | 2 | 3;
 
 export type PriceUnit = "hour" | "month" | "day";
 
+/**
+ * Context passed into disclaimer/coverageNote template functions to
+ * parameterize otherwise-generic copy with the specific provider's
+ * name and location. When no context is supplied, the template returns
+ * the generic sentence so non-provider callers (dashboards, city pages,
+ * etc.) still get sensible default text.
+ */
+export interface PricingCopyContext {
+  providerName?: string;
+  city?: string;
+  state?: string;
+}
+
+export type PricingCopyFn = (ctx?: PricingCopyContext) => string;
+
 export interface CategoryPricingConfig {
   /** Display name for the category */
   label: string;
@@ -28,12 +43,20 @@ export interface CategoryPricingConfig {
   unit: PriceUnit;
   /** Whether to show dollar estimates for unclaimed providers */
   showEstimate: boolean;
-  /** Short disclaimer shown in tooltip next to price */
-  disclaimer: string;
-  /** Coverage/payment education note (Tier 2 & 3 only) */
-  coverageNote: string | null;
-  /** One-line context for city page SEO content */
+  /** Short disclaimer shown in tooltip next to price. Parameterized with provider name + city/state when context is supplied. */
+  disclaimer: PricingCopyFn;
+  /** Coverage/payment education note (Tier 2 & 3 only). Parameterized with provider name + city/state when context is supplied. */
+  coverageNote: PricingCopyFn | null;
+  /** One-line context for city page SEO content (static — city pages already have city context in the URL). */
   cityPageNote: string;
+}
+
+/** Build " in {city}, {state}" suffix, or " in {city}" / "" when data is partial. */
+function locSuffix(ctx?: PricingCopyContext): string {
+  if (!ctx) return "";
+  if (ctx.city && ctx.state) return ` in ${ctx.city}, ${ctx.state}`;
+  if (ctx.city) return ` in ${ctx.city}`;
+  return "";
 }
 
 export interface StateMedianCosts {
@@ -63,8 +86,10 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 1,
     unit: "hour",
     showEstimate: true,
-    disclaimer:
-      "Rates vary based on care needs, schedule, and caregiver experience.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Rates at ${ctx.providerName}${locSuffix(ctx)} vary based on care needs, schedule, and caregiver experience.`
+        : "Rates vary based on care needs, schedule, and caregiver experience.",
     coverageNote: null,
     cityPageNote:
       "Home care costs vary based on hours needed and level of care.",
@@ -75,8 +100,10 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 1,
     unit: "month",
     showEstimate: true,
-    disclaimer:
-      "Costs vary by apartment size, community amenities, and location.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Costs at ${ctx.providerName}${locSuffix(ctx)} vary by apartment size, community amenities, and location.`
+        : "Costs vary by apartment size, community amenities, and location.",
     coverageNote: null,
     cityPageNote:
       "Independent living costs are similar to market-rate apartments with added amenities and services.",
@@ -87,8 +114,10 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 1,
     unit: "month",
     showEstimate: true,
-    disclaimer:
-      "Costs vary based on room type, care level, and community amenities.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Costs at ${ctx.providerName}${locSuffix(ctx)} vary based on room type, care level, and community amenities.`
+        : "Costs vary based on room type, care level, and community amenities.",
     coverageNote: null,
     cityPageNote:
       "Assisted living costs depend on room type, care level needed, and community amenities.",
@@ -99,10 +128,14 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 2,
     unit: "month",
     showEstimate: true,
-    disclaimer:
-      "Costs vary significantly based on the level of specialized care needed.",
-    coverageNote:
-      "Some memory care costs may be partially covered by Medicaid or Veterans benefits. Long-term care insurance may also apply.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Costs at ${ctx.providerName}${locSuffix(ctx)} vary significantly based on the level of specialized care needed.`
+        : "Costs vary significantly based on the level of specialized care needed.",
+    coverageNote: (ctx) =>
+      ctx?.providerName
+        ? `Some memory care costs at ${ctx.providerName}${locSuffix(ctx)} may be partially covered by Medicaid or Veterans benefits. Long-term care insurance may also apply.`
+        : "Some memory care costs may be partially covered by Medicaid or Veterans benefits. Long-term care insurance may also apply.",
     cityPageNote:
       "Memory care costs depend heavily on the level of specialized care needed. Some costs may be covered by Medicaid or VA benefits.",
   },
@@ -112,10 +145,14 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 3,
     unit: "hour",
     showEstimate: false,
-    disclaimer:
-      "Most home health services are covered by Medicare at no cost to patients when ordered by a doctor.",
-    coverageNote:
-      "Medicare covers most home health services — skilled nursing, physical therapy, occupational therapy, and speech therapy — at no cost when you are homebound and have a doctor's order.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Most home health services at ${ctx.providerName}${locSuffix(ctx)} are covered by Medicare at no cost to patients when ordered by a doctor.`
+        : "Most home health services are covered by Medicare at no cost to patients when ordered by a doctor.",
+    coverageNote: (ctx) =>
+      ctx?.providerName
+        ? `Medicare covers most home health services at ${ctx.providerName}${locSuffix(ctx)} — skilled nursing, physical therapy, occupational therapy, and speech therapy — at no cost when you are homebound and have a doctor's order.`
+        : "Medicare covers most home health services — skilled nursing, physical therapy, occupational therapy, and speech therapy — at no cost when you are homebound and have a doctor's order.",
     cityPageNote:
       "Most home health services are covered by Medicare at no cost to patients. A doctor's order is required.",
   },
@@ -125,10 +162,14 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 3,
     unit: "month",
     showEstimate: false,
-    disclaimer:
-      "Most nursing home stays are covered by Medicare (short-term rehab) or Medicaid (long-term care for eligible individuals).",
-    coverageNote:
-      "Medicare covers up to 100 days of skilled nursing care after a qualifying hospital stay. Medicaid covers long-term nursing home care for eligible individuals. Private-pay rates apply for those not covered.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Most stays at ${ctx.providerName}${locSuffix(ctx)} are covered by Medicare (short-term rehab) or Medicaid (long-term care for eligible individuals).`
+        : "Most nursing home stays are covered by Medicare (short-term rehab) or Medicaid (long-term care for eligible individuals).",
+    coverageNote: (ctx) =>
+      ctx?.providerName
+        ? `At ${ctx.providerName}${locSuffix(ctx)}, Medicare covers up to 100 days of skilled nursing care after a qualifying hospital stay. Medicaid covers long-term nursing home care for eligible individuals. Private-pay rates apply for those not covered.`
+        : "Medicare covers up to 100 days of skilled nursing care after a qualifying hospital stay. Medicaid covers long-term nursing home care for eligible individuals. Private-pay rates apply for those not covered.",
     cityPageNote:
       "Most nursing home care is covered by Medicare (short-term rehab) or Medicaid (long-term care). Private-pay rates vary by facility.",
   },
@@ -138,10 +179,14 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
     tier: 3,
     unit: "month",
     showEstimate: false,
-    disclaimer:
-      "Hospice care is typically covered by the Medicare Hospice Benefit at no cost to patients and families.",
-    coverageNote:
-      "The Medicare Hospice Benefit covers virtually all hospice services — nursing care, medical equipment, medications, and counseling — at no cost to the patient.",
+    disclaimer: (ctx) =>
+      ctx?.providerName
+        ? `Hospice care at ${ctx.providerName}${locSuffix(ctx)} is typically covered by the Medicare Hospice Benefit at no cost to patients and families.`
+        : "Hospice care is typically covered by the Medicare Hospice Benefit at no cost to patients and families.",
+    coverageNote: (ctx) =>
+      ctx?.providerName
+        ? `The Medicare Hospice Benefit covers virtually all hospice services at ${ctx.providerName}${locSuffix(ctx)} — nursing care, medical equipment, medications, and counseling — at no cost to the patient.`
+        : "The Medicare Hospice Benefit covers virtually all hospice services — nursing care, medical equipment, medications, and counseling — at no cost to the patient.",
     cityPageNote:
       "Hospice care is typically covered by Medicare at no cost to patients and families.",
   },
@@ -336,7 +381,10 @@ export function getPricingConfig(category: string): CategoryPricingConfig {
       tier: 1 as PricingTier,
       unit: "month" as PriceUnit,
       showEstimate: true,
-      disclaimer: "Price is an estimate and may vary. Contact the provider for exact rates.",
+      disclaimer: (ctx) =>
+        ctx?.providerName
+          ? `Pricing at ${ctx.providerName}${locSuffix(ctx)} is an estimate and may vary. Contact the provider for exact rates.`
+          : "Price is an estimate and may vary. Contact the provider for exact rates.",
       coverageNote: null,
       cityPageNote: "Costs vary by provider, location, and level of care.",
     }

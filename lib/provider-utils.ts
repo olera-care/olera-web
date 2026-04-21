@@ -427,18 +427,60 @@ const categoryToSupabaseCategory: Record<string, string> = {
   private_caregiver: "Home Care (Non-medical)",
 };
 
+/**
+ * Result of a similar-providers lookup. `isLocal` lets the caller render
+ * the right heading ("best local options" vs a global-fallback phrasing)
+ * so we don't claim "local" when the results are cross-state.
+ */
+export interface SimilarProvidersResult {
+  providers: Provider[];
+  isLocal: boolean;
+}
+
 export async function getSimilarProviders(
   category: ProfileCategory | null,
   excludeSlug: string,
+  state: string | null,
   limit: number = 3
-): Promise<Provider[]> {
-  if (!category) return [];
+): Promise<SimilarProvidersResult> {
+  if (!category) return { providers: [], isLocal: false };
 
   const supabaseCategory = categoryToSupabaseCategory[category];
-  if (!supabaseCategory) return [];
+  if (!supabaseCategory) return { providers: [], isLocal: false };
 
+  const supabase = await createClient();
+
+  // Pass 1: same state + same category, rating-sorted. When we have any
+  // local matches we prefer showing fewer accurate local results over
+  // padding with random cross-state facilities.
+  if (state) {
+    try {
+      const { data, error } = await supabase
+        .from(PROVIDERS_TABLE)
+        .select("*")
+        .not("deleted", "is", true)
+        .ilike("provider_category", `%${supabaseCategory}%`)
+        .eq("state", state)
+        .neq("provider_id", excludeSlug)
+        .not("provider_images", "is", null)
+        .order("google_rating", { ascending: false, nullsFirst: false })
+        .limit(limit);
+
+      if (!error && data && data.length > 0) {
+        return {
+          providers: (data as IOSProvider[]).map(toCardFormat),
+          isLocal: true,
+        };
+      }
+    } catch {
+      // Fall through to global fallback
+    }
+  }
+
+  // Pass 2 (fallback): same category, any state. Used only when state was
+  // missing or produced zero matches. Caller should render a non-"local"
+  // heading for these results.
   try {
-    const supabase = await createClient();
     const { data, error } = await supabase
       .from(PROVIDERS_TABLE)
       .select("*")
@@ -449,10 +491,13 @@ export async function getSimilarProviders(
       .order("google_rating", { ascending: false, nullsFirst: false })
       .limit(limit);
 
-    if (error || !data) return [];
+    if (error || !data) return { providers: [], isLocal: false };
 
-    return (data as IOSProvider[]).map(toCardFormat);
+    return {
+      providers: (data as IOSProvider[]).map(toCardFormat),
+      isLocal: false,
+    };
   } catch {
-    return [];
+    return { providers: [], isLocal: false };
   }
 }

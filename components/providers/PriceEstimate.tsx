@@ -9,18 +9,28 @@ interface PriceEstimateProps {
   category?: string;
   /** Override: treat price as provider-entered (skips "est." for Tier 3) */
   isProviderEntered?: boolean;
+  /** Provider name — when supplied, the disclaimer + coverage tooltip are parameterized with it for SEO uniqueness. */
+  providerName?: string;
+  /** Provider city — combined with state to produce " in {city}, {state}" suffix. */
+  city?: string;
+  /** Provider state — see `city`. */
+  state?: string;
 }
 
 export default function PriceEstimate({
   priceRange,
   category,
   isProviderEntered,
+  providerName,
+  city,
+  state,
 }: PriceEstimateProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const config = category ? getPricingConfig(category) : null;
   const tier: PricingTier = config?.tier ?? 1;
+  const copyCtx = { providerName, city, state };
 
   useEffect(() => {
     if (!showTooltip) return;
@@ -42,7 +52,7 @@ export default function PriceEstimate({
     return (
       <div className="relative inline-flex items-center gap-1.5" ref={ref}>
         <p className="text-sm text-gray-500 font-medium leading-snug">
-          {config!.disclaimer.split(".")[0]}.
+          {config!.disclaimer(copyCtx).split(".")[0]}.
         </p>
 
         <button
@@ -57,10 +67,10 @@ export default function PriceEstimate({
           </svg>
         </button>
 
-        {showTooltip && (
+        {showTooltip && config!.coverageNote && (
           <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-30 w-[min(20rem,calc(100vw-2.5rem))]">
             <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
-              <p>{config!.coverageNote}</p>
+              <p>{config!.coverageNote(copyCtx)}</p>
             </div>
           </div>
         )}
@@ -69,8 +79,8 @@ export default function PriceEstimate({
   }
 
   // Tier 1 & 2 (and Tier 3 with provider-entered prices): show price + disclaimer
-  const disclaimer = config?.disclaimer ?? "Price is an estimate and may vary.";
-  const coverageNote = config?.coverageNote ?? null;
+  const disclaimer = config?.disclaimer(copyCtx) ?? "Price is an estimate and may vary.";
+  const coverageNote = config?.coverageNote ? config.coverageNote(copyCtx) : null;
 
   return (
     <div className="relative inline-flex items-center gap-1.5" ref={ref}>

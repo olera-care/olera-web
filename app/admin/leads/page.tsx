@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import PulseHeader from "@/components/admin/PulseHeader";
+import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 
 type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email" | "archived";
 
@@ -229,57 +231,6 @@ function InlineEmailInput({
 
 const PAGE_SIZE = 25;
 
-type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d";
-
-const DATE_PRESETS: { label: string; value: DatePreset }[] = [
-  { label: "All time", value: "all" },
-  { label: "Today", value: "today" },
-  { label: "Yesterday", value: "yesterday" },
-  { label: "Last 7 days", value: "7d" },
-  { label: "Last 30 days", value: "30d" },
-];
-
-function getDateRange(
-  preset: DatePreset,
-  customFrom: string,
-  customTo: string,
-): { from: string | null; to: string | null } {
-  if (customFrom) {
-    const start = new Date(customFrom + "T00:00:00");
-    const endBase = customTo || customFrom;
-    const end = new Date(endBase + "T00:00:00");
-    end.setDate(end.getDate() + 1);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }
-
-  if (preset === "all") return { from: null, to: null };
-
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  if (preset === "today") {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return { from: today.toISOString(), to: tomorrow.toISOString() };
-  }
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { from: yesterday.toISOString(), to: today.toISOString() };
-  }
-  if (preset === "7d") {
-    const weekAgo = new Date(today);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return { from: weekAgo.toISOString(), to: null };
-  }
-  if (preset === "30d") {
-    const monthAgo = new Date(today);
-    monthAgo.setDate(monthAgo.getDate() - 30);
-    return { from: monthAgo.toISOString(), to: null };
-  }
-  return { from: null, to: null };
-}
-
 export default function AdminLeadsPage() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as TypeFilter) || "all";
@@ -296,9 +247,7 @@ export default function AdminLeadsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Date filter
-  const [datePreset, setDatePreset] = useState<DatePreset>("all");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
+  const [range, setRange] = useState<DateRangeValue>({ preset: "all", customFrom: "", customTo: "" });
 
   // Engagement data
   const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});
@@ -442,7 +391,7 @@ export default function AdminLeadsPage() {
         if (filter !== "all" && filter !== "needs_email") params.set("type", filter);
         if (filter === "needs_email") params.set("needs_email", "true");
       }
-      const { from, to } = getDateRange(datePreset, customFrom, customTo);
+      const { from, to } = resolveRange(range);
       if (from) params.set("date_from", from);
       if (to) params.set("date_to", to);
       if (debouncedSearch) params.set("search", debouncedSearch);
@@ -462,7 +411,7 @@ export default function AdminLeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, debouncedSearch, datePreset, customFrom, customTo]);
+  }, [filter, page, debouncedSearch, range]);
 
   // Debounce search input (300ms)
   const handleSearchChange = (value: string) => {
@@ -478,7 +427,7 @@ export default function AdminLeadsPage() {
   useEffect(() => {
     setPage(0);
     setSelectedIds(new Set());
-  }, [filter, debouncedSearch, datePreset, customFrom, customTo]);
+  }, [filter, debouncedSearch, range]);
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -501,13 +450,13 @@ export default function AdminLeadsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Leads</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          View all connections and inquiries across the platform.
-        </p>
-      </div>
+      <PulseHeader
+        title="Leads"
+        kpiSuffix="needing email"
+        statsPath="/api/admin/leads/stats"
+        range={range}
+        onRangeChange={setRange}
+      />
 
       {/* Search bar */}
       <div className="mb-6">
@@ -565,58 +514,6 @@ export default function AdminLeadsPage() {
             {tab.label}
           </button>
         ))}
-      </div>
-
-      {/* Date filter */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        {DATE_PRESETS.map((preset) => (
-          <button
-            key={preset.value}
-            onClick={() => { setDatePreset(preset.value); setCustomFrom(""); setCustomTo(""); }}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-              datePreset === preset.value && !customFrom
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            }`}
-          >
-            {preset.label}
-          </button>
-        ))}
-        <input
-          type="date"
-          value={customFrom}
-          onChange={(e) => setCustomFrom(e.target.value)}
-          className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
-            customFrom
-              ? "bg-gray-900 text-white border-gray-900"
-              : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
-          }`}
-        />
-        {customFrom && (
-          <>
-            <span className="text-xs text-gray-400">–</span>
-            <input
-              type="date"
-              value={customTo}
-              min={customFrom}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
-                customTo
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
-              }`}
-            />
-            <button
-              onClick={() => { setCustomFrom(""); setCustomTo(""); }}
-              className="ml-1 text-gray-400 hover:text-gray-700 transition-colors"
-              aria-label="Clear custom date range"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
 
       {/* Bulk action bar */}

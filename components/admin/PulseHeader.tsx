@@ -25,12 +25,15 @@ export default function PulseHeader({
   statsPath,
   range,
   onRangeChange,
+  maxY,
 }: {
   title: string;
   kpiSuffix: string;
   statsPath: string;
   range: DateRangeValue;
   onRangeChange: (next: DateRangeValue) => void;
+  /** Fixed Y-axis ceiling. Omit for auto-scale (derived from data's max). */
+  maxY?: number;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +78,7 @@ export default function PulseHeader({
         <DeltaLine stats={stats} range={range} />
 
         <div className="mt-6">
-          <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
+          <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} maxY={maxY} />
         </div>
       </div>
     </div>
@@ -122,10 +125,12 @@ function Chart({
   series,
   bucket,
   loading,
+  maxY,
 }: {
   series: { date: string; count: number }[];
   bucket: Bucket;
   loading: boolean;
+  maxY?: number;
 }) {
   // Stateful callback ref: the effect re-runs when the div actually mounts,
   // which matters because loading/empty states return without the ref div.
@@ -146,11 +151,11 @@ function Chart({
   }, [container]);
 
   const chart = useMemo(
-    () => buildPath(series, width || 800, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM),
-    [series, width],
+    () => buildPath(series, width || 800, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM, maxY),
+    [series, width, maxY],
   );
 
-  const hasData = series.length > 0 && chart.max > 0;
+  const hasData = series.length > 0 && chart.realMax > 0;
   const showSkeleton = loading && series.length === 0;
   const showChart = hasData && width > 0;
 
@@ -313,6 +318,9 @@ function formatBucketDate(iso: string, bucket: Bucket): string {
 /**
  * Build a monotone cubic Bezier path (Fritsch–Carlson) from the series.
  * Keeps curves smooth without overshooting between points.
+ *
+ * `maxY` overrides the scale ceiling when provided (fixed Y-axis). Without
+ * it, the chart auto-scales to the data's max.
  */
 function buildPath(
   series: { date: string; count: number }[],
@@ -320,20 +328,32 @@ function buildPath(
   height: number,
   padTop: number,
   padBottom: number,
+  maxY?: number,
 ) {
   if (series.length === 0) {
-    return { linePath: "", areaPath: "", points: [] as { x: number; y: number }[], max: 0 };
+    return {
+      linePath: "",
+      areaPath: "",
+      points: [] as { x: number; y: number }[],
+      max: 0,
+      realMax: 0,
+    };
   }
 
-  // realMax drives the empty-state check upstream; scaleMax avoids /0.
+  // realMax drives the empty-state check; scaleMax fixes the visual ceiling
+  // (maxY if provided, otherwise the data's own max).
   const realMax = series.reduce((m, p) => Math.max(m, p.count), 0);
-  const scaleMax = Math.max(1, realMax);
+  const scaleMax = Math.max(1, maxY ?? realMax);
+  const displayMax = maxY ?? realMax;
   const n = series.length;
   const innerH = height - padTop - padBottom;
 
   const points = series.map((p, i) => {
     const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-    const y = padTop + innerH - (p.count / scaleMax) * innerH;
+    // Clamp so points that exceed maxY sit on the ceiling instead of
+    // rendering above the SVG viewport.
+    const ratio = Math.min(1, p.count / scaleMax);
+    const y = padTop + innerH - ratio * innerH;
     return { x, y };
   });
 
@@ -343,7 +363,8 @@ function buildPath(
       linePath: `M ${p.x.toFixed(2)} ${p.y.toFixed(2)}`,
       areaPath: "",
       points,
-      max: realMax,
+      max: displayMax,
+      realMax,
     };
   }
 
@@ -379,5 +400,5 @@ function buildPath(
 
   const areaPath = `${d} L ${points[n - 1].x.toFixed(2)} ${height} L ${points[0].x.toFixed(2)} ${height} Z`;
 
-  return { linePath: d, areaPath, points, max: realMax };
+  return { linePath: d, areaPath, points, max: displayMax, realMax };
 }

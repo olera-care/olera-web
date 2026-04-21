@@ -262,6 +262,7 @@ export default function AdminQuestionsPage() {
         statsPath="/api/admin/questions/stats"
         range={range}
         onRangeChange={setRange}
+        maxY={120}
       />
 
       {/* Search bar */}

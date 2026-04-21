@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DateRangeValue } from "./DateRangePopover";
 import DateRangePopover, { resolveRange } from "./DateRangePopover";
 
@@ -127,58 +127,43 @@ function Chart({
   bucket: Bucket;
   loading: boolean;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(800);
+  // Stateful callback ref: the effect re-runs when the div actually mounts,
+  // which matters because loading/empty states return without the ref div.
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!container) return;
+    // Synchronous measurement avoids a 0→actual flash on first render.
+    setWidth(container.offsetWidth);
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
       if (w && w > 0) setWidth(Math.round(w));
     });
-    ro.observe(containerRef.current);
+    ro.observe(container);
     return () => ro.disconnect();
-  }, []);
+  }, [container]);
 
   const chart = useMemo(
-    () => buildPath(series, width, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM),
+    () => buildPath(series, width || 800, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM),
     [series, width],
   );
 
+  const hasData = series.length > 0 && chart.max > 0;
+  const showSkeleton = loading && series.length === 0;
+  const showChart = hasData && width > 0;
+
   const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || series.length === 0 || chart.max === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
+    if (!container || !hasData) return;
+    const rect = container.getBoundingClientRect();
     const relX = e.clientX - rect.left;
     const frac = Math.max(0, Math.min(1, relX / rect.width));
     const idx = Math.round(frac * (series.length - 1));
     setHoverIndex(idx);
   };
 
-  if (loading && series.length === 0) {
-    return (
-      <div
-        className="w-full rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse"
-        style={{ height: CHART_HEIGHT }}
-      />
-    );
-  }
-
-  if (series.length === 0 || chart.max === 0) {
-    return (
-      <div
-        className="w-full flex items-center justify-center text-sm text-gray-300"
-        style={{ height: CHART_HEIGHT }}
-      >
-        No activity in this range
-      </div>
-    );
-  }
-
-  const hover = hoverIndex !== null ? chart.points[hoverIndex] : null;
-  const firstLabel = formatBucketDate(series[0].date, bucket);
-  const lastLabel = formatBucketDate(series[series.length - 1].date, bucket);
-  const showLabels = series.length > 1;
+  const hover = hoverIndex !== null && hasData ? chart.points[hoverIndex] : null;
 
   const TOOLTIP_W = 108;
   const tooltipLeft = hover
@@ -186,69 +171,85 @@ function Chart({
     : 0;
   const tooltipAbove = hover ? hover.y > 50 : true;
 
+  const firstLabel = hasData ? formatBucketDate(series[0].date, bucket) : "";
+  const lastLabel = hasData ? formatBucketDate(series[series.length - 1].date, bucket) : "";
+  const showLabels = hasData && series.length > 1;
+
   return (
     <div>
       <div
-        ref={containerRef}
-        className="relative w-full cursor-crosshair"
+        ref={setContainer}
+        className={`relative w-full ${hasData ? "cursor-crosshair" : ""}`}
         style={{ height: CHART_HEIGHT }}
-        onMouseMove={handleMove}
+        onMouseMove={hasData ? handleMove : undefined}
         onMouseLeave={() => setHoverIndex(null)}
       >
-        <svg
-          width={width}
-          height={CHART_HEIGHT}
-          className="absolute inset-0 block"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="pulse-fill-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#059669" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={chart.areaPath} fill="url(#pulse-fill-gradient)" />
-          <path
-            d={chart.linePath}
-            fill="none"
-            stroke="#047857"
-            strokeWidth={1.75}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {chart.points.length > 0 && !hover && (
-            <circle
-              cx={chart.points[chart.points.length - 1].x}
-              cy={chart.points[chart.points.length - 1].y}
-              r={3}
-              fill="#047857"
-            />
-          )}
-          {hover && (
-            <>
-              <line
-                x1={hover.x}
-                x2={hover.x}
-                y1={0}
-                y2={CHART_HEIGHT}
-                stroke="#111827"
-                strokeOpacity={0.08}
-                strokeWidth={1}
-              />
-              <circle cx={hover.x} cy={hover.y} r={4.5} fill="#ffffff" />
-              <circle
-                cx={hover.x}
-                cy={hover.y}
-                r={4.5}
-                fill="none"
-                stroke="#047857"
-                strokeWidth={2}
-              />
-            </>
-          )}
-        </svg>
+        {showSkeleton && (
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+        )}
 
-        {hover && hoverIndex !== null && (
+        {!showSkeleton && !hasData && (
+          <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-300">
+            No activity in this range
+          </div>
+        )}
+
+        {showChart && (
+          <svg
+            width={width}
+            height={CHART_HEIGHT}
+            className="absolute inset-0 block"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="pulse-fill-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#059669" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="#059669" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={chart.areaPath} fill="url(#pulse-fill-gradient)" />
+            <path
+              d={chart.linePath}
+              fill="none"
+              stroke="#047857"
+              strokeWidth={1.75}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {chart.points.length > 0 && !hover && (
+              <circle
+                cx={chart.points[chart.points.length - 1].x}
+                cy={chart.points[chart.points.length - 1].y}
+                r={3}
+                fill="#047857"
+              />
+            )}
+            {hover && (
+              <>
+                <line
+                  x1={hover.x}
+                  x2={hover.x}
+                  y1={0}
+                  y2={CHART_HEIGHT}
+                  stroke="#111827"
+                  strokeOpacity={0.08}
+                  strokeWidth={1}
+                />
+                <circle cx={hover.x} cy={hover.y} r={4.5} fill="#ffffff" />
+                <circle
+                  cx={hover.x}
+                  cy={hover.y}
+                  r={4.5}
+                  fill="none"
+                  stroke="#047857"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+          </svg>
+        )}
+
+        {showChart && hover && hoverIndex !== null && (
           <div
             className="absolute pointer-events-none z-10 bg-gray-900 text-white rounded-lg px-2.5 py-1.5 shadow-lg"
             style={{
@@ -303,13 +304,15 @@ function buildPath(
     return { linePath: "", areaPath: "", points: [] as { x: number; y: number }[], max: 0 };
   }
 
-  const max = Math.max(1, ...series.map((p) => p.count));
+  // realMax drives the empty-state check upstream; scaleMax avoids /0.
+  const realMax = series.reduce((m, p) => Math.max(m, p.count), 0);
+  const scaleMax = Math.max(1, realMax);
   const n = series.length;
   const innerH = height - padTop - padBottom;
 
   const points = series.map((p, i) => {
     const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-    const y = padTop + innerH - (p.count / max) * innerH;
+    const y = padTop + innerH - (p.count / scaleMax) * innerH;
     return { x, y };
   });
 
@@ -319,7 +322,7 @@ function buildPath(
       linePath: `M ${p.x.toFixed(2)} ${p.y.toFixed(2)}`,
       areaPath: "",
       points,
-      max,
+      max: realMax,
     };
   }
 
@@ -355,5 +358,5 @@ function buildPath(
 
   const areaPath = `${d} L ${points[n - 1].x.toFixed(2)} ${height} L ${points[0].x.toFixed(2)} ${height} Z`;
 
-  return { linePath: d, areaPath, points, max };
+  return { linePath: d, areaPath, points, max: realMax };
 }

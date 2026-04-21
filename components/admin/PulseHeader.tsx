@@ -115,7 +115,7 @@ function priorLabel(range: DateRangeValue): string {
 }
 
 const CHART_HEIGHT = 180;
-const CHART_PAD_TOP = 22;
+const CHART_PAD_TOP = 30;
 const CHART_PAD_BOTTOM = 8;
 
 function Chart({
@@ -195,58 +195,77 @@ function Chart({
         )}
 
         {showChart && (
-          <svg
-            width={width}
-            height={CHART_HEIGHT}
-            className="absolute inset-0 block"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="pulse-fill-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#059669" stopOpacity="0.22" />
-                <stop offset="100%" stopColor="#059669" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path d={chart.areaPath} fill="url(#pulse-fill-gradient)" />
-            <path
-              d={chart.linePath}
-              fill="none"
-              stroke="#047857"
-              strokeWidth={1.75}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {chart.points.length > 0 && !hover && (
-              <circle
-                cx={chart.points[chart.points.length - 1].x}
-                cy={chart.points[chart.points.length - 1].y}
-                r={3}
-                fill="#047857"
+          <>
+            <svg
+              width={width}
+              height={CHART_HEIGHT}
+              className="absolute inset-0 block"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="pulse-fill-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#059669" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#059669" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {/* Max-value gridline — anchors the top of the chart so peaks don't read as clipped */}
+              <line
+                x1={0}
+                x2={width}
+                y1={CHART_PAD_TOP}
+                y2={CHART_PAD_TOP}
+                stroke="#e5e7eb"
+                strokeWidth={1}
+                strokeDasharray="3 3"
               />
-            )}
-            {hover && (
-              <>
-                <line
-                  x1={hover.x}
-                  x2={hover.x}
-                  y1={0}
-                  y2={CHART_HEIGHT}
-                  stroke="#111827"
-                  strokeOpacity={0.08}
-                  strokeWidth={1}
-                />
-                <circle cx={hover.x} cy={hover.y} r={4.5} fill="#ffffff" />
+              <path d={chart.areaPath} fill="url(#pulse-fill-gradient)" />
+              <path
+                d={chart.linePath}
+                fill="none"
+                stroke="#047857"
+                strokeWidth={1.75}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {chart.points.length > 0 && !hover && (
                 <circle
-                  cx={hover.x}
-                  cy={hover.y}
-                  r={4.5}
-                  fill="none"
-                  stroke="#047857"
-                  strokeWidth={2}
+                  cx={chart.points[chart.points.length - 1].x}
+                  cy={chart.points[chart.points.length - 1].y}
+                  r={3}
+                  fill="#047857"
                 />
-              </>
-            )}
-          </svg>
+              )}
+              {hover && (
+                <>
+                  <line
+                    x1={hover.x}
+                    x2={hover.x}
+                    y1={0}
+                    y2={CHART_HEIGHT}
+                    stroke="#111827"
+                    strokeOpacity={0.08}
+                    strokeWidth={1}
+                  />
+                  <circle cx={hover.x} cy={hover.y} r={4.5} fill="#ffffff" />
+                  <circle
+                    cx={hover.x}
+                    cy={hover.y}
+                    r={4.5}
+                    fill="none"
+                    stroke="#047857"
+                    strokeWidth={2}
+                  />
+                </>
+              )}
+            </svg>
+            {/* Y-axis max label — floating reference for the top of the data */}
+            <div
+              className="absolute left-0 text-[11px] font-medium text-gray-500 tabular-nums pointer-events-none"
+              style={{ top: Math.max(0, CHART_PAD_TOP - 18) }}
+            >
+              {chart.max.toLocaleString()}
+            </div>
+          </>
         )}
 
         {showChart && hover && hoverIndex !== null && (

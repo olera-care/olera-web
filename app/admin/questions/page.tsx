@@ -262,7 +262,6 @@ export default function AdminQuestionsPage() {
         statsPath="/api/admin/questions/stats"
         range={range}
         onRangeChange={setRange}
-        maxY={120}
       />
 
       {/* Search bar */}
@@ -422,14 +421,14 @@ export default function AdminQuestionsPage() {
                         <button
                           onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
                           disabled={actionLoading === q.id}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all disabled:opacity-40"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-600 transition-all duration-200 disabled:opacity-40"
                         >
                           Archive
                         </button>
                         <button
                           onClick={() => handleRemove(q.id)}
                           disabled={actionLoading === q.id}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-red-500 transition-all duration-200 disabled:opacity-40"
                         >
                           Remove
                         </button>

@@ -25,15 +25,12 @@ export default function PulseHeader({
   statsPath,
   range,
   onRangeChange,
-  maxY,
 }: {
   title: string;
   kpiSuffix: string;
   statsPath: string;
   range: DateRangeValue;
   onRangeChange: (next: DateRangeValue) => void;
-  /** Fixed Y-axis ceiling. Omit for auto-scale (derived from data's max). */
-  maxY?: number;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,7 +75,7 @@ export default function PulseHeader({
         <DeltaLine stats={stats} range={range} />
 
         <div className="mt-6">
-          <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} maxY={maxY} />
+          <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
         </div>
       </div>
     </div>
@@ -125,12 +122,10 @@ function Chart({
   series,
   bucket,
   loading,
-  maxY,
 }: {
   series: { date: string; count: number }[];
   bucket: Bucket;
   loading: boolean;
-  maxY?: number;
 }) {
   // Stateful callback ref: the effect re-runs when the div actually mounts,
   // which matters because loading/empty states return without the ref div.
@@ -151,8 +146,8 @@ function Chart({
   }, [container]);
 
   const chart = useMemo(
-    () => buildPath(series, width || 800, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM, maxY),
-    [series, width, maxY],
+    () => buildPath(series, width || 800, CHART_HEIGHT, CHART_PAD_TOP, CHART_PAD_BOTTOM),
+    [series, width],
   );
 
   const hasData = series.length > 0 && chart.realMax > 0;
@@ -250,8 +245,15 @@ function Chart({
                     stroke="#111827"
                     strokeOpacity={0.08}
                     strokeWidth={1}
+                    style={{ transition: "x1 90ms ease-out, x2 90ms ease-out" }}
                   />
-                  <circle cx={hover.x} cy={hover.y} r={4.5} fill="#ffffff" />
+                  <circle
+                    cx={hover.x}
+                    cy={hover.y}
+                    r={4.5}
+                    fill="#ffffff"
+                    style={{ transition: "cx 90ms ease-out, cy 90ms ease-out" }}
+                  />
                   <circle
                     cx={hover.x}
                     cy={hover.y}
@@ -259,6 +261,7 @@ function Chart({
                     fill="none"
                     stroke="#047857"
                     strokeWidth={2}
+                    style={{ transition: "cx 90ms ease-out, cy 90ms ease-out" }}
                   />
                 </>
               )}
@@ -280,6 +283,7 @@ function Chart({
               left: tooltipLeft,
               top: tooltipAbove ? Math.max(4, hover.y - 48) : Math.min(CHART_HEIGHT - 48, hover.y + 12),
               width: TOOLTIP_W,
+              transition: "left 90ms ease-out, top 90ms ease-out",
             }}
           >
             <div className="text-sm font-semibold tabular-nums leading-tight">
@@ -316,11 +320,34 @@ function formatBucketDate(iso: string, bucket: Bucket): string {
 }
 
 /**
+ * Round a value up to the next "nice" number (1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10
+ * × power of 10). Combined with a 1.5x target, this gives the chart ~60–70%
+ * peak proportion regardless of magnitude — visible headroom, clean axis label,
+ * scales indefinitely without magic numbers.
+ *
+ *   9    → 15     (peak 60%)
+ *   51   → 80     (peak 64%)
+ *   120  → 200    (peak 60%)
+ *   250  → 400    (peak 62%)
+ *   999  → 1500   (peak 67%)
+ */
+function niceCeiling(value: number): number {
+  if (value <= 0) return 10;
+  const target = value * 1.5;
+  const exp = Math.floor(Math.log10(target));
+  const pow = Math.pow(10, exp);
+  const normalized = target / pow;
+  const steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  const nice = steps.find((s) => s >= normalized) ?? 10;
+  return Math.round(nice * pow);
+}
+
+/**
  * Build a monotone cubic Bezier path (Fritsch–Carlson) from the series.
  * Keeps curves smooth without overshooting between points.
  *
- * `maxY` overrides the scale ceiling when provided (fixed Y-axis). Without
- * it, the chart auto-scales to the data's max.
+ * Y-axis ceiling auto-adjusts to a nice round number above the data max so
+ * peaks always have visible headroom and never look clipped.
  */
 function buildPath(
   series: { date: string; count: number }[],
@@ -328,7 +355,6 @@ function buildPath(
   height: number,
   padTop: number,
   padBottom: number,
-  maxY?: number,
 ) {
   if (series.length === 0) {
     return {
@@ -340,18 +366,15 @@ function buildPath(
     };
   }
 
-  // realMax drives the empty-state check; scaleMax fixes the visual ceiling
-  // (maxY if provided, otherwise the data's own max).
+  // realMax drives the empty-state check; scaleMax is the nice-rounded
+  // ceiling used both for scaling and as the axis label.
   const realMax = series.reduce((m, p) => Math.max(m, p.count), 0);
-  const scaleMax = Math.max(1, maxY ?? realMax);
-  const displayMax = maxY ?? realMax;
+  const scaleMax = Math.max(1, niceCeiling(realMax));
   const n = series.length;
   const innerH = height - padTop - padBottom;
 
   const points = series.map((p, i) => {
     const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-    // Clamp so points that exceed maxY sit on the ceiling instead of
-    // rendering above the SVG viewport.
     const ratio = Math.min(1, p.count / scaleMax);
     const y = padTop + innerH - ratio * innerH;
     return { x, y };
@@ -363,7 +386,7 @@ function buildPath(
       linePath: `M ${p.x.toFixed(2)} ${p.y.toFixed(2)}`,
       areaPath: "",
       points,
-      max: displayMax,
+      max: scaleMax,
       realMax,
     };
   }
@@ -400,5 +423,5 @@ function buildPath(
 
   const areaPath = `${d} L ${points[n - 1].x.toFixed(2)} ${height} L ${points[0].x.toFixed(2)} ${height} Z`;
 
-  return { linePath: d, areaPath, points, max: displayMax, realMax };
+  return { linePath: d, areaPath, points, max: scaleMax, realMax };
 }

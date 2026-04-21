@@ -691,13 +691,13 @@ export default function AdminLeadsPage() {
                       <>
                         <button
                           onClick={() => requestArchiveSingle(lead)}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-600 transition-all duration-200"
                         >
                           Archive
                         </button>
                         <button
                           onClick={() => requestDeleteSingle(lead)}
-                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all"
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-red-500 transition-all duration-200"
                         >
                           Delete
                         </button>

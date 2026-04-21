@@ -72,17 +72,18 @@ export async function POST(req: NextRequest) {
       // 1. A confirmed interview with the student, OR
       // 2. Paid access to view the student's profile
 
+      // Provider profiles can be "organization" or "caregiver" type
       const { data: providerProfile } = await admin
         .from("business_profiles")
         .select("id")
         .eq("account_id", account.id)
-        .eq("type", "provider")
+        .in("type", ["organization", "caregiver"])
         .maybeSingle();
 
       if (!providerProfile) {
-        console.log("[get-document-url] No provider profile for account:", account.id);
+        console.log("[get-document-url] No organization/caregiver profile for account:", account.id);
         return NextResponse.json(
-          { error: "No provider profile found for your account" },
+          { error: "No organization or caregiver profile found for your account" },
           { status: 403 }
         );
       }

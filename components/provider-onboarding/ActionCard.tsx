@@ -528,6 +528,49 @@ function ProfilePreviewCard({
 
   // ── POST-RESPONSE: one consolidated card ──
   if (answered) {
+    // FF on: analytics card on top, then a compact card with identity + Q&A
+    // preview only. Reviews CTA, view-full-profile, and section label removed
+    // (reviews graduates to the dashboard per strategy doc Q5 two-way door).
+    if (PROVIDER_ANALYTICS_ONBOARD_ENABLED) {
+      return (
+        <div style={{ animation: "card-enter 0.3s ease-out both" }}>
+          <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            {providerIdentity}
+            <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
+              <span className="text-primary-600 font-medium">1 question answered</span>
+              {hasGoogleReviews && (
+                <>
+                  <span>·</span>
+                  <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+                </>
+              )}
+            </div>
+            {askerName && questionText && answerPreview && (
+              <div className="border-t border-gray-100 mt-4 pt-4">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
+                    {getInitials(askerName)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 leading-snug">
+                      &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
+                    </p>
+                    <div className="mt-1.5 flex items-start gap-2">
+                      <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <p className="text-sm text-gray-500 leading-snug">{answerPreview}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={{ animation: "card-enter 0.3s ease-out both" }}>
         <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
@@ -571,11 +614,6 @@ function ProfilePreviewCard({
             </div>
           )}
 
-          {/* Analytics teaser — ahead of reviews when enabled + owner */}
-          {PROVIDER_ANALYTICS_ONBOARD_ENABLED && (
-            <AnalyticsTeaserCard expectedSlug={slug} variant="inline" />
-          )}
-
           {/* Reviews — thin divider, same card */}
           <div className="border-t border-gray-100 mt-4 pt-4">
             {reviewsContent}
@@ -595,6 +633,20 @@ function ProfilePreviewCard({
   }
 
   // ── PRE-RESPONSE: separate cards (no Q&A to show yet) ──
+
+  // FF on: analytics card on top, compact identity card below. Reviews CTA,
+  // view-full-profile, footer, and section label removed for noise reduction.
+  if (PROVIDER_ANALYTICS_ONBOARD_ENABLED) {
+    return (
+      <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
+        <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          {providerIdentity}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
       <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
@@ -616,11 +668,6 @@ function ProfilePreviewCard({
           )}
         </div>
       </div>
-
-      {/* Analytics teaser — above reviews when enabled + owner */}
-      {PROVIDER_ANALYTICS_ONBOARD_ENABLED && (
-        <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
-      )}
 
       {/* Reviews card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">

@@ -30,6 +30,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Name and role are required" }, { status: 400 });
     }
 
+    // Validate verification method
+    const validVerificationTypes = ["linkedin", "website", "contact_support"];
+    if (!submission.verificationType || !validVerificationTypes.includes(submission.verificationType)) {
+      return NextResponse.json({ error: "Verification method is required" }, { status: 400 });
+    }
+
+    // Validate URL is provided for linkedin/website options
+    if (submission.verificationType === "linkedin" && !submission.linkedinUrl?.trim()) {
+      return NextResponse.json({ error: "LinkedIn profile URL is required" }, { status: 400 });
+    }
+    if (submission.verificationType === "website" && !submission.websiteUrl?.trim()) {
+      return NextResponse.json({ error: "Business website URL is required" }, { status: 400 });
+    }
+
     const admin = getAdminClient();
     if (!admin) {
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
@@ -70,6 +84,9 @@ export async function POST(request: NextRequest) {
       phone: submission.phone || null,
       notes: submission.notes || null,
       document_url: submission.documentUrl || null,
+      verification_type: submission.verificationType,
+      linkedin_url: submission.linkedinUrl || null,
+      website_url: submission.websiteUrl || null,
       submitted_at: new Date().toISOString(),
     };
 

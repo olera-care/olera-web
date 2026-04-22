@@ -76,7 +76,7 @@ export function VerificationGateProvider({ children }: VerificationGateProviderP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profileId: providerProfile.id,
-          ...data,
+          submission: data,
         }),
       });
 

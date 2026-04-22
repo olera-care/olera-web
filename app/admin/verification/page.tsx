@@ -14,6 +14,10 @@ interface VerificationSubmission {
   // Legacy field for backwards compatibility
   affiliation?: string | null;
   submitted_at?: string;
+  // New verification method fields
+  verification_type?: "linkedin" | "website" | "contact_support" | null;
+  linkedin_url?: string | null;
+  website_url?: string | null;
 }
 
 interface Provider {
@@ -516,6 +520,78 @@ function VerificationReviewModal({
               )}
             </div>
           </div>
+
+          {/* Verification Method - Key section for reviewer */}
+          {submission.verification_type && (
+            <div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Verification Method
+              </p>
+              <div className={`rounded-xl p-4 ${
+                submission.verification_type === "contact_support"
+                  ? "bg-amber-50 border border-amber-200"
+                  : "bg-primary-50 border border-primary-200"
+              }`}>
+                {submission.verification_type === "linkedin" && submission.linkedin_url && (
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-[#0A66C2] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">LinkedIn Profile</p>
+                      <a
+                        href={submission.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary-600 hover:text-primary-700 break-all"
+                      >
+                        {submission.linkedin_url}
+                      </a>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Check if this profile shows they work at {provider.display_name}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {submission.verification_type === "website" && submission.website_url && (
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">Business Website</p>
+                      <a
+                        href={submission.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary-600 hover:text-primary-700 break-all"
+                      >
+                        {submission.website_url}
+                      </a>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Check if this page lists &quot;{submission.name}&quot; as staff
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {submission.verification_type === "contact_support" && (
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-amber-800 mb-1">Manual Verification Required</p>
+                      <p className="text-sm text-amber-700">
+                        User couldn&apos;t provide LinkedIn or website. You&apos;ll need to verify their connection to this business through other means (phone call, email domain check, etc.)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Show notes (new field) or affiliation (legacy field) */}
           {(submission.notes || submission.affiliation) && (

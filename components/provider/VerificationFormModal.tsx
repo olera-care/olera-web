@@ -11,6 +11,12 @@ export interface VerificationSubmission {
   phone: string;
   notes: string;
   documentUrl: string | null;
+  /** How they're verifying: "linkedin" | "website" | "contact_support" */
+  verificationType: "linkedin" | "website" | "contact_support";
+  /** LinkedIn profile URL (if verificationType is "linkedin") */
+  linkedinUrl: string | null;
+  /** Business website URL showing their name (if verificationType is "website") */
+  websiteUrl: string | null;
 }
 
 export interface ExistingVerificationData {
@@ -22,6 +28,12 @@ export interface ExistingVerificationData {
   // Legacy field for backwards compatibility
   affiliation?: string | null;
   submitted_at?: string;
+  /** How they're verifying: "linkedin" | "website" | "contact_support" */
+  verificationType?: "linkedin" | "website" | "contact_support" | null;
+  /** LinkedIn profile URL */
+  linkedinUrl?: string | null;
+  /** Business website URL */
+  websiteUrl?: string | null;
 }
 
 interface VerificationFormModalProps {
@@ -66,6 +78,9 @@ export default function VerificationFormModal({
   const [role, setRole] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [verificationType, setVerificationType] = useState<"linkedin" | "website" | "contact_support" | "">("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,12 +94,21 @@ export default function VerificationFormModal({
       setPhone(existingData?.phone || "");
       // Support both new 'notes' and legacy 'affiliation' field
       setNotes(existingData?.notes || existingData?.affiliation || "");
+      setVerificationType(existingData?.verificationType || "");
+      setLinkedinUrl(existingData?.linkedinUrl || "");
+      setWebsiteUrl(existingData?.websiteUrl || "");
       setError(null);
       setSubmitting(false);
     }
   }, [isOpen, existingData, userEmail]);
 
-  const isValid = name.trim().length > 0 && role.length > 0;
+  // Validation: name, role required + verification method with URL if applicable
+  const isVerificationValid =
+    verificationType === "contact_support" ||
+    (verificationType === "linkedin" && linkedinUrl.trim().length > 0) ||
+    (verificationType === "website" && websiteUrl.trim().length > 0);
+
+  const isValid = name.trim().length > 0 && role.length > 0 && isVerificationValid;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +125,9 @@ export default function VerificationFormModal({
         phone: phone.trim(),
         notes: notes.trim(),
         documentUrl: null, // Document upload to be added later
+        verificationType: verificationType as "linkedin" | "website" | "contact_support",
+        linkedinUrl: verificationType === "linkedin" ? linkedinUrl.trim() : null,
+        websiteUrl: verificationType === "website" ? websiteUrl.trim() : null,
       });
       // Note: Parent handles navigation after successful submit, no need to call onClose()
     } catch (err) {
@@ -231,6 +258,98 @@ export default function VerificationFormModal({
               placeholder="(555) 123-4567"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
             />
+          </div>
+        </div>
+
+        {/* Verification Method - required */}
+        <div className="space-y-3">
+          <label className="block text-[13px] font-semibold text-gray-700">
+            How can we verify you work here? <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-3">
+            {/* LinkedIn option */}
+            <label
+              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                verificationType === "linkedin"
+                  ? "border-primary-300 bg-primary-50/50 ring-1 ring-primary-200"
+                  : "border-gray-200 hover:border-gray-300 bg-gray-50/30"
+              }`}
+            >
+              <input
+                type="radio"
+                name="verificationType"
+                value="linkedin"
+                checked={verificationType === "linkedin"}
+                onChange={(e) => setVerificationType(e.target.value as "linkedin")}
+                className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              />
+              <div className="flex-1 space-y-2">
+                <span className="text-sm font-medium text-gray-900">LinkedIn profile</span>
+                {verificationType === "linkedin" && (
+                  <input
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://linkedin.com/in/yourname"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 transition-all"
+                  />
+                )}
+              </div>
+            </label>
+
+            {/* Website option */}
+            <label
+              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                verificationType === "website"
+                  ? "border-primary-300 bg-primary-50/50 ring-1 ring-primary-200"
+                  : "border-gray-200 hover:border-gray-300 bg-gray-50/30"
+              }`}
+            >
+              <input
+                type="radio"
+                name="verificationType"
+                value="website"
+                checked={verificationType === "website"}
+                onChange={(e) => setVerificationType(e.target.value as "website")}
+                className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              />
+              <div className="flex-1 space-y-2">
+                <span className="text-sm font-medium text-gray-900">Business website showing your name</span>
+                {verificationType === "website" && (
+                  <input
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://yourcompany.com/team"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 transition-all"
+                  />
+                )}
+              </div>
+            </label>
+
+            {/* Contact support option */}
+            <label
+              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                verificationType === "contact_support"
+                  ? "border-amber-300 bg-amber-50/50 ring-1 ring-amber-200"
+                  : "border-gray-200 hover:border-gray-300 bg-gray-50/30"
+              }`}
+            >
+              <input
+                type="radio"
+                name="verificationType"
+                value="contact_support"
+                checked={verificationType === "contact_support"}
+                onChange={(e) => setVerificationType(e.target.value as "contact_support")}
+                className="mt-0.5 w-4 h-4 text-amber-600 border-gray-300 focus:ring-amber-500"
+              />
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-900">Can&apos;t provide either?</span>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  We&apos;ll reach out to verify your connection another way
+                </p>
+              </div>
+            </label>
           </div>
         </div>
 

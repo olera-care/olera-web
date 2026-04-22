@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const DEMO_PROVIDER_SLUG = "sunrise-care-demo";
 const DEMO_PROVIDER_NAME = "Sunrise Care Demo";
+const DEMO_EMAIL = "esther+suspicious@gmail.com";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -128,6 +129,35 @@ export async function POST(request: Request) {
 
   // Default action: reset
   try {
+    // 0. Clean up any existing auth user with the demo email
+    // This handles cases where the email was used in previous tests
+    const { data: authUsers } = await db.auth.admin.listUsers();
+    const demoAuthUser = authUsers?.users?.find(
+      (u) => u.email === DEMO_EMAIL
+    );
+    if (demoAuthUser) {
+      // Find and clean up their account
+      const { data: existingAccount } = await db
+        .from("accounts")
+        .select("id")
+        .eq("user_id", demoAuthUser.id)
+        .maybeSingle();
+
+      if (existingAccount) {
+        // Unlink any business_profiles from this account (don't delete them)
+        await db
+          .from("business_profiles")
+          .update({ account_id: null, claim_state: "unclaimed" })
+          .eq("account_id", existingAccount.id);
+
+        // Delete the account
+        await db.from("accounts").delete().eq("id", existingAccount.id);
+      }
+
+      // Delete the auth user
+      await db.auth.admin.deleteUser(demoAuthUser.id);
+    }
+
     // 1. Find existing demo profile
     const { data: existingProfile } = await db
       .from("business_profiles")

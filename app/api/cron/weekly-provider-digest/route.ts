@@ -143,18 +143,40 @@ export async function GET(request: NextRequest) {
       category: string | null;
       metadata: Record<string, unknown> | null;
     };
+    // Resolve business_profiles by slug first, then fall back to
+    // source_provider_id for legacy URLs whose event provider_id is the
+    // olera-providers alphanumeric ID rather than a slug. Same resolution
+    // chain as app/provider/[slug]/page.tsx and the aggregation cron.
     const bps: BP[] = [];
     const chunkSize = 200;
+    const bpByKey = new Map<string, BP>();
     for (let i = 0; i < providerIds.length; i += chunkSize) {
       const chunk = providerIds.slice(i, i + chunkSize);
+
       const { data: bySlug } = await db
         .from("business_profiles")
         .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
-      if (bySlug) bps.push(...(bySlug as BP[]));
+      for (const b of (bySlug ?? []) as BP[]) {
+        bps.push(b);
+        if (b.slug) bpByKey.set(b.slug, b);
+      }
+
+      const stillMissing = chunk.filter((id) => !bpByKey.has(id));
+      if (stillMissing.length === 0) continue;
+
+      const { data: bySourceId } = await db
+        .from("business_profiles")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .in("source_provider_id", stillMissing)
+        .in("type", ["organization", "caregiver"]);
+      for (const b of (bySourceId ?? []) as BP[]) {
+        bps.push(b);
+        if (b.source_provider_id) bpByKey.set(b.source_provider_id, b);
+      }
     }
-    const bpBySlug = new Map(bps.filter((b) => b.slug).map((b) => [b.slug as string, b]));
+    const bpBySlug = bpByKey;
 
     // ── 3. Cohort benchmarks for "local demand" signal ──
     // Pull this week's provider_page_view_stats to sum unique demand per cohort.

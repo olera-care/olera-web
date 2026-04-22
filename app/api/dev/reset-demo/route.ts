@@ -96,8 +96,16 @@ export async function POST(request: Request) {
   }
 
   // Action: force_claim - skip OTP and directly set up restricted state for demo
+  // This creates/finds the user, links the profile to their account, and sets restricted state
   if (action === "force_claim") {
     try {
+      if (!customEmail) {
+        return NextResponse.json(
+          { error: "Email is required for Force Claim" },
+          { status: 400 }
+        );
+      }
+
       // Find the demo profile
       const { data: profile, error: findErr } = await db
         .from("business_profiles")
@@ -112,11 +120,60 @@ export async function POST(request: Request) {
         );
       }
 
-      // Update profile to claimed + pending_verification (low trust state)
-      // For demo, we set the state directly without needing a real account
+      // Step 1: Find or create auth user
+      let authUserId: string;
+      const { data: existingUsers } = await db.auth.admin.listUsers({ perPage: 1000 });
+      const existingUser = existingUsers?.users?.find((u) => u.email === customEmail);
+
+      if (existingUser) {
+        authUserId = existingUser.id;
+      } else {
+        // Create the auth user
+        const { data: newUser, error: createUserErr } = await db.auth.admin.createUser({
+          email: customEmail,
+          email_confirm: true,
+        });
+        if (createUserErr || !newUser.user) {
+          return NextResponse.json(
+            { error: "Failed to create user: " + createUserErr?.message },
+            { status: 500 }
+          );
+        }
+        authUserId = newUser.user.id;
+      }
+
+      // Step 2: Find or create account for this user
+      let accountId: string;
+      const { data: existingAccount } = await db
+        .from("accounts")
+        .select("id")
+        .eq("user_id", authUserId)
+        .maybeSingle();
+
+      if (existingAccount) {
+        accountId = existingAccount.id;
+      } else {
+        // Create account
+        const { data: newAccount, error: createAccErr } = await db
+          .from("accounts")
+          .insert({ user_id: authUserId })
+          .select("id")
+          .single();
+
+        if (createAccErr || !newAccount) {
+          return NextResponse.json(
+            { error: "Failed to create account: " + createAccErr?.message },
+            { status: 500 }
+          );
+        }
+        accountId = newAccount.id;
+      }
+
+      // Step 3: Link profile to account and set restricted state
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
+          account_id: accountId,
           claim_state: "claimed",
           verification_state: "pending_verification",
           claim_trust_level: "low",
@@ -132,7 +189,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         status: "force_claimed",
-        message: "Demo provider set to low-trust (restricted) state. Check the Current State above to see the changes.",
+        message: "Demo provider linked to your account and set to restricted state. Sign in with " + customEmail + " and go to /provider to see the restricted UI.",
       });
     } catch (err) {
       return NextResponse.json(

@@ -213,17 +213,17 @@ export default function ResetDemoPage() {
             </div>
 
             {/* Force Claim (Demo) - Skip OTP */}
-            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
+            <div className="p-4 bg-purple-50 rounded-xl space-y-3">
               <div>
                 <p className="font-medium text-gray-900">Force Claim (Demo)</p>
                 <p className="text-sm text-gray-500">
-                  Skip OTP and directly set to restricted (low-trust) state
+                  Links demo provider to your account and sets restricted state. Skips OTP.
                 </p>
               </div>
               <button
                 onClick={() => handleAction("force_claim")}
-                disabled={actionLoading !== null || !customEmail || !!state?.profile?.account_id}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
+                disabled={actionLoading !== null || !customEmail}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
               >
                 {actionLoading === "force_claim" ? "Claiming..." : "Force Claim"}
               </button>

@@ -229,6 +229,23 @@ export default function ResetDemoPage() {
               </button>
             </div>
 
+            {/* Set to Restricted (Low Trust) */}
+            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
+              <div>
+                <p className="font-medium text-gray-900">Set to Restricted</p>
+                <p className="text-sm text-gray-500">
+                  Set to &quot;pending_verification&quot; — shows locked UI, banner, modal
+                </p>
+              </div>
+              <button
+                onClick={() => handleAction("set_restricted" as "reset")}
+                disabled={actionLoading !== null}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
+              >
+                {actionLoading === "set_restricted" ? "Setting..." : "Set Restricted"}
+              </button>
+            </div>
+
             {/* Simulate Admin Approval */}
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
               <div>
@@ -239,7 +256,7 @@ export default function ResetDemoPage() {
               </div>
               <button
                 onClick={() => handleAction("approve")}
-                disabled={actionLoading !== null || !state?.profile?.account_id}
+                disabled={actionLoading !== null}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
               >
                 {actionLoading === "approve" ? "Approving..." : "Approve"}

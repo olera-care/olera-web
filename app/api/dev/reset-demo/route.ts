@@ -142,6 +142,36 @@ export async function POST(request: Request) {
     }
   }
 
+  // Action: set_restricted - set to pending_verification (low-trust restricted state)
+  if (action === "set_restricted") {
+    const { data: profile, error: findErr } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("slug", DEMO_PROVIDER_SLUG)
+      .maybeSingle();
+
+    if (findErr || !profile) {
+      return NextResponse.json({ error: "Demo provider not found" }, { status: 404 });
+    }
+
+    const { error: updateErr } = await db
+      .from("business_profiles")
+      .update({
+        verification_state: "pending_verification",
+        claim_trust_level: "low",
+      })
+      .eq("id", profile.id);
+
+    if (updateErr) {
+      return NextResponse.json({ error: "Failed: " + updateErr.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      status: "restricted",
+      message: "Demo provider set to RESTRICTED state. Refresh the dashboard to see the locked UI.",
+    });
+  }
+
   // Action: set_pending - simulate form submission (set to pending review)
   if (action === "set_pending") {
     const { data: profile, error: findErr } = await db

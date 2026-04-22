@@ -31,7 +31,11 @@ export async function POST(request: Request) {
     }
 
     // DEMO: Magic code bypass - skip email verification
-    if (code.trim() === "12345678") {
+    // Handle various formats: "12345678", "1234 5678", individual digits joined, etc.
+    const cleanCode = String(code).replace(/\s/g, "").trim();
+    console.log("[verify-code] Received code:", code, "Clean code:", cleanCode);
+    if (cleanCode === "12345678") {
+      console.log("[verify-code] Magic code accepted!");
       return NextResponse.json({ verified: true, claimSession });
     }
 

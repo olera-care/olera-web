@@ -38,7 +38,8 @@ export default function ProviderContactSection({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, openAuth } = useAuth();
-  const { requireVerification } = useVerificationGate();
+  const { requireVerification, isRestricted, isPending, openVerificationModal } = useVerificationGate();
+  const isProviderRestricted = isRestricted || isPending;
   const [showModal, setShowModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
@@ -117,8 +118,8 @@ export default function ProviderContactSection({
               <CalendarIcon />
               {scheduled ? "Interview Requested!" : "Schedule Interview"}
             </button>
-            {/* Phone button */}
-            {studentPhone && (
+            {/* Phone button - hidden for restricted providers */}
+            {studentPhone && !isProviderRestricted && (
               <a
                 href={`tel:${studentPhone}`}
                 className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
@@ -177,27 +178,42 @@ export default function ProviderContactSection({
       {(studentEmail || studentPhone) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
-          {studentEmail && (
-            <a
-              href={`mailto:${studentEmail}`}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+          {isProviderRestricted ? (
+            <button
+              type="button"
+              onClick={openVerificationModal}
+              className="flex items-center gap-2 text-sm text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition-colors"
             >
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
               </svg>
-              <span className="truncate">{studentEmail}</span>
-            </a>
-          )}
-          {studentPhone && (
-            <a
-              href={`tel:${studentPhone}`}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
-            >
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-              {studentPhone}
-            </a>
+              Verify to view contact info
+            </button>
+          ) : (
+            <>
+              {studentEmail && (
+                <a
+                  href={`mailto:${studentEmail}`}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                  <span className="truncate">{studentEmail}</span>
+                </a>
+              )}
+              {studentPhone && (
+                <a
+                  href={`tel:${studentPhone}`}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                  {studentPhone}
+                </a>
+              )}
+            </>
           )}
         </div>
       )}

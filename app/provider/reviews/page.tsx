@@ -7,6 +7,7 @@ import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { markReviewAsRead } from "@/hooks/useUnreadReviewsCount";
 import type { OrganizationMetadata } from "@/lib/types";
+import { useVerificationGate } from "@/lib/contexts/VerificationGateContext";
 
 // ── Types ──
 
@@ -513,6 +514,7 @@ function SendRequestForm({
   creditsUsed,
   onUpgradeRequired,
   hasGooglePlaceId,
+  requireVerification,
 }: {
   onSuccess?: () => void;
   providerSlug?: string;
@@ -520,6 +522,7 @@ function SendRequestForm({
   creditsUsed: number;
   onUpgradeRequired: () => void;
   hasGooglePlaceId: boolean;
+  requireVerification: () => boolean;
 }) {
   // Delivery method toggle
   const [deliveryMethod, setDeliveryMethod] = useState<"email" | "link">("email");
@@ -554,6 +557,9 @@ function SendRequestForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit) return;
+
+    // Gate: restricted providers must verify before requesting reviews
+    if (!requireVerification()) return;
 
     setIsSubmitting(true);
     setShowSuccess(false);
@@ -604,6 +610,9 @@ function SendRequestForm({
   // Link share handler - logs request and generates link (no copy during generation)
   const handleShareLink = async () => {
     if (!providerSlug || isSubmitting || isAtLimit) return;
+
+    // Gate: restricted providers must verify before requesting reviews
+    if (!requireVerification()) return;
 
     const name = linkClientName.trim() || "Client";
     const reviewLink = `${window.location.origin}/review/${providerSlug}${linkClientName.trim() ? `?name=${encodeURIComponent(linkClientName.trim())}` : ""}`;
@@ -1298,6 +1307,7 @@ function SentRequestsList({
 export default function ProviderReviewsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { requireVerification } = useVerificationGate();
 
   const [view, setView] = useState<ViewState>("landing");
   const [requests, setRequests] = useState<SentRequest[]>([]);
@@ -1540,6 +1550,7 @@ export default function ProviderReviewsPage() {
                     creditsUsed={creditsUsed}
                     onUpgradeRequired={() => setShowUpgradeModal(true)}
                     hasGooglePlaceId={hasGooglePlaceId}
+                    requireVerification={requireVerification}
                   />
                 </div>
               )}

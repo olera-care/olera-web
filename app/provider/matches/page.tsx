@@ -24,6 +24,7 @@ import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
 import VerificationFormModal from "@/components/provider/VerificationFormModal";
 import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
+import { useVerificationGate } from "@/lib/contexts/VerificationGateContext";
 
 
 // ── Timeline config ──
@@ -1554,6 +1555,7 @@ export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
   const { membership, refreshAccountData } = useAuth();
   const { metadata: dashboardMetadata } = useProviderDashboardData(providerProfile);
+  const { requireVerification } = useVerificationGate();
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
@@ -1647,7 +1649,8 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
-      // Allow all providers to reach out - verification is soft-nudged in the drawer
+      // Gate: restricted providers must verify before reaching out
+      if (!requireVerification()) return;
 
       if (!isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
@@ -1672,7 +1675,7 @@ export default function ProviderMatchesPage() {
       }
       setDrawerFamily(family);
     },
-    [providerProfile],
+    [providerProfile, requireVerification],
   );
 
   const handleCloseDrawer = useCallback(() => {

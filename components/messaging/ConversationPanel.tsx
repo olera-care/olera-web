@@ -20,6 +20,10 @@ interface ConversationPanelProps {
   claimToken?: string | null;
   /** Guest profile ID (used when user is not authenticated) */
   guestProfileId?: string | null;
+  /** Force restricted mode (for inbox outside provider layout) */
+  forceRestricted?: boolean;
+  /** Callback when verification is required (for inbox outside provider layout) */
+  onVerificationRequired?: () => void;
 }
 
 interface ThreadMessage {
@@ -341,6 +345,8 @@ export default function ConversationPanel({
   className = "",
   claimToken,
   guestProfileId,
+  forceRestricted,
+  onVerificationRequired,
 }: ConversationPanelProps) {
   // Use guest profile ID when activeProfile is not available
   const currentProfileId = activeProfile?.id || guestProfileId;
@@ -353,10 +359,12 @@ export default function ConversationPanel({
   // Provider verification check
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
 
-  // Verification gate for restricted providers (only applies when in provider context)
-  // Hide contact info for both restricted AND pending states (consistent with message gating)
+  // Verification gate for restricted providers
+  // Uses context when available, or forceRestricted prop when outside provider layout (e.g., /portal/inbox)
   const verificationGate = useVerificationGateOptional();
-  const isRestrictedProvider = isProvider && (verificationGate?.isRestricted || verificationGate?.isPending);
+  const isRestrictedProvider = isProvider && (
+    forceRestricted || verificationGate?.isRestricted || verificationGate?.isPending
+  );
 
   // Auto-dismiss send error after 4 seconds
   useEffect(() => {
@@ -388,6 +396,11 @@ export default function ConversationPanel({
 
     // Gate: restricted providers must verify before sending messages
     if (verificationGate && !verificationGate.requireVerification()) return;
+    // Fallback for inbox outside provider layout: use forceRestricted + callback
+    if (forceRestricted && !verificationGate && onVerificationRequired) {
+      onVerificationRequired();
+      return;
+    }
     setSending(true);
     try {
       let thread: ThreadMessage[];
@@ -427,7 +440,7 @@ export default function ConversationPanel({
     } finally {
       setSending(false);
     }
-  }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage, verificationGate]);
+  }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage, verificationGate, forceRestricted, onVerificationRequired]);
 
   // ── Empty state ──
   if (!connection) {
@@ -561,7 +574,13 @@ export default function ConversationPanel({
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
                   hideContactInfo={!!isRestrictedProvider}
-                  onVerifyClick={() => verificationGate?.openVerificationModal()}
+                  onVerifyClick={() => {
+                    if (verificationGate) {
+                      verificationGate.openVerificationModal();
+                    } else if (onVerificationRequired) {
+                      onVerificationRequired();
+                    }
+                  }}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */

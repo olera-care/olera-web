@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    const [eventsRes, lifetimeRes, cohortRes, reviewsRes, benchmarkRes] = await Promise.all([
+    const [eventsRes, lifetimeRes, reviewsRes, benchmarkRes] = await Promise.all([
       // All events for this provider in the prior+current window (we need both
       // halves for the delta computation; one query instead of two).
       db
@@ -99,19 +99,6 @@ export async function GET(request: NextRequest) {
         .in("provider_id", providerIdVariants)
         .eq("event_type", "page_view"),
 
-      // Same (city, category) cohort demand — anonymous page_views +
-      // search_clicks in the current window, across ALL providers in the
-      // cohort. This is the "47 families searched" number.
-      profile.city && profile.state && profile.category
-        ? db
-            .from("provider_page_view_stats")
-            .select("provider_id, raw_view_count, unique_view_count")
-            .eq("city", profile.city)
-            .eq("state", profile.state)
-            .eq("category", profile.category)
-            .gte("date", windowStart.toISOString().slice(0, 10))
-        : Promise.resolve({ data: [], error: null }),
-
       // Reviews state.
       db
         .from("reviews")
@@ -120,7 +107,9 @@ export async function GET(request: NextRequest) {
         .eq("status", "published")
         .order("created_at", { ascending: false }),
 
-      // Peer context benchmarks — most recent row per cohort.
+      // Peer context benchmarks — most recent row per cohort. Stays bound
+      // to the (city, state, category) grain because the cron only emits
+      // at that grain. Multi-grain benchmarks deferred to Phase 2.
       profile.city && profile.state && profile.category
         ? db
             .from("city_category_view_benchmarks")
@@ -200,15 +189,22 @@ export async function GET(request: NextRequest) {
       sources[classifySource(ref)] += 1;
     }
 
-    // --- Pipeline opportunity (cohort demand) ---
-    // local_demand_count comes from the (24h-stale, possibly inflated by
-    // multi-provider-same-family visits) cohort table — acceptable because
-    // it's an inspiration magnitude. reached_your_page_count is intentionally
-    // viewsThisPeriod (real-time, raw) so it matches the KPI grid's "page
-    // views" cell — same number in adjacent UI.
-    type CohortRow = { provider_id: string; raw_view_count: number; unique_view_count: number };
-    const cohortRows = (cohortRes.data ?? []) as CohortRow[];
-    const localDemandCount = cohortRows.reduce((acc, r) => acc + (r.unique_view_count || 0), 0);
+    // --- Pipeline opportunity (cohort demand, real-time + adaptive) ---
+    // Replaces the cron-fed lookup with an adaptive widening query against
+    // provider_activity directly. Tries (city, state, category) → (state,
+    // category) → (state, *), picking the first cohort with >= 5 providers.
+    // Real-time (no 24h cron lag) and never returns a self-referential
+    // single-provider cohort. reached_your_page_count remains viewsThisPeriod
+    // so the dashboard banner agrees with the KPI grid.
+    const cohortDemand: CohortDemandResult = profile.state
+      ? await findCohortDemand(db, {
+          city: profile.city,
+          state: profile.state,
+          category: profile.category,
+          windowStart,
+        })
+      : { scope: null, demand: 0 };
+    const localDemandCount = cohortDemand.demand;
     const reachedYourPageCount = viewsThisPeriod;
 
     // --- Peer context ---
@@ -251,9 +247,10 @@ export async function GET(request: NextRequest) {
 
       peer_context: peerContext,
 
-      pipeline_opportunity: profile.city && profile.category
+      pipeline_opportunity: cohortDemand.scope
         ? {
-            description: describePipelineOpportunity(profile.category, profile.city),
+            scope: cohortDemand.scope,
+            description: describePipelineOpportunity(cohortDemand.scope, profile.category, profile.city, profile.state),
             local_demand_count: localDemandCount,
             reached_your_page_count: reachedYourPageCount,
           }
@@ -303,10 +300,166 @@ function describeCohort(category: string | null, city: string | null): string {
   return `${cat} in ${city}`;
 }
 
-function describePipelineOpportunity(category: string | null, city: string | null): string {
-  const cat = humanizeCategory(category);
-  if (!city) return `Families searched for ${cat.toLowerCase()} in your area`;
-  return `Families searched for ${cat.toLowerCase()} near ${city}`;
+type CohortScope = "city" | "state" | "state-all";
+
+function describePipelineOpportunity(
+  scope: CohortScope,
+  category: string | null,
+  city: string | null,
+  state: string | null,
+): string {
+  if (scope === "city" && city && category) {
+    return `Families searched for ${humanizeCategory(category).toLowerCase()} in ${city}`;
+  }
+  if (scope === "state" && state && category) {
+    return `Families searched for ${humanizeCategory(category).toLowerCase()} in ${humanizeState(state)}`;
+  }
+  if (scope === "state-all" && state) {
+    return `Families searched for senior care in ${humanizeState(state)}`;
+  }
+  // Defensive fallback — should never hit; scope is set only when we have data.
+  return "Families searched in your area";
+}
+
+function humanizeState(state: string): string {
+  // Many providers store state as "TX"; expand to full name when we recognize it.
+  // Fallback to the raw value (could already be full) if not found.
+  const map: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas",
+    CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware",
+    FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho",
+    IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas",
+    KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+    MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+    NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+    NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
+    OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah",
+    VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
+    WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
+  };
+  const upper = state.toUpperCase();
+  return map[upper] ?? state;
+}
+
+/**
+ * Adaptive cohort widening for the pipeline-opportunity number.
+ *
+ * Tries three cohort scopes in order, returning the first one with at least
+ * COHORT_MIN_PROVIDERS members (5). For each cohort, counts unique anonymous
+ * sessions across `provider_activity` page_views in the window.
+ *
+ * Why widen: tiny markets (single-provider city + category) make the count
+ * self-referential. State and state-all fallbacks ensure providers in sparse
+ * areas still see a meaningful "families searched" magnitude.
+ *
+ * Phase 2 candidates:
+ *  - Geographic-radius cohorts (lat/lon) instead of city-name match
+ *  - Population-density-aware widening
+ *  - Exclude provider's own traffic if framing pivots to competitive
+ */
+const COHORT_MIN_PROVIDERS = 5;
+const COHORT_LOOKUP_LIMIT = 500;
+
+interface CohortDemandResult {
+  scope: CohortScope | null;
+  demand: number;
+}
+
+async function findCohortDemand(
+  db: ReturnType<typeof getServiceClient>,
+  options: {
+    city: string | null;
+    state: string;
+    category: string | null;
+    windowStart: Date;
+  },
+): Promise<CohortDemandResult> {
+  const { city, state, category, windowStart } = options;
+
+  // Tier 1: (city, state, category)
+  if (city && category) {
+    const slugs = await fetchCohortSlugs(db, { city, state, category });
+    if (slugs.length >= COHORT_MIN_PROVIDERS) {
+      const demand = await countCohortDemand(db, slugs, windowStart);
+      return { scope: "city", demand };
+    }
+  }
+
+  // Tier 2: (state, category)
+  if (category) {
+    const slugs = await fetchCohortSlugs(db, { state, category });
+    if (slugs.length >= COHORT_MIN_PROVIDERS) {
+      const demand = await countCohortDemand(db, slugs, windowStart);
+      return { scope: "state", demand };
+    }
+  }
+
+  // Tier 3: (state, *)
+  const slugs = await fetchCohortSlugs(db, { state });
+  if (slugs.length >= COHORT_MIN_PROVIDERS) {
+    const demand = await countCohortDemand(db, slugs, windowStart);
+    return { scope: "state-all", demand };
+  }
+
+  return { scope: null, demand: 0 };
+}
+
+async function fetchCohortSlugs(
+  db: ReturnType<typeof getServiceClient>,
+  filter: { state: string; category?: string; city?: string },
+): Promise<string[]> {
+  let q = db
+    .from("olera-providers")
+    .select("slug")
+    .eq("state", filter.state)
+    .not("slug", "is", null)
+    .not("deleted", "is", true)
+    .limit(COHORT_LOOKUP_LIMIT);
+  if (filter.category) q = q.eq("provider_category", filter.category);
+  if (filter.city) q = q.eq("city", filter.city);
+
+  const { data, error } = await q;
+  if (error) {
+    console.error("[provider/analytics] cohort slug lookup failed:", error);
+    return [];
+  }
+  return (data ?? [])
+    .map((row: { slug: string | null }) => row.slug)
+    .filter((s): s is string => typeof s === "string" && s.length > 0);
+}
+
+async function countCohortDemand(
+  db: ReturnType<typeof getServiceClient>,
+  providerSlugs: string[],
+  windowStart: Date,
+): Promise<number> {
+  if (providerSlugs.length === 0) return 0;
+
+  // Pull session_id from metadata for distinct-count in JS. The partial index
+  // from migration 044 (provider_id, created_at, metadata->>'session_id'
+  // WHERE event_type='page_view') keeps this efficient. At low Phase 1 volume
+  // this is cheap; Phase 2 may move to a precomputed cohort_demand table.
+  const { data, error } = await db
+    .from("provider_activity")
+    .select("metadata")
+    .eq("event_type", "page_view")
+    .gte("created_at", windowStart.toISOString())
+    .in("provider_id", providerSlugs)
+    .limit(50000);
+
+  if (error) {
+    console.error("[provider/analytics] cohort demand count failed:", error);
+    return 0;
+  }
+
+  const sessions = new Set<string>();
+  for (const row of (data ?? []) as Array<{ metadata: Record<string, unknown> | null }>) {
+    const sid = row.metadata?.session_id;
+    if (typeof sid === "string" && sid.length > 0) sessions.add(sid);
+  }
+  return sessions.size;
 }
 
 function humanizeCategory(category: string | null): string {

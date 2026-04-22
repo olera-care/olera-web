@@ -44,6 +44,7 @@ interface AnalyticsResponse {
   sources: Record<string, number>;
   peer_context: unknown;
   pipeline_opportunity: {
+    scope: "city" | "state" | "state-all";
     description: string;
     local_demand_count: number;
     reached_your_page_count: number;
@@ -132,12 +133,12 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
 }
 
 function TeaserBody({ data }: { data: AnalyticsResponse }) {
-  const { tier, views, pipeline_opportunity, sources } = data;
+  const { tier, views, pipeline_opportunity, sources, city, state, category } = data;
 
   // Headline varies by tier — low leads with pipeline opportunity (kinder to
   // providers with thin personal numbers); medium/high lead with personal count.
-  const headline = buildHeadline(tier, views, pipeline_opportunity);
-  const subline = buildSubline(tier, views, pipeline_opportunity, sources);
+  const headline = buildHeadline(tier, views, pipeline_opportunity, { city, state, category });
+  const subline = buildSubline(tier, views, pipeline_opportunity, sources, { city, state, category });
 
   const sparkline = tier !== "low" && views.trend.length > 1
     ? <Sparkline trend={views.trend} />
@@ -184,15 +185,24 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
   );
 }
 
+interface ProfileLoc {
+  city: string | null;
+  state: string | null;
+  category: string | null;
+}
+
 function buildHeadline(
   tier: Tier,
   views: AnalyticsResponse["views"],
   pipeline: AnalyticsResponse["pipeline_opportunity"],
+  loc: ProfileLoc,
 ): string {
   if (tier === "low") {
     // Sparse personal data — lead with market opportunity if we have it.
     if (pipeline && pipeline.local_demand_count > 0) {
-      return `${pipeline.local_demand_count.toLocaleString()} ${pipeline.local_demand_count === 1 ? "family" : "families"} searched your area this month.`;
+      const n = pipeline.local_demand_count;
+      const families = n === 1 ? "family" : "families";
+      return `${n.toLocaleString()} ${families} searched ${pipelinePhrase(pipeline.scope, loc)} this month.`;
     }
     // No cohort data. Fall back: show personal count if any, else patient copy.
     if (views.this_period > 0) {
@@ -208,11 +218,68 @@ function buildHeadline(
   return `${n.toLocaleString()} ${families} viewed your page this month.`;
 }
 
+/**
+ * Scope-aware "for X in Y" phrase used after "[N] families searched ...".
+ * Examples:
+ *   city       → "for assisted living in Austin"
+ *   state      → "for assisted living in Texas"
+ *   state-all  → "for senior care in Texas"
+ *   no scope   → "in your area" (defensive fallback; shouldn't render)
+ */
+function pipelinePhrase(scope: "city" | "state" | "state-all", loc: ProfileLoc): string {
+  const cat = humanizeCategoryLabel(loc.category).toLowerCase();
+  const place = humanizeStateLabel(loc.state);
+  if (scope === "city" && loc.city && loc.category) {
+    return `for ${cat} in ${loc.city}`;
+  }
+  if (scope === "state" && place && loc.category) {
+    return `for ${cat} in ${place}`;
+  }
+  if (scope === "state-all" && place) {
+    return `for senior care in ${place}`;
+  }
+  return "in your area";
+}
+
+function humanizeCategoryLabel(category: string | null): string {
+  if (!category) return "Care";
+  const map: Record<string, string> = {
+    assisted_living: "Assisted living",
+    memory_care: "Memory care",
+    nursing_home: "Nursing homes",
+    home_care_agency: "Home care",
+    home_health_care: "Home health care",
+    independent_living: "Independent living",
+  };
+  return map[category] ?? category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function humanizeStateLabel(state: string | null): string | null {
+  if (!state) return null;
+  const map: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas",
+    CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware",
+    FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho",
+    IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas",
+    KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+    MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+    NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+    NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
+    OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah",
+    VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
+    WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
+  };
+  return map[state.toUpperCase()] ?? state;
+}
+
 function buildSubline(
   tier: Tier,
   views: AnalyticsResponse["views"],
   pipeline: AnalyticsResponse["pipeline_opportunity"],
   sources: Record<string, number>,
+  loc: ProfileLoc,
 ): string | null {
   if (tier === "low") {
     if (pipeline && pipeline.local_demand_count > 0) {
@@ -242,7 +309,7 @@ function buildSubline(
     if (top) parts.push(`Top source: ${top}.`);
   } else if (pipeline && pipeline.local_demand_count > views.this_period) {
     parts.push(
-      `Out of ${pipeline.local_demand_count.toLocaleString()} families who searched your area.`,
+      `Out of ${pipeline.local_demand_count.toLocaleString()} families who searched ${pipelinePhrase(pipeline.scope, loc)}.`,
     );
   }
 

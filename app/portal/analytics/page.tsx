@@ -57,6 +57,7 @@ interface AnalyticsResponse {
     as_of_date: string;
   } | null;
   pipeline_opportunity: {
+    scope: "city" | "state" | "state-all";
     description: string;
     local_demand_count: number;
     reached_your_page_count: number;
@@ -221,19 +222,18 @@ function PipelineBanner({ data }: { data: AnalyticsResponse }) {
   // Hide the banner if there's no cohort demand — a "0 families searched"
   // banner is a deflating empty state. The KPI grid carries the load instead.
   if (!p || p.local_demand_count === 0) return null;
+  const phrase = pipelinePhrase(p.scope, data.city, data.state, data.category);
   return (
     <div className="rounded-2xl bg-white border border-gray-100 px-6 py-6 mb-6">
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
         <p className="text-xs font-medium text-gray-500 tracking-wide uppercase">
-          Families near you
+          {p.scope === "city" ? "Families near you" : "Families in your state"}
         </p>
       </div>
       <p className="text-[26px] font-display font-semibold text-gray-900 leading-snug tracking-tight">
         {p.local_demand_count.toLocaleString()}{" "}
-        {p.local_demand_count === 1 ? "family" : "families"} searched for{" "}
-        {humanCategory(data.category)?.toLowerCase() ?? "care"} near{" "}
-        {data.city ?? "you"} this month.
+        {p.local_demand_count === 1 ? "family" : "families"} searched {phrase} this month.
       </p>
       <p className="mt-2 text-sm text-gray-500 leading-relaxed">
         {p.reached_your_page_count === 0
@@ -242,6 +242,40 @@ function PipelineBanner({ data }: { data: AnalyticsResponse }) {
       </p>
     </div>
   );
+}
+
+function pipelinePhrase(
+  scope: "city" | "state" | "state-all",
+  city: string | null,
+  state: string | null,
+  category: string | null,
+): string {
+  const cat = humanCategory(category)?.toLowerCase() ?? "care";
+  const stateName = humanState(state);
+  if (scope === "city" && city && category) return `for ${cat} in ${city}`;
+  if (scope === "state" && stateName && category) return `for ${cat} in ${stateName}`;
+  if (scope === "state-all" && stateName) return `for senior care in ${stateName}`;
+  return "in your area";
+}
+
+function humanState(state: string | null): string | null {
+  if (!state) return null;
+  const map: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas",
+    CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware",
+    FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho",
+    IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas",
+    KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+    MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+    NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+    NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
+    OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah",
+    VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
+    WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
+  };
+  return map[state.toUpperCase()] ?? state;
 }
 
 function KpiGrid({ data }: { data: AnalyticsResponse }) {

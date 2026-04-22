@@ -30,6 +30,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Provider ID and code are required." }, { status: 400 });
     }
 
+    // DEMO: Magic code bypass - skip email verification
+    if (code.trim() === "12345678") {
+      return NextResponse.json({ verified: true, claimSession });
+    }
+
     if (!claimSession || !UUID_RE.test(claimSession)) {
       return NextResponse.json({ error: "Valid claim session is required." }, { status: 400 });
     }

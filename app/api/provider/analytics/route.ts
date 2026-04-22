@@ -36,12 +36,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    // Resolve the authenticated user → account → business_profile
+    // Resolve the authenticated user → account → business_profile.
+    // `.maybeSingle()` so a missing account returns the friendly 400 below
+    // instead of throwing into the generic 500 catch.
     const { data: account } = await supabase
       .from("accounts")
       .select("id")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!account) {
       return NextResponse.json({ error: "No account found" }, { status: 400 });
@@ -199,12 +201,15 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Pipeline opportunity (cohort demand) ---
+    // local_demand_count comes from the (24h-stale, possibly inflated by
+    // multi-provider-same-family visits) cohort table — acceptable because
+    // it's an inspiration magnitude. reached_your_page_count is intentionally
+    // viewsThisPeriod (real-time, raw) so it matches the KPI grid's "page
+    // views" cell — same number in adjacent UI.
     type CohortRow = { provider_id: string; raw_view_count: number; unique_view_count: number };
     const cohortRows = (cohortRes.data ?? []) as CohortRow[];
     const localDemandCount = cohortRows.reduce((acc, r) => acc + (r.unique_view_count || 0), 0);
-    const reachedYourPageCount = cohortRows
-      .filter((r) => providerIdVariants.includes(r.provider_id))
-      .reduce((acc, r) => acc + (r.unique_view_count || 0), 0);
+    const reachedYourPageCount = viewsThisPeriod;
 
     // --- Peer context ---
     const benchmarkRow = (benchmarkRes as { data: { avg_views: number | null; p50_views: number | null; p90_views: number | null; provider_count: number; date: string } | null }).data;

@@ -172,9 +172,20 @@ export async function POST(request: Request) {
   // This creates/finds the user, links the profile to their account, and sets restricted state
   if (action === "force_claim") {
     try {
-      if (!customEmail) {
+      // Trim and validate email
+      const email = customEmail?.trim()?.toLowerCase();
+      if (!email) {
         return NextResponse.json(
           { error: "Email is required for Force Claim" },
+          { status: 400 }
+        );
+      }
+
+      // Basic email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return NextResponse.json(
+          { error: "Invalid email format. Please enter a valid email address." },
           { status: 400 }
         );
       }
@@ -196,14 +207,14 @@ export async function POST(request: Request) {
       // Step 1: Find or create auth user
       let authUserId: string;
       const { data: existingUsers } = await db.auth.admin.listUsers({ perPage: 1000 });
-      const existingUser = existingUsers?.users?.find((u) => u.email === customEmail);
+      const existingUser = existingUsers?.users?.find((u) => u.email === email);
 
       if (existingUser) {
         authUserId = existingUser.id;
       } else {
         // Create the auth user
         const { data: newUser, error: createUserErr } = await db.auth.admin.createUser({
-          email: customEmail,
+          email: email,
           email_confirm: true,
         });
         if (createUserErr || !newUser.user) {
@@ -262,7 +273,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         status: "force_claimed",
-        message: "Demo provider linked to your account and set to restricted state. Sign in with " + customEmail + " and go to /provider to see the restricted UI.",
+        message: "Demo provider linked to your account and set to restricted state. Sign in with " + email + " and go to /provider to see the restricted UI.",
       });
     } catch (err) {
       return NextResponse.json(

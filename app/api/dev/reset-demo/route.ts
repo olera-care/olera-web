@@ -130,33 +130,39 @@ export async function POST(request: Request) {
 
   // Default action: reset
   try {
-    // 0. Clean up any existing auth user with the provided email
+    // 0. Try to clean up any existing auth user with the provided email
     // This handles cases where the email was used in previous tests
-    const { data: authUsers } = await db.auth.admin.listUsers();
-    const demoAuthUser = authUsers?.users?.find(
-      (u) => u.email === customEmail
-    );
-    if (demoAuthUser) {
-      // Find and clean up their account
-      const { data: existingAccount } = await db
-        .from("accounts")
-        .select("id")
-        .eq("user_id", demoAuthUser.id)
-        .maybeSingle();
+    // Wrapped in try-catch because listUsers can fail on large user bases
+    try {
+      const { data: authUsers } = await db.auth.admin.listUsers({ perPage: 1000 });
+      const demoAuthUser = authUsers?.users?.find(
+        (u) => u.email === customEmail
+      );
+      if (demoAuthUser) {
+        // Find and clean up their account
+        const { data: existingAccount } = await db
+          .from("accounts")
+          .select("id")
+          .eq("user_id", demoAuthUser.id)
+          .maybeSingle();
 
-      if (existingAccount) {
-        // Unlink any business_profiles from this account (don't delete them)
-        await db
-          .from("business_profiles")
-          .update({ account_id: null, claim_state: "unclaimed" })
-          .eq("account_id", existingAccount.id);
+        if (existingAccount) {
+          // Unlink any business_profiles from this account (don't delete them)
+          await db
+            .from("business_profiles")
+            .update({ account_id: null, claim_state: "unclaimed" })
+            .eq("account_id", existingAccount.id);
 
-        // Delete the account
-        await db.from("accounts").delete().eq("id", existingAccount.id);
+          // Delete the account
+          await db.from("accounts").delete().eq("id", existingAccount.id);
+        }
+
+        // Delete the auth user
+        await db.auth.admin.deleteUser(demoAuthUser.id);
       }
-
-      // Delete the auth user
-      await db.auth.admin.deleteUser(demoAuthUser.id);
+    } catch (authCleanupErr) {
+      console.warn("Auth cleanup failed (non-fatal):", authCleanupErr);
+      // Continue with reset even if auth cleanup fails
     }
 
     // 1. Find existing demo profile
@@ -247,7 +253,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Reset demo error:", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error: " + (err instanceof Error ? err.message : String(err)) },
       { status: 500 }
     );
   }

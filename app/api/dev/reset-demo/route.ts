@@ -29,7 +29,7 @@ export async function GET() {
   const { data: profile } = await db
     .from("business_profiles")
     .select(
-      "id, slug, display_name, claim_state, verification_state, claim_trust_level, account_id, source"
+      "id, slug, display_name, claim_state, verification_state, claim_trust_level, account_id, source, email"
     )
     .eq("slug", DEMO_PROVIDER_SLUG)
     .maybeSingle();
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const action = body.action as string | undefined;
+  const customEmail = (body.email as string | undefined) || DEMO_EMAIL;
 
   // Action: approve - simulate admin approval
   if (action === "approve") {
@@ -129,11 +130,11 @@ export async function POST(request: Request) {
 
   // Default action: reset
   try {
-    // 0. Clean up any existing auth user with the demo email
+    // 0. Clean up any existing auth user with the provided email
     // This handles cases where the email was used in previous tests
     const { data: authUsers } = await db.auth.admin.listUsers();
     const demoAuthUser = authUsers?.users?.find(
-      (u) => u.email === DEMO_EMAIL
+      (u) => u.email === customEmail
     );
     if (demoAuthUser) {
       // Find and clean up their account
@@ -217,7 +218,7 @@ export async function POST(request: Request) {
         category: "Assisted Living",
         care_types: ["Assisted Living", "Memory Care", "Respite Care"],
         phone: "(512) 555-0123",
-        email: "esther+suspicious@gmail.com", // Must match test email for claim to complete
+        email: customEmail, // Must match test email for claim to complete
         claim_state: "unclaimed",
         verification_state: "unverified",
         source: "demo",

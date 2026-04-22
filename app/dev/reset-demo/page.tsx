@@ -14,17 +14,17 @@ interface DemoState {
     claim_trust_level: string | null;
     account_id: string | null;
     source: string | null;
+    email?: string | null;
   } | null;
   demoSlug: string;
 }
-
-const DEMO_EMAIL = "esther+suspicious@gmail.com";
 
 export default function ResetDemoPage() {
   const [state, setState] = useState<DemoState | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [customEmail, setCustomEmail] = useState("");
 
   const fetchState = useCallback(async () => {
     try {
@@ -46,11 +46,20 @@ export default function ResetDemoPage() {
     setActionLoading(action);
     setMessage(null);
 
+    // For reset, require an email with +suspicious
+    if (action === "reset") {
+      if (!customEmail.includes("+suspicious")) {
+        setMessage({ type: "error", text: "Email must contain '+suspicious' to trigger low-trust scoring" });
+        setActionLoading(null);
+        return;
+      }
+    }
+
     try {
       const res = await fetch("/api/dev/reset-demo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, email: customEmail || undefined }),
       });
       const data = await res.json();
 
@@ -172,19 +181,34 @@ export default function ResetDemoPage() {
 
           <div className="space-y-4">
             {/* Reset Demo */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+            <div className="p-4 bg-gray-50 rounded-xl space-y-3">
               <div>
                 <p className="font-medium text-gray-900">Reset Demo</p>
                 <p className="text-sm text-gray-500">
                   Delete existing demo data and create fresh unclaimed provider
                 </p>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Your email (must contain +suspicious)
+                </label>
+                <input
+                  type="email"
+                  value={customEmail}
+                  onChange={(e) => setCustomEmail(e.target.value)}
+                  placeholder="you+suspicious@gmail.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Use your real Gmail with +suspicious added. You&apos;ll receive the OTP there.
+                </p>
+              </div>
               <button
                 onClick={() => handleAction("reset")}
-                disabled={actionLoading !== null}
-                className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
+                disabled={actionLoading !== null || !customEmail}
+                className="w-full px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
               >
-                {actionLoading === "reset" ? "Resetting..." : "Reset"}
+                {actionLoading === "reset" ? "Resetting..." : "Reset Demo"}
               </button>
             </div>
 
@@ -259,9 +283,9 @@ export default function ResetDemoPage() {
                 3
               </span>
               <div>
-                <p className="font-medium text-gray-900">Claim with suspicious email</p>
+                <p className="font-medium text-gray-900">Claim with your email</p>
                 <p className="text-sm text-gray-500">
-                  Use: <code className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-800">{DEMO_EMAIL}</code>
+                  Use: <code className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-800">{state?.profile?.email || customEmail || "you+suspicious@gmail.com"}</code>
                 </p>
               </div>
             </li>

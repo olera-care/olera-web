@@ -76,13 +76,9 @@ function getApplyType(program: WaiverProgram, stateId: string): "quick" | "plan"
 interface ProgramListProps {
   programs: WaiverProgram[];
   stateId: string;
-  /** Map of program.id → new slug for custom URL paths */
-  slugMap?: Record<string, string>;
-  /** Base path for program links (e.g. "/texas/benefits") */
-  basePath?: string;
 }
 
-export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramListProps) {
+export function ProgramList({ programs, stateId }: ProgramListProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("financial");
   const [showAll, setShowAll] = useState(false);
@@ -247,7 +243,7 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
 
                 <div className="mt-5">
                   <Link
-                    href={basePath && slugMap?.[program.id] ? `${basePath}/${slugMap[program.id]}` : `/senior-benefits/${stateId}/${program.id}`}
+                    href={`/benefits/${stateId}/${program.id}`}
                     className="inline-flex items-center justify-center w-full px-4 py-2.5 text-base font-semibold text-primary-600 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 transition-colors"
                   >
                     Learn more

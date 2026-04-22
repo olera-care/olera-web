@@ -7,7 +7,6 @@ import {
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
-import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 import { allEpisodes } from "@/lib/aging-in-america-data";
 
 export const dynamic = "force-dynamic";
@@ -128,31 +127,15 @@ export async function GET(request: Request) {
         entries.push(xmlEntry(`${SITE_URL}/aging-in-america/${ep.slug}`, 0.6, "monthly"));
       }
 
-      // Waiver library
+      // Waiver-library state URLs (state listing page)
       for (const state of allStates) {
-        const stateUrl = buildStateUrl(state.id);
-        entries.push(xmlEntry(`${SITE_URL}${stateUrl}`, 0.5, "monthly"));
-        if (state.id !== "texas") {
-          entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
-        }
-        for (const program of state.programs ?? []) {
-          const programUrl = buildProgramUrl(state.id, program.id);
-          entries.push(xmlEntry(`${SITE_URL}${programUrl}`, 0.5, "monthly"));
-          entries.push(xmlEntry(`${SITE_URL}${programUrl}/checklist`, 0.4, "monthly"));
-          if (program.forms?.length > 0) {
-            entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
-          }
-        }
+        entries.push(xmlEntry(`${SITE_URL}/benefits/${state.id}`, 0.5, "monthly"));
+        entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
       }
 
-      // Pipeline-only states (e.g. DC today): states that exist in pipelineDrafts but NOT in
-      // waiver-library. Emit state URL + program URLs. No forms URL — the forms page reads
-      // waiver-library data these states lack.
-      // Skipping pipeline-only *programs* inside waiver-library states (a separate ticket):
-      // Texas pipeline drafts use v3 IDs (e.g. "star-plus-medicaid-hcbs") while waiver-library
-      // uses legacy IDs ("star-plus-home-and-community-based-services"). A naive dedup wouldn't
-      // catch these collisions and would emit duplicate redirect-only URLs.
-      const wlSlugs = new Set(allStates.map((s) => s.id));
+      // Program URLs come from pipeline-drafts (the source of truth for
+      // /benefits/[slug]/[program] rendering). Covers both waiver-library
+      // states and pipeline-only states (e.g. DC).
       for (const [abbrev, drafts] of Object.entries(pipelineDrafts)) {
         if (drafts?.isRegion === true) continue;
         const slug = ABBREV_TO_SLUG[abbrev];
@@ -160,10 +143,12 @@ export async function GET(request: Request) {
           console.warn(`[api/sitemap] pipeline abbrev "${abbrev}" has no slug mapping; skipping`);
           continue;
         }
-        if (wlSlugs.has(slug)) continue;
-        entries.push(xmlEntry(`${SITE_URL}${buildStateUrl(slug)}`, 0.5, "monthly"));
+        // Emit state URL for pipeline-only states (waiver-library states already emitted above)
+        if (!allStates.some((s) => s.id === slug)) {
+          entries.push(xmlEntry(`${SITE_URL}/benefits/${slug}`, 0.5, "monthly"));
+        }
         for (const draft of drafts.programs ?? []) {
-          entries.push(xmlEntry(`${SITE_URL}${buildProgramUrl(slug, draft.id)}`, 0.4, "monthly"));
+          entries.push(xmlEntry(`${SITE_URL}/benefits/${slug}/${draft.id}`, 0.4, "monthly"));
         }
       }
 

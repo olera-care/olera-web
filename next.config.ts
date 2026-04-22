@@ -137,10 +137,12 @@ const nextConfig: NextConfig = {
       { source: "/senior-benefits/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/senior-benefits/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/senior-benefits/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
-      // Texas shadow routes → /benefits/texas (state-level 1:1; program-level to state)
+
+      // Legacy /texas/benefits shadow route — fully retired. Any remaining inbound
+      // traffic (indexed URLs, links in DB article content) collapses to the
+      // Texas state page since the old slugs don't 1:1 map to pipeline IDs.
       { source: "/texas/benefits", destination: "/benefits/texas", permanent: true },
-      { source: "/texas/benefits/:slug", destination: "/benefits/texas", permanent: true },
-      { source: "/texas/benefits/:slug/:sub(checklist|forms)", destination: "/benefits/texas", permanent: true },
+      { source: "/texas/benefits/:path*", destination: "/benefits/texas", permanent: true },
 
       // Tier 6: URL migration — /waiver-library → /benefits (SEO rename chain)
       { source: "/waiver-library", destination: "/benefits", permanent: true },
@@ -152,40 +154,6 @@ const nextConfig: NextConfig = {
       { source: "/waiver-library/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
-
-      // Tier 6b: Texas URL migration — /senior-benefits/texas → /texas/benefits
-      { source: "/senior-benefits/texas", destination: "/texas/benefits", permanent: true },
-      { source: "/senior-benefits/forms/texas", destination: "/texas/benefits", permanent: true },
-      { source: "/senior-benefits/texas/star-plus-home-and-community-based-services", destination: "/texas/benefits/star-plus", permanent: true },
-      { source: "/senior-benefits/texas/star-plus-home-and-community-based-services/:sub(checklist|forms)", destination: "/texas/benefits/star-plus/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-medicare-savings-programs", destination: "/texas/benefits/medicare-savings", permanent: true },
-      { source: "/senior-benefits/texas/texas-medicare-savings-programs/:sub(checklist|forms)", destination: "/texas/benefits/medicare-savings/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-snap-food-benefits", destination: "/texas/benefits/snap-food-benefits", permanent: true },
-      { source: "/senior-benefits/texas/texas-snap-food-benefits/:sub(checklist|forms)", destination: "/texas/benefits/snap-food-benefits/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-medicaid-for-the-elderly-and-people-with-disabilities", destination: "/texas/benefits/medicaid", permanent: true },
-      { source: "/senior-benefits/texas/texas-medicaid-for-the-elderly-and-people-with-disabilities/:sub(checklist|forms)", destination: "/texas/benefits/medicaid/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-ship-medicare-counseling", destination: "/texas/benefits/ship-medicare-counseling", permanent: true },
-      { source: "/senior-benefits/texas/texas-ship-medicare-counseling/:sub(checklist|forms)", destination: "/texas/benefits/ship-medicare-counseling/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-comprehensive-energy-assistance-program-ceap-liheap", destination: "/texas/benefits/energy-assistance", permanent: true },
-      { source: "/senior-benefits/texas/texas-comprehensive-energy-assistance-program-ceap-liheap/:sub(checklist|forms)", destination: "/texas/benefits/energy-assistance/:sub", permanent: true },
-      { source: "/senior-benefits/texas/primary-home-care-community-care", destination: "/texas/benefits/primary-home-care", permanent: true },
-      { source: "/senior-benefits/texas/primary-home-care-community-care/:sub(checklist|forms)", destination: "/texas/benefits/primary-home-care/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-respite-care-services", destination: "/texas/benefits/respite-care", permanent: true },
-      { source: "/senior-benefits/texas/texas-respite-care-services/:sub(checklist|forms)", destination: "/texas/benefits/respite-care/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-meals-on-wheels", destination: "/texas/benefits/meals-on-wheels", permanent: true },
-      { source: "/senior-benefits/texas/texas-meals-on-wheels/:sub(checklist|forms)", destination: "/texas/benefits/meals-on-wheels/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-pace-programs", destination: "/texas/benefits/pace", permanent: true },
-      { source: "/senior-benefits/texas/texas-pace-programs/:sub(checklist|forms)", destination: "/texas/benefits/pace/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-long-term-care-ombudsman", destination: "/texas/benefits/ombudsman", permanent: true },
-      { source: "/senior-benefits/texas/texas-long-term-care-ombudsman/:sub(checklist|forms)", destination: "/texas/benefits/ombudsman/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-weatherization-assistance-program", destination: "/texas/benefits/weatherization", permanent: true },
-      { source: "/senior-benefits/texas/texas-weatherization-assistance-program/:sub(checklist|forms)", destination: "/texas/benefits/weatherization/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-legal-services-for-seniors", destination: "/texas/benefits/legal-services", permanent: true },
-      { source: "/senior-benefits/texas/texas-legal-services-for-seniors/:sub(checklist|forms)", destination: "/texas/benefits/legal-services/:sub", permanent: true },
-      { source: "/senior-benefits/texas/texas-senior-companion-program", destination: "/texas/benefits/senior-companion", permanent: true },
-      { source: "/senior-benefits/texas/texas-senior-companion-program/:sub(checklist|forms)", destination: "/texas/benefits/senior-companion/:sub", permanent: true },
-      { source: "/senior-benefits/texas/senior-community-service-employment-program-scsep", destination: "/texas/benefits/scsep", permanent: true },
-      { source: "/senior-benefits/texas/senior-community-service-employment-program-scsep/:sub(checklist|forms)", destination: "/texas/benefits/scsep/:sub", permanent: true },
     ];
   },
 

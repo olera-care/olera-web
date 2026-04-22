@@ -1318,7 +1318,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                   };
                   const slug = stateSlugMap[benefitsAnswers.stateCode];
                   if (!slug) return null;
-                  const href = slug === "texas" ? "/texas/benefits" : `/senior-benefits/${slug}`;
+                  const href = `/benefits/${slug}`;
                   return (
                     <Link
                       href={href}
@@ -1340,9 +1340,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ) : (
                 <div className="space-y-3">
                   {enrichedPrograms.slice(0, 4).map((p) => {
-                    const programHref = p.stateId === "texas"
-                      ? `/texas/benefits/${p.id}`
-                      : `/senior-benefits/${p.stateId}/${p.id}`;
+                    const programHref = `/benefits/${p.stateId}/${p.id}`;
                     return (
                       <Link
                         key={p.id}

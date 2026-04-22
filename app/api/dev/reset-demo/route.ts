@@ -112,36 +112,11 @@ export async function POST(request: Request) {
         );
       }
 
-      if (profile.account_id) {
-        return NextResponse.json(
-          { error: "Provider already claimed. Reset demo first." },
-          { status: 400 }
-        );
-      }
-
-      // Create a demo account (no real auth user needed for demo)
-      const { data: newAccount, error: accountErr } = await db
-        .from("accounts")
-        .insert({
-          email: customEmail,
-          display_name: "Demo Provider Admin",
-          user_id: null, // No real auth user for demo
-        })
-        .select("id")
-        .single();
-
-      if (accountErr) {
-        return NextResponse.json(
-          { error: "Failed to create account: " + accountErr.message },
-          { status: 500 }
-        );
-      }
-
       // Update profile to claimed + pending_verification (low trust state)
+      // For demo, we set the state directly without needing a real account
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
-          account_id: newAccount.id,
           claim_state: "claimed",
           verification_state: "pending_verification",
           claim_trust_level: "low",
@@ -157,7 +132,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         status: "force_claimed",
-        message: "Demo provider claimed with low-trust (restricted) state. Visit /provider to see the restricted dashboard.",
+        message: "Demo provider set to low-trust (restricted) state. Check the Current State above to see the changes.",
       });
     } catch (err) {
       return NextResponse.json(

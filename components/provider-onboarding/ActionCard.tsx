@@ -5,6 +5,10 @@ import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
+import AnalyticsTeaserCard from "@/components/provider-onboarding/AnalyticsTeaserCard";
+
+const PROVIDER_ANALYTICS_ONBOARD_ENABLED =
+  process.env.NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD === "true";
 
 // ============================================================
 // Types
@@ -567,6 +571,11 @@ function ProfilePreviewCard({
             </div>
           )}
 
+          {/* Analytics teaser — ahead of reviews when enabled + owner */}
+          {PROVIDER_ANALYTICS_ONBOARD_ENABLED && (
+            <AnalyticsTeaserCard expectedSlug={slug} variant="inline" />
+          )}
+
           {/* Reviews — thin divider, same card */}
           <div className="border-t border-gray-100 mt-4 pt-4">
             {reviewsContent}
@@ -607,6 +616,11 @@ function ProfilePreviewCard({
           )}
         </div>
       </div>
+
+      {/* Analytics teaser — above reviews when enabled + owner */}
+      {PROVIDER_ANALYTICS_ONBOARD_ENABLED && (
+        <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
+      )}
 
       {/* Reviews card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">

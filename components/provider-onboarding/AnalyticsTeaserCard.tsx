@@ -175,7 +175,11 @@ function buildHeadline(
     if (pipeline && pipeline.local_demand_count > 0) {
       return `${pipeline.local_demand_count.toLocaleString()} ${pipeline.local_demand_count === 1 ? "family" : "families"} searched your area this month.`;
     }
-    // Pre-launch / tiny cohort fallback — honest, patient.
+    // No cohort data. Fall back: show personal count if any, else patient copy.
+    if (views.this_period > 0) {
+      const n = views.this_period;
+      return `${n.toLocaleString()} ${n === 1 ? "family" : "families"} viewed your page this month.`;
+    }
     return "Your traffic is just getting started.";
   }
 
@@ -198,6 +202,10 @@ function buildSubline(
         return "None have reached your page yet. This is the tip of the iceberg — we'll show you more as it grows.";
       }
       return `${reached.toLocaleString()} ${reached === 1 ? "has" : "have"} reached your page so far. This is the tip of the iceberg.`;
+    }
+    // No cohort data — don't make promises we can't back up.
+    if (views.this_period > 0) {
+      return "Early traffic. We'll show trends as they build.";
     }
     return "We'll surface families finding you as traffic builds.";
   }

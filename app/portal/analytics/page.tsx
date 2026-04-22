@@ -218,7 +218,9 @@ function Header({
 
 function PipelineBanner({ data }: { data: AnalyticsResponse }) {
   const p = data.pipeline_opportunity;
-  if (!p) return null;
+  // Hide the banner if there's no cohort demand — a "0 families searched"
+  // banner is a deflating empty state. The KPI grid carries the load instead.
+  if (!p || p.local_demand_count === 0) return null;
   return (
     <div className="rounded-2xl bg-white border border-gray-100 px-6 py-6 mb-6">
       <div className="flex items-center gap-2 mb-2">

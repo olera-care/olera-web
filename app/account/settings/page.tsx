@@ -7,6 +7,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/ui/Modal";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import { useVerificationGateOptional } from "@/lib/contexts/VerificationGateContext";
+import { isAccountRestricted, isVerificationPending } from "@/lib/verification-gate";
 
 type SettingsTab = "account" | "notifications";
 
@@ -674,7 +675,19 @@ export default function AccountSettingsPage() {
                       type="button"
                       onClick={() => {
                         // Gate: restricted providers must verify before deleting account
-                        if (verificationGate && !verificationGate.requireVerification()) return;
+                        // Check context first (if available), otherwise check profile directly
+                        if (verificationGate) {
+                          if (!verificationGate.requireVerification()) return;
+                        } else if (isOrganization || isCaregiver) {
+                          // Fallback: check verification state directly for providers outside context
+                          const verificationState = (activeProfile as { verification_state?: string })?.verification_state;
+                          if (isAccountRestricted(verificationState) || isVerificationPending(verificationState)) {
+                            // Can't show modal without context - just block the action
+                            // User should go through /provider to trigger verification
+                            alert("Please complete verification before deleting your account. Go to your Provider Hub to verify.");
+                            return;
+                          }
+                        }
                         setShowDeleteModal(true);
                       }}
                       className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"

@@ -65,10 +65,13 @@ export default function ProviderContactSection({
       const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
       router.replace(newUrl, { scroll: false });
 
+      // Gate: restricted providers must verify before scheduling
+      if (!requireVerification()) return;
+
       // Open the schedule modal
       setShowModal(true);
     }
-  }, [searchParams, user, pathname, router]);
+  }, [searchParams, user, pathname, router, requireVerification]);
 
   const requiresAuth = !user;
 

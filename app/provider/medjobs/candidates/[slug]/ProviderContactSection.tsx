@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import type { AccessTier } from "@/lib/medjobs-access";
+import { useVerificationGate } from "@/lib/contexts/VerificationGateContext";
 
 interface ProviderContactSectionProps {
   studentId: string;
@@ -37,6 +38,7 @@ export default function ProviderContactSection({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, openAuth } = useAuth();
+  const { requireVerification } = useVerificationGate();
   const [showModal, setShowModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
@@ -87,12 +89,14 @@ export default function ProviderContactSection({
       handleAuthRequired();
       return;
     }
+    // Gate: restricted providers must verify before scheduling interviews
+    if (!requireVerification()) return;
     if (isFreeExhausted) {
       setShowUpgradeModal(true);
       return;
     }
     setShowModal(true);
-  }, [requiresAuth, handleAuthRequired, isFreeExhausted]);
+  }, [requiresAuth, handleAuthRequired, requireVerification, isFreeExhausted]);
 
   const firstName = studentName.split(" ")[0];
 

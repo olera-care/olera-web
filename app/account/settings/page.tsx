@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/ui/Modal";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
+import { useVerificationGateOptional } from "@/lib/contexts/VerificationGateContext";
 
 type SettingsTab = "account" | "notifications";
 
@@ -71,6 +72,7 @@ type NotificationKey =
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { user, activeProfile, refreshAccountData } = useAuth();
+  const verificationGate = useVerificationGateOptional();
 
   // Determine account type for notifications
   const profileType = activeProfile?.type;
@@ -670,7 +672,11 @@ export default function AccountSettingsPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setShowDeleteModal(true)}
+                      onClick={() => {
+                        // Gate: restricted providers must verify before deleting account
+                        if (verificationGate && !verificationGate.requireVerification()) return;
+                        setShowDeleteModal(true);
+                      }}
                       className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
                     >
                       Delete

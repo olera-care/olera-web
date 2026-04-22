@@ -169,7 +169,7 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, autoIntro, hideContactInfo }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, autoIntro, hideContactInfo, onVerifyClick }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
@@ -179,6 +179,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
   imageUrl?: string | null;
   autoIntro?: string | null;
   hideContactInfo?: boolean;
+  onVerifyClick?: () => void;
 }) {
   const senderName = careRequest.seekerName;
   const locationStr = [careRequest.lookingInCity, careRequest.lookingInState].filter(Boolean).join(", ");
@@ -256,12 +257,16 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
             )}
             {/* Verification prompt when contact info is hidden */}
             {(careRequest.seekerEmail || careRequest.seekerPhone) && hideContactInfo && (
-              <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
+              <button
+                type="button"
+                onClick={onVerifyClick}
+                className="mt-3 flex items-center gap-2 text-[13px] text-gray-400 hover:text-primary-600 transition-colors cursor-pointer"
+              >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span>Contact info available after verification</span>
-              </div>
+                <span>Verify to view contact info</span>
+              </button>
             )}
 
             {/* Care details chips (when available) */}
@@ -556,6 +561,7 @@ export default function ConversationPanel({
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
                   hideContactInfo={!!isRestrictedProvider}
+                  onVerifyClick={() => verificationGate?.openVerificationModal()}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */

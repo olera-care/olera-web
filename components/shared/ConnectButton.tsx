@@ -13,6 +13,7 @@ import {
 import type { ConnectionType } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import { useVerificationGateOptional } from "@/lib/contexts/VerificationGateContext";
 
 interface ConnectButtonProps {
   /** The profile ID initiating the connection. */
@@ -70,6 +71,7 @@ export default function ConnectButton({
 }: ConnectButtonProps) {
   const { user, activeProfile, membership, openAuth, refreshAccountData } =
     useAuth();
+  const verificationGate = useVerificationGateOptional();
   const [alreadySent, setAlreadySent] = useState(false);
   const [modal, setModal] = useState<ModalState>(CLOSED);
   const [note, setNote] = useState("");
@@ -188,6 +190,9 @@ export default function ConnectButton({
       return;
     }
     if (alreadySent) return;
+
+    // Gate: restricted providers must verify before initiating connections
+    if (verificationGate && !verificationGate.requireVerification()) return;
 
     // Provider/caregiver care inquiry guard:
     // Orgs, caregivers, and students can't send care consultation inquiries.

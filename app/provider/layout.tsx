@@ -12,6 +12,7 @@ import {
   isVerificationPending,
   getVerificationStatusMessage,
 } from "@/lib/verification-gate";
+import { VerificationGateProvider, useVerificationGateOptional } from "@/lib/contexts/VerificationGateContext";
 
 export default function ProviderLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -137,6 +138,36 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
   const verificationState = providerProfile.verification_state;
   const restricted = isAccountRestricted(verificationState);
   const pendingReview = isVerificationPending(verificationState);
+
+  // Wrap content with VerificationGateProvider for restricted state handling
+  return (
+    <VerificationGateProvider>
+      <ProviderLayoutContent
+        restricted={restricted}
+        pendingReview={pendingReview}
+        verificationState={verificationState}
+      >
+        {children}
+      </ProviderLayoutContent>
+    </VerificationGateProvider>
+  );
+}
+
+/**
+ * Inner component that can use the verification gate context
+ */
+function ProviderLayoutContent({
+  children,
+  restricted,
+  pendingReview,
+  verificationState,
+}: {
+  children: ReactNode;
+  restricted: boolean;
+  pendingReview: boolean;
+  verificationState: string | null | undefined;
+}) {
+  const verificationGate = useVerificationGateOptional();
   const statusMessage = getVerificationStatusMessage(verificationState);
 
   // Show restriction banner for restricted accounts
@@ -201,12 +232,12 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
                 </div>
               </div>
               {statusMessage.showVerificationCTA && (
-                <Link
-                  href="/provider?verify=true"
+                <button
+                  onClick={() => verificationGate?.openVerificationModal()}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-sm transition-colors"
                 >
                   Complete Verification
-                </Link>
+                </button>
               )}
             </div>
           </div>

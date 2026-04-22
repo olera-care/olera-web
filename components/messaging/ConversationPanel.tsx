@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
+import { useVerificationGateOptional } from "@/lib/contexts/VerificationGateContext";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
@@ -344,9 +345,13 @@ export default function ConversationPanel({
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Provider verification check - no longer gates access (everyone verified via email)
-  // Keeping variables for potential future badge display, but not gating features
+  // Provider verification check
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+
+  // Verification gate for restricted providers (only applies when in provider context)
+  // Hide contact info for both restricted AND pending states (consistent with message gating)
+  const verificationGate = useVerificationGateOptional();
+  const isRestrictedProvider = isProvider && (verificationGate?.isRestricted || verificationGate?.isPending);
 
   // Auto-dismiss send error after 4 seconds
   useEffect(() => {
@@ -375,6 +380,9 @@ export default function ConversationPanel({
   const handleSendMessage = useCallback(async () => {
     // Allow sending if user has activeProfile OR a valid claimToken (guest)
     if (!connection || !messageText.trim() || (!activeProfile && !claimToken)) return;
+
+    // Gate: restricted providers must verify before sending messages
+    if (verificationGate && !verificationGate.requireVerification()) return;
     setSending(true);
     try {
       let thread: ThreadMessage[];
@@ -414,7 +422,7 @@ export default function ConversationPanel({
     } finally {
       setSending(false);
     }
-  }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage]);
+  }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage, verificationGate]);
 
   // ── Empty state ──
   if (!connection) {
@@ -547,7 +555,7 @@ export default function ConversationPanel({
                   otherInitial={otherInitial}
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
-                  hideContactInfo={false}
+                  hideContactInfo={!!isRestrictedProvider}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */

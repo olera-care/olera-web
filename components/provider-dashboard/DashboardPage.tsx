@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { isAccountRestricted } from "@/lib/verification-gate";
+import { useVerificationGate } from "@/lib/contexts/VerificationGateContext";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -136,12 +137,16 @@ function DashboardContent({
   // Check if account is restricted (low-trust claim requiring verification)
   const accountRestricted = isAccountRestricted(profile.verification_state);
 
-  // Auto-open verification modal for restricted accounts or when ?verify=true
+  // Get verification gate for action blocking
+  const { requireVerification } = useVerificationGate();
+
+  // Open verification modal when ?verify=true (from banner button click)
+  // Note: We no longer auto-open for restricted accounts - modal is triggered on blocked actions
   useEffect(() => {
-    if (accountRestricted || searchParams.get("verify") === "true") {
+    if (searchParams.get("verify") === "true") {
       setShowVerificationModal(true);
     }
-  }, [accountRestricted, searchParams]);
+  }, [searchParams]);
 
   // Open verification modal (can be called with existing data for updates)
   const handleOpenVerificationModal = useCallback((existingData?: ExistingVerificationData) => {
@@ -175,8 +180,12 @@ function DashboardContent({
   }, [profile.id, refreshAccountData]);
 
   const handleEdit = useCallback(
-    (sectionId: SectionId) => setEditingSection(sectionId),
-    [setEditingSection]
+    (sectionId: SectionId) => {
+      // Gate: restricted accounts must verify before editing profile
+      if (!requireVerification()) return;
+      setEditingSection(sectionId);
+    },
+    [setEditingSection, requireVerification]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -396,8 +405,6 @@ function DashboardContent({
       <VerificationFormModal
         isOpen={showVerificationModal}
         onClose={() => {
-          // Don't allow closing for restricted accounts
-          if (accountRestricted) return;
           setShowVerificationModal(false);
           setVerificationExistingData(undefined);
           setIsVerificationUpdate(false);
@@ -405,10 +412,8 @@ function DashboardContent({
         onSubmit={handleVerificationSubmit}
         businessName={profile.display_name}
         userEmail={userEmail}
-        allowDismiss={!isVerificationUpdate && !accountRestricted}
+        allowDismiss={!isVerificationUpdate}
         onDismiss={() => {
-          // Don't allow dismissing for restricted accounts
-          if (accountRestricted) return;
           setShowVerificationModal(false);
           setVerificationExistingData(undefined);
           setIsVerificationUpdate(false);

@@ -4,6 +4,79 @@ import { createClient } from "@supabase/supabase-js";
 const DEMO_PROVIDER_SLUG = "sunrise-care-demo";
 const DEMO_PROVIDER_NAME = "Sunrise Care Demo";
 const DEMO_EMAIL = "esther+suspicious@gmail.com";
+const DEMO_FAMILY_SLUG = "demo-family-thompson";
+
+// Demo data for realistic testing
+const DEMO_PROFILE_DATA = {
+  slug: DEMO_PROVIDER_SLUG,
+  type: "organization" as const,
+  display_name: DEMO_PROVIDER_NAME,
+  description: "A family-owned senior care facility providing compassionate care since 1985. We offer assisted living, memory care, and respite services in a warm, home-like environment. Our dedicated staff ensures each resident receives personalized attention and the highest quality of care. Located in the heart of Austin, we're proud to serve families across Central Texas.",
+  city: "Austin",
+  state: "TX",
+  category: "Assisted Living",
+  care_types: ["Assisted Living", "Memory Care", "Respite Care"],
+  phone: "(512) 555-0123",
+  claim_state: "unclaimed" as const,
+  verification_state: "unverified",
+  source: "seeded" as const,
+  is_active: true,
+  image_url: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=400&h=400&fit=crop",
+  metadata: {
+    demo: true,
+    created_for: "verification-gating-demo",
+    amenities: ["24/7 Staff", "Memory Care Unit", "Physical Therapy", "Garden Access", "Chef-Prepared Meals"],
+    images: [
+      "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800",
+      "https://images.unsplash.com/photo-1559526324-593bc073d938?w=800",
+      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800",
+    ],
+  },
+};
+
+const DEMO_FAMILY_DATA = {
+  slug: DEMO_FAMILY_SLUG,
+  type: "family" as const,
+  display_name: "Margaret Thompson",
+  city: "Austin",
+  state: "TX",
+  email: "margaret.t@example.com",
+  phone: "(512) 555-8901",
+  is_active: true,
+  metadata: {
+    demo: true,
+    care_recipient: "parent",
+    care_type_needed: "memory_care",
+  },
+};
+
+const DEMO_INBOX_MESSAGE = {
+  seeker_name: "Margaret Thompson",
+  seeker_email: "margaret.t@example.com",
+  seeker_phone: "(512) 555-8901",
+  care_type: "memory_care",
+  care_recipient: "parent",
+  looking_in_city: "Austin",
+  looking_in_state: "TX",
+  urgency: "within_month",
+  message: "Hi, I'm looking for memory care for my mother who has early-stage dementia. She's 78 and still fairly mobile but needs supervision throughout the day. Can you tell me more about your memory care program and visiting hours? We'd also like to schedule a tour if possible.",
+};
+
+const DEMO_REVIEW = {
+  reviewer_name: "John M.",
+  rating: 5,
+  title: "Excellent care for my father",
+  comment: "The staff at Sunrise Care Demo have been absolutely wonderful. My father has been here for 6 months now and his quality of life has improved remarkably. The memory care unit is top-notch, and the nurses are so patient and caring. I especially appreciate the weekly updates and how they involve us in his care plan. Highly recommend to anyone looking for quality senior care in Austin.",
+  relationship: "Family member",
+  status: "published",
+};
+
+const DEMO_QUESTION = {
+  asker_name: "Sarah W.",
+  question: "What is your staff-to-resident ratio, and do you have RNs on site 24/7? Also, what activities do you offer for memory care residents?",
+  status: "pending",
+  is_public: true,
+};
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -308,6 +381,12 @@ export async function POST(request: Request) {
 
     // 2. Delete existing demo data
     if (existingProfile) {
+      // Clean up connections TO or FROM the demo provider first (before deleting profile)
+      await db
+        .from("connections")
+        .delete()
+        .or(`from_profile_id.eq.${existingProfile.id},to_profile_id.eq.${existingProfile.id}`);
+
       // Delete the business_profile
       await db.from("business_profiles").delete().eq("id", existingProfile.id);
 
@@ -344,29 +423,43 @@ export async function POST(request: Request) {
       .delete()
       .eq("provider_id", DEMO_PROVIDER_SLUG);
 
-    // 3. Create fresh unclaimed demo provider
+    // Clean up demo family profile and its connections
+    const { data: oldFamilyProfile } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("slug", DEMO_FAMILY_SLUG)
+      .maybeSingle();
+
+    if (oldFamilyProfile) {
+      await db
+        .from("connections")
+        .delete()
+        .or(`from_profile_id.eq.${oldFamilyProfile.id},to_profile_id.eq.${oldFamilyProfile.id}`);
+
+      await db
+        .from("business_profiles")
+        .delete()
+        .eq("id", oldFamilyProfile.id);
+    }
+
+    // Clean up demo reviews (by provider slug)
+    await db
+      .from("reviews")
+      .delete()
+      .eq("provider_id", DEMO_PROVIDER_SLUG);
+
+    // Clean up demo questions (by provider slug)
+    await db
+      .from("provider_questions")
+      .delete()
+      .eq("provider_id", DEMO_PROVIDER_SLUG);
+
+    // 3. Create fresh unclaimed demo provider with full data
     const { data: newProfile, error: insertErr } = await db
       .from("business_profiles")
       .insert({
-        slug: DEMO_PROVIDER_SLUG,
-        type: "organization",
-        display_name: DEMO_PROVIDER_NAME,
-        description:
-          "A family-owned senior care facility providing compassionate care since 1985. We offer assisted living, memory care, and respite services in a warm, home-like environment.",
-        city: "Austin",
-        state: "TX",
-        category: "Assisted Living",
-        care_types: ["Assisted Living", "Memory Care", "Respite Care"],
-        phone: "(512) 555-0123",
+        ...DEMO_PROFILE_DATA,
         email: customEmail, // Must match test email for claim to complete
-        claim_state: "unclaimed",
-        verification_state: "unverified",
-        source: "demo",
-        is_active: true,
-        metadata: {
-          demo: true,
-          created_for: "verification-gating-demo",
-        },
       })
       .select("id, slug")
       .single();
@@ -378,11 +471,60 @@ export async function POST(request: Request) {
       );
     }
 
+    // 4. Create demo family profile (for inbox message sender)
+    const { data: familyProfile } = await db
+      .from("business_profiles")
+      .insert(DEMO_FAMILY_DATA)
+      .select("id")
+      .single();
+
+    // 5. Create demo connection/inquiry (inbox message)
+    if (familyProfile && newProfile) {
+      await db.from("connections").insert({
+        type: "inquiry",
+        status: "pending",
+        from_profile_id: familyProfile.id,
+        to_profile_id: newProfile.id,
+        message: JSON.stringify(DEMO_INBOX_MESSAGE),
+        metadata: {
+          demo: true,
+          auto_intro: "Looking for memory care for parent",
+          thread: [
+            {
+              from_profile_id: familyProfile.id,
+              text: DEMO_INBOX_MESSAGE.message,
+              created_at: new Date().toISOString(),
+              type: "initial_inquiry",
+            },
+          ],
+        },
+      });
+    }
+
+    // 6. Create demo review
+    await db.from("reviews").insert({
+      ...DEMO_REVIEW,
+      provider_id: DEMO_PROVIDER_SLUG,
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+    });
+
+    // 7. Create demo Q&A question
+    await db.from("provider_questions").insert({
+      ...DEMO_QUESTION,
+      provider_id: DEMO_PROVIDER_SLUG,
+      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    });
+
     return NextResponse.json({
       status: "reset",
-      message: "Demo reset complete. Provider is ready to be claimed.",
+      message: "Demo reset complete with seeded data. Provider is ready to be claimed.",
       profile: newProfile,
       claimUrl: `/provider/${DEMO_PROVIDER_SLUG}/onboard`,
+      seededData: {
+        inboxMessage: "1 message from Margaret Thompson",
+        review: "1 review from John M. (5 stars)",
+        question: "1 Q&A question from Sarah W.",
+      },
     });
   } catch (err) {
     console.error("Reset demo error:", err);

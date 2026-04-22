@@ -175,6 +175,34 @@ export default function ResetDemoPage() {
           )}
         </div>
 
+        {/* Seeded Demo Data */}
+        {state?.exists && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Seeded Demo Data</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Each reset creates realistic data for testing:
+            </p>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</span>
+                <span className="text-gray-700">1 inbox message from <strong>Margaret Thompson</strong> (memory care inquiry)</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</span>
+                <span className="text-gray-700">1 review from <strong>John M.</strong> (5 stars)</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</span>
+                <span className="text-gray-700">1 Q&amp;A question from <strong>Sarah W.</strong> (pending)</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</span>
+                <span className="text-gray-700">Profile with images, description, care types, amenities</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>

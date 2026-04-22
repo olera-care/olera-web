@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useVerificationGate } from "@/lib/contexts/VerificationGateContext";
 
 // ── Types ──
 
@@ -860,6 +861,7 @@ function QnASkeleton() {
 
 export default function ProviderQnAPage() {
   const providerProfile = useProviderProfile();
+  const { requireVerification } = useVerificationGate();
   const [activeFilter, setActiveFilter] = useState<TabFilter>("pending");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -976,6 +978,9 @@ export default function ProviderQnAPage() {
 
   // Handle reply (from card or sheet)
   const handleReply = useCallback(async (question: Question, answer?: string): Promise<boolean> => {
+    // Gate: restricted accounts must verify before answering questions
+    if (!requireVerification()) return false;
+
     if (isMobile || !answer) {
       // Mobile or no answer provided - open sheet
       setSelectedQuestion(question);
@@ -1016,14 +1021,16 @@ export default function ProviderQnAPage() {
         return false;
       }
     }
-  }, [isMobile]);
+  }, [isMobile, requireVerification]);
 
   // Handle edit
   const handleEdit = useCallback((question: Question) => {
+    // Gate: restricted accounts must verify before editing answers
+    if (!requireVerification()) return;
     setSelectedQuestion(question);
     setSheetMode("edit");
     setIsSheetOpen(true);
-  }, []);
+  }, [requireVerification]);
 
   // Handle sheet submit
   const handleSheetSubmit = useCallback(async (question: Question, answer: string) => {

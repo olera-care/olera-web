@@ -38,13 +38,11 @@ interface BenefitsDiscoveryModuleProps {
 
 // ─── URL helpers ─────────────────────────────────────────────────────────
 function benefitsUrl(stateId: string): string {
-  if (stateId === "texas") return "/texas/benefits";
-  return `/senior-benefits/${stateId}`;
+  return `/benefits/${stateId}`;
 }
 
 function programUrl(stateId: string, programId: string): string {
-  if (stateId === "texas") return `/texas/benefits/${programId}`;
-  return `/senior-benefits/${stateId}/${programId}`;
+  return `/benefits/${stateId}/${programId}`;
 }
 
 // ─── Savings helpers ─────────────────────────────────────────────────────

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { WaiverProgram } from "@/data/waiver-library";
-import { buildProgramUrl } from "@/lib/texas-slug-map";
 
 interface StateFormsListProps {
   programs: WaiverProgram[];
@@ -63,7 +62,7 @@ export function StateFormsList({ programs, stateId }: StateFormsListProps) {
             <div className="flex items-start justify-between gap-4 mb-2">
               <h2 className="text-lg font-bold text-gray-900">{program.name}</h2>
               <Link
-                href={buildProgramUrl(stateId, program.id)}
+                href={`/benefits/${stateId}/${program.id}`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors shrink-0"
               >
                 View program details

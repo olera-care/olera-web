@@ -449,8 +449,7 @@ Alias expansion runs in **3 query paths** — every way a user can search by cit
 
 ### Specialized Routes
 
-- `/waiver-library/{state}/{benefit}` — Non-TX benefit programs
-- `/texas/benefits/{slug}` — TX benefits (SEO-friendly slugs via `lib/texas-slug-map.ts`)
+- `/benefits/{state}/{program}` — Benefit program pages (all states)
 - `/browse?type={careType}&q={location}` — Legacy browse (query-param based, being superseded by power pages)
 - `/portal/*` — User/family dashboard (authenticated)
 - `/provider/{slug}/*` — Provider dashboard (authenticated)
@@ -520,7 +519,7 @@ No centralized URL builder. Links constructed ad-hoc:
 ### Known Issues
 
 1. Provider breadcrumbs link to `/browse?type=` not power pages — inconsistency with SEO strategy
-2. No shared URL builder — slug logic spread across `lib/power-pages.ts`, `lib/slugify.ts`, `lib/slug.ts`, `lib/texas-slug-map.ts`, and inline in components
+2. No shared URL builder — slug logic spread across `lib/power-pages.ts`, `lib/slugify.ts`, `lib/slug.ts`, and inline in components
 3. `[category]` catch-all shadows top-level routes — any new top-level route must not collide with category slugs; sitemap needs explicit rewrite
 4. Power pages use 3 separate inline breadcrumb implementations instead of one shared component
 
@@ -532,7 +531,6 @@ No centralized URL builder. Links constructed ad-hoc:
 | `lib/slugify.ts` | Provider slug generation |
 | `lib/slug.ts` | Business profile unique slug generation |
 | `lib/city-aliases.ts` | City name → DB alias expansion |
-| `lib/texas-slug-map.ts` | Texas program ID ↔ slug mapping |
 | `middleware.ts` | v1.0 URL redirects, state abbreviation normalization |
 | `next.config.ts` | Programmatic redirects, rewrites |
 | `app/[category]/page.tsx` | Category landing page |

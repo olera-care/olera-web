@@ -42,7 +42,7 @@ export default function ResetDemoPage() {
     fetchState();
   }, [fetchState]);
 
-  const handleAction = async (action: "reset" | "approve" | "set_pending" | "force_claim") => {
+  const handleAction = async (action: "reset" | "approve" | "set_pending" | "force_claim" | "set_restricted") => {
     setActionLoading(action);
     setMessage(null);
 
@@ -238,7 +238,7 @@ export default function ResetDemoPage() {
                 </p>
               </div>
               <button
-                onClick={() => handleAction("set_restricted" as "reset")}
+                onClick={() => handleAction("set_restricted")}
                 disabled={actionLoading !== null}
                 className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
               >

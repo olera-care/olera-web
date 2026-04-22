@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Get profile and verify ownership
     const { data: profile, error: fetchError } = await admin
       .from("business_profiles")
-      .select("metadata, account_id")
+      .select("metadata, account_id, verification_state")
       .eq("id", profileId)
       .single();
 
@@ -84,12 +84,19 @@ export async function POST(request: NextRequest) {
       badge_rejected_at: null,
     };
 
-    // Update profile with verification data (badge request)
-    // Note: verification_state stays "verified" - this is just a badge request
+    // Determine the new verification_state
+    // If currently "pending_verification" (low-trust claim), transition to "pending" (submitted, awaiting review)
+    // Otherwise keep existing state (this is just a badge request for verified accounts)
+    const currentVerificationState = profile.verification_state;
+    const newVerificationState =
+      currentVerificationState === "pending_verification" ? "pending" : currentVerificationState;
+
+    // Update profile with verification data
     const { error: updateError } = await admin
       .from("business_profiles")
       .update({
         metadata: updatedMetadata,
+        verification_state: newVerificationState,
         updated_at: new Date().toISOString(),
       })
       .eq("id", profileId);

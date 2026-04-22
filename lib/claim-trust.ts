@@ -120,6 +120,14 @@ function getClient(): Anthropic {
 export async function scoreClaimTrust(
   input: ClaimTrustInput
 ): Promise<ClaimTrustResult> {
+  // DEMO: Force low trust for emails containing "+suspicious" (e.g., esther+suspicious@gmail.com)
+  if (input.email.includes("+suspicious")) {
+    return {
+      level: "low",
+      reason: "Demo: suspicious email pattern detected",
+    };
+  }
+
   const domain = extractDomain(input.email);
   if (!domain) {
     return { level: "medium", reason: "unable_to_parse_email" };

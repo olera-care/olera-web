@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
@@ -11,6 +12,7 @@ import ConversationPanel from "@/components/messaging/ConversationPanel";
 import RequestDetailPanel from "@/components/messaging/RequestDetailPanel";
 import ProviderDetailPanel from "@/components/messaging/ProviderDetailPanel";
 import ReportConnectionModal from "@/components/messaging/ReportConnectionModal";
+import { isAccountRestricted, isVerificationPending } from "@/lib/verification-gate";
 
 type RoleFilter = "all" | "family" | "provider";
 
@@ -865,6 +867,111 @@ function InboxContent() {
       console.error("[inbox] delete failed:", err);
     }
   }, [manageConnection]);
+
+  // Check if provider is in restricted mode (low-trust claim requiring verification)
+  const providerProfile = profiles.find(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  const isProviderMode =
+    roleFilter === "provider" || (hasProviderProfile && !hasFamilyProfile);
+  const providerRestricted =
+    isProviderMode &&
+    providerProfile &&
+    (isAccountRestricted(providerProfile.verification_state) ||
+      isVerificationPending(providerProfile.verification_state));
+
+  // Show restricted state for providers who need verification
+  if (providerRestricted) {
+    const isPending = isVerificationPending(providerProfile.verification_state);
+    return (
+      <div className="h-[calc(100dvh-64px)] bg-white flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center px-6">
+          {/* Icon */}
+          <div
+            className={`w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center ${
+              isPending ? "bg-blue-50" : "bg-amber-50"
+            }`}
+          >
+            {isPending ? (
+              <svg
+                className="w-8 h-8 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-8 h-8 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                />
+              </svg>
+            )}
+          </div>
+
+          {/* Title */}
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {isPending ? "Verification Under Review" : "Verification Required"}
+          </h2>
+
+          {/* Description */}
+          <p className="text-gray-600 mb-6">
+            {isPending
+              ? "We're reviewing your verification submission. You'll have full access to your inbox once approved — most reviews complete within 1-2 business days."
+              : "Complete verification to view and respond to family inquiries. This helps us ensure families connect with legitimate providers."}
+          </p>
+
+          {/* CTA */}
+          {!isPending && (
+            <Link
+              href="/provider?verify=true"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+            >
+              Complete Verification
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                />
+              </svg>
+            </Link>
+          )}
+
+          {/* Teaser for inquiries */}
+          {connections.length > 0 && (
+            <p className="mt-6 text-sm text-gray-500">
+              You have{" "}
+              <span className="font-medium text-gray-700">
+                {connections.length} {connections.length === 1 ? "inquiry" : "inquiries"}
+              </span>{" "}
+              waiting for you.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100dvh-64px)] bg-white">

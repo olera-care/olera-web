@@ -208,13 +208,16 @@ export async function POST(request: Request) {
       });
 
       // Update existing unclaimed profile
-      // Everyone who completes email verification gets full access
+      // Low-trust claims require verification before full access
+      const verificationState =
+        trustResult.level === "low" ? "pending_verification" : "verified";
+
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
           account_id: accountId,
           claim_state: claimState,
-          verification_state: "verified",
+          verification_state: verificationState,
           claim_trust_level: trustResult.level,
         })
         .eq("id", existingProfile.id);
@@ -261,6 +264,10 @@ export async function POST(request: Request) {
         };
       }
 
+      // Low-trust claims require verification before full access
+      const newProfileVerificationState =
+        trustResult.level === "low" ? "pending_verification" : "verified";
+
       const { data: newProfile, error: insertErr } = await db
         .from("business_profiles")
         .insert({
@@ -279,7 +286,7 @@ export async function POST(request: Request) {
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
           claim_state: claimState,
-          verification_state: "verified",
+          verification_state: newProfileVerificationState,
           claim_trust_level: trustResult.level,
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",

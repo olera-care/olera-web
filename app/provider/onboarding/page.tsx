@@ -379,26 +379,56 @@ function ProviderOnboardingContent() {
     setOtpError("");
 
     try {
-      // 1. Verify OTP with Supabase
       const authClient = createAuthClient();
-      const { error: verifyError } = await authClient.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "email",
-      });
 
-      if (verifyError) {
-        if (verifyError.message.includes("expired")) {
-          setOtpError("This code has expired. Please request a new one.");
-        } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
-          setOtpError("Invalid code. Please check and try again.");
-        } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
-          setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
-        } else {
-          setOtpError(verifyError.message);
+      // DEMO: Magic code bypass - use demo sign-in flow
+      if (otpCode === "12345678") {
+        // Get a real session via demo endpoint
+        const demoRes = await fetch("/api/dev/demo-signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const demoData = await demoRes.json();
+
+        if (!demoRes.ok || !demoData.tokenHash) {
+          setOtpError(demoData.error || "Demo sign-in failed");
+          setOtpVerifying(false);
+          return;
         }
-        setOtpVerifying(false);
-        return;
+
+        // Verify the magic link token to establish session
+        const { error: verifyError } = await authClient.auth.verifyOtp({
+          token_hash: demoData.tokenHash,
+          type: "magiclink",
+        });
+
+        if (verifyError) {
+          setOtpError("Demo session failed: " + verifyError.message);
+          setOtpVerifying(false);
+          return;
+        }
+      } else {
+        // Normal OTP verification
+        const { error: verifyError } = await authClient.auth.verifyOtp({
+          email,
+          token: otpCode,
+          type: "email",
+        });
+
+        if (verifyError) {
+          if (verifyError.message.includes("expired")) {
+            setOtpError("This code has expired. Please request a new one.");
+          } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
+            setOtpError("Invalid code. Please check and try again.");
+          } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
+            setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
+          } else {
+            setOtpError(verifyError.message);
+          }
+          setOtpVerifying(false);
+          return;
+        }
       }
 
       // 2. Call claim-listing API

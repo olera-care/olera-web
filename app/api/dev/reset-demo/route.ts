@@ -271,6 +271,17 @@ export async function POST(request: Request) {
         );
       }
 
+      // Step 4: Set the demo provider as the active profile for this account
+      // This ensures the inbox will show the demo provider's messages
+      const { error: activeErr } = await db
+        .from("accounts")
+        .update({ active_profile_id: profile.id })
+        .eq("id", accountId);
+
+      if (activeErr) {
+        console.warn("Failed to set active profile (non-fatal):", activeErr.message);
+      }
+
       return NextResponse.json({
         status: "force_claimed",
         message: "Demo provider linked to your account and set to restricted state. Sign in with " + email + " and go to /provider to see the restricted UI.",

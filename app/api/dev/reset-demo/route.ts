@@ -95,6 +95,78 @@ export async function POST(request: Request) {
     });
   }
 
+  // Action: force_claim - skip OTP and directly set up restricted state for demo
+  if (action === "force_claim") {
+    try {
+      // Find the demo profile
+      const { data: profile, error: findErr } = await db
+        .from("business_profiles")
+        .select("id, account_id")
+        .eq("slug", DEMO_PROVIDER_SLUG)
+        .maybeSingle();
+
+      if (findErr || !profile) {
+        return NextResponse.json(
+          { error: "Demo provider not found. Please reset demo first." },
+          { status: 404 }
+        );
+      }
+
+      if (profile.account_id) {
+        return NextResponse.json(
+          { error: "Provider already claimed. Reset demo first." },
+          { status: 400 }
+        );
+      }
+
+      // Create a demo account (no real auth user needed for demo)
+      const { data: newAccount, error: accountErr } = await db
+        .from("accounts")
+        .insert({
+          email: customEmail,
+          display_name: "Demo Provider Admin",
+          user_id: null, // No real auth user for demo
+        })
+        .select("id")
+        .single();
+
+      if (accountErr) {
+        return NextResponse.json(
+          { error: "Failed to create account: " + accountErr.message },
+          { status: 500 }
+        );
+      }
+
+      // Update profile to claimed + pending_verification (low trust state)
+      const { error: updateErr } = await db
+        .from("business_profiles")
+        .update({
+          account_id: newAccount.id,
+          claim_state: "claimed",
+          verification_state: "pending_verification",
+          claim_trust_level: "low",
+        })
+        .eq("id", profile.id);
+
+      if (updateErr) {
+        return NextResponse.json(
+          { error: "Failed to claim: " + updateErr.message },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        status: "force_claimed",
+        message: "Demo provider claimed with low-trust (restricted) state. Visit /provider to see the restricted dashboard.",
+      });
+    } catch (err) {
+      return NextResponse.json(
+        { error: "Force claim failed: " + (err instanceof Error ? err.message : String(err)) },
+        { status: 500 }
+      );
+    }
+  }
+
   // Action: set_pending - simulate form submission (set to pending review)
   if (action === "set_pending") {
     const { data: profile, error: findErr } = await db

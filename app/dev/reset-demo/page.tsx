@@ -42,7 +42,7 @@ export default function ResetDemoPage() {
     fetchState();
   }, [fetchState]);
 
-  const handleAction = async (action: "reset" | "approve" | "set_pending") => {
+  const handleAction = async (action: "reset" | "approve" | "set_pending" | "force_claim") => {
     setActionLoading(action);
     setMessage(null);
 
@@ -209,6 +209,23 @@ export default function ResetDemoPage() {
                 className="w-full px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
               >
                 {actionLoading === "reset" ? "Resetting..." : "Reset Demo"}
+              </button>
+            </div>
+
+            {/* Force Claim (Demo) - Skip OTP */}
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
+              <div>
+                <p className="font-medium text-gray-900">Force Claim (Demo)</p>
+                <p className="text-sm text-gray-500">
+                  Skip OTP and directly set to restricted (low-trust) state
+                </p>
+              </div>
+              <button
+                onClick={() => handleAction("force_claim")}
+                disabled={actionLoading !== null || !customEmail || !!state?.profile?.account_id}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-medium rounded-lg transition-colors"
+              >
+                {actionLoading === "force_claim" ? "Claiming..." : "Force Claim"}
               </button>
             </div>
 

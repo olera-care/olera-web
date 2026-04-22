@@ -5,6 +5,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { newReviewEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { recordProviderEvent } from "@/lib/analytics/provider-events";
 
 /**
  * GET /api/reviews?provider_id=xxx
@@ -135,6 +136,16 @@ export async function POST(request: NextRequest) {
       console.error("Failed to create review:", error);
       return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
     }
+
+    void recordProviderEvent({
+      provider_id,
+      event_type: "review_received",
+      metadata: {
+        review_id: newReview.id,
+        rating,
+        source: "olera",
+      },
+    });
 
     // Send email notification to provider (fire-and-forget)
     try {

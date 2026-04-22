@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { recordProviderEvent } from "@/lib/analytics/provider-events";
 
 /**
  * POST /api/provider/[slug]/olera-reviews
@@ -83,6 +84,16 @@ export async function POST(
       console.error("Failed to insert olera review:", error);
       return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
     }
+
+    void recordProviderEvent({
+      provider_id: slug,
+      event_type: "review_received",
+      metadata: {
+        olera_review_id: review.id,
+        rating,
+        source: "olera_reviews",
+      },
+    });
 
     return NextResponse.json({
       success: true,

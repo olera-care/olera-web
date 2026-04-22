@@ -678,7 +678,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "suspicious_claim", label: "Suspicious claims" },
   { value: "email_click", label: "Email clicks" },
   { value: "connection_request", label: "Leads" },
-  { value: "question_received", label: "Questions" },
+  { value: "question_responded", label: "Answered" },
   { value: "new_review", label: "Reviews" },
   { value: "contact_revealed", label: "Contact copied" },
   { value: "one_click_access", label: "Auto sign-ins" },

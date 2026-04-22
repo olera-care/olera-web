@@ -115,44 +115,45 @@ function splitFirstSentence(desc) {
   return { first, rest };
 }
 
-// Category keywords -> canonical category label in olera-providers.
-// Used to detect when the original description's first sentence asserts
-// a category that disagrees with Supabase's provider_category. Order
-// matters — the longer multi-word phrases are checked first so "home
-// health care" doesn't match as "home care".
+// Category keywords -> canonical singleton category label. Supabase
+// provider_category values can be either a single label ("Memory Care")
+// or a " | " separated compound ("Assisted Living | Memory Care").
+// The check below splits Supabase's value on " | " and tests whether any
+// of the original's asserted phrases maps to a token in that set, so
+// ordering doesn't matter. Order within this list matters only for
+// longest-match-first dedup below ("home health care" must be checked
+// before "home health" and "home care").
 const CATEGORY_KEYWORDS = [
-  { phrase: "skilled nursing", maps: ["Nursing Home"] },
-  { phrase: "nursing home", maps: ["Nursing Home"] },
-  { phrase: "memory care", maps: ["Memory Care", "Memory Care | Assisted Living"] },
-  { phrase: "home health", maps: ["Home Health Care"] },
-  { phrase: "hospice", maps: ["Hospice"] },
-  { phrase: "assisted living", maps: ["Assisted Living", "Assisted Living | Independent Living", "Memory Care | Assisted Living"] },
-  { phrase: "independent living", maps: ["Independent Living", "Assisted Living | Independent Living"] },
-  { phrase: "home care", maps: ["Home Care (Non-medical)"] },
+  { phrase: "skilled nursing", canonical: "Nursing Home" },
+  { phrase: "nursing home", canonical: "Nursing Home" },
+  { phrase: "memory care", canonical: "Memory Care" },
+  { phrase: "home health care", canonical: "Home Health Care" },
+  { phrase: "home health", canonical: "Home Health Care" },
+  { phrase: "hospice", canonical: "Hospice" },
+  { phrase: "assisted living", canonical: "Assisted Living" },
+  { phrase: "independent living", canonical: "Independent Living" },
+  { phrase: "home care", canonical: "Home Care (Non-medical)" },
 ];
 
-// Returns null if the original's asserted categories overlap with Supabase's
-// provider_category, or if the original is silent on category. Returns an
-// { asserted, expected } pair only when the original asserts categories that
-// all DISAGREE with provider_category (a true data-quality mismatch).
-//
-// Many originals hedge across multiple categories ("assisted living,
-// independent living services"). Supabase typically labels that with ONE
-// category ("Independent Living"). That's an overlap, not a mismatch, and
-// the rewrite can proceed safely.
+// Returns null if the original's asserted categories overlap with any
+// Supabase provider_category token, or if the original is silent on
+// category. Returns an {asserted, expected} pair only when none of the
+// asserted categories match Supabase (a true data-quality mismatch).
 function detectCategoryDivergence(firstSentence, providerCategory) {
   if (!firstSentence || !providerCategory) return null;
   const lower = firstSentence.toLowerCase();
 
+  const supabaseTokens = new Set(
+    providerCategory.split(/\s*\|\s*/).map((t) => t.trim()).filter(Boolean)
+  );
+
+  const assertedCanonicals = [];
   const assertedPhrases = [];
-  const supportingMaps = [];
   const seenPositions = new Set();
-  for (const { phrase, maps } of CATEGORY_KEYWORDS) {
+  for (const { phrase, canonical } of CATEGORY_KEYWORDS) {
     const idx = lower.indexOf(phrase);
     if (idx === -1) continue;
     // Skip overlapping matches: "home health" inside "home health care" etc.
-    // We de-dupe by checking if any of this phrase's character positions
-    // overlap with an already-matched phrase.
     let overlaps = false;
     for (let i = idx; i < idx + phrase.length; i++) {
       if (seenPositions.has(i)) { overlaps = true; break; }
@@ -160,11 +161,11 @@ function detectCategoryDivergence(firstSentence, providerCategory) {
     if (overlaps) continue;
     for (let i = idx; i < idx + phrase.length; i++) seenPositions.add(i);
     assertedPhrases.push(phrase);
-    supportingMaps.push(maps);
+    assertedCanonicals.push(canonical);
   }
 
-  if (assertedPhrases.length === 0) return null; // silent original -> defer to Supabase
-  const anyAgrees = supportingMaps.some((m) => m.includes(providerCategory));
+  if (assertedCanonicals.length === 0) return null; // silent original -> defer to Supabase
+  const anyAgrees = assertedCanonicals.some((c) => supabaseTokens.has(c));
   if (anyAgrees) return null;
   return { asserted: assertedPhrases.join("+"), expected: providerCategory };
 }

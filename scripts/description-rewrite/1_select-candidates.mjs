@@ -42,6 +42,11 @@ if (!CSV_PATH) {
 }
 const LIMIT = parseInt(arg("--limit", "500"), 10);
 const MIN_IMPRESSIONS = parseInt(arg("--min-impressions", "100"), 10);
+// --skip-top N: after sorting /provider/ rows by impressions desc, drop the
+// first N before applying --limit. Lets us target a lower-stakes mid/bottom
+// tier of the impression cohort for wave 1, so an HCU flag doesn't hit the
+// pages that drive our /provider/ traffic today.
+const SKIP_TOP = parseInt(arg("--skip-top", "0"), 10);
 const OUTPUT = arg("--output", "scripts/description-rewrite/candidates.json");
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -139,14 +144,19 @@ async function main() {
   console.log("=== Candidate selection ===");
   console.log(`CSV:             ${CSV_PATH}`);
   console.log(`Min impressions: ${MIN_IMPRESSIONS}`);
+  console.log(`Skip top:        ${SKIP_TOP}`);
   console.log(`Limit:           ${LIMIT}`);
   console.log();
 
   console.log("1. Reading GSC pages-movement CSV...");
   const gscRows = await readGSCRows();
   console.log(`   ${gscRows.length} /provider/ URLs at >=${MIN_IMPRESSIONS} impressions`);
-  const sliced = gscRows.slice(0, LIMIT);
-  console.log(`   Taking top ${sliced.length} by impressions`);
+  const sliced = gscRows.slice(SKIP_TOP, SKIP_TOP + LIMIT);
+  const impRange =
+    sliced.length > 0
+      ? `${sliced[sliced.length - 1].impressions_current}-${sliced[0].impressions_current} impressions`
+      : "empty";
+  console.log(`   Taking rank ${SKIP_TOP + 1}-${SKIP_TOP + sliced.length} (${impRange})`);
 
   console.log();
   console.log("2. Hydrating from Supabase olera-providers...");

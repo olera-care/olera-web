@@ -5,13 +5,15 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isAccountRestricted, isVerificationPending } from "@/lib/verification-gate";
 import VerificationFormModal from "@/components/provider/VerificationFormModal";
-import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
+import VerificationPendingModal from "@/components/provider/VerificationPendingModal";
+import type { VerificationSubmission, ExistingVerificationData } from "@/components/provider/VerificationFormModal";
 
 interface VerificationGateContextValue {
   /** Whether the account is in restricted mode (pending_verification) */
@@ -40,8 +42,10 @@ interface VerificationGateProviderProps {
   children: ReactNode;
 }
 
+type ModalState = "none" | "pending" | "form";
+
 export function VerificationGateProvider({ children }: VerificationGateProviderProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>("none");
   const providerProfile = useProviderProfile();
   const { user, refreshAccountData } = useAuth();
 
@@ -50,12 +54,52 @@ export function VerificationGateProvider({ children }: VerificationGateProviderP
   const isPending = isVerificationPending(verificationState);
   const hasFullAccess = !isRestricted && !isPending;
 
+  // Extract existing submission data from profile metadata
+  const existingSubmission = useMemo(() => {
+    const meta = providerProfile?.metadata as Record<string, unknown> | undefined;
+    const submission = meta?.verification_submission as Record<string, unknown> | undefined;
+    if (!submission) return null;
+
+    return {
+      name: (submission.name as string) || "",
+      email: submission.email as string | null,
+      role: (submission.role as string) || "",
+      phone: submission.phone as string | null,
+      notes: submission.notes as string | null,
+      verification_type: submission.verification_type as "linkedin" | "website" | "contact_support" | null,
+      linkedin_url: submission.linkedin_url as string | null,
+      website_url: submission.website_url as string | null,
+      submitted_at: submission.submitted_at as string | undefined,
+    };
+  }, [providerProfile?.metadata]);
+
+  // Convert to form format (camelCase)
+  const existingFormData: ExistingVerificationData | undefined = useMemo(() => {
+    if (!existingSubmission) return undefined;
+    return {
+      name: existingSubmission.name,
+      email: existingSubmission.email,
+      role: existingSubmission.role,
+      phone: existingSubmission.phone,
+      notes: existingSubmission.notes,
+      verificationType: existingSubmission.verification_type,
+      linkedinUrl: existingSubmission.linkedin_url,
+      websiteUrl: existingSubmission.website_url,
+      submitted_at: existingSubmission.submitted_at,
+    };
+  }, [existingSubmission]);
+
   const openVerificationModal = useCallback(() => {
-    setIsModalOpen(true);
-  }, []);
+    // Show pending modal if they've already submitted, otherwise show form
+    if (isPending && existingSubmission) {
+      setModalState("pending");
+    } else {
+      setModalState("form");
+    }
+  }, [isPending, existingSubmission]);
 
   const closeVerificationModal = useCallback(() => {
-    setIsModalOpen(false);
+    setModalState("none");
   }, []);
 
   const requireVerification = useCallback((): boolean => {
@@ -65,6 +109,11 @@ export function VerificationGateProvider({ children }: VerificationGateProviderP
     }
     return true;
   }, [isRestricted, isPending, openVerificationModal]);
+
+  // Switch from pending modal to form for updates
+  const handleUpdateSubmission = useCallback(() => {
+    setModalState("form");
+  }, []);
 
   // Handle verification form submission
   const handleVerificationSubmit = useCallback(
@@ -87,10 +136,12 @@ export function VerificationGateProvider({ children }: VerificationGateProviderP
 
       // Refresh to get updated verification_state
       await refreshAccountData();
-      setIsModalOpen(false);
+      setModalState("none");
     },
     [providerProfile, refreshAccountData]
   );
+
+  const isModalOpen = modalState !== "none";
 
   const value: VerificationGateContextValue = {
     isRestricted,
@@ -106,16 +157,29 @@ export function VerificationGateProvider({ children }: VerificationGateProviderP
     <VerificationGateContext.Provider value={value}>
       {children}
 
-      {/* Global Verification Modal */}
+      {/* Pending Review Modal - shown when they've already submitted */}
+      {providerProfile && (
+        <VerificationPendingModal
+          isOpen={modalState === "pending"}
+          onClose={closeVerificationModal}
+          onUpdateSubmission={handleUpdateSubmission}
+          businessName={providerProfile.display_name}
+          submissionData={existingSubmission}
+        />
+      )}
+
+      {/* Verification Form Modal - shown for initial submission or updates */}
       {providerProfile && (
         <VerificationFormModal
-          isOpen={isModalOpen}
+          isOpen={modalState === "form"}
           onClose={closeVerificationModal}
           onSubmit={handleVerificationSubmit}
           businessName={providerProfile.display_name}
           userEmail={user?.email || undefined}
           allowDismiss={true}
           onDismiss={closeVerificationModal}
+          existingData={existingFormData}
+          isUpdate={!!existingSubmission}
         />
       )}
     </VerificationGateContext.Provider>

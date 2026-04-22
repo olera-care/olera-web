@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 /**
  * Provider-facing analytics teaser card shown on the onboard page.
@@ -58,12 +59,30 @@ interface AnalyticsTeaserCardProps {
 }
 
 export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: AnalyticsTeaserCardProps) {
+  // Onboard-page auto-sign-in happens after first paint. Without waiting for
+  // auth to resolve, the first fetch returns 401 and the card silently
+  // hides forever (only deps was expectedSlug). Re-fetch when user.id
+  // becomes available.
+  const { user, isLoading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [errored, setErrored] = useState(false);
 
   useEffect(() => {
+    // Don't fetch until auth state has resolved — avoids the first-load
+    // race where the call goes out before the session cookie is set.
+    if (authLoading) return;
+    if (!userId) {
+      // Not signed in. Render nothing; reviews card carries.
+      setLoading(false);
+      setErrored(true);
+      return;
+    }
+
     let cancelled = false;
+    setLoading(true);
+    setErrored(false);
     fetch("/api/provider/analytics?window=30d", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((json: AnalyticsResponse) => {
@@ -86,9 +105,9 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
     return () => {
       cancelled = true;
     };
-  }, [expectedSlug]);
+  }, [expectedSlug, userId, authLoading]);
 
-  // Silent failure: not signed in yet, or not the owner, or fetch error.
+  // Silent failure: not signed in, not the owner, or fetch error.
   // The reviews card downstream still renders, so nothing is lost.
   if (errored || (!loading && !data)) return null;
 

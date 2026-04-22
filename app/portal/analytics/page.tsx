@@ -451,28 +451,39 @@ function FunnelCard({
     { label: "Questions", value: funnel.questions_received },
     { label: "Leads", value: funnel.leads_received },
   ];
-  const max = stages[0].value;
-  if (max === 0) return null;
+  // Use the largest value as the bar denominator so no bar renders > 100%
+  // wide. In a healthy funnel page_view is the max; but page_view tracking
+  // is brand-new (Phase 0 launch), and historic question/lead counts can
+  // exceed it. Visual cap prevents the absurd 900% bar without distorting
+  // the absolute counts in the value labels.
+  const denom = Math.max(...stages.map((s) => s.value));
+  if (denom === 0) return null;
+
+  // Detect the inverted state — historic events outnumber current views.
+  // Usually means tracking just turned on; show a small note so the
+  // viewer understands why the funnel doesn't look like a funnel.
+  const inverted = stages.some((s, i) => i > 0 && s.value > stages[0].value);
+
   return (
     <div className="rounded-2xl bg-white border border-gray-100 px-6 py-5 mb-6">
       <p className="text-xs font-medium text-gray-500 tracking-wide uppercase mb-4">
-        Engagement funnel
+        Engagement summary
       </p>
       <div className="space-y-3">
         {stages.map((s) => {
-          const pct = max === 0 ? 0 : Math.round((s.value / max) * 100);
+          const pct = Math.round((s.value / denom) * 100);
           return (
             <div key={s.label}>
               <div className="flex items-center justify-between text-sm mb-1">
                 <span className="text-gray-700">{s.label}</span>
                 <span className="tabular-nums text-gray-500">
-                  {s.value.toLocaleString()} · {pct}%
+                  {s.value.toLocaleString()}
                 </span>
               </div>
               <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                 <div
                   className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.max(pct, s.value > 0 ? 4 : 0)}%` }}
+                  style={{ width: `${Math.min(100, Math.max(pct, s.value > 0 ? 4 : 0))}%` }}
                 />
               </div>
             </div>
@@ -480,8 +491,9 @@ function FunnelCard({
         })}
       </div>
       <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-        We don't close deals for you yet — this is your top-of-funnel pipeline.
-        Family contacts that convert to residents happen off-platform.
+        {inverted
+          ? "Page-view tracking is brand-new — historic question and lead counts may temporarily exceed views as the dataset catches up."
+          : "We don't close deals for you yet — this is your top-of-funnel pipeline. Family contacts that convert to residents happen off-platform."}
       </p>
     </div>
   );

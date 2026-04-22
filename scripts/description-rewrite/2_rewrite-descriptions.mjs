@@ -64,14 +64,6 @@ const STYLE_GUIDANCE = {
 
 function buildPrompt(candidate, variant) {
   const firstSentence = splitFirstSentence(candidate.original_description).first;
-  const hasRating =
-    candidate.google_rating &&
-    candidate.google_review_count &&
-    candidate.google_rating >= 4.3 &&
-    candidate.google_review_count >= 10;
-  const ratingHint = hasRating
-    ? `Google rating: ${candidate.google_rating.toFixed(1)}/5 across ${candidate.google_review_count} reviews (optional trust signal — only include if it fits naturally inside the 160-char limit).`
-    : "No strong Google rating signal available. Do not mention ratings.";
 
   return `You are rewriting the first sentence of a senior care provider's page description. This first sentence becomes the meta description snippet on Google search results, so it needs to be dense with provider name, facility type, and location in the first 80 characters to maximize click-through.
 
@@ -82,8 +74,6 @@ PROVIDER DATA
 - Category (raw label): ${candidate.provider_category}
 - City: ${candidate.city || "unknown"}
 - State: ${candidate.state || "unknown"}
-- ${ratingHint}
-- Price range: ${formatPrice(candidate)}
 
 ORIGINAL FIRST SENTENCE (human-written, may contain useful facts):
 "${firstSentence}"
@@ -106,18 +96,12 @@ HARD RULES
    - "Hospice" → "hospice provider"
    - "Independent Living" → "independent living community"
 4. Preserve at least one distinctive fact from the original first sentence if one exists (specific service, accreditation, year founded, population served). If the original is generic filler, skip.
-5. Do NOT invent services, certifications, ratings, or specialties not present in the data above or the original.
-6. Do NOT use clickbait ("Discover...", "Find the best...", rhetorical questions).
-7. End with a period. No trailing spaces.
-8. Output ONLY the new first sentence, nothing else. No quotes, no commentary, no preamble.`;
-}
-
-function formatPrice(c) {
-  if (c.lower_price && c.upper_price) {
-    return `$${c.lower_price.toLocaleString()}–$${c.upper_price.toLocaleString()}`;
-  }
-  if (c.lower_price) return `$${c.lower_price.toLocaleString()}+`;
-  return "unknown (do not mention price)";
+5. Do NOT invent services, certifications, or specialties not present in the data above or the original.
+6. Do NOT mention ratings, star counts, or review scores. Those are shown elsewhere on the page and change over time — baking them into static copy creates stale claims.
+7. Do NOT mention prices, price ranges, or dollar amounts.
+8. Do NOT use clickbait ("Discover...", "Find the best...", rhetorical questions).
+9. End with a period. No trailing spaces.
+10. Output ONLY the new first sentence, nothing else. No quotes, no commentary, no preamble.`;
 }
 
 function splitFirstSentence(desc) {
@@ -139,7 +123,7 @@ function validate(newFirst, candidate) {
   const len = newFirst.length;
   if (len < 100) return fail(`too_short_${len}`);
   if (len > 200) return fail(`too_long_${len}`);
-  if (!newFirst.includes(candidate.provider_name)) return fail("missing_name");
+  if (!nameIsPresent(newFirst, candidate.provider_name)) return fail("missing_name");
   if (candidate.city && !newFirst.toLowerCase().includes(candidate.city.toLowerCase()))
     return fail("missing_city");
   if (candidate.state && !newFirst.toUpperCase().includes(candidate.state.toUpperCase()))
@@ -149,6 +133,27 @@ function validate(newFirst, candidate) {
     return fail("banned_hook");
   if (!/[.!?]$/.test(newFirst)) return fail("missing_terminator");
   return { ok: true };
+}
+
+// A provider name is "present" if the first 2-3 significant words of the
+// cleaned name appear contiguously in the rewrite. This handles long/ugly
+// names ("Always Best Care Senior Services - Home Care Services in Atlanta"
+// where the LLM sensibly uses "Always Best Care Senior Services") and single-
+// word abbreviations ("CDWA") while still catching cases where the LLM drops
+// the name entirely.
+function nameIsPresent(text, name) {
+  if (!name) return true;
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes(name.toLowerCase())) return true;
+  // Extract the "core" name: everything before " - " or " | " separators.
+  const core = name.split(/\s+[-|]\s+/)[0].trim();
+  if (core && lowerText.includes(core.toLowerCase())) return true;
+  // Fall back to first N significant words.
+  const words = core
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !["of", "the", "in", "at", "and", "&"].includes(w.toLowerCase()));
+  const probe = words.slice(0, Math.min(3, Math.max(1, words.length))).join(" ");
+  return probe && lowerText.includes(probe.toLowerCase());
 }
 
 async function rewriteOne(candidate, variant) {
@@ -182,8 +187,19 @@ async function main() {
   console.log();
 
   const all = JSON.parse(readFileSync(CANDIDATES_PATH, "utf8"));
-  const candidates = LIMIT > 0 ? all.slice(0, LIMIT) : all;
-  console.log(`Processing ${candidates.length} records (of ${all.length} total).`);
+  // Filter out records where the slug-based hydration was ambiguous. ILIKE
+  // matches pick a plausible row but not always the right franchise when a
+  // chain has multiple locations. Without an exact slug match we can't trust
+  // the row's city/state fields, and writing the rewrite would land on the
+  // wrong provider_id. Override with --allow-fuzzy only for dry-run
+  // experimentation.
+  const ALLOW_FUZZY = process.argv.includes("--allow-fuzzy");
+  const safe = ALLOW_FUZZY ? all : all.filter((c) => c.slug_matched_exactly);
+  const skippedFuzzy = all.length - safe.length;
+  const candidates = LIMIT > 0 ? safe.slice(0, LIMIT) : safe;
+  console.log(
+    `Processing ${candidates.length} records (of ${safe.length} safe / ${all.length} total; skipped ${skippedFuzzy} fuzzy matches).`
+  );
   console.log();
 
   const stats = {

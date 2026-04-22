@@ -212,6 +212,11 @@ interface MobileStickyBottomCTAProps {
   providerState?: string | null;
 }
 
+// TODO Phase 1: wire cta_click_public for the Connect button (cta='contact'),
+// PhoneButton reveal (cta='phone'), and Share affordances on this surface.
+// Phase 0 only covers Save (in components/providers/SaveButton.tsx) and post-submit
+// lead_received via /api/connections/* — this component's intermediate clicks are deferred.
+
 export default function MobileStickyBottomCTA({
   providerName,
   priceRange,

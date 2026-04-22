@@ -7,6 +7,70 @@
 
 ## Current Focus
 
+### 2026-04-22 — Provider Analytics Phase 0 (instrumentation) — Phase 0A SHIPPED, 0B in progress
+
+Multi-session, multi-week initiative. Strategy doc and plan are the source of truth — read those first when resuming, not this scratchpad entry.
+
+**Strategy doc (Notion):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
+**Phase 0 plan:** `plans/provider-analytics-phase-0-instrumentation-plan.md`
+**Branch:** `feature/provider-analytics-phase-0` (pushed; no PR yet — TJ testing on Vercel preview first)
+**Vercel deployment dashboard:** https://vercel.com/olera/olera-web/Fuy72nNEeFGQSamv2ny553qhCMhN
+
+**The arc:** Replace the post-notification "Get more reviews" CTA with a use-first provider-facing analytics experience. Phase 0 is instrumentation only — no UI. Data needs ~2-3 weeks of real accrual before Phase 1 (dashboard + onboard teaser card) can ship credibly.
+
+**Phase 0A — SHIPPED to branch (commit `3c5c011f`).** Migrations 044 + 045 already applied to shared Supabase by TJ. What's wired:
+- Anonymous `actor_type` branch on `/api/activity/track` with `isbot` filter, referrer sanitization, UA classification
+- Client-side `<ViewTracker />` mounted on `app/provider/[slug]/page.tsx` (must be client because page is RSC + ISR)
+- Server-side writers for `lead_received` (3 sites), `review_received` (2 sites). `question_received` was already wired pre-Phase-0.
+- `cta_click_public` on Save button; TODOs for Contact/Phone/Share in bigger components
+- `search_click` on `BrowseCard` with path-segment-based source inference
+- Anonymous `olera_session` cookie (UUID, 30d sliding TTL, no PII)
+- All event writers normalized on URL slug as `provider_id` so rows aggregate correctly
+
+**Pre-test review (`/pre-test`) caught 4 real bugs**, all fixed before push. Most critical: identifier mismatch — UUID vs slug across writers — would have broken aggregation.
+
+**Phase 0B — In progress.**
+- ✅ Task 10: Aggregation cron at `app/api/cron/aggregate-provider-views/route.ts`. Vercel cron entry added (`0 8 * * *`). Supports `?date=YYYY-MM-DD` override and `?dry_run=true` for ops.
+- ⏭ Task 11: `/admin/analytics` sanity-check view (NEXT — this is the testing surface TJ wants instead of SQL queries)
+- ⏭ Task 12: Privacy review pass
+- ⏭ Task 13: `lib/analytics/PHASE_1_TODO.md`
+- ⏭ Task 14: PR + merge
+
+**Most important deferred question (Phase 3+):** What is Olera's L3 / monetizable layer? "What are our blocks providers are eager to use in a playground?" — explicitly NOT solved here, captured in strategy doc as the highest-priority open question.
+
+**Watch for on resume:** if I'm mid-stream on Phase 0B, next step is `/admin/analytics` page — sections in plan task 11. Reuse the `<PulseHeader />` pattern from the recent admin pulse work (PR #616) and `lib/admin-stats.ts::buildSeries()` bucket helpers. Use `select("*")` for admin reads per memory.
+
+---
+
+### 2026-04-21 → 2026-04-22 — 176-city expansion batch complete
+
+176-city senior-care provider expansion. Ran end-to-end via `/city-pipeline`. No code changes — DB + Notion writes only.
+
+**Final stats:**
+- 170/176 cities loaded with providers; 6 empty (Holtsville NY, Hampton PA, Penn PA, Burke Centre VA, Bethpage NY, Weston WI — all survived 0 providers after keyword + AI classify + Perplexity entity verification + dedup)
+- 3,655 active providers inserted (from 30,304 discovered → 5,754 post-classify → 2,099 soft-deleted by trust-signal entity verification)
+- Enrichment: 5,751 descriptions, 1,824 trust signals confirmed, 4,836 review snippets, 4,044 images
+- Cost: $386.57 (11,807 Google + 1,750 Perplexity calls)
+- Wall time: ~9h15m (discovery 1h25m → clean 3h50m → load 45m → enrich 2h40m → finalize 5m)
+- Pipeline logs: `/tmp/pipeline-all.log`, `/tmp/discovery-2026-04-21.log` (both will rotate)
+
+**Data quality (verified via subagent spot-check during enrich):**
+- 0 null place_ids, 0 bad categories, 0 out-of-state coordinates, 0 LLC/Inc/Corp suffixes
+- Fixed 1 edge case: `vail-az-0005` had " LLP" suffix — stripped post-enrichment
+- Name Check regex in pipeline doesn't catch LLP — consider adding for future batches
+
+**Why clean took 3h50m (not "~5 min" per skill):** pooled AI classify ran on 30,304 providers (batch of 80 at a time × ~380 API calls × seconds each + retries). Skill's estimate was based on smaller batches. Expect proportional scaling on future big batches.
+
+**Notion:** all 176 pages flipped "Upload to Backend" → "Complete" via subagent (14 Done boxes checked except "Fetch Email & Contact Info" per skill convention).
+
+**Followups (low priority, carry forward):**
+1. **ND/SD not in Notion State select** — Jamestown ND, Mitchell SD, Yankton SD got pages without State value. Add ND/SD options when convenient.
+2. ~~**Stale Notion pages in "Discovery" status**~~ — CLEANED UP 2026-04-22. 128 stuck pages audited against Supabase: 127 flipped to Complete (100 from 2026-04-02 bulk seed + 16 more from same batch + 12 from 2026-04-15 184-city batch subagent misses). Port St. John, FL (0 providers after filters) soft-archived.
+3. **6 empty cities** — safe to remove from expansion map as "verified empty" (no senior-care providers after all filters).
+4. **Live-site check at end showed 5 FAILs** — cosmetic ISR cache warming noise per skill docs, not real failures. Pages will work after ISR warms (~1hr).
+
+---
+
 ### 2026-04-21 — Admin Pulse Header (Questions + Leads)
 
 **Branch:** `glad-pare` (tracks `origin/glad-pare`, no PR to `staging` yet — TJ has more feedback to land first)

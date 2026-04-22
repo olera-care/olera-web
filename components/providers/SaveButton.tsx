@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 interface SaveButtonProps {
   provider: SaveProviderData;
@@ -46,6 +47,25 @@ export default function SaveButton({ provider, variant = "default" }: SaveButton
   }, [showTooltip]);
 
   const handleClick = () => {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "cta_click_public",
+        // Slug, not internal UUID — keeps provider_activity rows aggregatable
+        // with page_view/question_received which key on URL slug.
+        related_provider_id: provider.slug || provider.providerId,
+        session_id: getOrCreateSessionId(),
+        metadata: {
+          cta: "save",
+          intent: saved ? "unsave" : "save",
+          blocked_non_family: !!isNonFamilyProfile,
+        },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+
     if (isNonFamilyProfile) {
       setShowTooltip(true);
       return;

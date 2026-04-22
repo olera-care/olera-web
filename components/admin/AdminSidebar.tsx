@@ -57,7 +57,9 @@ const navSections: NavSection[] = [
   {
     label: "Operations",
     key: "operations",
+    defaultOpen: true,
     items: [
+      { label: "Analytics", href: "/admin/analytics" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },
       { label: "MedJobs", href: "/admin/medjobs" },

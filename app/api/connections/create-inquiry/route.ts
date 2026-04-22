@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { recordProviderEvent } from "@/lib/analytics/provider-events";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
     // Get provider info from olera-providers
     const { data: provider, error: providerErr } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state")
+      .select("provider_id, slug, provider_name, provider_category, city, state")
       .eq("provider_id", providerId)
       .single();
 
@@ -209,6 +210,19 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Use slug (URL-canonical) so this row aggregates with page_view rows
+    // for the same provider. Fall back to provider_id only if slug is null.
+    void recordProviderEvent({
+      provider_id: provider.slug || providerId,
+      event_type: "lead_received",
+      profile_id: toProfileId,
+      metadata: {
+        connection_id: connection.id,
+        source: "matches_recommendation",
+        olera_provider_id: providerId,
+      },
+    });
 
     return NextResponse.json({
       success: true,

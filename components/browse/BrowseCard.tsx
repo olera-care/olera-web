@@ -9,6 +9,24 @@ import { type ProviderCardData, getCategoryDisplayName } from "@/lib/types/provi
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
 import RegionalEstimateLabel from "@/components/providers/RegionalEstimateLabel";
 import { getPricingConfig } from "@/lib/pricing-config";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
+
+function inferBrowseSource(): string {
+  if (typeof window === "undefined") return "unknown";
+  const path = window.location.pathname;
+  if (path === "/" || path === "") return "homepage";
+  if (path.startsWith("/browse")) return "browse";
+  // Routes are /[category], /[category]/[state], /[category]/[state]/[city].
+  // Distinguish by segment count rather than by literal first segment.
+  const segments = path.split("/").filter(Boolean);
+  if (segments.length === 3) return "city-category-page";
+  if (segments.length === 2) return "state-category-page";
+  if (segments.length === 1) return "category-page";
+  return "other";
+}
+
+// TODO Phase 1: thread `position` (index in results) and `query` (search terms / filters)
+// down to BrowseCard so the funnel can be analyzed by query intent and rank.
 
 function getInitials(name: string): string {
   return name
@@ -66,11 +84,30 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showTooltip]);
 
+  const handleCardClick = () => {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "search_click",
+        related_provider_id: provider.slug,
+        session_id: getOrCreateSessionId(),
+        metadata: {
+          source: inferBrowseSource(),
+          provider_name: provider.name,
+        },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  };
+
   return (
     <Link
       href={`/provider/${provider.slug}`}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={handleCardClick}
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
       {/* Image */}

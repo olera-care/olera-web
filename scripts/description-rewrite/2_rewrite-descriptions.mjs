@@ -115,6 +115,60 @@ function splitFirstSentence(desc) {
   return { first, rest };
 }
 
+// Category keywords -> canonical category label in olera-providers.
+// Used to detect when the original description's first sentence asserts
+// a category that disagrees with Supabase's provider_category. Order
+// matters — the longer multi-word phrases are checked first so "home
+// health care" doesn't match as "home care".
+const CATEGORY_KEYWORDS = [
+  { phrase: "skilled nursing", maps: ["Nursing Home"] },
+  { phrase: "nursing home", maps: ["Nursing Home"] },
+  { phrase: "memory care", maps: ["Memory Care", "Memory Care | Assisted Living"] },
+  { phrase: "home health", maps: ["Home Health Care"] },
+  { phrase: "hospice", maps: ["Hospice"] },
+  { phrase: "assisted living", maps: ["Assisted Living", "Assisted Living | Independent Living", "Memory Care | Assisted Living"] },
+  { phrase: "independent living", maps: ["Independent Living", "Assisted Living | Independent Living"] },
+  { phrase: "home care", maps: ["Home Care (Non-medical)"] },
+];
+
+// Returns null if the original's asserted categories overlap with Supabase's
+// provider_category, or if the original is silent on category. Returns an
+// { asserted, expected } pair only when the original asserts categories that
+// all DISAGREE with provider_category (a true data-quality mismatch).
+//
+// Many originals hedge across multiple categories ("assisted living,
+// independent living services"). Supabase typically labels that with ONE
+// category ("Independent Living"). That's an overlap, not a mismatch, and
+// the rewrite can proceed safely.
+function detectCategoryDivergence(firstSentence, providerCategory) {
+  if (!firstSentence || !providerCategory) return null;
+  const lower = firstSentence.toLowerCase();
+
+  const assertedPhrases = [];
+  const supportingMaps = [];
+  const seenPositions = new Set();
+  for (const { phrase, maps } of CATEGORY_KEYWORDS) {
+    const idx = lower.indexOf(phrase);
+    if (idx === -1) continue;
+    // Skip overlapping matches: "home health" inside "home health care" etc.
+    // We de-dupe by checking if any of this phrase's character positions
+    // overlap with an already-matched phrase.
+    let overlaps = false;
+    for (let i = idx; i < idx + phrase.length; i++) {
+      if (seenPositions.has(i)) { overlaps = true; break; }
+    }
+    if (overlaps) continue;
+    for (let i = idx; i < idx + phrase.length; i++) seenPositions.add(i);
+    assertedPhrases.push(phrase);
+    supportingMaps.push(maps);
+  }
+
+  if (assertedPhrases.length === 0) return null; // silent original -> defer to Supabase
+  const anyAgrees = supportingMaps.some((m) => m.includes(providerCategory));
+  if (anyAgrees) return null;
+  return { asserted: assertedPhrases.join("+"), expected: providerCategory };
+}
+
 // Diff-check validation. Any failure routes the record to rejected status and
 // we leave the original description alone.
 function validate(newFirst, candidate) {
@@ -187,19 +241,8 @@ async function main() {
   console.log();
 
   const all = JSON.parse(readFileSync(CANDIDATES_PATH, "utf8"));
-  // Filter out records where the slug-based hydration was ambiguous. ILIKE
-  // matches pick a plausible row but not always the right franchise when a
-  // chain has multiple locations. Without an exact slug match we can't trust
-  // the row's city/state fields, and writing the rewrite would land on the
-  // wrong provider_id. Override with --allow-fuzzy only for dry-run
-  // experimentation.
-  const ALLOW_FUZZY = process.argv.includes("--allow-fuzzy");
-  const safe = ALLOW_FUZZY ? all : all.filter((c) => c.slug_matched_exactly);
-  const skippedFuzzy = all.length - safe.length;
-  const candidates = LIMIT > 0 ? safe.slice(0, LIMIT) : safe;
-  console.log(
-    `Processing ${candidates.length} records (of ${safe.length} safe / ${all.length} total; skipped ${skippedFuzzy} fuzzy matches).`
-  );
+  const candidates = LIMIT > 0 ? all.slice(0, LIMIT) : all;
+  console.log(`Processing ${candidates.length} records (of ${all.length} total).`);
   console.log();
 
   const stats = {
@@ -220,10 +263,27 @@ async function main() {
       batch.map(async (c, idx) => {
         const globalIdx = i + idx;
         const variant = STYLE_VARIANTS[globalIdx % STYLE_VARIANTS.length];
+        // Pre-LLM guard: if the original description's first sentence asserts
+        // a category that disagrees with Supabase's provider_category, skip.
+        // Either Supabase is wrong (stale data) or the original prose was
+        // sloppy. Either way, rewriting would amplify the disagreement.
+        const firstSentence = splitFirstSentence(c.original_description).first;
+        const divergence = detectCategoryDivergence(firstSentence, c.provider_category);
+        if (divergence) {
+          stats.rejected++;
+          stats.byReject.category_mismatch = (stats.byReject.category_mismatch || 0) + 1;
+          return {
+            candidate: c,
+            variant,
+            status: "rejected_category_mismatch",
+            reject_reason: `orig_says_${divergence.asserted}_vs_supabase_${divergence.expected}`,
+            new_first: null,
+          };
+        }
         const { text, error } = await rewriteOne(c, variant);
         if (error) {
           stats.errors++;
-          stats.byReject[`llm_error`] = (stats.byReject.llm_error || 0) + 1;
+          stats.byReject.llm_error = (stats.byReject.llm_error || 0) + 1;
           return { candidate: c, variant, status: "rejected_llm_error", reject_reason: error, new_first: null };
         }
         const check = validate(text, c);

@@ -68,96 +68,71 @@ async function readGSCRows() {
   return rows;
 }
 
-// --- Step 2: resolve slugs → provider_id and pull the directory row ---
+// --- Step 2: resolve slugs → provider_id via the slug column ---
 //
-// olera-providers does not have a "slug" column. Provider pages resolve the
-// slug via a combination of provider_name + provider_id suffix, so the
-// reliable way to hydrate a candidate is to fetch by provider_id. But the GSC
-// CSV only has the URL slug. We use business_profiles.slug (when claimed)
-// or the pattern-based match on olera-providers.
-//
-// The app's slug convention for directory listings is:
-//   toSlug(provider_name)-<id-suffix>
-// We rely on a name-match lookup per candidate batch. That's imperfect for
-// duplicates, so when multiple rows match we keep the one whose generated
-// slug matches the GSC slug exactly.
+// olera-providers has a `slug` column that the app already uses for URL
+// resolution (see app/provider/[slug]/page.tsx). Every GSC /provider/ URL
+// corresponds to exactly one row by slug. No fuzzy matching, no franchise
+// ambiguity.
 async function hydrateFromSupabase(gscRows) {
   const hydrated = [];
   const missed = [];
-  const BATCH = 25;
+  const slugToGsc = new Map(gscRows.map((r) => [r.slug, r]));
+  const slugs = Array.from(slugToGsc.keys());
 
-  for (let i = 0; i < gscRows.length; i += BATCH) {
-    const batch = gscRows.slice(i, i + BATCH);
-    const results = await Promise.allSettled(
-      batch.map((row) => resolveOne(row))
-    );
-    for (let j = 0; j < results.length; j++) {
-      const r = results[j];
-      if (r.status === "fulfilled" && r.value) {
-        hydrated.push(r.value);
-      } else {
-        missed.push({ ...batch[j], reason: r.status === "rejected" ? String(r.reason) : "no_match" });
+  const BATCH = 200;
+  for (let i = 0; i < slugs.length; i += BATCH) {
+    const batch = slugs.slice(i, i + BATCH);
+    const { data, error } = await supabase
+      .from("olera-providers")
+      .select(
+        "provider_id, slug, provider_name, provider_category, main_category, city, state, google_rating, google_reviews_data, ai_trust_signals, lower_price, upper_price, provider_description"
+      )
+      .in("slug", batch)
+      .not("deleted", "is", true);
+    if (error) throw new Error(`Supabase query failed: ${error.message}`);
+    const found = new Set();
+    for (const row of data || []) {
+      found.add(row.slug);
+      const gscRow = slugToGsc.get(row.slug);
+      if (!row.provider_description) {
+        missed.push({ ...gscRow, reason: "empty_description" });
+        continue;
+      }
+      hydrated.push({
+        provider_id: row.provider_id,
+        slug: row.slug,
+        provider_name: row.provider_name,
+        provider_category: row.provider_category,
+        main_category: row.main_category,
+        city: row.city,
+        state: row.state,
+        google_rating: row.google_rating,
+        google_review_count: row.google_reviews_data?.review_count ?? null,
+        lower_price: row.lower_price,
+        upper_price: row.upper_price,
+        original_description: row.provider_description,
+        gsc_slug: gscRow.slug,
+        gsc_page: gscRow.page,
+        impressions_current: gscRow.impressions_current,
+        clicks_current: gscRow.clicks_current,
+        position_current: gscRow.position_current,
+        ctr_current:
+          gscRow.impressions_current > 0 ? gscRow.clicks_current / gscRow.impressions_current : 0,
+      });
+    }
+    for (const s of batch) {
+      if (!found.has(s)) {
+        missed.push({ ...slugToGsc.get(s), reason: "slug_not_in_directory" });
       }
     }
-    const progress = Math.min(i + BATCH, gscRows.length);
+    const progress = Math.min(i + BATCH, slugs.length);
     process.stdout.write(
-      `\r  Hydrating: ${progress}/${gscRows.length} (hit=${hydrated.length} miss=${missed.length})`
+      `\r  Hydrating: ${progress}/${slugs.length} (hit=${hydrated.length} miss=${missed.length})`
     );
   }
   console.log();
   return { hydrated, missed };
-}
-
-async function resolveOne(gscRow) {
-  // The slug embeds a dash-delimited normalization of provider_name.
-  // We reverse-engineer a name search with ILIKE to find likely matches,
-  // then pick the one whose generated slug matches.
-  // Slug -> name hint: "regency-at-troy" -> "regency at troy"
-  const nameHint = gscRow.slug.replace(/-/g, " ");
-  const { data, error } = await supabase
-    .from("olera-providers")
-    .select(
-      "provider_id, provider_name, provider_category, main_category, city, state, google_rating, google_reviews_data, ai_trust_signals, lower_price, upper_price, provider_description"
-    )
-    .not("deleted", "is", true)
-    .ilike("provider_name", `%${nameHint.split(" ").slice(0, 3).join(" ")}%`)
-    .limit(25);
-  if (error || !data || data.length === 0) return null;
-  // Pick row whose generated slug matches the GSC slug exactly.
-  const match = data.find((row) => toSlug(row.provider_name) === gscRow.slug);
-  const chosen = match || data[0];
-  if (!chosen.provider_description) return null; // can't rewrite what's empty
-  return {
-    provider_id: chosen.provider_id,
-    provider_name: chosen.provider_name,
-    provider_category: chosen.provider_category,
-    main_category: chosen.main_category,
-    city: chosen.city,
-    state: chosen.state,
-    google_rating: chosen.google_rating,
-    google_review_count: chosen.google_reviews_data?.review_count ?? null,
-    lower_price: chosen.lower_price,
-    upper_price: chosen.upper_price,
-    original_description: chosen.provider_description,
-    gsc_slug: gscRow.slug,
-    gsc_page: gscRow.page,
-    impressions_current: gscRow.impressions_current,
-    clicks_current: gscRow.clicks_current,
-    position_current: gscRow.position_current,
-    ctr_current: gscRow.impressions_current > 0 ? gscRow.clicks_current / gscRow.impressions_current : 0,
-    slug_matched_exactly: !!match,
-  };
-}
-
-// Must mirror the slug-generation convention used by the app for directory
-// URLs. If this drifts, we lose candidates. See lib/utils/slug.ts in the
-// olera-web repo if you need to cross-reference.
-function toSlug(name) {
-  return String(name || "")
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 async function main() {
@@ -185,9 +160,6 @@ async function main() {
       console.log(`     ${m.slug}  — ${m.reason || "no description"}`);
     }
   }
-
-  const exactSlug = hydrated.filter((h) => h.slug_matched_exactly).length;
-  console.log(`   Exact slug match:  ${exactSlug}/${hydrated.length}`);
 
   writeFileSync(OUTPUT, JSON.stringify(hydrated, null, 2));
   console.log();

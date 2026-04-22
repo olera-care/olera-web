@@ -196,8 +196,11 @@ interface ProviderDims {
 
 /**
  * Look up city/state/category for each provider_id (which is the URL slug).
- * Tries olera-providers first (where the bulk of providers live), then
- * business_profiles for claimed providers without an olera-providers row.
+ *
+ * The URL parameter on /provider/[slug] resolves against either
+ * olera-providers.slug (modern providers) OR olera-providers.provider_id
+ * (legacy providers without slugs) OR business_profiles.slug (claimed).
+ * We try all three in that order so legacy URLs aren't dropped.
  */
 async function fetchProviderDimensions(
   db: ReturnType<typeof getServiceClient>,
@@ -210,11 +213,12 @@ async function fetchProviderDimensions(
   const chunks = chunk(providerIds, 200);
 
   for (const ids of chunks) {
-    const { data: olera } = await db
+    // 1. olera-providers by slug (most common — modern providers).
+    const { data: oleraBySlug } = await db
       .from("olera-providers")
       .select("slug, city, state, provider_category")
       .in("slug", ids);
-    for (const row of olera ?? []) {
+    for (const row of oleraBySlug ?? []) {
       if (row.slug && !result.has(row.slug)) {
         result.set(row.slug, {
           city: row.city ?? null,
@@ -224,20 +228,40 @@ async function fetchProviderDimensions(
       }
     }
 
-    const missing = ids.filter((id) => !result.has(id));
-    if (missing.length === 0) continue;
+    // 2. Legacy fallback: olera-providers by provider_id (URLs that use the
+    // alphanumeric ID instead of a slug).
+    let missing = ids.filter((id) => !result.has(id));
+    if (missing.length > 0) {
+      const { data: oleraById } = await db
+        .from("olera-providers")
+        .select("provider_id, city, state, provider_category")
+        .in("provider_id", missing);
+      for (const row of oleraById ?? []) {
+        if (row.provider_id && !result.has(row.provider_id)) {
+          result.set(row.provider_id, {
+            city: row.city ?? null,
+            state: row.state ?? null,
+            category: row.provider_category ?? null,
+          });
+        }
+      }
+      missing = ids.filter((id) => !result.has(id));
+    }
 
-    const { data: bps } = await db
-      .from("business_profiles")
-      .select("slug, city, state, category")
-      .in("slug", missing);
-    for (const bp of bps ?? []) {
-      if (bp.slug && !result.has(bp.slug)) {
-        result.set(bp.slug, {
-          city: bp.city ?? null,
-          state: bp.state ?? null,
-          category: bp.category ?? null,
-        });
+    // 3. business_profiles by slug (claimed providers without olera-providers row).
+    if (missing.length > 0) {
+      const { data: bps } = await db
+        .from("business_profiles")
+        .select("slug, city, state, category")
+        .in("slug", missing);
+      for (const bp of bps ?? []) {
+        if (bp.slug && !result.has(bp.slug)) {
+          result.set(bp.slug, {
+            city: bp.city ?? null,
+            state: bp.state ?? null,
+            category: bp.category ?? null,
+          });
+        }
       }
     }
   }

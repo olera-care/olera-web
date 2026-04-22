@@ -239,14 +239,16 @@ Tasks are dependency-ordered. Each is sized for one focused session.
 
 ---
 
-## Privacy Review Checklist (to be completed in Task 12)
+## Privacy Review Checklist (completed 2026-04-22 in Task 12)
 
-- [ ] No IP storage (greppped, none found)
-- [ ] No raw User-Agent storage (only classified)
-- [ ] Referrer sanitized to domain-only for external referrers
-- [ ] `olera_session` cookie documented in `/privacy`
-- [ ] RLS verified on `provider_page_view_stats` and `city_category_view_benchmarks` (service role only for Phase 0)
-- [ ] Data retention policy documented (90 days for raw `provider_activity`, indefinite for aggregations)
+- [x] **No IP storage.** Greppped `lib/analytics/`, `app/api/activity/track/`, and `components/analytics/` for `x-forwarded-for`, `req.ip`, `request.ip` — zero matches. We never read or store the requester's IP.
+- [x] **No raw User-Agent storage.** `request.headers.get("user-agent")` is read in exactly one place (`app/api/activity/track/route.ts` for the `isbot` check); the raw UA is then discarded and only the classified `ua_class` (`"mobile" | "tablet" | "desktop" | "other"`) is persisted in `metadata`.
+- [x] **Referrer sanitized to domain-only.** External referrers are reduced to `hostname` only; internal referrers use `internal:<pathname>` with no query string. See `sanitizeReferrer()` in the track route — query strings (which can leak search terms) are dropped at write time.
+- [x] **`olera_session` cookie covered by existing privacy policy.** `/privacy` already discloses use of session and persistent cookies in the Tracking Technologies and Cookies section (line 142+). The new cookie falls under the "Functionality / Necessary" categories already documented. No update required for Phase 0; revisit if Phase 1 introduces user-level identifiers.
+- [x] **RLS verified on aggregation tables.** Migration 045 enables RLS with no policies on both `provider_page_view_stats` and `city_category_view_benchmarks`, locking them to service-role only. Phase 1 will add provider-owner read policies when the dashboard exists.
+- [x] **Data retention documented.** Raw `provider_activity` rows: target 90-day retention. Aggregation tables (`provider_page_view_stats`, `city_category_view_benchmarks`): indefinite. Cleanup cron deferred to Phase 1 — listed in `lib/analytics/PHASE_1_TODO.md`.
+
+**No PII handled by this phase.** Session cookie is a random UUID with no link to any identity. Anonymous events have no `profile_id`. The only identifying string written is the provider's own URL slug (already public).
 
 ---
 

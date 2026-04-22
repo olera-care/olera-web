@@ -7,18 +7,38 @@
 
 ## Current Focus
 
-### 2026-04-22 — Provider Analytics Phase 0 (instrumentation) — PLANNED, not yet started
+### 2026-04-22 — Provider Analytics Phase 0 (instrumentation) — Phase 0A SHIPPED, 0B in progress
 
 Multi-session, multi-week initiative. Strategy doc and plan are the source of truth — read those first when resuming, not this scratchpad entry.
 
 **Strategy doc (Notion):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
 **Phase 0 plan:** `plans/provider-analytics-phase-0-instrumentation-plan.md`
+**Branch:** `feature/provider-analytics-phase-0` (pushed; no PR yet — TJ testing on Vercel preview first)
+**Vercel deployment dashboard:** https://vercel.com/olera/olera-web/Fuy72nNEeFGQSamv2ny553qhCMhN
 
 **The arc:** Replace the post-notification "Get more reviews" CTA with a use-first provider-facing analytics experience. Phase 0 is instrumentation only — no UI. Data needs ~2-3 weeks of real accrual before Phase 1 (dashboard + onboard teaser card) can ship credibly.
 
-**Phase 0 status:** Plan written and approved (pending TJ sign-off). 14 tasks, dependency-ordered. Branch will be off `origin/staging`. The 5 load-bearing decisions (what's a view, client vs server tracking, bot filter yes/no, where anonymous events live, session cookie design) are all written into the plan — re-read those before implementing if questioning the approach.
+**Phase 0A — SHIPPED to branch (commit `3c5c011f`).** Migrations 044 + 045 already applied to shared Supabase by TJ. What's wired:
+- Anonymous `actor_type` branch on `/api/activity/track` with `isbot` filter, referrer sanitization, UA classification
+- Client-side `<ViewTracker />` mounted on `app/provider/[slug]/page.tsx` (must be client because page is RSC + ISR)
+- Server-side writers for `lead_received` (3 sites), `review_received` (2 sites). `question_received` was already wired pre-Phase-0.
+- `cta_click_public` on Save button; TODOs for Contact/Phone/Share in bigger components
+- `search_click` on `BrowseCard` with path-segment-based source inference
+- Anonymous `olera_session` cookie (UUID, 30d sliding TTL, no PII)
+- All event writers normalized on URL slug as `provider_id` so rows aggregate correctly
+
+**Pre-test review (`/pre-test`) caught 4 real bugs**, all fixed before push. Most critical: identifier mismatch — UUID vs slug across writers — would have broken aggregation.
+
+**Phase 0B — In progress.**
+- ✅ Task 10: Aggregation cron at `app/api/cron/aggregate-provider-views/route.ts`. Vercel cron entry added (`0 8 * * *`). Supports `?date=YYYY-MM-DD` override and `?dry_run=true` for ops.
+- ⏭ Task 11: `/admin/analytics` sanity-check view (NEXT — this is the testing surface TJ wants instead of SQL queries)
+- ⏭ Task 12: Privacy review pass
+- ⏭ Task 13: `lib/analytics/PHASE_1_TODO.md`
+- ⏭ Task 14: PR + merge
 
 **Most important deferred question (Phase 3+):** What is Olera's L3 / monetizable layer? "What are our blocks providers are eager to use in a playground?" — explicitly NOT solved here, captured in strategy doc as the highest-priority open question.
+
+**Watch for on resume:** if I'm mid-stream on Phase 0B, next step is `/admin/analytics` page — sections in plan task 11. Reuse the `<PulseHeader />` pattern from the recent admin pulse work (PR #616) and `lib/admin-stats.ts::buildSeries()` bucket helpers. Use `select("*")` for admin reads per memory.
 
 ---
 

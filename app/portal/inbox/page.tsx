@@ -952,6 +952,8 @@ function InboxContent() {
             profile={otherProfile}
             onClose={() => setDetailOpen(false)}
             className="flex w-[360px] h-full"
+            hideContactInfo={providerRestricted}
+            onVerifyClick={handleVerificationRequired}
           />
         </div>
       )}

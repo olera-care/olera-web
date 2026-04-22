@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { isBotRequest, incrementBotReject } from "@/lib/analytics/bot-filter";
 
 const PROVIDER_EVENT_TYPES = [
   "email_click",
@@ -21,6 +22,23 @@ const FAMILY_EVENT_TYPES = [
   "matches_activated",
 ] as const;
 
+// Anonymous events are care-seeker-driven but lack a known profile_id.
+// They write to provider_activity (not seeker_activity) keyed on the
+// related provider's slug; session_id (in metadata) enables nightly dedup.
+const ANONYMOUS_EVENT_TYPES = [
+  "page_view",
+  "search_click",
+  "cta_click_public",
+] as const;
+
+const OLERA_HOSTS = new Set([
+  "olera.care",
+  "www.olera.care",
+  "olera2-web.vercel.app",
+  "staging-olera2-web.vercel.app",
+  "localhost",
+]);
+
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -28,17 +46,49 @@ function getServiceDb() {
   return createClient(url, serviceKey);
 }
 
+function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" | "other" {
+  if (!ua) return "other";
+  if (/iPad|Tablet/i.test(ua)) return "tablet";
+  if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
+  if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
+  return "other";
+}
+
+/**
+ * Reduce a raw referrer URL to either an Olera-internal path or just the
+ * external domain. Never store query strings on external referrers — they
+ * can leak search terms (PII risk per Phase 0 privacy review).
+ */
+function sanitizeReferrer(rawReferrer: string | null | undefined): string | null {
+  if (!rawReferrer) return null;
+  try {
+    const u = new URL(rawReferrer);
+    if (OLERA_HOSTS.has(u.hostname)) {
+      return `internal:${u.pathname}`;
+    }
+    return u.hostname;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * POST /api/activity/track
  *
- * Log an engagement event. Supports two actor types:
+ * Log an engagement event. Supports three actor types:
  *
- * actor_type="provider" (default): provider email clicks → provider_activity table
+ * actor_type="provider" (default): provider email clicks → provider_activity
  *   Required: provider_id, event_type
  *
- * actor_type="family": care seeker engagement → seeker_activity table
+ * actor_type="family": care seeker engagement (authenticated) → seeker_activity
  *   Required: profile_id, event_type
  *   Optional: related_provider_id, email_log_id, email_type, metadata
+ *
+ * actor_type="anonymous": unauthenticated care-seeker engagement → provider_activity
+ *   Required: related_provider_id (slug), event_type, session_id
+ *   Bot-filtered server-side; rejected requests return 204 (no leak of filter).
+ *   Referrer is sanitized to domain-only for non-Olera referrers.
+ *   No raw User-Agent stored — only ua_class.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -51,6 +101,7 @@ export async function POST(request: NextRequest) {
       email_log_id,
       email_type,
       related_provider_id,
+      session_id,
       metadata,
     } = body;
 
@@ -60,6 +111,55 @@ export async function POST(request: NextRequest) {
         { error: "Database not configured" },
         { status: 500 }
       );
+    }
+
+    // --- Anonymous events → provider_activity (no profile_id) ---
+    if (actor_type === "anonymous") {
+      const userAgent = request.headers.get("user-agent");
+
+      if (isBotRequest(userAgent)) {
+        incrementBotReject();
+        // Silent — don't reveal the filter to bots.
+        return new NextResponse(null, { status: 204 });
+      }
+
+      if (!related_provider_id || !event_type || !session_id) {
+        return NextResponse.json(
+          { error: "related_provider_id, event_type, and session_id are required for anonymous events" },
+          { status: 400 }
+        );
+      }
+
+      if (!(ANONYMOUS_EVENT_TYPES as readonly string[]).includes(event_type)) {
+        return NextResponse.json(
+          { error: `Invalid event_type for anonymous. Must be one of: ${ANONYMOUS_EVENT_TYPES.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      const enrichedMetadata = {
+        ...(metadata || {}),
+        session_id,
+        ua_class: classifyUserAgent(userAgent),
+        referrer: sanitizeReferrer(metadata?.referrer),
+      };
+
+      const { error } = await db.from("provider_activity").insert({
+        provider_id: related_provider_id,
+        profile_id: null,
+        event_type,
+        metadata: enrichedMetadata,
+      });
+
+      if (error) {
+        console.error("[activity/track] Anonymous insert failed:", error);
+        return NextResponse.json(
+          { error: "Failed to log activity" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ success: true });
     }
 
     // --- Family events → seeker_activity ---

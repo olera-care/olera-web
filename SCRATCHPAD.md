@@ -7,6 +7,21 @@
 
 ## Current Focus
 
+### 2026-04-22 — Provider Analytics Phase 0 (instrumentation) — PLANNED, not yet started
+
+Multi-session, multi-week initiative. Strategy doc and plan are the source of truth — read those first when resuming, not this scratchpad entry.
+
+**Strategy doc (Notion):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
+**Phase 0 plan:** `plans/provider-analytics-phase-0-instrumentation-plan.md`
+
+**The arc:** Replace the post-notification "Get more reviews" CTA with a use-first provider-facing analytics experience. Phase 0 is instrumentation only — no UI. Data needs ~2-3 weeks of real accrual before Phase 1 (dashboard + onboard teaser card) can ship credibly.
+
+**Phase 0 status:** Plan written and approved (pending TJ sign-off). 14 tasks, dependency-ordered. Branch will be off `origin/staging`. The 5 load-bearing decisions (what's a view, client vs server tracking, bot filter yes/no, where anonymous events live, session cookie design) are all written into the plan — re-read those before implementing if questioning the approach.
+
+**Most important deferred question (Phase 3+):** What is Olera's L3 / monetizable layer? "What are our blocks providers are eager to use in a playground?" — explicitly NOT solved here, captured in strategy doc as the highest-priority open question.
+
+---
+
 ### 2026-04-21 → 2026-04-22 — 176-city expansion batch complete
 
 176-city senior-care provider expansion. Ran end-to-end via `/city-pipeline`. No code changes — DB + Notion writes only.

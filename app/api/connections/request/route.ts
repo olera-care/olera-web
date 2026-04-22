@@ -13,6 +13,7 @@ import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { syncIntentToProfile, recipientMap, timelineMap, careTypeMap } from "@/lib/sync-intent-to-profile";
+import { recordProviderEvent } from "@/lib/analytics/provider-events";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -725,6 +726,20 @@ async function handleGuestConnection({
     },
   }).then(({ error: actErr }: { error: { message: string } | null }) => {
     if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
+  });
+
+  void recordProviderEvent({
+    // Slug, not internal id — keeps row aggregatable with page_view (URL slug).
+    provider_id: providerSlug || providerId,
+    event_type: "lead_received",
+    profile_id: toProfileId,
+    metadata: {
+      connection_id: newConnection.id,
+      care_type: intentData.careType || null,
+      timeline: intentData.urgency || null,
+      guest: true,
+      raw_provider_id: providerId,
+    },
   });
 
   // Send "Verify your email" email ONLY for new users
@@ -1584,6 +1599,20 @@ export async function POST(request: Request) {
       },
     }).then(({ error: actErr }: { error: { message: string } | null }) => {
       if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
+    });
+
+    void recordProviderEvent({
+      // Slug, not internal id — keeps row aggregatable with page_view (URL slug).
+      provider_id: providerSlug || providerId,
+      event_type: "lead_received",
+      profile_id: toProfileId,
+      metadata: {
+        connection_id: newConnection.id,
+        care_type: intentData?.careType || null,
+        timeline: intentData?.urgency || null,
+        guest: false,
+        raw_provider_id: providerId,
+      },
     });
 
     // 9. Confirmation email to the family (fire-and-forget)

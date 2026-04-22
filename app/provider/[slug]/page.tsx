@@ -44,6 +44,7 @@ import {
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
 import { getServiceClient } from "@/lib/admin";
+import { ViewTracker } from "@/components/analytics/ViewTracker";
 
 // ============================================================
 // Dynamic Metadata (SEO title, description, OG, canonical)
@@ -679,6 +680,8 @@ export default async function ProviderPage({
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
+      <ViewTracker providerId={slug} />
+
       {/* Structured data */}
       <script
         type="application/ld+json"

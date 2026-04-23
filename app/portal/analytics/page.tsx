@@ -57,7 +57,8 @@ interface AnalyticsResponse {
     as_of_date: string;
   } | null;
   pipeline_opportunity: {
-    scope: "city" | "state" | "state-all";
+    scope: "near" | "state";
+    radius_miles?: number | null;
     description: string;
     local_demand_count: number;
     reached_your_page_count: number;
@@ -228,7 +229,7 @@ function PipelineBanner({ data }: { data: AnalyticsResponse }) {
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
         <p className="text-xs font-medium text-gray-500 tracking-wide uppercase">
-          {p.scope === "city" ? "Families near you" : "Families in your state"}
+          {p.scope === "near" ? "Families near you" : "Families in your state"}
         </p>
       </div>
       <p className="text-[26px] font-display font-semibold text-gray-900 leading-snug tracking-tight">
@@ -245,16 +246,19 @@ function PipelineBanner({ data }: { data: AnalyticsResponse }) {
 }
 
 function pipelinePhrase(
-  scope: "city" | "state" | "state-all",
+  scope: "near" | "state",
   city: string | null,
   state: string | null,
   category: string | null,
 ): string {
-  const cat = humanCategory(category)?.toLowerCase() ?? "care";
-  const stateName = humanState(state);
-  if (scope === "city" && city && category) return `for ${cat} in ${city}`;
-  if (scope === "state" && stateName && category) return `for ${cat} in ${stateName}`;
-  if (scope === "state-all" && stateName) return `for senior care in ${stateName}`;
+  const cat = humanCategory(category)?.toLowerCase() ?? "senior care";
+  if (scope === "near") {
+    return city ? `for ${cat} near ${city}` : `for ${cat} near you`;
+  }
+  if (scope === "state") {
+    const stateName = humanState(state);
+    return stateName ? `for ${cat} in ${stateName}` : `for ${cat} in your state`;
+  }
   return "in your area";
 }
 

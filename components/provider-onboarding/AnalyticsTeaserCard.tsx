@@ -44,7 +44,8 @@ interface AnalyticsResponse {
   sources: Record<string, number>;
   peer_context: unknown;
   pipeline_opportunity: {
-    scope: "city" | "state" | "state-all";
+    scope: "near" | "state";
+    radius_miles?: number | null;
     description: string;
     local_demand_count: number;
     reached_your_page_count: number;
@@ -219,24 +220,24 @@ function buildHeadline(
 }
 
 /**
- * Scope-aware "for X in Y" phrase used after "[N] families searched ...".
- * Examples:
- *   city       → "for assisted living in Austin"
- *   state      → "for assisted living in Texas"
- *   state-all  → "for senior care in Texas"
- *   no scope   → "in your area" (defensive fallback; shouldn't render)
+ * Scope-aware "for X near/in Y" phrase used after "[N] families searched ...".
+ *
+ *   near + city  → "for assisted living near Austin"
+ *   near (no city) → "for assisted living near you"
+ *   state        → "for assisted living in Texas" (last-resort fallback)
+ *   no scope     → "in your area" (defensive; shouldn't render)
+ *
+ * `near` is geographic-radius based (30 or 60 miles) — drive-time relevant
+ * to actual care decisions, not administrative geography.
  */
-function pipelinePhrase(scope: "city" | "state" | "state-all", loc: ProfileLoc): string {
-  const cat = humanizeCategoryLabel(loc.category).toLowerCase();
-  const place = humanizeStateLabel(loc.state);
-  if (scope === "city" && loc.city && loc.category) {
-    return `for ${cat} in ${loc.city}`;
+function pipelinePhrase(scope: "near" | "state", loc: ProfileLoc): string {
+  const cat = loc.category ? humanizeCategoryLabel(loc.category).toLowerCase() : "senior care";
+  if (scope === "near") {
+    return loc.city ? `for ${cat} near ${loc.city}` : `for ${cat} near you`;
   }
-  if (scope === "state" && place && loc.category) {
-    return `for ${cat} in ${place}`;
-  }
-  if (scope === "state-all" && place) {
-    return `for senior care in ${place}`;
+  if (scope === "state") {
+    const place = humanizeStateLabel(loc.state);
+    return place ? `for ${cat} in ${place}` : `for ${cat} in your state`;
   }
   return "in your area";
 }

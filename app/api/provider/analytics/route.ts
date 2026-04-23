@@ -190,17 +190,22 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Pipeline opportunity (cohort demand, real-time + adaptive) ---
-    // Replaces the cron-fed lookup with an adaptive widening query against
-    // provider_activity directly. Tries (city, state, category) → (state,
-    // category) → (state, *), picking the first cohort with >= 5 providers.
-    // Real-time (no 24h cron lag) and never returns a self-referential
-    // single-provider cohort. reached_your_page_count remains viewsThisPeriod
-    // so the dashboard banner agrees with the KPI grid.
+    // Geographic radius widening: 30mi → 60mi → state (same category).
+    // Drive-time semantics, not administrative geography — senior care
+    // decisions happen within visiting/dispatch radius. State tier is a
+    // last-resort fallback that rarely fires; if the cohort is still
+    // sparse there, we let `scope: null` propagate so the UI shows
+    // patient copy instead of a misleading "X families in Texas" number.
+    const providerGeo = await fetchProviderGeo(db, {
+      sourceProviderId: profile.source_provider_id,
+      slug: profile.slug,
+    });
     const cohortDemand: CohortDemandResult = profile.state
       ? await findCohortDemand(db, {
-          city: profile.city,
           state: profile.state,
           category: profile.category,
+          lat: providerGeo?.lat ?? null,
+          lon: providerGeo?.lon ?? null,
           windowStart,
         })
       : { scope: null, demand: 0 };
@@ -250,6 +255,7 @@ export async function GET(request: NextRequest) {
       pipeline_opportunity: cohortDemand.scope
         ? {
             scope: cohortDemand.scope,
+            radius_miles: cohortDemand.radiusMiles ?? null,
             description: describePipelineOpportunity(cohortDemand.scope, profile.category, profile.city, profile.state),
             local_demand_count: localDemandCount,
             reached_your_page_count: reachedYourPageCount,
@@ -300,7 +306,7 @@ function describeCohort(category: string | null, city: string | null): string {
   return `${cat} in ${city}`;
 }
 
-type CohortScope = "city" | "state" | "state-all";
+type CohortScope = "near" | "state";
 
 function describePipelineOpportunity(
   scope: CohortScope,
@@ -308,16 +314,13 @@ function describePipelineOpportunity(
   city: string | null,
   state: string | null,
 ): string {
-  if (scope === "city" && city && category) {
-    return `Families searched for ${humanizeCategory(category).toLowerCase()} in ${city}`;
+  const cat = category ? humanizeCategory(category).toLowerCase() : "senior care";
+  if (scope === "near" && city) {
+    return `Families searched for ${cat} near ${city}`;
   }
-  if (scope === "state" && state && category) {
-    return `Families searched for ${humanizeCategory(category).toLowerCase()} in ${humanizeState(state)}`;
+  if (scope === "state" && state) {
+    return `Families searched for ${cat} in ${humanizeState(state)}`;
   }
-  if (scope === "state-all" && state) {
-    return `Families searched for senior care in ${humanizeState(state)}`;
-  }
-  // Defensive fallback — should never hit; scope is set only when we have data.
   return "Families searched in your area";
 }
 
@@ -344,90 +347,243 @@ function humanizeState(state: string): string {
 }
 
 /**
- * Adaptive cohort widening for the pipeline-opportunity number.
+ * Geographic-radius cohort widening for the pipeline-opportunity number.
  *
- * Tries three cohort scopes in order, returning the first one with at least
- * COHORT_MIN_PROVIDERS members (5). For each cohort, counts unique anonymous
- * sessions across `provider_activity` page_views in the window.
+ * Senior care decisions happen at drive-time scale (visiting distance for
+ * facilities, dispatch radius for home care) — NOT at administrative
+ * geography (state). A 30mi-radius cohort is meaningful to a provider; a
+ * "state of Texas" cohort is not (Texas is 15hrs end-to-end). This widening
+ * mirrors how providers actually think about their market.
  *
- * Why widen: tiny markets (single-provider city + category) make the count
- * self-referential. State and state-all fallbacks ensure providers in sparse
- * areas still see a meaningful "families searched" magnitude.
+ * Tiers (try in order, first one with COHORT_MIN_PROVIDERS members wins):
+ *   1. 30mi radius, same category   → scope='near'
+ *   2. 60mi radius, same category   → scope='near'
+ *   3. Same state, same category    → scope='state' (last resort)
  *
- * Phase 2 candidates:
- *  - Geographic-radius cohorts (lat/lon) instead of city-name match
- *  - Population-density-aware widening
- *  - Exclude provider's own traffic if framing pivots to competitive
+ * If all three are sparse: returns scope=null. Card/dashboard fall back to
+ * patient copy ("traffic is just getting started") rather than show a
+ * misleading state-level number.
+ *
+ * State boundary preserved as a hard limit even for radius tiers — provider
+ * licensing is state-level and providers think regionally within their
+ * state. Cross-state edge cases (El Paso ↔ Las Cruces) deferred to Phase 2.
+ *
+ * Bounding-box pre-filter in Postgres + Haversine refinement in JS keeps
+ * the query fast without PostGIS. At low Phase 1 volume this is cheap.
  */
 const COHORT_MIN_PROVIDERS = 5;
-const COHORT_LOOKUP_LIMIT = 500;
+const COHORT_LOOKUP_LIMIT = 1000;
+const RADIUS_TIERS_MILES = [30, 60] as const;
 
 interface CohortDemandResult {
   scope: CohortScope | null;
   demand: number;
+  radiusMiles?: number;
+}
+
+interface ProviderGeo {
+  lat: number;
+  lon: number;
 }
 
 async function findCohortDemand(
   db: ReturnType<typeof getServiceClient>,
   options: {
-    city: string | null;
     state: string;
     category: string | null;
+    lat: number | null;
+    lon: number | null;
     windowStart: Date;
   },
 ): Promise<CohortDemandResult> {
-  const { city, state, category, windowStart } = options;
+  const { state, category, lat, lon, windowStart } = options;
 
-  // Tier 1: (city, state, category)
-  if (city && category) {
-    const slugs = await fetchCohortSlugs(db, { city, state, category });
-    if (slugs.length >= COHORT_MIN_PROVIDERS) {
-      const demand = await countCohortDemand(db, slugs, windowStart);
-      return { scope: "city", demand };
+  // Critical: business_profiles.category is snake_case enum
+  // ("assisted_living"); olera-providers.provider_category stores
+  // Title Case display strings ("Assisted Living"). Cohort lookups must
+  // use the olera-providers form OR the query returns zero rows.
+  const oleraCategoryVariants = mapProfileCategoryToOleraVariants(category);
+
+  // Geographic radius tiers — only available if we have provider lat/lon
+  // AND we can map the category to its olera-providers form.
+  if (lat !== null && lon !== null && oleraCategoryVariants.length > 0) {
+    for (const radiusMiles of RADIUS_TIERS_MILES) {
+      const slugs = await fetchCohortSlugsByRadius(db, {
+        state,
+        categoryVariants: oleraCategoryVariants,
+        lat,
+        lon,
+        radiusMiles,
+      });
+      if (slugs.length >= COHORT_MIN_PROVIDERS) {
+        const demand = await countCohortDemand(db, slugs, windowStart);
+        return { scope: "near", demand, radiusMiles };
+      }
     }
   }
 
-  // Tier 2: (state, category)
-  if (category) {
-    const slugs = await fetchCohortSlugs(db, { state, category });
+  // Last-resort: state + category. Rare; usually means provider is in a
+  // sparsely served state OR we don't have lat/lon for them.
+  if (oleraCategoryVariants.length > 0) {
+    const slugs = await fetchCohortSlugsInState(db, {
+      state,
+      categoryVariants: oleraCategoryVariants,
+    });
     if (slugs.length >= COHORT_MIN_PROVIDERS) {
       const demand = await countCohortDemand(db, slugs, windowStart);
       return { scope: "state", demand };
     }
   }
 
-  // Tier 3: (state, *)
-  const slugs = await fetchCohortSlugs(db, { state });
-  if (slugs.length >= COHORT_MIN_PROVIDERS) {
-    const demand = await countCohortDemand(db, slugs, windowStart);
-    return { scope: "state-all", demand };
-  }
-
+  // No tier reached threshold. UI falls to patient copy via scope=null.
   return { scope: null, demand: 0 };
 }
 
-async function fetchCohortSlugs(
+/**
+ * Map a ProfileCategory snake_case enum value to the corresponding
+ * olera-providers.provider_category Title Case display string(s).
+ *
+ * Returns ALL plausible variants so the cohort lookup can `.in()` match
+ * historical / typo'd / parenthetical-suffix variations (e.g.
+ * `home_care_agency` historically maps to either "Home Care" or
+ * "Home Care (Non-medical)" in olera-providers depending on when the
+ * row was written by the city pipeline).
+ *
+ * Returns [] for ProfileCategory values that have no olera-providers
+ * equivalent (hospice_agency, rehab_facility, etc.) — caller will skip
+ * cohort tiers and the UI will fall to patient copy.
+ */
+function mapProfileCategoryToOleraVariants(category: string | null): string[] {
+  if (!category) return [];
+  const map: Record<string, string[]> = {
+    assisted_living: ["Assisted Living"],
+    memory_care: ["Memory Care"],
+    nursing_home: ["Nursing Home"],
+    independent_living: ["Independent Living"],
+    home_care_agency: ["Home Care (Non-medical)", "Home Care"],
+    home_health_agency: ["Home Health Care", "Home Health"],
+    // hospice_agency, inpatient_hospice, rehab_facility, adult_day_care,
+    // wellness_center, private_caregiver — no consistent olera-providers
+    // equivalent in current data; cohort returns empty → patient copy.
+  };
+  return map[category] ?? [];
+}
+
+/**
+ * Look up provider's lat/lon. Tries source_provider_id link first
+ * (most claimed providers), then slug match (orphans). Returns null
+ * when no geo data is available — caller falls to state-only widening.
+ */
+async function fetchProviderGeo(
   db: ReturnType<typeof getServiceClient>,
-  filter: { state: string; category?: string; city?: string },
+  options: { sourceProviderId: string | null; slug: string | null },
+): Promise<ProviderGeo | null> {
+  const { sourceProviderId, slug } = options;
+
+  if (sourceProviderId) {
+    const { data } = await db
+      .from("olera-providers")
+      .select("lat, lon")
+      .eq("provider_id", sourceProviderId)
+      .maybeSingle();
+    const row = data as { lat: number | null; lon: number | null } | null;
+    if (row && typeof row.lat === "number" && typeof row.lon === "number") {
+      return { lat: row.lat, lon: row.lon };
+    }
+  }
+
+  if (slug) {
+    const { data } = await db
+      .from("olera-providers")
+      .select("lat, lon")
+      .eq("slug", slug)
+      .maybeSingle();
+    const row = data as { lat: number | null; lon: number | null } | null;
+    if (row && typeof row.lat === "number" && typeof row.lon === "number") {
+      return { lat: row.lat, lon: row.lon };
+    }
+  }
+
+  return null;
+}
+
+async function fetchCohortSlugsByRadius(
+  db: ReturnType<typeof getServiceClient>,
+  filter: {
+    state: string;
+    categoryVariants: string[];
+    lat: number;
+    lon: number;
+    radiusMiles: number;
+  },
 ): Promise<string[]> {
-  let q = db
+  // Bounding-box pre-filter. 1° latitude ≈ 69mi. Longitude varies by
+  // latitude (1° lon ≈ 69·cos(lat) miles). Box is conservative; we
+  // refine to true radius via Haversine in JS below.
+  const latDelta = filter.radiusMiles / 69;
+  const lonDelta = filter.radiusMiles / (69 * Math.cos((filter.lat * Math.PI) / 180));
+
+  const { data, error } = await db
+    .from("olera-providers")
+    .select("slug, lat, lon")
+    .eq("state", filter.state)
+    .in("provider_category", filter.categoryVariants)
+    .not("slug", "is", null)
+    .not("deleted", "is", true)
+    .gte("lat", filter.lat - latDelta)
+    .lte("lat", filter.lat + latDelta)
+    .gte("lon", filter.lon - lonDelta)
+    .lte("lon", filter.lon + lonDelta)
+    .limit(COHORT_LOOKUP_LIMIT);
+
+  if (error) {
+    console.error("[provider/analytics] radius cohort lookup failed:", error);
+    return [];
+  }
+
+  // Haversine refinement — bounding box has corners outside the true circle.
+  return (data ?? [])
+    .filter((row: { slug: string | null; lat: number | null; lon: number | null }) => {
+      if (!row.slug || row.lat === null || row.lon === null) return false;
+      const distance = haversineMiles(filter.lat, filter.lon, row.lat, row.lon);
+      return distance <= filter.radiusMiles;
+    })
+    .map((row: { slug: string | null }) => row.slug as string);
+}
+
+async function fetchCohortSlugsInState(
+  db: ReturnType<typeof getServiceClient>,
+  filter: { state: string; categoryVariants: string[] },
+): Promise<string[]> {
+  const { data, error } = await db
     .from("olera-providers")
     .select("slug")
     .eq("state", filter.state)
+    .in("provider_category", filter.categoryVariants)
     .not("slug", "is", null)
     .not("deleted", "is", true)
     .limit(COHORT_LOOKUP_LIMIT);
-  if (filter.category) q = q.eq("provider_category", filter.category);
-  if (filter.city) q = q.eq("city", filter.city);
 
-  const { data, error } = await q;
   if (error) {
-    console.error("[provider/analytics] cohort slug lookup failed:", error);
+    console.error("[provider/analytics] state cohort lookup failed:", error);
     return [];
   }
   return (data ?? [])
     .map((row: { slug: string | null }) => row.slug)
     .filter((s): s is string => typeof s === "string" && s.length > 0);
+}
+
+function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 async function countCohortDemand(

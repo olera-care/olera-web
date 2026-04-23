@@ -7,15 +7,47 @@
 
 ## Current Focus
 
-### 2026-04-22 — Provider Analytics — Phase 0 SHIPPED, Phase 1 core verified on preview (PR-ready pending one more reload-test)
+### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) mid-build, PARTIAL on branch
 
-Strategy doc and plan files are the source of truth — skim this, then read those.
+**Phase 2 Brief (live doc):** https://www.notion.so/34b5903a0ffe81098302ce55d5df2a4d — source of truth for this workstream. Decisions + open questions live there.
 
-**Strategy doc (Notion):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
+**Branch:** `feature/dashboard-redesign-phase-2a-score-extension` — 4 commits ahead of staging, DRAFT PR (see below).
+
+**Where Phase 2 stands:**
+- ✅ 2A Score extension — 7 → 9 weighted sections (Reviews + Response Rate) in `lib/profile-completeness.ts`. Backward-compat preserved.
+- ✅ Unified `/api/provider/dashboard` endpoint — greeting + activity + reviews + response-rate + cohort in one payload.
+- ✅ Pillar A (DashboardHero) — priority-ranked greeting with one primary action CTA.
+- ✅ Pillar E (RecentActivityCard) — merged timeline of questions/leads/reviews/views.
+- ✅ Pillar C (CohortContextCard) — reframed cohort demand narrative.
+- ✅ All pillars wired into `/provider` behind `NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD` flag.
+- ✅ Completeness sidebar shows 9 sections when v2 data available.
+- ✅ Pre-test caught + fixed 4 bugs (dead routes, dead anchors, fabricated stats, wasted fetch on FF-off path).
+- ⏳ Pillar D (Review invitations, contextual) — not built yet.
+- ⏳ Pillar F (Traffic details, absorbing `/portal/analytics`) — not built yet.
+- ⏳ `/portal/analytics` route cleanup (redirect to `/provider`) — not done.
+- ⏳ Onboard teaser CTA repoint (`/portal/analytics` → `/provider`) — not done.
+- ⏳ Weekly digest email CTA repoint — not done.
+- ⏳ Mobile responsive polish on new pillars.
+- ⏳ Final `/pre-test` + PR merge to staging.
+
+**Key decisions locked in:**
+- Option C chosen — one unified dashboard at `/provider` (kill `/portal/analytics`).
+- Quality score weights signed off (9 sections; heaviest on Gallery 15%, Reviews 15%, Response Rate 12%).
+- Single scrolling page, no tabs.
+- Same feature flag as onboard teaser — launches together.
+- First-principles over iteration per TJ's "what if current design sucks" instinct.
+
+**Resume after compact:** say "continue the dashboard redesign, Pillar D/F + cleanup next" → Claude picks up from the ⏳ items above.
+
+**Strategy doc (parent thread):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
 **Phase 0 plan:** `plans/provider-analytics-phase-0-instrumentation-plan.md` (shipped)
-**Phase 1 plan:** `plans/provider-analytics-phase-1-surfaces-plan.md` (in flight)
-**Branch:** `feature/provider-analytics-phase-1a-data-layer` — 9 commits ahead of staging, no PR yet
-**Preview URL:** `https://olera-web-git-feature-provider-analytics-phase-1a-800012-olera.vercel.app`
+**Phase 1 plan:** `plans/provider-analytics-phase-1-surfaces-plan.md` (shipped to staging)
+
+**Where everything stands overall:**
+- Phase 0 (instrumentation) → SHIPPED (PR #620)
+- Phase 1 (surfaces v1) → SHIPPED (PRs #623, #624, chore/dejank-onboard-teaser)
+- Phase 2 (dashboard redesign) → mid-build on current branch
+- Phase 3 (L3 monetization) → still deferred
 
 **Phase 0 — DONE.** PR #620 merged to staging at commit `b18b08d6`. Instrumentation live. Admin sanity view at `/admin/analytics`. Nightly aggregation cron at 8 AM UTC. [Merge report](https://www.notion.so/34a5903a0ffe8163a88fd2569f8009c3).
 

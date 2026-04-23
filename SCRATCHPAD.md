@@ -7,43 +7,73 @@
 
 ## Current Focus
 
-### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) mid-build, PARTIAL on branch
+### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) — ALL PILLARS BUILT, ready for PR polish + merge
 
 **Phase 2 Brief (live doc):** https://www.notion.so/34b5903a0ffe81098302ce55d5df2a4d — source of truth for this workstream. Decisions + open questions live there.
 
-**Branch:** `feature/dashboard-redesign-phase-2a-score-extension` — 6 commits ahead of staging, DRAFT PR #625 (see below).
+**Branch:** `feature/dashboard-redesign-phase-2a-score-extension` — 8 commits ahead of staging, DRAFT PR #625.
 
-**2026-04-23 morning status:**
-- First preview test went well — TJ said "wow this is excellent." Pillars A (hero), E (activity) rendering correctly.
-- **BUG FLAGGED:** CohortContextCard (Pillar C) missing on Aggie's dashboard. Diagnosis commit `8eabdd30` adds `_debug` field to `/api/provider/dashboard` response exposing cohort resolution trace (profile state/category, lat/lon, category variants, per-tier slug counts). TJ to reload `/provider` on preview and paste `_debug` object from Network tab so we can confirm root cause.
-- Most likely causes ranked: (1) `business_profiles.state` abbreviation mismatch with `olera-providers.state`, (2) no `source_provider_id` on Aggie → no geo → state tier also fails if state mismatch, (3) category mapping gap for Aggie's specific category.
-- Continuing Option A: keep building on branch while waiting for debug paste — next up Pillar D (review invitations) + Pillar F (traffic details) + `/portal/analytics` redirect cleanup.
+**Resume next session:** Load this file, you'll have full context. Top priorities:
+1. Run `/pre-test` — clean review of the 8 commits on the branch
+2. Verify mobile responsive layout (right-sidebar stack on narrow viewports)
+3. Mark PR #625 ready for review, then `/pr-merge 625`
+4. Post-merge: pick the next ⏳ item from Phase 2 backlog below
 
-**Where Phase 2 stands:**
+**Where Phase 2 stands (2026-04-23 EOD):**
 - ✅ 2A Score extension — 7 → 9 weighted sections (Reviews + Response Rate) in `lib/profile-completeness.ts`. Backward-compat preserved.
-- ✅ Unified `/api/provider/dashboard` endpoint — greeting + activity + reviews + response-rate + cohort in one payload.
-- ✅ Pillar A (DashboardHero) — priority-ranked greeting with one primary action CTA.
-- ✅ Pillar E (RecentActivityCard) — merged timeline of questions/leads/reviews/views.
-- ✅ Pillar C (CohortContextCard) — reframed cohort demand narrative.
-- ✅ All pillars wired into `/provider` behind `NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD` flag.
+- ✅ Unified `/api/provider/dashboard` endpoint — greeting + activity + reviews + response-rate + cohort in one payload. Commit `9e0cb303`.
+- ✅ Pillar A (DashboardHero) — priority-ranked greeting with one primary action CTA. `components/provider-dashboard/v2/DashboardHero.tsx`
+- ✅ Pillar C (CohortContextCard) — reframed cohort demand narrative. `components/provider-dashboard/v2/CohortContextCard.tsx`
+- ✅ Pillar D (ReviewInvitationsCard) — contextual review invitations, non-sales-y. `components/provider-dashboard/v2/ReviewInvitationsCard.tsx`
+- ✅ Pillar E (RecentActivityCard) — merged timeline of questions/leads/reviews/views. `components/provider-dashboard/v2/RecentActivityCard.tsx`
+- ✅ Pillar F (TrafficSummaryCard) — compact KPI snapshot + deep link to `/portal/analytics`. `components/provider-dashboard/v2/TrafficSummaryCard.tsx`
+- ✅ All pillars wired into `/provider` behind `NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD` flag (`components/provider-dashboard/DashboardPage.tsx` lines 310-325).
 - ✅ Completeness sidebar shows 9 sections when v2 data available.
-- ✅ Pre-test caught + fixed 4 bugs (dead routes, dead anchors, fabricated stats, wasted fetch on FF-off path).
-- ⏳ Pillar D (Review invitations, contextual) — not built yet.
-- ⏳ Pillar F (Traffic details, absorbing `/portal/analytics`) — not built yet.
-- ⏳ `/portal/analytics` route cleanup (redirect to `/provider`) — not done.
-- ⏳ Onboard teaser CTA repoint (`/portal/analytics` → `/provider`) — not done.
-- ⏳ Weekly digest email CTA repoint — not done.
-- ⏳ Mobile responsive polish on new pillars.
+- ✅ Onboard teaser CTA repointed `/portal/analytics` → `/provider` ("See your dashboard").
+- ✅ Weekly digest email CTA repointed `/portal/analytics` → `/provider` (`lib/email-templates.tsx` line 995).
+- ✅ `/portal/analytics` header rebranded "Analytics" → "Traffic report" with back-to-dashboard link. Deliberately KEPT the route (it's a sub-report now, not a parallel home).
 - ⏳ Final `/pre-test` + PR merge to staging.
+- ⏳ Mobile responsive check — right sidebar should stack below on narrow viewports; confirmed by DOM but TJ should eyeball on mobile.
+- ⏳ Phase 2 polish items (below) — defer to post-merge PRs.
+
+**Phase 2 deferred / polish backlog (post-merge):**
+- 🚫 Cohort card zero-demand variant — on staging the cohort shows demand=0 because no real organic traffic hits other TX Assisted Living pages. Card hides correctly by design. Real prod traffic will light it up. **Decided Option A: ship as-is, revisit after prod data accumulates.**
+- Geocode business_profiles.city+state → lat/lon so radius-tier cohort works for providers without `source_provider_id` (Aggie + any future claim-flow-skipping providers).
+- Pull shared cohort helpers out of `/api/provider/dashboard/route.ts` + `/api/provider/analytics/route.ts` (currently duplicated — Phase 2 TODO noted inline).
+- Resend email BASE_URL handling — templates hardcode staging URL so notification emails always point at staging-olera2-web regardless of where we're testing. Proper fix: fallback to `VERCEL_URL` env var with staging as last resort. Not a blocker; workaround is to manually swap hostname in email URL when testing on preview.
 
 **Key decisions locked in:**
-- Option C chosen — one unified dashboard at `/provider` (kill `/portal/analytics`).
+- One unified dashboard at `/provider` is the home base. `/portal/analytics` survives as the detailed Traffic Report sub-page (cleaner than folding 606 lines into `/provider`).
 - Quality score weights signed off (9 sections; heaviest on Gallery 15%, Reviews 15%, Response Rate 12%).
 - Single scrolling page, no tabs.
 - Same feature flag as onboard teaser — launches together.
+- Review invitations framing is contextual + honest, NEVER sales-y — 60-70yo facility operators have been burned by Caring.com/APFM-style "get more business" hooks, that framing violates trust.
 - First-principles over iteration per TJ's "what if current design sucks" instinct.
 
-**Resume after compact:** say "continue the dashboard redesign, Pillar D/F + cleanup next" → Claude picks up from the ⏳ items above.
+**Branch commit history (8 commits on feature/dashboard-redesign-phase-2a-score-extension):**
+1. `446a4d85` — Extend completion score to 9 weighted sections
+2. `9e0cb303` — Add /api/provider/dashboard unified endpoint
+3. `76a248a7` — Wire Phase 2 dashboard pillars into /provider behind FF
+4. `eea974ba` — Fix four Phase 2 bugs caught in pre-test (dead routes, dead anchors, fabricated stats, wasted fetch)
+5. `5bdcd479` — Log end-of-session state for Phase 2 dashboard redesign
+6. `8eabdd30` — Add cohort trace to /api/provider/dashboard for diagnostics (_debug field)
+7. `d5b878cd` — Add Pillars D + F and repoint analytics CTAs to /provider
+8. `[latest]` — Remove _debug diagnostic from dashboard endpoint (cohort behavior is working as designed)
+
+**CohortContextCard diagnostic result (2026-04-23 evening):**
+TJ loaded his dashboard on preview, pasted the `_debug` payload. Trace showed:
+- Aggie has `source_provider_id: null` → no lat/lon → radius tiers correctly skipped (no-geo)
+- State tier ran: 1000 TX Assisted Living slugs from `olera-providers` → passed 5-provider threshold
+- Demand query returned 0 unique sessions → card hides correctly (by design — zero-demand would contradict pipeline-opportunity framing)
+- **Conclusion: working as designed. Will light up in production with real traffic. Diagnostic code removed in commit 8.**
+
+**Testing state:**
+- ✅ Pillar A, E verified rendering by TJ on preview build `d5b878cd`
+- ⏳ Pillars D, F — built but not visually verified by TJ yet (right sidebar stacks below on narrow viewports; TJ needs to scroll or widen window to see)
+- ⏳ Full `/pre-test` pass on the 8-commit branch before merge
+
+**Current preview URL** (check via `gh pr checks 625` to confirm latest):
+`olera-web-git-feature-dashboard-redesign-phase-2a-06a582-olera.vercel.app`
 
 **Strategy doc (parent thread):** https://www.notion.so/34a5903a0ffe81f7ad56d6d85514d52f
 **Phase 0 plan:** `plans/provider-analytics-phase-0-instrumentation-plan.md` (shipped)

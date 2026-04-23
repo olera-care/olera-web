@@ -318,7 +318,6 @@ export async function GET(request: NextRequest) {
     const providerLat = typeof geoRow?.lat === "number" ? geoRow.lat : null;
     const providerLon = typeof geoRow?.lon === "number" ? geoRow.lon : null;
 
-    const cohortTrace: CohortTrace = { steps: [] };
     const cohortDemand: CohortDemandResult = profile.state
       ? await findCohortDemand(db, {
           state: profile.state,
@@ -326,9 +325,8 @@ export async function GET(request: NextRequest) {
           lat: providerLat,
           lon: providerLon,
           windowStart,
-        }, cohortTrace)
+        })
       : { scope: null, demand: 0 };
-    if (!profile.state) cohortTrace.steps.push({ step: "no-state-on-profile" });
 
     // ── Greeting signals ──
     // What's meaningful to show at the top? Prioritized:
@@ -373,16 +371,6 @@ export async function GET(request: NextRequest) {
         lifetime: lifetimeViews,
       },
       cohort: cohortDemand,
-      _debug: {
-        profile: {
-          state: profile.state,
-          category: profile.category,
-          source_provider_id: profile.source_provider_id,
-        },
-        geo: { lat: providerLat, lon: providerLon },
-        categoryVariants: mapProfileCategoryToOleraVariants(profile.category),
-        cohort: cohortTrace,
-      },
     });
   } catch (err) {
     console.error("[provider/dashboard] fatal:", err);
@@ -425,10 +413,6 @@ interface CohortDemandResult {
   radiusMiles?: number;
 }
 
-interface CohortTrace {
-  steps: Array<Record<string, unknown>>;
-}
-
 async function findCohortDemand(
   db: ReturnType<typeof getServiceClient>,
   options: {
@@ -438,14 +422,9 @@ async function findCohortDemand(
     lon: number | null;
     windowStart: Date;
   },
-  trace?: CohortTrace,
 ): Promise<CohortDemandResult> {
   const { state, category, lat, lon, windowStart } = options;
   const categoryVariants = mapProfileCategoryToOleraVariants(category);
-
-  if (categoryVariants.length === 0) {
-    trace?.steps.push({ step: "no-category-variants", rawCategory: category });
-  }
 
   if (lat !== null && lon !== null && categoryVariants.length > 0) {
     for (const radiusMiles of RADIUS_TIERS_MILES) {
@@ -456,43 +435,21 @@ async function findCohortDemand(
         lon,
         radiusMiles,
       });
-      trace?.steps.push({
-        step: "radius",
-        radiusMiles,
-        slugCount: slugs.length,
-        threshold: COHORT_MIN_PROVIDERS,
-      });
       if (slugs.length >= COHORT_MIN_PROVIDERS) {
         const demand = await countCohortDemand(db, slugs, windowStart);
-        trace?.steps.push({ step: "radius-hit", radiusMiles, demand });
         return { scope: "near", demand, radiusMiles };
       }
     }
-  } else {
-    trace?.steps.push({
-      step: "skip-radius",
-      reason: lat === null || lon === null ? "no-geo" : "no-category",
-      lat,
-      lon,
-    });
   }
 
   if (categoryVariants.length > 0) {
     const slugs = await fetchCohortSlugsInState(db, { state, categoryVariants });
-    trace?.steps.push({
-      step: "state",
-      state,
-      slugCount: slugs.length,
-      threshold: COHORT_MIN_PROVIDERS,
-    });
     if (slugs.length >= COHORT_MIN_PROVIDERS) {
       const demand = await countCohortDemand(db, slugs, windowStart);
-      trace?.steps.push({ step: "state-hit", demand });
       return { scope: "state", demand };
     }
   }
 
-  trace?.steps.push({ step: "all-tiers-missed" });
   return { scope: null, demand: 0 };
 }
 

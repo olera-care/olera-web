@@ -68,13 +68,20 @@ export interface ProviderDashboardV2Data {
  * Fetches the unified provider dashboard payload. Caller should have an
  * authenticated session. Failures are silent (data stays null); the page
  * can fall back to the old dashboard layout.
+ *
+ * `enabled` gates the fetch — pass false when the feature flag is off so
+ * providers on the legacy dashboard don't pay for a wasted round-trip.
  */
-export function useProviderDashboardV2Data(window: "7d" | "30d" | "90d" = "30d") {
+export function useProviderDashboardV2Data(
+  window: "7d" | "30d" | "90d" = "30d",
+  enabled = true,
+) {
   const [data, setData] = useState<ProviderDashboardV2Data | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -92,7 +99,7 @@ export function useProviderDashboardV2Data(window: "7d" | "30d" | "90d" = "30d")
     } finally {
       setLoading(false);
     }
-  }, [window]);
+  }, [window, enabled]);
 
   useEffect(() => {
     fetchData();

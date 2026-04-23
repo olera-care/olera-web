@@ -278,7 +278,7 @@ export async function GET(request: NextRequest) {
         timestamp: lead.created_at,
         title: `New inquiry`,
         detail: typeof lead.message === "string" ? (lead.message.length > 100 ? lead.message.slice(0, 100) + "…" : lead.message) : undefined,
-        actionHref: `/provider/leads`,
+        actionHref: `/provider/connections`,
       });
     }
 

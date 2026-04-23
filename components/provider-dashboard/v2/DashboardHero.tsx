@@ -84,7 +84,7 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
     return {
       headline: `${n} ${n === 1 ? "family is" : "families are"} waiting for your reply.`,
       subline:
-        "Answering usually takes under a minute and families are 4× more likely to reach out after a response.",
+        "Answering usually takes under a minute and shows families you're paying attention.",
       cta: { label: "Review questions", href: "/provider/qna" },
     };
   }
@@ -94,8 +94,8 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
     const n = greeting.newLeadsThisPeriod;
     return {
       headline: `${n} new ${n === 1 ? "inquiry" : "inquiries"} this month.`,
-      subline: "Responding within 24 hours typically doubles the chance of a conversation.",
-      cta: { label: "View inquiries", href: "/provider/leads" },
+      subline: "Families expect a response within a day — quick replies read as professional.",
+      cta: { label: "View inquiries", href: "/provider/connections" },
     };
   }
 
@@ -104,7 +104,8 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
     return {
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
       subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
-      cta: { label: "See where they came from", href: "#traffic" },
+      // No CTA — the headline is the value. Forcing a "go somewhere"
+      // action when there's nothing specific to do would feel hollow.
     };
   }
 
@@ -115,7 +116,7 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
       headline: `${n} ${n === 1 ? "family" : "families"} viewed your page this month.`,
       subline:
         "A complete profile with photos and reviews helps more of them reach out.",
-      cta: { label: "Improve your listing", href: "#listing-quality" },
+      cta: { label: "Improve your listing", href: "#overview" },
     };
   }
 
@@ -124,6 +125,6 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
     headline: "Your page is live on Olera.",
     subline:
       "Families are searching in your area. The more complete your listing, the more likely they'll reach out.",
-    cta: { label: "Improve your listing", href: "#listing-quality" },
+    cta: { label: "Improve your listing", href: "#overview" },
   };
 }

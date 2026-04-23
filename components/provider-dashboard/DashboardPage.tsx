@@ -50,7 +50,7 @@ export default function DashboardPage() {
   // Phase 2 dashboard data (greeting, activity, reviews, cohort) — only
   // fetched when the feature flag is on, to avoid a wasted network round-trip
   // for providers still on the old layout.
-  const v2 = useProviderDashboardV2Data("30d");
+  const v2 = useProviderDashboardV2Data("30d", DASHBOARD_V2_ENABLED);
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);

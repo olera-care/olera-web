@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
+import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useGuidedOnboarding } from "@/hooks/useGuidedOnboarding";
 import {
@@ -31,11 +32,25 @@ import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
+import DashboardHero from "./v2/DashboardHero";
+import RecentActivityCard from "./v2/RecentActivityCard";
+import CohortContextCard from "./v2/CohortContextCard";
+
+// Phase 2 redesign gate — same flag the Phase 1 onboard teaser uses, so
+// the onboard teaser's "See your analytics →" CTA and the new dashboard
+// experience flip on together.
+const DASHBOARD_V2_ENABLED =
+  process.env.NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD === "true";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
+
+  // Phase 2 dashboard data (greeting, activity, reviews, cohort) — only
+  // fetched when the feature flag is on, to avoid a wasted network round-trip
+  // for providers still on the old layout.
+  const v2 = useProviderDashboardV2Data("30d");
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
@@ -83,7 +98,28 @@ export default function DashboardPage() {
   }
 
   const meta = metadata as ExtendedMetadata;
-  const completeness = calculateProfileCompleteness(profile, meta);
+
+  // Under FF: pass reviews + response-rate summaries into the completeness
+  // calculation so the sidebar shows 9 sections instead of 7. When the
+  // dashboard endpoint is still loading we fall back to 7 sections; score
+  // tightens up once data arrives (one-time transition, not janky because
+  // the sidebar itself updates without rearranging other sections).
+  const reviewsSummary = DASHBOARD_V2_ENABLED && v2.data
+    ? { count: v2.data.reviews.count, avgRating: v2.data.reviews.avgRating }
+    : undefined;
+  const responseRateSummary = DASHBOARD_V2_ENABLED && v2.data
+    ? {
+        totalQuestions: v2.data.responseRate.totalQuestions,
+        answeredCount: v2.data.responseRate.answeredCount,
+      }
+    : undefined;
+
+  const completeness = calculateProfileCompleteness(
+    profile,
+    meta,
+    reviewsSummary,
+    responseRateSummary,
+  );
 
   // Helper to get a specific section's percent
   const sectionPercent = (id: string) =>
@@ -99,6 +135,7 @@ export default function DashboardPage() {
       setEditingSection={setEditingSection}
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
+      v2Data={DASHBOARD_V2_ENABLED ? v2.data : null}
     />
   );
 }
@@ -114,6 +151,7 @@ function DashboardContent({
   setEditingSection,
   refreshAccountData,
   userEmail,
+  v2Data,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -123,6 +161,7 @@ function DashboardContent({
   setEditingSection: (s: SectionId | null) => void;
   userEmail?: string;
   refreshAccountData: () => Promise<void>;
+  v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
@@ -265,6 +304,23 @@ function DashboardContent({
           </div>
         ) : null;
       })()}
+
+      {/* Phase 2 pillars — only when FF is on and the v2 fetch has data. */}
+      {v2Data && (
+        <>
+          <DashboardHero
+            firstName={deriveFirstName(profile.display_name)}
+            data={v2Data}
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
+            <div className="lg:col-span-2 space-y-6">
+              <RecentActivityCard data={v2Data} />
+              <CohortContextCard data={v2Data} />
+            </div>
+            <div className="lg:col-span-1 hidden lg:block" aria-hidden />
+          </div>
+        </>
+      )}
 
       {/* Mobile progress banner - hidden on desktop */}
       <MobileProgressBanner
@@ -782,4 +838,13 @@ function NotificationPreferencesCard({
       </div>
     </div>
   );
+}
+
+function deriveFirstName(displayName: string | null): string {
+  if (!displayName) return "there";
+  const first = displayName.trim().split(/\s+/)[0];
+  // Business names often come first (e.g. "Aggie Assisted Living" → "Aggie").
+  // That reads slightly weirdly as a greeting but it's better than "there" for
+  // most providers. True personalization awaits a provider-name field.
+  return first || "there";
 }

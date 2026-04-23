@@ -11,7 +11,13 @@
 
 **Phase 2 Brief (live doc):** https://www.notion.so/34b5903a0ffe81098302ce55d5df2a4d — source of truth for this workstream. Decisions + open questions live there.
 
-**Branch:** `feature/dashboard-redesign-phase-2a-score-extension` — 4 commits ahead of staging, DRAFT PR (see below).
+**Branch:** `feature/dashboard-redesign-phase-2a-score-extension` — 6 commits ahead of staging, DRAFT PR #625 (see below).
+
+**2026-04-23 morning status:**
+- First preview test went well — TJ said "wow this is excellent." Pillars A (hero), E (activity) rendering correctly.
+- **BUG FLAGGED:** CohortContextCard (Pillar C) missing on Aggie's dashboard. Diagnosis commit `8eabdd30` adds `_debug` field to `/api/provider/dashboard` response exposing cohort resolution trace (profile state/category, lat/lon, category variants, per-tier slug counts). TJ to reload `/provider` on preview and paste `_debug` object from Network tab so we can confirm root cause.
+- Most likely causes ranked: (1) `business_profiles.state` abbreviation mismatch with `olera-providers.state`, (2) no `source_provider_id` on Aggie → no geo → state tier also fails if state mismatch, (3) category mapping gap for Aggie's specific category.
+- Continuing Option A: keep building on branch while waiting for debug paste — next up Pillar D (review invitations) + Pillar F (traffic details) + `/portal/analytics` redirect cleanup.
 
 **Where Phase 2 stands:**
 - ✅ 2A Score extension — 7 → 9 weighted sections (Reviews + Response Rate) in `lib/profile-completeness.ts`. Backward-compat preserved.

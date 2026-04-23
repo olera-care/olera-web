@@ -168,10 +168,10 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
       {sparkline}
 
       <a
-        href="/portal/analytics"
+        href="/provider"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 mt-4 group"
       >
-        See your analytics
+        See your dashboard
         <svg
           className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
           fill="none"

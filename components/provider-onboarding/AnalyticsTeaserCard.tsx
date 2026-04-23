@@ -121,11 +121,41 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
     );
 
   if (loading || !data) {
+    // Show the real structural scaffold (label, CTA) immediately with gray
+    // pulse bars only where the data is still loading. Provider sees "there's
+    // a traffic preview here, it's filling in" instead of abstract gray bars.
+    // Avoids a layout shift when content arrives because the CTA is already
+    // sized into the card height.
     return wrap(
-      <div className="animate-pulse">
-        <div className="h-3 w-24 bg-gray-100 rounded mb-3" />
-        <div className="h-7 w-64 bg-gray-100 rounded mb-2" />
-        <div className="h-4 w-48 bg-gray-100 rounded" />
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"
+            aria-hidden
+          />
+          <p className="text-xs font-medium text-gray-500 tracking-wide uppercase">
+            Your page, right now
+          </p>
+        </div>
+        <div className="animate-pulse">
+          {/* Headline: ~28px to match text-[22px] + leading-snug */}
+          <div className="h-7 w-3/4 bg-gray-100 rounded" />
+          {/* Subline: ~20px to match text-sm + leading-relaxed, top margin mirrors mt-2 */}
+          <div className="h-4 w-1/2 bg-gray-100 rounded mt-2.5" />
+        </div>
+        <div className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 mt-4 opacity-60">
+          See your analytics
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
       </div>,
     );
   }

@@ -636,9 +636,12 @@ function ProfilePreviewCard({
 
   // FF on: analytics card on top, compact identity card below. Reviews CTA,
   // view-full-profile, footer, and section label removed for noise reduction.
+  // No animation delay here — the analytics teaser is a primary hook and
+  // needs to be visible immediately. POST-RESPONSE FF-on has always rendered
+  // without delay; this keeps PRE-RESPONSE consistent.
   if (PROVIDER_ANALYTICS_ONBOARD_ENABLED) {
     return (
-      <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
+      <div style={{ animation: "card-enter 0.3s ease-out both" }}>
         <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           {providerIdentity}

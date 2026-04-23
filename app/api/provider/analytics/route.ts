@@ -398,12 +398,19 @@ async function findCohortDemand(
 ): Promise<CohortDemandResult> {
   const { state, category, lat, lon, windowStart } = options;
 
-  // Geographic radius tiers — only available if we have provider lat/lon.
-  if (lat !== null && lon !== null && category) {
+  // Critical: business_profiles.category is snake_case enum
+  // ("assisted_living"); olera-providers.provider_category stores
+  // Title Case display strings ("Assisted Living"). Cohort lookups must
+  // use the olera-providers form OR the query returns zero rows.
+  const oleraCategoryVariants = mapProfileCategoryToOleraVariants(category);
+
+  // Geographic radius tiers — only available if we have provider lat/lon
+  // AND we can map the category to its olera-providers form.
+  if (lat !== null && lon !== null && oleraCategoryVariants.length > 0) {
     for (const radiusMiles of RADIUS_TIERS_MILES) {
       const slugs = await fetchCohortSlugsByRadius(db, {
         state,
-        category,
+        categoryVariants: oleraCategoryVariants,
         lat,
         lon,
         radiusMiles,
@@ -417,8 +424,11 @@ async function findCohortDemand(
 
   // Last-resort: state + category. Rare; usually means provider is in a
   // sparsely served state OR we don't have lat/lon for them.
-  if (category) {
-    const slugs = await fetchCohortSlugsInState(db, { state, category });
+  if (oleraCategoryVariants.length > 0) {
+    const slugs = await fetchCohortSlugsInState(db, {
+      state,
+      categoryVariants: oleraCategoryVariants,
+    });
     if (slugs.length >= COHORT_MIN_PROVIDERS) {
       const demand = await countCohortDemand(db, slugs, windowStart);
       return { scope: "state", demand };
@@ -427,6 +437,36 @@ async function findCohortDemand(
 
   // No tier reached threshold. UI falls to patient copy via scope=null.
   return { scope: null, demand: 0 };
+}
+
+/**
+ * Map a ProfileCategory snake_case enum value to the corresponding
+ * olera-providers.provider_category Title Case display string(s).
+ *
+ * Returns ALL plausible variants so the cohort lookup can `.in()` match
+ * historical / typo'd / parenthetical-suffix variations (e.g.
+ * `home_care_agency` historically maps to either "Home Care" or
+ * "Home Care (Non-medical)" in olera-providers depending on when the
+ * row was written by the city pipeline).
+ *
+ * Returns [] for ProfileCategory values that have no olera-providers
+ * equivalent (hospice_agency, rehab_facility, etc.) — caller will skip
+ * cohort tiers and the UI will fall to patient copy.
+ */
+function mapProfileCategoryToOleraVariants(category: string | null): string[] {
+  if (!category) return [];
+  const map: Record<string, string[]> = {
+    assisted_living: ["Assisted Living"],
+    memory_care: ["Memory Care"],
+    nursing_home: ["Nursing Home"],
+    independent_living: ["Independent Living"],
+    home_care_agency: ["Home Care (Non-medical)", "Home Care"],
+    home_health_agency: ["Home Health Care", "Home Health"],
+    // hospice_agency, inpatient_hospice, rehab_facility, adult_day_care,
+    // wellness_center, private_caregiver — no consistent olera-providers
+    // equivalent in current data; cohort returns empty → patient copy.
+  };
+  return map[category] ?? [];
 }
 
 /**
@@ -471,7 +511,7 @@ async function fetchCohortSlugsByRadius(
   db: ReturnType<typeof getServiceClient>,
   filter: {
     state: string;
-    category: string;
+    categoryVariants: string[];
     lat: number;
     lon: number;
     radiusMiles: number;
@@ -487,7 +527,7 @@ async function fetchCohortSlugsByRadius(
     .from("olera-providers")
     .select("slug, lat, lon")
     .eq("state", filter.state)
-    .eq("provider_category", filter.category)
+    .in("provider_category", filter.categoryVariants)
     .not("slug", "is", null)
     .not("deleted", "is", true)
     .gte("lat", filter.lat - latDelta)
@@ -513,13 +553,13 @@ async function fetchCohortSlugsByRadius(
 
 async function fetchCohortSlugsInState(
   db: ReturnType<typeof getServiceClient>,
-  filter: { state: string; category: string },
+  filter: { state: string; categoryVariants: string[] },
 ): Promise<string[]> {
   const { data, error } = await db
     .from("olera-providers")
     .select("slug")
     .eq("state", filter.state)
-    .eq("provider_category", filter.category)
+    .in("provider_category", filter.categoryVariants)
     .not("slug", "is", null)
     .not("deleted", "is", true)
     .limit(COHORT_LOOKUP_LIMIT);

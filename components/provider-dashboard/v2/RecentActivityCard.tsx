@@ -126,7 +126,8 @@ function PulseRow({
   const familyNoun = views === 1 ? "family" : "families";
 
   const showDelta = deltaPct !== null && priorViews > 0;
-  const deltaUp = (deltaPct ?? 0) > 0;
+  const direction: "up" | "down" | "flat" =
+    deltaPct === null || deltaPct === 0 ? "flat" : deltaPct > 0 ? "up" : "down";
 
   return (
     <Link
@@ -153,8 +154,18 @@ function PulseRow({
         </p>
         {showDelta && (
           <p className="text-xs text-gray-500 mt-0.5 leading-snug">
-            <span className={deltaUp ? "text-emerald-600" : "text-gray-500"}>
-              {deltaUp ? "↑" : "↓"} {Math.abs(deltaPct ?? 0)}%
+            <span
+              className={
+                direction === "up"
+                  ? "text-emerald-600"
+                  : direction === "down"
+                    ? "text-gray-500"
+                    : "text-gray-400"
+              }
+            >
+              {direction === "flat"
+                ? "flat"
+                : `${direction === "up" ? "↑" : "↓"} ${Math.abs(deltaPct ?? 0)}%`}
             </span>{" "}
             vs. {priorLabel}
           </p>

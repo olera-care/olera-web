@@ -27,7 +27,7 @@ interface Props {
 
 type ActivityItem = ProviderDashboardV2Data["recentActivity"][number];
 
-const DEFAULT_VISIBLE = 4;
+const DEFAULT_VISIBLE = 3;
 
 export default function RecentActivityCard({ data }: Props) {
   const events = data.recentActivity;
@@ -51,10 +51,10 @@ export default function RecentActivityCard({ data }: Props) {
 
   return (
     <div className="mb-6">
-      <p className="text-xs font-medium text-gray-500 tracking-wide uppercase mb-5">
+      <p className="text-xs font-medium text-gray-500 tracking-wide uppercase mb-3">
         Recent activity
       </p>
-      <ul className="space-y-5">
+      <ul className="space-y-3">
         {visibleEvents.map((item) => (
           <ActivityRow key={item.id} item={item} />
         ))}
@@ -64,7 +64,7 @@ export default function RecentActivityCard({ data }: Props) {
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className="mt-5 inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors"
         >
           {expanded ? "Show less" : `Show all ${events.length}`}
           <svg

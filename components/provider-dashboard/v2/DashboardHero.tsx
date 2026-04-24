@@ -7,12 +7,11 @@ import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
  *
  * The dashboard has one dark card-sized moment per screen. This is it.
- * Modeled on Wispr Flow's "Hold down [fn] to dictate" panel — a deep warm
- * surface (warm-950 instead of pure black so it stays warm and on-brand),
- * a soft amber glow on the right that mimics the photo softening Wispr
- * uses, a serif headline in white, and a single light pill CTA. Everything
- * else on the page is quiet typography on cream — the dark card is the
- * only thing the eye lands on first.
+ * Modeled on Wispr Flow's "Hold down [fn] to dictate" panel — a warm photo
+ * sits on the right side of the card; a left-to-right dark gradient keeps
+ * the headline readable while letting the image show through on the right.
+ * Greeting is serif italic for a personal-letter touch. Single light pill
+ * CTA on the dark surface.
  *
  * Prioritized signal stack, one line of copy + one CTA:
  *   1. Unanswered questions (action needed — most valuable)
@@ -24,6 +23,11 @@ import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data
  * Rule: pick ONE headline signal. Never stack multiple "you have X, Y, and Z."
  */
 
+// PLACEHOLDER stock image — warm/abstract golden hour. Swap for the real
+// brand image when TJ provides one.
+const HERO_IMAGE_URL =
+  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80";
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
@@ -33,40 +37,45 @@ export default function DashboardHero({ firstName, data }: Props) {
   const hook = resolveHook(data);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-8">
-      {/* Soft amber glow on the right — mimics the warm photo Wispr fades into
-          the dark card. Hidden on mobile because at narrow widths it would wash
-          over the headline text instead of sitting beside it. */}
+    <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6">
+      {/* Background image — warm photo behind the card. Hidden on mobile so
+          the headline doesn't have to fight a busy backdrop at narrow widths. */}
       <div
         aria-hidden
-        className="hidden md:block absolute inset-y-0 right-0 w-1/2 pointer-events-none"
+        className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse at 80% 50%, rgba(233, 189, 145, 0.22) 0%, rgba(214, 127, 66, 0.05) 45%, transparent 75%)",
+          backgroundImage: `url('${HERO_IMAGE_URL}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "right center",
         }}
       />
-      <div className="relative px-6 py-7 md:px-9 md:py-9 max-w-[640px]">
-        <div className="flex items-center gap-2 mb-3">
-          <span
-            className="inline-block w-1.5 h-1.5 rounded-full bg-warm-300"
-            aria-hidden
-          />
-          <p className="text-[11px] font-medium text-warm-200/80 tracking-wider uppercase">
-            Hey {firstName}
-          </p>
-        </div>
-        <p className="font-display text-[24px] md:text-[28px] font-semibold text-white leading-[1.2] tracking-tight">
+      {/* Left-to-right dark gradient — keeps the headline readable while the
+          image shows through on the right side. On mobile the card is solid
+          warm-950 since there's no image. */}
+      <div
+        aria-hidden
+        className="hidden md:block absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(42, 24, 16, 0.96) 0%, rgba(42, 24, 16, 0.88) 35%, rgba(42, 24, 16, 0.55) 65%, rgba(42, 24, 16, 0.15) 100%)",
+        }}
+      />
+      <div className="relative px-6 py-5 md:px-9 md:py-7 max-w-[560px]">
+        <p className="font-display italic text-[15px] md:text-[16px] text-warm-200/85 leading-snug mb-2">
+          Hey {firstName}
+        </p>
+        <p className="font-display text-[20px] md:text-[24px] font-semibold text-white leading-[1.2] tracking-tight">
           {hook.headline}
         </p>
         {hook.subline && (
-          <p className="mt-3 text-sm md:text-[15px] text-warm-100/70 leading-relaxed">
+          <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
             {hook.subline}
           </p>
         )}
         {hook.cta && (
           <Link
             href={hook.cta.href}
-            className="inline-flex items-center gap-1.5 mt-6 px-4 py-2.5 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
+            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
           >
             {hook.cta.label}
             <svg

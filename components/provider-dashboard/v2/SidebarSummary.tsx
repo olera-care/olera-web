@@ -12,10 +12,11 @@ import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data
  * sidebar ("12.2K total words / 121 wpm / 5 day streak"). The point is that
  * the surface ISN'T a surface — it's typography on the page.
  *
- * Why borderless: bordered card-per-stat reads as "UI kit." Three cards in a
- * column compete with each other for attention. One typographic stack with
- * scale variation lets the most important number (this period's views) be
- * the obvious hero, with lifetime + reviews as quieter supporting facts.
+ * Lifetime views are demoted to a small meta line under the views number —
+ * and hidden entirely when they exactly equal this period's views (the
+ * "4 ... 4" duplication new providers were seeing). Once lifetime diverges
+ * from this period (i.e., the provider has any history at all), the line
+ * appears as quiet supporting context.
  */
 
 interface Props {
@@ -28,16 +29,15 @@ export default function SidebarSummary({ data }: Props) {
   const priorLabel = windowPriorLabel(window);
 
   return (
-    <div className="space-y-7 lg:pl-2">
+    <div className="space-y-5 lg:pl-2">
       <ViewsBlock
         thisPeriod={views.thisPeriod}
         priorPeriod={views.priorPeriod}
         deltaPct={views.deltaPct}
+        lifetime={views.lifetime}
         periodLabel={periodLabel}
         priorLabel={priorLabel}
       />
-
-      <LifetimeBlock lifetime={views.lifetime} />
 
       <ReviewsBlock
         count={reviews.count}
@@ -45,7 +45,7 @@ export default function SidebarSummary({ data }: Props) {
         oleraCount={reviews.oleraCount}
       />
 
-      <div className="pt-5 border-t border-gray-200/70 space-y-2.5">
+      <div className="pt-4 border-t border-gray-200/70 space-y-2.5">
         <Link
           href="/portal/analytics"
           className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"
@@ -67,12 +67,14 @@ function ViewsBlock({
   thisPeriod,
   priorPeriod,
   deltaPct,
+  lifetime,
   periodLabel,
   priorLabel,
 }: {
   thisPeriod: number;
   priorPeriod: number;
   deltaPct: number | null;
+  lifetime: number;
   periodLabel: string;
   priorLabel: string;
 }) {
@@ -80,12 +82,17 @@ function ViewsBlock({
   const direction: "up" | "down" | "flat" =
     deltaPct === null || deltaPct === 0 ? "flat" : deltaPct > 0 ? "up" : "down";
 
+  // Hide lifetime when it's identical to this period — Aggie's "4 ... 4"
+  // duplication. Once the numbers diverge by any amount, surface lifetime
+  // as a small meta line.
+  const showLifetime = lifetime > thisPeriod;
+
   return (
     <div>
-      <p className="font-display text-[44px] md:text-[48px] font-semibold text-gray-900 leading-none tabular-nums">
+      <p className="font-display text-[36px] md:text-[40px] font-semibold text-gray-900 leading-none tabular-nums">
         {thisPeriod.toLocaleString()}
       </p>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-gray-500 mt-1.5">
         {thisPeriod === 1 ? "view" : "views"} {periodLabel}
         {showDelta && (
           <>
@@ -106,19 +113,11 @@ function ViewsBlock({
           </>
         )}
       </p>
-    </div>
-  );
-}
-
-function LifetimeBlock({ lifetime }: { lifetime: number }) {
-  return (
-    <div>
-      <p className="font-display text-[24px] font-semibold text-gray-900 leading-none tabular-nums">
-        {lifetime.toLocaleString()}
-      </p>
-      <p className="text-sm text-gray-500 mt-1.5">
-        lifetime {lifetime === 1 ? "view" : "views"}
-      </p>
+      {showLifetime && (
+        <p className="text-xs text-gray-400 mt-1 tabular-nums">
+          {lifetime.toLocaleString()} since joining
+        </p>
+      )}
     </div>
   );
 }
@@ -135,7 +134,7 @@ function ReviewsBlock({
   if (count === 0 || avgRating === null) {
     return (
       <div>
-        <p className="font-display text-[24px] font-semibold text-gray-900 leading-none">—</p>
+        <p className="font-display text-[22px] font-semibold text-gray-900 leading-none">—</p>
         <p className="text-sm text-gray-500 mt-1.5">no reviews yet</p>
       </div>
     );
@@ -147,7 +146,7 @@ function ReviewsBlock({
 
   return (
     <div>
-      <p className="font-display text-[24px] font-semibold text-gray-900 leading-none tabular-nums">
+      <p className="font-display text-[22px] font-semibold text-gray-900 leading-none tabular-nums">
         {avgRating.toFixed(1)}
       </p>
       <p className="text-sm text-gray-500 mt-1.5">

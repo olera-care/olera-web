@@ -23,10 +23,7 @@ import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data
  * Rule: pick ONE headline signal. Never stack multiple "you have X, Y, and Z."
  */
 
-// PLACEHOLDER stock image — warm/abstract golden hour. Swap for the real
-// brand image when TJ provides one.
-const HERO_IMAGE_URL =
-  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80";
+const HERO_IMAGE_URL = "/images/for-providers/dashboard-hero.jpg";
 
 interface Props {
   firstName: string;

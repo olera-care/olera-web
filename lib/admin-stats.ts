@@ -8,14 +8,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * Each "view" aggregates into units one granularity below it:
  *   Day view       → hourly
  *   Week view (7d) → daily
- *   Month view     → weekly
+ *   Month view     → daily
  *   Quarter (90d)  → weekly
  *   Year view (1y) → monthly
  */
 export function resolveBucket(from: Date, to: Date): Bucket {
   const days = (to.getTime() - from.getTime()) / DAY_MS;
   if (days <= 2) return "hour";
-  if (days <= 14) return "day";
+  if (days <= 45) return "day";
   if (days <= 180) return "week";
   return "month";
 }

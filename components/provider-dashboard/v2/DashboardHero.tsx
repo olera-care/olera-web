@@ -26,8 +26,8 @@ export default function DashboardHero({ firstName, data }: Props) {
   const hook = resolveHook(data);
 
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 px-6 py-6 md:px-8 md:py-7 mb-6">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="rounded-2xl bg-white border border-gray-100 px-5 py-4 md:px-6 md:py-5 mb-6">
+      <div className="flex items-center gap-2 mb-1.5">
         <span
           className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"
           aria-hidden
@@ -36,18 +36,18 @@ export default function DashboardHero({ firstName, data }: Props) {
           Good to see you, {firstName}
         </p>
       </div>
-      <p className="text-[22px] md:text-[24px] font-display font-semibold text-gray-900 leading-snug tracking-tight">
+      <p className="text-[20px] md:text-[22px] font-display font-semibold text-gray-900 leading-snug tracking-tight">
         {hook.headline}
       </p>
       {hook.subline && (
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+        <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
           {hook.subline}
         </p>
       )}
       {hook.cta && (
         <Link
           href={hook.cta.href}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 mt-4 group"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 mt-3 group"
         >
           {hook.cta.label}
           <svg
@@ -79,10 +79,12 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
   const { greeting } = data;
 
   // Priority 1 — unanswered questions. Highest-leverage action.
+  // Count is questions, not families — one family can ask several, so the
+  // noun "questions" is more honest than "families waiting."
   if (greeting.unansweredQuestions > 0) {
     const n = greeting.unansweredQuestions;
     return {
-      headline: `${n} ${n === 1 ? "family is" : "families are"} waiting for your reply.`,
+      headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
       subline:
         "Answering usually takes under a minute and shows families you're paying attention.",
       cta: { label: "Review questions", href: "/provider/qna" },

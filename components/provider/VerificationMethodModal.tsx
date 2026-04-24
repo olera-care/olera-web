@@ -1294,11 +1294,11 @@ function LinkedInScreenshotsScreen({
 
       {/* Screenshot 1: Profile Header */}
       <div className="mb-5">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1">
           <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">1</span>
-          <span className="text-sm font-medium text-gray-700">Profile header</span>
+          <span className="text-sm font-medium text-gray-700">LinkedIn profile header</span>
         </div>
-        <p className="text-xs text-gray-400 mb-2 ml-8">Screenshot showing your name and photo</p>
+        <p className="text-xs text-gray-400 mb-2 ml-8">Shows your name and photo</p>
         <ScreenshotUpload
           id="linkedin-header"
           file={headerFile}
@@ -1310,11 +1310,11 @@ function LinkedInScreenshotsScreen({
 
       {/* Screenshot 2: Experience Section */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1">
           <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">2</span>
-          <span className="text-sm font-medium text-gray-700">Experience section</span>
+          <span className="text-sm font-medium text-gray-700">LinkedIn experience section</span>
         </div>
-        <p className="text-xs text-gray-400 mb-2 ml-8">Screenshot showing your role at {businessName}</p>
+        <p className="text-xs text-gray-400 mb-2 ml-8">Shows your role at {businessName}</p>
         <ScreenshotUpload
           id="linkedin-experience"
           file={experienceFile}

@@ -34,10 +34,12 @@ export default function DashboardHero({ firstName, data }: Props) {
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-8">
-      {/* Soft amber glow on the right — mimics the warm photo Wispr fades into the dark card */}
+      {/* Soft amber glow on the right — mimics the warm photo Wispr fades into
+          the dark card. Hidden on mobile because at narrow widths it would wash
+          over the headline text instead of sitting beside it. */}
       <div
         aria-hidden
-        className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
+        className="hidden md:block absolute inset-y-0 right-0 w-1/2 pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse at 80% 50%, rgba(233, 189, 145, 0.22) 0%, rgba(214, 127, 66, 0.05) 45%, transparent 75%)",

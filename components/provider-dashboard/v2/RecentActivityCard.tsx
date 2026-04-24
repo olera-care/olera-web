@@ -125,9 +125,14 @@ function ActivityRow({ item }: { item: ActivityItem }) {
  */
 function formatRow(item: ActivityItem): { primary: string; meta: string | null } {
   if (item.kind === "question" || item.kind === "question_answered") {
-    const primary = item.detail ? `“${item.detail}”` : item.title;
-    const meta = item.actorName ?? "Anonymous";
-    return { primary, meta };
+    // When detail (the question text) is present, it's the headline and the
+    // asker becomes the quiet meta. When detail is missing, item.title
+    // already carries the asker ("Anonymous asked a question") — repeating
+    // the name in meta would double up, so leave meta empty.
+    if (item.detail) {
+      return { primary: `“${item.detail}”`, meta: item.actorName ?? "Anonymous" };
+    }
+    return { primary: item.title, meta: null };
   }
 
   if (item.kind === "lead") {

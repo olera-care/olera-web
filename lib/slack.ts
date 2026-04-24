@@ -432,6 +432,46 @@ export function slackReviewsCtaClicked(opts: {
   };
 }
 
+export function slackAnalyticsTeaserCtaClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  teaserCase: "has_cohort" | "views_only" | "zero_views" | string;
+  viewsThisPeriod: number;
+  cohortSize: number | null;
+  tier: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const caseLabel =
+    opts.teaserCase === "has_cohort"
+      ? "Has cohort"
+      : opts.teaserCase === "views_only"
+        ? "Views only"
+        : opts.teaserCase === "zero_views"
+          ? "Zero views"
+          : opts.teaserCase;
+  const cohortText = opts.cohortSize !== null ? opts.cohortSize.toLocaleString() : "—";
+  return {
+    text: `Analytics teaser CTA clicked: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📈 Provider Clicked Analytics Teaser", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Case:*\n${caseLabel}` },
+          { type: "mrkdwn", text: `*Views this month:*\n${opts.viewsThisPeriod.toLocaleString()}` },
+          { type: "mrkdwn", text: `*Cohort size:*\n${cohortText}` },
+          { type: "mrkdwn", text: `*Tier:*\n${opts.tier}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── MedJobs alerts ────────────────────────────────────────────
 
 export function slackMedJobsNewStudent(opts: {

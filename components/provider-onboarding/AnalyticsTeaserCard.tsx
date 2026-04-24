@@ -307,6 +307,8 @@ function trackEvent(
         provider_id: data.provider_id,
         event_type: eventType,
         metadata: {
+          // provider_name is read server-side for Slack alert formatting.
+          provider_name: data.provider_name,
           case: teaserCase,
           views_this_period: data.views.this_period,
           cohort_size: data.pipeline_opportunity?.local_demand_count ?? null,

@@ -12,6 +12,8 @@ const PROVIDER_EVENT_TYPES = [
   "one_click_access",
   "contact_revealed",
   "reviews_cta_clicked",
+  "analytics_teaser_impression",
+  "analytics_teaser_cta_clicked",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -262,6 +264,28 @@ export async function POST(request: NextRequest) {
           providerName: meta.provider_name || provider_id,
           providerSlug: provider_id,
           source: meta.source || "onboard",
+        });
+        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // Send Slack alert when a provider clicks the analytics teaser CTA —
+    // this is the Phase 2 conversion signal: provider saw the teaser on the
+    // onboard page and chose to go to the dashboard. Impressions stay in DB
+    // only (too noisy for Slack); clicks get the alert.
+    if (event_type === "analytics_teaser_cta_clicked") {
+      try {
+        const { sendSlackAlert, slackAnalyticsTeaserCtaClicked } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackAnalyticsTeaserCtaClicked({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          teaserCase: (meta.case as string) || "unknown",
+          viewsThisPeriod: typeof meta.views_this_period === "number" ? meta.views_this_period : 0,
+          cohortSize: typeof meta.cohort_size === "number" ? meta.cohort_size : null,
+          tier: (meta.tier as string) || "unknown",
         });
         sendSlackAlert(alert.text, alert.blocks).catch(() => {});
       } catch {

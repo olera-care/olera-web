@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { StateData } from "@/data/waiver-library";
-import { buildStateUrl } from "@/lib/texas-slug-map";
 
 interface StateGridProps {
   states: StateData[];
@@ -78,7 +77,7 @@ export function StateGrid({ states }: StateGridProps) {
           {filtered.map((state) => (
             <Link
               key={state.id}
-              href={buildStateUrl(state.id)}
+              href={`/benefits/${state.id}`}
               className="group relative bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-primary-300 transition-all duration-200 p-4 flex flex-col items-center text-center"
             >
               <span className="absolute top-2 right-2">

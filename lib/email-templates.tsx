@@ -920,3 +920,117 @@ export function signupVerificationEmail(opts: {
     </p>
   `);
 }
+
+// ── Provider weekly analytics digest ────────────────────────────
+// Phase 1D of the provider analytics initiative. Tier-aware copy; warm,
+// restrained voice. The return path that makes analytics a habit rather
+// than a moment.
+
+interface DigestOpts {
+  providerName: string;
+  providerSlug: string;
+  tier: "low" | "medium" | "high";
+  viewsThisWeek: number;
+  viewsPriorWeek: number;
+  deltaPct: number | null;
+  localDemand: number | null;
+  city: string | null;
+  category: string | null;
+  ctaClicks: number;
+  leadsReceived: number;
+  questionsReceived: number;
+  topSource: string | null;
+}
+
+function humanCategoryLabel(category: string | null): string {
+  if (!category) return "care";
+  const map: Record<string, string> = {
+    assisted_living: "assisted living",
+    memory_care: "memory care",
+    nursing_home: "nursing homes",
+    home_care_agency: "home care",
+    home_health_care: "home health care",
+    independent_living: "independent living",
+  };
+  return map[category] ?? category.replace(/_/g, " ");
+}
+
+function digestHeadline(opts: DigestOpts): string {
+  const n = opts.viewsThisWeek;
+  if (opts.tier === "low") {
+    if (opts.localDemand && opts.localDemand > 0) {
+      return `${opts.localDemand} ${opts.localDemand === 1 ? "family" : "families"} searched your area this week`;
+    }
+    if (n > 0) {
+      return `${n} ${n === 1 ? "family" : "families"} viewed your page this week`;
+    }
+    return `Your page on Olera this week`;
+  }
+  return `${n} ${n === 1 ? "family" : "families"} viewed your page this week`;
+}
+
+function digestLead(opts: DigestOpts): string {
+  const parts: string[] = [];
+  if (opts.deltaPct !== null && Number.isFinite(opts.deltaPct)) {
+    if (opts.deltaPct > 0) parts.push(`Up ${opts.deltaPct}% vs. last week.`);
+    else if (opts.deltaPct < 0) parts.push(`Down ${Math.abs(opts.deltaPct)}% vs. last week.`);
+    else parts.push(`Flat vs. last week.`);
+  }
+  if (opts.tier === "high" && opts.topSource) {
+    parts.push(`Top source: ${opts.topSource}.`);
+  } else if (opts.tier === "low" && opts.localDemand && opts.localDemand > opts.viewsThisWeek) {
+    const cat = humanCategoryLabel(opts.category);
+    const where = opts.city ? ` near ${opts.city}` : " in your area";
+    parts.push(`${opts.localDemand.toLocaleString()} families searched for ${cat}${where}.`);
+  }
+  return parts.join(" ");
+}
+
+/**
+ * Provider weekly analytics digest — Monday morning return path.
+ */
+export function providerWeeklyDigestEmail(opts: DigestOpts): string {
+  const headline = digestHeadline(opts);
+  const lead = digestLead(opts);
+  const dashboardUrl = `${BASE_URL}/provider`;
+  const analyticsUnsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+
+  // Micro-stats row: only include cells with non-zero values to keep it warm.
+  const microStats: string[] = [];
+  if (opts.viewsThisWeek > 0) {
+    microStats.push(
+      `<div style="flex:1;min-width:0;"><div style="font-size:22px;font-weight:700;color:#111827;">${opts.viewsThisWeek.toLocaleString()}</div><div style="font-size:12px;color:#9ca3af;margin-top:2px;">Page views</div></div>`,
+    );
+  }
+  if (opts.ctaClicks > 0) {
+    microStats.push(
+      `<div style="flex:1;min-width:0;"><div style="font-size:22px;font-weight:700;color:#111827;">${opts.ctaClicks.toLocaleString()}</div><div style="font-size:12px;color:#9ca3af;margin-top:2px;">CTA clicks</div></div>`,
+    );
+  }
+  if (opts.questionsReceived > 0) {
+    microStats.push(
+      `<div style="flex:1;min-width:0;"><div style="font-size:22px;font-weight:700;color:#111827;">${opts.questionsReceived.toLocaleString()}</div><div style="font-size:12px;color:#9ca3af;margin-top:2px;">Questions</div></div>`,
+    );
+  }
+  if (opts.leadsReceived > 0) {
+    microStats.push(
+      `<div style="flex:1;min-width:0;"><div style="font-size:22px;font-weight:700;color:#111827;">${opts.leadsReceived.toLocaleString()}</div><div style="font-size:12px;color:#9ca3af;margin-top:2px;">Leads</div></div>`,
+    );
+  }
+
+  const microStatsBlock =
+    microStats.length > 0
+      ? `<div style="display:flex;gap:12px;background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 24px;">${microStats.join("")}</div>`
+      : "";
+
+  return layout(`
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your week on Olera</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headline}</h1>
+    ${lead ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${lead}</p>` : ""}
+    ${microStatsBlock}
+    <div>${button("See your full analytics", dashboardUrl)}</div>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
+    </div>
+  `);
+}

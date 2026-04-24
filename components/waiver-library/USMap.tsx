@@ -6,7 +6,6 @@ import Link from "next/link";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import type { StateData } from "@/data/waiver-library";
 import { useStateSearch } from "./StateSearchContext";
-import { buildStateUrl } from "@/lib/texas-slug-map";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const usStatesData = require("us-atlas/states-10m.json");
@@ -240,7 +239,7 @@ export function USMap({ states }: USMapProps) {
                       setHoveredId(null);
                       setTooltip(null);
                     }}
-                    onClick={() => stateId && router.push(buildStateUrl(stateId))}
+                    onClick={() => stateId && router.push(`/benefits/${stateId}`)}
                     style={{
                       default: {
                         fill,

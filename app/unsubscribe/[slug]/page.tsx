@@ -1,11 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function UnsubscribePage() {
+type UnsubscribeType = "leads" | "analytics_digest";
+
+const COPY: Record<UnsubscribeType, { title: string; confirm: string; done: string; disclaimer: string }> = {
+  leads: {
+    title: "Unsubscribe from lead emails",
+    confirm:
+      "You will stop receiving email notifications when families reach out to your listing on Olera. You can re-subscribe at any time.",
+    done: "You will no longer receive lead notification emails from Olera. You can re-subscribe at any time from your provider dashboard.",
+    disclaimer: "This only affects lead notification emails. Important account emails will still be sent.",
+  },
+  analytics_digest: {
+    title: "Unsubscribe from weekly analytics digest",
+    confirm:
+      "You will stop receiving the weekly summary of how families are engaging with your Olera page. You can re-subscribe at any time.",
+    done: "You will no longer receive the weekly analytics digest. Lead notifications, account emails, and other communications are unaffected.",
+    disclaimer: "This only affects the weekly analytics digest. Lead notifications still come through.",
+  },
+};
+
+function UnsubscribeInner() {
   const { slug } = useParams<{ slug: string }>();
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type");
+  const type: UnsubscribeType = typeParam === "analytics_digest" ? "analytics_digest" : "leads";
+  const copy = COPY[type];
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   async function handleUnsubscribe() {
@@ -14,7 +37,7 @@ export default function UnsubscribePage() {
       const res = await fetch("/api/providers/unsubscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, type }),
       });
       if (res.ok) {
         setStatus("done");
@@ -39,10 +62,7 @@ export default function UnsubscribePage() {
             <h1 className="text-xl font-semibold text-gray-900 mb-2">
               You&apos;ve been unsubscribed
             </h1>
-            <p className="text-gray-500 mb-6">
-              You will no longer receive lead notification emails from Olera.
-              You can re-subscribe at any time from your provider dashboard.
-            </p>
+            <p className="text-gray-500 mb-6">{copy.done}</p>
             <Link
               href={`/provider/${slug}`}
               className="text-primary-600 hover:text-primary-700 font-medium text-sm"
@@ -80,13 +100,8 @@ export default function UnsubscribePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              Unsubscribe from lead emails
-            </h1>
-            <p className="text-gray-500 mb-6">
-              You will stop receiving email notifications when families reach out to your listing on Olera.
-              You can re-subscribe at any time.
-            </p>
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">{copy.title}</h1>
+            <p className="text-gray-500 mb-6">{copy.confirm}</p>
             <button
               onClick={handleUnsubscribe}
               disabled={status === "loading"}
@@ -94,12 +109,18 @@ export default function UnsubscribePage() {
             >
               {status === "loading" ? "Processing..." : "Unsubscribe"}
             </button>
-            <p className="mt-4 text-xs text-gray-400">
-              This only affects lead notification emails. Important account emails will still be sent.
-            </p>
+            <p className="mt-4 text-xs text-gray-400">{copy.disclaimer}</p>
           </>
         )}
       </div>
     </div>
+  );
+}
+
+export default function UnsubscribePage() {
+  return (
+    <Suspense fallback={null}>
+      <UnsubscribeInner />
+    </Suspense>
   );
 }

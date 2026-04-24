@@ -7,7 +7,6 @@ import {
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
-import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 
 const SITE_URL = "https://olera.care";
 
@@ -112,59 +111,30 @@ export default async function sitemap({
       // Waiver library pages (static data)
       try {
         for (const state of allStates) {
-          const stateUrl = buildStateUrl(state.id);
           entries.push({
-            url: `${SITE_URL}${stateUrl}`,
+            url: `${SITE_URL}/benefits/${state.id}`,
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.5,
           });
-          if (state.id !== "texas") {
-            entries.push({
-              url: `${SITE_URL}/senior-benefits/forms/${state.id}`,
-              lastModified: new Date(),
-              changeFrequency: "monthly",
-              priority: 0.4,
-            });
-          }
-          // Waiver-library programs
-          const wlIds = new Set<string>();
-          for (const program of state.programs ?? []) {
-            wlIds.add(program.id);
-            const programUrl = buildProgramUrl(state.id, program.id);
+          entries.push({
+            url: `${SITE_URL}/senior-benefits/forms/${state.id}`,
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.4,
+          });
+          // Program URLs come from pipeline-drafts, which is the source of truth
+          // for /benefits/[slug]/[program] rendering. Iterating waiver-library
+          // would emit 404s for any state whose legacy IDs don't match pipeline IDs.
+          const drafts = pipelineDrafts[state.abbreviation]?.programs || [];
+          for (const draft of drafts) {
+            const programUrl = `/benefits/${state.id}/${draft.id}`;
             entries.push({
               url: `${SITE_URL}${programUrl}`,
               lastModified: new Date(),
               changeFrequency: "monthly",
               priority: 0.5,
             });
-            entries.push({
-              url: `${SITE_URL}${programUrl}/checklist`,
-              lastModified: new Date(),
-              changeFrequency: "monthly",
-              priority: 0.4,
-            });
-            if (program.forms?.length > 0) {
-              entries.push({
-                url: `${SITE_URL}${programUrl}/forms`,
-                lastModified: new Date(),
-                changeFrequency: "monthly",
-                priority: 0.4,
-              });
-            }
-          }
-
-          // Pipeline-only programs (not in waiver-library)
-          const drafts = pipelineDrafts[state.abbreviation]?.programs || [];
-          for (const draft of drafts) {
-            if (!wlIds.has(draft.id)) {
-              entries.push({
-                url: `${SITE_URL}/senior-benefits/${state.id}/${draft.id}`,
-                lastModified: new Date(),
-                changeFrequency: "monthly",
-                priority: 0.4,
-              });
-            }
           }
         }
       } catch (err) {

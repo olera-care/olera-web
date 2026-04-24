@@ -190,6 +190,23 @@ async function handleVerificationAction(
       return updateSlackMessage(payload, "❌ Failed to update profile");
     }
 
+    // Publish any pending Q&A answers now that provider is verified
+    const { error: publishError, count: publishedCount } = await admin
+      .from("provider_questions")
+      .update({
+        answer_status: "published",
+        is_public: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("answered_by", profileId)
+      .eq("answer_status", "pending");
+
+    if (publishError) {
+      console.error("[slack] Failed to publish pending answers:", publishError);
+    } else if (publishedCount && publishedCount > 0) {
+      console.log(`[slack] Published ${publishedCount} pending Q&A answers for ${actualProviderName}`);
+    }
+
     // Send approval email
     if (claimerEmail) {
       const recipientName = (currentMetadata.verification_submission as Record<string, unknown>)?.name as string || "there";

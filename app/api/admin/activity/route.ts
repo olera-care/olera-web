@@ -109,11 +109,14 @@ async function handleFeedView(db: any, opts: {
   // Exclude event_type='question_received' — those are mirrors of care-seeker
   // "question_asked" events (written by app/api/questions/route.ts) and belong
   // on the Families side / Questions triage, not the provider activity feed.
+  // Exclude event_type='page_view' — page views are too voluminous and drown
+  // the signal in the feed. They belong in the analytics dashboards, not here.
   let query = db
     .from("provider_activity")
     .select("*", { count: "exact" })
     .gte("created_at", sinceISO)
     .neq("event_type", "question_received")
+    .neq("event_type", "page_view")
     .order("created_at", { ascending: false });
 
   if (emailType) {
@@ -122,7 +125,7 @@ async function handleFeedView(db: any, opts: {
       // Legacy standalone suspicious_claim rows are also surfaced.
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view", "email_click", "question_responded"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "email_click", "question_responded"].includes(emailType)) {
       // These are event_type values, not email_type
       query = query.eq("event_type", emailType);
     } else {
@@ -227,19 +230,21 @@ async function handleProvidersView(db: any, opts: {
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
-  // Mirror of handleFeedView's exclusion: hide care-seeker question mirrors.
+  // Mirror of handleFeedView's exclusions: hide care-seeker question mirrors
+  // and hide page_view (too voluminous — drowns the signal in per-provider counts).
   let query = db
     .from("provider_activity")
     .select("provider_id, event_type, email_type, created_at, metadata")
     .gte("created_at", sinceISO)
     .neq("event_type", "question_received")
+    .neq("event_type", "page_view")
     .order("created_at", { ascending: false });
 
   if (emailType) {
     if (emailType === "suspicious_claim") {
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view", "question_responded"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "question_responded"].includes(emailType)) {
       query = query.eq("event_type", emailType);
     } else {
       query = query.eq("email_type", emailType);

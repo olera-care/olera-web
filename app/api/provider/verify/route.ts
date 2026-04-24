@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import Anthropic from "@anthropic-ai/sdk";
@@ -7,6 +7,9 @@ import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
+
+// Storage bucket for verification documents/screenshots
+const VERIFICATION_BUCKET = "verification-docs";
 
 // ============================================================
 // Types
@@ -39,6 +42,13 @@ interface VerifyResponse {
   reason: string;
   /** If not verified, optional suggestions */
   suggestion?: string;
+  /** URLs of uploaded screenshots (for admin review) */
+  screenshotUrls?: {
+    header?: string;
+    experience?: string;
+  };
+  /** URL of uploaded document (for admin review) */
+  documentUrl?: string;
 }
 
 // ============================================================
@@ -62,6 +72,74 @@ function getAnthropic(): Anthropic {
     anthropicClient = new Anthropic();
   }
   return anthropicClient;
+}
+
+// ============================================================
+// Storage Helpers
+// ============================================================
+
+/**
+ * Ensure the verification docs bucket exists
+ */
+async function ensureVerificationBucket(admin: SupabaseClient) {
+  const { data: buckets } = await admin.storage.listBuckets();
+  const bucketExists = buckets?.some((b) => b.name === VERIFICATION_BUCKET);
+  if (!bucketExists) {
+    await admin.storage.createBucket(VERIFICATION_BUCKET, {
+      public: true,
+      fileSizeLimit: 10 * 1024 * 1024, // 10MB
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"],
+    });
+  }
+}
+
+/**
+ * Upload a base64 image to storage and return the public URL
+ */
+async function uploadVerificationImage(
+  admin: SupabaseClient,
+  profileId: string,
+  imageData: string,
+  imageType: string,
+  filePrefix: string
+): Promise<string | null> {
+  try {
+    await ensureVerificationBucket(admin);
+
+    // Convert base64 to buffer
+    const buffer = Buffer.from(imageData, "base64");
+
+    // Determine file extension from mime type
+    const extMap: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "application/pdf": "pdf",
+    };
+    const ext = extMap[imageType] || "jpg";
+
+    const filePath = `${profileId}/${filePrefix}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await admin.storage
+      .from(VERIFICATION_BUCKET)
+      .upload(filePath, buffer, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: imageType,
+      });
+
+    if (uploadError) {
+      console.error("[verify] Upload error:", uploadError);
+      return null;
+    }
+
+    const { data: urlData } = admin.storage.from(VERIFICATION_BUCKET).getPublicUrl(filePath);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error("[verify] Failed to upload verification image:", err);
+    return null;
+  }
 }
 
 // ============================================================
@@ -159,13 +237,13 @@ export async function POST(request: NextRequest) {
         result = await verifyByEmail(value, profile.display_name, extractDomainFromWebsite(profile.website));
         break;
       case "linkedin":
-        result = await verifyByLinkedIn(value, profile.display_name, claimerName, linkedinScreenshots);
+        result = await verifyByLinkedIn(value, profile.display_name, claimerName, linkedinScreenshots, admin, profileId);
         break;
       case "website":
         result = await verifyByWebsite(value, profile.display_name, claimerName);
         break;
       case "document":
-        result = await verifyByDocument(documentData, documentType, profile.display_name, claimerName);
+        result = await verifyByDocument(documentData, documentType, profile.display_name, claimerName, admin, profileId);
         break;
       default:
         return NextResponse.json(
@@ -254,15 +332,35 @@ export async function POST(request: NextRequest) {
       // Check if this is the first failed attempt (not already pending)
       const isFirstFailure = profile.verification_state !== "pending";
 
+      // Build the verification attempt record
+      const attemptRecord: Record<string, unknown> = {
+        method,
+        value: method === "document" ? "[document]" : value,
+        submitted_at: new Date().toISOString(),
+        reason: result.reason,
+        claimer_name: claimerName,
+      };
+
+      // Add screenshot URLs if present (for LinkedIn verification)
+      if (result.screenshotUrls) {
+        attemptRecord.screenshot_urls = result.screenshotUrls;
+      }
+
+      // Add document URL if present
+      if (result.documentUrl) {
+        attemptRecord.document_url = result.documentUrl;
+      }
+
+      // Get existing attempts array or create new one
+      const existingAttempts = (currentMetadata.verification_attempts as Record<string, unknown>[]) || [];
+
       // Update profile to pending state with verification attempt details
       const updatedMetadata = {
         ...currentMetadata,
-        verification_attempt: {
-          method,
-          value: method === "document" ? "[document]" : value,
-          submitted_at: new Date().toISOString(),
-          reason: result.reason,
-        },
+        // Keep legacy single attempt for backwards compatibility
+        verification_attempt: attemptRecord,
+        // Also store in array for multiple attempt tracking
+        verification_attempts: [...existingAttempts, attemptRecord],
       };
 
       const { error: updateError } = await admin
@@ -360,7 +458,9 @@ async function verifyByLinkedIn(
     headerType: string;
     experienceData: string;
     experienceType: string;
-  }
+  },
+  admin?: SupabaseClient,
+  profileId?: string
 ): Promise<VerifyResponse> {
   // Validate URL format
   if (!linkedinUrl.includes("linkedin.com/")) {
@@ -374,7 +474,7 @@ async function verifyByLinkedIn(
 
   // If screenshots are provided, use Claude Vision for stronger verification
   if (screenshots?.headerData && screenshots?.experienceData) {
-    return verifyLinkedInWithScreenshots(linkedinUrl, businessName, claimerName, screenshots);
+    return verifyLinkedInWithScreenshots(linkedinUrl, businessName, claimerName, screenshots, admin, profileId);
   }
 
   // Fallback to URL-only verification (weaker)
@@ -464,8 +564,24 @@ async function verifyLinkedInWithScreenshots(
     headerType: string;
     experienceData: string;
     experienceType: string;
-  }
+  },
+  admin?: SupabaseClient,
+  profileId?: string
 ): Promise<VerifyResponse> {
+  // Upload screenshots to storage first (so admins can review them later)
+  let screenshotUrls: { header?: string; experience?: string } | undefined;
+  if (admin && profileId) {
+    const [headerUrl, experienceUrl] = await Promise.all([
+      uploadVerificationImage(admin, profileId, screenshots.headerData, screenshots.headerType, "linkedin-header"),
+      uploadVerificationImage(admin, profileId, screenshots.experienceData, screenshots.experienceType, "linkedin-experience"),
+    ]);
+    if (headerUrl || experienceUrl) {
+      screenshotUrls = {};
+      if (headerUrl) screenshotUrls.header = headerUrl;
+      if (experienceUrl) screenshotUrls.experience = experienceUrl;
+    }
+  }
+
   try {
     const client = getAnthropic();
 
@@ -543,6 +659,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
           success: true,
           verified: true,
           reason: `LinkedIn verified: ${parsed.reason || "Profile confirms employment at business"}`,
+          screenshotUrls,
         };
       }
 
@@ -559,6 +676,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
         verified: false,
         reason: parsed.reason || "Could not verify LinkedIn connection from screenshots",
         suggestion,
+        screenshotUrls,
       };
     } catch {
       return {
@@ -566,6 +684,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
         verified: false,
         reason: "LinkedIn verification inconclusive",
         suggestion: "Please try another verification method.",
+        screenshotUrls,
       };
     }
   } catch (err) {
@@ -575,6 +694,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
       verified: false,
       reason: "LinkedIn verification unavailable",
       suggestion: "Please try another verification method.",
+      screenshotUrls,
     };
   }
 }
@@ -709,7 +829,9 @@ async function verifyByDocument(
   documentData: string | undefined,
   documentType: string | undefined,
   businessName: string,
-  claimerName?: string
+  claimerName?: string,
+  admin?: SupabaseClient,
+  profileId?: string
 ): Promise<VerifyResponse> {
   if (!documentData || !documentType) {
     return {
@@ -731,6 +853,13 @@ async function verifyByDocument(
     };
   }
 
+  // Upload document to storage first (so admins can review it later)
+  let documentUrl: string | undefined;
+  if (admin && profileId) {
+    const url = await uploadVerificationImage(admin, profileId, documentData, documentType, "document");
+    if (url) documentUrl = url;
+  }
+
   // For PDFs, we can't use vision directly — need to convert or handle differently
   // For now, send PDFs to manual review
   if (documentType === "application/pdf") {
@@ -739,6 +868,7 @@ async function verifyByDocument(
       verified: false,
       reason: "PDF documents require manual review",
       suggestion: "We'll review your document within 1-2 business days.",
+      documentUrl,
     };
   }
 
@@ -804,6 +934,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
           success: true,
           verified: true,
           reason: `Document verified: ${parsed.documentType || "business document"} - ${parsed.reason || "Shows connection to business"}`,
+          documentUrl,
         };
       }
 
@@ -812,6 +943,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
         verified: false,
         reason: parsed.reason || "Could not verify document",
         suggestion: "Try uploading a clearer photo of your business license or ID badge.",
+        documentUrl,
       };
     } catch {
       return {
@@ -819,6 +951,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
         verified: false,
         reason: "Document verification inconclusive",
         suggestion: "We'll review your document manually.",
+        documentUrl,
       };
     }
   } catch (err) {
@@ -828,6 +961,7 @@ Be reasonably lenient — we want to verify legitimate business representatives.
       verified: false,
       reason: "Document verification unavailable",
       suggestion: "We'll review your document manually.",
+      documentUrl,
     };
   }
 }

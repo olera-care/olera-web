@@ -20,6 +20,34 @@ interface VerificationSubmission {
   manual_review_requested?: boolean;
 }
 
+interface VerificationAttempt {
+  method: "email" | "linkedin" | "website" | "document";
+  value: string;
+  submitted_at: string;
+  reason: string;
+  claimer_name?: string;
+  screenshot_urls?: {
+    header?: string;
+    experience?: string;
+  };
+  document_url?: string;
+}
+
+interface EmailOtpAttempt {
+  email: string;
+  fullName?: string;
+  submitted_at: string;
+  reason: string;
+  otp_verified: boolean;
+}
+
+interface ProviderMetadata extends OrganizationMetadata {
+  verification_submission?: VerificationSubmission;
+  verification_attempts?: VerificationAttempt[];
+  verification_attempt?: VerificationAttempt;
+  email_otp_attempt?: EmailOtpAttempt;
+}
+
 interface Provider {
   id: string;
   display_name: string;
@@ -28,7 +56,7 @@ interface Provider {
   city: string | null;
   state: string | null;
   verification_state: string;
-  metadata: (OrganizationMetadata & { verification_submission?: VerificationSubmission }) | null;
+  metadata: ProviderMetadata | null;
   created_at: string;
   updated_at: string;
   email: string | null;
@@ -45,6 +73,13 @@ const ROLE_LABELS: Record<string, string> = {
   marketing: "Marketing / Communications",
   staff: "Staff Member",
   other: "Other",
+};
+
+const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
+  email: { label: "Email OTP", icon: "✉️" },
+  linkedin: { label: "LinkedIn", icon: "🔗" },
+  website: { label: "Website", icon: "🌐" },
+  document: { label: "Document", icon: "📄" },
 };
 
 type StatusFilter = "pending" | "approved" | "rejected";
@@ -572,6 +607,9 @@ function VerificationReviewModal({
             </div>
           )}
 
+          {/* Verification Attempts */}
+          <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
+
           {/* Show notes (new field) or affiliation (legacy field) */}
           {(submission.notes || submission.affiliation) && (
             <div>
@@ -638,5 +676,225 @@ function VerificationReviewModal({
         </div>
       )}
     </Modal>
+  );
+}
+
+// ── Verification Attempts Section ──
+
+interface VerificationAttemptsSectionProps {
+  provider: Provider;
+  formatDate: (dateString: string) => string;
+}
+
+function VerificationAttemptsSection({ provider, formatDate }: VerificationAttemptsSectionProps) {
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
+
+  const metadata = provider.metadata;
+  const attempts = metadata?.verification_attempts || [];
+  const emailOtpAttempt = metadata?.email_otp_attempt;
+
+  // Combine all attempts into a unified list
+  const allAttempts: Array<{
+    type: "verification" | "email_otp";
+    data: VerificationAttempt | EmailOtpAttempt;
+  }> = [
+    ...attempts.map((a) => ({ type: "verification" as const, data: a })),
+    ...(emailOtpAttempt ? [{ type: "email_otp" as const, data: emailOtpAttempt }] : []),
+  ];
+
+  // Sort by submitted_at date
+  allAttempts.sort((a, b) => {
+    const dateA = new Date(a.data.submitted_at).getTime();
+    const dateB = new Date(b.data.submitted_at).getTime();
+    return dateB - dateA; // Most recent first
+  });
+
+  if (allAttempts.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <div>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Verification Attempts ({allAttempts.length})
+        </p>
+        <div className="space-y-3">
+          {allAttempts.map((attempt, index) => {
+            if (attempt.type === "email_otp") {
+              const otp = attempt.data as EmailOtpAttempt;
+              return (
+                <div key={`otp-${index}`} className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">✉️</span>
+                      <span className="text-sm font-semibold text-gray-900">Email OTP</span>
+                      {otp.otp_verified && (
+                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                          OTP Verified
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {formatDate(otp.submitted_at)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-400">Email</p>
+                      <p className="text-gray-700">{otp.email}</p>
+                    </div>
+                    {otp.fullName && (
+                      <div>
+                        <p className="text-xs text-gray-400">Name</p>
+                        <p className="text-gray-700">{otp.fullName}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-amber-200">
+                    <p className="text-xs text-gray-400">Result</p>
+                    <p className="text-sm text-amber-700">{otp.reason}</p>
+                  </div>
+                </div>
+              );
+            }
+
+            const v = attempt.data as VerificationAttempt;
+            const methodInfo = METHOD_LABELS[v.method] || { label: v.method, icon: "📋" };
+
+            return (
+              <div key={`attempt-${index}`} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{methodInfo.icon}</span>
+                    <span className="text-sm font-semibold text-gray-900">{methodInfo.label}</span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {formatDate(v.submitted_at)}
+                  </span>
+                </div>
+
+                {/* Verification details */}
+                <div className="space-y-2 text-sm">
+                  {v.claimer_name && (
+                    <div>
+                      <p className="text-xs text-gray-400">Claimer</p>
+                      <p className="text-gray-700">{v.claimer_name}</p>
+                    </div>
+                  )}
+
+                  {v.value && v.value !== "[document]" && (
+                    <div>
+                      <p className="text-xs text-gray-400">
+                        {v.method === "linkedin" ? "LinkedIn URL" : v.method === "website" ? "Website URL" : "Value"}
+                      </p>
+                      {v.method === "linkedin" || v.method === "website" ? (
+                        <a
+                          href={v.value.startsWith("http") ? v.value : `https://${v.value}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:underline break-all"
+                        >
+                          {v.value}
+                        </a>
+                      ) : (
+                        <p className="text-gray-700">{v.value}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Screenshots */}
+                  {v.screenshot_urls && (v.screenshot_urls.header || v.screenshot_urls.experience) && (
+                    <div className="pt-2">
+                      <p className="text-xs text-gray-400 mb-2">Screenshots</p>
+                      <div className="flex gap-3">
+                        {v.screenshot_urls.header && (
+                          <button
+                            onClick={() => setExpandedImage(v.screenshot_urls!.header!)}
+                            className="group relative"
+                          >
+                            <img
+                              src={v.screenshot_urls.header}
+                              alt="Profile header"
+                              className="w-24 h-24 object-cover rounded-lg border border-gray-200 group-hover:border-primary-400 transition-colors"
+                            />
+                            <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">
+                              Header
+                            </span>
+                          </button>
+                        )}
+                        {v.screenshot_urls.experience && (
+                          <button
+                            onClick={() => setExpandedImage(v.screenshot_urls!.experience!)}
+                            className="group relative"
+                          >
+                            <img
+                              src={v.screenshot_urls.experience}
+                              alt="Experience section"
+                              className="w-24 h-24 object-cover rounded-lg border border-gray-200 group-hover:border-primary-400 transition-colors"
+                            />
+                            <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">
+                              Experience
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Document */}
+                  {v.document_url && (
+                    <div className="pt-2">
+                      <p className="text-xs text-gray-400 mb-2">Document</p>
+                      <a
+                        href={v.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-primary-600 hover:bg-gray-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        View Document
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Result reason */}
+                  <div className="pt-2 mt-2 border-t border-gray-200">
+                    <p className="text-xs text-gray-400">Result</p>
+                    <p className="text-sm text-gray-600">{v.reason}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Expanded Image Modal */}
+      {expandedImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setExpandedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button
+              onClick={() => setExpandedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={expandedImage}
+              alt="Expanded screenshot"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

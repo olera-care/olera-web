@@ -247,7 +247,7 @@ export default function AdminLeadsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Date filter
-  const [range, setRange] = useState<DateRangeValue>({ preset: "7d", customFrom: "", customTo: "" });
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
 
   // Engagement data
   const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});

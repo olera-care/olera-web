@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
+import { formatRedactedName } from "@/lib/utils/pii-redaction";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
@@ -19,6 +20,12 @@ interface ConversationPanelProps {
   claimToken?: string | null;
   /** Guest profile ID (used when user is not authenticated) */
   guestProfileId?: string | null;
+  /** Whether the provider is verified (for PII redaction) */
+  isVerified?: boolean;
+  /** Callback to open verification modal */
+  onVerifyClick?: () => void;
+  /** Viewing context: "provider" for provider inbox, "family" for family inbox */
+  variant?: "provider" | "family";
 }
 
 interface ThreadMessage {
@@ -179,7 +186,9 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
   autoIntro?: string | null;
   hideContactInfo?: boolean;
 }) {
-  const senderName = careRequest.seekerName;
+  // Redact seeker name when hiding contact info (unverified provider)
+  const rawSenderName = careRequest.seekerName;
+  const senderName = hideContactInfo && rawSenderName ? formatRedactedName(rawSenderName) : rawSenderName;
   const locationStr = [careRequest.lookingInCity, careRequest.lookingInState].filter(Boolean).join(", ");
   const displayMessage = careRequest.message || careRequest.additionalNotes || autoIntro || (locationStr ? `Interested in care services in ${locationStr}.` : null);
   const hasEnhancedDetails = careRequest.careType || careRequest.careRecipient || careRequest.urgency;
@@ -335,6 +344,9 @@ export default function ConversationPanel({
   className = "",
   claimToken,
   guestProfileId,
+  isVerified = true,
+  onVerifyClick,
+  variant = "family",
 }: ConversationPanelProps) {
   // Use guest profile ID when activeProfile is not available
   const currentProfileId = activeProfile?.id || guestProfileId;
@@ -344,9 +356,9 @@ export default function ConversationPanel({
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Provider verification check - no longer gates access (everyone verified via email)
-  // Keeping variables for potential future badge display, but not gating features
-  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  // Provider verification gating: only applies when viewing as provider
+  // Family users viewing their inbox should never see redacted names
+  const isProviderView = variant === "provider";
 
   // Auto-dismiss send error after 4 seconds
   useEffect(() => {
@@ -437,7 +449,10 @@ export default function ConversationPanel({
   // ── Derived values ──
   const isInbound = connection.to_profile_id === currentProfileId;
   const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
-  const otherName = otherProfile?.display_name || "Unknown";
+  // Redact name for unverified providers viewing family contacts
+  // Only applies when variant="provider", not when family users view their inbox
+  const rawName = otherProfile?.display_name || "Unknown";
+  const otherName = (isProviderView && !isVerified) ? formatRedactedName(rawName) : rawName;
   const otherInitial = otherName.charAt(0).toUpperCase();
   const imageUrl = otherProfile?.image_url;
   const connMetadata = connection.metadata as Record<string, unknown> | undefined;
@@ -547,7 +562,7 @@ export default function ConversationPanel({
                   otherInitial={otherInitial}
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
-                  hideContactInfo={false}
+                  hideContactInfo={isProviderView && !isVerified}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */
@@ -793,6 +808,38 @@ export default function ConversationPanel({
                   <p className="text-[13px] text-rose-600 font-medium text-center">{sendError}</p>
                 </div>
               )}
+
+              {/* Verification hint - minimal, Apple-like */}
+              {isProviderView && !isVerified && (
+                <div className={`mx-4 sm:ml-6 ${detailOpen ? "sm:mr-6" : "sm:mr-[44px]"} mt-4`}>
+                  <button
+                    type="button"
+                    onClick={onVerifyClick}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
+                  >
+                    <svg
+                      className="w-4 h-4 text-gray-400 group-hover:text-gray-500 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"
+                      />
+                    </svg>
+                    <span className="flex-1 text-[13px] text-gray-500 group-hover:text-gray-600 text-left">
+                      Verify to message families directly
+                    </span>
+                    <span className="text-[13px] font-medium text-primary-600 group-hover:text-primary-700">
+                      Verify →
+                    </span>
+                  </button>
+                </div>
+              )}
+
               {/* Input area */}
               <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
@@ -807,18 +854,30 @@ export default function ConversationPanel({
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey && messageText.trim()) {
                         e.preventDefault();
-                        handleSendMessage();
+                        // Block sending for unverified providers (only in provider view)
+                        if (isProviderView && !isVerified) {
+                          onVerifyClick?.();
+                        } else {
+                          handleSendMessage();
+                        }
                       }
                     }}
                     placeholder={messagePlaceholder}
                     disabled={sending}
                     rows={1}
-                    className="w-full px-4 pt-3.5 pb-1 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
+                    className="w-full px-4 pt-3.5 pb-3 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
                   />
                   <div className="flex items-center justify-end px-3 pb-3">
                     <button
                       type="button"
-                      onClick={handleSendMessage}
+                      onClick={() => {
+                        // Unverified providers: open verification modal instead of sending
+                        if (isProviderView && !isVerified && messageText.trim()) {
+                          onVerifyClick?.();
+                        } else {
+                          handleSendMessage();
+                        }
+                      }}
                       disabled={sending || !messageText.trim()}
                       className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                         messageText.trim()

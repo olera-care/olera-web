@@ -11,6 +11,7 @@ import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
 } from "@/lib/profile-completeness";
+import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import type { SectionId } from "./edit-modals/types";
 import ProfileOverviewCard from "./ProfileOverviewCard";
 import GalleryCard from "./GalleryCard";
@@ -22,8 +23,7 @@ import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import VerificationStatusCard from "./VerificationStatusCard";
-import VerificationFormModal from "@/components/provider/VerificationFormModal";
-import type { VerificationSubmission, ExistingVerificationData } from "@/components/provider/VerificationFormModal";
+import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
 import EditCareServicesModal from "./edit-modals/EditCareServicesModal";
@@ -165,47 +165,52 @@ function DashboardContent({
   sectionPercent: (id: string) => number;
   editingSection: SectionId | null;
   setEditingSection: (s: SectionId | null) => void;
-  userEmail?: string;
   refreshAccountData: () => Promise<void>;
+  userEmail?: string;
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
   v2Loading: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationExistingData, setVerificationExistingData] = useState<ExistingVerificationData | undefined>();
-  const [isVerificationUpdate, setIsVerificationUpdate] = useState(false);
 
-  // Open verification modal (can be called with existing data for updates)
-  const handleOpenVerificationModal = useCallback((existingData?: ExistingVerificationData) => {
-    setVerificationExistingData(existingData);
-    setIsVerificationUpdate(!!existingData);
-    setShowVerificationModal(true);
-  }, []);
+  // Track which section was being edited when verification was triggered
+  const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
-  // Handle verification submission
-  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
-    const response = await fetch("/api/provider/verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        profileId: profile.id,
-        submission: data,
-      }),
-    });
+  // Verification modal state (using the new hook)
+  const {
+    isOpen: isVerificationModalOpen,
+    open: openVerificationModalRaw,
+    close: closeVerificationModal,
+    handleSubmit: handleVerificationSubmit,
+    handleDismiss: handleVerificationDismiss,
+  } = useVerificationModal({
+    profileId: profile.id,
+    onVerified: async () => {
+      // Refresh profile data to get updated verification state
+      await refreshAccountData();
+      // Re-open the edit modal that was pending verification
+      if (pendingEditSection) {
+        setEditingSection(pendingEditSection);
+        setPendingEditSection(null);
+      }
+    },
+    onDismissed: () => {
+      // Clear pending section if user dismisses verification
+      setPendingEditSection(null);
+    },
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to submit verification");
+  // Guard: only allow opening modal if profile is loaded
+  // Also close the edit modal first to avoid modal stacking
+  const handleOpenVerificationModal = useCallback(() => {
+    if (!profile.id) return;
+    // Store the current editing section so we can re-open it after verification
+    if (editingSection) {
+      setPendingEditSection(editingSection);
+      setEditingSection(null); // Close edit modal first
     }
-
-    // Refresh profile data to get updated verification state
-    await refreshAccountData();
-    setShowVerificationModal(false);
-    // Reset state for next time
-    setVerificationExistingData(undefined);
-    setIsVerificationUpdate(false);
-  }, [profile.id, refreshAccountData]);
+    openVerificationModalRaw();
+  }, [profile.id, openVerificationModalRaw, editingSection, setEditingSection]);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -243,6 +248,14 @@ function DashboardContent({
     }
   }, [editingSection, guided, setEditingSection]);
 
+  // Check verification status for edit gating
+  const verificationState = profile.verification_state as string | null;
+  const profileMeta = profile.metadata as { badge_approved?: boolean } | null;
+  const isVerified =
+    profileMeta?.badge_approved === true ||
+    verificationState === "verified" ||
+    verificationState === "not_required";
+
   // Shared modal props
   const modalProps = {
     profile,
@@ -255,6 +268,9 @@ function DashboardContent({
     onGuidedBack: editingSection && guided.getPrevSection(editingSection)
       ? handleGuidedBack
       : undefined,
+    // Verification gating for profile edits
+    isVerified,
+    onVerifyClick: handleOpenVerificationModal,
   };
 
   return (
@@ -357,6 +373,7 @@ function DashboardContent({
               profile={profile}
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
+              onVerifyClick={() => handleOpenVerificationModal()}
             />,
             <GalleryCard
               key="gallery"
@@ -448,24 +465,13 @@ function DashboardContent({
       {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
 
       {/* Verification Modal */}
-      <VerificationFormModal
-        isOpen={showVerificationModal}
-        onClose={() => {
-          setShowVerificationModal(false);
-          setVerificationExistingData(undefined);
-          setIsVerificationUpdate(false);
-        }}
+      <VerificationMethodModal
+        isOpen={isVerificationModalOpen}
+        onClose={closeVerificationModal}
         onSubmit={handleVerificationSubmit}
+        onDismiss={handleVerificationDismiss}
         businessName={profile.display_name}
-        userEmail={userEmail}
-        allowDismiss={!isVerificationUpdate}
-        onDismiss={() => {
-          setShowVerificationModal(false);
-          setVerificationExistingData(undefined);
-          setIsVerificationUpdate(false);
-        }}
-        existingData={verificationExistingData}
-        isUpdate={isVerificationUpdate}
+        profileId={profile.id}
       />
 
     </div>

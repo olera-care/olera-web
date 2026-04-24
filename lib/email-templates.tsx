@@ -97,6 +97,27 @@ export function verificationCodeEmail(
   `);
 }
 
+/** Verification OTP email for email verification method */
+export function verificationOtpEmail(opts: {
+  recipientName: string;
+  code: string;
+  businessName: string;
+  expiresInMinutes: number;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.recipientName}, use this code to verify your connection to <strong>${opts.businessName}</strong> on Olera:
+    </p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
+      <span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#111827;">${opts.code}</span>
+    </div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;">
+      This code expires in ${opts.expiresInMinutes} minutes. If you didn't request this, you can safely ignore this email.
+    </p>
+  `);
+}
+
 /** Email to provider when a family sends a connection request */
 export function connectionRequestEmail(opts: {
   providerName: string;
@@ -1032,5 +1053,142 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
+  `);
+}
+
+// ── Provider Verification Emails ──────────────────────────────────
+
+/** Email sent when provider verification is approved (auto or manual) */
+export function verificationApprovedEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  dashboardUrl: string;
+  autoApproved?: boolean;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+      ${opts.recipientName}, your connection to <strong>${opts.providerName}</strong> has been verified. You now have full access to your dashboard.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+      <li>Respond to family inquiries</li>
+      <li>View your profile analytics</li>
+      <li>Update your listing information</li>
+      <li>Manage your team members</li>
+    </ul>
+    <div style="text-align:center;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
+  `);
+}
+
+/** Email sent when verification is submitted and routed to manual review */
+export function verificationPendingReviewEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  dashboardUrl: string;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#fef3c7;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">👀</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">We're reviewing your verification</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+      ${opts.recipientName}, thanks for submitting your verification for <strong>${opts.providerName}</strong>.
+    </p>
+    <div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
+        <strong>What happens next:</strong> Our team will review your submission and get back to you within 3 hours during business hours (Mon–Fri, 9am–6pm ET).
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      In the meantime, you can still access your dashboard — some features may be limited until verification is complete.
+    </p>
+    <div style="text-align:center;">${button("View Dashboard", opts.dashboardUrl)}</div>
+  `);
+}
+
+/** Email sent 7 days after claim if provider hasn't verified */
+export function verificationReminder7DayEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  verifyUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are looking for ${opts.providerName}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.recipientName}, you claimed ${opts.providerName} on Olera a week ago but haven't completed verification yet.
+    </p>
+    <div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
+        <strong>Why verify?</strong> Verified providers can respond to family inquiries, update their listing, and access full analytics.
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Verification takes less than 2 minutes — just provide your LinkedIn profile or business website.
+    </p>
+    <div style="text-align:center;">${button("Complete Verification", opts.verifyUrl)}</div>
+  `);
+}
+
+/** Email sent 21 days after claim if provider still hasn't verified (final warning) */
+export function verificationReminder21DayEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  verifyUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Final reminder: Verify ${opts.providerName}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.recipientName}, this is a final reminder to complete verification for ${opts.providerName}.
+    </p>
+    <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#991b1b;margin:0;line-height:1.5;">
+        <strong>Action required:</strong> Unverified claims may be released after 30 days so others can claim the listing.
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Complete verification now to keep your claim and unlock full access to your provider dashboard.
+    </p>
+    <div style="text-align:center;">${button("Verify Now", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;text-align:center;">
+      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};">support@olera.care</a>
+    </p>
+  `);
+}
+
+/** Email sent when verification is rejected with reason */
+export function verificationRejectedEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  reason: string;
+  resubmitUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs more info</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      ${opts.recipientName}, we couldn't verify your connection to <strong>${opts.providerName}</strong> with the information provided.
+    </p>
+    <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#991b1b;margin:0 0 4px;font-weight:600;">Reason:</p>
+      <p style="font-size:14px;color:#7f1d1d;margin:0;line-height:1.5;">${opts.reason}</p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Please resubmit with updated information. Make sure your LinkedIn profile or business website clearly shows your connection to the organization.
+    </p>
+    <div>${button("Resubmit Verification", opts.resubmitUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};">support@olera.care</a>
+    </p>
   `);
 }

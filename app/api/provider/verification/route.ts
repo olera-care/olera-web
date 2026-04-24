@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { autoVerifyProvider } from "@/lib/verification-auto";
+import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import {
+  verificationApprovedEmail,
+  verificationPendingReviewEmail,
+} from "@/lib/email-templates";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Get profile and verify ownership
     const { data: profile, error: fetchError } = await admin
       .from("business_profiles")
-      .select("metadata, account_id")
+      .select("metadata, account_id, verification_state, display_name, slug")
       .eq("id", profileId)
       .single();
 
@@ -70,6 +77,9 @@ export async function POST(request: NextRequest) {
       phone: submission.phone || null,
       notes: submission.notes || null,
       document_url: submission.documentUrl || null,
+      linkedin_url: submission.linkedinUrl || null,
+      business_website_url: submission.businessWebsiteUrl || null,
+      manual_review_requested: submission.manualReviewRequested || false,
       submitted_at: new Date().toISOString(),
     };
 
@@ -84,12 +94,19 @@ export async function POST(request: NextRequest) {
       badge_rejected_at: null,
     };
 
-    // Update profile with verification data (badge request)
-    // Note: verification_state stays "verified" - this is just a badge request
+    // Determine the new verification_state based on current state
+    // If currently 'unverified' or 'rejected', move to 'pending' (awaiting review)
+    // If already 'verified', 'not_required', or 'pending', keep current state (badge update only)
+    const shouldUpdateVerificationState =
+      profile.verification_state === "unverified" || profile.verification_state === "rejected";
+    const newVerificationState = shouldUpdateVerificationState ? "pending" : profile.verification_state;
+
+    // Update profile with verification data
     const { error: updateError } = await admin
       .from("business_profiles")
       .update({
         metadata: updatedMetadata,
+        verification_state: newVerificationState,
         updated_at: new Date().toISOString(),
       })
       .eq("id", profileId);
@@ -99,10 +116,188 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save verification" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    // Run auto-verification synchronously
+    // This ensures the LLM check and Slack notification complete before the response
+    // The user waits ~10-15 seconds, but verification is reliable
+    const autoVerifyResult = await runAutoVerification({
+      profileId,
+      businessName: profile.display_name || "Unknown Business",
+      profileSlug: profile.slug || profileId,
+      claimerName: submission.name,
+      claimerEmail: submission.email || user.email || "",
+      claimerRole: submission.role,
+      linkedinUrl: submission.linkedinUrl,
+      businessWebsiteUrl: submission.businessWebsiteUrl,
+      manualReviewRequested: submission.manualReviewRequested,
+    });
+
+    return NextResponse.json({
+      success: true,
+      autoVerified: autoVerifyResult.autoApproved,
+      verificationState: autoVerifyResult.autoApproved ? "verified" : "pending",
+    });
   } catch (error) {
     console.error("Verification submission error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+interface AutoVerificationResult {
+  autoApproved: boolean;
+  reason: string;
+}
+
+/**
+ * Run auto-verification synchronously.
+ * If high confidence, auto-approves the verification.
+ * Otherwise, posts to Slack for manual review.
+ *
+ * @returns Object indicating whether auto-approval happened
+ */
+async function runAutoVerification(opts: {
+  profileId: string;
+  businessName: string;
+  profileSlug: string;
+  claimerName: string;
+  claimerEmail: string;
+  claimerRole: string;
+  linkedinUrl?: string | null;
+  businessWebsiteUrl?: string | null;
+  manualReviewRequested?: boolean;
+}): Promise<AutoVerificationResult> {
+  const admin = getAdminClient();
+  if (!admin) {
+    return { autoApproved: false, reason: "Server configuration error" };
+  }
+
+  try {
+    // Run LLM verification
+    const result = await autoVerifyProvider({
+      claimedName: opts.claimerName,
+      claimedRole: opts.claimerRole,
+      businessName: opts.businessName,
+      linkedinUrl: opts.linkedinUrl,
+      businessWebsiteUrl: opts.businessWebsiteUrl,
+      manualReviewRequested: opts.manualReviewRequested,
+    });
+
+    console.log(
+      `[verification] Auto-verify result for ${opts.businessName}:`,
+      result.confidence,
+      result.reason
+    );
+
+    if (result.confidence === "high") {
+      // Auto-approve: update verification_state to 'verified' and set badge_approved
+      const { data: currentProfile } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", opts.profileId)
+        .single();
+
+      const updatedMetadata = {
+        ...((currentProfile?.metadata as Record<string, unknown>) || {}),
+        badge_approved: true,
+        badge_approved_at: new Date().toISOString(),
+        auto_verified: true,
+        auto_verify_reason: result.reason,
+      };
+
+      await admin
+        .from("business_profiles")
+        .update({
+          verification_state: "verified",
+          metadata: updatedMetadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", opts.profileId);
+
+      console.log(`[verification] Auto-approved: ${opts.businessName}`);
+
+      // Send approval email
+      if (opts.claimerEmail) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        const dashboardUrl = `${siteUrl}/provider`;
+
+        await sendEmail({
+          to: opts.claimerEmail,
+          subject: "You're verified ✓",
+          html: verificationApprovedEmail({
+            providerName: opts.businessName,
+            recipientName: opts.claimerName,
+            dashboardUrl,
+            autoApproved: true,
+          }),
+          emailType: "verification_approved",
+          recipientType: "provider",
+          providerId: opts.profileSlug,
+          metadata: { auto_approved: true },
+        });
+      }
+
+      return { autoApproved: true, reason: result.reason };
+    } else {
+      // Post to Slack for manual review
+      const alert = slackVerificationReview({
+        providerName: opts.businessName,
+        providerSlug: opts.profileSlug,
+        profileId: opts.profileId,
+        claimerName: opts.claimerName,
+        claimerEmail: opts.claimerEmail,
+        claimerRole: opts.claimerRole,
+        linkedinUrl: opts.linkedinUrl,
+        businessWebsiteUrl: opts.businessWebsiteUrl,
+        manualReviewRequested: opts.manualReviewRequested,
+        autoVerifyReason: result.reason,
+      });
+
+      await sendSlackAlert(alert.text, alert.blocks);
+
+      console.log(`[verification] Routed to manual review: ${opts.businessName}`);
+
+      // Send "we're reviewing" email
+      if (opts.claimerEmail) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        const dashboardUrl = `${siteUrl}/provider`;
+
+        await sendEmail({
+          to: opts.claimerEmail,
+          subject: "We're reviewing your verification",
+          html: verificationPendingReviewEmail({
+            providerName: opts.businessName,
+            recipientName: opts.claimerName,
+            dashboardUrl,
+          }),
+          emailType: "verification_pending_review",
+          recipientType: "provider",
+          providerId: opts.profileSlug,
+        });
+      }
+
+      return { autoApproved: false, reason: result.reason };
+    }
+  } catch (err) {
+    console.error("[verification] Auto-verification error:", err);
+    // On error, still post to Slack so it doesn't get lost
+    try {
+      const alert = slackVerificationReview({
+        providerName: opts.businessName,
+        providerSlug: opts.profileSlug,
+        profileId: opts.profileId,
+        claimerName: opts.claimerName,
+        claimerEmail: opts.claimerEmail,
+        claimerRole: opts.claimerRole,
+        linkedinUrl: opts.linkedinUrl,
+        businessWebsiteUrl: opts.businessWebsiteUrl,
+        manualReviewRequested: opts.manualReviewRequested,
+        autoVerifyReason: "Auto-verification failed — needs manual review",
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // If Slack also fails, just log it
+    }
+
+    return { autoApproved: false, reason: "Auto-verification failed" };
   }
 }
 

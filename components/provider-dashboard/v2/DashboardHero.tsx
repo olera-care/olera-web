@@ -61,7 +61,11 @@ export default function DashboardHero({ firstName, data }: Props) {
         }}
       />
       <div className="relative px-6 py-5 md:px-9 md:py-7 max-w-[560px]">
-        <p className="font-display italic text-[15px] md:text-[16px] text-warm-200/85 leading-snug mb-2">
+        {/* font-serif (not font-display) because DM Serif Display only loads
+            the regular weight — italic on it would be a fake browser-synthesized
+            slant. font-serif falls back to New York / Georgia, both of which
+            have a real designed italic baked into the OS, no extra download. */}
+        <p className="font-serif italic text-[15px] md:text-[16px] text-warm-200/85 leading-snug mb-2">
           Hey {firstName}
         </p>
         <p className="font-display text-[20px] md:text-[24px] font-semibold text-white leading-[1.2] tracking-tight">

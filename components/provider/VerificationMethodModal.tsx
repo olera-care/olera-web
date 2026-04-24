@@ -691,7 +691,7 @@ export default function VerificationMethodModal({
       case "success":
         return <SuccessScreen businessName={businessName} onClose={onClose} />;
       case "pending-review":
-        return <PendingReviewScreen businessName={businessName} onClose={onClose} />;
+        return <PendingReviewScreen businessName={businessName} onClose={onClose} onNeedHelp={handleNeedHelp} />;
       case "need-help":
         return <NeedHelpScreen businessName={businessName} onClose={onClose} />;
     }
@@ -1769,9 +1769,11 @@ function SuccessScreen({
 function PendingReviewScreen({
   businessName,
   onClose,
+  onNeedHelp,
 }: {
   businessName: string;
   onClose: () => void;
+  onNeedHelp: () => void;
 }) {
   return (
     <div className="py-8 text-center">
@@ -1812,6 +1814,20 @@ function PendingReviewScreen({
         Got it
       </button>
 
+      {/* Help link */}
+      <div
+        className="mt-5"
+        style={{ animation: "fadeUp 0.3s ease-out 0.6s both" }}
+      >
+        <button
+          type="button"
+          onClick={onNeedHelp}
+          className="text-sm text-gray-400 hover:text-primary-600 transition-colors"
+        >
+          Having trouble? <span className="font-medium underline underline-offset-2">Get help</span>
+        </button>
+      </div>
+
       <style jsx>{`
         @keyframes successPop {
           0% { opacity: 0; transform: scale(0.5); }
@@ -1835,26 +1851,26 @@ function NeedHelpScreen({
   onClose: () => void;
 }) {
   return (
-    <div className="py-6 text-center">
+    <div className="py-8 text-center">
       {/* Support icon */}
       <div
-        className="w-16 h-16 mx-auto mb-5 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center"
+        className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center"
         style={{ animation: "successPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both" }}
       >
-        <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <svg className="w-10 h-10 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
         </svg>
       </div>
 
       <h3
         className="text-xl font-bold text-gray-900 mb-2"
-        style={{ animation: "fadeUp 0.3s ease-out 0.2s both" }}
+        style={{ animation: "fadeUp 0.3s ease-out 0.25s both" }}
       >
         We&apos;re here to help
       </h3>
       <p
-        className="text-gray-500 text-[15px] mb-6 max-w-xs mx-auto"
-        style={{ animation: "fadeUp 0.3s ease-out 0.3s both" }}
+        className="text-gray-500 text-[15px] mb-8 max-w-xs mx-auto"
+        style={{ animation: "fadeUp 0.3s ease-out 0.35s both" }}
       >
         Our team can verify <span className="font-medium text-gray-700">{businessName}</span> manually.
       </p>

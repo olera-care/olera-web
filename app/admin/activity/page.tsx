@@ -109,6 +109,8 @@ function providerEmailTypeLabel(type: string | null): string {
     contact_revealed: "Contact Copied",
     one_click_access: "Auto Sign-in",
     reviews_cta_clicked: "Reviews CTA",
+    analytics_teaser_cta_clicked: "Analytics CTA",
+    analytics_teaser_impression: "Analytics View",
     suspicious_claim: "Suspicious Claim",
     lead_opened: "Lead Opened",
     page_view: "Page View",
@@ -141,6 +143,9 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     email_click: "bg-gray-100 text-gray-600",
     contact_revealed: "bg-green-50 text-green-700",
     one_click_access: "bg-teal-50 text-teal-700",
+    reviews_cta_clicked: "bg-violet-50 text-violet-700",
+    analytics_teaser_cta_clicked: "bg-emerald-50 text-emerald-700",
+    analytics_teaser_impression: "bg-gray-50 text-gray-500",
     suspicious_claim: "bg-red-50 text-red-700",
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
@@ -682,6 +687,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "new_review", label: "Reviews" },
   { value: "contact_revealed", label: "Contact copied" },
   { value: "one_click_access", label: "Auto sign-ins" },
+  { value: "analytics_teaser_cta_clicked", label: "Analytics CTA clicks" },
 ];
 
 const FAMILY_EVENT_FILTER_OPTIONS = [

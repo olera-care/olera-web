@@ -70,33 +70,40 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
   const [loading, setLoading] = useState(true);
   const [errored, setErrored] = useState(false);
 
+  // Fire the fetch on mount using the session cookie — don't gate on
+  // client-side AuthProvider state. AuthProvider has its own retry storm
+  // (5s timeout × multiple retries ≈ 10-15s) that has nothing to do with
+  // whether the session cookie is already set and the API will work.
+  //
+  // On transient 401: stay in loading state so the effect re-run (triggered
+  // when userId / authLoading finally flips) gets a chance to retry with a
+  // warm cookie. Only mark terminally errored once auth has resolved and
+  // the user is either not signed in or has no session.
   useEffect(() => {
-    if (authLoading) return;
-    if (!userId) {
-      setLoading(false);
-      setErrored(true);
-      return;
-    }
-
     let cancelled = false;
-    setLoading(true);
     setErrored(false);
+
     fetch("/api/provider/analytics?window=30d", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((json: AnalyticsResponse) => {
         if (cancelled) return;
         if (json.provider_id !== expectedSlug) {
           setErrored(true);
+          setLoading(false);
           return;
         }
         setData(json);
+        setLoading(false);
       })
-      .catch(() => {
-        if (!cancelled) setErrored(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch((status) => {
+        if (cancelled) return;
+        // 401 while auth is still resolving: keep the skeleton visible; the
+        // next effect re-run (userId flip) will retry.
+        if (status === 401 && authLoading) return;
+        setErrored(true);
+        setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };

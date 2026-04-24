@@ -65,16 +65,20 @@ export interface ProviderDashboardV2Data {
 }
 
 /**
- * Fetches the unified provider dashboard payload. Caller should have an
- * authenticated session. Failures are silent (data stays null); the page
- * can fall back to the old dashboard layout.
+ * Fetches the unified provider dashboard payload via the session cookie.
  *
- * `enabled` gates the fetch — pass false when the feature flag is off so
- * providers on the legacy dashboard don't pay for a wasted round-trip.
+ * `enabled` gates the fetch (so FF-off providers don't pay for a round-trip).
+ *
+ * `userId` is used as a fetch dependency — when auth resolves and the user id
+ * becomes available, we refetch. This covers the common first-load race:
+ * the session cookie isn't set at mount time, the first fetch 401s, but the
+ * session cookie lands a moment later and a retry succeeds. Without this,
+ * the new dashboard pillars stayed invisible until the user reloaded.
  */
 export function useProviderDashboardV2Data(
   window: "7d" | "30d" | "90d" = "30d",
   enabled = true,
+  userId?: string | null,
 ) {
   const [data, setData] = useState<ProviderDashboardV2Data | null>(null);
   const [loading, setLoading] = useState(enabled);
@@ -89,21 +93,32 @@ export function useProviderDashboardV2Data(
         credentials: "include",
       });
       if (!res.ok) {
-        setError(res.status === 401 ? "Not signed in" : "Failed to load");
+        if (res.status === 401) {
+          // Transient — session cookie may not be set yet. Keep loading=true
+          // so the caller's skeleton stays visible; the userId dep will
+          // trigger a retry when auth resolves.
+          setError("auth-pending");
+          return;
+        }
+        setError("Failed to load");
+        setLoading(false);
         return;
       }
       const json = (await res.json()) as ProviderDashboardV2Data;
       setData(json);
+      setError(null);
+      setLoading(false);
     } catch {
       setError("Network error");
-    } finally {
       setLoading(false);
     }
   }, [window, enabled]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // Include userId as a dep so auth resolving from `null → uuid` triggers
+    // a refetch. This is what turns first-load-401 into eventual success.
+  }, [fetchData, userId]);
 
   return { data, loading, error, refetch: fetchData };
 }

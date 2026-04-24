@@ -52,7 +52,9 @@ export default function DashboardPage() {
   // Phase 2 dashboard data (greeting, activity, reviews, cohort) — only
   // fetched when the feature flag is on, to avoid a wasted network round-trip
   // for providers still on the old layout.
-  const v2 = useProviderDashboardV2Data("30d", DASHBOARD_V2_ENABLED);
+  // Passing user?.id makes the hook refetch when auth resolves — covers the
+  // first-load-401 race where the session cookie lands after mount.
+  const v2 = useProviderDashboardV2Data("30d", DASHBOARD_V2_ENABLED, user?.id);
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
@@ -138,6 +140,7 @@ export default function DashboardPage() {
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
       v2Data={DASHBOARD_V2_ENABLED ? v2.data : null}
+      v2Loading={DASHBOARD_V2_ENABLED && v2.loading && !v2.data}
     />
   );
 }
@@ -154,6 +157,7 @@ function DashboardContent({
   refreshAccountData,
   userEmail,
   v2Data,
+  v2Loading,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -164,6 +168,7 @@ function DashboardContent({
   userEmail?: string;
   refreshAccountData: () => Promise<void>;
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
+  v2Loading: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
@@ -307,7 +312,9 @@ function DashboardContent({
         ) : null;
       })()}
 
-      {/* Phase 2 pillars — only when FF is on and the v2 fetch has data. */}
+      {/* Phase 2 pillars. Render a skeleton while v2 is loading so the page
+          doesn't flash the old layout first (which looks like a regression). */}
+      {v2Loading && <DashboardPillarsSkeleton />}
       {v2Data && (
         <>
           <DashboardHero
@@ -852,4 +859,63 @@ function deriveFirstName(displayName: string | null): string {
   // That reads slightly weirdly as a greeting but it's better than "there" for
   // most providers. True personalization awaits a provider-name field.
   return first || "there";
+}
+
+/**
+ * Placeholder for the Phase 2 pillars while v2Data is loading. Matches the
+ * grid shape of the real layout (hero row + 2/3 + 1/3 columns) so the page
+ * doesn't shift when real content lands.
+ */
+function DashboardPillarsSkeleton() {
+  return (
+    <div aria-hidden className="animate-pulse">
+      {/* Hero */}
+      <div className="rounded-2xl bg-white border border-gray-100 p-6 mb-6">
+        <div className="h-3 w-40 bg-gray-100 rounded mb-4" />
+        <div className="h-7 w-80 max-w-full bg-gray-100 rounded mb-3" />
+        <div className="h-4 w-64 max-w-full bg-gray-100 rounded mb-5" />
+        <div className="h-4 w-32 bg-gray-100 rounded" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-2xl bg-white border border-gray-100 p-6">
+            <div className="h-3 w-32 bg-gray-100 rounded mb-5" />
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 bg-gray-100 rounded" />
+                    <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white border border-gray-100 p-6">
+            <div className="h-3 w-36 bg-gray-100 rounded mb-4" />
+            <div className="h-5 w-64 max-w-full bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-48 bg-gray-100 rounded" />
+          </div>
+        </div>
+        <div className="lg:col-span-1 space-y-6">
+          <div className="rounded-2xl bg-white border border-gray-100 p-6">
+            <div className="h-3 w-16 bg-gray-100 rounded mb-4" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="h-7 w-12 bg-gray-100 rounded" />
+              <div className="h-7 w-12 bg-gray-100 rounded" />
+            </div>
+            <div className="h-4 w-40 bg-gray-100 rounded pt-4 border-t border-gray-100" />
+          </div>
+          <div className="rounded-2xl bg-white border border-gray-100 p-6">
+            <div className="h-3 w-28 bg-gray-100 rounded mb-3" />
+            <div className="h-7 w-20 bg-gray-100 rounded mb-3" />
+            <div className="h-4 w-full bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-2/3 bg-gray-100 rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

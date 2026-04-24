@@ -80,16 +80,25 @@ function getAnthropic(): Anthropic {
 
 /**
  * Ensure the verification docs bucket exists
+ * Uses try-catch to handle race conditions when multiple uploads happen in parallel
  */
 async function ensureVerificationBucket(admin: SupabaseClient) {
   const { data: buckets } = await admin.storage.listBuckets();
   const bucketExists = buckets?.some((b) => b.name === VERIFICATION_BUCKET);
   if (!bucketExists) {
-    await admin.storage.createBucket(VERIFICATION_BUCKET, {
-      public: true,
-      fileSizeLimit: 10 * 1024 * 1024, // 10MB
-      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"],
-    });
+    try {
+      await admin.storage.createBucket(VERIFICATION_BUCKET, {
+        public: true,
+        fileSizeLimit: 10 * 1024 * 1024, // 10MB
+        allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"],
+      });
+    } catch (err) {
+      // Ignore "already exists" errors from race conditions
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (!errorMessage.includes("already exists")) {
+        throw err;
+      }
+    }
   }
 }
 

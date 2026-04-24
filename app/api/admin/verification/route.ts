@@ -8,7 +8,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Query params: status (default: "pending"), limit, offset
  *
  * Status filters:
- * - pending: Has verification_submission but no badge_approved/badge_rejected
+ * - pending: Has verification_submission OR verification_attempts OR email_otp_attempt, but no badge_approved/badge_rejected
  * - approved: badge_approved = true
  * - rejected: badge_rejected = true
  */
@@ -31,13 +31,16 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Fetch all profiles with badge submissions, then filter in JS
-    // This avoids uncertain JSONB query syntax with .or() clauses
+    // Fetch profiles that need verification review
+    // We need to check for:
+    // 1. Old flow: verification_submission exists
+    // 2. New flow: verification_attempts exists OR email_otp_attempt exists
+    // 3. Any profile with verification_state = "pending"
+    // Using JS filtering since Supabase JSONB OR queries are unreliable
     const { data: allProviders, error } = await db
       .from("business_profiles")
       .select("id, display_name, type, category, city, state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug")
       .in("type", ["organization", "caregiver"])
-      .not("metadata->verification_submission", "is", null)
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -46,16 +49,39 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter by badge status in JavaScript for reliability
-    type ProfileMetadata = { badge_approved?: boolean | null; badge_rejected?: boolean | null };
+    type ProfileMetadata = {
+      badge_approved?: boolean | null;
+      badge_rejected?: boolean | null;
+      verification_submission?: unknown;
+      verification_attempts?: unknown[];
+      email_otp_attempt?: unknown;
+    };
+
+    /**
+     * Check if a profile has any verification data that needs review
+     * This includes:
+     * - Old flow: verification_submission exists
+     * - New flow: verification_attempts array has items OR email_otp_attempt exists
+     * - Any profile with verification_state = "pending"
+     */
+    const hasVerificationData = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const hasOldSubmission = !!meta?.verification_submission;
+      const hasNewAttempts = Array.isArray(meta?.verification_attempts) && meta.verification_attempts.length > 0;
+      const hasEmailOtpAttempt = !!meta?.email_otp_attempt;
+      const isPendingState = p.verification_state === "pending";
+      return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt || isPendingState;
+    };
+
     let filtered = allProviders ?? [];
 
     if (status === "pending") {
-      // Has submission but not yet approved or rejected
+      // Has verification data but not yet approved or rejected
       filtered = filtered.filter((p) => {
         const meta = p.metadata as ProfileMetadata | null;
         const notApproved = !meta?.badge_approved;
         const notRejected = !meta?.badge_rejected;
-        return notApproved && notRejected;
+        return hasVerificationData(p) && notApproved && notRejected;
       });
     } else if (status === "approved") {
       filtered = filtered.filter((p) => {

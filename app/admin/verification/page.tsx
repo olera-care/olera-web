@@ -102,11 +102,15 @@ export default function AdminVerificationPage() {
       if (res.ok) {
         const data = await res.json();
         let results = data.providers ?? [];
-        // For pending tab, only show providers with actual submissions
+        // For pending tab, only show providers with verification data
+        // This includes old flow (verification_submission) and new flow (verification_attempts, email_otp_attempt)
         if (filter === "pending") {
-          results = results.filter(
-            (p: Provider) => p.metadata?.verification_submission
-          );
+          results = results.filter((p: Provider) => {
+            const hasOldSubmission = !!p.metadata?.verification_submission;
+            const hasNewAttempts = Array.isArray(p.metadata?.verification_attempts) && p.metadata.verification_attempts.length > 0;
+            const hasEmailOtpAttempt = !!p.metadata?.email_otp_attempt;
+            return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt;
+          });
         }
         setProviders(results);
       } else {
@@ -163,9 +167,41 @@ export default function AdminVerificationPage() {
     }
   }
 
-  // Get verification submission from metadata
+  // Get verification submission from metadata (supports both old and new flows)
   function getVerificationSubmission(provider: Provider): VerificationSubmission | null {
-    return provider.metadata?.verification_submission || null;
+    const metadata = provider.metadata;
+
+    // Old flow: verification_submission exists
+    if (metadata?.verification_submission) {
+      return metadata.verification_submission;
+    }
+
+    // New flow: extract info from verification_attempts or email_otp_attempt
+    const attempts = metadata?.verification_attempts;
+    const emailOtpAttempt = metadata?.email_otp_attempt;
+
+    // Try to build a submission-like object from new flow data
+    if (attempts && attempts.length > 0) {
+      // Get the most recent attempt
+      const latestAttempt = attempts[attempts.length - 1];
+      return {
+        name: latestAttempt.claimer_name || "Unknown",
+        email: latestAttempt.value?.includes("@") ? latestAttempt.value : null,
+        role: "unknown",
+        submitted_at: latestAttempt.submitted_at,
+      };
+    }
+
+    if (emailOtpAttempt) {
+      return {
+        name: emailOtpAttempt.fullName || "Unknown",
+        email: emailOtpAttempt.email || null,
+        role: "unknown",
+        submitted_at: emailOtpAttempt.submitted_at,
+      };
+    }
+
+    return null;
   }
 
   return (

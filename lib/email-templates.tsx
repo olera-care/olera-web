@@ -992,7 +992,7 @@ function digestLead(opts: DigestOpts): string {
 export function providerWeeklyDigestEmail(opts: DigestOpts): string {
   const headline = digestHeadline(opts);
   const lead = digestLead(opts);
-  const dashboardUrl = `${BASE_URL}/portal/analytics`;
+  const dashboardUrl = `${BASE_URL}/provider`;
   const analyticsUnsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
 
   // Micro-stats row: only include cells with non-zero values to keep it warm.

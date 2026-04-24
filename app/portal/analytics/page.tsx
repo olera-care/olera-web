@@ -191,8 +191,14 @@ function Header({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
       <div>
+        <a
+          href="/provider"
+          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 mb-2"
+        >
+          ← Back to dashboard
+        </a>
         <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-          Analytics
+          Traffic report
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           {providerName}

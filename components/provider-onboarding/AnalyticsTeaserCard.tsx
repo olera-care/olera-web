@@ -1,28 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 /**
- * Provider-facing analytics teaser card shown on the onboard page.
+ * Teaser card on the onboard page — the door to /provider.
  *
- * Replaces/augments the "Get more reviews" CTA with pipeline-opportunity
- * framing that's coherent with the moment (provider just saw "someone asked
- * a question about you" — natural continuation is "here's the rest of the
- * iceberg," not "go cold-message your customers").
+ * This card is the alpha-and-omega of the Phase 2 funnel: most of the value
+ * we built lives behind the CTA here. Copy optimized 2026-04-23 for long-tail
+ * honesty (most providers have a few views, not 47) with loss framing where
+ * the data earns it.
  *
- * Phase 1B · plan task 6. Three render variants by traffic tier:
- *   - low     — pipeline-opportunity framing dominant (small personal numbers
- *               would undercut; lead with local demand instead)
- *   - medium  — personal count + context
- *   - high    — personal count + delta + top source
+ * Three render cases, driven by what the API returned:
+ *   1. Cohort present (pipeline_opportunity with local_demand_count ≥ 1)
+ *      → "N families searched for {category} near {city}. R reached your page."
+ *   2. No cohort, ≥1 view this period
+ *      → "V families visited your page this month. One asked the question..."
+ *   3. No cohort, 0 views (rare — activity may not be logged yet, or question
+ *      came from a non-page entry point)
+ *      → "You just got a real question. It won't be the last."
  *
- * Fails silently: if fetch errors, returns null. This is the right behavior
- * on a provider-owned page where the viewer might not actually be signed in
- * yet (auto-sign-in is still backgrounded) or isn't the owner.
+ * Instrumented: one impression event per mount, one click event on CTA.
+ * Lets us compute CTR per case before we iterate further.
  */
 
-type Tier = "low" | "medium" | "high";
+type TeaserCase = "has_cohort" | "views_only" | "zero_views";
 
 interface AnalyticsResponse {
   provider_id: string;
@@ -50,7 +53,7 @@ interface AnalyticsResponse {
     local_demand_count: number;
     reached_your_page_count: number;
   } | null;
-  tier: Tier;
+  tier: "low" | "medium" | "high";
   tier_thresholds: { low_max: number; medium_max: number };
   reviews_state: { count: number; has_reviews: boolean; last_review_at: string | null };
 }
@@ -61,10 +64,6 @@ interface AnalyticsTeaserCardProps {
 }
 
 export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: AnalyticsTeaserCardProps) {
-  // Onboard-page auto-sign-in happens after first paint. Without waiting for
-  // auth to resolve, the first fetch returns 401 and the card silently
-  // hides forever (only deps was expectedSlug). Re-fetch when user.id
-  // becomes available.
   const { user, isLoading: authLoading } = useAuth();
   const userId = user?.id ?? null;
   const [data, setData] = useState<AnalyticsResponse | null>(null);
@@ -72,11 +71,8 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
   const [errored, setErrored] = useState(false);
 
   useEffect(() => {
-    // Don't fetch until auth state has resolved — avoids the first-load
-    // race where the call goes out before the session cookie is set.
     if (authLoading) return;
     if (!userId) {
-      // Not signed in. Render nothing; reviews card carries.
       setLoading(false);
       setErrored(true);
       return;
@@ -89,9 +85,6 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((json: AnalyticsResponse) => {
         if (cancelled) return;
-        // Only show the card if the signed-in provider's profile matches
-        // the onboard page's slug. Prevents cross-provider drift (signed in
-        // as owner of provider Y while visiting provider X's onboard page).
         if (json.provider_id !== expectedSlug) {
           setErrored(true);
           return;
@@ -109,8 +102,6 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
     };
   }, [expectedSlug, userId, authLoading]);
 
-  // Silent failure: not signed in, not the owner, or fetch error.
-  // The reviews card downstream still renders, so nothing is lost.
   if (errored || (!loading && !data)) return null;
 
   const wrap = (content: React.ReactNode) =>
@@ -134,44 +125,42 @@ export default function AnalyticsTeaserCard({ expectedSlug, variant = "card" }: 
 }
 
 function TeaserBody({ data }: { data: AnalyticsResponse }) {
-  const { tier, views, pipeline_opportunity, sources, city, state, category } = data;
+  const firedImpression = useRef(false);
+  const copy = resolveCopy(data);
 
-  // Headline varies by tier — low leads with pipeline opportunity (kinder to
-  // providers with thin personal numbers); medium/high lead with personal count.
-  const headline = buildHeadline(tier, views, pipeline_opportunity, { city, state, category });
-  const subline = buildSubline(tier, views, pipeline_opportunity, sources, { city, state, category });
+  // Fire one impression event per mount, once we've rendered real content.
+  // Guarded by a ref so Strict Mode / re-renders don't double-count.
+  useEffect(() => {
+    if (firedImpression.current) return;
+    firedImpression.current = true;
+    trackEvent("analytics_teaser_impression", data, copy.case);
+  }, [data, copy.case]);
 
-  const sparkline = tier !== "low" && views.trend.length > 1
-    ? <Sparkline trend={views.trend} />
-    : null;
+  const handleCtaClick = () => {
+    trackEvent("analytics_teaser_cta_clicked", data, copy.case);
+    // Don't preventDefault — let the anchor navigate. keepalive on the POST
+    // means the request survives the navigation.
+  };
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <span
-          className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"
-          aria-hidden
-        />
-        <p className="text-xs font-medium text-gray-500 tracking-wide uppercase">
-          Your page, right now
-        </p>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
+        <p className="text-xs font-medium text-gray-500 tracking-wide uppercase">This month</p>
       </div>
 
       <p className="text-[22px] leading-snug font-display font-semibold text-gray-900 tracking-tight">
-        {headline}
+        {copy.headline}
       </p>
 
-      {subline && (
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed">{subline}</p>
-      )}
+      <p className="mt-2 text-sm text-gray-500 leading-relaxed">{copy.subline}</p>
 
-      {sparkline}
-
-      <a
-        href="/portal/analytics"
+      <Link
+        href="/provider"
+        onClick={handleCtaClick}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 mt-4 group"
       >
-        See your analytics
+        {copy.cta}
         <svg
           className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
           fill="none"
@@ -181,65 +170,81 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>
-      </a>
+      </Link>
     </div>
   );
 }
 
-interface ProfileLoc {
-  city: string | null;
-  state: string | null;
-  category: string | null;
+interface ResolvedCopy {
+  case: TeaserCase;
+  headline: string;
+  subline: string;
+  cta: string;
 }
 
-function buildHeadline(
-  tier: Tier,
-  views: AnalyticsResponse["views"],
-  pipeline: AnalyticsResponse["pipeline_opportunity"],
-  loc: ProfileLoc,
-): string {
-  if (tier === "low") {
-    // Sparse personal data — lead with market opportunity if we have it.
-    if (pipeline && pipeline.local_demand_count > 0) {
-      const n = pipeline.local_demand_count;
-      const families = n === 1 ? "family" : "families";
-      return `${n.toLocaleString()} ${families} searched ${pipelinePhrase(pipeline.scope, loc)} this month.`;
-    }
-    // No cohort data. Fall back: show personal count if any, else patient copy.
-    if (views.this_period > 0) {
-      const n = views.this_period;
-      return `${n.toLocaleString()} ${n === 1 ? "family" : "families"} viewed your page this month.`;
-    }
-    return "Your traffic is just getting started.";
+function resolveCopy(data: AnalyticsResponse): ResolvedCopy {
+  const { views, pipeline_opportunity, city, state, category } = data;
+  const cohort = pipeline_opportunity && pipeline_opportunity.local_demand_count > 0 ? pipeline_opportunity : null;
+
+  // Case 1 — has cohort data
+  if (cohort) {
+    const n = cohort.local_demand_count;
+    const reached = cohort.reached_your_page_count;
+    const families = n === 1 ? "family" : "families";
+    const scopePhrase = pipelinePhrase(cohort.scope, { city, state, category });
+    const headline = `${n.toLocaleString()} ${families} searched ${scopePhrase}.`;
+    const subline =
+      reached === 0
+        ? "None have reached your page yet. Your page is how they decide."
+        : `${reached.toLocaleString()} reached your page. Your page is how they decide.`;
+    return {
+      case: "has_cohort",
+      headline,
+      subline,
+      cta: "See what they're looking for",
+    };
   }
 
-  // medium + high — lead with personal count
-  const n = views.this_period;
-  const families = n === 1 ? "family" : "families";
-  return `${n.toLocaleString()} ${families} viewed your page this month.`;
+  // Case 2 — no cohort, ≥1 view.
+  // Kept notification-type-agnostic: the onboard page renders the teaser for
+  // question, lead, AND review notifications, and also in the post-answered
+  // state — "one asked the question you're here to answer" was wrong for all
+  // those cases except fresh-question-no-answer-yet.
+  if (views.this_period >= 1) {
+    const v = views.this_period;
+    const families = v === 1 ? "family" : "families";
+    const headline = `${v.toLocaleString()} ${families} visited your page this month.`;
+    const subline =
+      v === 1
+        ? "They reached out. Your page is how they decide."
+        : "One reached out. The rest are still deciding.";
+    return {
+      case: "views_only",
+      headline,
+      subline,
+      cta: "See your visitors",
+    };
+  }
+
+  // Case 3 — no cohort, 0 views (rare). Also notification-type-agnostic.
+  return {
+    case: "zero_views",
+    headline: "Someone reached out. It won't be the last.",
+    subline: "Your dashboard catches every visit, question, and review as it happens.",
+    cta: "See what's coming",
+  };
 }
 
-/**
- * Scope-aware "for X near/in Y" phrase used after "[N] families searched ...".
- *
- *   near + city  → "for assisted living near Austin"
- *   near (no city) → "for assisted living near you"
- *   state        → "for assisted living in Texas" (last-resort fallback)
- *   no scope     → "in your area" (defensive; shouldn't render)
- *
- * `near` is geographic-radius based (30 or 60 miles) — drive-time relevant
- * to actual care decisions, not administrative geography.
- */
-function pipelinePhrase(scope: "near" | "state", loc: ProfileLoc): string {
+function pipelinePhrase(
+  scope: "near" | "state",
+  loc: { city: string | null; state: string | null; category: string | null },
+): string {
   const cat = loc.category ? humanizeCategoryLabel(loc.category).toLowerCase() : "senior care";
   if (scope === "near") {
-    return loc.city ? `for ${cat} near ${loc.city}` : `for ${cat} near you`;
+    return loc.city ? `for ${cat} near ${loc.city} this month` : `for ${cat} near you this month`;
   }
-  if (scope === "state") {
-    const place = humanizeStateLabel(loc.state);
-    return place ? `for ${cat} in ${place}` : `for ${cat} in your state`;
-  }
-  return "in your area";
+  const place = humanizeStateLabel(loc.state);
+  return place ? `for ${cat} in ${place} this month` : `for ${cat} in your state this month`;
 }
 
 function humanizeCategoryLabel(category: string | null): string {
@@ -275,88 +280,38 @@ function humanizeStateLabel(state: string | null): string | null {
   return map[state.toUpperCase()] ?? state;
 }
 
-function buildSubline(
-  tier: Tier,
-  views: AnalyticsResponse["views"],
-  pipeline: AnalyticsResponse["pipeline_opportunity"],
-  sources: Record<string, number>,
-  loc: ProfileLoc,
-): string | null {
-  if (tier === "low") {
-    if (pipeline && pipeline.local_demand_count > 0) {
-      const reached = pipeline.reached_your_page_count;
-      if (reached === 0) {
-        return "None have reached your page yet. This is the tip of the iceberg — we'll show you more as it grows.";
-      }
-      return `${reached.toLocaleString()} ${reached === 1 ? "has" : "have"} reached your page so far. This is the tip of the iceberg.`;
-    }
-    // No cohort data — don't make promises we can't back up.
-    if (views.this_period > 0) {
-      return "Early traffic. We'll show trends as they build.";
-    }
-    return "We'll surface families finding you as traffic builds.";
-  }
-
-  // medium / high — delta + context
-  const parts: string[] = [];
-  if (views.delta_pct !== null && Number.isFinite(views.delta_pct)) {
-    if (views.delta_pct > 0) parts.push(`Up ${views.delta_pct}% vs. last month.`);
-    else if (views.delta_pct < 0) parts.push(`Down ${Math.abs(views.delta_pct)}% vs. last month.`);
-    else parts.push("Flat vs. last month.");
-  }
-
-  if (tier === "high") {
-    const top = topSource(sources);
-    if (top) parts.push(`Top source: ${top}.`);
-  } else if (pipeline && pipeline.local_demand_count > views.this_period) {
-    parts.push(
-      `Out of ${pipeline.local_demand_count.toLocaleString()} families who searched ${pipelinePhrase(pipeline.scope, loc)}.`,
-    );
-  }
-
-  return parts.length > 0 ? parts.join(" ") : null;
-}
-
-function topSource(sources: Record<string, number>): string | null {
-  const entries = Object.entries(sources).filter(([k]) => k !== "direct" && k !== "internal");
-  if (entries.length === 0) return null;
-  entries.sort((a, b) => b[1] - a[1]);
-  const [name, count] = entries[0];
-  if (count === 0) return null;
-  const labels: Record<string, string> = { search: "Google search", other: "external sites" };
-  return labels[name] ?? name;
-}
-
 /**
- * Tiny inline sparkline for medium/high tier.
- * No axes, no tooltips — just a visual cadence hint. The dashboard gets the
- * real chart.
+ * Fire-and-forget event tracking. `keepalive: true` ensures the POST survives
+ * CTA navigation; no await so render stays synchronous.
  */
-function Sparkline({ trend }: { trend: { date: string; count: number }[] }) {
-  const width = 140;
-  const height = 28;
-  const max = Math.max(1, ...trend.map((p) => p.count));
-  const n = trend.length;
-  const points = trend.map((p, i) => {
-    const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-    const y = height - (p.count / max) * (height - 2) - 1;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-  return (
-    <svg
-      width={width}
-      height={height}
-      className="mt-3"
-      aria-hidden
-    >
-      <polyline
-        points={points.join(" ")}
-        fill="none"
-        stroke="#047857"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+function trackEvent(
+  eventType: "analytics_teaser_impression" | "analytics_teaser_cta_clicked",
+  data: AnalyticsResponse,
+  teaserCase: TeaserCase,
+) {
+  try {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        actor_type: "provider",
+        provider_id: data.provider_id,
+        event_type: eventType,
+        metadata: {
+          case: teaserCase,
+          views_this_period: data.views.this_period,
+          cohort_size: data.pipeline_opportunity?.local_demand_count ?? null,
+          reached_count: data.pipeline_opportunity?.reached_your_page_count ?? null,
+          cohort_scope: data.pipeline_opportunity?.scope ?? null,
+          tier: data.tier,
+        },
+      }),
+    }).catch(() => {
+      /* fire-and-forget */
+    });
+  } catch {
+    /* fire-and-forget */
+  }
 }

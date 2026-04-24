@@ -104,12 +104,14 @@ export default function AdminVerificationPage() {
         let results = data.providers ?? [];
         // For pending tab, only show providers with verification data
         // This includes old flow (verification_submission) and new flow (verification_attempts, email_otp_attempt)
+        // Exclude providers who are already verified (they auto-verified after initial failure)
         if (filter === "pending") {
           results = results.filter((p: Provider) => {
             const hasOldSubmission = !!p.metadata?.verification_submission;
             const hasNewAttempts = Array.isArray(p.metadata?.verification_attempts) && p.metadata.verification_attempts.length > 0;
             const hasEmailOtpAttempt = !!p.metadata?.email_otp_attempt;
-            return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt;
+            const notAlreadyVerified = p.verification_state !== "verified";
+            return (hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt) && notAlreadyVerified;
           });
         }
         setProviders(results);

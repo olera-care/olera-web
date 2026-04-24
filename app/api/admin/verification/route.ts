@@ -77,11 +77,13 @@ export async function GET(request: NextRequest) {
 
     if (status === "pending") {
       // Has verification data but not yet approved or rejected
+      // Also exclude providers who are already verified (they auto-verified after initial failure)
       filtered = filtered.filter((p) => {
         const meta = p.metadata as ProfileMetadata | null;
         const notApproved = !meta?.badge_approved;
         const notRejected = !meta?.badge_rejected;
-        return hasVerificationData(p) && notApproved && notRejected;
+        const notAlreadyVerified = p.verification_state !== "verified";
+        return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
       });
     } else if (status === "approved") {
       filtered = filtered.filter((p) => {

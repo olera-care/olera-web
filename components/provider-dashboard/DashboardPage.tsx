@@ -1142,6 +1142,13 @@ function DashboardSummaryCard({
               {views.thisPeriod.toLocaleString()}
             </p>
             <p className="text-sm text-gray-500">profile views</p>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              {copied ? "Link copied!" : "Share profile"}
+            </button>
           </div>
 
           {/* Reviews */}
@@ -1219,16 +1226,6 @@ function DashboardSummaryCard({
         )}
       </div>
 
-      {/* Action links */}
-      <div className="border-t border-gray-100 px-5 py-4">
-        <button
-          type="button"
-          onClick={handleShare}
-          className="text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          {copied ? "Link copied!" : "Share profile"}
-        </button>
-      </div>
     </div>
   );
 }

@@ -51,6 +51,14 @@ export default function DashboardHero({ firstName, data }: Props) {
           backgroundSize: "auto 150%",
           backgroundPosition: "right 35%",
           backgroundRepeat: "no-repeat",
+          // Soft-fade the image's left edge into the warm-950 background so
+          // there's no hard rectangle line where the photo starts. Pixel-based
+          // mask zone tracks the image's left edge (~693px wide at 260 height)
+          // regardless of card width — the face sits well past the fade zone.
+          maskImage:
+            "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
         }}
       />
       {/* Dark gradient — keeps the headline readable while the image shows

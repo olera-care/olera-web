@@ -5,7 +5,6 @@ import { getBotRejectsToday } from "@/lib/analytics/bot-filter";
 const PROVIDER_EVENT_TYPES = [
   "page_view",
   "search_click",
-  "cta_click_public",
   "benefits_started",
   "lead_received",
   "review_received",
@@ -118,7 +117,6 @@ export async function GET(request: NextRequest) {
     const counts: Record<CountedEvent, number> = {
       page_view: 0,
       search_click: 0,
-      cta_click_public: 0,
       benefits_started: 0,
       lead_received: 0,
       review_received: 0,

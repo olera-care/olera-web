@@ -11,7 +11,6 @@ import {
 interface WindowedCounts {
   page_view: number;
   search_click: number;
-  cta_click_public: number;
   benefits_started: number;
   lead_received: number;
   review_received: number;
@@ -123,7 +122,6 @@ function WindowedCard({
             <Stat label="Page views" value={summary.windowed.counts.page_view} />
             <Stat label="Unique sessions" value={summary.windowed.unique_sessions_page_view} />
             <Stat label="Card clicks" value={summary.windowed.counts.search_click} />
-            <Stat label="CTA clicks" value={summary.windowed.counts.cta_click_public} />
           </Section>
           <Section label="Engagement">
             <Stat label="Questions" value={summary.windowed.counts.question_received} />

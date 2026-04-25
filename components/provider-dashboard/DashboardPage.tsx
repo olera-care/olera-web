@@ -852,6 +852,15 @@ function NotificationPreferencesCard({
           />
         </button>
       </div>
+
+      <div className="mt-2 pt-4 border-t border-gray-100">
+        <Link
+          href="/portal/analytics"
+          className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          See full traffic report →
+        </Link>
+      </div>
     </div>
   );
 }

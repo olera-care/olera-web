@@ -169,6 +169,11 @@ function DashboardContent({
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
 
+  // Layout version toggle for A/B exploration (temporary - for branch review only)
+  // Version 1: Activity merged into sidebar stats card
+  // Version 2: Activity as separate card in left column, stats-only sidebar
+  const [layoutVersion, setLayoutVersion] = useState<1 | 2>(1);
+
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
@@ -301,13 +306,41 @@ function DashboardContent({
       {v2Loading && <DashboardPillarsSkeleton />}
 
       {/* Page header - outside grid so both columns align */}
-      <div className="mb-6">
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
-          Your profile
-        </h1>
-        <p className="text-sm lg:text-[15px] text-gray-500">
-          Manage your profile and how families find you
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
+            Your profile
+          </h1>
+          <p className="text-sm lg:text-[15px] text-gray-500">
+            Manage your profile and how families find you
+          </p>
+        </div>
+
+        {/* Layout version toggle - TEMPORARY for branch review only */}
+        <div className="hidden lg:flex items-center gap-2 bg-gray-100 rounded-lg p-1 text-sm">
+          <button
+            type="button"
+            onClick={() => setLayoutVersion(1)}
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              layoutVersion === 1
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            V1
+          </button>
+          <button
+            type="button"
+            onClick={() => setLayoutVersion(2)}
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              layoutVersion === 2
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            V2
+          </button>
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -361,6 +394,16 @@ function DashboardContent({
               <DashboardHero
                 firstName={deriveFirstName(profile.display_name)}
                 data={v2Data}
+              />
+            </div>
+          )}
+
+          {/* Version 2: Recent Activity as separate card in left column */}
+          {layoutVersion === 2 && v2Data && v2Data.recentActivity.length > 0 && (
+            <div style={{ animation: "card-enter 0.25s ease-out both", animationDelay: "60ms" }}>
+              <LeftColumnActivityCard
+                activities={v2Data.recentActivity}
+                onSeeAll={() => setShowActivityModal(true)}
               />
             </div>
           )}
@@ -441,12 +484,19 @@ function DashboardContent({
               animationDelay: "100ms",
             }}
           >
-            {/* Combined stats + activity card */}
-            {v2Data && (
+            {/* Version 1: Combined stats + activity card */}
+            {/* Version 2: Stats-only card (activity moved to left column) */}
+            {v2Data && layoutVersion === 1 && (
               <DashboardSummaryCard
                 data={v2Data}
                 profileSlug={profile.slug}
                 onSeeAllActivity={() => setShowActivityModal(true)}
+              />
+            )}
+            {v2Data && layoutVersion === 2 && (
+              <StatsOnlyCard
+                data={v2Data}
+                profileSlug={profile.slug}
               />
             )}
 
@@ -456,9 +506,10 @@ function DashboardContent({
               onRequestVerification={handleOpenVerificationModal}
             />
 
-            {/* Profile completeness - collapsible */}
+            {/* Profile completeness - collapsible (expanded by default in V2) */}
             <CollapsibleProfileCompleteness
               completeness={completeness}
+              defaultExpanded={layoutVersion === 2}
               lastUpdated={profile.updated_at}
             />
           </div>
@@ -910,16 +961,18 @@ function DashboardPillarsSkeleton() {
 function CollapsibleProfileCompleteness({
   completeness,
   lastUpdated,
+  defaultExpanded = false,
 }: {
   completeness: ReturnType<typeof calculateProfileCompleteness>;
   lastUpdated: string;
+  defaultExpanded?: boolean;
 }) {
-  // Check localStorage for saved preference, default to collapsed
+  // Check localStorage for saved preference, fall back to defaultExpanded prop
   const [isExpanded, setIsExpanded] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") return defaultExpanded;
     const saved = localStorage.getItem("olera-completeness-expanded");
-    // Default to collapsed if no preference saved
-    return saved === null ? false : saved === "true";
+    // Use localStorage if set, otherwise use defaultExpanded prop
+    return saved === null ? defaultExpanded : saved === "true";
   });
 
   const handleToggle = () => {
@@ -1246,6 +1299,154 @@ function formatRelativeTime(iso: string): string {
   const weeks = Math.round(days / 7);
   if (weeks < 4) return `${weeks}w`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/**
+ * Version 2: Recent Activity card for the LEFT column
+ * Shows 2-3 items with "See all" link that opens the modal
+ */
+function LeftColumnActivityCard({
+  activities,
+  onSeeAll,
+}: {
+  activities: Array<{
+    id: string;
+    kind: string;
+    timestamp: string;
+    title: string;
+    detail?: string;
+    actorName?: string;
+  }>;
+  onSeeAll: () => void;
+}) {
+  const displayItems = activities.slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        Recent activity
+      </p>
+      <ul className="space-y-3">
+        {displayItems.map((item) => (
+          <li key={item.id} className="flex items-start gap-3">
+            <time className="text-xs text-gray-400 tabular-nums w-8 shrink-0 pt-0.5">
+              {formatRelativeTime(item.timestamp)}
+            </time>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] text-gray-700 leading-snug line-clamp-2">
+                {item.detail ? `"${item.detail}"` : item.title}
+              </p>
+              {item.actorName && (
+                <p className="text-xs text-gray-400 mt-0.5">{item.actorName}</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      {activities.length > 3 && (
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          See all {activities.length} →
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Version 2: Stats-only card for the RIGHT column (no activity section)
+ */
+function StatsOnlyCard({
+  data,
+  profileSlug,
+}: {
+  data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data;
+  profileSlug: string | null;
+}) {
+  const { views, reviews } = data;
+  const [copied, setCopied] = useState(false);
+
+  const starCount = reviews.avgRating !== null ? Math.round(reviews.avgRating) : 0;
+  const fullStars = "★".repeat(starCount) + "☆".repeat(Math.max(0, 5 - starCount));
+
+  const handleShare = () => {
+    if (!profileSlug) return;
+    const url = `${window.location.origin}/provider/${profileSlug}`;
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        window.prompt("Copy this link:", url);
+      });
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+      <div className="px-5 pt-5 pb-4">
+        <h3 className="text-base font-display font-bold text-gray-900">
+          This month
+        </h3>
+      </div>
+
+      <div className="px-5 pb-5">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Views */}
+          <div className="space-y-1">
+            <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+              {views.thisPeriod.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-500">profile views</p>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              {copied ? "Link copied!" : "Share profile"}
+            </button>
+          </div>
+
+          {/* Reviews */}
+          <div className="space-y-1">
+            {reviews.avgRating !== null ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                    {reviews.avgRating.toFixed(1)}
+                  </p>
+                  <span className="text-amber-500 text-xs tracking-tight">{fullStars}</span>
+                </div>
+                <p className="text-sm text-gray-500">
+                  {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
+                </p>
+                <a
+                  href="/provider/reviews"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Get more reviews
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
+                <p className="text-sm text-gray-500">no reviews yet</p>
+                <a
+                  href="/provider/reviews"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Get more reviews
+                </a>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**

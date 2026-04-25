@@ -376,6 +376,18 @@ export async function POST(request: Request) {
       })
       .eq("id", accountId);
 
+    // Log provider activity: claim attribution for the admin Providers section.
+    // source='page' — this endpoint is reached from the public provider page
+    // via UnifiedAuthModal, distinct from the email-flow claim in /api/claim/finalize.
+    db.from("provider_activity").insert({
+      provider_id: providerId,
+      profile_id: newProfile.id,
+      event_type: "claim_completed",
+      metadata: { source: "page" },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] claim_completed (page) insert failed:", actErr);
+    });
+
     return NextResponse.json({
       profileId: newProfile.id,
       verificationState: "verified",

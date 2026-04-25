@@ -37,27 +37,33 @@ export default function DashboardHero({ firstName, data }: Props) {
     <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6 md:min-h-[260px]">
       {/* Background image — warm photo behind the card. Hidden on mobile so
           the headline doesn't have to fight a busy backdrop at narrow widths.
-          Vertical anchor biased to the face (upper-right of source frame) so
-          wide viewports, where content wraps less and the card is shorter,
-          don't crop the face out. Paired with md:min-h-[260px] on the card. */}
+          backgroundSize is `auto 150%` (not `cover`): the image is sized off
+          the card's HEIGHT, not its width. With cover, wide cards stretched
+          the image by width and over-cropped vertically — the face got bigger
+          than the card and chin/hair got chopped. Sizing by height makes the
+          face frame consistent at any card width: a contained portrait on the
+          right, with empty warm-950 on the left blended out by the gradient. */}
       <div
         aria-hidden
         className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `url('${HERO_IMAGE_URL}')`,
-          backgroundSize: "cover",
+          backgroundSize: "auto 150%",
           backgroundPosition: "right 35%",
+          backgroundRepeat: "no-repeat",
         }}
       />
-      {/* Left-to-right dark gradient — keeps the headline readable while the
-          image shows through on the right side. On mobile the card is solid
-          warm-950 since there's no image. */}
+      {/* Dark gradient — keeps the headline readable while the image shows
+          through on the right side. Stops are pixel-based (calc) measured
+          from the right edge so the fade zone tracks the image position
+          regardless of card width. On mobile the card is solid warm-950
+          since there's no image. */}
       <div
         aria-hidden
         className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to right, rgba(42, 24, 16, 0.96) 0%, rgba(42, 24, 16, 0.88) 35%, rgba(42, 24, 16, 0.55) 65%, rgba(42, 24, 16, 0.15) 100%)",
+            "linear-gradient(to right, rgba(42, 24, 16, 0.96) 0%, rgba(42, 24, 16, 0.96) calc(100% - 600px), rgba(42, 24, 16, 0.7) calc(100% - 440px), rgba(42, 24, 16, 0.25) calc(100% - 200px), rgba(42, 24, 16, 0.08) 100%)",
         }}
       />
       <div className="relative px-6 py-5 md:px-9 md:py-7 max-w-[560px]">

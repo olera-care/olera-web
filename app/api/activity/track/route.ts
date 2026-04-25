@@ -31,6 +31,7 @@ const ANONYMOUS_EVENT_TYPES = [
   "page_view",
   "search_click",
   "cta_click_public",
+  "benefits_started",
 ] as const;
 
 const OLERA_HOSTS = new Set([

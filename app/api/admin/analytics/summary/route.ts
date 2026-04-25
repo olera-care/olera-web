@@ -1,60 +1,91 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getBotRejectsToday } from "@/lib/analytics/bot-filter";
 
-const TRACKED_EVENT_TYPES = [
+const PROVIDER_EVENT_TYPES = [
   "page_view",
   "search_click",
   "cta_click_public",
+  "benefits_started",
   "lead_received",
   "review_received",
   "question_received",
 ] as const;
 
-type EventType = (typeof TRACKED_EVENT_TYPES)[number];
+const SEEKER_EVENT_TYPES = [
+  "benefits_completed",
+  "matches_activated",
+] as const;
+
+type ProviderEvent = (typeof PROVIDER_EVENT_TYPES)[number];
+type SeekerEvent = (typeof SEEKER_EVENT_TYPES)[number];
+type CountedEvent = ProviderEvent | SeekerEvent;
 
 /**
  * GET /api/admin/analytics/summary
  *
- * Single endpoint that powers everything on /admin/analytics that ISN'T the
- * pulse chart (the chart has its own /views/stats endpoint).
+ * Powers everything on /admin/analytics that ISN'T the pulse chart (the
+ * chart has its own /views/stats endpoint).
+ *
+ * Query params:
+ *   date_from (ISO, inclusive). Omit + omit date_to for last-24h fallback.
+ *   date_to   (ISO, exclusive). Defaults to "now" if omitted but date_from set.
  *
  * Returns:
- *   - last24h:    counts of each tracked event type in the past 24h
+ *   - windowed:  counts of each tracked event type within the range,
+ *                pulled from BOTH provider_activity and seeker_activity
  *   - botRejects: today's in-memory bot reject count + UTC date label
- *   - topProviders: top 10 providers by 7-day raw page_views (with unique sessions)
- *   - latestEvents: 50 most recent rows from provider_activity
+ *   - topProviders: top 10 providers by 7-day raw page_views (fixed window —
+ *                   this card has its own semantics, not range-bound)
+ *   - latestEvents: 50 most recent rows from provider_activity (fixed)
  *
  * NOTE: botRejects is per-Vercel-lambda-instance (in-memory). Numbers will
- * undercount across regions; acceptable for Phase 0 sanity-check. Phase 1
- * may promote to a KV-backed counter.
+ * undercount across regions; acceptable for Phase 0 sanity-check.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     const admin = await getAdminUser(user.id);
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-    const db = getServiceClient();
+    const { searchParams } = new URL(request.url);
+    const dateFromParam = searchParams.get("date_from");
+    const dateToParam = searchParams.get("date_to");
 
     const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    // Default window: last 24h (preserves prior behavior when no range given)
+    const defaultFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const windowFrom = dateFromParam || defaultFrom;
+    const windowTo = dateToParam || null;
+
+    const db = getServiceClient();
+
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [last24hRes, last7dViewsRes, latestRes] = await Promise.all([
-      // Pull a wide sweep for the 24h window so we can bucket by event_type
-      // in memory (cheaper than 6 separate queries).
-      db
-        .from("provider_activity")
-        .select("*")
-        .gte("created_at", oneDayAgo)
-        .in("event_type", [...TRACKED_EVENT_TYPES])
-        .limit(50000),
+    let providerWindowedQuery = db
+      .from("provider_activity")
+      .select("event_type, metadata")
+      .gte("created_at", windowFrom)
+      .in("event_type", [...PROVIDER_EVENT_TYPES])
+      .limit(50000);
+    if (windowTo) providerWindowedQuery = providerWindowedQuery.lt("created_at", windowTo);
+
+    let seekerWindowedQuery = db
+      .from("seeker_activity")
+      .select("event_type")
+      .gte("created_at", windowFrom)
+      .in("event_type", [...SEEKER_EVENT_TYPES])
+      .limit(50000);
+    if (windowTo) seekerWindowedQuery = seekerWindowedQuery.lt("created_at", windowTo);
+
+    const [providerWindowedRes, seekerWindowedRes, last7dViewsRes, latestRes] = await Promise.all([
+      providerWindowedQuery,
+      seekerWindowedQuery,
       // Top providers: 7d page_views only, anonymous (session_id present).
       db
         .from("provider_activity")
-        .select("*")
+        .select("provider_id, created_at, metadata")
         .eq("event_type", "page_view")
         .gte("created_at", sevenDaysAgo)
         .limit(50000),
@@ -66,9 +97,13 @@ export async function GET() {
         .limit(50),
     ]);
 
-    if (last24hRes.error) {
-      console.error("[admin/analytics/summary] last24h query failed:", last24hRes.error);
-      return NextResponse.json({ error: "Failed to load 24h counts" }, { status: 500 });
+    if (providerWindowedRes.error) {
+      console.error("[admin/analytics/summary] provider windowed query failed:", providerWindowedRes.error);
+      return NextResponse.json({ error: "Failed to load windowed counts" }, { status: 500 });
+    }
+    if (seekerWindowedRes.error) {
+      console.error("[admin/analytics/summary] seeker windowed query failed:", seekerWindowedRes.error);
+      return NextResponse.json({ error: "Failed to load family counts" }, { status: 500 });
     }
     if (last7dViewsRes.error) {
       console.error("[admin/analytics/summary] 7d views query failed:", last7dViewsRes.error);
@@ -79,27 +114,36 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to load latest events" }, { status: 500 });
     }
 
-    // 24h counts per event type, plus unique session count for page_views.
-    const last24hRows = (last24hRes.data ?? []) as Array<{
+    const providerRows = (providerWindowedRes.data ?? []) as Array<{
       event_type: string;
       metadata: Record<string, unknown> | null;
     }>;
-    const counts: Record<EventType, number> = {
+    const seekerRows = (seekerWindowedRes.data ?? []) as Array<{ event_type: string }>;
+
+    const counts: Record<CountedEvent, number> = {
       page_view: 0,
       search_click: 0,
       cta_click_public: 0,
+      benefits_started: 0,
       lead_received: 0,
       review_received: 0,
       question_received: 0,
+      benefits_completed: 0,
+      matches_activated: 0,
     };
-    const uniqueSessions24h = new Set<string>();
-    for (const r of last24hRows) {
-      if ((TRACKED_EVENT_TYPES as readonly string[]).includes(r.event_type)) {
-        counts[r.event_type as EventType] += 1;
+    const uniqueSessions = new Set<string>();
+    for (const r of providerRows) {
+      if ((PROVIDER_EVENT_TYPES as readonly string[]).includes(r.event_type)) {
+        counts[r.event_type as ProviderEvent] += 1;
       }
       if (r.event_type === "page_view") {
         const sid = r.metadata?.session_id;
-        if (typeof sid === "string" && sid.length > 0) uniqueSessions24h.add(sid);
+        if (typeof sid === "string" && sid.length > 0) uniqueSessions.add(sid);
+      }
+    }
+    for (const r of seekerRows) {
+      if ((SEEKER_EVENT_TYPES as readonly string[]).includes(r.event_type)) {
+        counts[r.event_type as SeekerEvent] += 1;
       }
     }
 
@@ -144,9 +188,10 @@ export async function GET() {
     const botRejects = getBotRejectsToday();
 
     return NextResponse.json({
-      last24h: {
+      windowed: {
+        range: { from: windowFrom, to: windowTo },
         counts,
-        unique_sessions_page_view: uniqueSessions24h.size,
+        unique_sessions_page_view: uniqueSessions.size,
       },
       botRejects,
       topProviders,

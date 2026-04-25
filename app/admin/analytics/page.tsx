@@ -22,7 +22,7 @@ interface WindowedCounts {
 
 interface SummaryResponse {
   windowed: {
-    range: { from: string; to: string | null };
+    range: { from: string | null; to: string | null };
     counts: WindowedCounts;
     unique_sessions_page_view: number;
   };

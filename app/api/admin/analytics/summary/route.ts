@@ -28,8 +28,8 @@ type CountedEvent = ProviderEvent | SeekerEvent;
  * chart has its own /views/stats endpoint).
  *
  * Query params:
- *   date_from (ISO, inclusive). Omit + omit date_to for last-24h fallback.
- *   date_to   (ISO, exclusive). Defaults to "now" if omitted but date_from set.
+ *   date_from (ISO, inclusive). Omit for all-time (no lower bound).
+ *   date_to   (ISO, exclusive). Omit for "up to now" (no upper bound).
  *
  * Returns:
  *   - windowed:  counts of each tracked event type within the range,
@@ -50,33 +50,28 @@ export async function GET(request: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
-    const dateFromParam = searchParams.get("date_from");
-    const dateToParam = searchParams.get("date_to");
-
-    const now = new Date();
-    // Default window: last 24h (preserves prior behavior when no range given)
-    const defaultFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-    const windowFrom = dateFromParam || defaultFrom;
-    const windowTo = dateToParam || null;
+    const windowFrom = searchParams.get("date_from");
+    const windowTo = searchParams.get("date_to");
 
     const db = getServiceClient();
 
+    const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     let providerWindowedQuery = db
       .from("provider_activity")
       .select("event_type, metadata")
-      .gte("created_at", windowFrom)
       .in("event_type", [...PROVIDER_EVENT_TYPES])
       .limit(50000);
+    if (windowFrom) providerWindowedQuery = providerWindowedQuery.gte("created_at", windowFrom);
     if (windowTo) providerWindowedQuery = providerWindowedQuery.lt("created_at", windowTo);
 
     let seekerWindowedQuery = db
       .from("seeker_activity")
       .select("event_type")
-      .gte("created_at", windowFrom)
       .in("event_type", [...SEEKER_EVENT_TYPES])
       .limit(50000);
+    if (windowFrom) seekerWindowedQuery = seekerWindowedQuery.gte("created_at", windowFrom);
     if (windowTo) seekerWindowedQuery = seekerWindowedQuery.lt("created_at", windowTo);
 
     const [providerWindowedRes, seekerWindowedRes, last7dViewsRes, latestRes] = await Promise.all([

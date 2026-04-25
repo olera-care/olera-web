@@ -17,14 +17,20 @@ const SEEKER_EVENT_TYPES = [
 ] as const;
 
 // Events counted as DISTINCT providers (not raw events) for the Providers
-// section. Filtered further by metadata in two cases:
-//   one_click_access  → only when metadata.action='question'  (Q&A sign-ins)
-//   claim_completed   → only when metadata.source='page'      (page-flow claims)
+// section. Two of the buckets are sub-filters on one_click_access since
+// those flows only differ by the email link they came from (action param):
+//   one_click_access AND metadata.action='question'  → Q&A sign-ins
+//   one_click_access AND metadata.action='lead'      → engaged with leads
+//   claim_completed  AND metadata.source='page'      → page-flow claims
+//
+// (Aside: lead_opened is whitelisted in the CHECK but never fired anywhere
+// in the codebase as of 2026-04-25, so we use the lead-email click-through
+// from one_click_access as the "engaged with leads" proxy. Same shape as
+// the Q&A sign-ins metric.)
 const PROVIDER_DISTINCT_EVENT_TYPES = [
   "one_click_access",
   "claim_completed",
   "question_responded",
-  "lead_opened",
   "analytics_teaser_cta_clicked",
 ] as const;
 
@@ -184,13 +190,13 @@ export async function GET(request: NextRequest) {
       const pid = r.provider_id;
       if (!pid) continue;
       if (r.event_type === "one_click_access") {
-        if (r.metadata?.action === "question") distinctSets.qa_signins.add(pid);
+        const action = r.metadata?.action;
+        if (action === "question") distinctSets.qa_signins.add(pid);
+        else if (action === "lead") distinctSets.lead_engagers.add(pid);
       } else if (r.event_type === "claim_completed") {
         if (r.metadata?.source === "page") distinctSets.page_claims.add(pid);
       } else if (r.event_type === "question_responded") {
         distinctSets.question_answerers.add(pid);
-      } else if (r.event_type === "lead_opened") {
-        distinctSets.lead_engagers.add(pid);
       } else if (r.event_type === "analytics_teaser_cta_clicked") {
         distinctSets.teaser_clickers.add(pid);
       }

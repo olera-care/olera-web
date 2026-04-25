@@ -2,18 +2,27 @@
 
 import { useEffect, useState } from "react";
 import PulseHeader from "@/components/admin/PulseHeader";
-import { type DateRangeValue } from "@/components/admin/DateRangePopover";
+import {
+  resolveRange,
+  rangeLabel,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
+
+interface WindowedCounts {
+  page_view: number;
+  search_click: number;
+  benefits_started: number;
+  lead_received: number;
+  review_received: number;
+  question_received: number;
+  benefits_completed: number;
+  matches_activated: number;
+}
 
 interface SummaryResponse {
-  last24h: {
-    counts: {
-      page_view: number;
-      search_click: number;
-      cta_click_public: number;
-      lead_received: number;
-      review_received: number;
-      question_received: number;
-    };
+  windowed: {
+    range: { from: string | null; to: string | null };
+    counts: WindowedCounts;
     unique_sessions_page_view: number;
   };
   botRejects: { count: number; date: string };
@@ -44,7 +53,12 @@ export default function AdminAnalyticsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch("/api/admin/analytics/summary")
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams();
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    const qs = params.toString();
+    fetch(`/api/admin/analytics/summary${qs ? `?${qs}` : ""}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled) setSummary(data);
@@ -58,7 +72,7 @@ export default function AdminAnalyticsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [range]);
 
   return (
     <div>
@@ -70,7 +84,7 @@ export default function AdminAnalyticsPage() {
         onRangeChange={setRange}
       />
 
-      <Last24hCard summary={summary} loading={loading} />
+      <WindowedCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
@@ -83,31 +97,55 @@ export default function AdminAnalyticsPage() {
   );
 }
 
-function Last24hCard({ summary, loading }: { summary: SummaryResponse | null; loading: boolean }) {
+function WindowedCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5 mb-6">
-      <div className="flex items-baseline justify-between mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Last 24 hours</h2>
+      <div className="flex items-baseline justify-between mb-5">
+        <h2 className="text-base font-semibold text-gray-900">{rangeLabel(range)}</h2>
         <BotBadge summary={summary} />
       </div>
       {loading ? (
-        <div className="h-24 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+        <div className="h-40 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary ? (
         <p className="text-sm text-gray-400">Failed to load.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
-          <Stat label="Page views" value={summary.last24h.counts.page_view} />
-          <Stat
-            label="Unique sessions"
-            value={summary.last24h.unique_sessions_page_view}
-          />
-          <Stat label="Search clicks" value={summary.last24h.counts.search_click} />
-          <Stat label="CTA clicks" value={summary.last24h.counts.cta_click_public} />
-          <Stat label="Questions" value={summary.last24h.counts.question_received} />
-          <Stat label="Leads" value={summary.last24h.counts.lead_received} />
-          <Stat label="Reviews" value={summary.last24h.counts.review_received} />
+        <div className="space-y-6">
+          <Section label="Discovery">
+            <Stat label="Page views" value={summary.windowed.counts.page_view} />
+            <Stat label="Unique sessions" value={summary.windowed.unique_sessions_page_view} />
+            <Stat label="Card clicks" value={summary.windowed.counts.search_click} />
+          </Section>
+          <Section label="Engagement">
+            <Stat label="Questions" value={summary.windowed.counts.question_received} />
+            <Stat label="Leads" value={summary.windowed.counts.lead_received} />
+            <Stat label="Reviews" value={summary.windowed.counts.review_received} />
+          </Section>
+          <Section label="Families">
+            <Stat label="Benefits started" value={summary.windowed.counts.benefits_started} />
+            <Stat label="Benefits finished" value={summary.windowed.counts.benefits_completed} />
+            <Stat label="Profiles published" value={summary.windowed.counts.matches_activated} />
+          </Section>
         </div>
       )}
+    </div>
+  );
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+        {label}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">{children}</div>
     </div>
   );
 }
@@ -244,6 +282,7 @@ const EVENT_TONE: Record<string, string> = {
   page_view: "bg-emerald-50 text-emerald-700",
   search_click: "bg-sky-50 text-sky-700",
   cta_click_public: "bg-violet-50 text-violet-700",
+  benefits_started: "bg-teal-50 text-teal-700",
   lead_received: "bg-amber-50 text-amber-700",
   review_received: "bg-yellow-50 text-yellow-800",
   question_received: "bg-blue-50 text-blue-700",

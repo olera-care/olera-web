@@ -35,8 +35,7 @@ import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
 import RecentActivityCard from "./v2/RecentActivityCard";
 import CohortContextCard from "./v2/CohortContextCard";
-import ReviewInvitationsCard from "./v2/ReviewInvitationsCard";
-import TrafficSummaryCard from "./v2/TrafficSummaryCard";
+import SidebarSummary from "./v2/SidebarSummary";
 
 // Phase 2 redesign gate — same flag the Phase 1 onboard teaser uses, so
 // the onboard teaser's "See your analytics →" CTA and the new dashboard
@@ -342,9 +341,8 @@ function DashboardContent({
               <RecentActivityCard data={v2Data} />
               <CohortContextCard data={v2Data} />
             </div>
-            <div className="lg:col-span-1 space-y-6">
-              <TrafficSummaryCard data={v2Data} />
-              <ReviewInvitationsCard data={v2Data} />
+            <div className="lg:col-span-1">
+              <SidebarSummary data={v2Data} />
             </div>
           </div>
         </>
@@ -853,6 +851,15 @@ function NotificationPreferencesCard({
             }`}
           />
         </button>
+      </div>
+
+      <div className="mt-2 pt-4 border-t border-gray-100">
+        <Link
+          href="/portal/analytics"
+          className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          See full traffic report →
+        </Link>
       </div>
     </div>
   );

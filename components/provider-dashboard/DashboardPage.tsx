@@ -171,8 +171,8 @@ function DashboardContent({
 
   // Layout version toggle for A/B exploration (temporary - for branch review only)
   // Version 1: Activity merged into sidebar stats card
-  // Version 2: Activity as separate card in left column, stats-only sidebar
-  const [layoutVersion, setLayoutVersion] = useState<1 | 2>(1);
+  // Version 2: Activity as separate section in left column, stats-only sidebar (default)
+  const [layoutVersion, setLayoutVersion] = useState<1 | 2>(2);
 
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
@@ -1332,7 +1332,7 @@ function LeftColumnActivityCard({
   const displayItems = activities.slice(0, 3);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+    <div className="py-2">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
         Recent activity
       </p>
@@ -1396,65 +1396,46 @@ function StatsOnlyCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-      <div className="px-5 pt-5 pb-4">
-        <h3 className="text-base font-display font-bold text-gray-900">
-          This month
-        </h3>
-      </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Views */}
+        <div className="space-y-1">
+          <p className="font-display text-[36px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+            {views.thisPeriod.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">views this month</p>
+        </div>
 
-      <div className="px-5 pb-5">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Views */}
-          <div className="space-y-1">
-            <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-              {views.thisPeriod.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-500">profile views</p>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-            >
-              {copied ? "Link copied!" : "Share profile"}
-            </button>
-          </div>
-
-          {/* Reviews */}
-          <div className="space-y-1">
-            {reviews.avgRating !== null ? (
-              <>
-                <div className="flex items-baseline gap-1">
-                  <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-                    {reviews.avgRating.toFixed(1)}
-                  </p>
-                  <span className="text-amber-500 text-xs tracking-tight">{fullStars}</span>
-                </div>
-                <p className="text-sm text-gray-500">
-                  {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
+        {/* Reviews */}
+        <div className="space-y-1">
+          {reviews.avgRating !== null ? (
+            <>
+              <div className="flex items-baseline gap-1">
+                <p className="font-display text-[36px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                  {reviews.avgRating.toFixed(1)}
                 </p>
-                <a
-                  href="/provider/reviews"
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Get more reviews
-                </a>
-              </>
-            ) : (
-              <>
-                <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
-                <p className="text-sm text-gray-500">no reviews yet</p>
-                <a
-                  href="/provider/reviews"
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Get more reviews
-                </a>
-              </>
-            )}
-          </div>
+                <span className="text-amber-500 text-sm tracking-tight">{fullStars}</span>
+              </div>
+              <p className="text-sm text-gray-500">
+                {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-[36px] font-semibold text-gray-300 leading-none">—</p>
+              <p className="text-sm text-gray-500">no reviews yet</p>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Action link */}
+      <a
+        href="/provider/reviews"
+        className="inline-block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        Get more reviews →
+      </a>
     </div>
   );
 }

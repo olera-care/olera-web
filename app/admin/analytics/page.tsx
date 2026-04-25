@@ -176,8 +176,13 @@ function WindowedCard({
 }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-6">{rangeLabel(range)}</h2>
-      {loading ? (
+      <div className="flex items-baseline gap-3 mb-6">
+        <h2 className="text-base font-semibold text-gray-900">{rangeLabel(range)}</h2>
+        {loading && summary && (
+          <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>
+        )}
+      </div>
+      {loading && !summary ? (
         <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary ? (
         <p className="text-sm text-gray-400">Failed to load.</p>
@@ -258,7 +263,7 @@ function WindowedCard({
             label="Providers"
             tint="bg-gradient-to-br from-indigo-50/30 to-transparent"
           >
-            <SubRow>
+            <SubRow cols={5}>
               <Stat
                 label="Sign-ins from Q&A"
                 value={summary.windowed.provider_distinct_counts.qa_signins}
@@ -320,7 +325,17 @@ function AudienceGroup({
   );
 }
 
-function SubRow({ label, children }: { label?: string; children: React.ReactNode }) {
+function SubRow({
+  label,
+  cols = 3,
+  children,
+}: {
+  label?: string;
+  cols?: 3 | 5;
+  children: React.ReactNode;
+}) {
+  // Different lg col counts so 3-tile rows breathe and 5-tile rows fit.
+  const colsClass = cols === 5 ? "lg:grid-cols-5" : "lg:grid-cols-3";
   return (
     <div>
       {label && (
@@ -328,7 +343,7 @@ function SubRow({ label, children }: { label?: string; children: React.ReactNode
           {label}
         </div>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+      <div className={`grid grid-cols-2 sm:grid-cols-3 ${colsClass} gap-x-5 gap-y-4`}>
         {children}
       </div>
     </div>
@@ -443,7 +458,7 @@ function TopProvidersCard({
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
       <h2 className="text-base font-semibold text-gray-900 mb-4">Top providers (last 7 days)</h2>
-      {loading ? (
+      {loading && !summary ? (
         <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || sorted.length === 0 ? (
         <p className="text-sm text-gray-400">No page views logged yet.</p>
@@ -553,7 +568,7 @@ function LatestEventsCard({
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
       <h2 className="text-base font-semibold text-gray-900 mb-4">Latest 50 events</h2>
-      {loading ? (
+      {loading && !summary ? (
         <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || summary.latestEvents.length === 0 ? (
         <p className="text-sm text-gray-400">No events yet.</p>

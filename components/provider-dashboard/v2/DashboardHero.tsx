@@ -34,16 +34,19 @@ export default function DashboardHero({ firstName, data }: Props) {
   const hook = resolveHook(data);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6">
+    <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6 md:min-h-[260px]">
       {/* Background image — warm photo behind the card. Hidden on mobile so
-          the headline doesn't have to fight a busy backdrop at narrow widths. */}
+          the headline doesn't have to fight a busy backdrop at narrow widths.
+          Vertical anchor biased to the face (upper-right of source frame) so
+          wide viewports, where content wraps less and the card is shorter,
+          don't crop the face out. Paired with md:min-h-[260px] on the card. */}
       <div
         aria-hidden
         className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `url('${HERO_IMAGE_URL}')`,
           backgroundSize: "cover",
-          backgroundPosition: "right center",
+          backgroundPosition: "right 35%",
         }}
       />
       {/* Left-to-right dark gradient — keeps the headline readable while the

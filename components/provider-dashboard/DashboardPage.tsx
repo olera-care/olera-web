@@ -1397,13 +1397,24 @@ function StatsOnlyCard({
 
   return (
     <div className="space-y-4">
+      <h3 className="text-base font-display font-bold text-gray-900">
+        This month
+      </h3>
+
       <div className="grid grid-cols-2 gap-4">
         {/* Views */}
         <div className="space-y-1">
-          <p className="font-display text-[36px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
             {views.thisPeriod.toLocaleString()}
           </p>
-          <p className="text-sm text-gray-500">views this month</p>
+          <p className="text-sm text-gray-500">profile views</p>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            {copied ? "Link copied!" : "Share profile"}
+          </button>
         </div>
 
         {/* Reviews */}
@@ -1411,31 +1422,35 @@ function StatsOnlyCard({
           {reviews.avgRating !== null ? (
             <>
               <div className="flex items-baseline gap-1">
-                <p className="font-display text-[36px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
                   {reviews.avgRating.toFixed(1)}
                 </p>
-                <span className="text-amber-500 text-sm tracking-tight">{fullStars}</span>
+                <span className="text-amber-500 text-xs tracking-tight">{fullStars}</span>
               </div>
               <p className="text-sm text-gray-500">
                 {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
               </p>
+              <a
+                href="/provider/reviews"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Get more reviews
+              </a>
             </>
           ) : (
             <>
-              <p className="font-display text-[36px] font-semibold text-gray-300 leading-none">—</p>
+              <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
               <p className="text-sm text-gray-500">no reviews yet</p>
+              <a
+                href="/provider/reviews"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Get more reviews
+              </a>
             </>
           )}
         </div>
       </div>
-
-      {/* Action link */}
-      <a
-        href="/provider/reviews"
-        className="inline-block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        Get more reviews →
-      </a>
     </div>
   );
 }

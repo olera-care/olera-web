@@ -16,6 +16,18 @@ const SEEKER_EVENT_TYPES = [
   "matches_activated",
 ] as const;
 
+// Events counted as DISTINCT providers (not raw events) for the Providers
+// section. Filtered further by metadata in two cases:
+//   one_click_access  → only when metadata.action='question'  (Q&A sign-ins)
+//   claim_completed   → only when metadata.source='page'      (page-flow claims)
+const PROVIDER_DISTINCT_EVENT_TYPES = [
+  "one_click_access",
+  "claim_completed",
+  "question_responded",
+  "lead_opened",
+  "analytics_teaser_cta_clicked",
+] as const;
+
 type ProviderEvent = (typeof PROVIDER_EVENT_TYPES)[number];
 type SeekerEvent = (typeof SEEKER_EVENT_TYPES)[number];
 type CountedEvent = ProviderEvent | SeekerEvent;
@@ -73,9 +85,20 @@ export async function GET(request: NextRequest) {
     if (windowFrom) seekerWindowedQuery = seekerWindowedQuery.gte("created_at", windowFrom);
     if (windowTo) seekerWindowedQuery = seekerWindowedQuery.lt("created_at", windowTo);
 
-    const [providerWindowedRes, seekerWindowedRes, last7dViewsRes, latestRes] = await Promise.all([
+    // Distinct-provider counts for the Providers section. Pulls all candidate
+    // events in the window; bucketing + metadata filtering happens in memory.
+    let providerDistinctQuery = db
+      .from("provider_activity")
+      .select("provider_id, event_type, metadata")
+      .in("event_type", [...PROVIDER_DISTINCT_EVENT_TYPES])
+      .limit(50000);
+    if (windowFrom) providerDistinctQuery = providerDistinctQuery.gte("created_at", windowFrom);
+    if (windowTo) providerDistinctQuery = providerDistinctQuery.lt("created_at", windowTo);
+
+    const [providerWindowedRes, seekerWindowedRes, providerDistinctRes, last7dViewsRes, latestRes] = await Promise.all([
       providerWindowedQuery,
       seekerWindowedQuery,
+      providerDistinctQuery,
       // Top providers: 7d page_views only, anonymous (session_id present).
       db
         .from("provider_activity")
@@ -98,6 +121,10 @@ export async function GET(request: NextRequest) {
     if (seekerWindowedRes.error) {
       console.error("[admin/analytics/summary] seeker windowed query failed:", seekerWindowedRes.error);
       return NextResponse.json({ error: "Failed to load family counts" }, { status: 500 });
+    }
+    if (providerDistinctRes.error) {
+      console.error("[admin/analytics/summary] provider distinct query failed:", providerDistinctRes.error);
+      return NextResponse.json({ error: "Failed to load provider distinct counts" }, { status: 500 });
     }
     if (last7dViewsRes.error) {
       console.error("[admin/analytics/summary] 7d views query failed:", last7dViewsRes.error);
@@ -137,6 +164,35 @@ export async function GET(request: NextRequest) {
     for (const r of seekerRows) {
       if ((SEEKER_EVENT_TYPES as readonly string[]).includes(r.event_type)) {
         counts[r.event_type as SeekerEvent] += 1;
+      }
+    }
+
+    // Distinct-provider bucketing for the Providers section.
+    const distinctRows = (providerDistinctRes.data ?? []) as Array<{
+      provider_id: string | null;
+      event_type: string;
+      metadata: Record<string, unknown> | null;
+    }>;
+    const distinctSets = {
+      qa_signins: new Set<string>(),
+      page_claims: new Set<string>(),
+      question_answerers: new Set<string>(),
+      lead_engagers: new Set<string>(),
+      teaser_clickers: new Set<string>(),
+    };
+    for (const r of distinctRows) {
+      const pid = r.provider_id;
+      if (!pid) continue;
+      if (r.event_type === "one_click_access") {
+        if (r.metadata?.action === "question") distinctSets.qa_signins.add(pid);
+      } else if (r.event_type === "claim_completed") {
+        if (r.metadata?.source === "page") distinctSets.page_claims.add(pid);
+      } else if (r.event_type === "question_responded") {
+        distinctSets.question_answerers.add(pid);
+      } else if (r.event_type === "lead_opened") {
+        distinctSets.lead_engagers.add(pid);
+      } else if (r.event_type === "analytics_teaser_cta_clicked") {
+        distinctSets.teaser_clickers.add(pid);
       }
     }
 
@@ -185,6 +241,13 @@ export async function GET(request: NextRequest) {
         range: { from: windowFrom, to: windowTo },
         counts,
         unique_sessions_page_view: uniqueSessions.size,
+        provider_distinct_counts: {
+          qa_signins: distinctSets.qa_signins.size,
+          page_claims: distinctSets.page_claims.size,
+          question_answerers: distinctSets.question_answerers.size,
+          lead_engagers: distinctSets.lead_engagers.size,
+          teaser_clickers: distinctSets.teaser_clickers.size,
+        },
       },
       botRejects,
       topProviders,

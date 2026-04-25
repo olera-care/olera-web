@@ -19,11 +19,20 @@ interface WindowedCounts {
   matches_activated: number;
 }
 
+interface ProviderDistinctCounts {
+  qa_signins: number;
+  page_claims: number;
+  question_answerers: number;
+  lead_engagers: number;
+  teaser_clickers: number;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
     counts: WindowedCounts;
     unique_sessions_page_view: number;
+    provider_distinct_counts: ProviderDistinctCounts;
   };
   botRejects: { count: number; date: string };
   topProviders: Array<{
@@ -132,6 +141,13 @@ function WindowedCard({
             <Stat label="Benefits started" value={summary.windowed.counts.benefits_started} />
             <Stat label="Benefits finished" value={summary.windowed.counts.benefits_completed} />
             <Stat label="Profiles published" value={summary.windowed.counts.matches_activated} />
+          </Section>
+          <Section label="Providers">
+            <Stat label="Sign-ins from Q&A" value={summary.windowed.provider_distinct_counts.qa_signins} />
+            <Stat label="Page-flow claims" value={summary.windowed.provider_distinct_counts.page_claims} />
+            <Stat label="Answered questions" value={summary.windowed.provider_distinct_counts.question_answerers} />
+            <Stat label="Engaged with leads" value={summary.windowed.provider_distinct_counts.lead_engagers} />
+            <Stat label="Clicked dashboard CTA" value={summary.windowed.provider_distinct_counts.teaser_clickers} />
           </Section>
         </div>
       )}
@@ -283,6 +299,7 @@ const EVENT_TONE: Record<string, string> = {
   search_click: "bg-sky-50 text-sky-700",
   cta_click_public: "bg-violet-50 text-violet-700",
   benefits_started: "bg-teal-50 text-teal-700",
+  claim_completed: "bg-indigo-50 text-indigo-700",
   lead_received: "bg-amber-50 text-amber-700",
   review_received: "bg-yellow-50 text-yellow-800",
   question_received: "bg-blue-50 text-blue-700",

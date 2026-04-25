@@ -21,7 +21,6 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
-import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import VerificationStatusCard from "./VerificationStatusCard";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
@@ -33,9 +32,7 @@ import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
-import RecentActivityCard from "./v2/RecentActivityCard";
 import CohortContextCard from "./v2/CohortContextCard";
-import SidebarSummary from "./v2/SidebarSummary";
 
 // Phase 2 redesign gate — same flag the Phase 1 onboard teaser uses, so
 // the onboard teaser's "See your analytics →" CTA and the new dashboard
@@ -327,27 +324,6 @@ function DashboardContent({
         ) : null;
       })()}
 
-      {/* Phase 2 pillars. Render a skeleton while v2 is loading so the page
-          doesn't flash the old layout first (which looks like a regression). */}
-      {v2Loading && <DashboardPillarsSkeleton />}
-      {v2Data && (
-        <>
-          <DashboardHero
-            firstName={deriveFirstName(profile.display_name)}
-            data={v2Data}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
-            <div className="lg:col-span-2 space-y-6">
-              <RecentActivityCard data={v2Data} />
-              <CohortContextCard data={v2Data} />
-            </div>
-            <div className="lg:col-span-1">
-              <SidebarSummary data={v2Data} />
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Mobile progress banner - hidden on desktop */}
       <MobileProgressBanner
         completeness={completeness}
@@ -362,9 +338,29 @@ function DashboardContent({
         lastUpdated={profile.updated_at}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Main content — staggered entrance */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Phase 2 pillars skeleton while loading */}
+      {v2Loading && <DashboardPillarsSkeleton />}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          EXPERIMENTAL LAYOUT: Two-column split
+          - LEFT (scrolls): Hero + all profile cards
+          - RIGHT (sticky): Stats + Activity + Completeness
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+        {/* ─── LEFT COLUMN: Scrollable profile content ─── */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Hero banner - now in left column */}
+          {v2Data && (
+            <div style={{ animation: "card-enter 0.25s ease-out both" }}>
+              <DashboardHero
+                firstName={deriveFirstName(profile.display_name)}
+                data={v2Data}
+              />
+            </div>
+          )}
+
+          {/* Profile cards - all scrollable */}
           {[
             <ProfileOverviewCard
               key="overview"
@@ -421,7 +417,7 @@ function DashboardContent({
               key={i}
               style={{
                 animation: "card-enter 0.25s ease-out both",
-                animationDelay: `${i * 60}ms`,
+                animationDelay: `${(i + 1) * 60}ms`,
               }}
             >
               {card}
@@ -429,22 +425,70 @@ function DashboardContent({
           ))}
         </div>
 
-        {/* Sidebar - hidden on mobile */}
-        <div className="hidden lg:block lg:col-span-1">
+        {/* ─── RIGHT COLUMN: Sticky stats & completeness ─── */}
+        <div className="hidden lg:block lg:col-span-5">
           <div
-            className="sticky top-24 space-y-4"
+            className="sticky top-24 space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent pr-1"
             style={{
               animation: "card-enter 0.25s ease-out both",
-              animationDelay: "450ms",
+              animationDelay: "100ms",
             }}
           >
+            {/* Stats grid - views, reviews, response rate, leads */}
+            {v2Data && (
+              <StickyStatsPanel data={v2Data} />
+            )}
+
+            {/* Recent activity feed */}
+            {v2Data && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+                <p className="text-xs font-medium text-gray-500 tracking-wide uppercase mb-3">
+                  Recent activity
+                </p>
+                {v2Data.recentActivity.length === 0 ? (
+                  <p className="text-sm text-gray-400">
+                    Nothing yet. As families interact with your page, you&apos;ll see it here.
+                  </p>
+                ) : (
+                  <>
+                    <ul className="space-y-2.5">
+                      {v2Data.recentActivity.slice(0, 3).map((item) => (
+                        <li key={item.id} className="flex items-baseline gap-3">
+                          <time className="text-xs text-gray-400 tabular-nums w-8 shrink-0">
+                            {formatRelativeTime(item.timestamp)}
+                          </time>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 leading-snug truncate">
+                              {item.detail ? `"${item.detail}"` : item.title}
+                            </p>
+                            {item.actorName && (
+                              <p className="text-xs text-gray-500 mt-0.5">{item.actorName}</p>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {v2Data.recentActivity.length > 3 && (
+                      <p className="mt-3 text-xs text-gray-500">
+                        +{v2Data.recentActivity.length - 3} more
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Cohort context - families searching nearby */}
+            {v2Data && <CohortContextCard data={v2Data} />}
+
             {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               onRequestVerification={handleOpenVerificationModal}
             />
 
-            <ProfileCompletenessSidebar
+            {/* Profile completeness - collapsible */}
+            <CollapsibleProfileCompleteness
               completeness={completeness}
               lastUpdated={profile.updated_at}
             />
@@ -875,60 +919,398 @@ function deriveFirstName(displayName: string | null): string {
 }
 
 /**
- * Placeholder for the Phase 2 pillars while v2Data is loading. Matches the
- * grid shape of the real layout (hero row + 2/3 + 1/3 columns) so the page
- * doesn't shift when real content lands.
+ * Placeholder skeleton for the new two-column layout while v2Data is loading.
+ * LEFT: Hero + profile cards (scrollable)
+ * RIGHT: Stats + Activity + Completeness (sticky)
  */
 function DashboardPillarsSkeleton() {
   return (
     <div aria-hidden className="animate-pulse">
-      {/* Hero */}
-      <div className="rounded-2xl bg-white border border-gray-100 p-6 mb-6">
-        <div className="h-3 w-40 bg-gray-100 rounded mb-4" />
-        <div className="h-7 w-80 max-w-full bg-gray-100 rounded mb-3" />
-        <div className="h-4 w-64 max-w-full bg-gray-100 rounded mb-5" />
-        <div className="h-4 w-32 bg-gray-100 rounded" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-32 bg-gray-100 rounded mb-5" />
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* Left column skeleton */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Hero skeleton */}
+          <div className="rounded-2xl bg-warm-950/80 p-6 min-h-[200px]">
+            <div className="h-3 w-24 bg-warm-800 rounded mb-3" />
+            <div className="h-6 w-64 max-w-full bg-warm-800 rounded mb-2" />
+            <div className="h-4 w-48 max-w-full bg-warm-800 rounded mb-4" />
+            <div className="h-9 w-32 bg-vanilla-100/20 rounded-full" />
+          </div>
+          {/* Profile card skeletons */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl bg-white border border-gray-100 p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-xl bg-gray-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-32 bg-gray-100 rounded" />
+                  <div className="h-5 w-48 bg-gray-100 rounded" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-4 w-full bg-gray-100 rounded" />
+                <div className="h-4 w-3/4 bg-gray-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Right column skeleton */}
+        <div className="hidden lg:block lg:col-span-5 space-y-5">
+          {/* Stats skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="h-10 w-12 bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-28 bg-gray-100 rounded mb-4" />
+            <div className="h-6 w-10 bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-24 bg-gray-100 rounded" />
+          </div>
+          {/* Activity skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="h-3 w-28 bg-gray-100 rounded mb-4" />
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
                 <div key={i} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+                  <div className="w-10 h-4 bg-gray-100 rounded shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 bg-gray-100 rounded" />
-                    <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                    <div className="h-4 w-full bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-36 bg-gray-100 rounded mb-4" />
-            <div className="h-5 w-64 max-w-full bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-48 bg-gray-100 rounded" />
-          </div>
-        </div>
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-16 bg-gray-100 rounded mb-4" />
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="h-7 w-12 bg-gray-100 rounded" />
-              <div className="h-7 w-12 bg-gray-100 rounded" />
+          {/* Completeness skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 w-36 bg-gray-100 rounded" />
+              <div className="h-4 w-10 bg-gray-100 rounded" />
             </div>
-            <div className="h-4 w-40 bg-gray-100 rounded pt-4 border-t border-gray-100" />
-          </div>
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-28 bg-gray-100 rounded mb-3" />
-            <div className="h-7 w-20 bg-gray-100 rounded mb-3" />
-            <div className="h-4 w-full bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-2/3 bg-gray-100 rounded" />
+            <div className="h-2 w-full bg-gray-100 rounded-full" />
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+/**
+ * Collapsible Profile Completeness Card
+ *
+ * Shows a condensed progress bar when collapsed, expands to full checklist.
+ * Starts expanded on first visit, remembers collapsed state via localStorage.
+ */
+function CollapsibleProfileCompleteness({
+  completeness,
+  lastUpdated,
+}: {
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+  lastUpdated: string;
+}) {
+  // Check localStorage for saved preference, default to expanded
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("olera-completeness-expanded");
+    // Default to expanded if no preference saved
+    return saved === null ? true : saved === "true";
+  });
+
+  const handleToggle = () => {
+    const newValue = !isExpanded;
+    setIsExpanded(newValue);
+    localStorage.setItem("olera-completeness-expanded", String(newValue));
+  };
+
+  const formattedDate = new Date(lastUpdated).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const getStatusText = (percent: number): string => {
+    if (percent >= 100) return "ALL DONE!";
+    if (percent >= 76) return "NEARLY COMPLETE!";
+    if (percent >= 51) return "LOOKING GOOD!";
+    if (percent >= 26) return "ALMOST THERE!";
+    return "JUST GETTING STARTED";
+  };
+
+  return (
+    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      {/* Header - always visible, clickable to toggle */}
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-5 hover:bg-vanilla-50/50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <h3 className="text-base font-display font-bold text-gray-900">
+            Profile completeness
+          </h3>
+          {!isExpanded && (
+            <span className="text-sm font-semibold text-primary-600">
+              {completeness.overall}%
+            </span>
+          )}
+        </div>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+            isExpanded ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Collapsed state - compact progress bar */}
+      {!isExpanded && (
+        <div className="px-5 pb-4 -mt-2">
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-500 rounded-full transition-all duration-500"
+              style={{ width: `${completeness.overall}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {completeness.sections.filter((s) => s.percent >= 100).length} of{" "}
+            {completeness.sections.length} sections complete
+          </p>
+        </div>
+      )}
+
+      {/* Expanded state - full donut + checklist */}
+      {isExpanded && (
+        <div className="px-5 pb-5 -mt-2">
+          {/* Circular progress */}
+          <div className="flex justify-center mb-2">
+            <div className="relative w-[90px] h-[90px]">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#f3f4f6"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#199087"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${completeness.overall * 2.64} 264`}
+                  className="transition-all duration-500"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold text-gray-900">
+                  {completeness.overall}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status text */}
+          <p className="text-center text-xs font-semibold tracking-wide uppercase text-gray-900 font-display mb-0.5">
+            {getStatusText(completeness.overall)}
+          </p>
+          <p className="text-center text-[11px] text-gray-400 mb-4">
+            Last updated: {formattedDate}
+          </p>
+
+          {/* Section checklist - compact */}
+          <div className="space-y-0.5">
+            {completeness.sections.map((section) => {
+              const isComplete = section.percent >= 100;
+              return (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className="flex items-center justify-between py-2 px-2 -mx-2 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {isComplete ? (
+                      <div className="w-4 h-4 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                        <svg
+                          className="w-2.5 h-2.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-gray-200 shrink-0" />
+                    )}
+                    <span
+                      className={`text-sm ${
+                        isComplete
+                          ? "text-primary-600 font-medium"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {section.label}
+                    </span>
+                  </div>
+                  {!isComplete && (
+                    <span className="text-xs font-medium text-primary-600">
+                      {section.percent}%
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Stats panel for sticky right sidebar — 2x2 grid layout
+ * Shows: Views, Reviews, Response Rate, New Leads
+ */
+function StickyStatsPanel({
+  data,
+}: {
+  data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data;
+}) {
+  const { views, reviews, responseRate, greeting } = data;
+  const window = data.window;
+
+  const periodLabel =
+    window === "7d" ? "this week" : window === "90d" ? "this quarter" : "this month";
+
+  // Calculate response rate percentage
+  const responseRatePct =
+    responseRate.totalQuestions > 0
+      ? Math.round((responseRate.answeredCount / responseRate.totalQuestions) * 100)
+      : null;
+
+  // Delta direction for views
+  const viewsDelta = views.deltaPct;
+  const viewsDirection: "up" | "down" | "flat" =
+    viewsDelta === null || viewsDelta === 0
+      ? "flat"
+      : viewsDelta > 0
+        ? "up"
+        : "down";
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Views */}
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-1.5">
+            <p className="font-display text-[28px] font-semibold text-gray-900 leading-none tabular-nums">
+              {views.thisPeriod.toLocaleString()}
+            </p>
+            {viewsDelta !== null && views.priorPeriod > 0 && (
+              <span
+                className={`text-xs font-medium ${
+                  viewsDirection === "up"
+                    ? "text-emerald-600"
+                    : viewsDirection === "down"
+                      ? "text-gray-400"
+                      : "text-gray-400"
+                }`}
+              >
+                {viewsDirection === "up" ? "↑" : viewsDirection === "down" ? "↓" : ""}
+                {Math.abs(viewsDelta)}%
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500">views {periodLabel}</p>
+        </div>
+
+        {/* Reviews */}
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-1.5">
+            {reviews.avgRating !== null ? (
+              <>
+                <p className="font-display text-[28px] font-semibold text-gray-900 leading-none tabular-nums">
+                  {reviews.avgRating.toFixed(1)}
+                </p>
+                <span className="text-amber-500 text-sm">★</span>
+              </>
+            ) : (
+              <p className="font-display text-[28px] font-semibold text-gray-300 leading-none">
+                —
+              </p>
+            )}
+          </div>
+          <p className="text-xs text-gray-500">
+            {reviews.count > 0 ? `${reviews.count} review${reviews.count === 1 ? "" : "s"}` : "no reviews"}
+          </p>
+        </div>
+
+        {/* Response Rate */}
+        <div className="space-y-1">
+          <p className="font-display text-[28px] font-semibold leading-none tabular-nums">
+            {responseRatePct !== null ? (
+              <span className={responseRatePct >= 80 ? "text-emerald-600" : responseRatePct >= 50 ? "text-amber-600" : "text-gray-900"}>
+                {responseRatePct}%
+              </span>
+            ) : (
+              <span className="text-gray-300">—</span>
+            )}
+          </p>
+          <p className="text-xs text-gray-500">response rate</p>
+        </div>
+
+        {/* New Leads */}
+        <div className="space-y-1">
+          <p className="font-display text-[28px] font-semibold text-gray-900 leading-none tabular-nums">
+            {greeting.newLeadsThisPeriod}
+          </p>
+          <p className="text-xs text-gray-500">
+            {greeting.newLeadsThisPeriod === 1 ? "new lead" : "new leads"}
+          </p>
+        </div>
+      </div>
+
+      {/* Quick action link */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <a
+          href="/provider/reviews"
+          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          Get more reviews →
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Format a timestamp as relative time (1m, 2h, 3d, etc.)
+ */
+function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 60) return "now";
+  const mins = Math.round(diffSec / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.round(hrs / 24);
+  if (days < 7) return `${days}d`;
+  const weeks = Math.round(days / 7);
+  if (weeks < 4) return `${weeks}w`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

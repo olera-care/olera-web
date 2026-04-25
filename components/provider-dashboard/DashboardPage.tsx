@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
@@ -974,6 +974,16 @@ function CollapsibleProfileCompleteness({
     // Use localStorage if set, otherwise use defaultExpanded prop
     return saved === null ? defaultExpanded : saved === "true";
   });
+
+  // Sync state when defaultExpanded changes (for V1/V2 toggle demo)
+  // Only applies if user hasn't explicitly set a preference
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("olera-completeness-expanded");
+    if (saved === null) {
+      setIsExpanded(defaultExpanded);
+    }
+  }, [defaultExpanded]);
 
   const handleToggle = () => {
     const newValue = !isExpanded;

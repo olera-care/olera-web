@@ -432,7 +432,8 @@ function DashboardContent({
         </div>
 
         {/* ─── RIGHT COLUMN: Sticky stats & completeness ─── */}
-        <div className="hidden lg:block lg:col-span-1">
+        {/* self-stretch ensures this column matches left column height, enabling sticky */}
+        <div className="hidden lg:block lg:col-span-1 self-stretch">
           <div
             className="sticky top-24 space-y-4"
             style={{

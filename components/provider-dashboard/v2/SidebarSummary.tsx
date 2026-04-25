@@ -45,13 +45,7 @@ export default function SidebarSummary({ data }: Props) {
         oleraCount={reviews.oleraCount}
       />
 
-      <div className="pt-4 border-t border-gray-200/70 space-y-2.5">
-        <Link
-          href="/portal/analytics"
-          className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"
-        >
-          See full traffic report →
-        </Link>
+      <div className="pt-4 border-t border-gray-200/70">
         <Link
           href="/provider/reviews"
           className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"

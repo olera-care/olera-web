@@ -188,7 +188,7 @@ function WindowedCard({
         <p className="text-sm text-gray-400">Failed to load.</p>
       ) : (
         <div className="space-y-8">
-          <AudienceGroup label="Care seekers">
+          <AudienceGroup label="Care seekers" tint="bg-amber-50/70">
             <SubRow label="Discovery">
               <Stat
                 label="Page views"
@@ -256,7 +256,7 @@ function WindowedCard({
             </SubRow>
           </AudienceGroup>
 
-          <AudienceGroup label="Providers">
+          <AudienceGroup label="Providers" tint="bg-sky-50/70">
             <SubRow cols={5}>
               <Stat
                 label="Sign-ins from Q&A"
@@ -302,13 +302,15 @@ function WindowedCard({
 
 function AudienceGroup({
   label,
+  tint,
   children,
 }: {
   label: string;
+  tint: string;
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className={`rounded-xl ${tint} p-5`}>
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500 mb-4">
         {label}
       </div>
@@ -378,7 +380,7 @@ function Stat({
       <Link
         href={href}
         title={tooltip}
-        className="block rounded-md -m-1 p-1 hover:bg-gray-50 transition-colors"
+        className="block rounded-md -m-1 p-1 hover:bg-white/80 transition-colors"
       >
         {inner}
       </Link>

@@ -56,7 +56,7 @@ export default function SidebarSummary({ data }: Props) {
           href="/provider/reviews"
           className="block text-sm text-gray-700 hover:text-gray-900 transition-colors"
         >
-          {reviews.count > 0 ? "Invite another review →" : "Invite a past client →"}
+          Get more reviews →
         </Link>
       </div>
     </div>

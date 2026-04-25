@@ -574,12 +574,11 @@ function LatestEventsCard({
                 <th className="px-6 py-2 font-medium">When</th>
                 <th className="px-6 py-2 font-medium">Event</th>
                 <th className="px-6 py-2 font-medium">Provider</th>
-                <th className="px-6 py-2 font-medium">Metadata</th>
               </tr>
             </thead>
             <tbody>
               {summary.latestEvents.map((e) => (
-                <tr key={e.id} className="border-b border-gray-50 last:border-0 align-top">
+                <tr key={e.id} className="border-b border-gray-50 last:border-0 align-top hover:bg-gray-50/60">
                   <td
                     className="px-6 py-2 text-gray-500 whitespace-nowrap"
                     title={new Date(e.created_at).toLocaleString()}
@@ -589,11 +588,15 @@ function LatestEventsCard({
                   <td className="px-6 py-2">
                     <EventBadge type={e.event_type} />
                   </td>
-                  <td className="px-6 py-2 font-mono text-xs text-gray-700 break-all max-w-xs">
-                    {e.provider_id}
-                  </td>
-                  <td className="px-6 py-2 font-mono text-[11px] text-gray-500 break-all max-w-md">
-                    {summarizeMetadata(e.metadata)}
+                  <td className="px-6 py-2 font-mono text-xs">
+                    <a
+                      href={`/provider/${e.provider_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 hover:underline break-all"
+                    >
+                      {e.provider_id}
+                    </a>
                   </td>
                 </tr>
               ))}
@@ -634,27 +637,6 @@ const EVENT_TONE: Record<string, string> = {
   question_responded: "bg-gray-100 text-gray-600",
   review_viewed: "bg-gray-100 text-gray-600",
 };
-
-function summarizeMetadata(meta: Record<string, unknown> | null): string {
-  if (!meta || Object.keys(meta).length === 0) return "—";
-  const keys = Object.keys(meta).slice(0, 4);
-  const parts = keys.map((k) => {
-    const v = meta[k];
-    const display =
-      typeof v === "string"
-        ? v.length > 40
-          ? `${v.slice(0, 37)}…`
-          : v
-        : typeof v === "number" || typeof v === "boolean"
-        ? String(v)
-        : Array.isArray(v)
-        ? `[${v.length}]`
-        : "{…}";
-    return `${k}: ${display}`;
-  });
-  const more = Object.keys(meta).length - keys.length;
-  return parts.join(", ") + (more > 0 ? `, +${more}` : "");
-}
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();

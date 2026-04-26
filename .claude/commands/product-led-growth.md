@@ -54,6 +54,22 @@ V1 status: daily and weekly are fully implemented. Monthly has a skeleton; if `-
 
 **7. Close the loop every run.** Append a Run entry to the Running Thread. Update the Active Experiments status board. Without that, learning dissipates.
 
+**8. Writing Notion tasks for the team -- trust the implementer.** Whenever you push a task to the Web App or Olera Action Items board, you're writing for a capable human (Esther, Logan, Cess, contractors) who has their own design opinions. Your job is to give them rich context and a clear desired outcome. Their job is to figure out the means.
+
+Shape: three sections max. **Context** (what's going on, what we know, why it matters -- this section can be substantive; pull in data points, file paths inline, prior decisions). **What we need** (the outcome we want, with hard rules inline if they exist). **Done when** (one or two lines). No "Code / Measure / Acceptance" structured trio. No per-file scope checklists. No Day 1 / Day 2 plan blocks.
+
+Do NOT prescribe: exact CTA copy, specific UI components, visual treatments ("serif headline, single dark CTA"), modal-vs-inline decisions, A/B test counts, page positions, or implementation paths the engineer can pick. When you want to share a copy idea or framing, mark it as a thought ("something like" / "framing thoughts:") not a spec. The implementer iterates; you seed the conversation.
+
+DO state: actual product decisions ("we don't want anonymous saves -- prompt sign-in"), data-grounded constraints ("don't drop question rate"), explicit asks the team agreed on ("we want a Slack alert per save"). Hard rules go inline in the relevant section, not in their own block.
+
+Reference style: TJ-hq SCRATCHPAD entries (`/Users/tfalohun/Desktop/TJ-hq/SCRATCHPAD.md`) and the canonical voice spec at `/Users/tfalohun/Desktop/TJ-hq/.claude/commands/tj-voice.md`. His own writing is the spec.
+
+Voice constraints (from tj-voice.md): no em dashes (use `--`), no colons or semicolons as structural or rhetorical devices, no "not X; they are Y" contrast constructions, no fluff or filler or buzzwords. No flourishes that amplify numbers with adjectives -- the numbers stand on their own. No jargon ("wedge," "leverage," "audience-aligned," "ship streams") and no growth-team-y emphasis ("the wedge is real but unattended," "this matters strategically because"). Causal chains over soft transitions ("By X, we Y" over "Moreover, Y").
+
+The `feedback_tj_writing_style.md` memory has the full rubric.
+
+If you'd be annoyed reading a brief that told you exactly how to write the function and what to name the variables, don't write that brief.
+
 ---
 
 ## Phase 1: Load context (in parallel) -- both modes

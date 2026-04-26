@@ -7,9 +7,16 @@
 
 ## Current Focus
 
-### 2026-04-26 — Resend webhook integration — SHIPPED (PR #635), in dashboard setup
+### 2026-04-26 — Resend webhook integration — SHIPPED + VERIFIED (PRs #635, #637)
 
-**Status:** code merged to staging, awaiting first live event from Resend's "Send test event" button to confirm the loop closes.
+**Status:** ✅ live and verified. First real `opened` event landed and `email_log` denormalized columns updated correctly. Loop is closed.
+
+**Verification (2026-04-26 ~12:57 UTC):**
+- `email_events` row: `event_type=opened`, `svix_id=msg_3CtZbMfHTSucgRzuXhkRzvH8E9f`, `occurred_at=2026-04-26T12:34:55Z`
+- This was a Resend retry of an event that earlier 403'd against Vercel — proves the URL change worked, signature verified, idempotent insert succeeded
+- `email_log` denormalized state for the matching email (question_received → tfalohun@gmail.com): `first_opened_at=2026-04-26T12:34:55Z`, `last_event_type=opened`, `last_event_at=2026-04-26T12:34:55Z` ✓
+
+**The pivot:** started from the open Olera Action Items task "Audit provider question/lead notification email — find the open-rate lift" (P1 🔥). Territory mapping uncovered the foundational gap: we don't track email opens at all (only sends + click-throughs via `appendTrackingParams`). Without webhooks, the audit's data path is one-shot (call Resend's API per email, retain nothing). Promoted webhook integration to the primary task; audit becomes downstream and gets re-run on real data once webhooks live.
 
 **The pivot:** started from the open Olera Action Items task "Audit provider question/lead notification email — find the open-rate lift" (P1 🔥). Territory mapping uncovered the foundational gap: we don't track email opens at all (only sends + click-throughs via `appendTrackingParams`). Without webhooks, the audit's data path is one-shot (call Resend's API per email, retain nothing). Promoted webhook integration to the primary task; audit becomes downstream and gets re-run on real data once webhooks live.
 
@@ -35,27 +42,25 @@
 1. Initial `delivered_at` guard used wrong field (`logRow.last_event_at` instead of `logRow.delivered_at`) and didn't SELECT the column for guarding. Fixed both.
 2. Backfill script was treating `result.error` from Resend SDK as "no last_event" instead of surfacing it. Now checks `result.error` explicitly and reports failures.
 
-**Setup state — IN PROGRESS:**
-- ✅ Migration 051 applied to Supabase (verified via diagnostic insert + email_log column SELECT)
-- ✅ PR #635 merged to staging at `d6a7387f`
-- ✅ `RESEND_WEBHOOK_SECRET=whsec_aTNhNtbMQfp4H1gB3jzJdbEnmzjVJU57` added to `/Users/tfalohun/Desktop/olera-web/.env.local` (line 31, grouped with `RESEND_API_KEY`)
-- ✅ `RESEND_WEBHOOK_SECRET` set in Vercel env (Production + Preview, Sensitive)
-- ✅ Resend webhook created — endpoint `https://staging-olera2-web.vercel.app/api/resend/webhook`, subscribed to all events except `email.opened` (which requires tracking subdomain)
-- ✅ Resend tracking subdomain `links.olera.care` created with both click + open tracking enabled
-- ✅ Cloudflare DNS auto-configured via Resend's one-click integration (no manual CNAME / proxy-cloud step needed)
-- ⏳ Waiting on Resend domain verification (auto-configure typically <5 min)
-- ⏳ Then: edit webhook to add `email.opened` to event list
-- ⏳ Then: click "Send test event" in Resend webhook UI → expect 200 → verify `email_events` row lands
+**Setup state — COMPLETE:**
+- ✅ Migration 051 applied to Supabase
+- ✅ PR #635 merged (Vercel route + DB schema + admin UI) at `d6a7387f`
+- ✅ Vercel returned 403 on Resend POSTs as predicted (Bot Protection vs Svix-on-GCP) — same pattern as Stripe
+- ✅ PR #637 merged — webhook ported to Supabase Edge Function
+- ✅ Edge Function deployed: `https://ocaabzfiiikjcgqwhbwr.supabase.co/functions/v1/resend-webhook`
+- ✅ `RESEND_WEBHOOK_SECRET` set as Supabase secret (and still in Vercel env for the deprecated route as fallback)
+- ✅ Resend webhook URL updated to point at the Supabase function
+- ✅ First real `opened` event landed and verified end-to-end (see Verification section above)
 
-**Vercel Bot Protection risk** (carried over from plan): Resend uses Svix infra on GCP. Per Stripe webhook precedent, Vercel's edge bot-protection layer can block GCP-origin POSTs with 403. Mitigation already documented: re-host the route as a Supabase Edge Function (`supabase/functions/resend-webhook/index.ts`). Same logic, different runtime. We'll know if this bites the moment "Send test event" returns something other than 200.
+**Vercel Bot Protection (confirmed + mitigated):** Resend uses Svix infra on GCP. Vercel's edge Bot Protection layer blocked GCP-origin POSTs with 403. Migrated to Supabase Edge Function — same Svix verify, same idempotent insert, same monotonic UPDATE, just outside Vercel's edge. Vercel route at `app/api/resend/webhook/route.ts` retained with deprecation notice as documented backup.
 
 **Apple Mail caveat (framing for the audit re-open):** Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort. Click rate is the cleaner signal for iteration. The audit's "find the open-rate lift" framing should reframe to "find the engagement lift, primarily measured by clicks" when the audit task re-opens.
 
 **Next steps:**
-1. **Right now:** TJ clicks "Send test event" → reports status code → I query `email_events` to confirm row lands. If 200, we're live.
-2. **If 200 + verified:** integration is complete. Re-open the audit task ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) once ~7 days of real data has accumulated.
-3. **If 403:** convert webhook route to Supabase Edge Function (~30 min of work).
-4. **Optional after live:** run `node scripts/backfill-resend-events.js` to populate ~30 days of history from Resend's retained per-email status.
+1. ✅ Webhook live + verified.
+2. New tile in `/admin/analytics` Providers section: "Opened Q&A emails" (distinct providers who opened a `question_received` email in the window) — shipping in a separate PR alongside this scratchpad update. Apple Mail caveat in the tooltip. Ratio is implicit vs the existing "Questions" tile in Engagement (every question → one email).
+3. Re-open the audit task ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) once ~7 days of real data has accumulated.
+4. Optional: run `node scripts/backfill-resend-events.js` to populate ~30 days of history from Resend's retained per-email status.
 
 **Stranded local branches (cleanup):**
 - `chore/scratchpad-resend-webhook-pivot` (local, never pushed) — yesterday's mid-session save with the pivot decision but pre-execution state. Superseded by this entry; safe to delete.
@@ -389,9 +394,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-0. **Verify Resend webhook end-to-end** — TJ to click "Send test event" in Resend webhook UI; query `email_events` to confirm the loop closes. If 403, convert to Supabase Edge Function.
-0a. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates. Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
-0b. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634 (which merged 2026-04-25). Needs a new time-series-per-metric endpoint.
+0. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates. Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
+0a. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634 (which merged 2026-04-25). Needs a new time-series-per-metric endpoint.
 1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
 2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
 3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)

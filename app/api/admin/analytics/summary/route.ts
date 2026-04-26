@@ -40,6 +40,7 @@ type DistinctCounts = {
   question_answerers: number;
   lead_engagers: number;
   teaser_clickers: number;
+  qa_email_openers: number;
 };
 type WindowResult = {
   counts: WindowedCounts;
@@ -63,6 +64,7 @@ const EMPTY_DISTINCT = (): DistinctCounts => ({
   question_answerers: 0,
   lead_engagers: 0,
   teaser_clickers: 0,
+  qa_email_openers: 0,
 });
 
 /**
@@ -99,15 +101,31 @@ async function fetchWindow(
   if (from) distinctQ = distinctQ.gte("created_at", from);
   if (to) distinctQ = distinctQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes] = await Promise.all([
+  // Q&A email openers: distinct providers whose question_received notification
+  // was first opened in the window. Anchored on email_log.first_opened_at
+  // (denormalized from email_events by the resend-webhook function) so this
+  // stays a flat scan, no join.
+  let openersQ = db
+    .from("email_log")
+    .select("provider_id")
+    .eq("email_type", "question_received")
+    .eq("recipient_type", "provider")
+    .not("first_opened_at", "is", null)
+    .limit(50000);
+  if (from) openersQ = openersQ.gte("first_opened_at", from);
+  if (to) openersQ = openersQ.lt("first_opened_at", to);
+
+  const [providerRes, seekerRes, distinctRes, openersRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
+    openersQ,
   ]);
 
   if (providerRes.error) return { error: "provider window query failed" };
   if (seekerRes.error) return { error: "seeker window query failed" };
   if (distinctRes.error) return { error: "distinct window query failed" };
+  if (openersRes.error) return { error: "Q&A email openers query failed" };
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
@@ -162,6 +180,12 @@ async function fetchWindow(
   distinct.lead_engagers = sets.lead_engagers.size;
   distinct.teaser_clickers = sets.teaser_clickers.size;
 
+  const qaOpeners = new Set<string>();
+  for (const r of (openersRes.data ?? []) as Array<{ provider_id: string | null }>) {
+    if (r.provider_id) qaOpeners.add(r.provider_id);
+  }
+  distinct.qa_email_openers = qaOpeners.size;
+
   return {
     counts,
     unique_sessions_page_view: uniqueSessions.size,
@@ -195,6 +219,7 @@ function pickInsight(
     { label: "benefits intakes finished", cur: current.counts.benefits_completed, prev: prior.counts.benefits_completed, delta: 0 },
     { label: "providers signing in from Q&A", cur: current.provider_distinct_counts.qa_signins, prev: prior.provider_distinct_counts.qa_signins, delta: 0 },
     { label: "providers answering questions", cur: current.provider_distinct_counts.question_answerers, prev: prior.provider_distinct_counts.question_answerers, delta: 0 },
+    { label: "providers opening Q&A emails", cur: current.provider_distinct_counts.qa_email_openers, prev: prior.provider_distinct_counts.qa_email_openers, delta: 0 },
   ];
   for (const c of candidates) {
     if (c.prev === 0 && c.cur === 0) {

@@ -28,6 +28,7 @@ interface ProviderDistinctCounts {
   question_answerers: number;
   lead_engagers: number;
   teaser_clickers: number;
+  qa_email_openers: number;
 }
 
 interface SummaryResponse {
@@ -257,7 +258,13 @@ function WindowedCard({
           </AudienceGroup>
 
           <AudienceGroup label="Providers" tint="bg-sky-50/70">
-            <SubRow cols={5}>
+            <SubRow cols={6}>
+              <Stat
+                label="Opened Q&A emails"
+                value={summary.windowed.provider_distinct_counts.qa_email_openers}
+                prior={summary.prior?.provider_distinct_counts.qa_email_openers ?? null}
+                tooltip="Distinct providers whose question-notification email was opened in this window. Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort — click-through (Sign-ins from Q&A) is the cleaner signal."
+              />
               <Stat
                 label="Sign-ins from Q&A"
                 value={summary.windowed.provider_distinct_counts.qa_signins}
@@ -325,11 +332,11 @@ function SubRow({
   children,
 }: {
   label?: string;
-  cols?: 3 | 5;
+  cols?: 3 | 5 | 6;
   children: React.ReactNode;
 }) {
-  // Different lg col counts so 3-tile rows breathe and 5-tile rows fit.
-  const colsClass = cols === 5 ? "lg:grid-cols-5" : "lg:grid-cols-3";
+  const colsClass =
+    cols === 6 ? "lg:grid-cols-6" : cols === 5 ? "lg:grid-cols-5" : "lg:grid-cols-3";
   return (
     <div>
       {label && (

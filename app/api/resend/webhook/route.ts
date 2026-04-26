@@ -1,18 +1,28 @@
 /**
- * Resend webhook receiver.
+ * DEPRECATED FOR PRODUCTION — kept as backup and for local dev.
+ *
+ * The production Resend webhook receiver is now the Supabase Edge Function at
+ * `supabase/functions/resend-webhook/index.ts`. Resend no longer sends events
+ * to this URL — Vercel's Bot Protection edge layer blocks Resend's GCP-origin
+ * POSTs (Resend dispatches via Svix, also on GCP) with 403 regardless of
+ * firewall config (April 2026 — same wall the Stripe webhook hit). Supabase
+ * Edge Functions are not behind that layer, so we route webhooks there.
+ *
+ * WHEN EDITING: mirror any changes to the Supabase function at
+ * `supabase/functions/resend-webhook/index.ts` until one is deleted.
+ *
+ * LOCAL DEV: this route still works against `npm run dev` for local testing
+ * since Vercel Bot Protection only runs in production deploys.
+ *
+ * ROLLBACK: if the Supabase function fails, re-register this URL in the
+ * Resend Dashboard (`https://olera.care/api/resend/webhook` or staging
+ * equivalent) and disable the Supabase endpoint. No code changes required.
  *
  * Receives email lifecycle events (sent / delivered / opened / clicked /
  * bounced / complained / etc) from Resend and persists them via
  * lib/resend-events.ts.
  *
- * Always returns 200 on internal failures (mirrors the Stripe webhook
- * pattern) so Resend doesn't retry forever and obscure debugging logs.
- *
- * VERCEL BOT PROTECTION RISK: per the Stripe webhook deprecation notice,
- * Vercel's edge bot-protection layer can block GCP-origin POSTs (which is
- * where Svix infra runs from). If Resend's "Send test event" returns 403,
- * mitigation is to re-host this route as a Supabase Edge Function at
- * supabase/functions/resend-webhook/index.ts. Logic stays identical.
+ * Always returns 200 on internal failures so Resend doesn't retry forever.
  */
 
 import { NextRequest, NextResponse } from "next/server";

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .from("email_log")
       .select(
-        "id, resend_id, recipient, sender, subject, email_type, recipient_type, provider_id, status, error_message, created_at"
+        "id, resend_id, recipient, sender, subject, email_type, recipient_type, provider_id, status, error_message, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, last_event_type, last_event_at"
       )
       .order("created_at", { ascending: false })
       .limit(10000);
@@ -66,6 +66,13 @@ export async function GET(request: NextRequest) {
       "Status",
       "Error",
       "Sent At",
+      "Delivered At",
+      "First Opened At",
+      "First Clicked At",
+      "Bounced At",
+      "Complained At",
+      "Last Event",
+      "Last Event At",
     ];
 
     const csvRows = [
@@ -83,6 +90,13 @@ export async function GET(request: NextRequest) {
           r.status,
           escapeCsv(r.error_message ?? ""),
           r.created_at,
+          r.delivered_at ?? "",
+          r.first_opened_at ?? "",
+          r.first_clicked_at ?? "",
+          r.bounced_at ?? "",
+          r.complained_at ?? "",
+          r.last_event_type ?? "",
+          r.last_event_at ?? "",
         ].join(",")
       ),
     ];

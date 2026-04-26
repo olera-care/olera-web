@@ -33,11 +33,14 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Build query — select everything except html_body for the list view
+    // Build query — select everything except html_body for the list view.
+    // last_event_type/at + first_opened_at + first_clicked_at + bounced_at +
+    // complained_at come from the Resend webhook (lib/resend-events.ts) and
+    // give the row its post-send lifecycle status.
     let query = db
       .from("email_log")
       .select(
-        "id, resend_id, recipient, sender, subject, email_type, recipient_type, provider_id, status, error_message, metadata, created_at",
+        "id, resend_id, recipient, sender, subject, email_type, recipient_type, provider_id, status, error_message, metadata, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, last_event_type, last_event_at",
         { count: "exact" }
       )
       .order("created_at", { ascending: false })

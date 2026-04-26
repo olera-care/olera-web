@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
 import {
   resolveRange,
   rangeLabel,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
+import { useAnimatedCount } from "@/hooks/use-animated-count";
 
 interface WindowedCounts {
   page_view: number;
@@ -19,15 +22,31 @@ interface WindowedCounts {
   matches_activated: number;
 }
 
+interface ProviderDistinctCounts {
+  qa_signins: number;
+  page_claims: number;
+  question_answerers: number;
+  lead_engagers: number;
+  teaser_clickers: number;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
     counts: WindowedCounts;
     unique_sessions_page_view: number;
+    provider_distinct_counts: ProviderDistinctCounts;
   };
+  prior: {
+    counts: WindowedCounts;
+    unique_sessions_page_view: number;
+    provider_distinct_counts: ProviderDistinctCounts;
+  } | null;
+  insight: string | null;
   botRejects: { count: number; date: string };
   topProviders: Array<{
     provider_id: string;
+    provider_name: string | null;
     raw_views_7d: number;
     unique_sessions_7d: number;
     last_seen: string;
@@ -41,12 +60,46 @@ interface SummaryResponse {
   }>;
 }
 
+const DEFAULT_RANGE: DateRangeValue = {
+  preset: "7d",
+  customFrom: "",
+  customTo: "",
+};
+
+function rangeFromSearch(sp: ReturnType<typeof useSearchParams>): DateRangeValue {
+  const preset = sp.get("preset");
+  const from = sp.get("from") || "";
+  const to = sp.get("to") || "";
+  if (preset === "custom") return { preset: "custom", customFrom: from, customTo: to };
+  const valid = ["all", "today", "yesterday", "7d", "30d", "90d", "1y"] as const;
+  if (preset && (valid as readonly string[]).includes(preset)) {
+    return { preset: preset as DateRangeValue["preset"], customFrom: "", customTo: "" };
+  }
+  return DEFAULT_RANGE;
+}
+
+function rangeToSearch(range: DateRangeValue): string {
+  const params = new URLSearchParams();
+  params.set("preset", range.preset);
+  if (range.preset === "custom") {
+    if (range.customFrom) params.set("from", range.customFrom);
+    if (range.customTo) params.set("to", range.customTo);
+  }
+  return params.toString();
+}
+
 export default function AdminAnalyticsPage() {
-  const [range, setRange] = useState<DateRangeValue>({
-    preset: "7d",
-    customFrom: "",
-    customTo: "",
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const range = useMemo(() => rangeFromSearch(searchParams), [searchParams]);
+  const setRange = useCallback(
+    (next: DateRangeValue) => {
+      router.replace(`/admin/analytics?${rangeToSearch(next)}`, { scroll: false });
+    },
+    [router],
+  );
+
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,8 +110,8 @@ export default function AdminAnalyticsPage() {
     const params = new URLSearchParams();
     if (from) params.set("date_from", from);
     if (to) params.set("date_to", to);
-    const qs = params.toString();
-    fetch(`/api/admin/analytics/summary${qs ? `?${qs}` : ""}`)
+    params.set("range_label", rangeLabel(range));
+    fetch(`/api/admin/analytics/summary?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled) setSummary(data);
@@ -84,18 +137,33 @@ export default function AdminAnalyticsPage() {
         onRangeChange={setRange}
       />
 
+      <InsightStrip insight={summary?.insight ?? null} loading={loading} />
+
       <WindowedCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
-      <p className="mt-6 text-xs text-gray-400">
-        Phase 0 sanity-check view. Counts shown here are raw — aggregation
-        tables (provider_page_view_stats, city_category_view_benchmarks) are
-        populated nightly at 8 AM UTC by /api/cron/aggregate-provider-views.
-      </p>
+      <FootNote summary={summary} />
     </div>
   );
 }
+
+// ── Insight strip ────────────────────────────────────────────────────────
+
+function InsightStrip({ insight, loading }: { insight: string | null; loading: boolean }) {
+  if (loading) return <div className="h-10 mb-6 rounded-xl bg-gray-50 animate-pulse" />;
+  if (!insight) return null;
+  return (
+    <div className="mb-6 rounded-xl border border-gray-100 bg-gradient-to-br from-emerald-50/40 to-white px-5 py-3.5">
+      <div className="flex items-start gap-2.5">
+        <span className="text-emerald-700 text-sm leading-relaxed select-none">✦</span>
+        <p className="text-sm text-gray-800 leading-relaxed">{insight}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Windowed (KPI strip) ─────────────────────────────────────────────────
 
 function WindowedCard({
   summary,
@@ -107,97 +175,313 @@ function WindowedCard({
   range: DateRangeValue;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5 mb-6">
-      <div className="flex items-baseline justify-between mb-5">
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <div className="flex items-baseline gap-3 mb-6">
         <h2 className="text-base font-semibold text-gray-900">{rangeLabel(range)}</h2>
-        <BotBadge summary={summary} />
+        {loading && summary && (
+          <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>
+        )}
       </div>
-      {loading ? (
-        <div className="h-40 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+      {loading && !summary ? (
+        <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary ? (
         <p className="text-sm text-gray-400">Failed to load.</p>
       ) : (
-        <div className="space-y-6">
-          <Section label="Discovery">
-            <Stat label="Page views" value={summary.windowed.counts.page_view} />
-            <Stat label="Unique sessions" value={summary.windowed.unique_sessions_page_view} />
-            <Stat label="Card clicks" value={summary.windowed.counts.search_click} />
-          </Section>
-          <Section label="Engagement">
-            <Stat label="Questions" value={summary.windowed.counts.question_received} />
-            <Stat label="Leads" value={summary.windowed.counts.lead_received} />
-            <Stat label="Reviews" value={summary.windowed.counts.review_received} />
-          </Section>
-          <Section label="Families">
-            <Stat label="Benefits started" value={summary.windowed.counts.benefits_started} />
-            <Stat label="Benefits finished" value={summary.windowed.counts.benefits_completed} />
-            <Stat label="Profiles published" value={summary.windowed.counts.matches_activated} />
-          </Section>
+        <div className="space-y-8">
+          <AudienceGroup label="Care seekers" tint="bg-amber-50/70">
+            <SubRow label="Discovery">
+              <Stat
+                label="Page views"
+                value={summary.windowed.counts.page_view}
+                prior={summary.prior?.counts.page_view ?? null}
+                tooltip="Total provider page views in the window. Bots filtered server-side."
+              />
+              <Stat
+                label="Unique sessions"
+                value={summary.windowed.unique_sessions_page_view}
+                prior={summary.prior?.unique_sessions_page_view ?? null}
+                tooltip="Distinct anonymous browser sessions that viewed at least one provider page."
+              />
+              <Stat
+                label="Card clicks"
+                value={summary.windowed.counts.search_click}
+                prior={summary.prior?.counts.search_click ?? null}
+                tooltip="Click-throughs from a provider card on a results/browse page (NOT home-page Search button)."
+              />
+            </SubRow>
+            <SubRow label="Engagement">
+              <Stat
+                label="Questions"
+                value={summary.windowed.counts.question_received}
+                prior={summary.prior?.counts.question_received ?? null}
+                href="/admin/questions"
+                tooltip="New questions submitted by care seekers on provider pages."
+              />
+              <Stat
+                label="Leads"
+                value={summary.windowed.counts.lead_received}
+                prior={summary.prior?.counts.lead_received ?? null}
+                href="/admin/leads"
+                tooltip="New connection requests from care seekers to providers."
+              />
+              <Stat
+                label="Reviews"
+                value={summary.windowed.counts.review_received}
+                prior={summary.prior?.counts.review_received ?? null}
+                href="/admin/reviews"
+                tooltip="New reviews submitted on provider pages."
+              />
+            </SubRow>
+            <SubRow label="Family funnel">
+              <Stat
+                label="Benefits started"
+                value={summary.windowed.counts.benefits_started}
+                prior={summary.prior?.counts.benefits_started ?? null}
+                tooltip="Care seekers who began the benefits intake on a provider page."
+              />
+              <Stat
+                label="Benefits finished"
+                value={summary.windowed.counts.benefits_completed}
+                prior={summary.prior?.counts.benefits_completed ?? null}
+                href="/admin/activity?actor=families"
+                tooltip="Care seekers who completed the benefits intake and saved results."
+              />
+              <Stat
+                label="Profiles published"
+                value={summary.windowed.counts.matches_activated}
+                prior={summary.prior?.counts.matches_activated ?? null}
+                href="/admin/care-seekers"
+                tooltip="Care seeker profiles flipped to active — visible to providers via matches."
+              />
+            </SubRow>
+          </AudienceGroup>
+
+          <AudienceGroup label="Providers" tint="bg-sky-50/70">
+            <SubRow cols={5}>
+              <Stat
+                label="Sign-ins from Q&A"
+                value={summary.windowed.provider_distinct_counts.qa_signins}
+                prior={summary.prior?.provider_distinct_counts.qa_signins ?? null}
+                href="/admin/activity?actor=providers"
+                tooltip="Distinct providers who clicked through a question-notification email and auto-signed in."
+              />
+              <Stat
+                label="Page-flow claims"
+                value={summary.windowed.provider_distinct_counts.page_claims}
+                prior={summary.prior?.provider_distinct_counts.page_claims ?? null}
+                tooltip="Distinct providers who claimed their listing from a public provider page (not from email)."
+              />
+              <Stat
+                label="Answered questions"
+                value={summary.windowed.provider_distinct_counts.question_answerers}
+                prior={summary.prior?.provider_distinct_counts.question_answerers ?? null}
+                href="/admin/questions"
+                tooltip="Distinct providers who responded to ≥1 question."
+              />
+              <Stat
+                label="Engaged with leads"
+                value={summary.windowed.provider_distinct_counts.lead_engagers}
+                prior={summary.prior?.provider_distinct_counts.lead_engagers ?? null}
+                href="/admin/leads"
+                tooltip="Distinct providers who clicked through a lead-notification email."
+              />
+              <Stat
+                label="Clicked dashboard CTA"
+                value={summary.windowed.provider_distinct_counts.teaser_clickers}
+                prior={summary.prior?.provider_distinct_counts.teaser_clickers ?? null}
+                href="/admin/activity?actor=providers"
+                tooltip="Distinct providers who clicked the analytics-teaser CTA on the welcome card."
+              />
+            </SubRow>
+          </AudienceGroup>
         </div>
       )}
     </div>
   );
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function AudienceGroup({
+  label,
+  tint,
+  children,
+}: {
+  label: string;
+  tint: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+    <div className={`rounded-xl ${tint} p-5`}>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500 mb-4">
         {label}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">{children}</div>
+      <div className="space-y-5">{children}</div>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function SubRow({
+  label,
+  cols = 3,
+  children,
+}: {
+  label?: string;
+  cols?: 3 | 5;
+  children: React.ReactNode;
+}) {
+  // Different lg col counts so 3-tile rows breathe and 5-tile rows fit.
+  const colsClass = cols === 5 ? "lg:grid-cols-5" : "lg:grid-cols-3";
   return (
     <div>
-      <div className="text-2xl font-semibold tabular-nums text-gray-900">
-        {value.toLocaleString()}
+      {label && (
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2.5">
+          {label}
+        </div>
+      )}
+      <div className={`grid grid-cols-2 sm:grid-cols-3 ${colsClass} gap-x-5 gap-y-4`}>
+        {children}
       </div>
-      <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
   );
 }
 
-function BotBadge({ summary }: { summary: SummaryResponse | null }) {
-  if (!summary) return null;
+function Stat({
+  label,
+  value,
+  prior,
+  href,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  prior: number | null;
+  href?: string;
+  tooltip?: string;
+}) {
+  const animated = useAnimatedCount(value, 600);
+  const isZero = value === 0;
+  const delta = computeDelta(value, prior);
+
+  const inner = (
+    <div className={isZero ? "opacity-50" : ""}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {animated.toLocaleString()}
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <DeltaLine delta={delta} />
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        title={tooltip}
+        className="block rounded-md -m-1 p-1 hover:bg-white/80 transition-colors"
+      >
+        {inner}
+      </Link>
+    );
+  }
   return (
-    <div
-      className="text-xs text-gray-500 tabular-nums"
-      title="Per-instance counter (in-memory). Resets at UTC midnight. Undercounts across multi-region deploys."
-    >
-      Bot rejects today:{" "}
-      <span className="font-medium text-gray-700">{summary.botRejects.count.toLocaleString()}</span>
+    <div title={tooltip} className="cursor-default">
+      {inner}
     </div>
   );
 }
 
-function TopProvidersCard({ summary, loading }: { summary: SummaryResponse | null; loading: boolean }) {
+type DeltaState = "up" | "down" | "flat" | "newSignal" | "noPrior";
+
+function computeDelta(
+  value: number,
+  prior: number | null,
+): { state: DeltaState; pctText: string } {
+  if (prior === null) return { state: "noPrior", pctText: "" };
+  if (prior === 0 && value === 0) return { state: "flat", pctText: "no change" };
+  if (prior === 0 && value > 0) return { state: "newSignal", pctText: "new" };
+  const pct = ((value - prior) / prior) * 100;
+  const rounded = Math.round(pct);
+  if (Math.abs(rounded) < 1) return { state: "flat", pctText: "flat" };
+  return {
+    state: rounded > 0 ? "up" : "down",
+    pctText: `${rounded > 0 ? "↑" : "↓"} ${Math.abs(rounded)}%`,
+  };
+}
+
+function DeltaLine({ delta }: { delta: { state: DeltaState; pctText: string } }) {
+  if (delta.state === "noPrior") return <div className="h-3.5 mt-1.5" />;
+  const tone =
+    delta.state === "up"
+      ? "text-emerald-700"
+      : delta.state === "down"
+      ? "text-rose-600"
+      : delta.state === "newSignal"
+      ? "text-emerald-700"
+      : "text-gray-400";
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">
-        Top providers (last 7 days)
-      </h2>
-      {loading ? (
+    <div className={`text-[10.5px] font-medium tabular-nums mt-1.5 ${tone} leading-none`}>
+      {delta.pctText}
+    </div>
+  );
+}
+
+// ── Top providers ────────────────────────────────────────────────────────
+
+type SortKey = "raw" | "unique" | "last";
+
+function TopProvidersCard({
+  summary,
+  loading,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+}) {
+  const [sortKey, setSortKey] = useState<SortKey>("unique");
+  const sorted = useMemo(() => {
+    if (!summary) return [];
+    const rows = [...summary.topProviders];
+    if (sortKey === "raw") rows.sort((a, b) => b.raw_views_7d - a.raw_views_7d);
+    else if (sortKey === "unique") rows.sort((a, b) => b.unique_sessions_7d - a.unique_sessions_7d);
+    else if (sortKey === "last") rows.sort((a, b) => (b.last_seen > a.last_seen ? 1 : -1));
+    return rows;
+  }, [summary, sortKey]);
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Top providers (last 7 days)</h2>
+      {loading && !summary ? (
         <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
-      ) : !summary || summary.topProviders.length === 0 ? (
+      ) : !summary || sorted.length === 0 ? (
         <p className="text-sm text-gray-400">No page views logged yet.</p>
       ) : (
         <div className="overflow-x-auto -mx-6">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
-                <th className="px-6 py-2 font-medium">Provider (slug)</th>
-                <th className="px-6 py-2 font-medium tabular-nums text-right">Raw views</th>
-                <th className="px-6 py-2 font-medium tabular-nums text-right">Unique sessions</th>
-                <th className="px-6 py-2 font-medium">Last seen</th>
+                <th className="px-6 py-2 font-medium">Provider</th>
+                <SortableTh
+                  current={sortKey}
+                  k="unique"
+                  setSort={setSortKey}
+                  align="right"
+                  label="Unique sessions"
+                />
+                <SortableTh
+                  current={sortKey}
+                  k="raw"
+                  setSort={setSortKey}
+                  align="right"
+                  label="Raw views"
+                />
+                <SortableTh current={sortKey} k="last" setSort={setSortKey} label="Last seen" />
               </tr>
             </thead>
             <tbody>
-              {summary.topProviders.map((p) => (
-                <tr key={p.provider_id} className="border-b border-gray-50 last:border-0">
+              {sorted.map((p) => (
+                <tr key={p.provider_id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
                   <td className="px-6 py-2.5">
                     <a
                       href={`/provider/${p.provider_id}`}
@@ -205,16 +489,26 @@ function TopProvidersCard({ summary, loading }: { summary: SummaryResponse | nul
                       rel="noopener noreferrer"
                       className="text-emerald-700 hover:underline"
                     >
-                      {p.provider_id}
+                      {p.provider_name || p.provider_id}
                     </a>
-                  </td>
-                  <td className="px-6 py-2.5 tabular-nums text-right text-gray-900">
-                    {p.raw_views_7d.toLocaleString()}
+                    {p.provider_name && (
+                      <div className="text-[11px] font-mono text-gray-400 mt-0.5">
+                        {p.provider_id}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-2.5 tabular-nums text-right text-gray-900">
                     {p.unique_sessions_7d.toLocaleString()}
                   </td>
-                  <td className="px-6 py-2.5 text-gray-500">{formatRelative(p.last_seen)}</td>
+                  <td className="px-6 py-2.5 tabular-nums text-right text-gray-500">
+                    {p.raw_views_7d.toLocaleString()}
+                  </td>
+                  <td
+                    className="px-6 py-2.5 text-gray-500 whitespace-nowrap"
+                    title={new Date(p.last_seen).toLocaleString()}
+                  >
+                    {formatRelative(p.last_seen)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -225,11 +519,50 @@ function TopProvidersCard({ summary, loading }: { summary: SummaryResponse | nul
   );
 }
 
-function LatestEventsCard({ summary, loading }: { summary: SummaryResponse | null; loading: boolean }) {
+function SortableTh({
+  current,
+  k,
+  setSort,
+  label,
+  align,
+}: {
+  current: SortKey;
+  k: SortKey;
+  setSort: (k: SortKey) => void;
+  label: string;
+  align?: "right";
+}) {
+  const isActive = current === k;
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5 mb-6">
+    <th
+      className={`px-6 py-2 font-medium tabular-nums ${align === "right" ? "text-right" : ""}`}
+    >
+      <button
+        onClick={() => setSort(k)}
+        className={`inline-flex items-center gap-1 hover:text-gray-900 transition-colors ${
+          isActive ? "text-gray-900" : "text-gray-500"
+        }`}
+      >
+        {label}
+        {isActive && <span className="text-[9px]">▼</span>}
+      </button>
+    </th>
+  );
+}
+
+// ── Latest events ────────────────────────────────────────────────────────
+
+function LatestEventsCard({
+  summary,
+  loading,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
       <h2 className="text-base font-semibold text-gray-900 mb-4">Latest 50 events</h2>
-      {loading ? (
+      {loading && !summary ? (
         <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || summary.latestEvents.length === 0 ? (
         <p className="text-sm text-gray-400">No events yet.</p>
@@ -241,23 +574,29 @@ function LatestEventsCard({ summary, loading }: { summary: SummaryResponse | nul
                 <th className="px-6 py-2 font-medium">When</th>
                 <th className="px-6 py-2 font-medium">Event</th>
                 <th className="px-6 py-2 font-medium">Provider</th>
-                <th className="px-6 py-2 font-medium">Metadata</th>
               </tr>
             </thead>
             <tbody>
               {summary.latestEvents.map((e) => (
-                <tr key={e.id} className="border-b border-gray-50 last:border-0 align-top">
-                  <td className="px-6 py-2 text-gray-500 whitespace-nowrap">
+                <tr key={e.id} className="border-b border-gray-50 last:border-0 align-top hover:bg-gray-50/60">
+                  <td
+                    className="px-6 py-2 text-gray-500 whitespace-nowrap"
+                    title={new Date(e.created_at).toLocaleString()}
+                  >
                     {formatRelative(e.created_at)}
                   </td>
                   <td className="px-6 py-2">
                     <EventBadge type={e.event_type} />
                   </td>
-                  <td className="px-6 py-2 font-mono text-xs text-gray-700 break-all max-w-xs">
-                    {e.provider_id}
-                  </td>
-                  <td className="px-6 py-2 font-mono text-[11px] text-gray-500 break-all max-w-md">
-                    {summarizeMetadata(e.metadata)}
+                  <td className="px-6 py-2 font-mono text-xs">
+                    <a
+                      href={`/provider/${e.provider_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 hover:underline break-all"
+                    >
+                      {e.provider_id}
+                    </a>
                   </td>
                 </tr>
               ))}
@@ -272,7 +611,9 @@ function LatestEventsCard({ summary, loading }: { summary: SummaryResponse | nul
 function EventBadge({ type }: { type: string }) {
   const tone = EVENT_TONE[type] ?? "bg-gray-100 text-gray-700";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${tone}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${tone}`}
+    >
       {type}
     </span>
   );
@@ -283,6 +624,7 @@ const EVENT_TONE: Record<string, string> = {
   search_click: "bg-sky-50 text-sky-700",
   cta_click_public: "bg-violet-50 text-violet-700",
   benefits_started: "bg-teal-50 text-teal-700",
+  claim_completed: "bg-indigo-50 text-indigo-700",
   lead_received: "bg-amber-50 text-amber-700",
   review_received: "bg-yellow-50 text-yellow-800",
   question_received: "bg-blue-50 text-blue-700",
@@ -296,27 +638,6 @@ const EVENT_TONE: Record<string, string> = {
   review_viewed: "bg-gray-100 text-gray-600",
 };
 
-function summarizeMetadata(meta: Record<string, unknown> | null): string {
-  if (!meta || Object.keys(meta).length === 0) return "—";
-  const keys = Object.keys(meta).slice(0, 4);
-  const parts = keys.map((k) => {
-    const v = meta[k];
-    const display =
-      typeof v === "string"
-        ? v.length > 40
-          ? `${v.slice(0, 37)}…`
-          : v
-        : typeof v === "number" || typeof v === "boolean"
-        ? String(v)
-        : Array.isArray(v)
-        ? `[${v.length}]`
-        : "{…}";
-    return `${k}: ${display}`;
-  });
-  const more = Object.keys(meta).length - keys.length;
-  return parts.join(", ") + (more > 0 ? `, +${more}` : "");
-}
-
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
   const seconds = Math.max(0, Math.round((Date.now() - then) / 1000));
@@ -328,4 +649,27 @@ function formatRelative(iso: string): string {
   const days = Math.round(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────
+
+function FootNote({ summary }: { summary: SummaryResponse | null }) {
+  return (
+    <div className="mt-6 flex items-center justify-between text-xs text-gray-400">
+      <p>
+        Phase 0 sanity-check view. Counts are raw — nightly aggregation tables run at 8 AM UTC.
+      </p>
+      {summary && (
+        <span
+          className="tabular-nums whitespace-nowrap"
+          title="Per-instance counter (in-memory). Resets at UTC midnight. Undercounts across multi-region deploys."
+        >
+          Bot rejects today:{" "}
+          <span className="font-medium text-gray-600">
+            {summary.botRejects.count.toLocaleString()}
+          </span>
+        </span>
+      )}
+    </div>
+  );
 }

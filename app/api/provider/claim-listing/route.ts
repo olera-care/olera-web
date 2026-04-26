@@ -376,6 +376,21 @@ export async function POST(request: Request) {
       })
       .eq("id", accountId);
 
+    // Log provider activity: claim attribution for the admin Providers section.
+    // source='page' — this endpoint is reached from the public provider page
+    // via UnifiedAuthModal, distinct from the email-flow claim in /api/claim/finalize.
+    // Prefer providerSlug as the activity key since other anonymous events
+    // (page_view, search_click, one_click_access) all use the URL slug —
+    // keeps distinct-provider counts addressable by the same identifier.
+    db.from("provider_activity").insert({
+      provider_id: providerSlug || providerId,
+      profile_id: newProfile.id,
+      event_type: "claim_completed",
+      metadata: { source: "page", olera_provider_id: providerId },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] claim_completed (page) insert failed:", actErr);
+    });
+
     return NextResponse.json({
       profileId: newProfile.id,
       verificationState: "verified",

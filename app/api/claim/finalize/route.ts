@@ -395,6 +395,19 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
+    // 6d. Provider activity: claim attribution for the admin Providers section.
+    // source='email' — this endpoint is reached from the post-email onboard
+    // flow, distinct from the page-flow claim in /api/provider/claim-listing.
+    // Symmetrical write so distinct-provider counts can split by source cleanly.
+    db.from("provider_activity").insert({
+      provider_id: providerId,
+      profile_id: profileId,
+      event_type: "claim_completed",
+      metadata: { source: "email" },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] claim_completed (email) insert failed:", actErr);
+    });
+
     return NextResponse.json({ success: true, profileSlug, profileId });
   } catch (err) {
     console.error("Finalize claim error:", err);

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import type { AccessTier } from "@/lib/medjobs-access";
 
@@ -20,6 +20,10 @@ interface ProviderContactSectionProps {
   accessTier?: AccessTier;
   /** Provider's credits used count for upgrade modal */
   creditsUsed?: number;
+  /** Provider verification status */
+  isVerified?: boolean;
+  /** Called when unverified provider tries to schedule */
+  onVerifyClick?: () => void;
 }
 
 export default function ProviderContactSection({
@@ -32,6 +36,8 @@ export default function ProviderContactSection({
   initialScheduled = false,
   accessTier,
   creditsUsed = 0,
+  isVerified,
+  onVerifyClick,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,8 +46,34 @@ export default function ProviderContactSection({
   const [showModal, setShowModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
+  // Store form data when verification is triggered, so we can restore it after
+  const [pendingFormData, setPendingFormData] = useState<ScheduleFormData | null>(null);
+  // Track previous verification state to detect when user becomes verified
+  const wasVerifiedRef = useRef(isVerified);
 
   const isFreeExhausted = accessTier === "free_exhausted";
+
+  // Re-open schedule modal with saved form data after user verifies
+  useEffect(() => {
+    // Detect transition from unverified to verified
+    if (isVerified && !wasVerifiedRef.current && pendingFormData) {
+      setShowModal(true);
+      // Note: pendingFormData is passed as initialValues below
+    }
+    wasVerifiedRef.current = isVerified;
+  }, [isVerified, pendingFormData]);
+
+  // Wrapped callback that closes schedule modal before opening verification modal
+  const handleVerifyWithFormData = useCallback((formData?: ScheduleFormData) => {
+    if (formData) {
+      setPendingFormData(formData);
+    }
+    setShowModal(false); // Close schedule modal first
+    // Small delay to prevent visual stacking
+    setTimeout(() => {
+      onVerifyClick?.();
+    }, 100);
+  }, [onVerifyClick]);
 
   // If initial state changes (e.g., parent fetched interviews), update
   useEffect(() => {
@@ -127,8 +159,11 @@ export default function ProviderContactSection({
           <ScheduleInterviewModal
             studentProfileId={studentId}
             otherName={studentName}
-            onClose={() => setShowModal(false)}
-            onScheduled={() => { setShowModal(false); setScheduled(true); }}
+            onClose={() => { setShowModal(false); setPendingFormData(null); }}
+            onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+            isVerified={isVerified}
+            onVerifyClick={handleVerifyWithFormData}
+            initialValues={pendingFormData || undefined}
           />
         )}
         {showUpgradeModal && (
@@ -214,8 +249,11 @@ export default function ProviderContactSection({
         <ScheduleInterviewModal
           studentProfileId={studentId}
           otherName={studentName}
-          onClose={() => setShowModal(false)}
-          onScheduled={() => { setShowModal(false); setScheduled(true); }}
+          onClose={() => { setShowModal(false); setPendingFormData(null); }}
+          onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+          isVerified={isVerified}
+          onVerifyClick={handleVerifyWithFormData}
+          initialValues={pendingFormData || undefined}
         />
       )}
       {showUpgradeModal && (

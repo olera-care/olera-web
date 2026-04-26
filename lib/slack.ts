@@ -2,9 +2,20 @@ const WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
 interface SlackBlock {
   type: string;
+  block_id?: string;
   text?: { type: string; text: string; emoji?: boolean };
   fields?: { type: string; text: string }[];
-  elements?: { type: string; text: string }[];
+  elements?: SlackElement[];
+  accessory?: SlackElement;
+}
+
+interface SlackElement {
+  type: string;
+  text?: string | { type: string; text: string; emoji?: boolean };
+  action_id?: string;
+  value?: string;
+  style?: "primary" | "danger";
+  url?: string;
 }
 
 /**
@@ -583,6 +594,114 @@ export function slackBenefitsStarted(opts: {
       {
         type: "section",
         text: { type: "mrkdwn", text: `*On provider page:* ${providerLine}` },
+      },
+    ],
+  };
+}
+
+export function slackVerificationReview(opts: {
+  providerName: string;
+  providerSlug: string;
+  profileId: string;
+  claimerName: string;
+  claimerEmail: string;
+  claimerRole: string;
+  linkedinUrl?: string | null;
+  businessWebsiteUrl?: string | null;
+  manualReviewRequested?: boolean;
+  autoVerifyReason?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const adminUrl = `${siteUrl}/admin/verification`;
+
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Claimer:*\n${opts.claimerName}` },
+    { type: "mrkdwn", text: `*Email:*\n${opts.claimerEmail}` },
+    { type: "mrkdwn", text: `*Role:*\n${opts.claimerRole}` },
+  ];
+
+  const links: string[] = [];
+  if (opts.linkedinUrl) {
+    links.push(`<${opts.linkedinUrl}|LinkedIn>`);
+  }
+  if (opts.businessWebsiteUrl) {
+    links.push(`<${opts.businessWebsiteUrl}|Website>`);
+  }
+  if (opts.manualReviewRequested) {
+    links.push("_No verification URLs provided_");
+  }
+
+  // Action value encodes verification data as JSON (pipe delimiter breaks on names with |)
+  const actionValue = JSON.stringify({
+    profileId: opts.profileId,
+    email: opts.claimerEmail,
+    name: opts.providerName,
+  });
+
+  return {
+    text: `Verification review needed: ${opts.providerName} claimed by ${opts.claimerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔍 Verification Review Needed", emoji: true },
+      },
+      {
+        type: "section",
+        fields,
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Verification links:*\n${links.length > 0 ? links.join(" • ") : "None provided"}`,
+        },
+      },
+      ...(opts.autoVerifyReason
+        ? [
+            {
+              type: "section" as const,
+              text: {
+                type: "mrkdwn" as const,
+                text: `*Auto-verify result:*\n_${opts.autoVerifyReason}_`,
+              },
+            },
+          ]
+        : []),
+      {
+        type: "actions",
+        block_id: `verification_${opts.profileId}`,
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "✓ Approve", emoji: true },
+            style: "primary",
+            action_id: "verification_approve",
+            value: actionValue,
+          },
+          {
+            type: "button",
+            text: { type: "plain_text", text: "✗ Reject", emoji: true },
+            style: "danger",
+            action_id: "verification_reject",
+            value: actionValue,
+          },
+          {
+            type: "button",
+            text: { type: "plain_text", text: "View Profile", emoji: true },
+            action_id: "verification_view",
+            url: `${siteUrl}/provider/${opts.providerSlug}`,
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${adminUrl}|Open Admin Panel>`,
+          },
+        ],
       },
     ],
   };

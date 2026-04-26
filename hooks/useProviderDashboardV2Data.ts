@@ -44,7 +44,7 @@ export interface ProviderDashboardV2Data {
   };
   recentActivity: Array<{
     id: string;
-    kind: "question" | "question_answered" | "lead" | "review" | "page_view";
+    kind: "question" | "question_answered" | "lead" | "review";
     timestamp: string;
     title: string;
     detail?: string;

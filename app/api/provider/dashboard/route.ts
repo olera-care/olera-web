@@ -231,12 +231,15 @@ export async function GET(request: NextRequest) {
       windowDays: 90,
     };
 
-    // ── Recent activity feed (merged timeline of interesting events) ──
-    // Blends anonymous page_views with question/lead/review events so the
-    // provider sees a single "what's happening on my page" stream.
+    // ── Recent activity feed (discrete, action-bearing events only) ──
+    // Questions, leads, reviews — each a distinct thing the provider might want
+    // to respond to. Anonymous page_views are intentionally NOT emitted here;
+    // they'd otherwise dominate the feed (5+ view rows for every 1 meaningful
+    // event) and duplicate the signal already carried by the views pulse row
+    // on the client (which reads views.thisPeriod/deltaPct from this payload).
     type ActivityItem = {
       id: string;
-      kind: "question" | "question_answered" | "lead" | "review" | "page_view";
+      kind: "question" | "question_answered" | "lead" | "review";
       timestamp: string;
       title: string;
       detail?: string;
@@ -292,21 +295,6 @@ export async function GET(request: NextRequest) {
         detail: r.comment ? (r.comment.length > 100 ? r.comment.slice(0, 100) + "…" : r.comment) : undefined,
         actionHref: `/provider/reviews`,
         actorName: r.reviewer_name ?? undefined,
-      });
-    }
-
-    // Page views — include only if sparse enough that they're interesting.
-    // At high volume, too noisy; cap contribution to last 10.
-    const recentPageViews = events.filter(isAnonymousPageView).slice(0, 10);
-    for (const ev of recentPageViews) {
-      const meta = ev.metadata as Record<string, unknown> | null;
-      const referrer = typeof meta?.referrer === "string" ? meta.referrer : "";
-      activity.push({
-        id: `v-${ev.id}`,
-        kind: "page_view",
-        timestamp: ev.created_at,
-        title: "A family viewed your page",
-        detail: describeReferrer(referrer),
       });
     }
 
@@ -382,17 +370,6 @@ function computeDeltaPct(current: number, prior: number): number | null {
   if (prior === 0 && current === 0) return null;
   if (prior === 0) return null;
   return Math.round(((current - prior) / prior) * 100);
-}
-
-function describeReferrer(referrer: string): string {
-  if (!referrer) return "direct visit";
-  if (referrer.startsWith("internal:")) return "from within Olera";
-  const host = referrer.toLowerCase();
-  if (host.includes("google")) return "from Google search";
-  if (host.includes("bing")) return "from Bing search";
-  if (host.includes("yahoo")) return "from Yahoo search";
-  if (host.includes("duckduckgo")) return "from DuckDuckGo";
-  return `from ${referrer}`;
 }
 
 // ─── Cohort widening (ported from /api/provider/analytics Phase 1+) ───

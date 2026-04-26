@@ -66,6 +66,16 @@ interface EmailLog {
   metadata: Record<string, unknown> | null;
   created_at: string;
   html_body?: string;
+  // Lifecycle columns populated by the Resend webhook (lib/resend-events.ts).
+  // Null until the corresponding event arrives. last_event_type is the most
+  // recent transition; the per-event "first" timestamps are write-once.
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  first_clicked_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+  last_event_type: string | null;
+  last_event_at: string | null;
 }
 
 const PAGE_SIZE = 25;
@@ -75,6 +85,39 @@ function formatEmailType(type: string): string {
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+type LifecycleBadge = {
+  label: string;
+  variant: "verified" | "rejected" | "pending" | "default";
+};
+
+/**
+ * Pick the most informative lifecycle status for the row badge.
+ * If a webhook event has arrived (last_event_type set), prefer it over the
+ * send-time status — "opened" beats "sent" for the at-a-glance read.
+ */
+function lifecycleBadge(email: EmailLog): LifecycleBadge {
+  if (email.last_event_type) {
+    switch (email.last_event_type) {
+      case "opened":
+      case "clicked":
+        return { label: email.last_event_type, variant: "verified" };
+      case "bounced":
+      case "complained":
+      case "failed":
+        return { label: email.last_event_type, variant: "rejected" };
+      case "delivery_delayed":
+        return { label: "delayed", variant: "pending" };
+      case "delivered":
+      case "sent":
+        return { label: email.last_event_type, variant: "default" };
+    }
+  }
+  return {
+    label: email.status,
+    variant: email.status === "sent" ? "verified" : "rejected",
+  };
 }
 
 function formatDate(dateStr: string): string {
@@ -435,13 +478,10 @@ export default function AdminEmailsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge
-                          variant={
-                            email.status === "sent" ? "verified" : "rejected"
-                          }
-                        >
-                          {email.status}
-                        </Badge>
+                        {(() => {
+                          const lc = lifecycleBadge(email);
+                          return <Badge variant={lc.variant}>{lc.label}</Badge>;
+                        })()}
                       </td>
                     </tr>
                     {previewId === email.id && (
@@ -470,6 +510,36 @@ export default function AdminEmailsPage() {
                                   <span className="text-red-600">
                                     <strong>Error:</strong>{" "}
                                     {email.error_message}
+                                  </span>
+                                )}
+                                {email.delivered_at && (
+                                  <span>
+                                    <strong>Delivered:</strong>{" "}
+                                    {formatDate(email.delivered_at)}
+                                  </span>
+                                )}
+                                {email.first_opened_at && (
+                                  <span>
+                                    <strong>First opened:</strong>{" "}
+                                    {formatDate(email.first_opened_at)}
+                                  </span>
+                                )}
+                                {email.first_clicked_at && (
+                                  <span>
+                                    <strong>First clicked:</strong>{" "}
+                                    {formatDate(email.first_clicked_at)}
+                                  </span>
+                                )}
+                                {email.bounced_at && (
+                                  <span className="text-red-600">
+                                    <strong>Bounced:</strong>{" "}
+                                    {formatDate(email.bounced_at)}
+                                  </span>
+                                )}
+                                {email.complained_at && (
+                                  <span className="text-red-600">
+                                    <strong>Complained:</strong>{" "}
+                                    {formatDate(email.complained_at)}
                                   </span>
                                 )}
                               </div>

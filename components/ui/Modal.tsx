@@ -8,6 +8,8 @@ interface ModalProps {
   onClose: () => void;
   /** Title can be a string or React node for custom headers (e.g., step indicators) */
   title?: ReactNode;
+  /** Subtitle shown below title in the fixed header area (doesn't scroll) */
+  subtitle?: ReactNode;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "fullscreen";
@@ -41,6 +43,7 @@ export default function Modal({
   isOpen,
   onClose,
   title,
+  subtitle,
   children,
   size = "md",
   onBack,
@@ -51,7 +54,6 @@ export default function Modal({
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   // Stable ref for onClose — prevents useEffect from re-running
   // when onClose identity changes between renders.
@@ -61,14 +63,6 @@ export default function Modal({
   // Track client-side mount for createPortal (SSR-safe)
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  // Track desktop breakpoint for border-radius (Tailwind classes weren't working reliably)
-  useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= 640);
-    checkDesktop();
-    window.addEventListener("resize", checkDesktop);
-    return () => window.removeEventListener("resize", checkDesktop);
   }, []);
 
   // Blur active element before closing to prevent scroll-to-footer.
@@ -183,7 +177,7 @@ export default function Modal({
       <div
         ref={contentRef}
         className={[
-          "relative bg-white shadow-2xl w-full flex flex-col",
+          "relative bg-white shadow-2xl w-full flex flex-col overflow-hidden",
           isFullscreen
             ? [
                 // Fullscreen: near full viewport with small margins
@@ -193,17 +187,14 @@ export default function Modal({
               ].join(" ")
             : [
                 // Mobile: bottom sheet (top corners rounded only)
-                "max-h-[92dvh] animate-sheet-up",
-                // Desktop: centered modal
-                "sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
+                "max-h-[92dvh] animate-sheet-up rounded-t-2xl",
+                // Desktop: centered modal with all corners rounded
+                "sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop sm:rounded-2xl",
               ].join(" "),
           sizeClasses[size],
         ].join(" ")}
-        // Border-radius via inline style (Tailwind classes weren't working reliably)
-        // Mobile: top corners only (bottom sheet). Desktop: all corners.
         style={{
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          borderRadius: isDesktop ? "1rem" : "1rem 1rem 0 0",
         }}
       >
         {/* Drag handle — mobile only, not for fullscreen */}
@@ -263,6 +254,17 @@ export default function Modal({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Subtitle — fixed below header, doesn't scroll */}
+        {subtitle && !hideHeader && (
+          <div className="px-5 sm:px-7 pt-3 pb-1 shrink-0">
+            {typeof subtitle === "string" ? (
+              <p className="text-gray-600 text-[15px] leading-relaxed">{subtitle}</p>
+            ) : (
+              subtitle
+            )}
           </div>
         )}
 

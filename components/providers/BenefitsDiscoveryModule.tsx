@@ -11,6 +11,7 @@ import {
   HandHeart,
   Spinner,
 } from "@phosphor-icons/react";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -264,6 +265,7 @@ export default function BenefitsDiscoveryModule({
           stateName,
           providerName: providerName || null,
           providerSlug: providerSlug || null,
+          sessionId: getOrCreateSessionId(),
         }),
         keepalive: true,
       }).catch(() => {});

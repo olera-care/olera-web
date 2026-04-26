@@ -207,14 +207,18 @@ export async function POST(request: Request) {
         providerDomain: extractDomainFromWebsite(existingProfile.website),
       });
 
+      // Set verification_state based on trust level:
+      // - High trust: 'not_required' (full access, no verification needed)
+      // - Medium/Low trust: 'unverified' (gated, must complete verification)
+      const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
+
       // Update existing unclaimed profile
-      // Everyone who completes email verification gets full access
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
           account_id: accountId,
           claim_state: claimState,
-          verification_state: "verified",
+          verification_state: verificationState,
           claim_trust_level: trustResult.level,
         })
         .eq("id", existingProfile.id);
@@ -250,6 +254,11 @@ export async function POST(request: Request) {
         providerDomain: extractDomainFromWebsite(provider.website),
       });
 
+      // Set verification_state based on trust level:
+      // - High trust: 'not_required' (full access, no verification needed)
+      // - Medium/Low trust: 'unverified' (gated, must complete verification)
+      const verificationStateForNew = trustResult.level === "high" ? "not_required" : "unverified";
+
       // Store Google metadata separately (read-only, external data)
       // Real reviews will come from the reviews table, not metadata
       const metadata: Record<string, unknown> = {};
@@ -279,7 +288,7 @@ export async function POST(request: Request) {
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
           claim_state: claimState,
-          verification_state: "verified",
+          verification_state: verificationStateForNew,
           claim_trust_level: trustResult.level,
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
@@ -385,6 +394,19 @@ export async function POST(request: Request) {
     } catch {
       // Non-blocking
     }
+
+    // 6d. Provider activity: claim attribution for the admin Providers section.
+    // source='email' — this endpoint is reached from the post-email onboard
+    // flow, distinct from the page-flow claim in /api/provider/claim-listing.
+    // Symmetrical write so distinct-provider counts can split by source cleanly.
+    db.from("provider_activity").insert({
+      provider_id: providerId,
+      profile_id: profileId,
+      event_type: "claim_completed",
+      metadata: { source: "email" },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] claim_completed (email) insert failed:", actErr);
+    });
 
     return NextResponse.json({ success: true, profileSlug, profileId });
   } catch (err) {

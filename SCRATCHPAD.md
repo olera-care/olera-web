@@ -7,6 +7,134 @@
 
 ## Current Focus
 
+### 2026-04-26 — Resend webhook integration — SHIPPED + VERIFIED (PRs #635, #637)
+
+**Status:** ✅ live and verified. First real `opened` event landed and `email_log` denormalized columns updated correctly. Loop is closed.
+
+**Verification (2026-04-26 ~12:57 UTC):**
+- `email_events` row: `event_type=opened`, `svix_id=msg_3CtZbMfHTSucgRzuXhkRzvH8E9f`, `occurred_at=2026-04-26T12:34:55Z`
+- This was a Resend retry of an event that earlier 403'd against Vercel — proves the URL change worked, signature verified, idempotent insert succeeded
+- `email_log` denormalized state for the matching email (question_received → tfalohun@gmail.com): `first_opened_at=2026-04-26T12:34:55Z`, `last_event_type=opened`, `last_event_at=2026-04-26T12:34:55Z` ✓
+
+**The pivot:** started from the open Olera Action Items task "Audit provider question/lead notification email — find the open-rate lift" (P1 🔥). Territory mapping uncovered the foundational gap: we don't track email opens at all (only sends + click-throughs via `appendTrackingParams`). Without webhooks, the audit's data path is one-shot (call Resend's API per email, retain nothing). Promoted webhook integration to the primary task; audit becomes downstream and gets re-run on real data once webhooks live.
+
+**The pivot:** started from the open Olera Action Items task "Audit provider question/lead notification email — find the open-rate lift" (P1 🔥). Territory mapping uncovered the foundational gap: we don't track email opens at all (only sends + click-throughs via `appendTrackingParams`). Without webhooks, the audit's data path is one-shot (call Resend's API per email, retain nothing). Promoted webhook integration to the primary task; audit becomes downstream and gets re-run on real data once webhooks live.
+
+**Notion task created** for the new scope: [Resend webhook integration — unlock email open/click tracking (prerequisite for the email audit)](https://www.notion.so/Resend-webhook-integration-unlock-email-open-click-tracking-prerequisite-for-the-email-audit-34e5903a0ffe81ef87facb32a7437132) — P1 🔥, owner TJ, timeline 2026-05-02. Sibling to the original audit task.
+
+**PR #635 — MERGED to staging** (commit `d6a7387f`). 9 files, +694/-15. Breakdown:
+- `supabase/migrations/051_email_webhook_events.sql` (new) — applied to Supabase ✅
+- `app/api/resend/webhook/route.ts` (new) — POST handler, raw body, svix signature verify, returns 200 always so Resend doesn't retry
+- `lib/resend-events.ts` (new) — `verifyResendSignature()` (uses `svix` npm package, NOT raw HMAC — Resend uses Svix infra) + `recordEmailEvent()` (idempotent insert + monotonic email_log update)
+- `scripts/backfill-resend-events.js` (new) — one-shot, manual `--apply` invocation, ~2 req/sec, deterministic `backfill-{resend_id}` svix_id so re-runs are no-ops
+- `app/api/admin/emails/route.ts` + `.../export/route.ts` (modified) — extended SELECT to include 7 new lifecycle columns + CSV export columns
+- `app/admin/emails/page.tsx` (modified) — `EmailLog` interface extended, new `lifecycleBadge()` helper prefers `last_event_type` (opened/clicked/bounced/etc) over send-time status, preview drawer shows lifecycle timestamps
+- `package.json` + `package-lock.json` — `svix@^1.92.2` added at top-level (was transitive only — Vercel `npm ci` would have failed without this)
+
+**Schema design (chosen — hybrid):**
+- New `email_events` table — full event history, one row per webhook delivery, `UNIQUE(svix_id)` for idempotency, joined to `email_log` via `resend_id`
+- Denormalized columns on `email_log` — `delivered_at` / `first_opened_at` / `first_clicked_at` / `bounced_at` / `complained_at` / `last_event_type` / `last_event_at` so "open rate" SQL stays a flat scan, no join required
+- Why hybrid: pure events table forces a join + aggregation per query; pure denormalized columns lose timeline data. Hybrid gives both.
+
+**Idempotency:** `UNIQUE(svix_id)` enforced at DB level. Replays from Resend hit the constraint and silently no-op. Email_log denormalized columns use monotonic UPDATEs ("first" timestamps only set when null, "last_event" only advances when newer) so out-of-order replays can't move time backward.
+
+**Pre-test bugs caught + fixed before push:**
+1. Initial `delivered_at` guard used wrong field (`logRow.last_event_at` instead of `logRow.delivered_at`) and didn't SELECT the column for guarding. Fixed both.
+2. Backfill script was treating `result.error` from Resend SDK as "no last_event" instead of surfacing it. Now checks `result.error` explicitly and reports failures.
+
+**Setup state — COMPLETE:**
+- ✅ Migration 051 applied to Supabase
+- ✅ PR #635 merged (Vercel route + DB schema + admin UI) at `d6a7387f`
+- ✅ Vercel returned 403 on Resend POSTs as predicted (Bot Protection vs Svix-on-GCP) — same pattern as Stripe
+- ✅ PR #637 merged — webhook ported to Supabase Edge Function
+- ✅ Edge Function deployed: `https://ocaabzfiiikjcgqwhbwr.supabase.co/functions/v1/resend-webhook`
+- ✅ `RESEND_WEBHOOK_SECRET` set as Supabase secret (and still in Vercel env for the deprecated route as fallback)
+- ✅ Resend webhook URL updated to point at the Supabase function
+- ✅ First real `opened` event landed and verified end-to-end (see Verification section above)
+
+**Vercel Bot Protection (confirmed + mitigated):** Resend uses Svix infra on GCP. Vercel's edge Bot Protection layer blocked GCP-origin POSTs with 403. Migrated to Supabase Edge Function — same Svix verify, same idempotent insert, same monotonic UPDATE, just outside Vercel's edge. Vercel route at `app/api/resend/webhook/route.ts` retained with deprecation notice as documented backup.
+
+**Apple Mail caveat (framing for the audit re-open):** Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort. Click rate is the cleaner signal for iteration. The audit's "find the open-rate lift" framing should reframe to "find the engagement lift, primarily measured by clicks" when the audit task re-opens.
+
+**Next steps:**
+1. ✅ Webhook live + verified.
+2. New tile in `/admin/analytics` Providers section: "Opened Q&A emails" (distinct providers who opened a `question_received` email in the window) — shipping in a separate PR alongside this scratchpad update. Apple Mail caveat in the tooltip. Ratio is implicit vs the existing "Questions" tile in Engagement (every question → one email).
+3. Re-open the audit task ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) once ~7 days of real data has accumulated.
+4. Optional: run `node scripts/backfill-resend-events.js` to populate ~30 days of history from Resend's retained per-email status.
+
+**Stranded local branches (cleanup):**
+- `chore/scratchpad-resend-webhook-pivot` (local, never pushed) — yesterday's mid-session save with the pivot decision but pre-execution state. Superseded by this entry; safe to delete.
+- `chore/scratchpad-2026-04-26-webhooks` (current) — this entry.
+
+**Deferred follow-ups (post-merge, separate PRs):**
+- Auto-suppression for hard bounces / complaints — needs policy doc (false-positive risk for 60-70yo audience is real)
+- `/admin/analytics` Opens tile — best designed as part of the audit re-run, where the consumer picks the right windowed denominator
+- A/B testing framework for subject lines — webhooks unlock the data; testing UI is its own scope
+- Periodic reconciliation cron — for `email_events` rows where `email_log_id IS NULL` (race: webhook arrives before our send pipeline writes resend_id). Low priority unless we observe lookup misses in practice.
+- `email_events` retention policy — table grows ~1k-3k rows/day. Not blocking, but worth a 12-month archive policy eventually.
+
+---
+
+### 2026-04-25 — Admin Analytics — KPI strip rebuilt + design pass (3 PRs)
+
+**Where it landed:**
+- ✅ **PR #632 MERGED** to staging (commit `1519f266`) — grouped KPI strip (Discovery / Engagement / Families), range-aware (follows the date picker), benefits_started instrumentation. Migration 049 applied to staging Supabase.
+- ⏸ **PR #633 OPEN** — Providers section (5 distinct-provider tiles). Migration 050 applied. **Superseded by #634** — close after #634 lands.
+- ⏸ **PR #634 OPEN** — Design pass (audience grouping, deltas, insight strip, animated counters, URL-encoded range, click-throughs, tooltips, top-providers polish). Includes #633's commits cherry-picked. Active branch: `feature/admin-analytics-design-pass`. Latest commit: `dc7ba414` (audience tints amber-50/70 warm, sky-50/70 cool).
+
+**Layout that landed in #634 (Wave 1 design pass):**
+
+```
+[ Insight strip ]   ✦ "Page views up 100% last 7 days (2,181 vs 1,066 prior)."
+[ Last 7 days ]
+  Care seekers   (warm amber tint)
+    Discovery        Page views · Unique sessions · Card clicks
+    Engagement       Questions · Leads · Reviews
+    Family funnel    Benefits started · Benefits finished · Profiles published
+  Providers      (cool sky tint)
+    Sign-ins from Q&A · Page-flow claims · Answered questions · Engaged with leads · Clicked dashboard CTA
+[ Top providers ]   sortable, display name primary, slug as muted mono
+[ Latest 50 events ]
+[ Footer ]   "Bot rejects today: N" — relocated out of the windowed card
+```
+
+Per-tile delta lines (↑12% emerald / ↓4% rose / "flat" gray / "new" emerald), tooltips, click-throughs to filtered admin views, animated counters (cubic ease-out 600ms), `?preset=7d` URL param.
+
+**Files modified across all 3 PRs:**
+- `supabase/migrations/049_benefits_started_event.sql` (new) — applied
+- `supabase/migrations/050_claim_completed_event.sql` (new) — applied
+- `app/api/admin/analytics/summary/route.ts` — major rewrite, range-aware + prior-window deltas + insight generator + olera-providers name lookup
+- `app/admin/analytics/page.tsx` — major rewrite, audience grouping, all polish touches
+- `app/api/activity/track/route.ts` — `benefits_started` added to ANONYMOUS_EVENT_TYPES
+- `app/api/benefits/track-start/route.ts` — DB persist on top of existing Slack alert + sessionId
+- `app/api/claim/finalize/route.ts` — fires `claim_completed` with `metadata.source='email'`
+- `app/api/provider/claim-listing/route.ts` — fires `claim_completed` with `metadata.source='page'`, keyed on slug
+- `components/providers/BenefitsDiscoveryModule.tsx` — passes sessionId to track-start
+- `hooks/use-animated-count.ts` (new) — value-tweening hook (re-runs on value change, unlike useAnimatedCounters which only fires on mount)
+
+**Wave 2 (deferred — not in #634):**
+- Per-tile sparklines (60×16 mini-charts inside each tile) — needs new time-series-per-metric endpoint
+- Multi-series chart upgrade with annotations + benchmarks — needs annotations data model + design conversation
+
+**Resume next session:** TJ tested #634's preview. Once happy, `/pr-merge 634` to staging, then close #633. Wave 2 sparklines + chart upgrade is the natural follow-up.
+
+**Key decisions locked in this session:**
+- "Search clicks" was misleading (counted card click-throughs from results pages, not home-page search) → renamed "Card clicks" in the UI; underlying event_type stays `search_click`. Home-page search button remains uninstrumented (deferred).
+- "CTA clicks" tile dropped — only ever counted Save (heart) clicks; Connect/Contact instrumentation was a never-shipped TODO. Underlying `cta_click_public` event still used by provider-side dashboards.
+- Two claim endpoints map naturally to source attribution: `/api/provider/claim-listing` → `source='page'`, `/api/claim/finalize` → `source='email'`. No request-body `source` param needed.
+- Distinct-provider counts (not raw events) for Providers section — different shape than the rest of the strip but matches "how many people did X" framing.
+- `lead_opened` event is whitelisted in CHECK but never written by any code path. Switched "Engaged with leads" filter to `one_click_access AND metadata.action='lead'` (production has 2 such events confirming the path fires). If we later instrument a real lead_opened in the portal, can swap back.
+- Audience grouping (Care seekers / Providers) replaces the inconsistent flat 4-section labels (Discovery/Engagement/Families/Providers — three actions + one audience).
+- Audience tints: started at /30 opacity → looked like off-white smudges → bumped to /70 (amber warm, sky cool) so they read as intentional design, not render artifacts.
+- claim_completed (page-flow) keyed on `providerSlug` not `providerId` — matches the slug format every other anonymous event uses, enables future cross-event joins. Email-flow path still uses providerId since slug isn't in that body — known caveat.
+
+**Pre-test bugs caught + fixed before push:**
+- PR #632: "All time" preset returned last-24h (endpoint defaulted to 24h fallback when no params)
+- PR #633: "Engaged with leads" filtered on `lead_opened` which has zero rows ever in production
+- PR #634: skeleton flickered on range change (re-mounted tiles, broke counter tween); 3-tile rows in 5-col grid created awkward empty columns; claim_completed keyed on wrong ID format
+
+---
+
 ### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) — ALL PILLARS BUILT, ready for PR polish + merge
 
 **Phase 2 Brief (live doc):** https://www.notion.so/34b5903a0ffe81098302ce55d5df2a4d — source of truth for this workstream. Decisions + open questions live there.
@@ -266,6 +394,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+0. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates. Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
+0a. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634 (which merged 2026-04-25). Needs a new time-series-per-metric endpoint.
 1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
 2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
 3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)

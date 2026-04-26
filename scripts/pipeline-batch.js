@@ -1139,6 +1139,7 @@ async function phaseEnrich(cities, opts) {
         last_synced: new Date().toISOString(),
       };
       await supabase.from('olera-providers').update({ google_reviews_data: reviewData }).eq('provider_id', p.provider_id);
+      p.google_reviews_data = reviewData; // sync in-memory so Stream B doesn't clobber rating/review_count
       hydrateCount++;
     }
   }

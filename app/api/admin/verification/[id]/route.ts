@@ -51,8 +51,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Update metadata with badge status
-    // Note: verification_state stays "verified" - this is about the badge, not access
+    // Update metadata with badge status and verification_state
     const currentMetadata = (currentProfile?.metadata as Record<string, unknown>) || {};
     const updatedMetadata = {
       ...currentMetadata,
@@ -60,11 +59,19 @@ export async function PATCH(
       badge_approved_at: action === "approve" ? new Date().toISOString() : null,
       badge_rejected: action === "reject",
       badge_rejected_at: action === "reject" ? new Date().toISOString() : null,
+      ...(action === "approve" && {
+        verified_at: new Date().toISOString(),
+        verification_method: "admin_approval",
+      }),
     };
+
+    // Set verification_state based on action
+    const newVerificationState = action === "approve" ? "verified" : "rejected";
 
     const { data: profile, error: updateError } = await db
       .from("business_profiles")
       .update({
+        verification_state: newVerificationState,
         metadata: updatedMetadata,
         updated_at: new Date().toISOString(),
       })
@@ -75,6 +82,25 @@ export async function PATCH(
     if (updateError) {
       console.error("Failed to update verification:", updateError);
       return NextResponse.json({ error: "Failed to update verification" }, { status: 500 });
+    }
+
+    // If approved, publish any pending Q&A answers
+    if (action === "approve") {
+      const { error: publishError, count: publishedCount } = await db
+        .from("provider_questions")
+        .update({
+          answer_status: "published",
+          is_public: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("answered_by", id)
+        .eq("answer_status", "pending");
+
+      if (publishError) {
+        console.error("[admin] Failed to publish pending answers:", publishError);
+      } else if (publishedCount && publishedCount > 0) {
+        console.log(`[admin] Published ${publishedCount} pending Q&A answers for ${profile?.display_name}`);
+      }
     }
 
     // Log audit action

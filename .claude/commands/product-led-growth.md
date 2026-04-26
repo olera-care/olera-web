@@ -131,7 +131,11 @@ Default bias: ship something. Default constraint: at most ONE ship per daily run
 2. Is there an obvious copy / CTA / instrumentation gap surfaced by the data? (e.g., questions are flowing but answers aren't -- nudge the dashboard CTA)
 3. Is there a kill candidate? (an experiment that's clearly not working)
 
-Apply the auto-ship rubric. If it's reversible-by-`git revert`, open the PR yourself on a fresh branch off `staging` (this is the Olera workflow -- never branch from `main`, never PR to `main`). If it's not, push a Notion task to the right Action Items board with a clear hypothesis + measurement plan + rollback cost.
+Apply the auto-ship rubric. If it's reversible-by-`git revert`, open the PR yourself on a fresh branch off `staging` (this is the Olera workflow -- never branch from `main`, never PR to `main`).
+
+**Critical:** do the ship work in a NEW git worktree, not the worktree this command is running in. Use `git worktree add ../olera-web-growth-<short-slug> -b feature/<slug> origin/staging`. Switching branches in the current worktree would clobber whatever TJ is in the middle of. After pushing the branch and opening the PR, you can leave the worktree in place; TJ will clean it up.
+
+If the ship isn't reversible-by-revert, push a Notion task to the right Action Items board with a clear hypothesis + measurement plan + rollback cost.
 
 If nothing warrants a ship today, **don't force one**. A daily run with zero ships and a clean pulse is a valid outcome. Note it in the run entry as "no ship today, here's why."
 
@@ -141,7 +145,7 @@ If nothing warrants a ship today, **don't force one**. A daily run with zero shi
 
 Create a child of Growth Command Center (`34e5903a-0ffe-81ca-950e-d0d00dde74a9`).
 
-- **Title:** `Daily -- [Wed, Apr 26, 2026]`
+- **Title:** `Daily -- [Sun, Apr 26, 2026]` (use the actual current weekday + date)
 - **Icon:** 📈
 
 Page body sections:
@@ -250,7 +254,7 @@ If a monthly run produces a strategic shift, update `SCRATCHPAD.md` with the ver
 - **Pull script:** `scripts/growth-pull.js`
 - **Reference endpoint (mirror its semantics):** `app/api/admin/analytics/summary/route.ts`
 - **Daily digest cron** (similar shape, smaller scope): `app/api/cron/daily-digest/route.ts`
-- **Tables read by the pull:** `provider_activity`, `seeker_activity`, `email_log`, `provider_questions`, `disputes`, `olera-providers`, `user_profiles`
+- **Tables read by the pull:** `provider_activity`, `seeker_activity`, `email_log`, `provider_questions`, `disputes`, `olera-providers`
 
 ## A note on iteration
 

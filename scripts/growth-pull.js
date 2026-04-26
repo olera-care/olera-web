@@ -13,7 +13,7 @@
  *   node scripts/growth-pull.js --days 7     # Last 7d vs prior 7d (weekly mode)
  *   node scripts/growth-pull.js --days 30    # Last 30d vs prior 30d (monthly mode)
  *
- * No file system writes. Stdout-only by design — pipe to a file if you want
+ * No file system writes. Stdout-only by design -- pipe to a file if you want
  * to keep a snapshot.
  */
 

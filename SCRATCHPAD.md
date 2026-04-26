@@ -68,10 +68,46 @@
 
 **Deferred follow-ups (post-merge, separate PRs):**
 - Auto-suppression for hard bounces / complaints — needs policy doc (false-positive risk for 60-70yo audience is real)
-- `/admin/analytics` Opens tile — best designed as part of the audit re-run, where the consumer picks the right windowed denominator
+- ~~`/admin/analytics` Opens tile~~ ✅ Shipped (PR #639) — see below
 - A/B testing framework for subject lines — webhooks unlock the data; testing UI is its own scope
 - Periodic reconciliation cron — for `email_events` rows where `email_log_id IS NULL` (race: webhook arrives before our send pipeline writes resend_id). Low priority unless we observe lookup misses in practice.
 - `email_events` retention policy — table grows ~1k-3k rows/day. Not blocking, but worth a 12-month archive policy eventually.
+
+---
+
+### 2026-04-26 (cont.) — Admin tile + Daily Digest redesign + staging→main + /product-led-growth design
+
+**PR #639 MERGED — Opened Q&A emails tile in admin analytics** (commit `9daf4991` on staging)
+- New tile at the front of the Providers row: distinct providers whose `question_received` notification was first opened in the window. Anchored on `email_log.first_opened_at` (denormalized by the resend-webhook Edge Function) so query stays a flat scan, no join.
+- Funnel sequence reads left-to-right: opens → click-through (existing "Sign-ins from Q&A") → answers/leads/CTA.
+- SubRow extended to support `cols={6}`. Apple Mail caveat in the tooltip (30-50% open inflation, points at click-through as the cleaner signal).
+- `.gitignore` picks up `supabase/.temp/` so CLI link artifacts don't get tracked.
+- Files: `app/api/admin/analytics/summary/route.ts`, `app/admin/analytics/page.tsx`, `.gitignore`, `SCRATCHPAD.md`.
+
+**WhatsApp analytics Notion task created** — sibling visibility gap to the email audit. Three metrics to track (sent / opened via Twilio status=read / responded). Pattern should mirror Resend integration (Supabase Edge Function + events table + denormalized snapshot columns + admin tile). [Notion link](https://www.notion.so/Add-WhatsApp-analytics-sent-opened-responded-tracking-34e5903a0ffe8196aea8e64ef3dfef14) — P2, Olera Action Items board.
+
+**PR #640 MERGED — Daily Digest redesign** (audience-grouped + actionable; on staging at commit `10295473`)
+- Old digest was a single 5-metric run-on line frozen since March 3, never updated for the entire instrumentation rebuild.
+- New format mirrors `/admin/analytics` semantics: Care seekers section (page views / sessions / card clicks / questions / reviews / leads / benefits funnel), Providers section (Q&A email opens / sign-ins / answered / claims / lead engagement / CTA clicks), Needs Attention block (disputes / questions needing email / questions just hit 48h unanswered with backlog count).
+- "Just hit 48h unanswered" is the daily-actionable slice (created 24-48h ago, still unanswered) — splits cleanly from the cumulative backlog (currently 2,546). Daily action visible, systemic backlog visible, no fatigue from a 2,546 number that doesn't move from a single nudge.
+- Removed the "skip if all zeros" gate — its check covered only the 5 legacy metrics; on a high-traffic-no-conversion day it would silently skip a real signal.
+- Subject line drops the number-dump, becomes "Olera Daily Digest — Sun, Apr 26".
+- 8 parallel queries (was 5). Single file change: `app/api/cron/daily-digest/route.ts`. No DB changes.
+
+**PR #641 MERGED — staging → main promotion** (production at commit `c9590ac8`)
+- Full production release. 97 commits, 99 files. Spans verification flow, admin analytics rebuild, dashboard redesign Phase 2, provider one-click, Resend webhook integration, today's tile + digest.
+- Pre-merge analysis: 0 critical-file regressions (only `app/provider/[slug]/page.tsx` changed by 1 line, a feature-add gating Q&A answers by `answer_status='published'`). 0 reverts. Permanent redirects preserved (75). 5 migrations included (047-051), all already applied to the shared Supabase instance — no DB action at promote time.
+- Manual fire of the new digest blocked by Vercel Bot Protection on every external path (alias, deployment-specific URL, canonical olera.care). Cron infrastructure signs its requests internally and bypasses, so tomorrow's 13:00 UTC fire produces the new digest in #notifications natively. No manual fire needed.
+
+**/product-led-growth slash command — designed, Notion task on Web App board** ([Notion link](https://www.notion.so/Build-product-led-growth-Olera-s-Head-of-Growth-in-code-34e5903a0ffe8120acbbfecee244937c))
+- New session will build it. The brief is fully self-contained in the Notion task.
+- Frame TJ corrected mid-design: engagement is the focus, Olera Pro is the backdrop, lead access is the eventual destination. Don't optimize the paywall before the funnel is engaged.
+- Persona modeled on `/warroom`: "You are not an assistant. You are Olera's Head of Growth. Equal stakes with TJ. Peer collaborator, not yes-man. Outcome over agreeability."
+- Auto-ship rubric: ship copy / micro-CTA / instrumentation / layout / A/B variants / experiment kills as PRs without approval gate. Propose-only for new flows / paywall logic / schema / auth / PII / pricing-touching changes. Decision rule: rollback cost = git revert → ship; rollback cost = explaining to a 65yo facility operator → propose.
+- Cadence: daily lightweight pulse + weekly deep dive (modeled on `/seo`) + monthly strategic audit (modeled on `/warroom`). Three modes, one command.
+- Notion architecture: Growth Command Center (parent) + Growth Running Thread (child, accumulated learnings + status of every prior recommendation tagged proposed→in-progress→shipped→measured→kept/rolled-back) + dated daily/weekly/monthly report pages. Running Thread read first on every run before drawing conclusions.
+- Starter investigation: 17 public profiles vs ~75K providers is a value-asymmetry problem, not UX. Hypothesis to test: benefits intake (Medicaid waiver matching) is the closest thing to "stupid value" Olera offers — reframe the wedge as "complete benefits intake → outcome includes a profile providers can reach you through, opt-in checkbox." Trojan horse for the public profile.
+- TJ's note on iteration: "We will likely edit and update the slash command over time because it's such a massive one. That's totally fine." V1 is the foundation; persona + frame + agency rubric + cadence shape + Running Thread architecture are load-bearing across edits.
 
 ---
 
@@ -394,8 +430,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-0. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates. Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
-0a. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634 (which merged 2026-04-25). Needs a new time-series-per-metric endpoint.
+0. **Build /product-led-growth slash command** ([Notion brief](https://www.notion.so/Build-product-led-growth-Olera-s-Head-of-Growth-in-code-34e5903a0ffe8120acbbfecee244937c)) — fresh Claude Code session reads the brief and builds v1 (daily mode). All design decisions are locked in the Notion task; no re-litigation needed. Lives at `olera-web/.claude/commands/product-led-growth.md`. V1 acceptance: daily mode runs end-to-end (reads Running Thread, pulls analytics, writes a daily entry, ships at most one small PR if warranted). Growth Command Center + Running Thread Notion pages exist and are linked. Weekly + monthly modes can be added in follow-up PRs.
+0a. **Verify tomorrow's natural digest fire** (2026-04-27 13:00 UTC / 8 AM CT). If new format renders correctly in #notifications, integration is fully closed. If anything looks off, iterate.
+0b. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates (around 2026-05-03). Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
+0c. **WhatsApp analytics integration** ([Notion task](https://www.notion.so/Add-WhatsApp-analytics-sent-opened-responded-tracking-34e5903a0ffe8196aea8e64ef3dfef14)) — sibling to email tracking. Mirror the Resend pattern (Supabase Edge Function + events table + denormalized snapshots + admin tile). P2, no rush.
+0d. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634. Needs a new time-series-per-metric endpoint.
 1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
 2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
 3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)

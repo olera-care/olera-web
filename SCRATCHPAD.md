@@ -7,6 +7,42 @@
 
 ## Current Focus
 
+### 2026-04-27 — Q&A email A/B test on subject + preheader (Phase 2 of P1) — PR #653
+
+**Status:** open against staging, ready to merge once Vercel green. Build clean locally.
+
+Started Phase 2 ([Notion](https://www.notion.so/34f5903a0ffe81dc8d6fd39cdb40fe23)) the same day Phase 1 shipped — startup velocity, no point waiting for clean baseline data to start iterating on copy. First commit was a tame "for"-instead-of-"about" subject + preheader = question excerpt. TJ pushed back twice: (1) PHI concern on asker name in subject, (2) "we can do way better, do research." Refolded into a real A/B with research-backed B variant.
+
+**Variants:**
+- A (control) — exact production: `A family has a question about {Provider}`, no preheader
+- B — the question text itself, quote-wrapped, truncated 48 chars: `"Can residents bring their own furniture?"` + preheader `From a family on Olera · {Provider}`
+- B PHI-fallback — when question text matches `/(dementi|alzheim|parkinson|cancer|stroke|hospice|als|dialysis|...)/i`, fall back to `A new family question for {Provider}` + generic preheader
+
+**Why this B:** B2B subject-line research (2026 benchmarks, Apollo/Prospeo/Campaign Monitor) shows question-format subjects average ~46% open vs ~32% for statements; short subjects (≤4 words) lift opens 45%; marketing-urgency language drops opens below 36% and 69% of decision-makers report being annoyed by it. The format that wins is "looks like a colleague forwarded a real question" — which is literally what B is.
+
+**Implementation:**
+- `lib/email-templates.tsx` — `assignQuestionVariant()` (random 50/50), `questionReceivedInbox()` returns `{subject, preheader, phiFiltered}`, PHI keyword regex
+- 3 send sites (live + 2 deferred) use the same helper, persist `variant` + `phi_filtered` to `email_log.metadata`
+- `app/api/admin/analytics/summary/route.ts` — `qa_funnel_by_variant` rollup added; reads `metadata.variant` from each `email_log` row
+- `app/admin/analytics/page.tsx` — new `<VariantSplit>` table inside Q&A funnel card, shows per-variant sent/delivered/opened/clicked + open rate + CTR. Hidden until variant data exists. Footnote when pre-deploy emails (no variant) appear in the window.
+
+**Volume math:** 70 sends/day ÷ 2 arms = 35/arm/day. Directional signal in 2-3 weeks; statistical significance in 6-8 weeks. Ship the directional winner without waiting for p<0.05.
+
+**Memory:** `feedback_phi_in_subject_lines.md` saved (no asker names / health detail in subjects — server logs, push notifications, lock screens leak).
+
+**Next up:**
+- Wait for Vercel green, merge PR #653 → staging
+- Then promote staging → main (Q&A funnel admin tile already on main from PR #651, but A/B variants need to flow to prod sends)
+- Watch the Variant Split table on /admin/analytics over the next 2-3 weeks
+- Phase 3 ([follow-ups for unopened](https://www.notion.so/34f5903a0ffe81809188d977573d27d2)) is queued; biggest open-rate lever per audit but blocks on Phase 2 isolation
+
+**Skipped (deliberate):**
+- Resend backfill — send-only API key blocks `GET /emails/:id`; cohort self-corrects by 2026-05-03 once 7d window is entirely post-webhook
+- Send-time / sender / DMARC audit — flagged for follow-up, not on critical path
+- Preheaders on the other 5+ email templates — strict improvement, deferred (infra now in place)
+
+---
+
 ### 2026-04-27 — Production missing V2 dashboard hero — FF removed (PR #647)
 
 **Symptom:** olera.care `/provider` was showing the old "Profile completeness + provider card" layout. Staging had the V2 hero ("34 questions waiting for your answer" orientation banner), prod did not. Slack to Logan/Esther: TJ flagged the gap to avoid duplicate work before resuming the post-care-secret-question optimization.
@@ -28,9 +64,9 @@
 
 ---
 
-### 2026-04-27 — Q&A email funnel visibility shipped (Phase 1 of P1 task) — PR #648
+### 2026-04-27 — Q&A email funnel visibility shipped (Phase 1 of P1 task) — PR #648 / #651
 
-**Status:** shipped to staging via PR #648.
+**Status:** shipped to staging via PR #648, promoted to main via PR #651. Notion task marked Done 🙌. Phase 2 ([Notion](https://www.notion.so/34f5903a0ffe81dc8d6fd39cdb40fe23)) and Phase 3 ([Notion](https://www.notion.so/34f5903a0ffe81809188d977573d27d2)) split off as sibling tasks.
 
 Audited the P1 task ([Notion](https://www.notion.so/34e5903a0ffe80a3989ee19c09dc110a)). Key finding: the leak is the provider notification email open rate, not anything on the care-seeker side. Last 7d on staging: 520 sent → 36 opens → 27 sign-ins → 19 answered. Once they open, ~58% answer. Once they sign in, we got them.
 

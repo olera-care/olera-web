@@ -735,15 +735,27 @@ function useSectionObserver(sectionIds: string[]): string {
   const [activeId, setActiveId] = useState(sectionIds[0] || "");
 
   useEffect(() => {
+    if (sectionIds.length === 0) return;
+    const visible = new Set<string>();
     const observers: IntersectionObserver[] = [];
+
+    const recompute = () => {
+      for (const id of sectionIds) {
+        if (visible.has(id)) {
+          setActiveId(id);
+          return;
+        }
+      }
+    };
 
     for (const id of sectionIds) {
       const el = document.getElementById(id);
       if (!el) continue;
-
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) setActiveId(id);
+          if (entry.isIntersecting) visible.add(id);
+          else visible.delete(id);
+          recompute();
         },
         { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
       );
@@ -853,8 +865,6 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                     <span className="text-gray-400 ml-1">({program.savingsSource})</span>
                   )}
                 </p>
-              ) : program.savingsSource === "Free service" ? (
-                <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
               ) : null}
               {(() => {
                 const { author, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
@@ -1174,23 +1184,24 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             )}
 
             {/* ─── 10. Related programs ─── */}
-            {relatedPrograms.length > 0 && (
-              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
-                <SectionLabel>Related programs</SectionLabel>
-                <div className="flex flex-wrap gap-2">
-                  {relatedPrograms.map((name, i) => {
-                    const slug = findProgramSlug(name, state);
-                    return slug ? (
-                      <Link key={i} href={`/benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
-                        {name}
+            {(() => {
+              const linked = relatedPrograms
+                .map((name) => ({ name, slug: findProgramSlug(name, state) }))
+                .filter((r): r is { name: string; slug: string } => r.slug !== null);
+              if (linked.length === 0) return null;
+              return (
+                <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+                  <SectionLabel>Related programs</SectionLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {linked.map((r, i) => (
+                      <Link key={i} href={`/benefits/${state.id}/${r.slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
+                        {r.name}
                       </Link>
-                    ) : (
-                      <span key={i} className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">{name}</span>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* ─── 11. Things to know (callouts) ─── */}
             {program.contentSections && program.contentSections.filter((s) => s.type === "callout").length > 0 && (

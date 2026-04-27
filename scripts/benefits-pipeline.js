@@ -1107,20 +1107,21 @@ async function claudeChat(prompt, maxTokens = 4096) {
   throw new Error(`Claude rate limit: exhausted ${MAX_RETRIES} retries`);
 }
 
-const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers — adult children helping aging parents navigate government programs.
+const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers, the adult children helping aging parents navigate government programs.
 
 VOICE PRINCIPLES (non-negotiable):
-1. Lead with the caregiver's need, not the program definition. Not "SNAP is a federal nutrition program." Instead: "If your parent is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries."
-2. Use causal chains. "Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one team manages everything."
+1. Lead with the caregiver's need, not the program definition. Not "SNAP is a federal nutrition program." Instead: "If your parent is 60+ and on a fixed income, they may qualify for $100 to $300/month toward groceries."
+2. Use causal chains. "Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers; one team manages everything."
 3. Specific evidence immediately after claims. Don't say "income limits apply." Say "Income limit: $2,152/month for a single person (2026)."
 4. Clarify jargon inline in parentheses. "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)."
 5. End sections with the next step. "Call 800-252-2412. No application needed."
 6. No hedging, no filler, no bureaucratic language. "You cannot use SNAP for alcohol or tobacco" not "Please note that certain items may not be eligible for purchase."
 7. Honest about unknowns. If savings can't be verified, say so. Fewer honest facts beat more generic claims.
 8. Write for someone who is stressed, time-pressed, and may be reading on their phone. Short paragraphs. Clear hierarchy.
+9. Never use em dashes (—) in prose. Em dashes read as AI-generated writing and erode trust. Use periods, commas, colons, semicolons, or parentheses instead. This applies to every string field you generate (intro, faqs, applicationNotes, descriptions, callouts, everything).
 
 SOURCE CONSTRAINT (non-negotiable):
-- NEVER cite Olera or olera.care as a source. This creates a circular reference (AI reads Olera → writes content → Olera publishes → AI reads again). Only cite .gov sites, official program pages, and authoritative third-party sources.`;
+- NEVER cite Olera or olera.care as a source. This creates a circular reference (AI reads Olera, writes content, Olera publishes, AI reads again). Only cite .gov sites, official program pages, and authoritative third-party sources.`;
 
 // ─── Draft prompt builder (shared between serial and batch modes) ───────────
 
@@ -1141,7 +1142,7 @@ ${JSON.stringify({ ...prog, _raw: undefined }, null, 2)}
 Classification: ${JSON.stringify(classification, null, 2)}
 
 The page will render in a 4-tab structure: About / Eligibility / How to Apply / Resources.
-(Resources/navigators get a simpler 1-page layout — still generate all fields below; the renderer adapts.)
+(Resources/navigators get a simpler 1-page layout; still generate all fields below, the renderer adapts.)
 
 You must also decide which VISUAL COMPONENTS best serve this specific program. The available components are:
 - "income-table": For programs with household-size-based income thresholds
@@ -1369,7 +1370,7 @@ Program type breakdown: ${JSON.stringify(typeCounts)}
 Generate the state overview as a JSON object:
 
 {
-  "intro": "<2-3 paragraphs. Lead with what a caregiver in ${stateName} needs to know. How many programs are available? What's the range of help — from financial benefits to free resources? Be specific about ${stateName}, not generic. End with a clear 'here's how to start' direction.>",
+  "intro": "<2-3 paragraphs. Lead with what a caregiver in ${stateName} needs to know. How many programs are available? What's the range of help, from financial benefits to free resources? Be specific about ${stateName}, not generic. End with a clear 'here's how to start' direction.>",
   "startHere": [
     <3-4 objects: the most impactful programs a caregiver should look at first. Each: {"name": "...", "programId": "<matching id from the drafts>", "why": "<one sentence: why start here>"}>
   ],

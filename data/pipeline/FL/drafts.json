@@ -1231,7 +1231,7 @@
         {
           "label": "WAP Manager (statewide)",
           "phone": "(850) 717-8523",
-          "description": "Coreine Rainford, Florida Department of Commerce \u2014 general statewide questions. Alt: (850) 717-8467. Email wxadmin@cfcaa.org.",
+          "description": "Coreine Rainford, Florida Department of Commerce, general statewide questions. Alt: (850) 717-8467. Email wxadmin@cfcaa.org.",
           "hours": "Business hours"
         },
         {
@@ -1270,7 +1270,7 @@
         {
           "type": "callout",
           "tone": "info",
-          "text": "If the home needs major repairs first: agencies may \"defer\" weatherization when a home has a failing roof, active mold, or unsafe electrical. That isn't a final no \u2014 many agencies connect deferred households with Pre-WAP funds or SHIP (State Housing Initiatives Partnership) to address the repairs so the home becomes weatherization-ready."
+          "text": "If the home needs major repairs first: agencies may \"defer\" weatherization when a home has a failing roof, active mold, or unsafe electrical. That isn't a final no. Many agencies connect deferred households with Pre-WAP funds or SHIP (State Housing Initiatives Partnership) to address the repairs so the home becomes weatherization-ready."
         },
         {
           "type": "callout",
@@ -1281,7 +1281,7 @@
       "faqs": [
         {
           "question": "Can my loved one apply if they rent their home?",
-          "answer": "Yes \u2014 renters are eligible, but the landlord must provide written consent, since the energy improvements become the landlord's property at no cost. The landlord cannot pass the cost through to the tenant."
+          "answer": "Yes, renters are eligible, but the landlord must provide written consent, since the energy improvements become the landlord's property at no cost. The landlord cannot pass the cost through to the tenant."
         },
         {
           "question": "What if my loved one's county doesn't appear to have a local office?",
@@ -1293,7 +1293,7 @@
         },
         {
           "question": "What are the alternatives if the waitlist is too long?",
-          "answer": "Apply for LIHEAP in parallel \u2014 it helps with immediate utility bills and emergency HVAC repairs while you wait. Many utility providers (FPL, Duke Energy) also offer free energy audits and rebates that can be used alongside WAP."
+          "answer": "Apply for LIHEAP in parallel; it helps with immediate utility bills and emergency HVAC repairs while you wait. Many utility providers (FPL, Duke Energy) also offer free energy audits and rebates that can be used alongside WAP."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1301,15 +1301,15 @@
         },
         {
           "question": "How are Social Security and pensions counted toward the income limit?",
-          "answer": "All income sources \u2014 including Social Security retirement (SSA/SSDI) and pensions \u2014 are counted toward the 200% FPL limit ($31,300/year for one person in 2026). One exception: if the household receives SSI (Supplemental Security Income, needs-based) or TANF, they're \"categorically eligible\" and automatically pass the income test, though they still need to complete the standard application. Note the difference: SSI grants auto-eligibility; regular Social Security does not."
+          "answer": "All income sources, including Social Security retirement (SSA/SSDI) and pensions, are counted toward the 200% FPL limit ($31,300/year for one person in 2026). One exception: if the household receives SSI (Supplemental Security Income, needs-based) or TANF, they're \"categorically eligible\" and automatically pass the income test, though they still need to complete the standard application. Note the difference: SSI grants auto-eligibility; regular Social Security does not."
         },
         {
           "question": "What if the home needs major repairs before weatherization can begin?",
-          "answer": "The program focuses on energy efficiency, not structural renovation. If a home has severe issues \u2014 failing roof, active mold, unsafe electrical \u2014 the agency may \"defer\" the work. That's not necessarily a final no; many Florida agencies can connect you with Pre-WAP or SHIP (State Housing Initiatives Partnership) funds to address the repairs first so the home becomes weatherization-ready."
+          "answer": "The program focuses on energy efficiency, not structural renovation. If a home has severe issues (failing roof, active mold, unsafe electrical), the agency may \"defer\" the work. That's not necessarily a final no; many Florida agencies can connect you with Pre-WAP or SHIP (State Housing Initiatives Partnership) funds to address the repairs first so the home becomes weatherization-ready."
         },
         {
           "question": "How do I know if someone calling about weatherization is legitimate?",
-          "answer": "Legitimate WAP staff will never ask for payment, credit card numbers, or \"payroll updates\" over the phone. Contractors may call to schedule an audit \u2014 they'll already have your application details. If someone demands immediate home access or asks for sensitive data, hang up and call your county's official intake office (floridacommerce.gov directory) to verify."
+          "answer": "Legitimate WAP staff will never ask for payment, credit card numbers, or \"payroll updates\" over the phone. Contractors may call to schedule an audit; they'll already have your application details. If someone demands immediate home access or asks for sensitive data, hang up and call your county's official intake office (floridacommerce.gov directory) to verify."
         }
       ],
       "layoutIntent": {

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
+import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 
 /**
@@ -310,20 +310,28 @@ export async function POST(request: NextRequest) {
           providerUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=question&actionId=${newQuestion.id}`;
         }
 
+        const qaVariant = assignQuestionVariant();
+        const qaInbox = questionReceivedInbox({
+          providerName: providerDisplayName,
+          question: question.trim(),
+          variant: qaVariant,
+        });
         await sendEmail({
           to: pEmail,
-          subject: `A family has a question about ${providerDisplayName}`,
+          subject: qaInbox.subject,
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
             providerUrl,
             providerSlug: provider_id,
+            preheader: qaInbox.preheader,
           }),
           emailType: 'question_received',
           recipientType: 'provider',
           providerId: providerIdForLogs,
           recipientProfileId: providerIdForLogs,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
       } else if (newQuestion?.id) {
         // No provider email — flag for admin "Needs Email" tab

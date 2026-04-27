@@ -12,12 +12,37 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
 // ── Layout helpers ──────────────────────────────────────────────
 
-function layout(body: string): string {
+/**
+ * Hidden inbox-preview text that appears after the subject line in
+ * Gmail/Outlook/Apple Mail. Without this, clients show a random
+ * fragment of the body (often header text or whitespace).
+ *
+ * Pattern: visually hidden span + zero-width-joiner spacer to push
+ * body content out of the preview window. Standard across MailChimp,
+ * SendGrid, Postmark templates.
+ */
+function preheaderHtml(text: string): string {
+  if (!text) return "";
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n+/g, " ")
+    .trim();
+  // 80 zero-width joiners after the preheader — pushes body chars out
+  // of the preview window so inboxes don't append e.g. "Olera ..." to it.
+  const spacer = "&zwnj;&nbsp;".repeat(80);
+  return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f9fafb;opacity:0;">${escaped}${spacer}</div>`;
+}
+
+function layout(body: string, preheader?: string): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">
+  ${preheaderHtml(preheader ?? "")}
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
     <tr><td align="center">
       <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:480px;width:100%;">
@@ -350,6 +375,94 @@ export function newReviewEmail(opts: {
   `);
 }
 
+// ── question_received A/B test ────────────────────────────────────────
+//
+// Variant A (control): exact production state as of 2026-04-27.
+//   Subject: "A family has a question about {Provider}"
+//   Preheader: none — inbox shows whatever body fragment the client picks.
+//
+// Variant B: real question as subject (truncated, quote-wrapped) +
+// neutral Olera-attributed preheader.
+//   Subject: "{Question excerpt}"
+//   Preheader: "From a family on Olera · {Provider}"
+//
+// Question content can rarely contain identifying health detail; B falls
+// back to a non-question subject when keywords like "dementia",
+// "Alzheimer's", "Parkinson's", etc. are present. Marketing-urgency words
+// hurt opens (research: opens drop below 36%; 69% of decision-makers find
+// urgency-marketing copy annoying), so B leans into "real-question / from
+// a colleague" feel rather than stakes pressure.
+//
+// Variant assignment happens once at send time; the chosen variant is
+// persisted to email_log.metadata.variant so the admin funnel tile can
+// split open / click / sign-in / answer rates by arm.
+
+const QA_PHI_KEYWORDS = /\b(dementi|alzheim|parkinson|cancer|stroke|hospice|als|multiple sclerosis|diabet|copd|hypertens|chemo|dialysis|oxygen tank|ventilator|catheter|depress|anxiet|schizo|bipolar|psychos|incontinen|bedridden|immobile|terminal|palliative|end-of-life|end of life)\b/i;
+
+function questionMentionsPHI(text: string): boolean {
+  return QA_PHI_KEYWORDS.test(text);
+}
+
+/**
+ * Truncate a question for use directly in the subject line. Mobile inboxes
+ * typically clip at ~40-50 chars before the ellipsis; quote chars consume
+ * 2 of those, so we aim for ≤48 visible question chars.
+ */
+function truncateForSubject(text: string, max = 48): string {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= max) return cleaned;
+  return cleaned.slice(0, max - 1).trimEnd() + "…";
+}
+
+export type QaEmailVariant = "A" | "B";
+
+/**
+ * Random 50/50 assignment for the question_received A/B test. Call once
+ * per email send and pass the result to both questionReceivedInbox() and
+ * sendEmail's metadata so the funnel can later attribute opens correctly.
+ */
+export function assignQuestionVariant(): QaEmailVariant {
+  return Math.random() < 0.5 ? "A" : "B";
+}
+
+/**
+ * Build the inbox-visible parts (subject + preheader) of a question_received
+ * email for the given variant. Centralizes A/B copy so all 3 send sites stay
+ * in sync.
+ *
+ * `phiFiltered` is true when variant B fell back to a non-question subject
+ * because the question text contained health-condition keywords. Persist
+ * this in email_log.metadata so we can audit the rate later.
+ */
+export function questionReceivedInbox(opts: {
+  providerName: string;
+  question: string;
+  variant: QaEmailVariant;
+}): { subject: string; preheader: string; phiFiltered: boolean } {
+  if (opts.variant === "A") {
+    return {
+      subject: `A family has a question about ${opts.providerName}`,
+      preheader: "",
+      phiFiltered: false,
+    };
+  }
+  // B
+  const phi = questionMentionsPHI(opts.question);
+  if (phi) {
+    return {
+      subject: `A new family question for ${opts.providerName}`,
+      preheader: `From a family on Olera · Posted today`,
+      phiFiltered: true,
+    };
+  }
+  const truncated = truncateForSubject(opts.question);
+  return {
+    subject: `"${truncated}"`,
+    preheader: `From a family on Olera · ${opts.providerName}`,
+    phiFiltered: false,
+  };
+}
+
 /** Email to provider when someone asks a question on their page */
 export function questionReceivedEmail(opts: {
   providerName: string;
@@ -357,6 +470,8 @@ export function questionReceivedEmail(opts: {
   question: string;
   providerUrl: string;
   providerSlug?: string;
+  /** Optional preheader for inbox preview. Pass from questionReceivedInbox(). */
+  preheader?: string;
 }): string {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${opts.providerName}</h1>
@@ -370,7 +485,7 @@ export function questionReceivedEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.</p>
     <div>${button("View and respond", opts.providerUrl)}</div>
     ${offRampBlock(opts.providerSlug)}
-  `);
+  `, opts.preheader);
 }
 
 /** Email to asker when their question is answered */

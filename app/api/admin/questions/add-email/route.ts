@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { questionReceivedEmail } from "@/lib/email-templates";
+import { questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { generateNotificationUrl } from "@/lib/claim-tokens";
 
@@ -156,10 +156,15 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const emailSubject = `A family has a question about ${displayName}`;
+          const qaVariant = assignQuestionVariant();
+          const qaInbox = questionReceivedInbox({
+            providerName: displayName,
+            question: q.question,
+            variant: qaVariant,
+          });
           const emailLogId = await reserveEmailLogId({
             to: effectiveEmail,
-            subject: emailSubject,
+            subject: qaInbox.subject,
             emailType: "question_received",
             recipientType: "provider",
             providerId,
@@ -176,18 +181,20 @@ export async function POST(request: NextRequest) {
 
           await sendEmail({
             to: effectiveEmail,
-            subject: emailSubject,
+            subject: qaInbox.subject,
             html: questionReceivedEmail({
               providerName: displayName,
               askerName: q.asker_name || "A family",
               question: q.question,
               providerUrl,
               providerSlug,
+              preheader: qaInbox.preheader,
             }),
             emailType: "question_received",
             recipientType: "provider",
             providerId,
             emailLogId: emailLogId ?? undefined,
+            metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
           });
 
           // Clear the flag

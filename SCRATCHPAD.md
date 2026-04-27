@@ -80,6 +80,64 @@ Notion task body updated with TARGET METRIC + Phase 1/2/3. Memory `project_qa_fu
 
 ---
 
+### 2026-04-27 — Benefits QA: em-dash cleanup shipped (PR #650), Cess's FL audits surfaced
+
+**PR #650 shipped to staging** — em-dash stragglers + draft prompt hardening.
+- Branch: `chore/em-dash-stragglers-cleanup`. 2 commits: `fce38c6c` (9 sites in FL drafts.json + Rule 9 in prompt), `3d6d18e2` (pre-test follow-up: cleaned ~14 prose em dashes from prompt EXEMPLARs/placeholders that were teaching Claude by example).
+- Cause of stragglers: prior sweep (`6a0f8c99`) regex matched literal `—` but JSON stores `—` escape form; 9 leaked through in TJ's WAP audit content. Five replaced with comma, 1 period, 2 semicolons, 1 parens (failing roof / active mold / unsafe electrical comma-soup).
+- Pre-test review caught Rule 9 contradicting itself via the `applicationNotes` EXEMPLAR (3 em dashes in sample "good" output) + ~10 placeholder descriptions. Fixed in second commit. Icon-menu structural separators (47, "House" — home care) left intentionally; clearly list format, not prose.
+- Renderer chain verified: callout text rendered via `String(section.text)` plain, FAQ answers via `<p>{faq.answer}</p>` + JSON-LD schema. Both safe.
+
+**🚨 Critical discovery — Cess has been QA'ing FL programs since 2026-04-22 and her work was invisible to my Notion query.**
+- TJ called this out by sharing a screenshot showing 11/14 FL rows with all 5 checkboxes ticked. My API filter (`Status equals Approved/In Progress/Needs Changes/Blocked`) returned only 3 rows because **Cess ticks per-step checkboxes but leaves Status="Not Started" and Reviewer="Open"**.
+- 8 Cess-touched FL rows discovered: CCE (1 phone flag), Elder Options, HCE, MoW, Legal Aid, LIHEAP, PACE, SHINE. Audit findings live inside page bodies under "## Audit Results", not on the queue row metadata.
+- Read 4 of 8 page bodies so far (CCE/HCE/MoW/PACE). Remaining 4: SHINE, Elder Options, Legal Aid, LIHEAP — fetching next.
+
+**Patterns surfacing in Cess's audits (so far):**
+- **Real factual errors:** PACE income `$2,901 → $2,982/mo` (300% FBR 2026, same fix as SMMC-LTC). PACE service-area: page says "Miami-Dade only" but Cess reports "now available in 30+ counties incl. Tampa, Orlando, Jacksonville, Panhandle." CCE phone `211 → 1-800-963-5337` (Elder Helpline).
+- **Site-wide bugs (every FL page she touched):** "Related programs" cross-links broken on every program (renderer issue, not content). "Free — no cost to you" header showing on programs that aren't free (HCE has $160/mo subsidy; PACE has private-pay premium for non-Medicaid).
+- **Editorial scripts pending:** Full prose rewrites for Overview / Eligibility details / How to apply / Steps / Multiple FAQs across CCE, HCE, MoW, PACE. Substantial.
+
+**Recommended path forward (3-PR split):**
+1. Site-wide bug PR — debug "Related programs" cross-link breakage + "Free" header gate. Fixes apply to all 51 states, highest leverage.
+2. FL factual corrections PR — PACE income + service area, CCE phone. Small/fast, denial-risk numbers.
+3. FL editorial rewrites PR — apply Cess's prose scripts. Bigger, taste-driven, slower review.
+
+**Memory saved:** `feedback_benefits_qa_status_filter.md` — Notion QA queue: Cess ticks checkboxes without changing Status; don't filter by Status alone, query all rows + read page bodies.
+
+**Read all 8 Cess-reviewed FL page bodies. Full audit inventory captured.**
+
+**Chunk 1 shipped — PR #652** `qa/benefits-site-wide-bugs` — three site-wide renderer bugs in `components/waiver-library/ProgramPageV3.tsx` (+31/-20):
+- `relatedPrograms` filter: drop unresolvable entries instead of rendering gray non-link pills. Audit showed 1,820 of 2,332 entries (78%) across all 51 states currently render as broken-looking pills because they reference programs not in our pipeline (TANF, SSI, Senior Farmers Market, etc.). Now: section either shows working links or doesn't render at all. Net 2,332 visible pills → 512 working links.
+- "Free, no cost to you" hero banner: removed entirely. Was tripping on HCE ($160/mo subsidy), PACE (private-pay premium), Elder Options (sliding-scale co-pay) — promotional rather than editorial. `savingsRange` already handles the truly-free case.
+- `useSectionObserver` rewrite: was only reacting to `isIntersecting=true`, leaving active id stuck on prior sections. Now tracks the set of currently-intersecting sections and picks topmost in document order. Fixes the "Eligibility highlighted while at Overview" screenshot Cess sent twice.
+- Typecheck clean. Both production routes (`/benefits/[slug]/[program]` + `/senior-benefits/[state]/[benefit]`) use V3; V2 is unimported dead code.
+
+**Chunk 2 shipped — PR #654** `qa/fl-factual-corrections` — 6 denial-risk fact fixes in `data/pipeline/FL/drafts.json` (+drafts.ts auto-regen):
+- PACE income $2,901 → **$2,982/mo** (FAQ); same correction we applied to SMMC-LTC.
+- PACE service area Miami-Dade only → **30+ counties** (4 sites: localEntities, intro, applicationNotes, FAQ). Page was actively turning away caregivers in 30+ counties.
+- CCE top-level phone `null` → **`1-800-963-5337`** (Elder Helpline) + replaced placeholder DOEA contact + filled empty `sourceUrl`.
+- Elder Options home equity cap $585,000 → **$752,000** (3 sites: exemptAssets, structuredEligibility.homeEquityCap numeric, FAQ Q1 + spouse-waives-cap nuance added).
+- Elder Options service area 5 counties → **16 counties** (4 sites: intro, eligibility requirements, applicationNotes, FAQ Q2). Page was telling caregivers in 11 N.C. FL counties they were out of area when ElderOptions actually serves them.
+- LIHEAP "not all Florida counties participate" → **"active in all 67 Florida counties"** + heating cycle (through March 31) + cooling cycle (April 1+).
+
+**Editorial inventory for chunk 3 (still pending):**
+- CCE: Overview, "What's Covered" (medication clarity), Eligibility details, Steps, FAQ Q2/3/5/6/7/8
+- HCE: Header, Overview ($160/mo subsidy detail), asset/income/medical scripts, How to apply, FAQ Q4
+- MoW: Overview ¶2 ($7-9.49/meal pricing), Other Requirements, How to apply, Get in touch contacts, FAQ Q4/5/8
+- PACE: Header (already partly handled by chunk 1), Overview, eligibility scripts, Good to Know, Steps, FAQ Q2/Q7
+- SHINE: Remove personal staff email, use Elder Helpline + floridashine.org Find-a-Site
+- Elder Options: 16-county throughout (factual core handled by chunk 2; remaining script-rewrites for Good to know + Get in touch voicemail + Step 2 financial eligibility)
+- Legal Aid: Senior Legal Helpline hours fix, Coast-to-Coast Legal Aid (Broward) phone fix
+- LIHEAP: All-67-counties throughout (factual core handled by chunk 2; remaining application steps + processing/waitlist context + FAQ Q2)
+
+**Next up:**
+- Chunk 3 starting now (per TJ "let's continue" after chunk 2 ship)
+- After chunk 3: investigate the related-programs data fix (update prompt to constrain to in-state programs, regen) as a separate PR
+- Test chunks 1+2 on staging preview when TJ has bandwidth
+
+---
+
 ### 2026-04-26 — /product-led-growth bootstrap + Esther/TJ task split shipped
 
 **Built and shipped `/product-led-growth` slash command.** PR #642 merged to staging (squash, commit `0e674a43`). Two PRs total: V1 daily-mode + V1.5 reframe to daily-build / weekly-stats / monthly-strategy after the dry-run revealed daily-pulse produced false signal from Sunday baselines. Files: `.claude/commands/product-led-growth.md`, `scripts/growth-pull.js`. PR #643 open with Working Principle #8 (trust the implementer, don't over-prescribe when writing Notion tasks for the team).

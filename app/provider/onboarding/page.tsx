@@ -2429,8 +2429,7 @@ function ProviderOnboardingContent() {
                   </button>
                 </div>
                 <p className="text-center text-xs text-gray-500">
-                  By creating this page, you confirm you're authorized to manage{" "}
-                  <span className="font-medium">{formData.orgName || "this business"}</span> and agree to our{" "}
+                  By creating this page, you confirm you're authorized to manage this business and agree to our{" "}
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                     Terms
                   </Link>.
@@ -2443,8 +2442,7 @@ function ProviderOnboardingContent() {
         {/* Mobile sticky bottom nav */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-vanilla-100 border-t border-vanilla-200 px-4 py-3 safe-area-inset-bottom">
           <p className="text-center text-xs text-gray-500 mb-3">
-            By creating this page, you confirm you're authorized to manage{" "}
-            <span className="font-medium">{formData.orgName || "this business"}</span> and agree to our{" "}
+            By creating this page, you confirm you're authorized to manage this business and agree to our{" "}
             <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
               Terms
             </Link>.
@@ -2608,8 +2606,7 @@ function ProviderOnboardingContent() {
                 </div>
 
                 <p className="text-center text-xs text-gray-400">
-                  By claiming this page, you confirm you're authorized to manage{" "}
-                  <span className="font-medium">{providerName}</span> and agree to our{" "}
+                  By claiming this page, you confirm you're authorized to manage this business and agree to our{" "}
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
                     Terms
                   </Link>.

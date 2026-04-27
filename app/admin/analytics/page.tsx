@@ -31,17 +31,38 @@ interface ProviderDistinctCounts {
   qa_email_openers: number;
 }
 
+interface ProviderQaFunnel {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  complained: number;
+  signed_in: number;
+  answered: number;
+}
+
+interface QaEmailIssue {
+  reason: string;
+  count: number;
+  type: "bounced" | "complained";
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
     counts: WindowedCounts;
     unique_sessions_page_view: number;
     provider_distinct_counts: ProviderDistinctCounts;
+    qa_funnel: ProviderQaFunnel;
+    qa_email_issues: QaEmailIssue[];
   };
   prior: {
     counts: WindowedCounts;
     unique_sessions_page_view: number;
     provider_distinct_counts: ProviderDistinctCounts;
+    qa_funnel: ProviderQaFunnel;
+    qa_email_issues: QaEmailIssue[];
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -141,6 +162,7 @@ export default function AdminAnalyticsPage() {
       <InsightStrip insight={summary?.insight ?? null} loading={loading} />
 
       <WindowedCard summary={summary} loading={loading} range={range} />
+      <QaFunnelCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
@@ -303,6 +325,202 @@ function WindowedCard({
           </AudienceGroup>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Q&A Email Funnel ─────────────────────────────────────────────────────
+
+function QaFunnelCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const f = summary.windowed.qa_funnel;
+  const pf = summary.prior?.qa_funnel ?? null;
+  const issues = summary.windowed.qa_email_issues;
+
+  // Funnel stages — `prev` is the count of the immediate prior stage, used
+  // to compute step-to-step conversion. `Sent` has no prior stage.
+  const stages: Array<{
+    label: string;
+    value: number;
+    prior: number | null;
+    prev: number | null;
+    tooltip: string;
+  }> = [
+    {
+      label: "Sent",
+      value: f.sent,
+      prior: pf?.sent ?? null,
+      prev: null,
+      tooltip:
+        "Provider question_received emails dispatched in this window (cohort denominator). One row per send in email_log.",
+    },
+    {
+      label: "Delivered",
+      value: f.delivered,
+      prior: pf?.delivered ?? null,
+      prev: f.sent,
+      tooltip:
+        "Resend confirmed acceptance by recipient mailserver. % shown is delivery rate (delivered / sent).",
+    },
+    {
+      label: "Opened",
+      value: f.opened,
+      prior: pf?.opened ?? null,
+      prev: f.delivered,
+      tooltip:
+        "Provider opened the email (Resend webhook 'opened' event). Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort — clicks are the cleaner signal. % shown is open rate (opened / delivered).",
+    },
+    {
+      label: "Clicked",
+      value: f.clicked,
+      prior: pf?.clicked ?? null,
+      prev: f.opened,
+      tooltip:
+        "Provider clicked a tracked link in the email. % shown is click-to-open rate (CTOR).",
+    },
+    {
+      label: "Signed in",
+      value: f.signed_in,
+      prior: pf?.signed_in ?? null,
+      prev: f.clicked,
+      tooltip:
+        "Distinct providers who auto-signed in via the email's one-click link (provider_activity event). Approximate attribution — anchored on activity time, not the email's send time, so for short windows this can diverge from the email cohort above.",
+    },
+    {
+      label: "Answered",
+      value: f.answered,
+      prior: pf?.answered ?? null,
+      prev: f.signed_in,
+      tooltip:
+        "Distinct providers who responded to ≥1 question in this window. Same approximate-attribution caveat as Signed in.",
+    },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <div className="flex items-baseline gap-3 mb-1">
+        <h2 className="text-base font-semibold text-gray-900">Provider Q&A Email Funnel</h2>
+        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
+      </div>
+      <p className="text-xs text-gray-500 mb-5">
+        Cohort: {`question_received`} emails sent {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-5 gap-y-4">
+        {stages.map((s) => (
+          <FunnelStat key={s.label} {...s} />
+        ))}
+      </div>
+
+      <div className="mt-6 pt-5 border-t border-gray-100">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+          Bounces & complaints
+        </div>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Counted by event time in window (may reference Q&A emails sent earlier).
+        </p>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-4 mb-4 max-w-md">
+          <Stat
+            label="Bounced"
+            value={f.bounced}
+            prior={pf?.bounced ?? null}
+            tooltip="Distinct Q&A emails that bounced (hard or soft) in this window. Hard bounces should be triaged — typo addresses, dead domains."
+          />
+          <Stat
+            label="Complained"
+            value={f.complained}
+            prior={pf?.complained ?? null}
+            tooltip="Distinct Q&A emails recipients marked as spam in this window. Hurts sender reputation across all email."
+          />
+        </div>
+        {issues.length === 0 ? (
+          <p className="text-sm text-gray-400">No bounces or complaints in window.</p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {issues.map((iss, i) => (
+              <li key={i} className="flex items-baseline gap-3">
+                <span
+                  className={`inline-flex w-20 shrink-0 text-[10px] font-medium uppercase tracking-wide ${
+                    iss.type === "bounced" ? "text-rose-600" : "text-amber-700"
+                  }`}
+                >
+                  {iss.type}
+                </span>
+                <span
+                  className="flex-1 truncate text-gray-700"
+                  title={iss.reason}
+                >
+                  {iss.reason}
+                </span>
+                <span className="tabular-nums text-gray-500">×{iss.count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FunnelStat({
+  label,
+  value,
+  prior,
+  prev,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  prior: number | null;
+  prev: number | null;
+  tooltip: string;
+}) {
+  const animated = useAnimatedCount(value, 600);
+  const isZero = value === 0;
+  const stepPct = prev !== null && prev > 0 ? Math.round((value / prev) * 100) : null;
+  const delta = computeDelta(value, prior);
+
+  return (
+    <div title={tooltip} className={`cursor-default ${isZero ? "opacity-50" : ""}`}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {animated.toLocaleString()}
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <div className="text-[10.5px] tabular-nums mt-1.5 leading-none">
+        {stepPct !== null ? (
+          <span className="text-gray-500 font-medium">{stepPct}% of prev</span>
+        ) : delta.state === "noPrior" ? (
+          <span className="invisible">.</span>
+        ) : (
+          <span
+            className={
+              delta.state === "up" || delta.state === "newSignal"
+                ? "text-emerald-700 font-medium"
+                : delta.state === "down"
+                ? "text-rose-600 font-medium"
+                : "text-gray-400 font-medium"
+            }
+          >
+            {delta.pctText}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

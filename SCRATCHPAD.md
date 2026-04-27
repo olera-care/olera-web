@@ -28,6 +28,22 @@
 
 ---
 
+### 2026-04-27 — Q&A email funnel visibility shipped (Phase 1 of P1 task) — PR #648
+
+**Status:** shipped to staging via PR #648.
+
+Audited the P1 task ([Notion](https://www.notion.so/34e5903a0ffe80a3989ee19c09dc110a)). Key finding: the leak is the provider notification email open rate, not anything on the care-seeker side. Last 7d on staging: 520 sent → 36 opens → 27 sign-ins → 19 answered. Once they open, ~58% answer. Once they sign in, we got them.
+
+The visibility gap: we saw opens (existing `qa_email_openers` tile) and downstream sign-ins/answered, but nothing upstream. Sent / delivered / bounced / marked-spam were all captured in `email_events` + denormalized on `email_log` (since 2026-04-26 commit `9b1f74f5`), just not displayed. PR #648 surfaces them as a new "Provider Q&A Email Funnel" card on `/admin/analytics`.
+
+Two-file diff (`app/api/admin/analytics/summary/route.ts` + `app/admin/analytics/page.tsx`). Pre-test review caught one bug pre-ship: cohort vs event anchor mismatch on bounced/complained — fixed by event-anchoring those side stats so they stay in lockstep with the issues list.
+
+Resend backfill skipped: full-access API key required (current key is send-only). Instead, the cohort will fully reconcile by 2026-05-03 once the 7d window is entirely post-webhook. Phase 2 (subject line / preheader / sender rep / send-time) and Phase 3 (follow-ups for unopened) build on this baseline.
+
+Notion task body updated with TARGET METRIC + Phase 1/2/3. Memory `project_qa_funnel.md` saved so future sessions don't re-misread the funnel direction.
+
+---
+
 ### 2026-04-26 — /product-led-growth bootstrap + Esther/TJ task split shipped
 
 **Built and shipped `/product-led-growth` slash command.** PR #642 merged to staging (squash, commit `0e674a43`). Two PRs total: V1 daily-mode + V1.5 reframe to daily-build / weekly-stats / monthly-strategy after the dry-run revealed daily-pulse produced false signal from Sunday baselines. Files: `.claude/commands/product-led-growth.md`, `scripts/growth-pull.js`. PR #643 open with Working Principle #8 (trust the implementer, don't over-prescribe when writing Notion tasks for the team).

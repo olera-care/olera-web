@@ -218,12 +218,16 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     // Store OTP in profile metadata
+    // Also set claimer_email and claimer_name at top level for Slack notifications
+    // in subsequent verification attempts via other methods
     const currentMetadata = (profile.metadata as Record<string, unknown>) || {};
     const updatedMetadata = {
       ...currentMetadata,
+      claimer_email: normalizedEmail,
+      claimer_name: fullName,
       verification_otp: {
         code: otp,
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         fullName,
         expires_at: expiresAt,
         created_at: new Date().toISOString(),

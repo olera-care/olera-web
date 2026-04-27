@@ -335,7 +335,8 @@ export async function POST(request: NextRequest) {
     } else {
       // Not auto-verified — set to pending and send to Slack for manual review
       const currentMetadata = (profile.metadata as Record<string, unknown>) || {};
-      const claimerEmail = currentMetadata.claimer_email as string;
+      // Use claimer_email from metadata, or fall back to auth user's email
+      const claimerEmail = (currentMetadata.claimer_email as string) || user.email;
       const claimerRole = (currentMetadata.verification_submission as Record<string, unknown>)?.role as string || "unknown";
 
       // Check if this is the first failed attempt (not already pending)
@@ -364,8 +365,12 @@ export async function POST(request: NextRequest) {
       const existingAttempts = (currentMetadata.verification_attempts as Record<string, unknown>[]) || [];
 
       // Update profile to pending state with verification attempt details
+      // Also store claimer info for future reference
       const updatedMetadata = {
         ...currentMetadata,
+        // Store claimer info if not already set
+        claimer_email: currentMetadata.claimer_email || claimerEmail,
+        claimer_name: currentMetadata.claimer_name || claimerName,
         // Keep legacy single attempt for backwards compatibility
         verification_attempt: attemptRecord,
         // Also store in array for multiple attempt tracking
@@ -385,21 +390,27 @@ export async function POST(request: NextRequest) {
         console.error("[verify] Failed to update profile to pending:", updateError);
       }
 
-      // Only send Slack alert on the first failure to avoid duplicate alerts
+      // Send Slack alert on the first failure
+      // Now that we fall back to auth user email, this should always have claimerEmail
       if (isFirstFailure && claimerEmail && claimerName) {
-        const alert = slackVerificationReview({
-          providerName: profile.display_name || "Unknown",
-          providerSlug: profile.slug || profileId,
-          profileId,
-          claimerName,
-          claimerEmail,
-          claimerRole,
-          linkedinUrl: method === "linkedin" ? value : undefined,
-          businessWebsiteUrl: method === "website" ? value : undefined,
-          manualReviewRequested: true,
-          autoVerifyReason: result.reason,
-        });
-        await sendSlackAlert(alert.text, alert.blocks);
+        try {
+          const alert = slackVerificationReview({
+            providerName: profile.display_name || "Unknown",
+            providerSlug: profile.slug || profileId,
+            profileId,
+            claimerName,
+            claimerEmail,
+            claimerRole,
+            linkedinUrl: method === "linkedin" ? value : undefined,
+            businessWebsiteUrl: method === "website" ? value : undefined,
+            manualReviewRequested: true,
+            autoVerifyReason: result.reason,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch (slackErr) {
+          console.error("[verify] Failed to send Slack alert:", slackErr);
+          // Non-blocking - continue even if Slack fails
+        }
       }
 
       console.log(`[verify] Manual review needed for ${profile.display_name} via ${method}: ${result.reason}`);

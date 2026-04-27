@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, claim_state, created_at, email, phone, slug, source_provider_id")
+      .select("id, display_name, type, category, city, state, claim_state, verification_state, created_at, email, phone, slug, source_provider_id")
       .in("type", ["organization", "caregiver"])
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
@@ -86,29 +86,69 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "action must be 'approve' or 'reject'" }, { status: 400 });
     }
 
-    const newState = action === "approve" ? "claimed" : "rejected";
     const db = getServiceClient();
 
-    const { error: updateError, count } = await db
-      .from("business_profiles")
-      .update({ claim_state: newState, updated_at: new Date().toISOString() })
-      .in("id", ids)
-      .in("type", ["organization", "caregiver"]);
+    if (action === "approve") {
+      // Approve: update claim_state to "claimed"
+      const { error: updateError, count } = await db
+        .from("business_profiles")
+        .update({ claim_state: "claimed", updated_at: new Date().toISOString() })
+        .in("id", ids)
+        .in("type", ["organization", "caregiver"]);
 
-    if (updateError) {
-      console.error("Bulk provider action error:", updateError);
-      return NextResponse.json({ error: "Failed to update providers" }, { status: 500 });
+      if (updateError) {
+        console.error("Bulk approve error:", updateError);
+        return NextResponse.json({ error: "Failed to approve providers" }, { status: 500 });
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "bulk_approve_providers",
+        targetType: "business_profile",
+        targetId: "bulk",
+        details: { ids, new_state: "claimed", count: count ?? ids.length },
+      });
+
+      return NextResponse.json({ success: true, updated: count ?? ids.length });
+    } else {
+      // Reject: delete the profiles to free up the listing
+      const { data: toDelete } = await db
+        .from("business_profiles")
+        .select("id, display_name")
+        .in("id", ids);
+
+      const { error: deleteError, count } = await db
+        .from("business_profiles")
+        .delete({ count: "exact" })
+        .in("id", ids)
+        .in("type", ["organization", "caregiver"]);
+
+      if (deleteError) {
+        console.error("Bulk reject error:", deleteError);
+        return NextResponse.json({ error: "Failed to reject providers" }, { status: 500 });
+      }
+
+      // Clear active_profile_id for accounts that referenced deleted profiles
+      await db
+        .from("accounts")
+        .update({ active_profile_id: null })
+        .in("active_profile_id", ids);
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "bulk_reject_providers",
+        targetType: "business_profile",
+        targetId: "bulk",
+        details: {
+          ids,
+          names: (toDelete ?? []).map((p) => p.display_name),
+          action: "deleted_to_free_listing",
+          count: count ?? ids.length,
+        },
+      });
+
+      return NextResponse.json({ success: true, deleted: count ?? ids.length });
     }
-
-    await logAuditAction({
-      adminUserId: adminUser.id,
-      action: action === "approve" ? "bulk_approve_providers" : "bulk_reject_providers",
-      targetType: "business_profile",
-      targetId: "bulk",
-      details: { ids, new_state: newState, count: count ?? ids.length },
-    });
-
-    return NextResponse.json({ success: true, updated: count ?? ids.length });
   } catch (err) {
     console.error("Bulk provider action error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -154,6 +194,12 @@ export async function DELETE(request: NextRequest) {
       console.error("Bulk provider delete error:", deleteError);
       return NextResponse.json({ error: "Failed to delete providers" }, { status: 500 });
     }
+
+    // Clear active_profile_id for accounts that referenced deleted profiles
+    await db
+      .from("accounts")
+      .update({ active_profile_id: null })
+      .in("active_profile_id", ids);
 
     await logAuditAction({
       adminUserId: adminUser.id,

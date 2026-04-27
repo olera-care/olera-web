@@ -1,0 +1,347 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { generateUniqueSlug } from "@/lib/slug";
+
+/**
+ * POST /api/provider/claim-instant
+ *
+ * Instant claim without OTP verification:
+ * 1. Creates or gets Supabase user with email_confirm: true (no email sent)
+ * 2. Creates account + business_profile with verification_state: "unverified"
+ * 3. Returns tokenHash for client-side session establishment
+ *
+ * Supports both:
+ * - Claiming existing provider (providerId required)
+ * - Creating new org (isNewOrg=true, orgName required)
+ *
+ * Returns:
+ * - 200: { tokenHash, profileId }
+ * - 400: Validation error
+ * - 409: Already claimed / email conflict
+ * - 500: Server error
+ */
+export async function POST(request: Request) {
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+    if (!url || !serviceKey) {
+      console.error("[claim-instant] Missing SUPABASE_SERVICE_ROLE_KEY");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAdmin = createClient(url, serviceKey);
+    const body = await request.json();
+
+    const {
+      email,
+      // For claiming existing provider:
+      providerId,
+      providerName,
+      providerSlug,
+      providerEmail,
+      city,
+      state,
+      // For creating new org:
+      isNewOrg,
+      orgName,
+      phone,
+      careTypes,
+    } = body;
+
+    // Validate email
+    if (!email || !email.includes("@")) {
+      return NextResponse.json(
+        { error: "Valid email is required" },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // For new org creation
+    if (isNewOrg) {
+      if (!orgName?.trim()) {
+        return NextResponse.json(
+          { error: "Organization name is required" },
+          { status: 400 }
+        );
+      }
+      if (!city?.trim() || !state?.trim()) {
+        return NextResponse.json(
+          { error: "City and state are required" },
+          { status: 400 }
+        );
+      }
+    } else {
+      // For claiming existing - providerId required
+      if (!providerId) {
+        return NextResponse.json(
+          { error: "Provider ID is required" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 1. For claiming existing: Check if already claimed
+    // ──────────────────────────────────────────────────────────
+    if (!isNewOrg && providerId) {
+      const { data: existingClaim } = await supabaseAdmin
+        .from("business_profiles")
+        .select("id, account_id")
+        .eq("source_provider_id", providerId)
+        .maybeSingle();
+
+      if (existingClaim) {
+        return NextResponse.json(
+          {
+            error: "This listing has already been claimed.",
+            code: "ALREADY_CLAIMED",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 3. Create or get Supabase user (no email sent)
+    // ──────────────────────────────────────────────────────────
+    let userId: string | undefined;
+
+    const { data: newUser, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: normalizedEmail,
+        email_confirm: true, // No email sent!
+      });
+
+    if (createError) {
+      if (
+        createError.message?.includes("already been registered") ||
+        createError.message?.includes("already exists")
+      ) {
+        // User exists - get their ID via generateLink
+        const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: { redirectTo: `${siteUrl}/provider` },
+        });
+        userId = linkData?.user?.id;
+      } else {
+        console.error("[claim-instant] createUser failed:", createError.message);
+        return NextResponse.json(
+          { error: "Failed to create account" },
+          { status: 500 }
+        );
+      }
+    } else {
+      userId = newUser?.user?.id;
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Could not resolve user" },
+        { status: 500 }
+      );
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 4. Get or create account
+    // ──────────────────────────────────────────────────────────
+    let accountId: string;
+
+    const { data: existingAccount } = await supabaseAdmin
+      .from("accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingAccount) {
+      accountId = existingAccount.id;
+    } else {
+      const displayName = isNewOrg
+        ? orgName
+        : providerName || normalizedEmail.split("@")[0] || "Provider";
+
+      const { data: newAccount, error: createAccountError } = await supabaseAdmin
+        .from("accounts")
+        .insert({
+          user_id: userId,
+          display_name: displayName,
+          onboarding_completed: true,
+        })
+        .select("id")
+        .single();
+
+      if (createAccountError || !newAccount) {
+        console.error("[claim-instant] account creation error:", createAccountError);
+        return NextResponse.json(
+          { error: "Failed to create account" },
+          { status: 500 }
+        );
+      }
+
+      accountId = newAccount.id;
+      console.log("[claim-instant] created account:", accountId);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 5. Create business_profile
+    // ──────────────────────────────────────────────────────────
+    const slug = await generateUniqueSlug(
+      supabaseAdmin,
+      isNewOrg ? orgName : providerName || "Provider",
+      city || "",
+      state || ""
+    );
+
+    const profileData = isNewOrg
+      ? {
+          account_id: accountId,
+          slug,
+          type: "organization",
+          display_name: orgName,
+          email: normalizedEmail,
+          phone: phone || null,
+          city: city,
+          state: state,
+          care_services: careTypes || [],
+          claim_state: "claimed",
+          verification_state: "unverified", // Gated until verified
+          source: "self_service",
+          is_active: true,
+          metadata: {},
+        }
+      : {
+          account_id: accountId,
+          source_provider_id: providerId,
+          slug,
+          type: "organization",
+          display_name: providerName || "My Business",
+          email: normalizedEmail,
+          city: city || null,
+          state: state || null,
+          claim_state: "claimed",
+          verification_state: "unverified", // Gated until verified
+          source: "claimed_from_directory",
+          is_active: true,
+          metadata: {},
+        };
+
+    const { data: newProfile, error: insertErr } = await supabaseAdmin
+      .from("business_profiles")
+      .insert(profileData)
+      .select("id")
+      .single();
+
+    if (insertErr) {
+      console.error("[claim-instant] profile creation error:", insertErr);
+      // Handle race condition: provider was claimed between check and insert
+      if (
+        insertErr.message?.includes("duplicate") ||
+        insertErr.message?.includes("unique") ||
+        insertErr.code === "23505" // PostgreSQL unique violation
+      ) {
+        return NextResponse.json(
+          {
+            error: "This listing has already been claimed.",
+            code: "ALREADY_CLAIMED",
+          },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json(
+        { error: `Failed to create profile: ${insertErr.message}` },
+        { status: 500 }
+      );
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 6. Create membership if needed
+    // ──────────────────────────────────────────────────────────
+    const { data: existingMembership } = await supabaseAdmin
+      .from("memberships")
+      .select("id")
+      .eq("account_id", accountId)
+      .limit(1);
+
+    if (!existingMembership || existingMembership.length === 0) {
+      await supabaseAdmin.from("memberships").insert({
+        account_id: accountId,
+        plan: "free",
+        status: "free",
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 7. Update account with active profile
+    // ──────────────────────────────────────────────────────────
+    await supabaseAdmin
+      .from("accounts")
+      .update({
+        onboarding_completed: true,
+        active_profile_id: newProfile.id,
+      })
+      .eq("id", accountId);
+
+    // ──────────────────────────────────────────────────────────
+    // 8. Log provider activity
+    // ──────────────────────────────────────────────────────────
+    supabaseAdmin
+      .from("provider_activity")
+      .insert({
+        provider_id: providerSlug || providerId || slug,
+        profile_id: newProfile.id,
+        event_type: "claim_completed",
+        metadata: {
+          source: "instant_claim",
+          olera_provider_id: providerId || null,
+          verification_state: "unverified",
+        },
+      })
+      .then(({ error: actErr }) => {
+        if (actErr) {
+          console.error("[claim-instant] activity insert failed:", actErr);
+        }
+      });
+
+    // ──────────────────────────────────────────────────────────
+    // 9. Generate magic link token for session
+    // ──────────────────────────────────────────────────────────
+    const { data: signInLink, error: linkError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: { redirectTo: `${siteUrl}/provider` },
+      });
+
+    if (linkError || !signInLink?.properties?.hashed_token) {
+      console.error("[claim-instant] generateLink failed:", linkError?.message);
+      return NextResponse.json(
+        { error: "Failed to generate sign-in token" },
+        { status: 500 }
+      );
+    }
+
+    console.log(
+      "[claim-instant] success:",
+      isNewOrg ? "new org" : "claim",
+      newProfile.id
+    );
+
+    return NextResponse.json({
+      tokenHash: signInLink.properties.hashed_token,
+      profileId: newProfile.id,
+    });
+  } catch (err) {
+    console.error("[claim-instant] error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

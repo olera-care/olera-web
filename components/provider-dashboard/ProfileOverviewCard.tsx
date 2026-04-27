@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
@@ -43,6 +44,8 @@ interface ProfileOverviewCardProps {
   onEdit?: () => void;
   /** Callback when user clicks to open verification form */
   onVerifyClick?: () => void;
+  /** Provider slug for public profile link */
+  slug?: string | null;
 }
 
 export default function ProfileOverviewCard({
@@ -50,6 +53,7 @@ export default function ProfileOverviewCard({
   completionPercent,
   onEdit,
   onVerifyClick,
+  slug,
 }: ProfileOverviewCardProps) {
   const location = [profile.address, profile.city, profile.state]
     .filter(Boolean)
@@ -145,6 +149,19 @@ export default function ProfileOverviewCard({
               {location && (
                 <p className="text-[15px] text-gray-500 mt-1">{location}</p>
               )}
+              {slug && (
+                <Link
+                  href={`/provider/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 mt-1.5 transition-colors"
+                >
+                  View public profile
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -189,6 +206,19 @@ export default function ProfileOverviewCard({
               </div>
               {location && (
                 <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
+              )}
+              {slug && (
+                <Link
+                  href={`/provider/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 mt-1 transition-colors"
+                >
+                  View public profile
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </Link>
               )}
             </div>
 

@@ -331,15 +331,16 @@ export default function VerificationMethodModal({
       if (res.ok) {
         const data = await res.json();
         if (!data.available) {
-          if (data.alreadyHasProfile) {
-            setEmailAccountError("This email already manages another provider page.");
-          } else if (data.existingType === "family") {
+          // For verification flow, only block for family/caregiver conflicts.
+          // Org profile conflicts are handled by the backend (which checks if it's
+          // actually a different claimed profile, not the user's own or unclaimed).
+          if (data.existingType === "family") {
             setEmailAccountError("This email is linked to a family account. Use a different email.");
           } else if (data.existingType === "caregiver") {
             setEmailAccountError("This email is linked to a caregiver account. Use a different email.");
-          } else {
-            setEmailAccountError("This email is already in use. Please use a different email.");
           }
+          // Note: We intentionally don't block for alreadyHasProfile or other org
+          // conflicts here - the backend send-otp API will catch true conflicts.
         }
       }
     } catch (err) {

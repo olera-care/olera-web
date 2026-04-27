@@ -156,9 +156,10 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Check if another provider already uses this email (not the current user's account)
+        // Check if another CLAIMED provider already uses this email (not the current user's account)
+        // Skip unclaimed listings (account_id is null) - those are from data imports
         const otherOrgProfile = profilesByEmail.find(
-          (p) => p.type === "organization" && p.account_id !== account.id
+          (p) => p.type === "organization" && p.account_id && p.account_id !== account.id
         );
         if (otherOrgProfile) {
           return NextResponse.json(

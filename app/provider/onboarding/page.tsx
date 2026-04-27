@@ -2605,9 +2605,9 @@ function ProviderOnboardingContent() {
                   </button>
                 </div>
 
-                <p className="text-center text-xs text-gray-400">
+                <p className="text-center text-xs text-gray-500">
                   By claiming this page, you confirm you're authorized to manage this business and agree to our{" "}
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                     Terms
                   </Link>.
                 </p>

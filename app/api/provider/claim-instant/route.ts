@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
+import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { claimNotificationEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * POST /api/provider/claim-instant
@@ -310,7 +314,69 @@ export async function POST(request: Request) {
       });
 
     // ──────────────────────────────────────────────────────────
-    // 9. Generate magic link token for session
+    // 9. Notifications (fire-and-forget)
+    // ──────────────────────────────────────────────────────────
+    // Use same display_name logic as profile creation for consistency
+    const displayName = isNewOrg ? orgName : (providerName || "My Business");
+
+    // 9a. Slack notification
+    try {
+      const alert = slackProviderClaimed({
+        providerName: displayName,
+        claimedByEmail: normalizedEmail,
+        providerSlug: slug,
+      });
+      sendSlackAlert(alert.text, alert.blocks).catch(() => {
+        // Non-blocking
+      });
+    } catch {
+      // Non-blocking
+    }
+
+    // 9b. Admin email notification
+    try {
+      const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+      if (adminEmail) {
+        sendEmail({
+          to: adminEmail,
+          subject: `Provider claimed: ${displayName}`,
+          html: claimNotificationEmail({
+            providerName: displayName,
+            providerSlug: slug,
+            claimedByEmail: normalizedEmail,
+          }),
+          emailType: "claim_notification",
+          recipientType: "admin",
+          providerId: providerId || newProfile.id,
+        }).catch((err) => {
+          console.error("[claim-instant] admin email failed:", err);
+        });
+      }
+    } catch (emailErr) {
+      console.error("[claim-instant] admin notification failed:", emailErr);
+    }
+
+    // 9c. Loops event (for email marketing sequences)
+    try {
+      sendLoopsEvent({
+        email: normalizedEmail,
+        eventName: "provider_claimed",
+        audience: "provider",
+        eventProperties: {
+          providerName: displayName,
+        },
+        contactProperties: {
+          userType: "provider",
+        },
+      }).catch(() => {
+        // Non-blocking
+      });
+    } catch {
+      // Non-blocking
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 10. Generate magic link token for session
     // ──────────────────────────────────────────────────────────
     const { data: signInLink, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({

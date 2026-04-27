@@ -42,6 +42,20 @@ interface ProviderQaFunnel {
   answered: number;
 }
 
+interface ProviderQaVariantRow {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  phi_filtered: number;
+}
+
+interface ProviderQaFunnelByVariant {
+  A: ProviderQaVariantRow;
+  B: ProviderQaVariantRow;
+  unassigned: ProviderQaVariantRow;
+}
+
 interface QaEmailIssue {
   reason: string;
   count: number;
@@ -55,6 +69,7 @@ interface SummaryResponse {
     unique_sessions_page_view: number;
     provider_distinct_counts: ProviderDistinctCounts;
     qa_funnel: ProviderQaFunnel;
+    qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
   };
   prior: {
@@ -62,6 +77,7 @@ interface SummaryResponse {
     unique_sessions_page_view: number;
     provider_distinct_counts: ProviderDistinctCounts;
     qa_funnel: ProviderQaFunnel;
+    qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
   } | null;
   insight: string | null;
@@ -424,6 +440,8 @@ function QaFunnelCard({
         ))}
       </div>
 
+      <VariantSplit byVariant={summary.windowed.qa_funnel_by_variant} />
+
       <div className="mt-6 pt-5 border-t border-gray-100">
         <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
           Bounces & complaints
@@ -470,6 +488,77 @@ function QaFunnelCard({
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
+  const a = byVariant.A;
+  const b = byVariant.B;
+  const totalAssigned = a.sent + b.sent;
+  if (totalAssigned === 0) return null; // no variant data yet — pre-deploy window
+
+  const rate = (num: number, den: number) =>
+    den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+        A/B Test — subject + preheader
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        A = production control (generic subject, no preheader). B = real question as subject + Olera-attributed preheader. Random 50/50 at send. PHI-filtered B falls back to a non-question subject when the question text mentions a health condition.
+      </p>
+      <div className="overflow-x-auto -mx-1">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Sent</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Delivered</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Opened</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Open rate</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">CTR (open→click)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-gray-50">
+              <td className="px-3 py-2 font-medium text-gray-700">A (control)</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{a.sent}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{a.delivered}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{a.opened}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(a.opened, a.delivered)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{a.clicked}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-500">{rate(a.clicked, a.opened)}</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2 font-medium text-gray-700">
+                B (question-as-subject)
+                {b.phi_filtered > 0 && (
+                  <span
+                    className="ml-2 text-[10px] text-amber-600 font-normal"
+                    title={`${b.phi_filtered} of ${b.sent} B emails fell back to non-question subject due to PHI keyword in question text`}
+                  >
+                    · {b.phi_filtered} PHI-filtered
+                  </span>
+                )}
+              </td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{b.sent}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{b.delivered}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{b.opened}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(b.opened, b.delivered)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{b.clicked}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-500">{rate(b.clicked, b.opened)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {byVariant.unassigned.sent > 0 && (
+        <p className="text-[11px] text-gray-400 mt-3">
+          {byVariant.unassigned.sent} pre-deploy emails in window with no variant assigned (sent before A/B was wired up).
+        </p>
+      )}
     </div>
   );
 }

@@ -1107,20 +1107,21 @@ async function claudeChat(prompt, maxTokens = 4096) {
   throw new Error(`Claude rate limit: exhausted ${MAX_RETRIES} retries`);
 }
 
-const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers — adult children helping aging parents navigate government programs.
+const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers, the adult children helping aging parents navigate government programs.
 
 VOICE PRINCIPLES (non-negotiable):
-1. Lead with the caregiver's need, not the program definition. Not "SNAP is a federal nutrition program." Instead: "If your parent is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries."
-2. Use causal chains. "Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one team manages everything."
+1. Lead with the caregiver's need, not the program definition. Not "SNAP is a federal nutrition program." Instead: "If your parent is 60+ and on a fixed income, they may qualify for $100 to $300/month toward groceries."
+2. Use causal chains. "Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers; one team manages everything."
 3. Specific evidence immediately after claims. Don't say "income limits apply." Say "Income limit: $2,152/month for a single person (2026)."
 4. Clarify jargon inline in parentheses. "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)."
 5. End sections with the next step. "Call 800-252-2412. No application needed."
 6. No hedging, no filler, no bureaucratic language. "You cannot use SNAP for alcohol or tobacco" not "Please note that certain items may not be eligible for purchase."
 7. Honest about unknowns. If savings can't be verified, say so. Fewer honest facts beat more generic claims.
 8. Write for someone who is stressed, time-pressed, and may be reading on their phone. Short paragraphs. Clear hierarchy.
+9. Never use em dashes (—) in prose. Em dashes read as AI-generated writing and erode trust. Use periods, commas, colons, semicolons, or parentheses instead. This applies to every string field you generate (intro, faqs, applicationNotes, descriptions, callouts, everything).
 
 SOURCE CONSTRAINT (non-negotiable):
-- NEVER cite Olera or olera.care as a source. This creates a circular reference (AI reads Olera → writes content → Olera publishes → AI reads again). Only cite .gov sites, official program pages, and authoritative third-party sources.`;
+- NEVER cite Olera or olera.care as a source. This creates a circular reference (AI reads Olera, writes content, Olera publishes, AI reads again). Only cite .gov sites, official program pages, and authoritative third-party sources.`;
 
 // ─── Draft prompt builder (shared between serial and batch modes) ───────────
 
@@ -1141,7 +1142,7 @@ ${JSON.stringify({ ...prog, _raw: undefined }, null, 2)}
 Classification: ${JSON.stringify(classification, null, 2)}
 
 The page will render in a 4-tab structure: About / Eligibility / How to Apply / Resources.
-(Resources/navigators get a simpler 1-page layout — still generate all fields below; the renderer adapts.)
+(Resources/navigators get a simpler 1-page layout; still generate all fields below. The renderer adapts.)
 
 You must also decide which VISUAL COMPONENTS best serve this specific program. The available components are:
 - "income-table": For programs with household-size-based income thresholds
@@ -1152,7 +1153,7 @@ You must also decide which VISUAL COMPONENTS best serve this specific program. T
 - "location-finder": Map-based regional office/provider finder (needs lat/lng data)
 - "stat-callout": Dark banner highlighting key numbers (savings, service areas, waitlist time)
 
-Choose components that match THIS program's data — don't force components where data is thin.
+Choose components that match THIS program's data; don't force components where data is thin.
 
 You must also choose an ICON that represents this program's primary purpose. Pick ONE from this menu:
 - "House" — home care, aging in place, home modifications
@@ -1210,7 +1211,7 @@ Generate the complete page content as a JSON object matching this exact structur
   "id": "<kebab-case slug, e.g., '${entity.stateCode.toLowerCase()}-snap-food-benefits'>",
   "name": "${name}",
   "shortName": "<2-4 word abbreviated name>",
-  "tagline": "<one compelling sentence for browse cards — what this means for the caregiver, not a definition>",
+  "tagline": "<one compelling sentence for browse cards: what this means for the caregiver, not a definition>",
   "programType": "${programType}",
   "complexity": "${complexity}",
   "geographicScope": ${JSON.stringify(classification.geographicScope || { type: "state" })},
@@ -1232,15 +1233,15 @@ Generate the complete page content as a JSON object matching this exact structur
   "applicationGuide": {
     "method": "<online|phone|mail|in-person|multiple>",
     "summary": "<one sentence: the simplest way to apply and how long it takes>",
-    "steps": [<{"step": N, "title": "...", "description": "..."} — SPECIFIC to this program. Include actual phone numbers, website names, form numbers. Not 'Contact your local office' but 'Call 2-1-1 and choose Option 2, Monday–Friday 8am–6pm CT.'>],
+    "steps": [<{"step": N, "title": "...", "description": "..."}. SPECIFIC to this program. Include actual phone numbers, website names, form numbers. Not 'Contact your local office' but 'Call 2-1-1 and choose Option 2, Monday–Friday 8am–6pm CT.'>],
     "processingTime": "<specific timeline from research, e.g., '45 days, or up to 90 days if disability determination needed'>",
     "waitlist": "<specific waitlist info, e.g., 'Several months to multiple years depending on region and priority level' or null>",
     "tip": "<one practical tip for the caregiver, or null>",
-    "urls": [<{"label": "...", "url": "..."} — actual application URLs from research>]
+    "urls": [<{"label": "...", "url": "..."}, actual application URLs from research>]
   },
 
   "documentsNeeded": [
-    <6-15 SPECIFIC items the applicant needs. Not "proof of income" — instead "Social Security award letter", "Most recent bank statements (last 3 months)", "Medicare card (both parts)", "Pre-need burial contracts or irrevocable burial trusts". Be concrete.>
+    <6-15 SPECIFIC items the applicant needs. Not "proof of income". Instead, "Social Security award letter", "Most recent bank statements (last 3 months)", "Medicare card (both parts)", "Pre-need burial contracts or irrevocable burial trusts". Be concrete.>
     EXEMPLAR (MEPD, deep program, 15 items):
     ["Social Security cards for all household members", "Medicare card (both parts)", "Proof of age (birth certificate or passport)", "Proof of Texas residency (utility bill, lease, or state-issued document)", "Most recent Social Security award letter", "Pension or retirement income statements", "Bank statements for all accounts (last 3 months)", "Investment documents (stocks, bonds, annuities, trust agreements)", "Property documents (deeds, tax statements, royalty statements)", "Life insurance policies with face values", "Vehicle titles and registration", "Pre-need burial contracts or irrevocable burial trusts", "Legal documents if you have a representative", "Documentation of medical expenses paid out-of-pocket (last 3 months)", "Proof of health insurance premiums paid"]
     EXEMPLAR (CEAP, simple program, 6 items):
@@ -1249,14 +1250,14 @@ Generate the complete page content as a JSON object matching this exact structur
   ],
 
   "contacts": [
-    <Program-specific phone numbers with descriptions and hours. Not just one generic number — differentiate by purpose.>
+    <Program-specific phone numbers with descriptions and hours. Not just one generic number; differentiate by purpose.>
     EXEMPLAR: [{"label": "Texas 2-1-1", "phone": "2-1-1", "description": "Free 24/7 helpline for all social services", "hours": "24 hours, 7 days a week"}, {"label": "HHSC Benefits Line", "phone": "(877) 541-7905", "description": "Medicaid and benefits questions", "hours": "Mon-Fri 8am-6pm CT"}]
     Include at least the primary program phone and a general helpline. null if no contacts found.
   ],
 
   "applicationNotes": [
-    <Conditional guidance strings — things that depend on the person's situation.>
-    EXEMPLAR: ["Crisis cases with active disconnection notices may get expedited processing within 48 hours", "Some MCOs have immediate openings while others maintain 6-month waitlists — ask about availability when choosing", "You can apply while still in the hospital — discharge planners often initiate the process", "A common reason applications are held up is missing documentation — submit everything at once"]
+    <Conditional guidance strings: things that depend on the person's situation.>
+    EXEMPLAR: ["Crisis cases with active disconnection notices may get expedited processing within 48 hours", "Some MCOs have immediate openings while others maintain 6-month waitlists; ask about availability when choosing", "You can apply while still in the hospital. Discharge planners often initiate the process.", "A common reason applications are held up is missing documentation. Submit everything at once."]
     2-4 notes for deep programs, 1-2 for medium, null for simple/resources.
   ],
 
@@ -1265,11 +1266,11 @@ Generate the complete page content as a JSON object matching this exact structur
     2-4 names, or null if no clear related programs.
   ],
 
-  "contentSections": [<additional content blocks — tier comparisons, callouts, prose sections. Only include if you have real data to populate them.>],
+  "contentSections": [<additional content blocks: tier comparisons, callouts, prose sections. Only include if you have real data to populate them.>],
 
   "faqs": [
     <${complexity === "deep" ? "6-8" : complexity === "medium" ? "4-6" : "2-4"} FAQs. These must be DECISION-MAKING questions, not definitions.>
-    BAD: "What is ${name}?" (definitional — the intro already explains this)
+    BAD: "What is ${name}?" (definitional; the intro already explains this)
     GOOD: "Can my parent keep their house if it's worth more than $2,000?" (real asset-limit confusion)
     GOOD: "What if my landlord won't sign the permission form?" (real blocker)
     GOOD: "How long is the waitlist really?" (honest answer with specifics)
@@ -1288,7 +1289,7 @@ Generate the complete page content as a JSON object matching this exact structur
     "visualTone": <"editorial" for deep programs (full design energy), "warm" for medium programs (some visual elements), "minimal" for simple resources>
   },
 
-  "icon": "<Phosphor icon name from the menu above — e.g., 'House', 'CurrencyDollar', 'BowlFood'. Pick the one that best represents this program's purpose.>",
+  "icon": "<Phosphor icon name from the menu above, e.g., 'House', 'CurrencyDollar', 'BowlFood'. Pick the one that best represents this program's purpose.>",
 
   "phone": "<primary contact phone from research or null>",
   "sourceUrl": "<primary official .gov URL>",
@@ -1298,10 +1299,10 @@ Generate the complete page content as a JSON object matching this exact structur
 
 CRITICAL RULES:
 - Every number must come from the research data. Do not invent figures.
-- If the research doesn't have a specific data point, use null — don't fabricate.
+- If the research doesn't have a specific data point, use null; don't fabricate.
 - NEVER cite Olera or olera.care as a source for any information.
 - Savings range must be empty string "" for free services (resources, navigators).
-- Application steps must be specific to THIS program — include actual phone numbers, URLs, form names.
+- Application steps must be specific to THIS program; include actual phone numbers, URLs, form names.
 - documentsNeeded must list CONCRETE items ("Social Security award letter") not categories ("proof of income").
 - FAQs must answer DECISION-MAKING questions, not definitions. Minimum ${complexity === "deep" ? 6 : complexity === "medium" ? 4 : 2}.
 - Content sections array should only include sections where you have real data to populate them.
@@ -1369,7 +1370,7 @@ Program type breakdown: ${JSON.stringify(typeCounts)}
 Generate the state overview as a JSON object:
 
 {
-  "intro": "<2-3 paragraphs. Lead with what a caregiver in ${stateName} needs to know. How many programs are available? What's the range of help — from financial benefits to free resources? Be specific about ${stateName}, not generic. End with a clear 'here's how to start' direction.>",
+  "intro": "<2-3 paragraphs. Lead with what a caregiver in ${stateName} needs to know. How many programs are available? What's the range of help, from financial benefits to free resources? Be specific about ${stateName}, not generic. End with a clear 'here's how to start' direction.>",
   "startHere": [
     <3-4 objects: the most impactful programs a caregiver should look at first. Each: {"name": "...", "programId": "<matching id from the drafts>", "why": "<one sentence: why start here>"}>
   ],

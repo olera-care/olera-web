@@ -37,32 +37,74 @@ export async function PATCH(
       );
     }
 
-    const newState = action === "approve" ? "claimed" : "rejected";
     const db = getServiceClient();
 
-    const { data: profile, error: updateError } = await db
+    // Fetch profile first (needed for notifications and audit)
+    const { data: profile, error: fetchError } = await db
       .from("business_profiles")
-      .update({ claim_state: newState, updated_at: new Date().toISOString() })
-      .eq("id", id)
       .select("id, display_name, claim_state, account_id, slug")
+      .eq("id", id)
       .single();
 
-    if (updateError) {
-      console.error("Failed to update provider:", updateError);
-      return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
+    if (fetchError || !profile) {
+      console.error("Failed to fetch provider:", fetchError);
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Log audit action
-    await logAuditAction({
-      adminUserId: adminUser.id,
-      action: action === "approve" ? "approve_provider" : "reject_provider",
-      targetType: "business_profile",
-      targetId: id,
-      details: {
-        provider_name: profile?.display_name,
-        new_state: newState,
-      },
-    });
+    if (action === "approve") {
+      // Approve: update claim_state to "claimed"
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update({ claim_state: "claimed", updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Failed to approve provider:", updateError);
+        return NextResponse.json({ error: "Failed to approve provider" }, { status: 500 });
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "approve_provider",
+        targetType: "business_profile",
+        targetId: id,
+        details: {
+          provider_name: profile.display_name,
+          new_state: "claimed",
+        },
+      });
+    } else {
+      // Reject: delete the profile to free up the listing
+      const { error: deleteError } = await db
+        .from("business_profiles")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) {
+        console.error("Failed to reject provider:", deleteError);
+        return NextResponse.json({ error: "Failed to reject provider" }, { status: 500 });
+      }
+
+      // Clear active_profile_id if this was the account's active profile
+      if (profile.account_id) {
+        await db
+          .from("accounts")
+          .update({ active_profile_id: null })
+          .eq("id", profile.account_id)
+          .eq("active_profile_id", id);
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "reject_provider",
+        targetType: "business_profile",
+        targetId: id,
+        details: {
+          provider_name: profile.display_name,
+          action: "deleted_to_free_listing",
+        },
+      });
+    }
 
     // Slack alert (fire-and-forget)
     try {

@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-04-27 — Production missing V2 dashboard hero — FF removed (PR #647)
+
+**Symptom:** olera.care `/provider` was showing the old "Profile completeness + provider card" layout. Staging had the V2 hero ("34 questions waiting for your answer" orientation banner), prod did not. Slack to Logan/Esther: TJ flagged the gap to avoid duplicate work before resuming the post-care-secret-question optimization.
+
+**Root cause:** `NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD` env var was set in Vercel staging but not production. Both branches had identical code; the gate at `components/provider-dashboard/DashboardPage.tsx:39-40` and `components/provider-onboarding/ActionCard.tsx:10-11` short-circuited the V2 layout when the flag wasn't `"true"`.
+
+**Fix path chosen:** Path B — rip the flag out (vs Path A flip the env var). V2 has been live on staging since 2026-04-23, no remaining "off" use case. PR #647 open against staging.
+
+**Diff: -202 lines.** Net deletion. Files:
+- `components/provider-dashboard/DashboardPage.tsx` — flag const + 4 inline references removed; `useProviderDashboardV2Data("30d", true, user?.id)`
+- `components/provider-onboarding/ActionCard.tsx` — flag const + both FF-off branches deleted; dead helpers stripped from `ProfilePreviewCard` (`handleReviewsCtaClick`, `reviewsCta`, `reviewsContent`, `snippetText`, `starPath`); `googleReviewSnippet` and `unansweredCount` props dropped
+
+**Validation:** typecheck 0 errors, build clean (3,794 static pages), eslint shows only pre-existing 8 errors on `<a href="/provider/reviews">` (unchanged from staging baseline). Pre-test review found nothing — the V2 path being kept is the same path staging has been running for 4 days.
+
+**Next up:**
+- Merge PR #647 staging → main → olera.care redeploys with hero visible
+- Then resume the post-answer provider journey optimization (the original Slack thread context: "before optimizing the provider journey from care secret question")
+- Reply in `#ai-product-development` once merged so Logan/Esther know the gap is closed
+
+---
+
 ### 2026-04-26 — /product-led-growth bootstrap + Esther/TJ task split shipped
 
 **Built and shipped `/product-led-growth` slash command.** PR #642 merged to staging (squash, commit `0e674a43`). Two PRs total: V1 daily-mode + V1.5 reframe to daily-build / weekly-stats / monthly-strategy after the dry-run revealed daily-pulse produced false signal from Sunday baselines. Files: `.claude/commands/product-led-growth.md`, `scripts/growth-pull.js`. PR #643 open with Working Principle #8 (trust the implementer, don't over-prescribe when writing Notion tasks for the team).

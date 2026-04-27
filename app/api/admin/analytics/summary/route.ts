@@ -42,10 +42,32 @@ type DistinctCounts = {
   teaser_clickers: number;
   qa_email_openers: number;
 };
+// Cohort-anchored funnel for the provider question_received email. `sent`
+// through `complained` are raw email-row counts (one row per send) over the
+// window's email_log.created_at. `signed_in` and `answered` are distinct
+// providers projected from provider_activity — anchored on activity event
+// time, not the email send, so for short windows they may diverge slightly.
+type ProviderQaFunnel = {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  complained: number;
+  signed_in: number;
+  answered: number;
+};
+type QaEmailIssue = {
+  reason: string;
+  count: number;
+  type: "bounced" | "complained";
+};
 type WindowResult = {
   counts: WindowedCounts;
   unique_sessions_page_view: number;
   provider_distinct_counts: DistinctCounts;
+  qa_funnel: ProviderQaFunnel;
+  qa_email_issues: QaEmailIssue[];
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -65,6 +87,16 @@ const EMPTY_DISTINCT = (): DistinctCounts => ({
   lead_engagers: 0,
   teaser_clickers: 0,
   qa_email_openers: 0,
+});
+const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
+  sent: 0,
+  delivered: 0,
+  opened: 0,
+  clicked: 0,
+  bounced: 0,
+  complained: 0,
+  signed_in: 0,
+  answered: 0,
 });
 
 /**
@@ -115,17 +147,50 @@ async function fetchWindow(
   if (from) openersQ = openersQ.gte("first_opened_at", from);
   if (to) openersQ = openersQ.lt("first_opened_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes] = await Promise.all([
+  // Provider Q&A email funnel (cohort-anchored): every question_received
+  // email sent in the window, then count downstream lifecycle on each row.
+  // Uses denormalized email_log columns (delivered_at / first_opened_at /
+  // first_clicked_at) populated by the resend webhook, so this stays a flat
+  // scan with no join. Limit 50000 ≈ 700 days at current ~70 emails/day.
+  // Note: bounced/complained counts come from the event-anchored issues
+  // query below, not from this cohort, so they stay aligned with the issues
+  // list shown to admins.
+  let funnelQ = db
+    .from("email_log")
+    .select("delivered_at, first_opened_at, first_clicked_at")
+    .eq("email_type", "question_received")
+    .eq("recipient_type", "provider")
+    .limit(50000);
+  if (from) funnelQ = funnelQ.gte("created_at", from);
+  if (to) funnelQ = funnelQ.lt("created_at", to);
+
+  // Issues: bounce + complaint events in the window. We pull broadly here and
+  // restrict to the Q&A cohort via a secondary email_log lookup below — volume
+  // is tiny (single-digit per week at current send rate) so client-side join
+  // is fine.
+  let issuesEventsQ = db
+    .from("email_events")
+    .select("event_type, bounce_type, bounce_reason, email_log_id")
+    .in("event_type", ["bounced", "complained"])
+    .limit(5000);
+  if (from) issuesEventsQ = issuesEventsQ.gte("occurred_at", from);
+  if (to) issuesEventsQ = issuesEventsQ.lt("occurred_at", to);
+
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
     openersQ,
+    funnelQ,
+    issuesEventsQ,
   ]);
 
   if (providerRes.error) return { error: "provider window query failed" };
   if (seekerRes.error) return { error: "seeker window query failed" };
   if (distinctRes.error) return { error: "distinct window query failed" };
   if (openersRes.error) return { error: "Q&A email openers query failed" };
+  if (funnelRes.error) return { error: "Q&A funnel query failed" };
+  if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
@@ -186,10 +251,77 @@ async function fetchWindow(
   }
   distinct.qa_email_openers = qaOpeners.size;
 
+  const funnel = EMPTY_FUNNEL();
+  for (const r of (funnelRes.data ?? []) as Array<{
+    delivered_at: string | null;
+    first_opened_at: string | null;
+    first_clicked_at: string | null;
+  }>) {
+    funnel.sent += 1;
+    if (r.delivered_at) funnel.delivered += 1;
+    if (r.first_opened_at) funnel.opened += 1;
+    if (r.first_clicked_at) funnel.clicked += 1;
+  }
+  // signed_in / answered are activity-event-anchored, projected for display.
+  funnel.signed_in = distinct.qa_signins;
+  funnel.answered = distinct.question_answerers;
+  // bounced / complained are populated below from the event-anchored issues
+  // query so they stay in lockstep with the issues list.
+
+  // Issues: filter the window's bounce/complaint events down to the Q&A cohort
+  // via a secondary email_log lookup, then group by reason and take top 5.
+  const issueRows = (issuesEventsRes.data ?? []) as Array<{
+    event_type: "bounced" | "complained";
+    bounce_type: string | null;
+    bounce_reason: string | null;
+    email_log_id: string | null;
+  }>;
+  const candidateLogIds = [
+    ...new Set(issueRows.map((r) => r.email_log_id).filter((id): id is string => !!id)),
+  ];
+  const qaIssueLogIds = new Set<string>();
+  if (candidateLogIds.length > 0) {
+    const { data: qaLogs } = await db
+      .from("email_log")
+      .select("id")
+      .in("id", candidateLogIds)
+      .eq("email_type", "question_received")
+      .eq("recipient_type", "provider");
+    if (qaLogs) {
+      for (const r of qaLogs as Array<{ id: string }>) {
+        qaIssueLogIds.add(r.id);
+      }
+    }
+  }
+  const issueCounts = new Map<string, { count: number; type: "bounced" | "complained" }>();
+  const bouncedLogs = new Set<string>();
+  const complainedLogs = new Set<string>();
+  for (const r of issueRows) {
+    if (!r.email_log_id || !qaIssueLogIds.has(r.email_log_id)) continue;
+    if (r.event_type === "bounced") bouncedLogs.add(r.email_log_id);
+    else complainedLogs.add(r.email_log_id);
+    const reason =
+      r.bounce_reason || (r.event_type === "complained" ? "Marked as spam" : "(no reason given)");
+    const existing = issueCounts.get(reason);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      issueCounts.set(reason, { count: 1, type: r.event_type });
+    }
+  }
+  funnel.bounced = bouncedLogs.size;
+  funnel.complained = complainedLogs.size;
+  const qaEmailIssues: QaEmailIssue[] = [...issueCounts.entries()]
+    .map(([reason, v]) => ({ reason, count: v.count, type: v.type }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
   return {
     counts,
     unique_sessions_page_view: uniqueSessions.size,
     provider_distinct_counts: distinct,
+    qa_funnel: funnel,
+    qa_email_issues: qaEmailIssues,
   };
 }
 
@@ -409,12 +541,16 @@ export async function GET(request: NextRequest) {
         counts: windowedRes.counts,
         unique_sessions_page_view: windowedRes.unique_sessions_page_view,
         provider_distinct_counts: windowedRes.provider_distinct_counts,
+        qa_funnel: windowedRes.qa_funnel,
+        qa_email_issues: windowedRes.qa_email_issues,
       },
       prior: prior
         ? {
             counts: prior.counts,
             unique_sessions_page_view: prior.unique_sessions_page_view,
             provider_distinct_counts: prior.provider_distinct_counts,
+            qa_funnel: prior.qa_funnel,
+            qa_email_issues: prior.qa_email_issues,
           }
         : null,
       insight,

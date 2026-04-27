@@ -33,23 +33,14 @@ import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
 
-// Phase 2 redesign gate — same flag the Phase 1 onboard teaser uses, so
-// the onboard teaser's "See your analytics →" CTA and the new dashboard
-// experience flip on together.
-const DASHBOARD_V2_ENABLED =
-  process.env.NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD === "true";
-
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
 
-  // Phase 2 dashboard data (greeting, activity, reviews, cohort) — only
-  // fetched when the feature flag is on, to avoid a wasted network round-trip
-  // for providers still on the old layout.
   // Passing user?.id makes the hook refetch when auth resolves — covers the
   // first-load-401 race where the session cookie lands after mount.
-  const v2 = useProviderDashboardV2Data("30d", DASHBOARD_V2_ENABLED, user?.id);
+  const v2 = useProviderDashboardV2Data("30d", true, user?.id);
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
@@ -98,15 +89,15 @@ export default function DashboardPage() {
 
   const meta = metadata as ExtendedMetadata;
 
-  // Under FF: pass reviews + response-rate summaries into the completeness
-  // calculation so the sidebar shows 9 sections instead of 7. When the
-  // dashboard endpoint is still loading we fall back to 7 sections; score
-  // tightens up once data arrives (one-time transition, not janky because
-  // the sidebar itself updates without rearranging other sections).
-  const reviewsSummary = DASHBOARD_V2_ENABLED && v2.data
+  // Pass reviews + response-rate summaries into the completeness calculation so
+  // the sidebar shows 9 sections instead of 7. When the dashboard endpoint is
+  // still loading we fall back to 7 sections; score tightens up once data
+  // arrives (one-time transition, not janky because the sidebar itself updates
+  // without rearranging other sections).
+  const reviewsSummary = v2.data
     ? { count: v2.data.reviews.count, avgRating: v2.data.reviews.avgRating }
     : undefined;
-  const responseRateSummary = DASHBOARD_V2_ENABLED && v2.data
+  const responseRateSummary = v2.data
     ? {
         totalQuestions: v2.data.responseRate.totalQuestions,
         answeredCount: v2.data.responseRate.answeredCount,
@@ -134,8 +125,8 @@ export default function DashboardPage() {
       setEditingSection={setEditingSection}
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
-      v2Data={DASHBOARD_V2_ENABLED ? v2.data : null}
-      v2Loading={DASHBOARD_V2_ENABLED && v2.loading && !v2.data}
+      v2Data={v2.data}
+      v2Loading={v2.loading && !v2.data}
     />
   );
 }

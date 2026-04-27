@@ -7,9 +7,6 @@ import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
 import AnalyticsTeaserCard from "@/components/provider-onboarding/AnalyticsTeaserCard";
 
-const PROVIDER_ANALYTICS_ONBOARD_ENABLED =
-  process.env.NEXT_PUBLIC_FF_PROVIDER_ANALYTICS_ONBOARD === "true";
-
 // ============================================================
 // Types
 // ============================================================
@@ -413,8 +410,6 @@ function ProfilePreviewCard({
   provider,
   googleRating,
   googleReviewCount,
-  googleReviewSnippet,
-  unansweredCount,
   // Post-response state
   answered,
   askerName,
@@ -424,8 +419,6 @@ function ProfilePreviewCard({
   provider: Provider;
   googleRating?: number | null;
   googleReviewCount?: number | null;
-  googleReviewSnippet?: { author_name: string; rating: number; text: string } | null;
-  unansweredCount?: number;
   answered?: boolean;
   askerName?: string;
   questionText?: string;
@@ -435,77 +428,7 @@ function ProfilePreviewCard({
   const slug = provider.slug || provider.provider_id;
   const hasGoogleReviews = !!(googleRating && googleRating > 0 && googleReviewCount && googleReviewCount > 0);
   const roundedRating = googleRating ? Math.round(googleRating * 10) / 10 : 0;
-  const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
   const location = [provider.city, provider.state].filter(Boolean).join(", ");
-
-  // Shared reviews CTA button — tracks click then navigates
-  const handleReviewsCtaClick = () => {
-    fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        provider_id: provider.slug || provider.provider_id,
-        event_type: "reviews_cta_clicked",
-        metadata: {
-          provider_name: provider.provider_name,
-          source: answered ? "post_response" : "pre_response",
-        },
-      }),
-    }).catch(() => {});
-    window.location.href = "/provider/reviews";
-  };
-
-  const reviewsCta = (
-    <button type="button" onClick={handleReviewsCtaClick} className="w-full flex items-center justify-center gap-2.5 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[44px]">
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
-      {hasGoogleReviews ? "Get more reviews" : "Get your first review"}
-    </button>
-  );
-
-  // Truncate review snippet text
-  const snippetText = googleReviewSnippet?.text
-    ? (googleReviewSnippet.text.length > 100
-        ? googleReviewSnippet.text.substring(0, 97).trimEnd() + "..."
-        : googleReviewSnippet.text)
-    : null;
-
-  // Shared reviews content (stars + copy + optional snippet)
-  const reviewsContent = hasGoogleReviews ? (
-    <>
-      <div className="flex items-center gap-2 mb-2">
-        <div className="flex items-center gap-0.5">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <svg key={i} className={`w-4 h-4 ${i <= Math.round(roundedRating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
-          ))}
-        </div>
-        <span className="text-sm font-semibold text-gray-700">{roundedRating}</span>
-        <span className="text-sm text-gray-400">· {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""} on Google</span>
-      </div>
-      {/* Review snippet — one real review to prove legitimacy */}
-      {snippetText && googleReviewSnippet && (
-        <div className="flex items-start gap-2 mt-3 mb-4">
-          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-            <span className="text-[9px] font-semibold text-gray-500">{getInitials(googleReviewSnippet.author_name)}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-600">{googleReviewSnippet.author_name}</p>
-            <p className="text-xs text-gray-400 leading-relaxed mt-0.5">&ldquo;{snippetText}&rdquo;</p>
-          </div>
-        </div>
-      )}
-      {!snippetText && <p className="text-sm text-gray-500 leading-relaxed mb-4">More reviews means more visibility.</p>}
-    </>
-  ) : (
-    <>
-      <div className="flex items-center gap-1 mb-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <svg key={i} className="w-4 h-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>
-        ))}
-        <span className="text-sm text-gray-400 ml-1">No reviews yet</span>
-      </div>
-      <p className="text-sm text-gray-500 leading-relaxed mb-4">Families are 3x more likely to contact providers who have reviews.</p>
-    </>
-  );
 
   // Provider identity row (shared between both states)
   const providerIdentity = (
@@ -526,73 +449,22 @@ function ProfilePreviewCard({
     </div>
   );
 
-  // ── POST-RESPONSE: one consolidated card ──
+  // ── POST-RESPONSE: analytics card + compact identity/Q&A card ──
   if (answered) {
-    // FF on: analytics card on top, then a compact card with identity + Q&A
-    // preview only. Reviews CTA, view-full-profile, and section label removed
-    // (reviews graduates to the dashboard per strategy doc Q5 two-way door).
-    if (PROVIDER_ANALYTICS_ONBOARD_ENABLED) {
-      return (
-        <div style={{ animation: "card-enter 0.3s ease-out both" }}>
-          <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            {providerIdentity}
-            <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
-              <span className="text-primary-600 font-medium">1 question answered</span>
-              {hasGoogleReviews && (
-                <>
-                  <span>·</span>
-                  <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
-                </>
-              )}
-            </div>
-            {askerName && questionText && answerPreview && (
-              <div className="border-t border-gray-100 mt-4 pt-4">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0 mt-0.5" style={{ background: avatarGradient(askerName) }}>
-                    {getInitials(askerName)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 leading-snug">
-                      &ldquo;{questionText.length > 80 ? questionText.substring(0, 77).trimEnd() + "..." : questionText}&rdquo;
-                    </p>
-                    <div className="mt-1.5 flex items-start gap-2">
-                      <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <p className="text-sm text-gray-500 leading-snug">{answerPreview}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div style={{ animation: "card-enter 0.3s ease-out both" }}>
-        <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
-          Your page on Olera
-        </p>
-
+        <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          {/* Provider identity */}
           {providerIdentity}
-
-          {/* Stats line */}
           <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
             <span className="text-primary-600 font-medium">1 question answered</span>
-            <span>·</span>
-            {hasGoogleReviews ? (
-              <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
-            ) : (
-              <span>0 reviews</span>
+            {hasGoogleReviews && (
+              <>
+                <span>·</span>
+                <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
+              </>
             )}
           </div>
-
-          {/* Q&A — thin divider, not a separate card */}
           {askerName && questionText && answerPreview && (
             <div className="border-t border-gray-100 mt-4 pt-4">
               <div className="flex items-start gap-2.5">
@@ -613,81 +485,18 @@ function ProfilePreviewCard({
               </div>
             </div>
           )}
-
-          {/* Reviews — thin divider, same card */}
-          <div className="border-t border-gray-100 mt-4 pt-4">
-            {reviewsContent}
-            {reviewsCta}
-          </div>
-
-          {/* View full profile — inside the card */}
-          <a href={`/provider/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors pt-4 group">
-            View your full profile
-            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </a>
         </div>
       </div>
     );
   }
 
-  // ── PRE-RESPONSE: separate cards (no Q&A to show yet) ──
-
-  // FF on: analytics card on top, compact identity card below. Reviews CTA,
-  // view-full-profile, footer, and section label removed for noise reduction.
-  if (PROVIDER_ANALYTICS_ONBOARD_ENABLED) {
-    return (
-      <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
-        <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          {providerIdentity}
-        </div>
-      </div>
-    );
-  }
-
+  // ── PRE-RESPONSE: analytics card + compact identity card (no Q&A yet) ──
   return (
     <div style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "200ms" }}>
-      <p className="text-xs font-medium text-gray-400 tracking-widest uppercase mb-4">
-        Your page on Olera
-      </p>
-
-      {/* Provider identity card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-3">
+      <AnalyticsTeaserCard expectedSlug={slug} variant="card" />
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
         {providerIdentity}
-        <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
-          {unansweredCount ? (
-            <span className="text-amber-600 font-medium">{unansweredCount} unanswered question{unansweredCount !== 1 ? "s" : ""}</span>
-          ) : null}
-          <span>·</span>
-          {hasGoogleReviews ? (
-            <span>{roundedRating}★ · {googleReviewCount} review{googleReviewCount !== 1 ? "s" : ""}</span>
-          ) : (
-            <span>0 reviews</span>
-          )}
-        </div>
       </div>
-
-      {/* Reviews card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
-        {reviewsContent}
-        {reviewsCta}
-      </div>
-
-      {/* View full profile */}
-      <a href={`/provider/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors py-2 group">
-        View your full profile
-        <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
-      </a>
-
-      {location && (
-        <p className="text-center text-sm text-gray-400 mt-1">
-          Families searching for senior care in {provider.city} can find this page.
-        </p>
-      )}
     </div>
   );
 }
@@ -1080,8 +889,6 @@ export default function ActionCard({
             provider={provider}
             googleRating={provider.google_reviews_data?.rating ?? provider.google_rating}
             googleReviewCount={provider.google_reviews_data?.review_count}
-            googleReviewSnippet={provider.google_reviews_data?.reviews?.[0] || null}
-            unansweredCount={questionAnswered ? 0 : 1}
             answered={questionAnswered}
             askerName={questionAnswered ? personName : undefined}
             questionText={questionAnswered ? question : undefined}

@@ -11,7 +11,6 @@ import { createAuthClient } from "@/lib/supabase/auth-client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
-import OtpInput from "@/components/auth/OtpInput";
 import { ReactiveHint } from "@/components/medjobs/Tooltip";
 // Note: We don't import the full Provider type - search only selects specific columns
 // to avoid JSONB fields that can cause React rendering errors
@@ -222,8 +221,6 @@ function ProviderOnboardingContent() {
   // Action/API error state
   const [actionError, setActionError] = useState("");
 
-  // Resend email state
-  const [resendCooldown, setResendCooldown] = useState(0);
   // Dispute form state
   const [disputingResult, setDisputingResult] = useState<SearchResult | null>(null);
   const [disputeName, setDisputeName] = useState("");
@@ -241,24 +238,8 @@ function ProviderOnboardingContent() {
     listingName: string;
   } | null>(null);
 
-  // OTP verification state
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [otpError, setOtpError] = useState("");
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const otpSentForScreen = useRef<string | null>(null); // Track which screen OTP was sent for
-
-  // Helper to reset all OTP state
-  const resetOtpState = useCallback(() => {
-    setOtpCode("");
-    setOtpSent(false);
-    setOtpSending(false);
-    setOtpError("");
-    setOtpVerifying(false);
-    setResendCooldown(0);
-    otpSentForScreen.current = null;
-  }, []);
+  // Confirmation checkbox state for instant claim
+  const [confirmAuthorized, setConfirmAuthorized] = useState(false);
 
   // Exit URL - read from ?returnTo param, fallback to /for-providers
   const exitUrl = useMemo(() => {
@@ -274,93 +255,12 @@ function ProviderOnboardingContent() {
     router.push(exitUrl);
   }, [exitUrl, router]);
 
-  // Cooldown timer
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
-
-  // Auto-send OTP when entering confirm-claim screen
-  useEffect(() => {
-    // Prevent double-send: only send if we haven't sent for this screen yet
-    if (screen === "confirm-claim" && otpSentForScreen.current !== "confirm-claim" && !otpSending && formData.email) {
-      otpSentForScreen.current = "confirm-claim";
-      handleSendOtp();
-    }
-  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Send OTP verification code
-  const handleSendOtp = async () => {
-    const email = formData.email.trim().toLowerCase();
-    if (!email) return;
-
-    if (!isSupabaseConfigured()) {
-      setOtpError("Authentication is not configured. Please contact support.");
+  // Instant claim existing listing (no OTP)
+  const handleInstantClaim = async () => {
+    if (!confirmAuthorized) {
+      setActionError("Please confirm you are authorized to manage this business.");
       return;
     }
-
-    setOtpSending(true);
-    setOtpError("");
-
-    try {
-      // 1. Check if email is already used for a different account type
-      const checkRes = await fetch("/api/auth/check-email-type", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, intendedType: "organization" }),
-      });
-
-      const checkResult = await checkRes.json();
-
-      if (!checkResult.available) {
-        if (checkResult.alreadyHasProfile) {
-          setOtpError("This email is already associated with a provider account. Please sign in instead.");
-        } else {
-          setOtpError(
-            `This email is linked to a ${checkResult.existingType} account. Please use a different email for your provider account.`
-          );
-        }
-        setOtpSending(false);
-        return;
-      }
-
-      // 2. Send OTP
-      const authClient = createAuthClient();
-      const { error } = await authClient.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
-
-      if (error) {
-        // Provide user-friendly error messages
-        if (error.message.includes("rate limit") || error.message.includes("too many")) {
-          setOtpError("Too many attempts. Please wait a few minutes and try again.");
-        } else if (error.message.includes("not allowed") || error.message.includes("disabled")) {
-          setOtpError("Email verification is temporarily unavailable. Please try again later.");
-        } else if (error.message.includes("invalid") && error.message.includes("email")) {
-          setOtpError("Please enter a valid email address.");
-        } else {
-          setOtpError(error.message);
-        }
-        setOtpSending(false);
-        return;
-      }
-
-      setOtpSent(true);
-      setOtpSending(false);
-      setResendCooldown(60);
-    } catch (err) {
-      console.error("[handleSendOtp] Error:", err);
-      setOtpError("Failed to send verification code. Please check your connection and try again.");
-      setOtpSending(false);
-    }
-  };
-
-  // Verify OTP and claim existing listing
-  const handleVerifyAndClaim = async () => {
-    if (otpCode.length !== 8) return;
     if (!selectedResult) return;
 
     const email = formData.email.trim().toLowerCase();
@@ -375,37 +275,36 @@ function ProviderOnboardingContent() {
       ? (selectedResult.slug || selectedResult.provider_id)
       : selectedResult.slug;
 
-    setOtpVerifying(true);
-    setOtpError("");
+    setActionLoading("instant-claim");
+    setActionError("");
 
     try {
-      // 1. Verify OTP with Supabase
-      const authClient = createAuthClient();
-      const { error: verifyError } = await authClient.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "email",
+      // Check if email is available for provider account
+      const checkRes = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, intendedType: "organization" }),
       });
+      const checkResult = await checkRes.json();
 
-      if (verifyError) {
-        if (verifyError.message.includes("expired")) {
-          setOtpError("This code has expired. Please request a new one.");
-        } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
-          setOtpError("Invalid code. Please check and try again.");
-        } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
-          setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
+      if (!checkResult.available) {
+        if (checkResult.alreadyHasProfile) {
+          setActionError("This email is already associated with a provider account. Please sign in instead.");
         } else {
-          setOtpError(verifyError.message);
+          setActionError(
+            `This email is linked to a ${checkResult.existingType} account. Please use a different email.`
+          );
         }
-        setOtpVerifying(false);
+        setActionLoading(null);
         return;
       }
 
-      // 2. Call claim-listing API
-      const res = await fetch("/api/provider/claim-listing", {
+      // Call instant claim API
+      const res = await fetch("/api/provider/claim-instant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          email,
           providerId,
           providerName,
           providerSlug,
@@ -418,59 +317,98 @@ function ProviderOnboardingContent() {
       const result = await res.json();
 
       if (!res.ok) {
-        setOtpError(result.error || "Failed to claim page. Please try again.");
-        setOtpVerifying(false);
+        setActionError(result.error || "Failed to claim page. Please try again.");
+        setActionLoading(null);
         return;
       }
 
-      // 3. Redirect to provider dashboard
-      setOtpVerifying(false);
-      router.push("/provider");
-    } catch (err) {
-      console.error("[handleVerifyAndClaim] Error:", err);
-      setOtpError("Something went wrong. Please try again.");
-      setOtpVerifying(false);
-    }
-  };
-
-  // Verify OTP and create new listing
-  const handleVerifyAndCreate = async () => {
-    if (otpCode.length !== 8) return;
-
-    const email = formData.email.trim().toLowerCase();
-
-    setOtpVerifying(true);
-    setOtpError("");
-
-    try {
-      // 1. Verify OTP with Supabase
+      // Establish session using token
       const authClient = createAuthClient();
       const { error: verifyError } = await authClient.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "email",
+        token_hash: result.tokenHash,
+        type: "magiclink",
       });
 
       if (verifyError) {
-        if (verifyError.message.includes("expired")) {
-          setOtpError("This code has expired. Please request a new one.");
-        } else if (verifyError.message.includes("invalid") || verifyError.message.includes("incorrect")) {
-          setOtpError("Invalid code. Please check and try again.");
-        } else if (verifyError.message.includes("too many") || verifyError.message.includes("rate limit")) {
-          setOtpError("Too many attempts. Please wait a few minutes and request a new code.");
-        } else {
-          setOtpError(verifyError.message);
-        }
-        setOtpVerifying(false);
+        setActionError("Failed to sign in. Please try again.");
+        setActionLoading(null);
         return;
       }
 
-      // 2. Call create-listing API
-      const res = await fetch("/api/provider/create-listing", {
+      // Redirect to provider dashboard
+      setActionLoading(null);
+      router.push("/provider");
+    } catch (err) {
+      console.error("[handleInstantClaim] Error:", err);
+      setActionError("Something went wrong. Please try again.");
+      setActionLoading(null);
+    }
+  };
+
+  // Instant create new listing (no OTP)
+  const handleInstantCreate = async () => {
+    if (!confirmAuthorized) {
+      setActionError("Please confirm you are authorized to manage this business.");
+      return;
+    }
+
+    // Validation
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      return;
+    }
+    if (formData.phone.trim()) {
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        return;
+      }
+    }
+
+    const email = formData.email.trim().toLowerCase();
+    setActionLoading("instant-create");
+    setActionError("");
+
+    try {
+      // Check if email is available for provider account
+      const checkRes = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, intendedType: "organization" }),
+      });
+      const checkResult = await checkRes.json();
+
+      if (!checkResult.available) {
+        if (checkResult.alreadyHasProfile) {
+          setActionError("This email is already associated with a provider account. Please sign in instead.");
+        } else {
+          setActionError(
+            `This email is linked to a ${checkResult.existingType} account. Please use a different email.`
+          );
+        }
+        setActionLoading(null);
+        return;
+      }
+
+      // Call instant claim API with isNewOrg flag
+      const res = await fetch("/api/provider/claim-instant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          isNewOrg: true,
           orgName: formData.orgName.trim(),
           city: formData.city.trim(),
           state: formData.state.trim(),
@@ -482,18 +420,31 @@ function ProviderOnboardingContent() {
       const result = await res.json();
 
       if (!res.ok) {
-        setOtpError(result.error || "Failed to create page. Please try again.");
-        setOtpVerifying(false);
+        setActionError(result.error || "Failed to create page. Please try again.");
+        setActionLoading(null);
         return;
       }
 
-      // 3. Redirect to provider dashboard
-      setOtpVerifying(false);
+      // Establish session using token
+      const authClient = createAuthClient();
+      const { error: verifyError } = await authClient.auth.verifyOtp({
+        token_hash: result.tokenHash,
+        type: "magiclink",
+      });
+
+      if (verifyError) {
+        setActionError("Failed to sign in. Please try again.");
+        setActionLoading(null);
+        return;
+      }
+
+      // Redirect to provider dashboard
+      setActionLoading(null);
       router.push("/provider");
     } catch (err) {
-      console.error("[handleVerifyAndCreate] Error:", err);
-      setOtpError("Something went wrong. Please try again.");
-      setOtpVerifying(false);
+      console.error("[handleInstantCreate] Error:", err);
+      setActionError("Something went wrong. Please try again.");
+      setActionLoading(null);
     }
   };
 
@@ -1547,48 +1498,11 @@ function ProviderOnboardingContent() {
     setScreen("preview");
   };
 
-  // Handle preview form submission - actually create the listing
+  // Handle preview form submission - triggers instant create
   const handlePreviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setActionLoading("preview-submit");
-    setActionError("");
-
-    // Validation
-    if (!formData.orgName.trim()) {
-      setActionError("Organization name is required.");
-      setActionLoading(null);
-      return;
-    }
-    if (!formData.city.trim() || !formData.state.trim()) {
-      setActionError("City and state are required.");
-      setActionLoading(null);
-      return;
-    }
-    if (!formData.email.trim() || !formData.email.includes("@")) {
-      setActionError("A valid email is required.");
-      setActionLoading(null);
-      return;
-    }
-    if (formData.careTypes.length === 0) {
-      setActionError("Please select at least one care type.");
-      setActionLoading(null);
-      return;
-    }
-    // Phone validation (optional field, but validate format if provided)
-    if (formData.phone.trim()) {
-      // Accept: digits, spaces, dashes, parentheses, dots, plus sign
-      // Must have at least 10 digits
-      const digitsOnly = formData.phone.replace(/\D/g, "");
-      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-        setActionError("Please enter a valid phone number (10-15 digits).");
-        setActionLoading(null);
-        return;
-      }
-    }
-
-    // Send OTP for verification
-    setActionLoading(null);
-    await handleSendOtp();
+    // Validation and API call handled by handleInstantCreate
+    await handleInstantCreate();
   };
 
   // Toggle care type selection
@@ -2183,15 +2097,10 @@ function ProviderOnboardingContent() {
                     </svg>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification code to this email</p>
-                <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
-                  Using your business email (e.g., you@yourcompany.com) speeds up verification.
-                </ReactiveHint>
               </div>
 
-              {/* Care Types (multi-select) - hide when OTP sent */}
-              {!otpSent && (
-                <div className="space-y-2">
+              {/* Care Types (multi-select) */}
+              <div className="space-y-2">
                   <label className="block text-base font-semibold text-gray-900">
                     Services <span className="text-gray-400 font-normal">(select all that apply)</span>
                   </label>
@@ -2214,59 +2123,26 @@ function ProviderOnboardingContent() {
                       );
                     })}
                   </div>
-                </div>
-              )}
+              </div>
 
-              {/* OTP Verification Section */}
-              {otpSent && (
-                <div className="space-y-4 pt-2">
-                  <div className="text-center">
-                    <p className="text-gray-500">
-                      We sent an 8-digit code to{" "}
-                      <span className="font-semibold text-gray-700">
-                        {(() => {
-                          const [local, domain] = formData.email.split("@");
-                          if (!domain) return "***@***.com";
-                          if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
-                          return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
-                        })()}
-                      </span>
-                    </p>
-                  </div>
+              {/* Consumer email warning */}
+              <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
+                Using your business email speeds up verification.
+              </ReactiveHint>
 
-                  <div className="py-2">
-                    <OtpInput
-                      length={8}
-                      value={otpCode}
-                      onChange={setOtpCode}
-                      disabled={otpVerifying}
-                      error={!!otpError}
-                    />
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">
-                      Didn&apos;t get the code?{" "}
-                      {resendCooldown > 0 ? (
-                        <span className="text-gray-400">Resend in {resendCooldown}s</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpCode("");
-                            setOtpError("");
-                            handleSendOtp();
-                          }}
-                          disabled={otpSending}
-                          className="text-primary-600 hover:text-primary-700 font-medium underline hover:no-underline"
-                        >
-                          Resend code
-                        </button>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
+              {/* Confirmation checkbox */}
+              <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmAuthorized}
+                  onChange={(e) => setConfirmAuthorized(e.target.checked)}
+                  className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700 leading-relaxed">
+                  I confirm that I am authorized to manage this business on behalf of{" "}
+                  <span className="font-semibold">{formData.orgName || "my organization"}</span>.
+                </span>
+              </label>
 
               {/* Error */}
               {actionError && (
@@ -2291,55 +2167,37 @@ function ProviderOnboardingContent() {
                   type="button"
                   onClick={() => {
                     setActionError("");
-                    resetOtpState();
+                    setConfirmAuthorized(false);
                     setScreen(createNewSelected ? "search" : "results");
                   }}
                   className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
                 >
                   ← Back
                 </button>
-                {otpSent ? (
-                  <button
-                    type="button"
-                    onClick={handleVerifyAndCreate}
-                    disabled={otpCode.length !== 8 || otpVerifying}
-                    className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                  >
-                    {otpVerifying ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create page"
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit()}
-                    disabled={
-                      actionLoading === "preview-submit" ||
-                      otpSending ||
-                      !formData.orgName.trim() ||
-                      !formData.city.trim() ||
-                      !formData.state.trim() ||
-                      !formData.email.trim() ||
-                      !formData.email.includes("@") ||
-                      formData.careTypes.length === 0
-                    }
-                    className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                  >
-                    {(actionLoading === "preview-submit" || otpSending) ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        {otpSending ? "Sending code..." : "Processing..."}
-                      </>
-                    ) : (
-                      "Create page"
-                    )}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleInstantCreate}
+                  disabled={
+                    !confirmAuthorized ||
+                    actionLoading === "instant-create" ||
+                    !formData.orgName.trim() ||
+                    !formData.city.trim() ||
+                    !formData.state.trim() ||
+                    !formData.email.trim() ||
+                    !formData.email.includes("@") ||
+                    formData.careTypes.length === 0
+                  }
+                  className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {actionLoading === "instant-create" ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create page"
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -2352,55 +2210,37 @@ function ProviderOnboardingContent() {
               type="button"
               onClick={() => {
                 setActionError("");
-                resetOtpState();
+                setConfirmAuthorized(false);
                 setScreen(createNewSelected ? "search" : "results");
               }}
               className="px-4 py-3 text-base font-medium text-gray-600 border border-gray-300 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               Back
             </button>
-            {otpSent ? (
-              <button
-                type="button"
-                onClick={handleVerifyAndCreate}
-                disabled={otpCode.length !== 8 || otpVerifying}
-                className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {otpVerifying ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create page"
-                )}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit()}
-                disabled={
-                  actionLoading === "preview-submit" ||
-                  otpSending ||
-                  !formData.orgName.trim() ||
-                  !formData.city.trim() ||
-                  !formData.state.trim() ||
-                  !formData.email.trim() ||
-                  !formData.email.includes("@") ||
-                  formData.careTypes.length === 0
-                }
-                className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {(actionLoading === "preview-submit" || otpSending) ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {otpSending ? "Sending code..." : "Processing..."}
-                  </>
-                ) : (
-                  "Create page"
-                )}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleInstantCreate}
+              disabled={
+                !confirmAuthorized ||
+                actionLoading === "instant-create" ||
+                !formData.orgName.trim() ||
+                !formData.city.trim() ||
+                !formData.state.trim() ||
+                !formData.email.trim() ||
+                !formData.email.includes("@") ||
+                formData.careTypes.length === 0
+              }
+              className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {actionLoading === "instant-create" ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create page"
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -2482,96 +2322,55 @@ function ProviderOnboardingContent() {
                 {/* Heading */}
                 <div className="text-center">
                   <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this page</h3>
-                  {otpSending ? (
-                    <p className="text-gray-500 mt-1.5">Sending verification code...</p>
-                  ) : otpSent ? (
-                    <p className="text-gray-500 mt-1.5">
-                      We sent an 8-digit code to{" "}
-                      <span className="font-semibold text-gray-700">
-                        {(() => {
-                          const [local, domain] = userEmail.split("@");
-                          if (!domain) return "***@***.com";
-                          if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
-                          return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
-                        })()}
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-gray-500 mt-1.5">
-                      We&apos;ll send a verification code to your email.
-                    </p>
-                  )}
+                  <p className="text-gray-500 mt-1.5">
+                    Claiming as <span className="font-semibold text-gray-700">{userEmail}</span>
+                  </p>
                 </div>
 
-                {/* OTP Input */}
-                {otpSent && (
-                  <div className="py-2">
-                    <OtpInput
-                      length={8}
-                      value={otpCode}
-                      onChange={setOtpCode}
-                      disabled={otpVerifying}
-                      error={!!otpError}
-                    />
-                  </div>
-                )}
+                {/* Consumer email warning */}
+                <ReactiveHint show={!isBusinessEmail(userEmail) && userEmail.includes("@")}>
+                  Using your business email speeds up verification.
+                </ReactiveHint>
+
+                {/* Confirmation checkbox */}
+                <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={confirmAuthorized}
+                    onChange={(e) => setConfirmAuthorized(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700 leading-relaxed">
+                    I confirm that I am authorized to manage this business on behalf of{" "}
+                    <span className="font-semibold">{providerName}</span>.
+                  </span>
+                </label>
 
                 {/* Error */}
-                {(otpError || actionError) && (
+                {actionError && (
                   <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
                     <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                     </svg>
-                    <p className="text-sm text-red-700">{otpError || actionError}</p>
-                  </div>
-                )}
-
-                {/* Resend link */}
-                {otpSent && (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">
-                      Didn&apos;t get the code?{" "}
-                      {resendCooldown > 0 ? (
-                        <span className="text-gray-400">Resend in {resendCooldown}s</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpCode("");
-                            setOtpError("");
-                            handleSendOtp();
-                          }}
-                          disabled={otpSending}
-                          className="text-primary-600 hover:text-primary-700 font-medium underline hover:no-underline"
-                        >
-                          Resend code
-                        </button>
-                      )}
-                    </p>
+                    <p className="text-sm text-red-700">{actionError}</p>
                   </div>
                 )}
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-3">
                   <Button
-                    onClick={handleVerifyAndClaim}
-                    disabled={otpCode.length !== 8 || !otpSent || otpVerifying}
+                    onClick={handleInstantClaim}
+                    disabled={!confirmAuthorized || actionLoading === "instant-claim"}
+                    loading={actionLoading === "instant-claim"}
                     className="w-full"
                   >
-                    {otpVerifying ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Claiming...
-                      </span>
-                    ) : (
-                      "Claim this page"
-                    )}
+                    Claim this page
                   </Button>
                   <button
                     type="button"
                     onClick={() => {
                       setActionError("");
-                      resetOtpState();
+                      setConfirmAuthorized(false);
                       // For pre-selected unclaimed orgs, go back to search (they skipped results)
                       setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
                     }}
@@ -2580,6 +2379,13 @@ function ProviderOnboardingContent() {
                     Back
                   </button>
                 </div>
+
+                <p className="text-center text-xs text-gray-400">
+                  By claiming, you agree to our{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                    Terms of Service
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

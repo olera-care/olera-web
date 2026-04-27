@@ -211,6 +211,11 @@ export default function VerificationMethodModal({
   const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Email account type check state
+  const [emailAccountError, setEmailAccountError] = useState<string | null>(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const emailCheckRef = useRef<string | null>(null);
+
   // LinkedIn screenshots state
   const [linkedinHeaderFile, setLinkedinHeaderFile] = useState<File | null>(null);
   const [linkedinHeaderPreview, setLinkedinHeaderPreview] = useState<string | null>(null);
@@ -240,6 +245,10 @@ export default function VerificationMethodModal({
       setOtpCode("");
       setOtpExpiresAt(null);
       setResendCooldown(0);
+      // Reset email account check state
+      setEmailAccountError(null);
+      setEmailChecking(false);
+      emailCheckRef.current = null;
       // Reset LinkedIn screenshots
       setLinkedinHeaderFile(null);
       setLinkedinHeaderPreview(null);
@@ -294,6 +303,61 @@ export default function VerificationMethodModal({
       }
     };
   }, [linkedinExperiencePreview]);
+
+  // Check if verification email is associated with another account type
+  const handleEmailBlur = useCallback(async () => {
+    const email = emailValue.trim().toLowerCase();
+
+    // Skip if empty or same as signup email
+    if (!email || !isValidEmail(email) || isSameAsSignupEmail(email, userEmail)) {
+      setEmailAccountError(null);
+      return;
+    }
+
+    emailCheckRef.current = email;
+    setEmailChecking(true);
+    setEmailAccountError(null);
+
+    try {
+      const res = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, intendedType: "organization" }),
+      });
+
+      // Only update state if this is still the email we're checking
+      if (emailCheckRef.current !== email) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        if (!data.available) {
+          if (data.alreadyHasProfile) {
+            setEmailAccountError("This email already manages another provider page.");
+          } else if (data.existingType === "family") {
+            setEmailAccountError("This email is linked to a family account. Use a different email.");
+          } else if (data.existingType === "caregiver") {
+            setEmailAccountError("This email is linked to a caregiver account. Use a different email.");
+          } else {
+            setEmailAccountError("This email is already in use. Please use a different email.");
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[VerificationModal] check-email-type error:", err);
+    } finally {
+      if (emailCheckRef.current === email) {
+        setEmailChecking(false);
+      }
+    }
+  }, [emailValue, userEmail]);
+
+  // Clear email account error when email changes
+  const handleEmailChange = useCallback((value: string) => {
+    setEmailValue(value);
+    if (emailAccountError) {
+      setEmailAccountError(null);
+    }
+  }, [emailAccountError]);
 
   const handleMethodSelect = (method: VerificationMethod) => {
     setScreen(method);
@@ -605,7 +669,10 @@ export default function VerificationMethodModal({
             fullName={fullName}
             onFullNameChange={setFullName}
             email={emailValue}
-            onEmailChange={setEmailValue}
+            onEmailChange={handleEmailChange}
+            onEmailBlur={handleEmailBlur}
+            emailAccountError={emailAccountError}
+            emailChecking={emailChecking}
             onSubmit={handleSendOtp}
             submitting={submitting}
             error={error}
@@ -936,6 +1003,9 @@ function EmailScreen({
   onFullNameChange,
   email,
   onEmailChange,
+  onEmailBlur,
+  emailAccountError,
+  emailChecking,
   onSubmit,
   submitting,
   error,
@@ -947,6 +1017,9 @@ function EmailScreen({
   onFullNameChange: (v: string) => void;
   email: string;
   onEmailChange: (v: string) => void;
+  onEmailBlur: () => void;
+  emailAccountError: string | null;
+  emailChecking: boolean;
   onSubmit: () => void;
   submitting: boolean;
   error: string | null;
@@ -955,8 +1028,8 @@ function EmailScreen({
   signupEmail?: string;
 }) {
   const isSameAsSignup = isSameAsSignupEmail(email, signupEmail);
-  const isGeneric = !isSameAsSignup && isValidEmail(email) && isGenericEmail(email);
-  const isValid = isValidName(fullName) && isValidEmail(email) && !isSameAsSignup;
+  const isGeneric = !isSameAsSignup && !emailAccountError && isValidEmail(email) && isGenericEmail(email);
+  const isValid = isValidName(fullName) && isValidEmail(email) && !isSameAsSignup && !emailAccountError && !emailChecking;
 
   return (
     <FormWrapper onSubmit={onSubmit} isValid={isValid} submitting={submitting}>
@@ -973,18 +1046,30 @@ function EmailScreen({
       </FormField>
 
       <FormField label="Work email">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
-          placeholder="jane@company.com"
-          autoComplete="email"
-          className={`form-input ${isSameAsSignup ? "border-red-300 bg-red-50/50" : ""}`}
-        />
+        <div className="relative">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            onBlur={onEmailBlur}
+            placeholder="jane@company.com"
+            autoComplete="email"
+            className={`form-input ${isSameAsSignup || emailAccountError ? "border-red-300 bg-red-50/50" : ""}`}
+          />
+          {emailChecking && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          )}
+        </div>
         {/* Validation messages */}
         {isSameAsSignup ? (
           <p className="mt-2 text-sm text-red-600">
             This is your account email. Please use a different company email.
+          </p>
+        ) : emailAccountError ? (
+          <p className="mt-2 text-sm text-red-600">
+            {emailAccountError}
           </p>
         ) : isGeneric ? (
           <p className="mt-2 text-sm text-amber-600">

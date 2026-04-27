@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-27T20:11:52.868Z
+ * Last updated: 2026-04-27T22:07:27.630Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -449,7 +449,28 @@ export const drafts: PipelineStateDrafts = {
         "Home and Community-Based Services Waiver",
         "Statewide Medicaid Managed Care Long-Term Care"
       ],
-      "contentSections": [],
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "info",
+          "text": "Voluntary enrollment: PACE is voluntary; your loved one can disenroll at any time and return to regular Medicare. Disenrollment changes typically take effect on the 1st of the following month."
+        },
+        {
+          "type": "callout",
+          "tone": "info",
+          "text": "Who it's for: the program works best for seniors with complex medical needs who require significant daily help and want to avoid nursing home placement."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Private pay and Medicaid planning: if your loved one doesn't initially qualify for Medicaid, they can enroll as a private-pay participant while the PACE team assists with 2026 Medicaid planning strategies (including Qualified Income Trust setup) to meet eligibility."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Broad availability: PACE has expanded beyond South Florida and is now available in 30+ counties including the Tampa Bay area, Orlando, Jacksonville, and the Panhandle."
+        }
+      ],
       "faqs": [
         {
           "question": "Can my loved one keep their current doctor if they enroll in PACE?",
@@ -1004,7 +1025,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your county's LIHEAP provider",
-            "description": "Florida LIHEAP is run by local agencies. Check if your loved one's county participates and get contact information from https://floridaliheap.com or call 2-1-1."
+            "description": "All 67 Florida counties are covered. Locate the designated agency for your loved one's county via 2-1-1 (24/7), the state assistance line at 850-717-8450, or floridaliheap.com."
           },
           {
             "step": 2,
@@ -1022,8 +1043,8 @@ export const drafts: PipelineStateDrafts = {
             "description": "The local agency reviews your application and contacts you for any missing information. If approved, payment goes directly to the utility company."
           }
         ],
-        "processingTime": "Varies by local agency and demand, some counties process within weeks, others may take longer during peak seasons",
-        "waitlist": "Applications may be paused when funding runs low, especially during peak summer and winter months",
+        "processingTime": "Varies by local agency and demand. Approved payments are typically sent directly to the utility company. Some counties process within weeks; others take longer during peak seasons.",
+        "waitlist": "Applications may pause when funding runs low. Apply early when cycles open: heating assistance generally runs through March 31, and cooling assistance opens April 1.",
         "tip": "Apply as early as possible when the program opens, funding is limited and runs out during high-demand periods.",
         "urls": [
           {
@@ -1104,8 +1125,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Your loved one can still apply, but they'll need additional documentation like a lease agreement showing they're responsible for utilities. The household must be responsible for paying the heating or cooling bills, even if the account isn't in their name."
         },
         {
-          "question": "What if my loved one's county doesn't participate in LIHEAP?",
-          "answer": "LIHEAP isn't available in every Florida county. Call 2-1-1 to confirm if your loved one's county has a participating provider. If not, ask about other utility assistance programs that might be available locally."
+          "question": "Where do I find the right LIHEAP provider for my loved one's county?",
+          "answer": "LIHEAP is active in all 67 Florida counties. To find the specific local provider for your loved one's area, call 2-1-1, use the state assistance line at 850-717-8450, or check the directory at FloridaJobs.org/LIHEAP. If funding for the season has run out at their local agency, 2-1-1 can also identify other local utility assistance programs."
         },
         {
           "question": "How much will my loved one actually receive?",
@@ -1488,14 +1509,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Elder Helpline",
           "phone": "1-800-963-5337",
-          "description": "Connect with SHINE counselors statewide",
-          "hours": "Monday-Friday, business hours"
+          "description": "Connect with SHINE counselors statewide.",
+          "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
         },
         {
-          "label": "SHINE Email",
+          "label": "SHINE Official Website",
           "phone": null,
-          "description": "Email chanslera@elderaffairs.org for general questions",
-          "hours": "Business hours"
+          "description": "Visit floridashine.org and use the \"Find a Site\" tool or \"Contact Us\" form to email a local coordinator directly.",
+          "hours": "24/7"
         }
       ],
       "applicationNotes": null,
@@ -1562,7 +1583,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to shop for groceries or prepare meals safely, they may qualify for home-delivered meals through local Meals on Wheels programs or their Medicaid plan. Your loved one age 60+ who is homebound or has difficulty cooking can receive hot, frozen, or special diet meals delivered directly to their door.\n\nBecause programs are run locally by each county's Area Agency on Aging, benefits vary widely across Florida. Some programs are free for qualifying seniors, while others charge around $9.49 per meal. Medicaid enrollees in certain long-term care plans may receive up to 10 meals per authorization with no cost sharing. Many programs have waitlists due to high demand, so applying early is essential.",
+      "intro": "If your loved one struggles to shop for groceries or prepare meals safely, they may qualify for home-delivered meals through local Meals on Wheels programs or their Medicaid plan. Your loved one age 60+ who is assessed as homebound or has significant difficulty preparing meals can receive hot, frozen, or special diet meals delivered directly to their door.\n\nMany programs are free or request a small voluntary donation for qualifying low-income seniors; others charge a private-pay fee, typically $7.00 to $9.49 per meal. For enrollees in Medicaid Long-Term Care (LTC) plans, meals are provided at no cost based on the specific authorization of their plan and their documented nutritional and functional needs. Because government-funded programs are not entitlements and rely on limited funding, significant waitlists are common, so applying early is essential.",
       "savingsRange": "",
       "savingsSource": "Free service for qualifying participants",
       "savingsVerified": false,
@@ -1677,11 +1698,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get both Medicaid meal delivery and community Meals on Wheels?",
-          "answer": "No, your loved one cannot receive meals from both programs simultaneously. If they're eligible for Medicaid meal benefits through their health plan, that typically takes priority and may offer more meals with faster approval."
+          "answer": "No. Your loved one cannot receive meals from both programs simultaneously. If they are eligible for Medicaid Long-Term Care (LTC) benefits, their health plan will authorize meals based on their specific clinical assessment. These authorized meals typically offer faster approval and more consistent delivery than community-based waitlists."
         },
         {
           "question": "What happens if my loved one moves to assisted living after starting meal delivery?",
-          "answer": "Meal delivery typically stops when moving to assisted living, as facilities are required to provide meals. However, some programs may continue delivery to independent living communities, check with the local ADRC about your loved one's specific housing situation."
+          "answer": "Meal delivery typically stops once a senior moves into an assisted living facility (ALF), as these facilities are legally required to provide residents with daily nutrition. Medicaid LTC plans generally do not authorize home-delivered meals for those living in ALFs. If they move to an independent living community, they may still be eligible, but this must be verified with their local ADRC."
         },
         {
           "question": "Can I pay for meals if my loved one doesn't qualify for free service?",
@@ -2163,13 +2184,13 @@ export const drafts: PipelineStateDrafts = {
           "label": "Florida Senior Legal Helpline",
           "phone": "(888) 895-7873",
           "description": "Statewide intake and referral to county legal aid providers",
-          "hours": "Call for hours"
+          "hours": "Monday-Friday 9:00 AM-4:30 PM ET (excluding holidays)"
         },
         {
           "label": "Coast to Coast Legal Aid (Broward)",
-          "phone": "(954) 765-8955",
-          "description": "Direct service for Broward County residents",
-          "hours": "Call for hours"
+          "phone": "(954) 736-2400",
+          "description": "Direct service for Broward County residents. Main office Mon-Fri 9am-5pm; phone intake Mon-Fri 9am-3pm.",
+          "hours": "Mon-Fri 9:00 AM-5:00 PM ET"
         },
         {
           "label": "Elder Affairs Department",
@@ -2238,7 +2259,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and at risk of nursing home placement, Florida's Home Care for the Elderly (HCE) Program provides in-home services when they live with an adult caregiver willing to help. This isn't general home care, your loved one must meet the same clinical need level that qualifies for nursing home care, but they can stay home with family support instead.\n\nThe program covers assistance with social, physical, and emotional needs through approved caregivers in a family-type living arrangement. Because this prevents costly nursing home placement, it can save thousands per month while keeping your loved one in familiar surroundings. Your loved one must have income and assets below Medicaid nursing home limits, roughly $2,982/month income and $2,000 in countable assets for a single person.\n\nThe key requirement: your loved one cannot live alone. They must have a live-in adult caregiver (family member or chosen adult) who passes a background assessment and meets state qualifications. The caregiver doesn't need to provide all care personally but must coordinate services and be present in the home.",
+      "intro": "If your loved one is 60 or older and at risk of nursing home placement, Florida's HCE Program provides financial assistance to support them living at home with a dedicated adult caregiver. Rather than providing direct staff or services, this program primarily offers a monthly subsidy to help caregivers manage the costs of keeping a senior in a private home setting. All participants receive a basic monthly subsidy of $160, and additional special subsidies may be authorized for medical supplies, home health aide services, or nutritional supplements like Ensure (officially authorized as of July 2026).\n\nTo qualify in 2026, the senior must meet specific clinical and financial criteria. Clinically, they must be certified as needing a Nursing Home Level of Care, and they must live in a private home with a caregiver who is willing and able to provide or coordinate their care. Financially, the senior's gross monthly income must be under $2,982, and their countable assets must be under $2,000 for an individual or $3,000 for a couple.\n\nBecause HCE is a state-funded program and not an entitlement, most areas use a Statewide Pre-Enrollment List. Unlike standard waitlists, placement on this list is determined by the senior's frailty and risk score rather than the date of their application. To begin the process and determine if your loved one qualifies for a full assessment, call the statewide Elder Helpline at 1-800-963-5337 for a preliminary phone screening.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2251,29 +2272,35 @@ export const drafts: PipelineStateDrafts = {
           "At nursing home level of care need"
         ],
         "ageRequirement": "60+",
-        "incomeTable": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          }
+        ],
         "assetLimits": {
           "individual": 2000,
-          "couple": null,
+          "couple": 3000,
           "countedAssets": [
             "Bank accounts",
             "Investments",
-            "Stocks and bonds",
-            "Additional vehicles beyond one"
+            "Additional vehicles beyond one",
+            "Other real estate"
           ],
           "exemptAssets": [
-            "Primary home (with restrictions)",
-            "One vehicle",
-            "Burial funds up to limit"
+            "Primary home (if your loved one or spouse/dependent lives there, equity under $752,000 in 2026)",
+            "One vehicle of any value",
+            "Irrevocable burial contracts (any amount) or designated burial fund up to $2,500",
+            "Life insurance policies with total face value under $2,500"
           ],
-          "homeEquityCap": null
+          "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must be at nursing home level of care based on 701B assessment, meaning your loved one needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision.",
+        "functionalRequirement": "Must be certified as needing Nursing Home Level of Care via the 701B Comprehensive Assessment conducted by a state-certified DOEA assessor. Your loved one must require daily help with Activities of Daily Living (ADLs) such as bathing, dressing, eating, or transferring. Significant cognitive impairments such as Alzheimer's or related dementias also meet the requirement when constant supervision is needed for safety.",
         "otherRequirements": [
           "Florida resident with intent to remain",
-          "Lives with approved adult caregiver (age 18+)",
-          "Caregiver must pass assessment and background check",
-          "Private home meeting state dwelling requirements"
+          "Lives with an approved adult caregiver (age 18+) in a private, family-type home",
+          "Caregiver must pass a Level 2 background check (fingerprinting) and be determined willing and able to provide or coordinate care",
+          "If income exceeds $2,982/month, a Qualified Income Trust (QIT) must be established to maintain eligibility"
         ],
         "povertyLevelReference": null
       },
@@ -2374,8 +2401,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "The program doesn't publish waitlist times, and it varies significantly by region and priority level. Those at highest risk of immediate nursing home placement get priority. Contact your local ADRC for current availability in your specific area."
         },
         {
-          "question": "Can I apply for this program and Medicaid home services at the same time?",
-          "answer": "Yes, you can apply for multiple programs simultaneously. However, HCE is for those who need nursing home level care but want to stay home with family, while Medicaid home health requires physician orders for skilled medical needs. They serve different purposes."
+          "question": "Can I apply for this program and Medicaid Long-Term Care at the same time?",
+          "answer": "No. Your loved one cannot be enrolled in HCE if they are already receiving services through Florida's Statewide Medicaid Managed Care (SMMC) Long-Term Care program. HCE is intended to provide a financial bridge for caregivers supporting seniors who meet clinical requirements but are not yet receiving comprehensive Medicaid managed care services."
         },
         {
           "question": "What happens if my loved one's needs increase after enrollment?",
@@ -2419,7 +2446,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides free home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there may be waiting periods, and eligibility is determined through a comprehensive assessment that looks at your loved one's ability to perform daily activities rather than strict income limits.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but you cannot receive CCE services while enrolled in a Medicaid capitated long-term care program, families must choose one or the other.",
+      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there are often waiting lists for services. Eligibility is determined through a comprehensive assessment of functional needs; unlike standard entitlement programs, CCE may require a monthly co-payment based on the senior's income level.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but your loved one cannot receive CCE services while enrolled in a Medicaid capitated long-term care program. To begin the process, call the Elder Helpline at 1-800-963-5337 for a free initial screening.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2536,7 +2563,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How do they determine if my loved one is 'at risk of institutionalization'?",
-          "answer": "The CARES assessment evaluates your loved one's functional impairments and ability to perform daily activities safely at home. Specific criteria aren't detailed in available sources, but the assessment looks at bathing, dressing, medication management, and similar daily tasks."
+          "answer": "A case manager performs a functional assessment (often using the 701B form) to calculate a frailty score. They evaluate your loved one's ability to perform Activities of Daily Living (ADLs) such as bathing, dressing, eating, and transferring (e.g., getting out of bed), as well as memory issues or cognitive impairments like Alzheimer's."
         },
         {
           "question": "What if my loved one doesn't qualify for CCE services?",
@@ -2544,19 +2571,19 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for CCE while my loved one is in the hospital?",
-          "answer": "Contact the Department of Elder Affairs as soon as possible if your loved one is hospitalized and at risk of needing nursing home placement. Early application may help facilitate discharge planning back to the community."
+          "answer": "Yes. If your loved one is hospitalized, notify the hospital social worker and call the Elder Helpline immediately. While CCE cannot provide services inside the hospital, early screening can help prioritize them for the Statewide Pre-Enrollment List to facilitate a safer discharge back home."
         },
         {
           "question": "How long is the waitlist for CCE services?",
-          "answer": "Waitlist information isn't available in official sources. Contact your local Department of Elder Affairs office for current availability, as it likely varies by region and your loved one's priority level based on risk of institutionalization."
+          "answer": "CCE uses a Statewide Pre-Enrollment List. Because placement is based on a priority score (frailty) rather than the date you applied, wait times are unpredictable. A senior with high medical needs may be moved to the top of the list within weeks; a more independent senior may wait significantly longer. Call the Elder Helpline at 1-800-963-5337 for a screening to see where your loved one ranks."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "While the sources don't specify, most elder care programs allow adult children to apply on behalf of aging loved ones. You may need power of attorney documentation. Contact the Department of Elder Affairs to confirm application procedures."
+          "answer": "Yes. Family members or caregivers can initiate the process via the Elder Helpline. To sign official state documents or make medical/financial decisions during the assessment, you will typically need a Florida Durable Power of Attorney (DPOA) or to be a designated Health Care Surrogate."
         },
         {
           "question": "What specific services does CCE provide?",
-          "answer": "The available sources describe CCE as providing community-based care to prevent institutionalization, but don't detail specific services. Contact the Florida Department of Elder Affairs for a complete list of covered services in your area."
+          "answer": "CCE covers a range of community-based services, including in-home support (homemaking, personal care, meals), medical care (nursing, therapy, supplies), support services (adult day care, emergency alert systems, home repairs), and caregiver relief through respite care."
         }
       ],
       "layoutIntent": {
@@ -2642,7 +2669,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Financial Eligibility",
-            "description": "Complete Medicaid financial eligibility determination through Florida Department of Children and Families (DCF). Provide income and asset documentation."
+            "description": "Once released from the waitlist, complete Medicaid financial eligibility determination through the Florida Department of Children and Families (DCF). Provide income and asset documentation."
           },
           {
             "step": 3,
@@ -2695,7 +2722,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Elder Options Main Line",
           "phone": "1-800-96-ELDER",
-          "description": "Primary intake and screening for Elder Options services",
+          "description": "Primary intake and screening for Elder Options services. If your call routes to voicemail, leave a message; Elder Options returns calls in the order received, even during business hours.",
           "hours": "Monday-Friday 8am-5pm ET"
         },
         {

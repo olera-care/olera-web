@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
@@ -169,11 +169,6 @@ function DashboardContent({
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
 
-  // Layout version toggle for A/B exploration (temporary - for branch review only)
-  // Version 1: Activity merged into sidebar stats card
-  // Version 2: Activity as separate section in left column, stats-only sidebar (default)
-  const [layoutVersion, setLayoutVersion] = useState<1 | 2>(2);
-
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
@@ -315,32 +310,6 @@ function DashboardContent({
             Manage your profile and how families find you
           </p>
         </div>
-
-        {/* Layout version toggle - TEMPORARY for branch review only */}
-        <div className="hidden lg:flex items-center gap-2 bg-gray-100 rounded-lg p-1 text-sm">
-          <button
-            type="button"
-            onClick={() => setLayoutVersion(1)}
-            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
-              layoutVersion === 1
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            V1
-          </button>
-          <button
-            type="button"
-            onClick={() => setLayoutVersion(2)}
-            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
-              layoutVersion === 2
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            V2
-          </button>
-        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -398,8 +367,8 @@ function DashboardContent({
             </div>
           )}
 
-          {/* Version 2: Recent Activity as separate card in left column */}
-          {layoutVersion === 2 && v2Data && v2Data.recentActivity.length > 0 && (
+          {/* Recent Activity card in left column */}
+          {v2Data && v2Data.recentActivity.length > 0 && (
             <div style={{ animation: "card-enter 0.25s ease-out both", animationDelay: "60ms" }}>
               <LeftColumnActivityCard
                 activities={v2Data.recentActivity}
@@ -484,16 +453,8 @@ function DashboardContent({
               animationDelay: "100ms",
             }}
           >
-            {/* Version 1: Combined stats + activity card */}
-            {/* Version 2: Stats-only card (activity moved to left column) */}
-            {v2Data && layoutVersion === 1 && (
-              <DashboardSummaryCard
-                data={v2Data}
-                profileSlug={profile.slug}
-                onSeeAllActivity={() => setShowActivityModal(true)}
-              />
-            )}
-            {v2Data && layoutVersion === 2 && (
+            {/* Stats card (activity is in left column) */}
+            {v2Data && (
               <StatsOnlyCard
                 data={v2Data}
                 profileSlug={profile.slug}
@@ -506,10 +467,10 @@ function DashboardContent({
               onRequestVerification={handleOpenVerificationModal}
             />
 
-            {/* Profile completeness - collapsible (expanded by default in V2) */}
+            {/* Profile completeness - collapsible (expanded for new providers < 30%) */}
             <CollapsibleProfileCompleteness
               completeness={completeness}
-              defaultExpanded={layoutVersion === 2}
+              defaultExpanded={completeness.overall < 30}
               lastUpdated={profile.updated_at}
             />
           </div>
@@ -975,16 +936,6 @@ function CollapsibleProfileCompleteness({
     return saved === null ? defaultExpanded : saved === "true";
   });
 
-  // Sync state when defaultExpanded changes (for V1/V2 toggle demo)
-  // Only applies if user hasn't explicitly set a preference
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("olera-completeness-expanded");
-    if (saved === null) {
-      setIsExpanded(defaultExpanded);
-    }
-  }, [defaultExpanded]);
-
   const handleToggle = () => {
     const newValue = !isExpanded;
     setIsExpanded(newValue);
@@ -1150,145 +1101,6 @@ function CollapsibleProfileCompleteness({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/**
- * Premium Dashboard Summary Card
- * Combines stats + activity into one polished card
- */
-function DashboardSummaryCard({
-  data,
-  profileSlug,
-  onSeeAllActivity,
-}: {
-  data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data;
-  profileSlug: string | null;
-  onSeeAllActivity: () => void;
-}) {
-  const { views, reviews, recentActivity } = data;
-  const [copied, setCopied] = useState(false);
-
-  // Generate full stars
-  const starCount = reviews.avgRating !== null ? Math.round(reviews.avgRating) : 0;
-  const fullStars = "★".repeat(starCount) + "☆".repeat(Math.max(0, 5 - starCount));
-
-  const handleShare = () => {
-    if (!profileSlug) return;
-    const url = `${window.location.origin}/provider/${profileSlug}`;
-    navigator.clipboard.writeText(url)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {
-        // Fallback: prompt user to copy manually
-        window.prompt("Copy this link:", url);
-      });
-  };
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-      <div className="px-5 pt-5 pb-4">
-        <h3 className="text-base font-display font-bold text-gray-900">
-          This month
-        </h3>
-      </div>
-
-      {/* Stats section */}
-      <div className="px-5 pb-5">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Views */}
-          <div className="space-y-1">
-            <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-              {views.thisPeriod.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-500">profile views</p>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-            >
-              {copied ? "Link copied!" : "Share profile"}
-            </button>
-          </div>
-
-          {/* Reviews */}
-          <div className="space-y-1">
-            {reviews.avgRating !== null ? (
-              <>
-                <div className="flex items-baseline gap-1">
-                  <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-                    {reviews.avgRating.toFixed(1)}
-                  </p>
-                  <span className="text-amber-500 text-xs tracking-tight">{fullStars}</span>
-                </div>
-                <p className="text-sm text-gray-500">
-                  {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
-                </p>
-                <a
-                  href="/provider/reviews"
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Get more reviews
-                </a>
-              </>
-            ) : (
-              <>
-                <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
-                <p className="text-sm text-gray-500">no reviews yet</p>
-                <a
-                  href="/provider/reviews"
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Get more reviews
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Activity section */}
-      <div className="border-t border-gray-100 px-5 py-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Recent activity
-        </p>
-        {recentActivity.length === 0 ? (
-          <p className="text-sm text-gray-400">
-            Nothing yet. Activity will appear here.
-          </p>
-        ) : (
-          <ul className="space-y-2.5">
-            {recentActivity.slice(0, 3).map((item) => (
-              <li key={item.id} className="flex items-start gap-3">
-                <time className="text-[11px] text-gray-400 tabular-nums w-7 shrink-0 pt-0.5">
-                  {formatRelativeTime(item.timestamp)}
-                </time>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] text-gray-700 leading-snug line-clamp-2">
-                    {item.detail ? `"${item.detail}"` : item.title}
-                  </p>
-                  {item.actorName && (
-                    <p className="text-[11px] text-gray-400 mt-0.5">{item.actorName}</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        {recentActivity.length > 3 && (
-          <button
-            type="button"
-            onClick={onSeeAllActivity}
-            className="mt-3 text-[13px] text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            See all {recentActivity.length} →
-          </button>
-        )}
-      </div>
-
     </div>
   );
 }

@@ -496,7 +496,7 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
   const a = byVariant.A;
   const b = byVariant.B;
   const totalAssigned = a.sent + b.sent;
-  if (totalAssigned === 0) return null; // no variant data yet — pre-deploy window
+  const waitingForFirstSend = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
@@ -509,6 +509,11 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
       <p className="text-[11px] text-gray-400 mb-3">
         A = production control (generic subject, no preheader). B = real question as subject + Olera-attributed preheader. Random 50/50 at send. PHI-filtered B falls back to a non-question subject when the question text mentions a health condition.
       </p>
+      {waitingForFirstSend && (
+        <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
+          Waiting for the first variant-tagged send. The numbers below populate once a new <code className="text-[11px] bg-white/60 px-1 rounded">question_received</code> email fires post-deploy.
+        </p>
+      )}
       <div className="overflow-x-auto -mx-1">
         <table className="min-w-full text-sm">
           <thead>

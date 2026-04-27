@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
+import { questionConfirmationEmail, questionReceivedEmail, questionReceivedSubject } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 
 /**
@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
 
         await sendEmail({
           to: pEmail,
-          subject: `A family has a question about ${providerDisplayName}`,
+          subject: questionReceivedSubject(askerName, providerDisplayName),
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,

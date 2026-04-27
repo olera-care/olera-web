@@ -12,12 +12,37 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
 // ── Layout helpers ──────────────────────────────────────────────
 
-function layout(body: string): string {
+/**
+ * Hidden inbox-preview text that appears after the subject line in
+ * Gmail/Outlook/Apple Mail. Without this, clients show a random
+ * fragment of the body (often header text or whitespace).
+ *
+ * Pattern: visually hidden span + zero-width-joiner spacer to push
+ * body content out of the preview window. Standard across MailChimp,
+ * SendGrid, Postmark templates.
+ */
+function preheaderHtml(text: string): string {
+  if (!text) return "";
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n+/g, " ")
+    .trim();
+  // 80 zero-width joiners after the preheader — pushes body chars out
+  // of the preview window so inboxes don't append e.g. "Olera ..." to it.
+  const spacer = "&zwnj;&nbsp;".repeat(80);
+  return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f9fafb;opacity:0;">${escaped}${spacer}</div>`;
+}
+
+function layout(body: string, preheader?: string): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">
+  ${preheaderHtml(preheader ?? "")}
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
     <tr><td align="center">
       <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:480px;width:100%;">
@@ -41,6 +66,16 @@ function layout(body: string): string {
   </table>
 </body>
 </html>`;
+}
+
+/**
+ * Truncate a string for use as a one-line inbox preview. Keeps quotes
+ * intact for the natural "..." reading at the end.
+ */
+function previewExcerpt(text: string, max = 110): string {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= max) return cleaned;
+  return cleaned.slice(0, max - 1).trimEnd() + "…";
 }
 
 function button(label: string, href: string): string {
@@ -350,6 +385,21 @@ export function newReviewEmail(opts: {
   `);
 }
 
+/**
+ * Subject line for the question_received email. Centralized so all 3 send
+ * sites (live submission, deferred questions, deferred leads) stay in sync.
+ *
+ * Promotes the asker's first name into the subject when available, falling
+ * back to "A family" / "Someone" for anonymous or default cases — so the
+ * inbox preview reads as a specific person asking, not a generic form.
+ */
+export function questionReceivedSubject(askerName: string, providerName: string): string {
+  const first = firstName(askerName);
+  // firstName("A family") returns "A" (single char) — use the friendly fallback.
+  const display = first.length <= 1 ? "A family" : first;
+  return `${display} has a question for ${providerName}`;
+}
+
 /** Email to provider when someone asks a question on their page */
 export function questionReceivedEmail(opts: {
   providerName: string;
@@ -358,6 +408,9 @@ export function questionReceivedEmail(opts: {
   providerUrl: string;
   providerSlug?: string;
 }): string {
+  // Inbox preview = the question itself. Forces the recipient to see what
+  // they'd be answering before deciding to open.
+  const preheader = previewExcerpt(opts.question);
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${opts.providerName}</h1>
     ${trustIntro()}
@@ -370,7 +423,7 @@ export function questionReceivedEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.</p>
     <div>${button("View and respond", opts.providerUrl)}</div>
     ${offRampBlock(opts.providerSlug)}
-  `);
+  `, preheader);
 }
 
 /** Email to asker when their question is answered */

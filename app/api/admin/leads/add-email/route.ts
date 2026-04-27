@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         .contains("metadata", { needs_provider_email: true });
 
       if (flaggedQuestions && flaggedQuestions.length > 0) {
-        const { questionReceivedEmail } = await import("@/lib/email-templates");
+        const { questionReceivedEmail, questionReceivedSubject } = await import("@/lib/email-templates");
         for (const q of flaggedQuestions) {
           try {
             const meta = (q.metadata as Record<string, unknown>) || {};
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
               continue;
             }
 
-            const qSubject = `A family has a question about ${profile.display_name || "your organization"}`;
+            const qSubject = questionReceivedSubject(q.asker_name || "A family", profile.display_name || "your organization");
             const qLogId = await reserveEmailLogId({
               to: effectiveEmail,
               subject: qSubject,

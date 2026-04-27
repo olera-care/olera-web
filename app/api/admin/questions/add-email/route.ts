@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { questionReceivedEmail } from "@/lib/email-templates";
+import { questionReceivedEmail, questionReceivedSubject } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { generateNotificationUrl } from "@/lib/claim-tokens";
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const emailSubject = `A family has a question about ${displayName}`;
+          const emailSubject = questionReceivedSubject(q.asker_name || "A family", displayName);
           const emailLogId = await reserveEmailLogId({
             to: effectiveEmail,
             subject: emailSubject,

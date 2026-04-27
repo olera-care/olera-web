@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.851Z
+ * Last updated: 2026-04-27T20:11:52.868Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -301,16 +301,32 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Florida PACE Centers (Miami-Dade and potentially expanding)",
+            "name": "South Florida (Miami-Dade)",
             "type": "service-area"
           },
           {
-            "name": "Check AHCA for current operational sites",
+            "name": "Tampa Bay area",
+            "type": "service-area"
+          },
+          {
+            "name": "Orlando / Central Florida",
+            "type": "service-area"
+          },
+          {
+            "name": "Jacksonville / Northeast Florida",
+            "type": "service-area"
+          },
+          {
+            "name": "Panhandle",
+            "type": "service-area"
+          },
+          {
+            "name": "Check AHCA for the full list of 30+ participating counties",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay at home, PACE provides everything under one program, doctors, nurses, medications, transportation, meals, and even adult day care. Because PACE covers all medical care through one coordinated team, your loved one won't need to manage separate Medicare providers or coordinate between different specialists.\n\nPACE is only available in specific Florida counties (currently Miami-Dade, with potential expansion). Your loved one must qualify for nursing home level care but be able to live safely in the community with PACE services. Most participants have both Medicare and Medicaid, though PACE helps with Medicaid enrollment if needed.\n\nThe program covers everything at no additional cost beyond Medicare/Medicaid: primary care, specialists, prescription drugs, hospital stays, home care, adult day health care, meals, and transportation to medical appointments. Average participants are 76 years old with complex medical needs.",
+      "intro": "If your loved one is 55+ and needs nursing home level care but wants to stay at home, PACE provides everything under one program, doctors, nurses, medications, transportation, meals, and even adult day care. Because PACE covers all medical care through one coordinated team, your loved one won't need to manage separate Medicare providers or coordinate between different specialists.\n\nPACE is now available in more than 30 Florida counties, including the Tampa Bay area, Orlando, Jacksonville, South Florida, and the Panhandle. Your loved one must qualify for nursing home level care but be able to live safely in the community with PACE services. Most participants have both Medicare and Medicaid, though PACE helps with Medicaid enrollment if needed.\n\nThe program covers everything at no additional cost beyond Medicare/Medicaid: primary care, specialists, prescription drugs, hospital stays, home care, adult day health care, meals, and transportation to medical appointments. Average participants are 76 years old with complex medical needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -426,7 +442,7 @@ export const drafts: PipelineStateDrafts = {
         "PACE is voluntary enrollment, your loved one can disenroll at any time and return to regular Medicare",
         "The program works best for people with complex medical needs who want to avoid nursing home placement",
         "If your loved one doesn't qualify for Medicaid initially, they may still enroll and pay privately while PACE assists with Medicaid planning",
-        "Currently only available in Miami-Dade County, though Florida is working to expand to other areas"
+        "Now available in more than 30 Florida counties, including the Tampa Bay area, Orlando, Jacksonville, South Florida (Miami-Dade), and the Panhandle. Check AHCA for the current list of participating counties."
       ],
       "relatedPrograms": [
         "Florida Medicaid Long-Term Care",
@@ -440,8 +456,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, your loved one must receive all care through the PACE team. Because PACE provides comprehensive coordinated care, participants cannot see outside providers except in emergencies. The PACE center assigns a primary care physician and care team."
         },
         {
-          "question": "What if my loved one lives outside Miami-Dade County?",
-          "answer": "PACE is currently only available in Miami-Dade County in Florida. Check with AHCA for updates on expansion to other counties, or consider Florida's Home and Community-Based Services waiver programs as alternatives."
+          "question": "What if my loved one lives outside the major metro areas?",
+          "answer": "PACE has expanded significantly and is now available in more than 30 Florida counties, including the Tampa Bay area, Orlando, Jacksonville, and Southwest Florida. If PACE is not yet available in your loved one's specific zip code, check with AHCA or consider the Statewide Medicaid Managed Care Long-Term Care program as an alternative."
         },
         {
           "question": "Can my loved one disenroll from PACE if they don't like it?",
@@ -461,7 +477,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one doesn't have Medicaid but their income is too high to qualify?",
-          "answer": "PACE enrollment specialists help with Medicaid planning strategies. Your loved one may qualify for Medicaid long-term care with higher income limits ($2,901/month in 2025), or through spend-down processes that account for medical expenses."
+          "answer": "PACE enrollment specialists help with Medicaid planning strategies. The 2026 gross monthly income limit is $2,982 (300% of the Federal Benefit Rate). If your loved one exceeds this, they may still qualify by establishing a Qualified Income Trust (Miller Trust), or through spend-down processes that account for medical expenses."
         },
         {
           "question": "Does PACE provide transportation to non-medical appointments like grocery shopping?",
@@ -933,7 +949,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$1,350 directly to their utility company. Crisis assistance can go up to $2,000 if they're facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. Because LIHEAP is administered by local agencies in each county, you'll need to apply through your loved one's specific county provider, not all Florida counties participate.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
+      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$1,350 directly to their utility company. Crisis assistance can go up to $2,000 if they're facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
       "savingsRange": "$400 – $2,000/year in 2026",
       "savingsSource": "Payment ranges from Florida LIHEAP providers",
       "savingsVerified": true,
@@ -2473,10 +2489,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Elder Helpline (start here)",
+          "phone": "1-800-963-5337",
+          "description": "Statewide entry point (1-800-96-ELDER). Routes to your loved one's local CCE provider for screening and assessment.",
+          "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
+        },
+        {
           "label": "Florida Department of Elder Affairs",
-          "phone": "Information not available in sources",
-          "description": "Primary contact for CCE program eligibility and services",
-          "hours": "Contact local office for hours"
+          "phone": "(850) 414-2000",
+          "description": "State agency that oversees CCE and other senior programs. Use for general elder rights and program information.",
+          "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
         },
         {
           "label": "Florida 2-1-1",
@@ -2546,8 +2568,8 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
-      "sourceUrl": "",
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/community-care-for-the-elderly-cce-program/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
     },
@@ -2568,7 +2590,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with daily activities like bathing, dressing, or meal preparation, Elder Options may provide in-home care services to help them stay safely at home instead of moving to a nursing facility. This program offers personalized home and community-based services including personal care assistance, homemaker services, adult day care, and caregiver respite, all designed as alternatives to institutionalization.\n\nBecause Elder Options tailors services to each person's specific needs after a comprehensive assessment, there are no fixed dollar amounts or guaranteed hours. Your loved one must meet both financial eligibility (following Florida Medicaid rules) and medical eligibility through a Nursing Facility Level of Care assessment that determines they need daily help with activities of daily living. Income limits for 2026: $2,982/month for a single person applying for nursing home-level services.\n\nElder Options specifically serves residents of Hernando, Citrus, Lake, Sumter, and Marion counties in Florida. Other counties have their own Aging and Disability Resource Centers with similar programs but different providers and potentially different waitlist times.",
+      "intro": "If your loved one is 60+ and struggling with daily activities like bathing, dressing, or meal preparation, Elder Options may provide in-home care services to help them stay safely at home instead of moving to a nursing facility. This program offers personalized home and community-based services including personal care assistance, homemaker services, adult day care, and caregiver respite, all designed as alternatives to institutionalization.\n\nBecause Elder Options tailors services to each person's specific needs after a comprehensive assessment, there are no fixed dollar amounts or guaranteed hours. Your loved one must meet both financial eligibility (following Florida Medicaid rules) and medical eligibility through a Nursing Facility Level of Care assessment that determines they need daily help with activities of daily living. Income limits for 2026: $2,982/month for a single person applying for nursing home-level services.\n\nElder Options is the Area Agency on Aging for a 16-county region in North Central Florida: Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, and Union. Other counties have their own Aging and Disability Resource Centers with similar programs but different providers and potentially different waitlist times.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2593,17 +2615,17 @@ export const drafts: PipelineStateDrafts = {
             "Vehicles beyond one primary car"
           ],
           "exemptAssets": [
-            "Primary home up to $585,000 if spouse lives there",
+            "Primary home up to $752,000 in equity if your loved one (or spouse/dependent) lives there",
             "Household goods and personal belongings",
             "One vehicle",
             "Burial plots and prepaid burial contracts"
           ],
-          "homeEquityCap": 585000
+          "homeEquityCap": 752000
         },
         "functionalRequirement": "Must meet Nursing Facility Level of Care determination (a clinical assessment by CARES that your loved one needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "Medicaid financial eligibility through DCF",
-          "Reside in Elder Options service area (Hernando, Citrus, Lake, Sumter, Marion counties)",
+          "Reside in the Elder Options 16-county service area (Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, Union)",
           "Complete comprehensive assessment and screening"
         ],
         "povertyLevelReference": null
@@ -2690,7 +2712,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Elder Options only serves specific counties (Hernando, Citrus, Lake, Sumter, Marion), other Florida counties have different ADRC providers with separate applications",
+        "Elder Options serves 16 specific counties in North Central Florida (Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, Union); other Florida counties have different ADRC providers with separate applications",
         "Financial eligibility through DCF and medical eligibility through CARES are separate processes, both must be completed for approval",
         "Services are not guaranteed even if eligible, depends on funding availability and current waitlists in your area",
         "Some programs may require co-payments or have means testing even after Medicaid eligibility is established"
@@ -2705,11 +2727,11 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one apply if their house is worth more than $2,000?",
-          "answer": "Yes, the primary home is exempt from asset limits up to $585,000 in equity if your loved one lives there or intends to return. The $2,000 asset limit applies to countable assets like bank accounts, investments, and second properties, not the primary residence."
+          "answer": "Yes, the primary home is exempt from asset limits up to $752,000 in equity if your loved one lives there or intends to return. The $2,000 asset limit applies to countable assets like bank accounts, investments, and second properties, not the primary residence. If a spouse or dependent child still lives in the home, the equity cap is waived entirely."
         },
         {
           "question": "What happens if my loved one lives outside the Elder Options service area?",
-          "answer": "Elder Options only serves Hernando, Citrus, Lake, Sumter, and Marion counties. If your loved one lives elsewhere in Florida, they need to contact their local Aging and Disability Resource Center (ADRC). Call 1-800-262-2243 to find the correct ADRC for their county."
+          "answer": "Elder Options serves 16 counties in North Central Florida (Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, and Union). If your loved one lives elsewhere in Florida, call the statewide Elder Helpline at 1-800-963-5337 to be routed to the correct local ADRC."
         },
         {
           "question": "How long is the waitlist really?",

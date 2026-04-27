@@ -246,6 +246,9 @@ export async function POST(request: NextRequest) {
       // Medium/low trust - OTP proves email ownership, but domain doesn't match business
       // This counts as a valid verification attempt - send Slack alert for manual review
 
+      // Check if this is the first failed attempt (to avoid duplicate Slack alerts)
+      const isFirstFailure = profile.verification_state !== "pending";
+
       // Store the OTP attempt info and preserve claimer info for future attempts
       const updatedMetadata = {
         ...cleanMetadata,
@@ -275,22 +278,24 @@ export async function POST(request: NextRequest) {
         console.error("[verify-otp] Failed to update profile metadata:", updateError);
       }
 
-      // Send Slack notification for manual review
-      try {
-        const alert = slackVerificationReview({
-          providerName: profile.display_name || "Unknown",
-          providerSlug: profile.slug || profileId,
-          profileId,
-          claimerName: fullName,
-          claimerEmail: email,
-          claimerRole: "unknown",
-          manualReviewRequested: true,
-          autoVerifyReason: `Email OTP verified but ${trustResult.reason}`,
-        });
-        await sendSlackAlert(alert.text, alert.blocks);
-      } catch (slackErr) {
-        console.error("[verify-otp] Failed to send Slack alert:", slackErr);
-        // Non-blocking - continue even if Slack fails
+      // Send Slack notification only on first failure to avoid duplicates
+      if (isFirstFailure) {
+        try {
+          const alert = slackVerificationReview({
+            providerName: profile.display_name || "Unknown",
+            providerSlug: profile.slug || profileId,
+            profileId,
+            claimerName: fullName,
+            claimerEmail: email,
+            claimerRole: "unknown",
+            manualReviewRequested: true,
+            autoVerifyReason: `Email OTP verified but ${trustResult.reason}`,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch (slackErr) {
+          console.error("[verify-otp] Failed to send Slack alert:", slackErr);
+          // Non-blocking - continue even if Slack fails
+        }
       }
 
       console.log(`[verify-otp] OTP valid but low trust for ${profile.display_name}: ${trustResult.reason}`);

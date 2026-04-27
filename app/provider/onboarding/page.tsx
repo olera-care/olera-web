@@ -2399,11 +2399,10 @@ function ProviderOnboardingContent() {
                   type="checkbox"
                   checked={confirmAuthorized}
                   onChange={(e) => setConfirmAuthorized(e.target.checked)}
-                  className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="w-5 h-5 mt-0.5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700 leading-relaxed">
-                  I confirm that I am authorized to manage this business on behalf of{" "}
-                  <span className="font-semibold">{formData.orgName || "my organization"}</span>.
+                  I am authorized to manage <span className="font-semibold">{formData.orgName || "this business"}</span>.
                 </span>
               </label>
 
@@ -2601,11 +2600,10 @@ function ProviderOnboardingContent() {
                     type="checkbox"
                     checked={confirmAuthorized}
                     onChange={(e) => setConfirmAuthorized(e.target.checked)}
-                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="w-5 h-5 mt-0.5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm text-gray-700 leading-relaxed">
-                    I confirm that I am authorized to manage this business on behalf of{" "}
-                    <span className="font-semibold">{providerName}</span>.
+                    I am authorized to manage <span className="font-semibold">{providerName}</span>.
                   </span>
                 </label>
 

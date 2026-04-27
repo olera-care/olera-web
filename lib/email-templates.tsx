@@ -389,15 +389,14 @@ export function newReviewEmail(opts: {
  * Subject line for the question_received email. Centralized so all 3 send
  * sites (live submission, deferred questions, deferred leads) stay in sync.
  *
- * Promotes the asker's first name into the subject when available, falling
- * back to "A family" / "Someone" for anonymous or default cases — so the
- * inbox preview reads as a specific person asking, not a generic form.
+ * Deliberately excludes the asker's name even when one is provided —
+ * subject lines leak through server logs, push notifications, and lock
+ * screens, and most asks are anonymous for PHI reasons. The preheader
+ * carries the question itself (still PHI-aware, but only visible to the
+ * provider whose mailbox is the answering destination).
  */
-export function questionReceivedSubject(askerName: string, providerName: string): string {
-  const first = firstName(askerName);
-  // firstName("A family") returns "A" (single char) — use the friendly fallback.
-  const display = first.length <= 1 ? "A family" : first;
-  return `${display} has a question for ${providerName}`;
+export function questionReceivedSubject(providerName: string): string {
+  return `A family has a question for ${providerName}`;
 }
 
 /** Email to provider when someone asks a question on their page */

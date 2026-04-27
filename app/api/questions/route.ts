@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
 
         await sendEmail({
           to: pEmail,
-          subject: questionReceivedSubject(askerName, providerDisplayName),
+          subject: questionReceivedSubject(providerDisplayName),
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,

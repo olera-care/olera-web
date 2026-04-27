@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const emailSubject = questionReceivedSubject(q.asker_name || "A family", displayName);
+          const emailSubject = questionReceivedSubject(displayName);
           const emailLogId = await reserveEmailLogId({
             to: effectiveEmail,
             subject: emailSubject,

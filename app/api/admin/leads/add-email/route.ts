@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
               continue;
             }
 
-            const qSubject = questionReceivedSubject(q.asker_name || "A family", profile.display_name || "your organization");
+            const qSubject = questionReceivedSubject(profile.display_name || "your organization");
             const qLogId = await reserveEmailLogId({
               to: effectiveEmail,
               subject: qSubject,

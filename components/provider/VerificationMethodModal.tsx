@@ -228,12 +228,14 @@ export default function VerificationMethodModal({
   const prevLinkedinExperienceRef = useRef<string | null>(null);
 
   // Reset state when modal opens
+  // Note: triedMethods is intentionally NOT reset — it persists across modal
+  // open/close so users see which methods they already attempted this session.
   useEffect(() => {
     if (isOpen) {
       setScreen("pick-method");
       setSubmitting(false);
       setError(null);
-      setTriedMethods(new Set());
+      // triedMethods intentionally preserved across modal opens
       setIsProcessingFile(false);
       setFullName(userName || "");
       setEmailValue(""); // Don't pre-fill — user should enter their company email

@@ -239,9 +239,6 @@ function ProviderOnboardingContent() {
     listingName: string;
   } | null>(null);
 
-  // Confirmation checkbox state for instant claim
-  const [confirmAuthorized, setConfirmAuthorized] = useState(false);
-
   // Email validation state
   const [emailValidation, setEmailValidation] = useState<EmailValidationResult>({ valid: true });
   const [emailChecking, setEmailChecking] = useState(false);
@@ -263,10 +260,6 @@ function ProviderOnboardingContent() {
 
   // Instant claim existing listing (no OTP)
   const handleInstantClaim = async () => {
-    if (!confirmAuthorized) {
-      setActionError("Please confirm you are authorized to manage this business.");
-      return;
-    }
     if (!selectedResult) return;
 
     const email = formData.email.trim().toLowerCase();
@@ -353,11 +346,6 @@ function ProviderOnboardingContent() {
 
   // Instant create new listing (no OTP)
   const handleInstantCreate = async () => {
-    if (!confirmAuthorized) {
-      setActionError("Please confirm you are authorized to manage this business.");
-      return;
-    }
-
     // Validation
     if (!formData.orgName.trim()) {
       setActionError("Organization name is required.");
@@ -2393,19 +2381,6 @@ function ProviderOnboardingContent() {
                 </ReactiveHint>
               )}
 
-              {/* Confirmation checkbox */}
-              <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={confirmAuthorized}
-                  onChange={(e) => setConfirmAuthorized(e.target.checked)}
-                  className="w-5 h-5 mt-0.5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700 leading-relaxed">
-                  I am authorized to manage <span className="font-semibold">{formData.orgName || "this business"}</span>.
-                </span>
-              </label>
-
               {/* Error */}
               {actionError && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
@@ -2416,63 +2391,68 @@ function ProviderOnboardingContent() {
                 </div>
               )}
 
-              <p className="text-center text-sm text-gray-500">
-                By creating a page, you agree to our{" "}
-                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
-                  Terms of Service
-                </Link>
-              </p>
-
               {/* Action buttons - Desktop only (inline) */}
-              <div className="hidden md:flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActionError("");
-                    setConfirmAuthorized(false);
-                    setScreen(createNewSelected ? "search" : "results");
-                  }}
-                  className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
-                >
-                  ← Back
-                </button>
-                <button
-                  type="button"
-                  onClick={handleInstantCreate}
-                  disabled={
-                    !confirmAuthorized ||
-                    actionLoading === "instant-create" ||
-                    emailChecking ||
-                    !formData.orgName.trim() ||
-                    !formData.city.trim() ||
-                    !formData.state.trim() ||
-                    !isEmailValid ||
-                    formData.careTypes.length === 0
-                  }
-                  className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  {actionLoading === "instant-create" ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create page"
-                  )}
-                </button>
+              <div className="hidden md:flex flex-col gap-3 pt-4">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionError("");
+                      setScreen(createNewSelected ? "search" : "results");
+                    }}
+                    className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors py-2"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleInstantCreate}
+                    disabled={
+                      actionLoading === "instant-create" ||
+                      emailChecking ||
+                      !formData.orgName.trim() ||
+                      !formData.city.trim() ||
+                      !formData.state.trim() ||
+                      !isEmailValid ||
+                      formData.careTypes.length === 0
+                    }
+                    className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {actionLoading === "instant-create" ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create page"
+                    )}
+                  </button>
+                </div>
+                <p className="text-center text-xs text-gray-500">
+                  By creating this page, you confirm you're authorized to manage{" "}
+                  <span className="font-medium">{formData.orgName || "this business"}</span> and agree to our{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                    Terms
+                  </Link>.
+                </p>
               </div>
             </form>
           </div>
         </div>
 
         {/* Mobile sticky bottom nav */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-vanilla-100 border-t border-vanilla-200 px-4 py-4 safe-area-inset-bottom">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-vanilla-100 border-t border-vanilla-200 px-4 py-3 safe-area-inset-bottom">
+          <p className="text-center text-xs text-gray-500 mb-3">
+            By creating this page, you confirm you're authorized to manage this business and agree to our{" "}
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+              Terms
+            </Link>.
+          </p>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => {
                 setActionError("");
-                setConfirmAuthorized(false);
                 setScreen(createNewSelected ? "search" : "results");
               }}
               className="px-4 py-3 text-base font-medium text-gray-600 border border-gray-300 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
@@ -2483,7 +2463,6 @@ function ProviderOnboardingContent() {
               type="button"
               onClick={handleInstantCreate}
               disabled={
-                !confirmAuthorized ||
                 actionLoading === "instant-create" ||
                 emailChecking ||
                 !formData.orgName.trim() ||
@@ -2594,19 +2573,6 @@ function ProviderOnboardingContent() {
                   Using your business email speeds up verification.
                 </ReactiveHint>
 
-                {/* Confirmation checkbox */}
-                <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={confirmAuthorized}
-                    onChange={(e) => setConfirmAuthorized(e.target.checked)}
-                    className="w-5 h-5 mt-0.5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-gray-700 leading-relaxed">
-                    I am authorized to manage <span className="font-semibold">{providerName}</span>.
-                  </span>
-                </label>
-
                 {/* Error */}
                 {actionError && (
                   <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
@@ -2621,7 +2587,7 @@ function ProviderOnboardingContent() {
                 <div className="flex flex-col gap-3">
                   <Button
                     onClick={handleInstantClaim}
-                    disabled={!confirmAuthorized || actionLoading === "instant-claim"}
+                    disabled={actionLoading === "instant-claim"}
                     loading={actionLoading === "instant-claim"}
                     className="w-full"
                   >
@@ -2631,7 +2597,6 @@ function ProviderOnboardingContent() {
                     type="button"
                     onClick={() => {
                       setActionError("");
-                      setConfirmAuthorized(false);
                       // For pre-selected unclaimed orgs, go back to search (they skipped results)
                       setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
                     }}
@@ -2642,10 +2607,11 @@ function ProviderOnboardingContent() {
                 </div>
 
                 <p className="text-center text-xs text-gray-400">
-                  By claiming, you agree to our{" "}
+                  By claiming this page, you confirm you're authorized to manage{" "}
+                  <span className="font-medium">{providerName}</span> and agree to our{" "}
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
-                    Terms of Service
-                  </Link>
+                    Terms
+                  </Link>.
                 </p>
               </div>
             </div>

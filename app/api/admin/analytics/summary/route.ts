@@ -62,11 +62,27 @@ type QaEmailIssue = {
   count: number;
   type: "bounced" | "complained";
 };
+// A/B variant split for the question_received email. Per-variant rollup
+// of the same cohort dimensions. `unassigned` covers emails sent before
+// the variant deploy (retroactive rows have no metadata.variant).
+type ProviderQaVariantRow = {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  phi_filtered: number;
+};
+type ProviderQaFunnelByVariant = {
+  A: ProviderQaVariantRow;
+  B: ProviderQaVariantRow;
+  unassigned: ProviderQaVariantRow;
+};
 type WindowResult = {
   counts: WindowedCounts;
   unique_sessions_page_view: number;
   provider_distinct_counts: DistinctCounts;
   qa_funnel: ProviderQaFunnel;
+  qa_funnel_by_variant: ProviderQaFunnelByVariant;
   qa_email_issues: QaEmailIssue[];
 };
 
@@ -97,6 +113,18 @@ const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   complained: 0,
   signed_in: 0,
   answered: 0,
+});
+const EMPTY_VARIANT_ROW = (): ProviderQaVariantRow => ({
+  sent: 0,
+  delivered: 0,
+  opened: 0,
+  clicked: 0,
+  phi_filtered: 0,
+});
+const EMPTY_FUNNEL_BY_VARIANT = (): ProviderQaFunnelByVariant => ({
+  A: EMPTY_VARIANT_ROW(),
+  B: EMPTY_VARIANT_ROW(),
+  unassigned: EMPTY_VARIANT_ROW(),
 });
 
 /**
@@ -157,7 +185,7 @@ async function fetchWindow(
   // list shown to admins.
   let funnelQ = db
     .from("email_log")
-    .select("delivered_at, first_opened_at, first_clicked_at")
+    .select("delivered_at, first_opened_at, first_clicked_at, metadata")
     .eq("email_type", "question_received")
     .eq("recipient_type", "provider")
     .limit(50000);
@@ -252,15 +280,26 @@ async function fetchWindow(
   distinct.qa_email_openers = qaOpeners.size;
 
   const funnel = EMPTY_FUNNEL();
+  const funnelByVariant = EMPTY_FUNNEL_BY_VARIANT();
   for (const r of (funnelRes.data ?? []) as Array<{
     delivered_at: string | null;
     first_opened_at: string | null;
     first_clicked_at: string | null;
+    metadata: Record<string, unknown> | null;
   }>) {
     funnel.sent += 1;
     if (r.delivered_at) funnel.delivered += 1;
     if (r.first_opened_at) funnel.opened += 1;
     if (r.first_clicked_at) funnel.clicked += 1;
+
+    const v = r.metadata?.variant;
+    const bucket =
+      v === "A" ? funnelByVariant.A : v === "B" ? funnelByVariant.B : funnelByVariant.unassigned;
+    bucket.sent += 1;
+    if (r.delivered_at) bucket.delivered += 1;
+    if (r.first_opened_at) bucket.opened += 1;
+    if (r.first_clicked_at) bucket.clicked += 1;
+    if (r.metadata?.phi_filtered === true) bucket.phi_filtered += 1;
   }
   // signed_in / answered are activity-event-anchored, projected for display.
   funnel.signed_in = distinct.qa_signins;
@@ -321,6 +360,7 @@ async function fetchWindow(
     unique_sessions_page_view: uniqueSessions.size,
     provider_distinct_counts: distinct,
     qa_funnel: funnel,
+    qa_funnel_by_variant: funnelByVariant,
     qa_email_issues: qaEmailIssues,
   };
 }
@@ -542,6 +582,7 @@ export async function GET(request: NextRequest) {
         unique_sessions_page_view: windowedRes.unique_sessions_page_view,
         provider_distinct_counts: windowedRes.provider_distinct_counts,
         qa_funnel: windowedRes.qa_funnel,
+        qa_funnel_by_variant: windowedRes.qa_funnel_by_variant,
         qa_email_issues: windowedRes.qa_email_issues,
       },
       prior: prior
@@ -550,6 +591,7 @@ export async function GET(request: NextRequest) {
             unique_sessions_page_view: prior.unique_sessions_page_view,
             provider_distinct_counts: prior.provider_distinct_counts,
             qa_funnel: prior.qa_funnel,
+            qa_funnel_by_variant: prior.qa_funnel_by_variant,
             qa_email_issues: prior.qa_email_issues,
           }
         : null,

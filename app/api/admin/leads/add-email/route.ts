@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         .contains("metadata", { needs_provider_email: true });
 
       if (flaggedQuestions && flaggedQuestions.length > 0) {
-        const { questionReceivedEmail, questionReceivedSubject } = await import("@/lib/email-templates");
+        const { questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } = await import("@/lib/email-templates");
         for (const q of flaggedQuestions) {
           try {
             const meta = (q.metadata as Record<string, unknown>) || {};
@@ -219,10 +219,15 @@ export async function POST(request: NextRequest) {
               continue;
             }
 
-            const qSubject = questionReceivedSubject(profile.display_name || "your organization");
+            const qaVariant = assignQuestionVariant();
+            const qaInbox = questionReceivedInbox({
+              providerName: profile.display_name || "your organization",
+              question: q.question,
+              variant: qaVariant,
+            });
             const qLogId = await reserveEmailLogId({
               to: effectiveEmail,
-              subject: qSubject,
+              subject: qaInbox.subject,
               emailType: "question_received",
               recipientType: "provider",
               providerId: profileId,
@@ -230,18 +235,20 @@ export async function POST(request: NextRequest) {
 
             await sendEmail({
               to: effectiveEmail,
-              subject: qSubject,
+              subject: qaInbox.subject,
               html: questionReceivedEmail({
                 providerName: profile.display_name || "Provider",
                 askerName: q.asker_name || "A family",
                 question: q.question,
                 providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard`, qLogId),
                 providerSlug,
+                preheader: qaInbox.preheader,
               }),
               emailType: "question_received",
               recipientType: "provider",
               providerId: profileId,
               emailLogId: qLogId ?? undefined,
+              metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
             });
 
             delete meta.needs_provider_email;

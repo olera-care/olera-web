@@ -7,6 +7,43 @@
 
 ## Current Focus
 
+### 2026-04-26 — /product-led-growth bootstrap + Esther/TJ task split shipped
+
+**Built and shipped `/product-led-growth` slash command.** PR #642 merged to staging (squash, commit `0e674a43`). Two PRs total: V1 daily-mode + V1.5 reframe to daily-build / weekly-stats / monthly-strategy after the dry-run revealed daily-pulse produced false signal from Sunday baselines. Files: `.claude/commands/product-led-growth.md`, `scripts/growth-pull.js`. PR #643 open with Working Principle #8 (trust the implementer, don't over-prescribe when writing Notion tasks for the team).
+
+**Notion infrastructure set up:**
+- 📈 [Growth Command Center](https://www.notion.so/34e5903a0ffe81ca950ed0d00dde74a9) — weekly snapshot dashboard
+- 🧠 [Growth Running Thread](https://www.notion.so/34e5903a0ffe8165abf5c4b84d84d06c) — patterns, observations, open questions, run entries
+- 🧭 [Growth Strategy Brief](https://www.notion.so/34e5903a0ffe8159b1eef1d266f9c62c) — diagnosis, seeker journey design, backlog play, Strategic Backlog
+
+**Strategic diagnosis confirmed by 4-flow code walk:** Olera has no relational mechanism today. Q&A is page comments (no `connections` row, no thread, no reply path). Saves are silent (provider never learns). Benefits intake creates a profile that does nothing afterward. The `connections` table primitive exists in schema; it just isn't being written to for the highest-value interactions.
+
+**Six Notion tasks created/refined across Esther + TJ owners.** Esther's active P1 queue narrowed to 2 items (focus on hire-ROI):
+- [Fix save button for non-signed-in users](https://www.notion.so/34e5903a0ffe81fb85baf7b7c502859a) — 401s silently for guests; includes contextual save prompt + Slack alerts + admin tile
+- [10-views provider nudge](https://www.notion.so/34e5903a0ffe8064b7b8c0f8cd7ff8f4) — email providers with proven page-view demand to complete Meet the Author + Photos
+
+TJ's active P1 queue:
+- [Increase open rates via follow-up emails](https://www.notion.so/34e5903a0ffe80a3989ee19c09dc110a) for unanswered questions
+- [Hook the post-answer moment](https://www.notion.so/34e5903a0ffe818eb372fb6539e65391) to bring providers into the V2 dashboard
+- [Improve benefits intake conversion](https://www.notion.so/34e5903a0ffe813aa547d2cc4378e761) — TJ kept this since he built the original with Chantel
+
+Backlog (deferred for focus): question = profile hook, save = profile strategic UX layer.
+
+**Team kickoff Slack** sent to `#ai-product-development` ([link](https://oleraworkspace.slack.com/archives/C0A91BA205T/p1777244098651849)). Frame: providers respond at ~70% when they land on the answer page, so a lot of the work is about getting them there. Esther + product team meeting tomorrow.
+
+**Writing-style learnings captured to memory** (`feedback_tj_writing_style.md` updated 3x this session):
+- Notion tasks: 3 sections max (Context / What we need / Done when), context-rich, don't over-prescribe — collaborators are capable humans with their own design opinions
+- TJ voice: no em dashes (use `--`), no rhetorical colons, no flourishes ("the wedge is real but unattended"), no marketing words, numbers stand alone
+- Sunday-baseline trap: ran growth-pull on Sunday afternoon and locked "52 questions/day" into multiple tasks. Actual rate is ~70/day. Single-day pulls are not canonical
+- Don't simplify TJ's product framing: Olera Pro is a package (reviews, leads, growth tools, GBP optimizations, comparison data, insights, family care profile access), not just one thing. Reducing it to make a clean argument misleads audiences
+
+**Next up:**
+- Esther/product team meeting tomorrow on the new task split
+- PR #643 (Working Principle #8) ready to merge — ~12 lines added
+- First `/product-led-growth --weekly` run on Monday will baseline funnel ratios; revisit deferred items after that data arrives
+
+---
+
 ### 2026-04-26 — Resend webhook integration — SHIPPED + VERIFIED (PRs #635, #637)
 
 **Status:** ✅ live and verified. First real `opened` event landed and `email_log` denormalized columns updated correctly. Loop is closed.

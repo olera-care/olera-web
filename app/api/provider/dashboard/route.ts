@@ -275,13 +275,42 @@ export async function GET(request: NextRequest) {
 
     // Leads
     for (const lead of leads.slice(0, 10)) {
+      // Extract a human-readable detail from the lead
+      // The message field can be a string, JSON string, or object
+      let leadDetail: string | undefined;
+
+      if (typeof lead.message === "string" && lead.message.trim()) {
+        // Check if it's a JSON string (starts with { or [)
+        const trimmed = lead.message.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          // It's JSON - try to extract seeker name from metadata instead
+          const seekerName = lead.metadata?.seeker_name ?? lead.metadata?.seeker_first_name;
+          if (typeof seekerName === "string" && seekerName.trim()) {
+            leadDetail = `From ${seekerName}`;
+          }
+          // Otherwise leave detail undefined - don't show raw JSON
+        } else {
+          // It's a regular message string
+          leadDetail = lead.message.length > 100
+            ? lead.message.slice(0, 100).trimEnd() + "…"
+            : lead.message;
+        }
+      } else if (lead.metadata?.seeker_name || lead.metadata?.seeker_first_name) {
+        // No message but we have seeker info in metadata
+        const seekerName = lead.metadata?.seeker_name ?? lead.metadata?.seeker_first_name;
+        if (typeof seekerName === "string" && seekerName.trim()) {
+          leadDetail = `From ${seekerName}`;
+        }
+      }
+
       activity.push({
         id: `l-${lead.id}`,
         kind: "lead",
         timestamp: lead.created_at,
         title: `New inquiry`,
-        detail: typeof lead.message === "string" ? (lead.message.length > 100 ? lead.message.slice(0, 100) + "…" : lead.message) : undefined,
+        detail: leadDetail,
         actionHref: `/provider/connections`,
+        actorName: typeof lead.metadata?.seeker_name === "string" ? lead.metadata.seeker_name : undefined,
       });
     }
 

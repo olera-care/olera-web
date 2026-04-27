@@ -21,7 +21,6 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
-import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import VerificationStatusCard from "./VerificationStatusCard";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
@@ -33,9 +32,6 @@ import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
-import RecentActivityCard from "./v2/RecentActivityCard";
-import CohortContextCard from "./v2/CohortContextCard";
-import SidebarSummary from "./v2/SidebarSummary";
 
 // Phase 2 redesign gate — same flag the Phase 1 onboard teaser uses, so
 // the onboard teaser's "See your analytics →" CTA and the new dashboard
@@ -171,6 +167,7 @@ function DashboardContent({
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
@@ -275,50 +272,11 @@ function DashboardContent({
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <DashboardHeader profile={profile} />
-
-      {/* Guided onboarding banner */}
-      {guided.shouldPrompt && !guided.isGuidedActive && (
-        <div
-          className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
-          style={{ animation: "card-enter 0.25s ease-out both" }}
-        >
-          <div>
-            <p className="text-[15px] font-semibold text-gray-900">
-              Complete your profile to attract more families
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">
-              We&apos;ll guide you through each section step by step.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={guided.dismiss}
-              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 min-h-[44px] flex items-center"
-            >
-              Dismiss
-            </button>
-            <button
-              onClick={() => {
-                guided.startGuided();
-                if (guided.firstIncompleteSection) {
-                  setEditingSection(guided.firstIncompleteSection);
-                }
-              }}
-              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px] flex items-center"
-            >
-              Get Started
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile badge request card - hidden on desktop, shown if badge not approved and (no submission OR rejected) */}
+      {/* Mobile-only components */}
       {(() => {
         const meta = profile.metadata as { badge_approved?: boolean; badge_rejected?: boolean; verification_submission?: unknown } | null;
         const wasRejected = meta?.badge_rejected === true;
         const hasSubmission = !!meta?.verification_submission;
-        // Show if: not approved AND (no submission OR was rejected)
         const shouldShowMobileBadgeCard = !meta?.badge_approved && (!hasSubmission || wasRejected);
         return shouldShowMobileBadgeCard ? (
           <div className="lg:hidden mb-4">
@@ -327,34 +285,11 @@ function DashboardContent({
         ) : null;
       })()}
 
-      {/* Phase 2 pillars. Render a skeleton while v2 is loading so the page
-          doesn't flash the old layout first (which looks like a regression). */}
-      {v2Loading && <DashboardPillarsSkeleton />}
-      {v2Data && (
-        <>
-          <DashboardHero
-            firstName={deriveFirstName(profile.display_name)}
-            data={v2Data}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
-            <div className="lg:col-span-2 space-y-6">
-              <RecentActivityCard data={v2Data} />
-              <CohortContextCard data={v2Data} />
-            </div>
-            <div className="lg:col-span-1">
-              <SidebarSummary data={v2Data} />
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Mobile progress banner - hidden on desktop */}
       <MobileProgressBanner
         completeness={completeness}
         onTap={() => setShowCompletenessSheet(true)}
       />
 
-      {/* Mobile completeness bottom sheet */}
       <MobileCompletenessSheet
         isOpen={showCompletenessSheet}
         onClose={() => setShowCompletenessSheet(false)}
@@ -362,9 +297,87 @@ function DashboardContent({
         lastUpdated={profile.updated_at}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Main content — staggered entrance */}
+      {/* Phase 2 pillars skeleton while loading */}
+      {v2Loading && <DashboardPillarsSkeleton />}
+
+      {/* Page header - outside grid so both columns align */}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
+            Your profile
+          </h1>
+          <p className="text-sm lg:text-[15px] text-gray-500">
+            Manage your profile and how families find you
+          </p>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          TWO-COLUMN LAYOUT
+          - LEFT: Hero + all profile cards (scrolls)
+          - RIGHT: Stats + Activity + Completeness (sticky)
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+
+        {/* ─── LEFT COLUMN: scrollable profile content ─── */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Guided onboarding banner */}
+          {guided.shouldPrompt && !guided.isGuidedActive && (
+            <div
+              className="bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
+              style={{ animation: "card-enter 0.25s ease-out both" }}
+            >
+              <div>
+                <p className="text-[15px] font-semibold text-gray-900">
+                  Complete your profile to attract more families
+                </p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  We&apos;ll guide you through each section step by step.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={guided.dismiss}
+                  className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 min-h-[44px] flex items-center"
+                >
+                  Dismiss
+                </button>
+                <button
+                  onClick={() => {
+                    guided.startGuided();
+                    if (guided.firstIncompleteSection) {
+                      setEditingSection(guided.firstIncompleteSection);
+                    }
+                  }}
+                  className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px] flex items-center"
+                >
+                  Get Started
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Hero banner */}
+          {v2Data && (
+            <div style={{ animation: "card-enter 0.25s ease-out both" }}>
+              <DashboardHero
+                firstName={deriveFirstName(profile.display_name)}
+                data={v2Data}
+              />
+            </div>
+          )}
+
+          {/* Recent Activity card in left column */}
+          {v2Data && v2Data.recentActivity.length > 0 && (
+            <div style={{ animation: "card-enter 0.25s ease-out both", animationDelay: "60ms" }}>
+              <LeftColumnActivityCard
+                activities={v2Data.recentActivity}
+                onSeeAll={() => setShowActivityModal(true)}
+              />
+            </div>
+          )}
+
+          {/* Profile cards - all scrollable */}
           {[
             <ProfileOverviewCard
               key="overview"
@@ -372,6 +385,7 @@ function DashboardContent({
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
               onVerifyClick={() => handleOpenVerificationModal()}
+              slug={profile.slug}
             />,
             <GalleryCard
               key="gallery"
@@ -421,7 +435,7 @@ function DashboardContent({
               key={i}
               style={{
                 animation: "card-enter 0.25s ease-out both",
-                animationDelay: `${i * 60}ms`,
+                animationDelay: `${(i + 1) * 60}ms`,
               }}
             >
               {card}
@@ -429,23 +443,34 @@ function DashboardContent({
           ))}
         </div>
 
-        {/* Sidebar - hidden on mobile */}
-        <div className="hidden lg:block lg:col-span-1">
+        {/* ─── RIGHT COLUMN: Sticky stats & completeness ─── */}
+        {/* self-stretch ensures this column matches left column height, enabling sticky */}
+        <div className="hidden lg:block lg:col-span-1 self-stretch">
           <div
             className="sticky top-24 space-y-4"
             style={{
               animation: "card-enter 0.25s ease-out both",
-              animationDelay: "450ms",
+              animationDelay: "100ms",
             }}
           >
+            {/* Stats card (activity is in left column) */}
+            {v2Data && (
+              <StatsOnlyCard
+                data={v2Data}
+                profileSlug={profile.slug}
+              />
+            )}
+
             {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               onRequestVerification={handleOpenVerificationModal}
             />
 
-            <ProfileCompletenessSidebar
+            {/* Profile completeness - collapsible (expanded for new providers < 30%) */}
+            <CollapsibleProfileCompleteness
               completeness={completeness}
+              defaultExpanded={completeness.overall < 30}
               lastUpdated={profile.updated_at}
             />
           </div>
@@ -472,75 +497,16 @@ function DashboardContent({
         profileId={profile.id}
       />
 
-    </div>
-    </div>
-  );
-}
-
-// ── Page header with action buttons ──
-
-interface DashboardHeaderProps {
-  profile: NonNullable<ReturnType<typeof useProviderProfile>>;
-}
-
-function DashboardHeader({ profile }: DashboardHeaderProps) {
-  const [copied, setCopied] = useState(false);
-  const slug = profile.slug;
-
-  const handleShare = () => {
-    if (!slug) return;
-    const url = `${window.location.origin}/provider/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">Your profile</h1>
-        <p className="text-sm lg:text-[15px] text-gray-500">Manage your profile and how families find you</p>
-      </div>
-
-      {slug && (
-        <div className="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
-          <Link
-            href={`/provider/${slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl px-3 lg:px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span className="hidden sm:inline">Public view</span>
-            <span className="sm:hidden">View</span>
-          </Link>
-          <button
-            onClick={handleShare}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl px-3 lg:px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
-          >
-            {copied ? (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Copied!
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                <span className="hidden sm:inline">Share profile</span>
-                <span className="sm:hidden">Share</span>
-              </>
-            )}
-          </button>
-        </div>
+      {/* Activity Modal */}
+      {v2Data && (
+        <ActivityModal
+          isOpen={showActivityModal}
+          onClose={() => setShowActivityModal(false)}
+          activities={v2Data.recentActivity}
+        />
       )}
+
+    </div>
     </div>
   );
 }
@@ -875,60 +841,525 @@ function deriveFirstName(displayName: string | null): string {
 }
 
 /**
- * Placeholder for the Phase 2 pillars while v2Data is loading. Matches the
- * grid shape of the real layout (hero row + 2/3 + 1/3 columns) so the page
- * doesn't shift when real content lands.
+ * Placeholder skeleton for the new two-column layout while v2Data is loading.
+ * LEFT: Hero + profile cards (scrollable)
+ * RIGHT: Stats + Activity + Completeness (sticky)
  */
 function DashboardPillarsSkeleton() {
   return (
     <div aria-hidden className="animate-pulse">
-      {/* Hero */}
-      <div className="rounded-2xl bg-white border border-gray-100 p-6 mb-6">
-        <div className="h-3 w-40 bg-gray-100 rounded mb-4" />
-        <div className="h-7 w-80 max-w-full bg-gray-100 rounded mb-3" />
-        <div className="h-4 w-64 max-w-full bg-gray-100 rounded mb-5" />
-        <div className="h-4 w-32 bg-gray-100 rounded" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        {/* Left column skeleton */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-32 bg-gray-100 rounded mb-5" />
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+          {/* Hero skeleton */}
+          <div className="rounded-2xl bg-warm-950/80 p-6 min-h-[200px]">
+            <div className="h-3 w-24 bg-warm-800 rounded mb-3" />
+            <div className="h-6 w-64 max-w-full bg-warm-800 rounded mb-2" />
+            <div className="h-4 w-48 max-w-full bg-warm-800 rounded mb-4" />
+            <div className="h-9 w-32 bg-vanilla-100/20 rounded-full" />
+          </div>
+          {/* Profile card skeletons */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl bg-white border border-gray-100 p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-xl bg-gray-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-32 bg-gray-100 rounded" />
+                  <div className="h-5 w-48 bg-gray-100 rounded" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-4 w-full bg-gray-100 rounded" />
+                <div className="h-4 w-3/4 bg-gray-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Right column skeleton */}
+        <div className="hidden lg:block lg:col-span-1 space-y-4">
+          {/* Stats skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="h-10 w-12 bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-28 bg-gray-100 rounded mb-4" />
+            <div className="h-6 w-10 bg-gray-100 rounded mb-2" />
+            <div className="h-4 w-24 bg-gray-100 rounded" />
+          </div>
+          {/* Activity skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="h-3 w-28 bg-gray-100 rounded mb-4" />
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
                 <div key={i} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+                  <div className="w-10 h-4 bg-gray-100 rounded shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 bg-gray-100 rounded" />
-                    <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                    <div className="h-4 w-full bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-36 bg-gray-100 rounded mb-4" />
-            <div className="h-5 w-64 max-w-full bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-48 bg-gray-100 rounded" />
-          </div>
-        </div>
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-16 bg-gray-100 rounded mb-4" />
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="h-7 w-12 bg-gray-100 rounded" />
-              <div className="h-7 w-12 bg-gray-100 rounded" />
+          {/* Completeness skeleton */}
+          <div className="rounded-2xl bg-white border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 w-36 bg-gray-100 rounded" />
+              <div className="h-4 w-10 bg-gray-100 rounded" />
             </div>
-            <div className="h-4 w-40 bg-gray-100 rounded pt-4 border-t border-gray-100" />
-          </div>
-          <div className="rounded-2xl bg-white border border-gray-100 p-6">
-            <div className="h-3 w-28 bg-gray-100 rounded mb-3" />
-            <div className="h-7 w-20 bg-gray-100 rounded mb-3" />
-            <div className="h-4 w-full bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-2/3 bg-gray-100 rounded" />
+            <div className="h-2 w-full bg-gray-100 rounded-full" />
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Collapsible Profile Completeness Card
+ *
+ * Shows a condensed progress bar when collapsed, expands to full checklist.
+ * Starts expanded on first visit, remembers collapsed state via localStorage.
+ */
+function CollapsibleProfileCompleteness({
+  completeness,
+  lastUpdated,
+  defaultExpanded = false,
+}: {
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+  lastUpdated: string;
+  defaultExpanded?: boolean;
+}) {
+  // Check localStorage for saved preference, fall back to defaultExpanded prop
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window === "undefined") return defaultExpanded;
+    const saved = localStorage.getItem("olera-completeness-expanded");
+    // Use localStorage if set, otherwise use defaultExpanded prop
+    return saved === null ? defaultExpanded : saved === "true";
+  });
+
+  const handleToggle = () => {
+    const newValue = !isExpanded;
+    setIsExpanded(newValue);
+    localStorage.setItem("olera-completeness-expanded", String(newValue));
+  };
+
+  const formattedDate = new Date(lastUpdated).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const getStatusText = (percent: number): string => {
+    if (percent >= 100) return "ALL DONE!";
+    if (percent >= 76) return "NEARLY COMPLETE!";
+    if (percent >= 51) return "LOOKING GOOD!";
+    if (percent >= 26) return "ALMOST THERE!";
+    return "JUST GETTING STARTED";
+  };
+
+  return (
+    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      {/* Header - always visible, clickable to toggle */}
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-5 hover:bg-vanilla-50/50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <h3 className="text-base font-display font-bold text-gray-900">
+            Profile completeness
+          </h3>
+          {!isExpanded && (
+            <span className="text-sm font-semibold text-primary-600">
+              {completeness.overall}%
+            </span>
+          )}
+        </div>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+            isExpanded ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Collapsed state - compact progress bar */}
+      {!isExpanded && (
+        <div className="px-5 pb-4 -mt-2">
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-500 rounded-full transition-all duration-500"
+              style={{ width: `${completeness.overall}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {completeness.sections.filter((s) => s.percent >= 100).length} of{" "}
+            {completeness.sections.length} sections complete
+          </p>
+        </div>
+      )}
+
+      {/* Expanded state - full donut + checklist */}
+      {isExpanded && (
+        <div className="px-5 pb-5 -mt-2">
+          {/* Circular progress */}
+          <div className="flex justify-center mb-2">
+            <div className="relative w-[90px] h-[90px]">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#f3f4f6"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#199087"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${completeness.overall * 2.64} 264`}
+                  className="transition-all duration-500"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold text-gray-900">
+                  {completeness.overall}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status text */}
+          <p className="text-center text-xs font-semibold tracking-wide uppercase text-gray-900 font-display mb-0.5">
+            {getStatusText(completeness.overall)}
+          </p>
+          <p className="text-center text-[11px] text-gray-400 mb-4">
+            Last updated: {formattedDate}
+          </p>
+
+          {/* Section checklist - compact */}
+          <div className="space-y-0.5">
+            {completeness.sections.map((section) => {
+              const isComplete = section.percent >= 100;
+              return (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className="flex items-center justify-between py-2 px-2 -mx-2 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {isComplete ? (
+                      <div className="w-4 h-4 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                        <svg
+                          className="w-2.5 h-2.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-gray-200 shrink-0" />
+                    )}
+                    <span
+                      className={`text-sm ${
+                        isComplete
+                          ? "text-primary-600 font-medium"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {section.label}
+                    </span>
+                  </div>
+                  {!isComplete && (
+                    <span className="text-xs font-medium text-primary-600">
+                      {section.percent}%
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Format a timestamp as relative time (1m, 2h, 3d, etc.)
+ */
+function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 60) return "now";
+  const mins = Math.round(diffSec / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.round(hrs / 24);
+  if (days < 7) return `${days}d`;
+  const weeks = Math.round(days / 7);
+  if (weeks < 4) return `${weeks}w`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/**
+ * Version 2: Recent Activity card for the LEFT column
+ * Shows 2-3 items with "See all" link that opens the modal
+ */
+function LeftColumnActivityCard({
+  activities,
+  onSeeAll,
+}: {
+  activities: Array<{
+    id: string;
+    kind: string;
+    timestamp: string;
+    title: string;
+    detail?: string;
+    actorName?: string;
+  }>;
+  onSeeAll: () => void;
+}) {
+  const displayItems = activities.slice(0, 3);
+
+  return (
+    <div className="py-2">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        Recent activity
+      </p>
+      <ul className="space-y-3">
+        {displayItems.map((item) => (
+          <li key={item.id} className="flex items-start gap-3">
+            <time className="text-xs text-gray-400 tabular-nums w-8 shrink-0 pt-0.5">
+              {formatRelativeTime(item.timestamp)}
+            </time>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] text-gray-700 leading-snug line-clamp-2">
+                {item.detail ? `"${item.detail}"` : item.title}
+              </p>
+              {item.actorName && (
+                <p className="text-xs text-gray-400 mt-0.5">{item.actorName}</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      {activities.length > 3 && (
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          See all {activities.length} →
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Version 2: Stats-only card for the RIGHT column (no activity section)
+ */
+function StatsOnlyCard({
+  data,
+  profileSlug,
+}: {
+  data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data;
+  profileSlug: string | null;
+}) {
+  const { views, reviews } = data;
+  const [copied, setCopied] = useState(false);
+
+  const starCount = reviews.avgRating !== null ? Math.round(reviews.avgRating) : 0;
+  const fullStars = "★".repeat(starCount) + "☆".repeat(Math.max(0, 5 - starCount));
+
+  const handleShare = () => {
+    if (!profileSlug) return;
+    const url = `${window.location.origin}/provider/${profileSlug}`;
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        window.prompt("Copy this link:", url);
+      });
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-base font-display font-bold text-gray-900">
+        This month
+      </h3>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Views */}
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+            {views.thisPeriod.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">profile views</p>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            {copied ? "Link copied!" : "Share profile"}
+          </button>
+        </div>
+
+        {/* Reviews */}
+        <div className="space-y-1">
+          {reviews.avgRating !== null ? (
+            <>
+              <div className="flex items-baseline gap-1">
+                <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                  {reviews.avgRating.toFixed(1)}
+                </p>
+                <span className="text-amber-500 text-xs tracking-tight">{fullStars}</span>
+              </div>
+              <p className="text-sm text-gray-500">
+                {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
+              </p>
+              <a
+                href="/provider/reviews"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Get more reviews
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
+              <p className="text-sm text-gray-500">no reviews yet</p>
+              <a
+                href="/provider/reviews"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Get more reviews
+              </a>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Activity Modal - shows all recent activity in a scrollable modal
+ */
+function ActivityModal({
+  isOpen,
+  onClose,
+  activities,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  activities: Array<{
+    id: string;
+    kind: string;
+    timestamp: string;
+    title: string;
+    detail?: string;
+    actorName?: string;
+    actionHref?: string;
+  }>;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={onClose}
+        style={{ animation: "fade-in 0.15s ease-out both" }}
+      />
+
+      {/* Modal */}
+      <div
+        className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:max-h-[80vh] bg-white rounded-2xl shadow-xl z-50 flex flex-col"
+        style={{ animation: "scale-in 0.2s ease-out both" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <h2 className="text-lg font-display font-bold text-gray-900">
+            Recent activity
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          <ul className="space-y-4">
+            {activities.map((item) => (
+              <li key={item.id} className="flex items-start gap-4">
+                <time className="text-xs text-gray-400 tabular-nums w-12 shrink-0 pt-0.5">
+                  {formatRelativeTime(item.timestamp)}
+                </time>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] text-gray-900 leading-snug">
+                    {item.detail ? `"${item.detail}"` : item.title}
+                  </p>
+                  {item.actorName && (
+                    <p className="text-sm text-gray-500 mt-1">{item.actorName}</p>
+                  )}
+                  {item.actionHref && (
+                    <a
+                      href={item.actionHref}
+                      className="inline-block mt-2 text-sm text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      View details →
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+      `}</style>
+    </>
   );
 }

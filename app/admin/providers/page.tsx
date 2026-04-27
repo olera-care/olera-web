@@ -14,11 +14,19 @@ interface Provider {
   city: string | null;
   state: string | null;
   claim_state: string;
+  verification_state: string | null;
   created_at: string;
   email: string | null;
   phone: string | null;
   slug: string | null;
   source_provider_id: string | null;
+}
+
+function getDaysSince(dateStr: string): number {
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - created.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
 export default function AdminProvidersPage() {
@@ -32,6 +40,8 @@ export default function AdminProvidersPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<Provider | null>(null);
+  const [revokeLoading, setRevokeLoading] = useState(false);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -120,6 +130,41 @@ export default function AdminProvidersPage() {
       setActionError("Network error during bulk action.");
     } finally {
       setBulkLoading(false);
+    }
+  }
+
+  async function handleRevoke() {
+    if (!revokeTarget) return;
+    setRevokeLoading(true);
+    setActionError(null);
+
+    try {
+      const res = await fetch("/api/admin/providers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: [revokeTarget.id],
+          reason: `Revoked: Stale claim (unverified for ${getDaysSince(revokeTarget.created_at)} days)`,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Failed to revoke claim.");
+        return;
+      }
+
+      setProviders((prev) => prev.filter((p) => p.id !== revokeTarget.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(revokeTarget.id);
+        return next;
+      });
+      setRevokeTarget(null);
+    } catch {
+      setActionError("Network error while revoking claim.");
+    } finally {
+      setRevokeLoading(false);
     }
   }
 
@@ -292,7 +337,7 @@ export default function AdminProvidersPage() {
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-                  {filter === "pending" && (
+                  {(filter === "pending" || filter === "claimed") && (
                     <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                   )}
                 </tr>
@@ -333,9 +378,37 @@ export default function AdminProvidersPage() {
                       {[provider.city, provider.state].filter(Boolean).join(", ") || "\u2014"}
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant={getStatusVariant(provider.claim_state)}>
-                        {provider.claim_state}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={getStatusVariant(provider.claim_state)}>
+                          {provider.claim_state}
+                        </Badge>
+                        {provider.claim_state === "claimed" && (
+                          provider.verification_state === "verified" ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Verified
+                            </span>
+                          ) : provider.verification_state === "unverified" ? (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              getDaysSince(provider.created_at) >= 7
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-gray-100 text-gray-600"
+                            }`}>
+                              Unverified · {getDaysSince(provider.created_at)}d
+                            </span>
+                          ) : provider.verification_state === "pending" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                              Pending verification
+                            </span>
+                          ) : provider.verification_state === "rejected" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                              Verification rejected
+                            </span>
+                          ) : null
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {new Date(provider.created_at).toLocaleDateString()}
@@ -358,6 +431,20 @@ export default function AdminProvidersPage() {
                             Reject
                           </button>
                         </div>
+                      </td>
+                    )}
+                    {filter === "claimed" && (
+                      <td className="px-6 py-4 text-right">
+                        {(provider.verification_state === "unverified" || provider.verification_state === "rejected") ? (
+                          <button
+                            onClick={() => setRevokeTarget(provider)}
+                            className="px-3 py-1.5 bg-white text-amber-700 text-sm font-medium rounded-lg border border-amber-300 hover:bg-amber-50 transition-colors"
+                          >
+                            Revoke
+                          </button>
+                        ) : (
+                          <span className="text-sm text-gray-400">—</span>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -390,6 +477,39 @@ export default function AdminProvidersPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {bulkLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revoke confirmation */}
+      {revokeTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Revoke claim</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This will remove <span className="font-medium text-gray-900">{revokeTarget.display_name}</span>&apos;s claim and free up the listing for someone else to claim.
+            </p>
+            <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg">
+              <p className="text-sm text-amber-800">
+                Claim has been unverified for <span className="font-medium">{getDaysSince(revokeTarget.created_at)} days</span>.
+              </p>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setRevokeTarget(null)}
+                disabled={revokeLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRevoke}
+                disabled={revokeLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {revokeLoading ? "Revoking..." : "Revoke claim"}
               </button>
             </div>
           </div>

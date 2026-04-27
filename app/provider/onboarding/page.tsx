@@ -323,16 +323,23 @@ function ProviderOnboardingContent() {
 
       // Establish session using token
       const authClient = createAuthClient();
-      const { error: verifyError } = await authClient.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
         token_hash: result.tokenHash,
         type: "magiclink",
       });
 
-      if (verifyError) {
+      if (verifyError || !verifyData?.session) {
+        console.error("[handleInstantClaim] verifyOtp failed:", verifyError?.message || "no session returned");
         setActionError("Failed to sign in. Please try again.");
         setActionLoading(null);
         return;
       }
+
+      // Transfer session from implicit flow client to SSR client (for cookie persistence)
+      await createClient().auth.setSession({
+        access_token: verifyData.session.access_token,
+        refresh_token: verifyData.session.refresh_token,
+      });
 
       // Redirect to provider dashboard
       setActionLoading(null);
@@ -421,16 +428,23 @@ function ProviderOnboardingContent() {
 
       // Establish session using token
       const authClient = createAuthClient();
-      const { error: verifyError } = await authClient.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
         token_hash: result.tokenHash,
         type: "magiclink",
       });
 
-      if (verifyError) {
+      if (verifyError || !verifyData?.session) {
+        console.error("[handleInstantCreate] verifyOtp failed:", verifyError?.message || "no session returned");
         setActionError("Failed to sign in. Please try again.");
         setActionLoading(null);
         return;
       }
+
+      // Transfer session from implicit flow client to SSR client (for cookie persistence)
+      await createClient().auth.setSession({
+        access_token: verifyData.session.access_token,
+        refresh_token: verifyData.session.refresh_token,
+      });
 
       // Redirect to provider dashboard
       setActionLoading(null);

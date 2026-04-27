@@ -12,6 +12,7 @@ import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
 import { ReactiveHint } from "@/components/medjobs/Tooltip";
+import { validateEmail, type EmailValidationResult } from "@/lib/email-validation";
 // Note: We don't import the full Provider type - search only selects specific columns
 // to avoid JSONB fields that can cause React rendering errors
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -241,6 +242,11 @@ function ProviderOnboardingContent() {
   // Confirmation checkbox state for instant claim
   const [confirmAuthorized, setConfirmAuthorized] = useState(false);
 
+  // Email validation state
+  const [emailValidation, setEmailValidation] = useState<EmailValidationResult>({ valid: true });
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailAccountError, setEmailAccountError] = useState<string | null>(null);
+
   // Exit URL - read from ?returnTo param, fallback to /for-providers
   const exitUrl = useMemo(() => {
     const returnTo = searchParams.get("returnTo");
@@ -447,6 +453,131 @@ function ProviderOnboardingContent() {
       setActionLoading(null);
     }
   };
+
+  // Track which email we're currently checking (to avoid race conditions)
+  const emailCheckRef = useRef<string | null>(null);
+
+  // Validate email on blur - checks format, typos, and account conflicts
+  const handleEmailBlur = useCallback(async () => {
+    const email = formData.email.trim();
+
+    // Skip if empty
+    if (!email) {
+      setEmailValidation({ valid: true });
+      setEmailAccountError(null);
+      return;
+    }
+
+    // Step 1: Validate format and check for typos
+    const validation = validateEmail(email);
+    setEmailValidation(validation);
+
+    // If format is invalid or has typo, don't check account type yet
+    if (!validation.valid) {
+      setEmailAccountError(null);
+      return;
+    }
+
+    // Step 2: Check if email is already used by another account type
+    const emailToCheck = email.toLowerCase();
+    emailCheckRef.current = emailToCheck;
+
+    setEmailChecking(true);
+    setEmailAccountError(null);
+
+    try {
+      const res = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck, intendedType: "organization" }),
+      });
+
+      // Only update state if this is still the email we're checking (avoid race condition)
+      if (emailCheckRef.current !== emailToCheck) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        if (!data.available) {
+          if (data.alreadyHasProfile) {
+            setEmailAccountError("This email already manages a provider page. Sign in instead.");
+          } else if (data.existingType === "family") {
+            setEmailAccountError("This email is linked to a family account. Use a different email for your provider page.");
+          } else if (data.existingType === "caregiver") {
+            setEmailAccountError("This email is linked to a caregiver account. Use a different email for your provider page.");
+          } else {
+            setEmailAccountError("This email is already in use. Please use a different email.");
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[handleEmailBlur] check-email-type error:", err);
+      // Don't block on network errors - the submit handler will catch it
+    } finally {
+      if (emailCheckRef.current === emailToCheck) {
+        setEmailChecking(false);
+      }
+    }
+  }, [formData.email]);
+
+  // Apply email suggestion (typo correction) and re-validate
+  const applyEmailSuggestion = useCallback(() => {
+    if (emailValidation.suggestedEmail) {
+      const correctedEmail = emailValidation.suggestedEmail;
+      setFormData(prev => ({ ...prev, email: correctedEmail }));
+      setEmailValidation({ valid: true });
+      setEmailAccountError(null);
+
+      // Re-check account type for the corrected email
+      const checkCorrectedEmail = async () => {
+        emailCheckRef.current = correctedEmail;
+        setEmailChecking(true);
+
+        try {
+          const res = await fetch("/api/auth/check-email-type", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: correctedEmail, intendedType: "organization" }),
+          });
+
+          if (emailCheckRef.current !== correctedEmail) return;
+
+          if (res.ok) {
+            const data = await res.json();
+            if (!data.available) {
+              if (data.alreadyHasProfile) {
+                setEmailAccountError("This email already manages a provider page. Sign in instead.");
+              } else if (data.existingType === "family") {
+                setEmailAccountError("This email is linked to a family account. Use a different email for your provider page.");
+              } else if (data.existingType === "caregiver") {
+                setEmailAccountError("This email is linked to a caregiver account. Use a different email for your provider page.");
+              } else {
+                setEmailAccountError("This email is already in use. Please use a different email.");
+              }
+            }
+          }
+        } catch (err) {
+          console.error("[applyEmailSuggestion] check-email-type error:", err);
+        } finally {
+          if (emailCheckRef.current === correctedEmail) {
+            setEmailChecking(false);
+          }
+        }
+      };
+
+      checkCorrectedEmail();
+    }
+  }, [emailValidation.suggestedEmail]);
+
+  // Check if email is valid for proceeding
+  const isEmailValid = useMemo(() => {
+    // Must have email
+    if (!formData.email.trim() || !formData.email.includes("@")) return false;
+    // Must pass format validation (typos also block - user must fix them)
+    if (!emailValidation.valid) return false;
+    // Must not have account conflicts
+    if (emailAccountError) return false;
+    return true;
+  }, [formData.email, emailValidation, emailAccountError]);
 
   // Handle "Sign in" click on a claimed listing
   // Store listing context and open auth with return URL
@@ -1336,27 +1467,95 @@ function ProviderOnboardingContent() {
                 <label htmlFor="email" className="block text-base font-semibold text-gray-900">
                   Your business email
                 </label>
-                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
+                  emailAccountError || (emailValidation.error && !emailValidation.suggestion)
+                    ? "border-red-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                    : emailValidation.suggestion
+                    ? "border-amber-300 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100"
+                    : "border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100"
+                }`}>
+                  <svg className={`w-5 h-5 shrink-0 ${
+                    emailAccountError || (emailValidation.error && !emailValidation.suggestion)
+                      ? "text-red-400"
+                      : emailValidation.suggestion
+                      ? "text-amber-500"
+                      : "text-gray-400"
+                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <input
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, email: e.target.value }));
+                      // Clear validation errors on change
+                      if (emailValidation.error || emailValidation.suggestion) {
+                        setEmailValidation({ valid: true });
+                      }
+                      if (emailAccountError) {
+                        setEmailAccountError(null);
+                      }
+                    }}
+                    onBlur={handleEmailBlur}
                     placeholder="you@yourorganization.com"
                     autoComplete="email"
                     className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
                     required
                   />
+                  {emailChecking && (
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
+                  )}
                 </div>
-                <p className="text-sm text-gray-500 ml-1">We&apos;ll send a verification code to this email</p>
-                <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
-                  Using your business email (e.g., you@yourcompany.com) speeds up verification.
-                </ReactiveHint>
+
+                {/* Email validation error */}
+                {emailValidation.error && !emailValidation.suggestion && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{emailValidation.error}</p>
+                  </div>
+                )}
+
+                {/* Email typo suggestion */}
+                {emailValidation.suggestion && (
+                  <div className="flex items-center justify-between gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-amber-800">{emailValidation.suggestion}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyEmailSuggestion}
+                      className="text-sm font-medium text-amber-700 hover:text-amber-800 underline hover:no-underline whitespace-nowrap"
+                    >
+                      Use this
+                    </button>
+                  </div>
+                )}
+
+                {/* Account conflict error */}
+                {emailAccountError && (
+                  <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{emailAccountError}</p>
+                  </div>
+                )}
+
+                {/* Business email hint - only show if no errors */}
+                {!emailValidation.error && !emailValidation.suggestion && !emailAccountError && (
+                  <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
+                    Using your business email (e.g., you@yourcompany.com) speeds up verification.
+                  </ReactiveHint>
+                )}
+
                 {/* Warning: logged-in user with family/caregiver account using same email */}
-                {user &&
+                {!emailAccountError && user &&
                  formData.email.trim().toLowerCase() === user.email?.toLowerCase() &&
                  profiles?.length > 0 &&
                  !profiles.some(p => p.type === "organization") && (
@@ -1411,7 +1610,7 @@ function ProviderOnboardingContent() {
               {/* Submit button */}
               <button
                 type="submit"
-                disabled={searching || !formData.email.trim() || !formData.email.includes("@")}
+                disabled={searching || !isEmailValid || emailChecking}
                 className="w-full py-3.5 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {searching ? (
@@ -2075,28 +2274,90 @@ function ProviderOnboardingContent() {
                   Business email
                 </label>
                 <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
-                  formData.email && formData.email.includes("@")
+                  emailAccountError || (emailValidation.error && !emailValidation.suggestion)
+                    ? "border-red-300 bg-red-50/30 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                    : emailValidation.suggestion
+                    ? "border-amber-300 bg-amber-50/30 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100"
+                    : formData.email && formData.email.includes("@") && !emailChecking
                     ? "border-primary-300 bg-primary-50/30"
                     : "border-gray-200 hover:border-gray-300 bg-gray-50"
                 } focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100`}>
-                  <svg className={`w-5 h-5 shrink-0 ${formData.email && formData.email.includes("@") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-5 h-5 shrink-0 ${
+                    emailAccountError || (emailValidation.error && !emailValidation.suggestion)
+                      ? "text-red-500"
+                      : emailValidation.suggestion
+                      ? "text-amber-500"
+                      : formData.email && formData.email.includes("@")
+                      ? "text-primary-600"
+                      : "text-gray-400"
+                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, email: e.target.value }));
+                      if (emailValidation.error || emailValidation.suggestion) {
+                        setEmailValidation({ valid: true });
+                      }
+                      if (emailAccountError) {
+                        setEmailAccountError(null);
+                      }
+                    }}
+                    onBlur={handleEmailBlur}
                     placeholder="you@yourorganization.com"
                     autoComplete="email"
                     className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
                     required
                   />
-                  {formData.email && formData.email.includes("@") && (
+                  {emailChecking ? (
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
+                  ) : isEmailValid && formData.email.includes("@") ? (
                     <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                  )}
+                  ) : null}
                 </div>
+
+                {/* Email validation error */}
+                {emailValidation.error && !emailValidation.suggestion && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{emailValidation.error}</p>
+                  </div>
+                )}
+
+                {/* Email typo suggestion */}
+                {emailValidation.suggestion && (
+                  <div className="flex items-center justify-between gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-amber-800">{emailValidation.suggestion}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyEmailSuggestion}
+                      className="text-sm font-medium text-amber-700 hover:text-amber-800 underline hover:no-underline whitespace-nowrap"
+                    >
+                      Use this
+                    </button>
+                  </div>
+                )}
+
+                {/* Account conflict error */}
+                {emailAccountError && (
+                  <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{emailAccountError}</p>
+                  </div>
+                )}
               </div>
 
               {/* Care Types (multi-select) */}
@@ -2125,10 +2386,12 @@ function ProviderOnboardingContent() {
                   </div>
               </div>
 
-              {/* Consumer email warning */}
-              <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
-                Using your business email speeds up verification.
-              </ReactiveHint>
+              {/* Consumer email warning - only show if no errors */}
+              {!emailValidation.error && !emailValidation.suggestion && !emailAccountError && (
+                <ReactiveHint show={!isBusinessEmail(formData.email) && formData.email.includes("@")}>
+                  Using your business email speeds up verification.
+                </ReactiveHint>
+              )}
 
               {/* Confirmation checkbox */}
               <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
@@ -2180,11 +2443,11 @@ function ProviderOnboardingContent() {
                   disabled={
                     !confirmAuthorized ||
                     actionLoading === "instant-create" ||
+                    emailChecking ||
                     !formData.orgName.trim() ||
                     !formData.city.trim() ||
                     !formData.state.trim() ||
-                    !formData.email.trim() ||
-                    !formData.email.includes("@") ||
+                    !isEmailValid ||
                     formData.careTypes.length === 0
                   }
                   className="px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
@@ -2223,11 +2486,11 @@ function ProviderOnboardingContent() {
               disabled={
                 !confirmAuthorized ||
                 actionLoading === "instant-create" ||
+                emailChecking ||
                 !formData.orgName.trim() ||
                 !formData.city.trim() ||
                 !formData.state.trim() ||
-                !formData.email.trim() ||
-                !formData.email.includes("@") ||
+                !isEmailValid ||
                 formData.careTypes.length === 0
               }
               className="flex-1 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"

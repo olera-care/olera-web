@@ -12,6 +12,7 @@ import {
   Spinner,
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -162,6 +163,16 @@ function filterPrograms(
 
 type Step = "care-need" | "age" | "financial" | "results" | "save";
 
+// Step → ordinal for funnel events. Hyphenated keys match the internal Step
+// values so step_name in metadata is the source-of-truth identifier.
+const STEP_NUMBERS: Record<Step, number> = {
+  "care-need": 1,
+  age: 2,
+  financial: 3,
+  save: 4,
+  results: 5,
+};
+
 export default function BenefitsDiscoveryModule({
   providerState,
   stateId,
@@ -183,6 +194,42 @@ export default function BenefitsDiscoveryModule({
   const savedMatchCountRef = useRef<number | null>(null);
   const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
   const [echoVisible, setEchoVisible] = useState(false);
+
+  // ─── Per-step funnel tracking (PR B) ─────────────────────────────────
+  // sessionId is sync (cookie read) so memoized at mount.
+  // variant is hardcoded "control" today; PR C wires the A/B hash here.
+  // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
+  // back-button revisits within the same session.
+  // stepEnterTimeRef captures step entry time for time_on_step_ms.
+  const sessionId = useMemo(() => getOrCreateSessionId(), []);
+  const variant = "control";
+  const entryTrackedRef = useRef(false);
+  const viewedStepsRef = useRef<Set<Step>>(new Set());
+  const stepEnterTimeRef = useRef<number>(Date.now());
+
+  function fireFunnelEvent(
+    event: BenefitsStepEvent,
+    extras?: { stepNumber?: number; stepName?: string; timeOnStepMs?: number },
+  ) {
+    trackBenefitsEvent({
+      event,
+      sessionId,
+      stateCode: providerState,
+      stateName,
+      providerName: providerName || null,
+      providerSlug: providerSlug || null,
+      variant,
+      ...extras,
+    });
+  }
+
+  function trackStepCompleted(stepKey: Step) {
+    fireFunnelEvent("benefits_step_completed", {
+      stepNumber: STEP_NUMBERS[stepKey],
+      stepName: stepKey,
+      timeOnStepMs: Date.now() - stepEnterTimeRef.current,
+    });
+  }
 
   // ─── Spotlight handoff from Q&A section ───────────────────────────
   // When a caregiver submits a question, the room quiets around us:
@@ -248,6 +295,33 @@ export default function BenefitsDiscoveryModule({
     };
   }, []);
 
+  // ─── Funnel: entry_viewed (mount) ───────────────────────────────────
+  // Fires once per module mount. entryTrackedRef survives Strict Mode's
+  // double-mount in dev; it does NOT survive a full unmount (page leave +
+  // return), which is desired — that's a real new view.
+  useEffect(() => {
+    if (entryTrackedRef.current) return;
+    entryTrackedRef.current = true;
+    fireFunnelEvent("benefits_entry_viewed");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Funnel: step_viewed + entry-time reset (on each step change) ───
+  // Always reset entry time so time_on_step_ms reflects the current visit.
+  // step_viewed itself is deduped per session — back-button revisits don't
+  // refire the event, but they do reset the timer (so a re-submit gives us
+  // accurate dwell time on the second visit).
+  useEffect(() => {
+    stepEnterTimeRef.current = Date.now();
+    if (viewedStepsRef.current.has(step)) return;
+    viewedStepsRef.current.add(step);
+    fireFunnelEvent("benefits_step_viewed", {
+      stepNumber: STEP_NUMBERS[step],
+      stepName: step,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
   // Fire-and-forget: notify Slack + log that a user started the intake.
   // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.
   function trackStart(selectedCareNeed: CareNeed) {
@@ -300,6 +374,7 @@ export default function BenefitsDiscoveryModule({
       setSaveError("Please enter a valid email.");
       return;
     }
+    trackStepCompleted("save");
     setSaving(true);
 
     try {
@@ -451,6 +526,7 @@ export default function BenefitsDiscoveryModule({
                 onClick={() => {
                   setCareNeed(opt.value);
                   trackStart(opt.value);
+                  trackStepCompleted("care-need");
                   setTimeout(() => setStep("age"), 180);
                 }}
                 className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
@@ -525,13 +601,13 @@ export default function BenefitsDiscoveryModule({
           placeholder="e.g. 72"
           value={age}
           onChange={(e) => setAge(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && canContinue) setStep("financial"); }}
+          onKeyDown={(e) => { if (e.key === "Enter" && canContinue) { trackStepCompleted("age"); setStep("financial"); } }}
           className="w-full px-4 py-4 text-lg rounded-xl border border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-200 outline-none transition-colors mb-4"
           autoFocus
         />
 
         <button
-          onClick={() => setStep("financial")}
+          onClick={() => { trackStepCompleted("age"); setStep("financial"); }}
           disabled={!canContinue}
           className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
             canContinue
@@ -606,7 +682,7 @@ export default function BenefitsDiscoveryModule({
         </div>
 
         <button
-          onClick={() => setStep("save")}
+          onClick={() => { trackStepCompleted("financial"); setStep("save"); }}
           disabled={!canContinue}
           className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
             canContinue

@@ -17,6 +17,16 @@ Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard`
 - **PR B (smart picker on dashboard):** new `<SmartNextActionCard>` + `lib/next-best-action.ts` scoring function. Replaces the static "Complete your profile" banner on `DashboardPage.tsx`. Category-aware soft-honest copy (no data-claim multipliers).
 - **PR C (post-answer hook):** swap the `if (submitted)` branch in `ActionCard.tsx` for the same picker with `source="qa-success"`. Source-tagged links + per-source funnel attribution.
 
+### 2026-04-28 — Restore category stock-image fallback (P2) — planned, not started
+
+Plan: [`plans/restore-stock-image-fallback-plan.md`](plans/restore-stock-image-fallback-plan.md). Notion: P2 task on Olera Action Items board.
+
+Replace gradient + initials + "No photos yet" placeholder with category stock images on provider detail hero AND browse cards. Helper + 15-image library already exist (`getCategoryFallbackImage` at `lib/types/provider.ts:255`); just unwired during v1→v2 hero rewrite.
+
+- **Bug 1 (detail hero):** `ProviderHeroGallery.tsx:42-55` never imports the helper. Fix: append fallback URL to `images` array on the page when empty; gallery's existing `<Image fill>` path renders it.
+- **Bug 2 (browse cards):** `businessProfileToCardFormat` at `lib/types/provider.ts:475-476` returns `imageType: "placeholder"` even when `image` is a stock URL — three card components short-circuit to gradient. Fix: return `imageType: "photo"` always.
+- **Categories in scope:** 6 (Home Care Non-medical, Home Health Care, Assisted Living, Independent Living, Memory Care, Nursing Home). Two home-care types share the pool. Artifact categories (hospice/rehab/adult day care/wellness/private caregiver) fall through to home-care imagery via `DEFAULT_FALLBACK_POOL` — separate cleanup project per TJ.
+
 ### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
 
 Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).

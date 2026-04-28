@@ -252,10 +252,18 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-function getCategoryFallbackImage(category: string, providerId: string): string {
+export function getCategoryFallbackImage(category: string, providerId: string): string {
   const pool = CATEGORY_FALLBACK_POOLS[category] || DEFAULT_FALLBACK_POOL;
   const index = hashString(providerId) % pool.length;
   return pool[index];
+}
+
+export function getProfileCategoryFallbackImage(
+  category: ProfileCategory | null,
+  providerId: string,
+): string {
+  const supabaseCat = category ? PROFILE_CAT_TO_SUPABASE_CAT[category] || "" : "";
+  return getCategoryFallbackImage(supabaseCat, providerId);
 }
 
 /**
@@ -435,7 +443,6 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const meta = bp.metadata as Record<string, unknown> | null;
   const metaImages = Array.isArray(meta?.images) ? (meta.images as string[]) : [];
   const primaryImage = bp.image_url || metaImages[0] || null;
-  const hasImage = !!primaryImage;
 
   // Pricing: Tier 3 categories suppress dollar amounts on cards — education badge instead.
   const bpPricingConfig = bp.category ? getPricingConfig(bp.category) : null;
@@ -473,7 +480,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     slug: bp.slug,
     name: bp.display_name,
     image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
-    imageType: hasImage ? "photo" : "placeholder",
+    imageType: "photo",
     images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,

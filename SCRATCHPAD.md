@@ -17,15 +17,21 @@ Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard`
 - **PR B (smart picker on dashboard):** new `<SmartNextActionCard>` + `lib/next-best-action.ts` scoring function. Replaces the static "Complete your profile" banner on `DashboardPage.tsx`. Category-aware soft-honest copy (no data-claim multipliers).
 - **PR C (post-answer hook):** swap the `if (submitted)` branch in `ActionCard.tsx` for the same picker with `source="qa-success"`. Source-tagged links + per-source funnel attribution.
 
-### 2026-04-28 — Restore category stock-image fallback (P2) — planned, not started
+### 2026-04-28 — Restore category stock-image fallback (P2) — shipped to staging via PR #670
 
-Plan: [`plans/restore-stock-image-fallback-plan.md`](plans/restore-stock-image-fallback-plan.md). Notion: P2 task on Olera Action Items board.
+**[PR #670](https://github.com/olera-care/olera-web/pull/670)** on branch `feat/provider-stock-image-fallback`. Two commits:
 
-Replace gradient + initials + "No photos yet" placeholder with category stock images on provider detail hero AND browse cards. Helper + 15-image library already exist (`getCategoryFallbackImage` at `lib/types/provider.ts:255`); just unwired during v1→v2 hero rewrite.
+1. **`8a5b488b`** — empty-array fix. Wired `getCategoryFallbackImage` into the provider detail hero (`app/provider/[slug]/page.tsx`) and fixed `businessProfileToCardFormat` so `imageType: "photo"` for stock URLs (was `"placeholder"`, short-circuiting three card components to gradient). Helper + 15-image library at `public/images/fallback/` had existed since `d4ffa24a` but was never wired to the V2 hero. TJ verified the photoless case works on staging across all 6 in-scope categories.
 
-- **Bug 1 (detail hero):** `ProviderHeroGallery.tsx:42-55` never imports the helper. Fix: append fallback URL to `images` array on the page when empty; gallery's existing `<Image fill>` path renders it.
-- **Bug 2 (browse cards):** `businessProfileToCardFormat` at `lib/types/provider.ts:475-476` returns `imageType: "placeholder"` even when `image` is a stock URL — three card components short-circuit to gradient. Fix: return `imageType: "photo"` always.
-- **Categories in scope:** 6 (Home Care Non-medical, Home Health Care, Assisted Living, Independent Living, Memory Care, Nursing Home). Two home-care types share the pool. Artifact categories (hospice/rehab/adult day care/wellness/private caregiver) fall through to home-care imagery via `DEFAULT_FALLBACK_POOL` — separate cleanup project per TJ.
+2. **`17ce40cf`** — runtime-failure extension (TJ asked to keep the extension on the same PR to avoid context fragmentation). TJ found a second case via DevTools: providers WITH image URLs that 502 through next/image (R2 / cdn-api hosts on staging) still showed gradient. The carousel cycled "1/6 → 1/5 → ... → 1/1 → gradient" as each onError fired. Fix: new `fallbackImage` prop on `ProviderHeroGallery` and new `fallbackImage` field on `ProviderCardData`. When `validImages.length === 0` (whether from empty array OR runtime onError cascade) the gallery now renders the stock photo, not the gradient. Same fallback path added to all three browse-card components (`BrowsePageClient`, `BrowseCard`, `ProviderCard`). Each surface has its own `fallbackFailed` state to guard against infinite loops if the stock URL itself 404s.
+
+**Diff: 7 files, +102 / -17 (code + plan + scratchpad).** Build clean (3795/3795), typecheck 0 errors. Pre-test review traced 18 vectors — no bugs.
+
+**Categories in scope:** 6 (Home Care Non-medical, Home Health Care, Assisted Living, Independent Living, Memory Care, Nursing Home). Two home-care types share the home-care pool. Artifact categories (hospice/rehab/adult day care/wellness/private caregiver) fall through to home-care imagery via `DEFAULT_FALLBACK_POOL` — separate cleanup project per TJ.
+
+**Underlying root cause** (not addressed in this PR): some real provider image URLs are 502'ing through Vercel's `/next/image` optimizer on staging — could be stale R2 URLs, image-domain config, or a transient. Worth its own investigation; this PR makes the symptom invisible.
+
+**Next:** TJ to re-verify on staging once the extension deploys (the same College Station browse cards that showed gradient — Comfort Keepers, Visiting Angels, AccentCare, Choice Home Care — should now show stock photos). Then merge to main via `/pr-merge`.
 
 ### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
 

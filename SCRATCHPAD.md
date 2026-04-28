@@ -7,9 +7,26 @@
 
 ## Current Focus
 
+### 2026-04-27 EOD — Phase 2 A/B live in prod, Phase 3 picked up tomorrow
+
+Four PRs shipped in one day across Phase 1 + Phase 2:
+- PR #648 / #651 — Phase 1 funnel visibility on `/admin/analytics`
+- PR #653 — Phase 2 A/B variant assignment + admin split table
+- PR #658 — Phase 2 to prod (bundled with Cess's FL editorial)
+- PR #659 / #661 — visibility fix so the A/B table renders before first send
+
+Slack [addendum thread](https://oleraworkspace.slack.com/archives/C0A91BA205T/p1777334076195659?thread_ts=1777319720.741329) live in `#ai-product-development` to inform the team.
+
+Resuming tomorrow: Phase 3 (follow-ups for unopened — biggest open-rate lever per audit). Notion task ([Phase 3 Resume-here pre-flight](https://www.notion.so/34f5903a0ffe81809188d977573d27d2)) updated with file paths, sequence priority, and the Phase 2 dependency note. Pre-flight summary:
+- All infra in place: cron route just needs to be added at `app/api/cron/qa-email-followups/route.ts` + `vercel.json` cron entry
+- Sequence #1 (24h unopened resend) ships first; #2 (channel switch via Twilio/Slack) and #3 (6h opened-not-clicked nudge) are follow-ups
+- Earliest clean ship date: 2026-05-04 (lets Phase 2 A/B accumulate ~1 week of un-tainted signal). Or accept noise and run concurrently — velocity call
+
+---
+
 ### 2026-04-27 — Q&A email A/B test on subject + preheader (Phase 2 of P1) — PR #653
 
-**Status:** open against staging, ready to merge once Vercel green. Build clean locally.
+**Status:** shipped to staging via PR #653, promoted to main via PR #658. Visibility fix shipped via PR #659/#661. Notion task moved to In Progress/Doing — awaiting 2-3 weeks of A/B data.
 
 Started Phase 2 ([Notion](https://www.notion.so/34f5903a0ffe81dc8d6fd39cdb40fe23)) the same day Phase 1 shipped — startup velocity, no point waiting for clean baseline data to start iterating on copy. First commit was a tame "for"-instead-of-"about" subject + preheader = question excerpt. TJ pushed back twice: (1) PHI concern on asker name in subject, (2) "we can do way better, do research." Refolded into a real A/B with research-backed B variant.
 

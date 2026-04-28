@@ -232,6 +232,9 @@ export default function ScheduleInterviewModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // T&C acceptance for providers scheduling interviews
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -287,6 +290,8 @@ export default function ScheduleInterviewModal({
           proposedTime,
           alternativeTime,
           notes: notes.trim() || undefined,
+          // Include T&C acceptance timestamp for provider-initiated interviews
+          ...(termsAcceptedAt && { termsAcceptedAt }),
         }),
       });
       const data = await res.json();
@@ -303,7 +308,8 @@ export default function ScheduleInterviewModal({
     }
   };
 
-  const canSubmit = date && time && !submitting;
+  // Providers must accept T&C before scheduling; students don't need to
+  const canSubmit = date && time && !submitting && (isStudentInitiated || termsAccepted);
 
   if (showUpgradeModal) {
     return <UpgradeModal creditsUsed={3} onClose={onClose} />;
@@ -441,6 +447,40 @@ export default function ScheduleInterviewModal({
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-colors"
           />
         </div>
+
+        {/* T&C checkbox - only for providers scheduling interviews */}
+        {!isStudentInitiated && (
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => {
+                  setTermsAccepted(e.target.checked);
+                  if (e.target.checked) {
+                    setTermsAcceptedAt(new Date().toISOString());
+                  } else {
+                    setTermsAcceptedAt(null);
+                  }
+                }}
+                className="mt-0.5 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">
+                I agree to the{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-700 underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Terms & Conditions
+                </a>
+                {" "}for using the Olera interview scheduling service
+              </span>
+            </label>
+          </div>
+        )}
 
         {/* Submit button */}
         <div className="pt-2">

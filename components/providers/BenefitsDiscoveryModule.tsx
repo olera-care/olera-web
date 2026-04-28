@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
+import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -195,17 +196,33 @@ export default function BenefitsDiscoveryModule({
   const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
   const [echoVisible, setEchoVisible] = useState(false);
 
-  // ─── Per-step funnel tracking (PR B) ─────────────────────────────────
-  // sessionId is sync (cookie read) so memoized at mount.
-  // variant is hardcoded "control" today; PR C wires the A/B hash here.
+  // ─── Per-step funnel tracking + A/B variant (PR B + PR C) ──────────
+  // sessionId + variant are deferred to useState/useEffect so server-side
+  // rendering doesn't compute a different sessionId than the client cookie
+  // (getOrCreateSessionId falls back to a fresh random UUID on the server
+  // since `document` is undefined). useMemo would have caused a hydration
+  // mismatch on the variant-conditional copy AND would have fired the first
+  // entry_viewed event with the wrong variant ~50% of the time.
+  //
+  // variant defaults to "control" so server-rendered HTML matches the
+  // client's first render. After mount, useEffect computes the real
+  // variant from the cookie. Event-firing useEffects gate on sessionId
+  // being non-empty so events fire only after the real variant is set.
+  //
   // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
   // back-button revisits within the same session.
   // stepEnterTimeRef captures step entry time for time_on_step_ms.
-  const sessionId = useMemo(() => getOrCreateSessionId(), []);
-  const variant = "control";
+  const [sessionId, setSessionId] = useState<string>("");
+  const [variant, setVariant] = useState<BenefitsVariant>("control");
   const entryTrackedRef = useRef(false);
   const viewedStepsRef = useRef<Set<Step>>(new Set());
   const stepEnterTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const sid = getOrCreateSessionId();
+    setSessionId(sid);
+    setVariant(assignBenefitsVariant(sid));
+  }, []);
 
   function fireFunnelEvent(
     event: BenefitsStepEvent,
@@ -295,24 +312,28 @@ export default function BenefitsDiscoveryModule({
     };
   }, []);
 
-  // ─── Funnel: entry_viewed (mount) ───────────────────────────────────
-  // Fires once per module mount. entryTrackedRef survives Strict Mode's
-  // double-mount in dev; it does NOT survive a full unmount (page leave +
-  // return), which is desired — that's a real new view.
+  // ─── Funnel: entry_viewed (mount, gated on sessionId) ──────────────
+  // Fires once per module mount, AFTER sessionId is resolved client-side
+  // so the event carries the real variant. entryTrackedRef survives Strict
+  // Mode's double-mount in dev; it does NOT survive a full unmount (page
+  // leave + return), which is desired — that's a real new view.
   useEffect(() => {
-    if (entryTrackedRef.current) return;
+    if (!sessionId || entryTrackedRef.current) return;
     entryTrackedRef.current = true;
     fireFunnelEvent("benefits_entry_viewed");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sessionId]);
 
-  // ─── Funnel: step_viewed + entry-time reset (on each step change) ───
+  // ─── Funnel: step_viewed + entry-time reset (gated on sessionId) ───
   // Always reset entry time so time_on_step_ms reflects the current visit.
   // step_viewed itself is deduped per session — back-button revisits don't
   // refire the event, but they do reset the timer (so a re-submit gives us
-  // accurate dwell time on the second visit).
+  // accurate dwell time on the second visit). Gated on sessionId so the
+  // event carries the real variant (otherwise the first step_viewed for
+  // care-need would fire with the default "control" variant for everyone).
   useEffect(() => {
     stepEnterTimeRef.current = Date.now();
+    if (!sessionId) return;
     if (viewedStepsRef.current.has(step)) return;
     viewedStepsRef.current.add(step);
     fireFunnelEvent("benefits_step_viewed", {
@@ -320,7 +341,7 @@ export default function BenefitsDiscoveryModule({
       stepName: step,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, sessionId]);
 
   // Fire-and-forget: notify Slack + log that a user started the intake.
   // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.
@@ -338,7 +359,8 @@ export default function BenefitsDiscoveryModule({
           stateName,
           providerName: providerName || null,
           providerSlug: providerSlug || null,
-          sessionId: getOrCreateSessionId(),
+          sessionId,
+          variant,
         }),
         keepalive: true,
       }).catch(() => {});
@@ -509,10 +531,28 @@ export default function BenefitsDiscoveryModule({
         )}
 
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          Families like yours qualify for help.
+          {variant === "money_loss"
+            ? "You might be leaving money on the table."
+            : "Families like yours qualify for help."}
         </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          {stateName} has {allPrograms.length} programs. What kind of help does your family need?
+        <p className="text-sm text-gray-500 mt-1 mb-3">
+          {variant === "money_loss"
+            ? `Most ${stateName} families don't realize they qualify for $400-$900/month in benefits.`
+            : `${stateName} has ${allPrograms.length} programs. What kind of help does your family need?`}
+        </p>
+
+        {/* Trust strip — same on both arms. Dynamic state + count so it
+            works in TX, FL, CA, etc. without per-state hardcoding. */}
+        <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+          <span>Free</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>No signup to start</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>30 seconds</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>Private, never sold to insurers</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>{allPrograms.length} {stateName} programs</span>
         </p>
 
         {/* Care need cards — the main visual focal point */}

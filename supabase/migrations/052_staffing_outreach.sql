@@ -105,6 +105,8 @@ CREATE TABLE IF NOT EXISTS staffing_touchpoints (
     'call_wrong_number',
     'call_connected_no_consent',
     'call_connected_consent',
+    'call_not_interested',               -- soft stop: provider said "no thanks"
+    'manual_dnc',                        -- hard stop: provider said "remove me"
 
     -- automated emails (sequence steps)
     'email_pre_consent_a_sent',

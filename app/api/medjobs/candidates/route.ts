@@ -57,6 +57,13 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search");
     const sort = searchParams.get("sort") || "newest";
 
+    // New filters
+    const certifications = searchParams.get("certifications")?.split(",").filter(Boolean) || [];
+    const availability = searchParams.get("availability")?.split(",").filter(Boolean) || [];
+    const hoursPerWeek = searchParams.get("hoursPerWeek");
+    const languages = searchParams.get("languages")?.split(",").filter(Boolean) || [];
+    const hasVideo = searchParams.get("hasVideo") === "true";
+
     // Check if authenticated provider
     const auth = await getAuthenticatedProvider(req);
     const isProvider = !!auth?.providerProfile;
@@ -109,6 +116,8 @@ export async function GET(req: NextRequest) {
 
     // Client-side filter for metadata fields (JSONB — not queryable server-side)
     let candidates = data || [];
+
+    // Filter by program track
     if (programTrack) {
       // Map legacy program_track values to intended_professional_school equivalents
       const legacyMap: Record<string, string> = {
@@ -124,6 +133,68 @@ export async function GET(req: NextRequest) {
           return false;
         }
       );
+    }
+
+    // Filter by certifications (must have ALL selected certifications)
+    if (certifications.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      candidates = candidates.filter((c: any) => {
+        const meta = c.metadata || {};
+        const candidateCerts = meta.certifications || [];
+        return certifications.every((cert) => candidateCerts.includes(cert));
+      });
+    }
+
+    // Filter by availability (must have ANY selected availability type)
+    if (availability.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      candidates = candidates.filter((c: any) => {
+        const meta = c.metadata || {};
+        const candidateAvail = meta.availability_types || [];
+        // Also check legacy availability_type
+        const legacyAvail = meta.availability_type || "";
+        return availability.some(
+          (avail) => candidateAvail.includes(avail) || legacyAvail === avail
+        );
+      });
+    }
+
+    // Filter by hours per week
+    if (hoursPerWeek) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      candidates = candidates.filter((c: any) => {
+        const meta = c.metadata || {};
+        // Check new hours_per_week_range field
+        if (meta.hours_per_week_range === hoursPerWeek) return true;
+        // Fallback: Check legacy hours_per_week numeric field
+        const hours = meta.hours_per_week;
+        if (typeof hours === "number") {
+          if (hoursPerWeek === "5-10" && hours >= 5 && hours <= 10) return true;
+          if (hoursPerWeek === "10-15" && hours > 10 && hours <= 15) return true;
+          if (hoursPerWeek === "15-20" && hours > 15 && hours <= 20) return true;
+          if (hoursPerWeek === "20+" && hours > 20) return true;
+        }
+        return false;
+      });
+    }
+
+    // Filter by languages (must speak ANY selected language)
+    if (languages.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      candidates = candidates.filter((c: any) => {
+        const meta = c.metadata || {};
+        const candidateLangs = meta.languages || [];
+        return languages.some((lang) => candidateLangs.includes(lang));
+      });
+    }
+
+    // Filter by has video
+    if (hasVideo) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      candidates = candidates.filter((c: any) => {
+        const meta = c.metadata || {};
+        return !!meta.video_intro_url;
+      });
     }
 
     // Compute access tier for redaction

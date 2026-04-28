@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-import CandidateFilters from "@/components/medjobs/CandidateFilters";
+import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
 import Pagination from "@/components/ui/Pagination";
 
@@ -19,12 +19,7 @@ export default function ProviderCandidateBrowsePage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState<CandidateFilterValues>({
-    search: "",
-    state: "",
-    track: "",
-    sort: "newest",
-  });
+  const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [contacted, setContacted] = useState<Set<string>>(new Set());
 
@@ -69,9 +64,20 @@ export default function ProviderCandidateBrowsePage() {
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
+        if (filters.city) params.set("city", filters.city);
         if (filters.state) params.set("state", filters.state);
-        if (filters.search.trim()) params.set("search", filters.search.trim());
         if (filters.track) params.set("programTrack", filters.track);
+        if (filters.certifications.length > 0) {
+          params.set("certifications", filters.certifications.join(","));
+        }
+        if (filters.availability.length > 0) {
+          params.set("availability", filters.availability.join(","));
+        }
+        if (filters.hoursPerWeek) params.set("hoursPerWeek", filters.hoursPerWeek);
+        if (filters.languages.length > 0) {
+          params.set("languages", filters.languages.join(","));
+        }
+        if (filters.hasVideo) params.set("hasVideo", "true");
 
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
@@ -93,20 +99,11 @@ export default function ProviderCandidateBrowsePage() {
     fetchCandidates(1);
   }, [fetchCandidates]);
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
     (newFilters: CandidateFilterValues) => {
-      if (newFilters.search !== filters.search) {
-        setFilters((prev) => ({ ...prev, search: newFilters.search }));
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          setFilters(newFilters);
-        }, 300);
-      } else {
-        setFilters(newFilters);
-      }
+      setFilters(newFilters);
     },
-    [filters.search]
+    []
   );
 
   const handlePageChange = (page: number) => {
@@ -175,6 +172,7 @@ export default function ProviderCandidateBrowsePage() {
           filters={filters}
           onChange={handleFilterChange}
           showSort
+          totalResults={total}
         />
 
         {/* Results */}

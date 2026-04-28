@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/email";
 import { verificationDecisionEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 
 /**
  * PATCH /api/admin/verification/[id]
@@ -87,21 +88,15 @@ export async function PATCH(
 
     // If approved, publish any pending Q&A answers and deliver pending connections
     if (action === "approve") {
-      const { error: publishError, count: publishedCount } = await db
-        .from("provider_questions")
-        .update({
-          answer_status: "published",
-          is_public: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("answered_by", id)
-        .eq("answer_status", "pending");
-
-      if (publishError) {
-        console.error("[admin] Failed to publish pending answers:", publishError);
-      } else if (publishedCount && publishedCount > 0) {
-        console.log(`[admin] Published ${publishedCount} pending Q&A answers for ${profile?.display_name}`);
-      }
+      // Publish any pending Q&A answers and notify askers (fire-and-forget)
+      publishPendingQAAnswers(
+        db,
+        id,
+        profile?.display_name || "A provider",
+        profile?.slug
+      ).catch((err) => {
+        console.error("[admin] Error publishing pending Q&A answers:", err);
+      });
 
       // Deliver all pending_verification connections with notifications (fire-and-forget)
       // These are inquiries the provider saved while unverified

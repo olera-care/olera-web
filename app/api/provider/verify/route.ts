@@ -8,6 +8,7 @@ import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 
 // Storage bucket for verification documents/screenshots
 const VERIFICATION_BUCKET = "verification-docs";
@@ -319,22 +320,15 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Publish any pending Q&A answers now that provider is verified
-      const { error: publishError, count: publishedCount } = await admin
-        .from("provider_questions")
-        .update({
-          answer_status: "published",
-          is_public: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("answered_by", profileId)
-        .eq("answer_status", "pending");
-
-      if (publishError) {
-        console.error("[verify] Failed to publish pending answers:", publishError);
-      } else if (publishedCount && publishedCount > 0) {
-        console.log(`[verify] Published ${publishedCount} pending Q&A answers for ${profile.display_name}`);
-      }
+      // Publish any pending Q&A answers and notify askers (fire-and-forget)
+      publishPendingQAAnswers(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify] Error publishing pending Q&A answers:", err);
+      });
 
       // Deliver all pending_verification connections with notifications (fire-and-forget)
       // These are inquiries the provider saved while unverified

@@ -47,6 +47,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
   const [imgFailed, setImgFailed] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const heartButtonRef = useRef<HTMLButtonElement>(null);
@@ -61,8 +62,11 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     ? "caregiver"
     : "current";
 
-  const showPlaceholder = provider.imageType === "placeholder" || imgFailed;
-  const showAsLogo = !showPlaceholder && provider.imageType === "logo";
+  const primaryUnusable = provider.imageType === "placeholder" || imgFailed;
+  const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
+  const showFallbackPhoto = primaryUnusable && fallbackAvailable;
+  const showPlaceholder = primaryUnusable && !fallbackAvailable;
+  const showAsLogo = !primaryUnusable && provider.imageType === "logo";
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
@@ -113,13 +117,23 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
       {/* Image */}
       <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
         {showPlaceholder ? (
-          /* No image — gradient + initials */
+          /* Last resort — gradient + initials */
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
               <span className="text-2xl font-bold text-primary-400">{getInitials(provider.name)}</span>
             </div>
             <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
+        ) : showFallbackPhoto ? (
+          /* Stock photo — when real image is unavailable or failed */
+          <Image
+            src={provider.fallbackImage!}
+            alt={provider.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 400px"
+            onError={() => setFallbackFailed(true)}
+          />
         ) : showAsLogo ? (
           /* Logo — contained on gradient background, not cropped */
           <div className="absolute inset-0 flex items-center justify-center p-6">

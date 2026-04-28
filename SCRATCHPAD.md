@@ -17,6 +17,24 @@ Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard`
 - **PR B (smart picker on dashboard):** new `<SmartNextActionCard>` + `lib/next-best-action.ts` scoring function. Replaces the static "Complete your profile" banner on `DashboardPage.tsx`. Category-aware soft-honest copy (no data-claim multipliers).
 - **PR C (post-answer hook):** swap the `if (submitted)` branch in `ActionCard.tsx` for the same picker with `source="qa-success"`. Source-tagged links + per-source funnel attribution.
 
+### 2026-04-28 — Restore category stock-image fallback (P2) — shipped to staging via PR #670
+
+**[PR #670](https://github.com/olera-care/olera-web/pull/670)** on branch `feat/provider-stock-image-fallback`. Two commits:
+
+1. **`8a5b488b`** — empty-array fix. Wired `getCategoryFallbackImage` into the provider detail hero (`app/provider/[slug]/page.tsx`) and fixed `businessProfileToCardFormat` so `imageType: "photo"` for stock URLs (was `"placeholder"`, short-circuiting three card components to gradient). Helper + 15-image library at `public/images/fallback/` had existed since `d4ffa24a` but was never wired to the V2 hero. TJ verified the photoless case works on staging across all 6 in-scope categories.
+
+2. **`17ce40cf`** — runtime-failure extension (TJ asked to keep the extension on the same PR to avoid context fragmentation). TJ found a second case via DevTools: providers WITH image URLs that 502 through next/image (R2 / cdn-api hosts on staging) still showed gradient. The carousel cycled "1/6 → 1/5 → ... → 1/1 → gradient" as each onError fired. Fix: new `fallbackImage` prop on `ProviderHeroGallery` and new `fallbackImage` field on `ProviderCardData`. When `validImages.length === 0` (whether from empty array OR runtime onError cascade) the gallery now renders the stock photo, not the gradient. Same fallback path added to all three browse-card components. Verified working on Visiting Angels + Choice Home Care detail pages, plus Comfort Keepers / Visiting Angels browse cards.
+
+3. **`217a2f7a`** — polish (TJ flagged "a little bit of jank" — the counter cycling "1/6 → 1/5 → ..." was still visible during the onError cascade even though the end state was correct). Render-stack approach: stock photo as a base layer (z-0) always rendered when fallback available; real image(s) as overlay (z-1). While real image is loading it's transparent, so the stock shows through — no flash. Once real image loads, it covers stock. If it fails, stock stays. Gallery's counter + arrows now gated on `anyRealImageLoaded` — only appear once a real image confirms `onLoad`, hiding the cycling visibility entirely. Same pattern applied to all three browse-card components (`BrowsePageClient`, `BrowseCard`, `ProviderCard`).
+
+**Diff: 8 files, +258 / -110.** Build clean (3795/3795), typecheck 0 errors. Pre-test review traced 18 vectors — no bugs.
+
+**Categories in scope:** 6 (Home Care Non-medical, Home Health Care, Assisted Living, Independent Living, Memory Care, Nursing Home). Two home-care types share the home-care pool. Artifact categories (hospice/rehab/adult day care/wellness/private caregiver) fall through to home-care imagery via `DEFAULT_FALLBACK_POOL` — separate cleanup project per TJ.
+
+**Underlying root cause** (not addressed in this PR): some real provider image URLs are 502'ing through Vercel's `/next/image` optimizer on staging — could be stale R2 URLs, image-domain config, or a transient. Worth its own investigation; this PR makes the symptom invisible.
+
+**Next:** TJ to re-verify the polish commit on staging (counter "1/6 → 1/1" cycle should no longer be visible on detail pages with broken images), then merge to main via `/pr-merge`.
+
 ### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
 
 Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).

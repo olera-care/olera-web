@@ -226,10 +226,12 @@ export async function POST(request: Request) {
     // ──────────────────────────────────────────────────────────
 
     // Check if this listing is already claimed (business_profile with this source_provider_id exists)
+    // Exclude rejected profiles - they should not block new claims
     const { data: existingClaim } = await db
       .from("business_profiles")
       .select("id, account_id")
       .eq("source_provider_id", providerId)
+      .neq("claim_state", "rejected")
       .maybeSingle();
 
     if (existingClaim) {

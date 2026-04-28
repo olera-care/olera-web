@@ -86,9 +86,13 @@ export async function GET(request: NextRequest) {
         return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
       });
     } else if (status === "approved") {
+      // Include both admin-approved (badge_approved) and self-verified (verification_state)
+      // Exclude providers whose badge was revoked (badge_rejected)
       filtered = filtered.filter((p) => {
         const meta = p.metadata as ProfileMetadata | null;
-        return meta?.badge_approved === true;
+        const isApproved = meta?.badge_approved === true || p.verification_state === "verified";
+        const isRevoked = meta?.badge_rejected === true;
+        return isApproved && !isRevoked;
       });
     } else if (status === "rejected") {
       filtered = filtered.filter((p) => {

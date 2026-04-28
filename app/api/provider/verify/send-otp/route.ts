@@ -13,6 +13,8 @@ interface SendOtpRequest {
   profileId: string;
   email: string;
   fullName: string;
+  /** ISO timestamp when T&C was accepted (for compliance audit trail) */
+  termsAcceptedAt?: string;
 }
 
 // ============================================================
@@ -45,7 +47,7 @@ function generateOtp(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as SendOtpRequest;
-    const { profileId, email, fullName } = body;
+    const { profileId, email, fullName, termsAcceptedAt } = body;
 
     if (!profileId || !email || !fullName) {
       return NextResponse.json(
@@ -225,6 +227,8 @@ export async function POST(request: NextRequest) {
       ...currentMetadata,
       claimer_email: normalizedEmail,
       claimer_name: fullName,
+      // Store T&C acceptance timestamp for compliance audit trail
+      ...(termsAcceptedAt && { terms_accepted_at: termsAcceptedAt }),
       verification_otp: {
         code: otp,
         email: normalizedEmail,

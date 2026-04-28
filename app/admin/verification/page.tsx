@@ -46,6 +46,9 @@ interface ProviderMetadata extends OrganizationMetadata {
   verification_attempts?: VerificationAttempt[];
   verification_attempt?: VerificationAttempt;
   email_otp_attempt?: EmailOtpAttempt;
+  verification_method?: string;
+  badge_approved?: boolean;
+  badge_rejected?: boolean;
 }
 
 interface Provider {
@@ -381,15 +384,28 @@ export default function AdminVerificationPage() {
                       </td>
                       {filter !== "pending" && (
                         <td className="px-6 py-4">
-                          <Badge
-                            variant={
-                              filter === "approved"
-                                ? "verified"
-                                : "rejected"
-                            }
-                          >
-                            {filter === "approved" ? "Badge Approved" : "Badge Rejected"}
-                          </Badge>
+                          {filter === "approved" ? (
+                            // Distinguish between admin-approved and self-verified
+                            provider.metadata?.badge_approved ? (
+                              <Badge variant="verified">Admin Approved</Badge>
+                            ) : provider.verification_state === "verified" ? (
+                              <div className="flex items-center gap-2">
+                                <Badge variant="verified">Self-Verified</Badge>
+                                {provider.metadata?.verification_method && (
+                                  <span className="text-xs text-gray-500">
+                                    via {provider.metadata.verification_method === "email" ? "Email" :
+                                         provider.metadata.verification_method === "linkedin" ? "LinkedIn" :
+                                         provider.metadata.verification_method === "website" ? "Website" :
+                                         provider.metadata.verification_method}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <Badge variant="verified">Badge Approved</Badge>
+                            )
+                          ) : (
+                            <Badge variant="rejected">Badge Rejected</Badge>
+                          )}
                         </td>
                       )}
                       <td className="px-6 py-4 text-sm text-gray-500">

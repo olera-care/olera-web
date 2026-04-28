@@ -35,6 +35,10 @@ interface ConnectButtonProps {
   size?: "sm" | "md" | "lg";
   /** Optional metadata to include with the connection record. */
   connectionMetadata?: Record<string, unknown>;
+  /** Whether the sending profile is verified (for pending_verification flow). */
+  isVerified?: boolean;
+  /** Callback when user clicks to verify (opens verification modal). */
+  onVerifyClick?: () => void;
 }
 
 /**
@@ -47,7 +51,8 @@ type ModalState =
   | { kind: "success" }
   | { kind: "upgrade" }
   | { kind: "incomplete"; gaps: string[] }
-  | { kind: "wrong-profile-type" };
+  | { kind: "wrong-profile-type" }
+  | { kind: "pending-verification" };
 
 const CLOSED: ModalState = { kind: "closed" };
 
@@ -67,10 +72,13 @@ export default function ConnectButton({
   fullWidth = false,
   size = "sm",
   connectionMetadata,
+  isVerified = true,
+  onVerifyClick,
 }: ConnectButtonProps) {
   const { user, activeProfile, membership, openAuth, refreshAccountData } =
     useAuth();
   const [alreadySent, setAlreadySent] = useState(false);
+  const [isPendingVerification, setIsPendingVerification] = useState(false);
   const [modal, setModal] = useState<ModalState>(CLOSED);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -97,6 +105,7 @@ export default function ConnectButton({
     : serverAccess;
 
   // Check for existing connection
+  // Re-runs when isVerified changes to update state after verification completes
   useEffect(() => {
     if (!fromProfileId || !toProfileId || !isSupabaseConfigured()) return;
 
@@ -104,18 +113,40 @@ export default function ConnectButton({
       const supabase = createClient();
       const { data } = await supabase
         .from("connections")
-        .select("id")
+        .select("id, status")
         .eq("from_profile_id", fromProfileId)
         .eq("to_profile_id", toProfileId)
         .eq("type", connectionType)
         .limit(1)
         .maybeSingle();
 
-      if (data) setAlreadySent(true);
+      if (data) {
+        if (data.status === "pending_verification") {
+          // Only show as pending verification if still unverified
+          // If now verified, the connection will be delivered shortly
+          if (!isVerified) {
+            setIsPendingVerification(true);
+            setAlreadySent(false);
+          } else {
+            // Provider just verified - connection is being delivered
+            // Show as sent (it will be delivered momentarily)
+            setIsPendingVerification(false);
+            setAlreadySent(true);
+          }
+        } else {
+          // Connection is delivered (pending, accepted, etc.)
+          setIsPendingVerification(false);
+          setAlreadySent(true);
+        }
+      } else {
+        // No connection exists
+        setIsPendingVerification(false);
+        setAlreadySent(false);
+      }
     };
 
     check();
-  }, [fromProfileId, toProfileId, connectionType]);
+  }, [fromProfileId, toProfileId, connectionType, isVerified]);
 
   const createConnection = useCallback(async () => {
     if (!fromProfileId || !isSupabaseConfigured()) return;
@@ -125,13 +156,17 @@ export default function ConnectButton({
 
     try {
       const supabase = createClient();
+
+      // Use pending_verification status for unverified providers
+      const connectionStatus = isVerified ? "pending" : "pending_verification";
+
       const { error: insertError } = await supabase
         .from("connections")
         .insert({
           from_profile_id: fromProfileId,
           to_profile_id: toProfileId,
           type: connectionType,
-          status: "pending",
+          status: connectionStatus,
           message: note.trim() || null,
           ...(connectionMetadata ? { metadata: connectionMetadata } : {}),
         });
@@ -142,14 +177,19 @@ export default function ConnectButton({
           insertError.message.includes("duplicate") ||
           insertError.message.includes("unique")
         ) {
-          setAlreadySent(true);
+          if (connectionStatus === "pending_verification") {
+            setIsPendingVerification(true);
+          } else {
+            setAlreadySent(true);
+          }
           setModal(CLOSED);
           return;
         }
         throw new Error(insertError.message);
       }
 
-      // Increment free_responses_used only for free tier (not trial)
+      // Increment free_responses_used for free tier (including pending_verification)
+      // Pending inquiries still count toward the 3 free limit
       if (membership && membership.status === "free") {
         const newCount = (membership.free_responses_used ?? 0) + 1;
         await supabase
@@ -165,12 +205,17 @@ export default function ConnectButton({
         await refreshAccountData();
       }
 
-      setAlreadySent(true);
-      setModal({ kind: "success" });
-      setTimeout(() => {
-        setModal(CLOSED);
-        setNote("");
-      }, 1500);
+      if (connectionStatus === "pending_verification") {
+        setIsPendingVerification(true);
+        setModal({ kind: "pending-verification" });
+      } else {
+        setAlreadySent(true);
+        setModal({ kind: "success" });
+        setTimeout(() => {
+          setModal(CLOSED);
+          setNote("");
+        }, 1500);
+      }
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -180,7 +225,7 @@ export default function ConnectButton({
     } finally {
       setSubmitting(false);
     }
-  }, [fromProfileId, toProfileId, connectionType, note, membership, refreshAccountData, connectionMetadata]);
+  }, [fromProfileId, toProfileId, connectionType, note, membership, refreshAccountData, connectionMetadata, isVerified]);
 
   const handleClick = () => {
     if (!user) {
@@ -233,17 +278,37 @@ export default function ConnectButton({
       ? "apply to"
       : "connect with";
 
+  // Show "Verify to deliver" only if we have a verify callback
+  // Otherwise fall back to showing as sent (safer than a broken button)
+  const showVerifyState = isPendingVerification && onVerifyClick;
+
   return (
     <>
-      <Button
-        size={size}
-        fullWidth={fullWidth}
-        variant={alreadySent ? "secondary" : "primary"}
-        onClick={handleClick}
-        disabled={alreadySent}
-      >
-        {alreadySent ? sentLabel : label}
-      </Button>
+      {showVerifyState ? (
+        <Button
+          size={size}
+          fullWidth={fullWidth}
+          variant="secondary"
+          onClick={onVerifyClick}
+        >
+          <span className="flex items-center gap-2">
+            Verify to deliver
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </Button>
+      ) : (
+        <Button
+          size={size}
+          fullWidth={fullWidth}
+          variant={alreadySent || isPendingVerification ? "secondary" : "primary"}
+          onClick={handleClick}
+          disabled={alreadySent || isPendingVerification}
+        >
+          {alreadySent || isPendingVerification ? sentLabel : label}
+        </Button>
+      )}
 
       {/* Only mount the active modal — avoids N×3 Modal instances in the DOM */}
       {(modal.kind === "confirm" || modal.kind === "success") && (
@@ -317,6 +382,43 @@ export default function ConnectButton({
               </Button>
             </div>
           )}
+        </Modal>
+      )}
+
+      {modal.kind === "pending-verification" && (
+        <Modal isOpen onClose={closeModal} title="Saved!" size="md">
+          <div className="text-center py-4">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <p className="text-lg text-gray-900 mb-2">
+              Your request is saved
+            </p>
+            <p className="text-base text-gray-600 mb-6">
+              Verify your account to deliver this request to {toName}.
+            </p>
+            <Button
+              onClick={() => {
+                closeModal();
+                onVerifyClick?.();
+              }}
+              fullWidth
+            >
+              Verify now
+            </Button>
+          </div>
         </Modal>
       )}
 

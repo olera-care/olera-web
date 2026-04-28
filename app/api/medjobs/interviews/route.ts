@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       alternativeTime,
       location,
       notes,
+      termsAcceptedAt,
     } = body;
 
     if (!proposedTime || (!studentProfileId && !providerProfileId)) {
@@ -181,6 +182,30 @@ export async function POST(request: NextRequest) {
       });
       if (creditError) {
         console.error("[medjobs/interviews] credit increment error:", creditError);
+      }
+
+      // Store T&C acceptance timestamp in provider's profile metadata (if provided and not already set)
+      if (termsAcceptedAt) {
+        const { data: providerMeta } = await admin
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", resolvedProviderId)
+          .single();
+
+        const existingMeta = (providerMeta?.metadata ?? {}) as Record<string, unknown>;
+        // Only update if not already set (first acceptance)
+        if (!existingMeta.interview_terms_accepted_at) {
+          await admin
+            .from("business_profiles")
+            .update({
+              metadata: {
+                ...existingMeta,
+                interview_terms_accepted_at: termsAcceptedAt,
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", resolvedProviderId);
+        }
       }
     }
 

@@ -77,7 +77,16 @@ export default function AdminProvidersPage() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        setProviders((prev) => prev.filter((p) => p.id !== id));
+        const newState = action === "approve" ? "claimed" : "rejected";
+        if (filter === "all") {
+          // On "All" tab: update status in place (stay visible)
+          setProviders((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, claim_state: newState } : p))
+          );
+        } else {
+          // On filtered tabs: remove from view (moves to different tab)
+          setProviders((prev) => prev.filter((p) => p.id !== id));
+        }
         setSelectedIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
@@ -139,13 +148,10 @@ export default function AdminProvidersPage() {
     setActionError(null);
 
     try {
-      const res = await fetch("/api/admin/providers", {
-        method: "DELETE",
+      const res = await fetch(`/api/admin/providers/${revokeTarget.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: [revokeTarget.id],
-          reason: `Revoked: Stale claim (unverified for ${getDaysSince(revokeTarget.created_at)} days)`,
-        }),
+        body: JSON.stringify({ action: "reject" }),
       });
 
       if (!res.ok) {
@@ -154,7 +160,15 @@ export default function AdminProvidersPage() {
         return;
       }
 
-      setProviders((prev) => prev.filter((p) => p.id !== revokeTarget.id));
+      if (filter === "all") {
+        // On "All" tab: update status in place (stay visible)
+        setProviders((prev) =>
+          prev.map((p) => (p.id === revokeTarget.id ? { ...p, claim_state: "rejected" } : p))
+        );
+      } else {
+        // On filtered tabs: remove from view (moves to Rejected tab)
+        setProviders((prev) => prev.filter((p) => p.id !== revokeTarget.id));
+      }
       setSelectedIds((prev) => {
         const next = new Set(prev);
         next.delete(revokeTarget.id);

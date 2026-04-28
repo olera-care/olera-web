@@ -95,10 +95,12 @@ export async function POST(request: Request) {
     // 1. For claiming existing: Check if already claimed
     // ──────────────────────────────────────────────────────────
     if (!isNewOrg && providerId) {
+      // Exclude rejected profiles - they should not block new claims
       const { data: existingClaim } = await supabaseAdmin
         .from("business_profiles")
         .select("id, account_id")
         .eq("source_provider_id", providerId)
+        .neq("claim_state", "rejected")
         .maybeSingle();
 
       if (existingClaim) {

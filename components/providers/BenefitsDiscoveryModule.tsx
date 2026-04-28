@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
+import { assignBenefitsVariant } from "@/lib/analytics/variant";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -195,14 +196,16 @@ export default function BenefitsDiscoveryModule({
   const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
   const [echoVisible, setEchoVisible] = useState(false);
 
-  // ─── Per-step funnel tracking (PR B) ─────────────────────────────────
+  // ─── Per-step funnel tracking + A/B variant (PR B + PR C) ──────────
   // sessionId is sync (cookie read) so memoized at mount.
-  // variant is hardcoded "control" today; PR C wires the A/B hash here.
+  // variant is a deterministic 50/50 hash on sessionId — same session always
+  // sees the same arm (sticky for the 30-day cookie life). Threaded through
+  // every funnel event so admin queries can split the funnel by arm.
   // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
   // back-button revisits within the same session.
   // stepEnterTimeRef captures step entry time for time_on_step_ms.
   const sessionId = useMemo(() => getOrCreateSessionId(), []);
-  const variant = "control";
+  const variant = useMemo(() => assignBenefitsVariant(sessionId), [sessionId]);
   const entryTrackedRef = useRef(false);
   const viewedStepsRef = useRef<Set<Step>>(new Set());
   const stepEnterTimeRef = useRef<number>(Date.now());
@@ -338,7 +341,8 @@ export default function BenefitsDiscoveryModule({
           stateName,
           providerName: providerName || null,
           providerSlug: providerSlug || null,
-          sessionId: getOrCreateSessionId(),
+          sessionId,
+          variant,
         }),
         keepalive: true,
       }).catch(() => {});
@@ -509,10 +513,28 @@ export default function BenefitsDiscoveryModule({
         )}
 
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          Families like yours qualify for help.
+          {variant === "money_loss"
+            ? "You might be leaving money on the table."
+            : "Families like yours qualify for help."}
         </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          {stateName} has {allPrograms.length} programs. What kind of help does your family need?
+        <p className="text-sm text-gray-500 mt-1 mb-3">
+          {variant === "money_loss"
+            ? `Most ${stateName} families don't realize they qualify for $400-$900/month in benefits.`
+            : `${stateName} has ${allPrograms.length} programs. What kind of help does your family need?`}
+        </p>
+
+        {/* Trust strip — same on both arms. Dynamic state + count so it
+            works in TX, FL, CA, etc. without per-state hardcoding. */}
+        <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+          <span>Free</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>No signup to start</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>30 seconds</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>Private, never sold to insurers</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>{allPrograms.length} {stateName} programs</span>
         </p>
 
         {/* Care need cards — the main visual focal point */}

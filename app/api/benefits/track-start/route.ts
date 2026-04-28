@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     const providerName: string | null = body.providerName || null;
     const providerSlug: string | null = body.providerSlug || null;
     const sessionId: string | null = body.sessionId || null;
+    const variant: string | null = body.variant || null;
 
     const alert = slackBenefitsStarted({
       careNeedLabel,
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
           care_need: careNeedLabel,
           state: stateCode,
           provider_name: providerName,
+          variant,
         },
       }).then(({ error }: { error: { message: string } | null }) => {
         if (error) console.error("[track-start] benefits_started insert failed:", error);

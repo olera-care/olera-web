@@ -8,6 +8,7 @@ interface ProviderHeroGalleryProps {
   images: string[];
   providerName: string;
   category: ProfileCategory | null;
+  fallbackImage?: string;
 }
 
 function getInitials(name: string): string {
@@ -30,16 +31,32 @@ const categoryLabels: Partial<Record<ProfileCategory, string>> = {
   nursing_home: "Nursing Home",
 };
 
-export default function ProviderHeroGallery({ images, providerName, category }: ProviderHeroGalleryProps) {
+export default function ProviderHeroGallery({ images, providerName, category, fallbackImage }: ProviderHeroGalleryProps) {
   const categoryLabel = category ? categoryLabels[category] ?? null : null;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const [fallbackFailed, setFallbackFailed] = useState(false);
 
   // Filter out images that failed to load
   const validImages = images.filter((_, i) => !failedImages.has(i));
 
-  // 0 valid images — gradient placeholder with avatar circle + hint
+  // 0 valid images — render category stock photo if provided, else gradient placeholder
   if (validImages.length === 0) {
+    if (fallbackImage && !fallbackFailed) {
+      return (
+        <div className="relative w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl overflow-hidden bg-gray-100">
+          <Image
+            src={fallbackImage}
+            alt={providerName}
+            fill
+            sizes="(max-width: 768px) 100vw, 448px"
+            priority
+            className="object-cover"
+            onError={() => setFallbackFailed(true)}
+          />
+        </div>
+      );
+    }
     return (
       <div className="w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex flex-col items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-3 shadow-sm">

@@ -160,6 +160,8 @@ export interface ProviderCardData {
   isMetroAdjusted?: boolean;
   /** Raw provider_category for pricing tier logic (e.g., "Nursing Home", "nursing_home") */
   providerCategory?: string;
+  /** Category stock photo URL — rendered when `image` fails to load at runtime. */
+  fallbackImage?: string;
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -336,6 +338,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     name: provider.provider_name,
     image: cardImage,
     imageType,
+    fallbackImage: getCategoryFallbackImage(provider.provider_category, provider.provider_id),
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
@@ -481,6 +484,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     name: bp.display_name,
     image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
     imageType: "photo",
+    fallbackImage: getCategoryFallbackImage(supabaseCat, bp.id),
     images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,

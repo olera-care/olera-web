@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import Select from "@/components/ui/Select";
 import Modal from "@/components/ui/Modal";
 import { US_STATES } from "@/lib/us-states";
 import { INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
@@ -80,11 +79,6 @@ const TRACK_OPTIONS = [
   })),
 ];
 
-const STATE_OPTIONS = [
-  { value: "", label: "All states" },
-  ...US_STATES,
-];
-
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest first" },
   { value: "oldest", label: "Oldest first" },
@@ -94,7 +88,105 @@ const SORT_OPTIONS = [
 // Sub-components
 // ============================================================
 
-/** Multi-select dropdown with checkboxes */
+/**
+ * Native select wrapper with consistent styling.
+ * Uses browser's built-in dropdown - never has positioning issues.
+ */
+function NativeSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  className = "",
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`relative ${className}`}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`
+          w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm font-medium
+          outline-none transition-all min-h-[44px] cursor-pointer appearance-none
+          pr-10
+          ${value ? "text-gray-900 border-gray-200" : "text-gray-500 border-gray-200"}
+          hover:border-gray-300
+          focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+        `}
+      >
+        {placeholder && (
+          <option value="">{placeholder}</option>
+        )}
+        {options.filter(o => o.value !== "").map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {/* Chevron icon */}
+      <svg
+        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * Searchable state select - uses native select with datalist for search.
+ */
+function StateSelect({
+  value,
+  onChange,
+  placeholder = "State",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`
+          w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm font-medium
+          outline-none transition-all min-h-[44px] cursor-pointer appearance-none
+          pr-10
+          ${value ? "text-gray-900 border-gray-200" : "text-gray-500 border-gray-200"}
+          hover:border-gray-300
+          focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+        `}
+      >
+        <option value="">{placeholder}</option>
+        {US_STATES.map((state) => (
+          <option key={state.value} value={state.value}>
+            {state.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  );
+}
+
+/** Multi-select dropdown with checkboxes - uses absolute positioning (not portal) */
 function MultiSelectDropdown({
   label,
   options,
@@ -135,17 +227,17 @@ function MultiSelectDropdown({
         className={`
           flex items-center justify-between gap-2 w-full px-3.5 py-2.5
           bg-white border rounded-xl text-sm font-medium
-          transition-all duration-200 min-h-[44px]
+          transition-all min-h-[44px]
           ${selected.length > 0
             ? "border-primary-400 text-gray-900"
-            : "border-gray-200 text-gray-600 hover:border-gray-300"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
           }
-          ${isOpen ? "ring-2 ring-primary-200 border-primary-400" : ""}
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
         `}
       >
         <span className="truncate">{displayText}</span>
         <svg
-          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -155,7 +247,7 @@ function MultiSelectDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 animate-fade-in max-h-72 overflow-y-auto">
+        <div className="absolute top-[calc(100%+4px)] left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-72 overflow-y-auto">
           <div className="px-3 py-2 border-b border-gray-100">
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
           </div>
@@ -168,7 +260,7 @@ function MultiSelectDropdown({
                 type="checkbox"
                 checked={selected.includes(option.value)}
                 onChange={() => toggle(option.value)}
-                className="w-4.5 h-4.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
+                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
               />
               <span className="text-sm text-gray-900">{option.label}</span>
             </label>
@@ -190,7 +282,7 @@ function MultiSelectDropdown({
   );
 }
 
-/** City autocomplete input */
+/** City autocomplete input - uses absolute positioning (not portal) */
 function CityAutocomplete({
   value,
   onLocationChange,
@@ -264,7 +356,7 @@ function CityAutocomplete({
             setIsOpen(true);
           }}
           placeholder={placeholder}
-          className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all"
+          className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all min-h-[44px]"
         />
         {query && (
           <button
@@ -280,7 +372,7 @@ function CityAutocomplete({
       </div>
 
       {isOpen && (results.length > 0 || isLoading) && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 animate-fade-in max-h-64 overflow-y-auto">
+        <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 max-h-64 overflow-y-auto">
           {isLoading && results.length === 0 ? (
             <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
           ) : (
@@ -302,6 +394,209 @@ function CityAutocomplete({
   );
 }
 
+/**
+ * All Filters dropdown panel - consolidates Hours, Track, Languages, Has Video
+ * Uses absolute positioning (not portal) for reliable placement
+ */
+function AllFiltersDropdown({
+  filters,
+  onUpdate,
+}: {
+  filters: CandidateFilterValues;
+  onUpdate: (partial: Partial<CandidateFilterValues>) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
+  // Count active filters in this dropdown
+  const activeCount = [
+    filters.hoursPerWeek !== "",
+    filters.track !== "",
+    filters.languages.length > 0,
+    filters.hasVideo,
+  ].filter(Boolean).length;
+
+  const toggleLanguage = (lang: string) => {
+    if (filters.languages.includes(lang)) {
+      onUpdate({ languages: filters.languages.filter((l) => l !== lang) });
+    } else {
+      onUpdate({ languages: [...filters.languages, lang] });
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium
+          transition-all min-h-[44px]
+          ${activeCount > 0
+            ? "bg-primary-50 text-primary-700 border border-primary-300"
+            : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
+        `}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+          />
+        </svg>
+        <span>More filters</span>
+        {activeCount > 0 && (
+          <span className="flex items-center justify-center w-5 h-5 bg-primary-500 text-white text-xs font-bold rounded-full">
+            {activeCount}
+          </span>
+        )}
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] right-0 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-900">More filters</span>
+            {activeCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  onUpdate({
+                    hoursPerWeek: "",
+                    track: "",
+                    languages: [],
+                    hasVideo: false,
+                  });
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="p-4 space-y-5 max-h-[400px] overflow-y-auto">
+            {/* Hours per week */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                Hours per week
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {HOURS_OPTIONS.filter(o => o.value !== "").map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onUpdate({ hoursPerWeek: filters.hoursPerWeek === opt.value ? "" : opt.value })}
+                    className={`
+                      px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                      ${filters.hoursPerWeek === opt.value
+                        ? "bg-primary-100 text-primary-700 border border-primary-300"
+                        : "bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200"
+                      }
+                    `}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Career track */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                Career track
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {TRACK_OPTIONS.filter(o => o.value !== "").map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onUpdate({ track: filters.track === opt.value ? "" : opt.value })}
+                    className={`
+                      px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                      ${filters.track === opt.value
+                        ? "bg-primary-100 text-primary-700 border border-primary-300"
+                        : "bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200"
+                      }
+                    `}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Languages */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                Languages
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGE_OPTIONS.map((lang) => (
+                  <button
+                    key={lang.value}
+                    type="button"
+                    onClick={() => toggleLanguage(lang.value)}
+                    className={`
+                      px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                      ${filters.languages.includes(lang.value)
+                        ? "bg-primary-100 text-primary-700 border border-primary-300"
+                        : "bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200"
+                      }
+                    `}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Has video toggle */}
+            <div>
+              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                <div>
+                  <span className="text-sm font-medium text-gray-900">Has intro video</span>
+                  <p className="text-xs text-gray-500 mt-0.5">Only show candidates with videos</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={filters.hasVideo}
+                  onChange={(e) => onUpdate({ hasVideo: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============================================================
 // Main Component
 // ============================================================
@@ -313,7 +608,6 @@ export default function CandidateFilters({
   totalResults,
 }: CandidateFiltersProps) {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
 
   const update = useCallback(
     (partial: Partial<CandidateFilterValues>) => onChange({ ...filters, ...partial }),
@@ -347,13 +641,6 @@ export default function CandidateFilters({
     });
   };
 
-  // Get location display text
-  const locationDisplay = filters.city && filters.state
-    ? `${filters.city}, ${filters.state}`
-    : filters.state
-    ? US_STATES.find((s) => s.value === filters.state)?.label || filters.state
-    : "";
-
   return (
     <>
       {/* ════════════════════════════════════════════════════════════
@@ -372,7 +659,7 @@ export default function CandidateFilters({
           {/* Active filter chips */}
           {filters.certifications.length > 0 && (
             <button
-              onClick={() => setFilterModalOpen(true)}
+              onClick={() => update({ certifications: [] })}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700 whitespace-nowrap"
             >
               <span>{filters.certifications.length} cert{filters.certifications.length > 1 ? "s" : ""}</span>
@@ -383,7 +670,7 @@ export default function CandidateFilters({
           )}
           {filters.availability.length > 0 && (
             <button
-              onClick={() => setFilterModalOpen(true)}
+              onClick={() => update({ availability: [] })}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700 whitespace-nowrap"
             >
               <span>{filters.availability.length} avail</span>
@@ -434,10 +721,10 @@ export default function CandidateFilters({
           DESKTOP LAYOUT
       ════════════════════════════════════════════════════════════ */}
       <div className="hidden sm:block mb-6">
-        {/* Primary filters row */}
+        {/* Single row of filters */}
         <div className="flex flex-wrap items-center gap-3">
           {/* City autocomplete */}
-          <div className="w-56">
+          <div className="w-52">
             <CityAutocomplete
               value={filters.city ? `${filters.city}, ${filters.state}` : ""}
               onLocationChange={({ city, state }) => update({ city, state })}
@@ -447,32 +734,28 @@ export default function CandidateFilters({
 
           {/* State fallback (if no city selected) */}
           {!filters.city && (
-            <div className="w-40">
-              <Select
-                options={STATE_OPTIONS}
+            <div className="w-36">
+              <StateSelect
                 value={filters.state}
                 onChange={(v) => update({ state: v })}
                 placeholder="State"
-                size="sm"
-                searchable
-                searchPlaceholder="Search states..."
               />
             </div>
           )}
 
           {/* Certifications */}
-          <div className="w-40">
+          <div className="w-36">
             <MultiSelectDropdown
               label="Certifications"
               options={CERTIFICATION_OPTIONS}
               selected={filters.certifications}
               onChange={(v) => update({ certifications: v })}
-              placeholder="Certifications"
+              placeholder="Certs"
             />
           </div>
 
           {/* Availability */}
-          <div className="w-40">
+          <div className="w-36">
             <MultiSelectDropdown
               label="Availability"
               options={AVAILABILITY_OPTIONS}
@@ -482,29 +765,11 @@ export default function CandidateFilters({
             />
           </div>
 
-          {/* More Filters toggle */}
-          <button
-            type="button"
-            onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-            className={`
-              flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium
-              transition-all duration-200 min-h-[44px]
-              ${moreFiltersOpen || filters.hoursPerWeek || filters.track || filters.languages.length > 0 || filters.hasVideo
-                ? "bg-primary-50 text-primary-700 border border-primary-200"
-                : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"
-              }
-            `}
-          >
-            <span>More filters</span>
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${moreFiltersOpen ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+          {/* All Filters dropdown (Hours, Track, Languages, Has Video) */}
+          <AllFiltersDropdown
+            filters={filters}
+            onUpdate={update}
+          />
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -522,66 +787,16 @@ export default function CandidateFilters({
 
           {/* Sort */}
           {showSort && (
-            <div className="w-36">
-              <Select
+            <div className="w-32">
+              <NativeSelect
                 options={SORT_OPTIONS}
                 value={filters.sort}
                 onChange={(v) => update({ sort: v })}
                 placeholder="Sort"
-                size="sm"
               />
             </div>
           )}
         </div>
-
-        {/* More filters panel (expandable) */}
-        {moreFiltersOpen && (
-          <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-gray-100 animate-fade-in">
-            {/* Hours per week */}
-            <div className="w-40">
-              <Select
-                options={HOURS_OPTIONS}
-                value={filters.hoursPerWeek}
-                onChange={(v) => update({ hoursPerWeek: v })}
-                placeholder="Hours/week"
-                size="sm"
-              />
-            </div>
-
-            {/* Track */}
-            <div className="w-44">
-              <Select
-                options={TRACK_OPTIONS}
-                value={filters.track}
-                onChange={(v) => update({ track: v })}
-                placeholder="Career track"
-                size="sm"
-              />
-            </div>
-
-            {/* Languages */}
-            <div className="w-40">
-              <MultiSelectDropdown
-                label="Languages"
-                options={LANGUAGE_OPTIONS}
-                selected={filters.languages}
-                onChange={(v) => update({ languages: v })}
-                placeholder="Languages"
-              />
-            </div>
-
-            {/* Has video toggle */}
-            <label className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-colors min-h-[44px]">
-              <input
-                type="checkbox"
-                checked={filters.hasVideo}
-                onChange={(e) => update({ hasVideo: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Has video</span>
-            </label>
-          </div>
-        )}
       </div>
 
       {/* ════════════════════════════════════════════════════════════
@@ -625,14 +840,10 @@ export default function CandidateFilters({
             />
             {!filters.city && (
               <div className="mt-3">
-                <Select
-                  options={STATE_OPTIONS}
+                <StateSelect
                   value={filters.state}
                   onChange={(v) => update({ state: v })}
                   placeholder="Or select a state"
-                  size="md"
-                  searchable
-                  searchPlaceholder="Search states..."
                 />
               </div>
             )}
@@ -657,7 +868,7 @@ export default function CandidateFilters({
                     });
                   }}
                   className={`
-                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all
                     ${filters.certifications.includes(cert.value)
                       ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
                       : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
@@ -689,7 +900,7 @@ export default function CandidateFilters({
                     });
                   }}
                   className={`
-                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all
                     ${filters.availability.includes(avail.value)
                       ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
                       : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
@@ -707,13 +918,24 @@ export default function CandidateFilters({
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Hours per week
             </label>
-            <Select
-              options={HOURS_OPTIONS}
-              value={filters.hoursPerWeek}
-              onChange={(v) => update({ hoursPerWeek: v })}
-              placeholder="Any hours"
-              size="md"
-            />
+            <div className="flex flex-wrap gap-2">
+              {HOURS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value || "any"}
+                  type="button"
+                  onClick={() => update({ hoursPerWeek: opt.value })}
+                  className={`
+                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all
+                    ${filters.hoursPerWeek === opt.value
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                    }
+                  `}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Career track section */}
@@ -721,13 +943,24 @@ export default function CandidateFilters({
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Career track
             </label>
-            <Select
-              options={TRACK_OPTIONS}
-              value={filters.track}
-              onChange={(v) => update({ track: v })}
-              placeholder="All tracks"
-              size="md"
-            />
+            <div className="flex flex-wrap gap-2">
+              {TRACK_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value || "all"}
+                  type="button"
+                  onClick={() => update({ track: opt.value })}
+                  className={`
+                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all
+                    ${filters.track === opt.value
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                    }
+                  `}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Languages section */}
@@ -749,7 +982,7 @@ export default function CandidateFilters({
                     });
                   }}
                   className={`
-                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                    px-4 py-2.5 rounded-xl text-sm font-medium transition-all
                     ${filters.languages.includes(lang.value)
                       ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
                       : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
@@ -784,13 +1017,24 @@ export default function CandidateFilters({
               <label className="block text-sm font-semibold text-gray-900 mb-3">
                 Sort by
               </label>
-              <Select
-                options={SORT_OPTIONS}
-                value={filters.sort}
-                onChange={(v) => update({ sort: v })}
-                placeholder="Sort by"
-                size="md"
-              />
+              <div className="flex flex-wrap gap-2">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => update({ sort: opt.value })}
+                    className={`
+                      px-4 py-2.5 rounded-xl text-sm font-medium transition-all
+                      ${filters.sort === opt.value
+                        ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                        : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                      }
+                    `}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

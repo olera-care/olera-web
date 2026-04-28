@@ -5,6 +5,7 @@ import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import { saveProfile } from "./save-profile";
+import { trackProfileEdit } from "@/lib/analytics/track-profile-edit";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 import type { StaffInfo } from "@/lib/types";
@@ -117,6 +118,7 @@ export default function EditOwnerModal({
         metadataFields: { staff: staffData },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
+      if (hasChanges) trackProfileEdit(profile.slug, "owner");
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

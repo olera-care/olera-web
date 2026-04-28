@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { saveProfile } from "./save-profile";
+import { trackProfileEdit } from "@/lib/analytics/track-profile-edit";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 
@@ -69,6 +70,7 @@ export default function EditStaffScreeningModal({
         metadataFields: { staff_screening: selected },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
+      if (hasChanges) trackProfileEdit(profile.slug, "screening");
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

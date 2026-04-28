@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-04-28 — Post-answer hook + smart picker (P1) — planned, not started
+
+Three-PR sequence to capture peak engagement at the post-answer moment and redirect providers into the V2 dashboard. Plan: [`plans/post-answer-hook-and-smart-picker-plan.md`](plans/post-answer-hook-and-smart-picker-plan.md). Notion: [P1 task](https://www.notion.so/Hook-the-post-answer-moment-lure-providers-into-the-V2-profile-edit-dashboard-34e5903a0ffe818eb372fb6539e65391).
+
+Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard` (`ActionCard.tsx`), so this is a success-state UI swap, not an architecture rebuild. Esther confirmed the verification gate on answer publication is intentional — keep it, monitor. Smart picker is a single component shared between the post-answer surface and the dashboard's existing static 30%-banner (which gets upgraded in the same work).
+
+- **PR A (funnel instrumentation, ships first):** extend `qa_funnel` rollup with `clicked_dashboard` (reads existing `analytics_teaser_cta_clicked` events) + `edited_profile` columns on `/admin/analytics`. Baseline before any UI ships.
+- **PR B (smart picker on dashboard):** new `<SmartNextActionCard>` + `lib/next-best-action.ts` scoring function. Replaces the static "Complete your profile" banner on `DashboardPage.tsx`. Category-aware soft-honest copy (no data-claim multipliers).
+- **PR C (post-answer hook):** swap the `if (submitted)` branch in `ActionCard.tsx` for the same picker with `source="qa-success"`. Source-tagged links + per-source funnel attribution.
+
 ### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
 
 Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).

@@ -142,7 +142,8 @@ function NativeSelect({
 }
 
 /**
- * Searchable state select - uses native select with datalist for search.
+ * Custom state select dropdown with search and max-height constraint.
+ * Consistent styling with other filter dropdowns.
  */
 function StateSelect({
   value,
@@ -153,35 +154,120 @@ function StateSelect({
   onChange: (value: string) => void;
   placeholder?: string;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useClickOutside(containerRef, () => {
+    setIsOpen(false);
+    setSearch("");
+  }, isOpen);
+
+  // Focus search input when opening
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const filteredStates = search
+    ? US_STATES.filter(
+        (s) =>
+          s.label.toLowerCase().includes(search.toLowerCase()) ||
+          s.value.toLowerCase().includes(search.toLowerCase())
+      )
+    : US_STATES;
+
+  const selectedLabel = value
+    ? US_STATES.find((s) => s.value === value)?.label || value
+    : placeholder;
+
+  const handleSelect = (stateValue: string) => {
+    onChange(stateValue);
+    setIsOpen(false);
+    setSearch("");
+  };
+
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
         className={`
-          w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm font-medium
-          outline-none transition-all min-h-[44px] cursor-pointer appearance-none
-          pr-10
-          ${value ? "text-gray-900 border-gray-200" : "text-gray-500 border-gray-200"}
-          hover:border-gray-300
-          focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+          flex items-center justify-between gap-2 w-full px-3.5 py-2.5
+          bg-white border rounded-xl text-sm font-medium
+          transition-all min-h-[44px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
         `}
       >
-        <option value="">{placeholder}</option>
-        {US_STATES.map((state) => (
-          <option key={state.value} value={state.value}>
-            {state.label}
-          </option>
-        ))}
-      </select>
-      <svg
-        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          {/* Search input */}
+          <div className="p-2 border-b border-gray-100">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search states..."
+              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+            />
+          </div>
+
+          {/* Options list with max height */}
+          <div className="max-h-64 overflow-y-auto">
+            {/* Clear option */}
+            {value && (
+              <button
+                type="button"
+                onClick={() => handleSelect("")}
+                className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
+                Clear selection
+              </button>
+            )}
+
+            {filteredStates.length === 0 ? (
+              <div className="px-3 py-3 text-sm text-gray-400 text-center">
+                No states found
+              </div>
+            ) : (
+              filteredStates.map((state) => (
+                <button
+                  key={state.value}
+                  type="button"
+                  onClick={() => handleSelect(state.value)}
+                  className={`
+                    w-full px-3 py-2.5 text-left text-sm transition-colors
+                    ${value === state.value
+                      ? "bg-primary-50 text-primary-700 font-medium"
+                      : "text-gray-900 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  {state.label}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

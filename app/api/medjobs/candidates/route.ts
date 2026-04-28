@@ -217,9 +217,23 @@ export async function GET(req: NextRequest) {
       }));
     }
 
+    // When metadata filters are applied, the total must reflect filtered count
+    // Note: This is approximate for pagination since we only filter the current page
+    const hasMetadataFilters =
+      programTrack ||
+      certifications.length > 0 ||
+      availability.length > 0 ||
+      hoursPerWeek ||
+      languages.length > 0 ||
+      hasVideo;
+
+    // If metadata filters are active, return filtered count (current page only)
+    // Otherwise return the DB count
+    const effectiveTotal = hasMetadataFilters ? candidates.length : (count || 0);
+
     return NextResponse.json({
       candidates,
-      total: count || 0,
+      total: effectiveTotal,
       page,
       pageSize,
       isProvider,

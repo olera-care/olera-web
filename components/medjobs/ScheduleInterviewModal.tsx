@@ -12,6 +12,7 @@ export interface ScheduleFormData {
   altDate?: string;
   altTime?: string;
   notes?: string;
+  termsAccepted?: boolean;
 }
 
 interface ScheduleInterviewModalProps {
@@ -233,8 +234,11 @@ export default function ScheduleInterviewModal({
   const [error, setError] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   // T&C acceptance for providers scheduling interviews
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
+  // Preserve state when returning from verification flow
+  const [termsAccepted, setTermsAccepted] = useState(initialValues?.termsAccepted ?? false);
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(
+    initialValues?.termsAccepted ? new Date().toISOString() : null
+  );
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -271,6 +275,7 @@ export default function ScheduleInterviewModal({
         altDate: altDate || undefined,
         altTime: altTime || undefined,
         notes: notes.trim() || undefined,
+        termsAccepted,
       });
       return;
     }
@@ -463,7 +468,7 @@ export default function ScheduleInterviewModal({
                     setTermsAcceptedAt(null);
                   }
                 }}
-                className="mt-0.5 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="mt-0.5 w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
               />
               <span className="text-sm text-gray-700">
                 I agree to the{" "}

@@ -346,7 +346,7 @@ function MultiSelectDropdown({
                 type="checkbox"
                 checked={selected.includes(option.value)}
                 onChange={() => toggle(option.value)}
-                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
+                className="w-4 h-4 rounded border-gray-300 accent-primary-600 focus:ring-primary-500 focus:ring-offset-0"
               />
               <span className="text-sm text-gray-900">{option.label}</span>
             </label>
@@ -661,7 +661,7 @@ function AllFiltersDropdown({
                   type="checkbox"
                   checked={filters.hasVideo}
                   onChange={(e) => onUpdate({ hasVideo: e.target.checked })}
-                  className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
                 />
               </label>
             </div>
@@ -1092,7 +1092,7 @@ export default function CandidateFilters({
                 type="checkbox"
                 checked={filters.hasVideo}
                 onChange={(e) => update({ hasVideo: e.target.checked })}
-                className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
               />
             </label>
           </div>

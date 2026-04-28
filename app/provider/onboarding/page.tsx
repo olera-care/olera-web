@@ -930,9 +930,46 @@ function ProviderOnboardingContent() {
       return;
     }
 
+    // Check email account type (handles case where blur didn't fire yet)
+    // This ensures one-click flow works even if user clicked Continue immediately after typing email
+    const normalizedEmail = email.trim().toLowerCase();
+    setSearching(true); // Show loading state during check
+
+    try {
+      const checkRes = await fetch("/api/auth/check-email-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, intendedType: "organization" }),
+      });
+
+      if (checkRes.ok) {
+        const checkResult = await checkRes.json();
+        if (!checkResult.available) {
+          // Set error and stay on page so user can fix the email
+          if (checkResult.alreadyHasProfile) {
+            setEmailAccountError("This email already manages a provider page. Sign in instead.");
+          } else if (checkResult.existingType === "family") {
+            setEmailAccountError("This email is linked to a family account. Use a different email for your provider page.");
+          } else if (checkResult.existingType === "caregiver") {
+            setEmailAccountError("This email is linked to a caregiver account. Use a different email for your provider page.");
+          } else {
+            setEmailAccountError("This email is already in use. Please use a different email.");
+          }
+          setSearching(false);
+          return;
+        }
+        // Clear any stale account error from blur handler
+        setEmailAccountError(null);
+      }
+    } catch (err) {
+      console.error("[handleSearch] check-email-type error:", err);
+      // Don't block on network errors - continue and let subsequent handlers catch issues
+    }
+
     // If user explicitly selected "Create new" from autocomplete, go directly to preview
     if (createNewSelected && formData.orgName.trim()) {
       // They clicked "Create [name] as new organization" - skip search, go to create screen
+      setSearching(false);
       setScreen("preview");
       return;
     }
@@ -986,6 +1023,7 @@ function ProviderOnboardingContent() {
           } as BusinessProfileMatch;
 
       setSearchResults([result]);
+      setSearching(false);
 
       // For unclaimed pre-selected orgs, skip results and go directly to confirm-claim
       if (!isClaimed) {
@@ -1632,17 +1670,13 @@ function ProviderOnboardingContent() {
               {/* Submit button */}
               <button
                 type="submit"
-                disabled={searching || !isEmailValid || emailChecking}
+                disabled={searching || !isEmailValid}
                 className="w-full py-3.5 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
-                {searching ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  "Continue"
+                {searching && (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 )}
+                Continue
               </button>
             </form>
 
@@ -2443,7 +2477,6 @@ function ProviderOnboardingContent() {
                     onClick={handleInstantCreate}
                     disabled={
                       actionLoading === "instant-create" ||
-                      emailChecking ||
                       !formData.orgName.trim() ||
                       !formData.city.trim() ||
                       !formData.state.trim() ||
@@ -2497,7 +2530,6 @@ function ProviderOnboardingContent() {
               onClick={handleInstantCreate}
               disabled={
                 actionLoading === "instant-create" ||
-                emailChecking ||
                 !formData.orgName.trim() ||
                 !formData.city.trim() ||
                 !formData.state.trim() ||

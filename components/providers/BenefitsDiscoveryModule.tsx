@@ -176,7 +176,6 @@ export default function BenefitsDiscoveryModule({
   const [age, setAge] = useState("");
   const [medicaid, setMedicaid] = useState<MedicaidStatus>("");
   const [incomeRange, setIncomeRange] = useState<IncomeRange | "">("");
-  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -297,8 +296,8 @@ export default function BenefitsDiscoveryModule({
   // actually works.
   async function handleSave() {
     setSaveError(null);
-    if (!firstName.trim() || !email.trim() || !email.includes("@")) {
-      setSaveError("Please enter your name and a valid email.");
+    if (!email.trim() || !email.includes("@")) {
+      setSaveError("Please enter a valid email.");
       return;
     }
     setSaving(true);
@@ -313,7 +312,6 @@ export default function BenefitsDiscoveryModule({
           medicaidStatus: medicaid || null,
           incomeRange: incomeRange || null,
           stateCode: providerState,
-          firstName: firstName.trim(),
           email: email.trim().toLowerCase(),
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
@@ -332,7 +330,7 @@ export default function BenefitsDiscoveryModule({
         setSaving(false);
         return;
       }
-      // Name/email captured → reveal results inline on the provider page.
+      // Email captured → reveal results inline on the provider page.
       // The user can click through to /welcome from the results CTA, which
       // does the full-page reload needed to refresh the Supabase client singleton.
       setSaving(false);
@@ -362,13 +360,10 @@ export default function BenefitsDiscoveryModule({
     step === "results" ? 5 :
     1;
   const totalSteps = 5;
-  // For step 4 (save): compute partial fill of the 4th segment based on form completeness
+  // For step 4 (save): the 4th segment fills once the email field holds a valid value.
   const saveProgress = (() => {
     if (step !== "save") return 0;
-    let p = 0;
-    if (firstName.trim().length > 0) p += 0.5;
-    if (email.trim().length > 0 && email.includes("@")) p += 0.5;
-    return p;
+    return email.trim().length > 0 && email.includes("@") ? 1 : 0;
   })();
 
   const StepHeader = ({ onBack }: { onBack?: () => void }) => (
@@ -385,7 +380,7 @@ export default function BenefitsDiscoveryModule({
       <div className="flex-1 flex items-center gap-1.5">
         {Array.from({ length: totalSteps }).map((_, i) => {
           // Segments 1-3: binary (filled once that step is reached).
-          // Segment 4 (the save gate): partial fill driven by name+email completeness,
+          // Segment 4 (the save gate): fills once the email field holds a valid value,
           //   pulses softly when empty to telegraph "you're not done yet".
           // Segment 5 (the results reveal): fills once save succeeds.
           const isSaveSegment = i === 3;
@@ -642,7 +637,7 @@ export default function BenefitsDiscoveryModule({
       <div>
         <StepHeader />
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          {firstName ? `${firstName}, you` : "You"} may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
+          You may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
         </h2>
         {contextBits.length > 0 && (
           <p className="text-sm text-gray-500 mt-1 mb-6">
@@ -726,79 +721,43 @@ export default function BenefitsDiscoveryModule({
     );
   }
 
-  // ─── Step 4: Save gate (name + email) — now BEFORE results ───────────
-  // Typeform-style: one big question, huge underlined inputs, warm microcopy.
-  // The match count is teased in the headline so the user knows what they're
-  // unlocking — "loss aversion" pull instead of a cold form.
+  // ─── Step 4: Save gate (email only) — gates the results reveal ─────
+  // Single big underlined input, Typeform-feel. The match count is teased
+  // in the eyebrow + button so the user knows what they're unlocking —
+  // loss-aversion pull instead of a cold form.
   if (step === "save") {
     const matchCount = matchingPrograms.length;
-    const canSubmit = !saving && firstName.trim().length > 0 && email.includes("@");
-    const greeting = firstName.trim()
-      ? `Nice to meet you, ${firstName.trim().split(/\s+/)[0]}.`
-      : "We found programs for your family.";
+    const canSubmit = !saving && email.trim().length > 0 && email.includes("@");
 
     return (
       <div>
         <StepHeader onBack={() => setStep("financial")} />
 
-        {/* ── Big headline — teases the reveal behind the gate ─────────── */}
+        {/* ── Big headline — eyebrow carries the proof, headline carries the ask ── */}
         <p className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-3">
           {matchCount > 0 ? `${matchCount} ${matchCount === 1 ? "match" : "matches"} ready` : "Almost there"}
         </p>
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display leading-[1.1] mb-3">
-          {matchCount > 0 ? (
-            <>
-              {greeting}
-              <br />
-              <span className="text-gray-500">Where should we send your {matchCount === 1 ? "match" : "matches"}?</span>
-            </>
-          ) : (
-            <>Where should we send your results?</>
-          )}
+          Where should we send your {matchCount === 1 ? "match" : matchCount > 0 ? "matches" : "results"}?
         </h2>
         <p className="text-sm text-gray-500 mb-8">
           No password. Just a magic link so you can come back anytime.
         </p>
 
-        {/* ── Typeform-style underlined inputs ─────────────────────────── */}
-        <div className="space-y-8 mb-8">
-          <div>
-            <label htmlFor="benefits-name" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
-              1 · Your first name
-            </label>
-            <input
-              id="benefits-name"
-              type="text"
-              placeholder="Sarah"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  document.getElementById("benefits-email")?.focus();
-                }
-              }}
-              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
-              autoFocus
-              autoComplete="given-name"
-            />
-          </div>
-          <div>
-            <label htmlFor="benefits-email" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
-              2 · Your email
-            </label>
-            <input
-              id="benefits-email"
-              type="email"
-              inputMode="email"
-              placeholder="sarah@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
-              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
-              autoComplete="email"
-            />
-          </div>
+        {/* ── Single underlined input — Typeform feel, one ask ────────── */}
+        <div className="mb-8">
+          <input
+            id="benefits-email"
+            type="email"
+            inputMode="email"
+            placeholder="sarah@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
+            className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
+            autoFocus
+            autoComplete="email"
+          />
         </div>
 
         {saveError && (

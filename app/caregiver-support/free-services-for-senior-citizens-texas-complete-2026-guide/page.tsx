@@ -16,7 +16,7 @@ import ShareButton from "@/components/article/ShareButton";
 const TITLE = "Free Services for Senior Citizens in Texas: Complete 2026 Guide";
 const DESCRIPTION =
   "Finding help for an aging parent shouldn\u2019t feel like a full-time job. We found free services in Texas for you.";
-const CANONICAL = "https://olera.care/texas/free-services-for-senior-citizens";
+const CANONICAL = "https://olera.care/caregiver-support/free-services-for-senior-citizens-texas-complete-2026-guide";
 
 export const metadata: Metadata = {
   title: `${TITLE} | Olera`,
@@ -149,7 +149,7 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-    { "@type": "ListItem", position: 2, name: "Texas", item: "https://olera.care/texas" },
+    { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
     { "@type": "ListItem", position: 3, name: TITLE, item: CANONICAL },
   ],
 };
@@ -206,9 +206,9 @@ export default async function FreeServicesForSeniorsPage() {
 
           {/* ─── Header ─── */}
           <header className="pt-8 md:pt-12">
-            <Link href="/texas" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6">
+            <Link href="/caregiver-support" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" /></svg>
-              Texas Resources
+              Caregiver Support
             </Link>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-3">Senior Care</p>
             <h1 className="font-display text-display-sm md:text-display-md text-gray-900 tracking-[-0.02em] mb-3">{TITLE}</h1>
@@ -503,7 +503,7 @@ export default async function FreeServicesForSeniorsPage() {
                   const careType = (r.care_types as CareTypeId[])?.[0];
                   const label = careType ? CARE_TYPE_CONFIG[careType]?.label : null;
                   return (
-                    <Link key={r.id} href={`/texas/${r.slug}`} className="group block">
+                    <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
                       {r.cover_image_url && (
                         <img src={r.cover_image_url} alt={r.title} className="w-full aspect-[3/2] object-cover rounded-xl mb-3 group-hover:opacity-90 transition-opacity" />
                       )}

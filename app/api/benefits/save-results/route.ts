@@ -41,7 +41,7 @@ interface SaveResultsPayload {
   stateCode: string | null; // 2-letter (TX, MI, etc.)
 
   // Save payload
-  firstName: string;
+  firstName?: string;
   email: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
@@ -65,8 +65,8 @@ export async function POST(req: Request) {
   const { careNeed, age, medicaidStatus, incomeRange, stateCode, firstName, email, matchedPrograms, matchCount } = payload;
 
   // Validate required fields
-  if (!email || !firstName) {
-    return NextResponse.json({ error: "First name and email are required." }, { status: 400 });
+  if (!email) {
+    return NextResponse.json({ error: "Email is required." }, { status: 400 });
   }
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail.includes("@")) {
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
-  const displayName = firstName.trim() || "Care Seeker";
+  const displayName = firstName?.trim() || "Care Seeker";
 
   // ═══════════════════════════════════════════════════════════════════
   // 1. Resolve user: already logged in → use their account

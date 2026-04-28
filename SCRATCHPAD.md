@@ -7,6 +7,17 @@
 
 ## Current Focus
 
+### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
+
+Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).
+
+Audit of all 5 steps showed only the **save step** has fat to trim (the others are clean). Resequenced to fix that first — instrumenting before the redesign would give us a week of baseline data on a form we're about to change.
+
+- **PR A (save-step rework, ships first):** drop name field; cut redundant "We found programs for your family." H2 (eyebrow + button already carry the proof); drop pointless "1 ·" / "2 ·" field-label numbering (one field doesn't need a counter). Backend tolerates missing firstName via existing `display_name: "Care Seeker"` fallback. Single-field forms convert dramatically better than multi-field — likely 10-25% lift on its own.
+- **PR B (per-step instrumentation, after PR A stable):** new `/api/benefits/track-step` route + `useTrackStep` helper; fires `benefits_entry_viewed`, `benefits_step_viewed`, `benefits_step_completed` to `provider_activity`. All carry a `variant` field (forced to `"control"` in PR B). No Slack pings on the new events. Watch ~1 week before PR C.
+- **PR C (entry-point copy A/B + trust strip, after PR B watch):** deterministic 50/50 hash on `session_id` (no GrowthBook installed); money-loss headline + dynamic-state sub-line on the variant arm; trust strip on **both** arms. Decision rule: 20%+ lift → ship; <5% movement → kill and look downstream.
+- **Scope:** ONLY `BenefitsDiscoveryModule` (the embedded 5-step entry on provider pages). Standalone `BenefitsIntakeForm` out of scope.
+
 ### 2026-04-27 — Sweep #1 (provider data-quality cleanup) shipped
 
 End-to-end provider directory cleanup. Started with 73,304 active providers, ended with 70,722 — net 2,582 deletes + 270 reclassifications.

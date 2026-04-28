@@ -75,7 +75,7 @@ export type NotificationPrefs = {
 };
 
 export type ConnectionType = "inquiry" | "save" | "match" | "request" | "application" | "invitation" | "dismiss";
-export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived";
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived" | "pending_verification";
 
 // ============================================================
 // Table Row Types

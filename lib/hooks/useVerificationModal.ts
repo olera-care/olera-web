@@ -69,6 +69,8 @@ export function useVerificationModal({
           linkedinScreenshots: result.linkedinScreenshots,
           // Use fullName from form (preferred) or fallback to pre-configured claimerName
           claimerName: result.fullName || claimerName,
+          // T&C acceptance timestamp for compliance audit trail
+          termsAcceptedAt: result.termsAcceptedAt,
         }),
       });
 

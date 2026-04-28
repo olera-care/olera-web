@@ -6,6 +6,7 @@ import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 
 // ============================================================
 // Types
@@ -233,6 +234,17 @@ export async function POST(request: NextRequest) {
       } else if (publishedCount && publishedCount > 0) {
         console.log(`[verify-otp] Published ${publishedCount} pending Q&A answers`);
       }
+
+      // Deliver all pending_verification connections with notifications (fire-and-forget)
+      // These are inquiries the provider saved while unverified
+      deliverPendingConnections(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify-otp] Error delivering pending connections:", err);
+      });
 
       console.log(`[verify-otp] Auto-verified ${profile.display_name} via email OTP: ${trustResult.reason}`);
 

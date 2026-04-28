@@ -7,6 +7,7 @@ import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 
 // Storage bucket for verification documents/screenshots
 const VERIFICATION_BUCKET = "verification-docs";
@@ -34,6 +35,8 @@ interface VerifyRequest {
     experienceData: string;
     experienceType: string;
   };
+  /** ISO timestamp when T&C was accepted (for compliance audit trail) */
+  termsAcceptedAt?: string;
 }
 
 interface VerifyResponse {
@@ -158,7 +161,7 @@ async function uploadVerificationImage(
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as VerifyRequest;
-    const { profileId, method, value, documentData, documentType, claimerName, linkedinScreenshots } = body;
+    const { profileId, method, value, documentData, documentType, claimerName, linkedinScreenshots, termsAcceptedAt } = body;
 
     if (!profileId || !method || !value) {
       return NextResponse.json(
@@ -270,6 +273,8 @@ export async function POST(request: NextRequest) {
         verification_value: method === "document" ? "[document]" : value,
         verified_at: new Date().toISOString(),
         verification_reason: result.reason,
+        // Store T&C acceptance timestamp for compliance audit trail
+        ...(termsAcceptedAt && { terms_accepted_at: termsAcceptedAt }),
       };
 
       const { error: updateError } = await admin
@@ -331,6 +336,17 @@ export async function POST(request: NextRequest) {
         console.log(`[verify] Published ${publishedCount} pending Q&A answers for ${profile.display_name}`);
       }
 
+      // Deliver all pending_verification connections with notifications (fire-and-forget)
+      // These are inquiries the provider saved while unverified
+      deliverPendingConnections(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify] Error delivering pending connections:", err);
+      });
+
       console.log(`[verify] Auto-verified ${profile.display_name} via ${method}: ${result.reason}`);
     } else {
       // Not auto-verified — set to pending and send to Slack for manual review
@@ -375,6 +391,8 @@ export async function POST(request: NextRequest) {
         verification_attempt: attemptRecord,
         // Also store in array for multiple attempt tracking
         verification_attempts: [...existingAttempts, attemptRecord],
+        // Store T&C acceptance timestamp for compliance audit trail
+        ...(termsAcceptedAt && { terms_accepted_at: termsAcceptedAt }),
       };
 
       const { error: updateError } = await admin

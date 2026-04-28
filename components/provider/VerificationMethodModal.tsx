@@ -26,6 +26,8 @@ export interface VerificationResult {
     experienceData: string;
     experienceType: string;
   };
+  /** ISO timestamp when T&C was accepted (for compliance audit trail) */
+  termsAcceptedAt?: string;
 }
 
 interface VerificationMethodModalProps {
@@ -227,6 +229,9 @@ export default function VerificationMethodModal({
   const prevLinkedinHeaderRef = useRef<string | null>(null);
   const prevLinkedinExperienceRef = useRef<string | null>(null);
 
+  // T&C acceptance timestamp — tracked at main component level for compliance
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
+
   // Reset state when modal opens
   // Note: triedMethods is intentionally NOT reset — it persists across modal
   // open/close so users see which methods they already attempted this session.
@@ -256,6 +261,8 @@ export default function VerificationMethodModal({
       setLinkedinHeaderPreview(null);
       setLinkedinExperienceFile(null);
       setLinkedinExperiencePreview(null);
+      // Reset T&C acceptance (user must re-accept each session)
+      setTermsAcceptedAt(null);
     }
   }, [isOpen, userEmail, userName, businessWebsite]);
 
@@ -362,7 +369,11 @@ export default function VerificationMethodModal({
     }
   }, [emailAccountError]);
 
-  const handleMethodSelect = (method: VerificationMethod) => {
+  const handleMethodSelect = (method: VerificationMethod, acceptedAt?: string) => {
+    // Capture T&C acceptance timestamp from PickMethodScreen
+    if (acceptedAt) {
+      setTermsAcceptedAt(acceptedAt);
+    }
     setScreen(method);
     setError(null);
   };
@@ -382,7 +393,15 @@ export default function VerificationMethodModal({
     setError(null);
 
     try {
-      const result = await onSubmit({ method, value, fullName: fullName.trim(), documentData, documentType, linkedinScreenshots });
+      const result = await onSubmit({
+        method,
+        value,
+        fullName: fullName.trim(),
+        documentData,
+        documentType,
+        linkedinScreenshots,
+        termsAcceptedAt: termsAcceptedAt || undefined,
+      });
       if (result?.verified) {
         setScreen("success");
       } else if (result?.pendingReview) {
@@ -425,6 +444,7 @@ export default function VerificationMethodModal({
           profileId,
           email: emailValue.trim(),
           fullName: fullName.trim(),
+          termsAcceptedAt: termsAcceptedAt || undefined,
         }),
       });
 
@@ -845,12 +865,24 @@ function PickMethodScreen({
   onNeedHelp,
   businessName,
 }: {
-  onSelect: (method: VerificationMethod) => void;
+  onSelect: (method: VerificationMethod, termsAcceptedAt?: string) => void;
   triedMethods: Set<VerificationMethod>;
   onNeedHelp: () => void;
   businessName: string;
 }) {
   const hasTriedMethods = triedMethods.size > 0;
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  // Capture the exact moment T&C was accepted for compliance audit trail
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
+
+  const handleTermsChange = (checked: boolean) => {
+    setTermsAccepted(checked);
+    if (checked) {
+      setTermsAcceptedAt(new Date().toISOString());
+    } else {
+      setTermsAcceptedAt(null);
+    }
+  };
 
   return (
     <div className="pb-1">
@@ -878,6 +910,34 @@ function PickMethodScreen({
         </p>
       </div>
 
+      {/* Terms & Conditions checkbox */}
+      <div
+        className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200"
+        style={{ animation: "fadeUp 0.3s ease-out 0.22s both" }}
+      >
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => handleTermsChange(e.target.checked)}
+            className="mt-0.5 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span className="text-sm text-gray-700">
+            I agree to the{" "}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:text-primary-700 underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Terms &amp; Conditions
+            </a>
+            {" "}of the Olera Beta Program
+          </span>
+        </label>
+      </div>
+
       {/* Message if returning after failed attempt */}
       {hasTriedMethods && (
         <div className="mb-4 px-4 py-3 bg-amber-50/80 border border-amber-100 rounded-xl">
@@ -891,19 +951,23 @@ function PickMethodScreen({
         {METHODS.map((method, index) => {
           const wasTried = triedMethods.has(method.id);
           const isRecommended = method.recommended && !hasTriedMethods && !wasTried;
+          const isDisabled = !termsAccepted;
 
           return (
             <button
               key={method.id}
-              onClick={() => onSelect(method.id)}
+              onClick={() => termsAccepted && termsAcceptedAt && onSelect(method.id, termsAcceptedAt)}
+              disabled={isDisabled}
               className={`
                 group w-full text-left p-5 rounded-2xl border transition-all duration-150
                 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
-                ${wasTried
-                  ? "border-gray-100 bg-gray-50/50"
-                  : isRecommended
-                    ? "border-primary-200 bg-primary-50/30 hover:border-primary-300 hover:bg-primary-50/50 hover:shadow-sm active:scale-[0.995]"
-                    : "border-gray-200 bg-white hover:border-primary-200 hover:shadow-sm active:scale-[0.995]"
+                ${isDisabled
+                  ? "opacity-50 cursor-not-allowed border-gray-100 bg-gray-50/50"
+                  : wasTried
+                    ? "border-gray-100 bg-gray-50/50"
+                    : isRecommended
+                      ? "border-primary-200 bg-primary-50/30 hover:border-primary-300 hover:bg-primary-50/50 hover:shadow-sm active:scale-[0.995]"
+                      : "border-gray-200 bg-white hover:border-primary-200 hover:shadow-sm active:scale-[0.995]"
                 }
               `}
               style={{ animation: `methodSlide 0.25s ease-out ${0.25 + index * 0.05}s both` }}
@@ -912,7 +976,7 @@ function PickMethodScreen({
                 {/* Icon */}
                 <div className={`
                   w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors
-                  ${wasTried
+                  ${isDisabled || wasTried
                     ? "bg-gray-100 text-gray-400"
                     : isRecommended
                       ? "bg-primary-100 text-primary-600 group-hover:bg-primary-200/70"
@@ -925,27 +989,27 @@ function PickMethodScreen({
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className={`font-semibold text-[15px] ${wasTried ? "text-gray-400" : "text-gray-900"}`}>
+                    <span className={`font-semibold text-[15px] ${isDisabled || wasTried ? "text-gray-400" : "text-gray-900"}`}>
                       {method.title}
                     </span>
                     {wasTried ? (
                       <span className="px-1.5 py-0.5 bg-gray-200 text-gray-500 text-[10px] font-semibold rounded uppercase tracking-wide">
                         Tried
                       </span>
-                    ) : isRecommended ? (
+                    ) : isRecommended && !isDisabled ? (
                       <span className="px-2 py-0.5 bg-primary-500 text-white text-[10px] font-semibold rounded-full">
                         Fastest
                       </span>
                     ) : null}
                   </div>
-                  <p className={`text-sm ${wasTried ? "text-gray-400" : "text-gray-500"}`}>
+                  <p className={`text-sm ${isDisabled || wasTried ? "text-gray-400" : "text-gray-500"}`}>
                     {method.description}
                   </p>
                 </div>
 
                 {/* Arrow */}
                 <svg
-                  className={`w-5 h-5 shrink-0 transition-all ${wasTried ? "text-gray-300" : "text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5"}`}
+                  className={`w-5 h-5 shrink-0 transition-all ${isDisabled || wasTried ? "text-gray-300" : "text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}

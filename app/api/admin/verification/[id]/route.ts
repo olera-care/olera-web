@@ -4,6 +4,7 @@ import { sendSlackAlert } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationDecisionEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 
 /**
  * PATCH /api/admin/verification/[id]
@@ -84,7 +85,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update verification" }, { status: 500 });
     }
 
-    // If approved, publish any pending Q&A answers
+    // If approved, publish any pending Q&A answers and deliver pending connections
     if (action === "approve") {
       const { error: publishError, count: publishedCount } = await db
         .from("provider_questions")
@@ -100,6 +101,39 @@ export async function PATCH(
         console.error("[admin] Failed to publish pending answers:", publishError);
       } else if (publishedCount && publishedCount > 0) {
         console.log(`[admin] Published ${publishedCount} pending Q&A answers for ${profile?.display_name}`);
+      }
+
+      // Deliver all pending_verification connections with notifications (fire-and-forget)
+      // These are inquiries the provider saved while unverified
+      deliverPendingConnections(
+        db,
+        id,
+        profile?.display_name || "A provider",
+        profile?.slug
+      ).catch((err) => {
+        console.error("[admin] Error delivering pending connections:", err);
+      });
+    } else {
+      // If rejected, archive the pending_verification connections
+      // The provider can't deliver these since they're not verified
+      try {
+        const { error: archiveError, count: archivedCount } = await db
+          .from("connections")
+          .update({
+            status: "archived",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("from_profile_id", id)
+          .eq("status", "pending_verification");
+
+        if (archiveError) {
+          console.error("[admin] Failed to archive pending connections:", archiveError);
+        } else if (archivedCount && archivedCount > 0) {
+          console.log(`[admin] Archived ${archivedCount} pending connections for rejected provider ${profile?.display_name}`);
+        }
+      } catch (archiveErr) {
+        console.error("[admin] Error archiving pending connections:", archiveErr);
+        // Non-blocking
       }
     }
 

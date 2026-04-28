@@ -35,6 +35,14 @@ Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard`
 
 **Next:** TJ to re-verify the polish commit on staging (counter "1/6 → 1/1" cycle should no longer be visible on detail pages with broken images), then merge to main via `/pr-merge`.
 
+### 2026-04-28 — Benefits QA queue populated for all 49 remaining states
+
+Bulk-populated the [Benefits QA — Program Review Queue](https://www.notion.so/fb03b87a9918460086ae728ee879b9e2) Notion DB with **614 program rows** across all states with completed pipeline data (FL + TX were already there). Queue now has 626 total rows. Cess can filter by State and work through states one at a time; the high-severity rows (62 across 49 states) are the priority since they're real numeric mismatches >15% from a fresh source check.
+
+**Approach:** built `scripts/build-qa-rows.js` to assemble row data from `data/pipeline/{STATE}/{classify,drafts,factcheck}.json`, derive Severity from flag list, format flag fields as readable summaries. Split into 100-page batches and delegated insertion to a subagent (the MCP `notion-create-pages` payload was too large to inline). One typo introduced in a Wyoming source URL (`Database` → `Department`) caught and corrected via update-page.
+
+**Flag totals across 49 new states:** 161 programs flagged, 62 high-severity, 99 medium. Most medium flags are phone mismatches where pipeline drafted local numbers and verifier returned a national hotline — judgment calls, not defects.
+
 ### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
 
 Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).

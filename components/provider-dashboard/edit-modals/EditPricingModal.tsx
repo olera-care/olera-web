@@ -5,6 +5,7 @@ import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
 import ModalFooter from "./ModalFooter";
 import { saveProfile } from "./save-profile";
+import { trackProfileEdit } from "@/lib/analytics/track-profile-edit";
 import type { BaseEditModalProps } from "./types";
 import { getPricingConfig } from "@/lib/pricing-config";
 
@@ -231,6 +232,7 @@ export default function EditPricingModal({
         },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
+      if (hasChanges) trackProfileEdit(profile.slug, "pricing");
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

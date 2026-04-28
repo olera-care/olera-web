@@ -377,16 +377,19 @@ async function handleAddContactAndSend(
   });
 
   // Attach the pilot agreement PDF if uploaded; otherwise send without
-  let attachments: Array<{ filename: string; content: Buffer; type?: string }> | undefined;
+  let attachments:
+    | Array<{ filename: string; content: string; encoding?: string; type?: string }>
+    | undefined;
   if (PILOT_AGREEMENT_URL) {
     try {
       const res = await fetch(PILOT_AGREEMENT_URL);
       if (res.ok) {
-        const buf = Buffer.from(await res.arrayBuffer());
+        const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
         attachments = [
           {
             filename: "olera-student-caregiver-pilot-agreement.pdf",
-            content: buf,
+            content: base64,
+            encoding: "base64",
             type: "application/pdf",
           },
         ];

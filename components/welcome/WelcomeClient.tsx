@@ -975,7 +975,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [isProfileLive, celebrationShown, showCelebration]);
 
   const cityDisplay = city || "your area";
-  const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
+  // "Care Seeker" is the placeholder display_name we set when a user finishes the
+  // benefits intake without giving a name — treat it as no name so the greeting
+  // falls back to "Welcome to Olera" / "Your family" instead of "Welcome, Care".
+  const rawDisplayName = activeProfile?.display_name || account?.display_name;
+  const userName = rawDisplayName && rawDisplayName !== "Care Seeker" ? rawDisplayName.split(" ")[0] : null;
   const isConnected = !!connection?.to_profile?.display_name;
 
   // Detect if user has sent a message (not auto-reply) to the connected provider

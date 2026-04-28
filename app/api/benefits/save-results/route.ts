@@ -118,7 +118,8 @@ export async function POST(req: Request) {
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
-  const displayName = firstName?.trim() || "Care Seeker";
+  const hasRealName = !!firstName?.trim();
+  const displayName = hasRealName ? firstName!.trim() : "Care Seeker";
 
   // ═══════════════════════════════════════════════════════════════════
   // 1. Resolve user: already logged in → use their account
@@ -422,7 +423,7 @@ export async function POST(req: Request) {
           subject: "Your Olera benefits results are saved",
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-              <h2 style="font-size: 22px; margin: 0 0 16px;">Hi ${displayName},</h2>
+              <h2 style="font-size: 22px; margin: 0 0 16px;">Hi ${hasRealName ? displayName : "there"},</h2>
               <p style="font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
                 You just explored benefits programs your family may qualify for on Olera. We saved ${matchCount} matching ${matchCount === 1 ? "program" : "programs"} to your profile.
               </p>

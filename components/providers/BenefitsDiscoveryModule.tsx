@@ -380,7 +380,7 @@ export default function BenefitsDiscoveryModule({
       <div className="flex-1 flex items-center gap-1.5">
         {Array.from({ length: totalSteps }).map((_, i) => {
           // Segments 1-3: binary (filled once that step is reached).
-          // Segment 4 (the save gate): partial fill driven by name+email completeness,
+          // Segment 4 (the save gate): fills once the email field holds a valid value,
           //   pulses softly when empty to telegraph "you're not done yet".
           // Segment 5 (the results reveal): fills once save succeeds.
           const isSaveSegment = i === 3;

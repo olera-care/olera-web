@@ -910,6 +910,26 @@ function ProviderOnboardingContent() {
       return;
     }
 
+    // Run email validation if blur hasn't fired yet (user clicked Continue directly)
+    // This handles the case where user types email and immediately clicks Continue
+    const validation = validateEmail(email);
+    if (!validation.valid) {
+      // Set inline validation state - UI will show error near the email input
+      setEmailValidation(validation);
+      // Don't set searchError here to avoid duplicate error messages
+      return;
+    }
+    // Update validation state if it was stale
+    if (!emailValidation.valid || emailValidation.error) {
+      setEmailValidation(validation);
+    }
+
+    // If there's an account error from a previous check, block submission
+    if (emailAccountError) {
+      // Show account error inline - don't duplicate in searchError
+      return;
+    }
+
     // If user explicitly selected "Create new" from autocomplete, go directly to preview
     if (createNewSelected && formData.orgName.trim()) {
       // They clicked "Create [name] as new organization" - skip search, go to create screen
@@ -1173,7 +1193,7 @@ function ProviderOnboardingContent() {
     } finally {
       setSearching(false);
     }
-  }, [formData]);
+  }, [formData, emailValidation, emailAccountError]);
 
   // Handle Flow B: sign in to claim (for personal email users)
   // Opens auth modal with deferred claim-listing action

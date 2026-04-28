@@ -74,18 +74,24 @@ export async function PATCH(
         },
       });
     } else {
-      // Reject: delete the profile to free up the listing
-      const { error: deleteError } = await db
+      // Reject: update claim_state to "rejected" (soft delete)
+      // Also clear source_provider_id to free up the listing for new claimants
+      const { error: updateError } = await db
         .from("business_profiles")
-        .delete()
+        .update({
+          claim_state: "rejected",
+          source_provider_id: null,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id);
 
-      if (deleteError) {
-        console.error("Failed to reject provider:", deleteError);
+      if (updateError) {
+        console.error("Failed to reject provider:", updateError);
         return NextResponse.json({ error: "Failed to reject provider" }, { status: 500 });
       }
 
       // Clear active_profile_id if this was the account's active profile
+      // So the rejected user's portal doesn't show a dead profile as active
       if (profile.account_id) {
         await db
           .from("accounts")
@@ -101,7 +107,7 @@ export async function PATCH(
         targetId: id,
         details: {
           provider_name: profile.display_name,
-          action: "deleted_to_free_listing",
+          new_state: "rejected",
         },
       });
     }

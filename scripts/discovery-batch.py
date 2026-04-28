@@ -40,37 +40,59 @@ logger = logging.getLogger(__name__)
 # SEARCH PATTERNS (from discovery.py)
 # ============================================================================
 
+# Tightened 2026-04-27 after sweep #1 surfaced contamination patterns:
+# - '55+', 'senior apartments', 'active adult' pulled 726 pure-housing-without-services into IL
+# - 'rehabilitation center', 'rehab facility', 'post acute care' pulled inpatient rehab hospitals into NH
+# - 'cognitive care', 'memory support', 'specialized dementia' pulled clinics/support groups into MC
+# - 'home care', 'home health', 'visiting nurse' (alone) pulled HC and HHC together — now split clean
+# - 'personal care', 'companion care' (alone), 'caregiver', 'senior helpers' pulled retail/franchise noise
+# Source of truth: docs/provider-category-definitions.md + docs/data-sweep-runbook.md
 SEARCH_PATTERNS = {
     'assisted_living': [
-        'assisted living', 'assisted living facility', 'assisted living community',
-        'senior assisted living', 'assisted care', 'residential care',
-        'board and care', 'personal care home', 'residential care facility',
-        'adult family home', 'senior residence', 'senior community'
+        'assisted living',
+        'assisted living facility',
+        'assisted living community',
+        # State-specific AL equivalents (still residential w/ 24/7 ADL support)
+        'personal care home',          # PA, MI
+        'residential care facility',   # CA (RCFE)
+        'adult family home',           # WA, OR, ID
+        'board and care home',
     ],
     'memory_care': [
-        'memory care', 'alzheimer care', 'dementia care', 'memory unit',
-        'memory care facility', 'cognitive care', 'specialized dementia',
-        'memory support', 'alzheimer facility', 'dementia facility'
+        'memory care',
+        'memory care facility',
+        'memory care community',
+        'alzheimer care facility',
+        'dementia care facility',
     ],
     'nursing_home': [
-        'nursing home', 'skilled nursing', 'skilled nursing facility',
-        'long term care', 'convalescent home', 'rehabilitation center',
-        'rehab facility', 'post acute care', 'subacute care', 'SNF'
+        'nursing home',
+        'skilled nursing facility',
+        'skilled nursing center',
+        'nursing and rehabilitation center',
+        'convalescent home',
     ],
     'home_care': [
-        'home care', 'home health', 'home health care', 'in home care',
-        'home care agency', 'home health agency', 'visiting nurse',
-        'home aide', 'home assistance', 'senior home care', 'elderly care'
+        # Bundled key — pipeline-batch CATEGORY_MAP defaults this to Home Health Care.
+        # Use HHC-specific terms (Medicare-certified clinical) here, NOT non-medical.
+        'home health agency',
+        'medicare-certified home health',
+        'home health care agency',
+        'visiting nurse association',
     ],
     'home_care_non_medical': [
-        'companion care', 'non medical home care', 'personal care',
-        'homemaker services', 'companion services', 'senior companions',
-        'elderly companion', 'respite care', 'senior helpers', 'caregiver'
+        'non-medical home care',
+        'companion care agency',
+        'in-home senior care',
+        'homemaker services',
+        'private duty home care',
     ],
     'independent_living': [
-        'independent living', 'retirement community', 'senior apartments',
-        '55+', '55 plus community', 'active adult', 'senior housing',
-        'retirement home', 'senior village', 'continuing care'
+        # IL requires services (dining, transportation, programming).
+        # Pure 55+ apartments without services are explicitly out of scope — see runbook.
+        'independent living community',
+        'retirement community',
+        'continuing care retirement community',
     ]
 }
 

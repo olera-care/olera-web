@@ -13,7 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
-import { assignBenefitsVariant } from "@/lib/analytics/variant";
+import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -197,18 +197,32 @@ export default function BenefitsDiscoveryModule({
   const [echoVisible, setEchoVisible] = useState(false);
 
   // ─── Per-step funnel tracking + A/B variant (PR B + PR C) ──────────
-  // sessionId is sync (cookie read) so memoized at mount.
-  // variant is a deterministic 50/50 hash on sessionId — same session always
-  // sees the same arm (sticky for the 30-day cookie life). Threaded through
-  // every funnel event so admin queries can split the funnel by arm.
+  // sessionId + variant are deferred to useState/useEffect so server-side
+  // rendering doesn't compute a different sessionId than the client cookie
+  // (getOrCreateSessionId falls back to a fresh random UUID on the server
+  // since `document` is undefined). useMemo would have caused a hydration
+  // mismatch on the variant-conditional copy AND would have fired the first
+  // entry_viewed event with the wrong variant ~50% of the time.
+  //
+  // variant defaults to "control" so server-rendered HTML matches the
+  // client's first render. After mount, useEffect computes the real
+  // variant from the cookie. Event-firing useEffects gate on sessionId
+  // being non-empty so events fire only after the real variant is set.
+  //
   // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
   // back-button revisits within the same session.
   // stepEnterTimeRef captures step entry time for time_on_step_ms.
-  const sessionId = useMemo(() => getOrCreateSessionId(), []);
-  const variant = useMemo(() => assignBenefitsVariant(sessionId), [sessionId]);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [variant, setVariant] = useState<BenefitsVariant>("control");
   const entryTrackedRef = useRef(false);
   const viewedStepsRef = useRef<Set<Step>>(new Set());
   const stepEnterTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const sid = getOrCreateSessionId();
+    setSessionId(sid);
+    setVariant(assignBenefitsVariant(sid));
+  }, []);
 
   function fireFunnelEvent(
     event: BenefitsStepEvent,
@@ -298,24 +312,28 @@ export default function BenefitsDiscoveryModule({
     };
   }, []);
 
-  // ─── Funnel: entry_viewed (mount) ───────────────────────────────────
-  // Fires once per module mount. entryTrackedRef survives Strict Mode's
-  // double-mount in dev; it does NOT survive a full unmount (page leave +
-  // return), which is desired — that's a real new view.
+  // ─── Funnel: entry_viewed (mount, gated on sessionId) ──────────────
+  // Fires once per module mount, AFTER sessionId is resolved client-side
+  // so the event carries the real variant. entryTrackedRef survives Strict
+  // Mode's double-mount in dev; it does NOT survive a full unmount (page
+  // leave + return), which is desired — that's a real new view.
   useEffect(() => {
-    if (entryTrackedRef.current) return;
+    if (!sessionId || entryTrackedRef.current) return;
     entryTrackedRef.current = true;
     fireFunnelEvent("benefits_entry_viewed");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sessionId]);
 
-  // ─── Funnel: step_viewed + entry-time reset (on each step change) ───
+  // ─── Funnel: step_viewed + entry-time reset (gated on sessionId) ───
   // Always reset entry time so time_on_step_ms reflects the current visit.
   // step_viewed itself is deduped per session — back-button revisits don't
   // refire the event, but they do reset the timer (so a re-submit gives us
-  // accurate dwell time on the second visit).
+  // accurate dwell time on the second visit). Gated on sessionId so the
+  // event carries the real variant (otherwise the first step_viewed for
+  // care-need would fire with the default "control" variant for everyone).
   useEffect(() => {
     stepEnterTimeRef.current = Date.now();
+    if (!sessionId) return;
     if (viewedStepsRef.current.has(step)) return;
     viewedStepsRef.current.add(step);
     fireFunnelEvent("benefits_step_viewed", {
@@ -323,7 +341,7 @@ export default function BenefitsDiscoveryModule({
       stepName: step,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, sessionId]);
 
   // Fire-and-forget: notify Slack + log that a user started the intake.
   // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.

@@ -36,27 +36,21 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [fallbackFailed, setFallbackFailed] = useState(false);
+  const [anyRealImageLoaded, setAnyRealImageLoaded] = useState(false);
 
-  // Filter out images that failed to load
   const validImages = images.filter((_, i) => !failedImages.has(i));
+  const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
+  const showFallback = !!fallbackImage && !fallbackFailed;
+  const showRealImage = validImages.length > 0;
+  const showGradient = !showFallback && !showRealImage;
+  // Carousel UI only appears once a real image has actually rendered, so users
+  // never see the counter cycle "1/6 → 1/5 → ..." during the onError cascade.
+  const showCarouselUI = anyRealImageLoaded && validImages.length > 1;
 
-  // 0 valid images — render category stock photo if provided, else gradient placeholder
-  if (validImages.length === 0) {
-    if (fallbackImage && !fallbackFailed) {
-      return (
-        <div className="relative w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl overflow-hidden bg-gray-100">
-          <Image
-            src={fallbackImage}
-            alt={providerName}
-            fill
-            sizes="(max-width: 768px) 100vw, 448px"
-            priority
-            className="object-cover"
-            onError={() => setFallbackFailed(true)}
-          />
-        </div>
-      );
-    }
+  const goNext = () => setCurrentIndex((i) => (i + 1) % validImages.length);
+  const goPrev = () => setCurrentIndex((i) => (i - 1 + validImages.length) % validImages.length);
+
+  if (showGradient) {
     return (
       <div className="w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex flex-col items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-3 shadow-sm">
@@ -72,27 +66,42 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
     );
   }
 
-  const safeIndex = Math.min(currentIndex, validImages.length - 1);
-  const goNext = () => setCurrentIndex((i) => (i + 1) % validImages.length);
-  const goPrev = () => setCurrentIndex((i) => (i - 1 + validImages.length) % validImages.length);
-
-  // 1+ images — fixed aspect ratio with navigation
   return (
     <div className="relative w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl overflow-hidden bg-gray-100">
-      <Image
-        key={validImages[safeIndex]}
-        src={validImages[safeIndex]}
-        alt={`${providerName} — photo ${safeIndex + 1}`}
-        fill
-        sizes="(max-width: 768px) 100vw, 448px"
-        priority
-        className="object-cover"
-        onError={() => {
-          const origIndex = images.indexOf(validImages[safeIndex]);
-          setFailedImages((prev) => new Set(prev).add(origIndex));
-        }}
-      />
-      {validImages.length > 1 && (
+      {/* Base layer: stock photo. Stays visible until a real image loads on top
+          (or stays forever if all real images fail). */}
+      {showFallback && (
+        <Image
+          src={fallbackImage}
+          alt={providerName}
+          fill
+          sizes="(max-width: 768px) 100vw, 448px"
+          priority
+          className="object-cover"
+          onError={() => setFallbackFailed(true)}
+        />
+      )}
+
+      {/* Overlay: real image at currentIndex. While loading it's transparent,
+          so the base fallback shows through — no flash, no jank. */}
+      {showRealImage && (
+        <Image
+          key={validImages[safeIndex]}
+          src={validImages[safeIndex]}
+          alt={`${providerName} — photo ${safeIndex + 1}`}
+          fill
+          sizes="(max-width: 768px) 100vw, 448px"
+          priority
+          className="object-cover"
+          onLoad={() => setAnyRealImageLoaded(true)}
+          onError={() => {
+            const origIndex = images.indexOf(validImages[safeIndex]);
+            setFailedImages((prev) => new Set(prev).add(origIndex));
+          }}
+        />
+      )}
+
+      {showCarouselUI && (
         <>
           {/* Left arrow */}
           {safeIndex > 0 && (

@@ -62,11 +62,12 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     ? "caregiver"
     : "current";
 
-  const primaryUnusable = provider.imageType === "placeholder" || imgFailed;
+  const realPhotoUnusable = provider.imageType === "placeholder" || imgFailed;
   const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
-  const showFallbackPhoto = primaryUnusable && fallbackAvailable;
-  const showPlaceholder = primaryUnusable && !fallbackAvailable;
-  const showAsLogo = !primaryUnusable && provider.imageType === "logo";
+  const showPlaceholder = realPhotoUnusable && !fallbackAvailable;
+  const showFallbackOnly = realPhotoUnusable && fallbackAvailable;
+  const showLogoOnly = !realPhotoUnusable && provider.imageType === "logo";
+  const showStackedPhoto = !realPhotoUnusable && provider.imageType !== "logo";
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
@@ -116,7 +117,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     >
       {/* Image */}
       <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
-        {showPlaceholder ? (
+        {showPlaceholder && (
           /* Last resort — gradient + initials */
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
@@ -124,8 +125,9 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
             </div>
             <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
-        ) : showFallbackPhoto ? (
-          /* Stock photo — when real image is unavailable or failed */
+        )}
+        {showFallbackOnly && (
+          /* Stock photo — real image unavailable, fallback only */
           <Image
             src={provider.fallbackImage!}
             alt={provider.name}
@@ -134,7 +136,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
             sizes="(max-width: 640px) 100vw, 400px"
             onError={() => setFallbackFailed(true)}
           />
-        ) : showAsLogo ? (
+        )}
+        {showLogoOnly && (
           /* Logo — contained on gradient background, not cropped */
           <div className="absolute inset-0 flex items-center justify-center p-6">
             <Image
@@ -146,16 +149,31 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
               onError={() => setImgFailed(true)}
             />
           </div>
-        ) : (
-          /* Real photo — full bleed cover */
-          <Image
-            src={provider.image}
-            alt={provider.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 400px"
-            onError={() => setImgFailed(true)}
-          />
+        )}
+        {showStackedPhoto && (
+          <>
+            {/* Base layer: stock fallback (visible until real photo loads or stays if it fails) */}
+            {fallbackAvailable && (
+              <Image
+                src={provider.fallbackImage!}
+                alt=""
+                aria-hidden="true"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, 400px"
+                onError={() => setFallbackFailed(true)}
+              />
+            )}
+            {/* Overlay: real photo — covers fallback once loaded */}
+            <Image
+              src={provider.image}
+              alt={provider.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 400px"
+              onError={() => setImgFailed(true)}
+            />
+          </>
         )}
 
         {/* Heart — top right */}

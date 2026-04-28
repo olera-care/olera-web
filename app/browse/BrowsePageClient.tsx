@@ -240,10 +240,12 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
 
-  const primaryUnusable = provider.imageType === "placeholder" || !provider.image || imgFailed;
+  const realPhotoUnusable = provider.imageType === "placeholder" || !provider.image || imgFailed;
   const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
-  const showGradient = primaryUnusable && !fallbackAvailable;
-  const showFallbackPhoto = primaryUnusable && fallbackAvailable;
+  const showGradient = realPhotoUnusable && !fallbackAvailable;
+  const showStackedPhoto = !realPhotoUnusable && provider.imageType !== "logo";
+  const showLogoOnly = !realPhotoUnusable && provider.imageType === "logo";
+  const showFallbackOnly = realPhotoUnusable && fallbackAvailable;
 
   return (
     <Link
@@ -254,7 +256,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
     >
       {/* Image */}
       <div className="relative h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
-        {showGradient ? (
+        {showGradient && (
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-14 h-14 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
               <span className="text-xl font-bold text-primary-400">
@@ -263,14 +265,16 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
             </div>
             <span className="text-xs font-medium text-primary-300 mt-1.5">{provider.primaryCategory}</span>
           </div>
-        ) : showFallbackPhoto ? (
+        )}
+        {showFallbackOnly && (
           <img
             src={provider.fallbackImage}
             alt={provider.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
             onError={() => setFallbackFailed(true)}
           />
-        ) : provider.imageType === "logo" ? (
+        )}
+        {showLogoOnly && (
           <div className="w-full h-full flex items-center justify-center p-6">
             <img
               src={provider.image}
@@ -279,13 +283,27 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
               onError={() => setImgFailed(true)}
             />
           </div>
-        ) : (
-          <img
-            src={provider.image}
-            alt={provider.name}
-            className="w-full h-full object-cover"
-            onError={() => setImgFailed(true)}
-          />
+        )}
+        {showStackedPhoto && (
+          <>
+            {/* Base layer: stock fallback (visible until real photo loads or stays if it fails) */}
+            {fallbackAvailable && (
+              <img
+                src={provider.fallbackImage}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={() => setFallbackFailed(true)}
+              />
+            )}
+            {/* Overlay: real photo — covers fallback once it loads, transparent during load */}
+            <img
+              src={provider.image}
+              alt={provider.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImgFailed(true)}
+            />
+          </>
         )}
 
         {/* Heart/Save Button */}

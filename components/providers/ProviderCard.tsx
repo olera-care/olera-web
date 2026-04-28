@@ -144,11 +144,14 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const primaryUnusable = provider.imageType === "placeholder" || imgFailed;
+  const realPhotoUnusable = provider.imageType === "placeholder" || imgFailed;
   const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
   const providerImageState = {
-    showFallbackPhoto: primaryUnusable && fallbackAvailable,
-    showGradient: primaryUnusable && !fallbackAvailable,
+    showFallbackOnly: realPhotoUnusable && fallbackAvailable,
+    showGradient: realPhotoUnusable && !fallbackAvailable,
+    showLogoOnly: !realPhotoUnusable && provider.imageType === "logo",
+    showStackedCarousel: !realPhotoUnusable && provider.imageType !== "logo",
+    fallbackAvailable,
   };
 
   return (
@@ -160,7 +163,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
     >
       {/* Image Container */}
       <div className={`relative h-64 group/image ${provider.imageType === "logo" || providerImageState.showGradient ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
-        {providerImageState.showGradient ? (
+        {providerImageState.showGradient && (
           /* Last resort — gradient + initials */
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
@@ -170,15 +173,17 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             </div>
             <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
-        ) : providerImageState.showFallbackPhoto ? (
+        )}
+        {providerImageState.showFallbackOnly && (
           /* Stock photo — when real image is unavailable or failed */
           <img
             src={provider.fallbackImage!}
             alt={provider.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
             onError={() => setFallbackFailed(true)}
           />
-        ) : provider.imageType === "logo" ? (
+        )}
+        {providerImageState.showLogoOnly && (
           /* Logo — contained, not cropped */
           <div className="w-full h-full flex items-center justify-center p-8">
             <img
@@ -187,24 +192,37 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
               className="max-w-full max-h-full object-contain"
             />
           </div>
-        ) : (
-          /* Photo carousel */
-          <div className="relative w-full h-full overflow-hidden">
-            <div
-              className="flex h-full transition-transform duration-300 ease-out"
-              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-            >
-              {images.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`${provider.name} - Image ${index + 1}`}
-                  className="w-full h-full object-cover flex-shrink-0"
-                  onError={() => setImgFailed(true)}
-                />
-              ))}
+        )}
+        {providerImageState.showStackedCarousel && (
+          <>
+            {/* Base layer: stock fallback (visible until carousel images load or stays if they all fail) */}
+            {providerImageState.fallbackAvailable && (
+              <img
+                src={provider.fallbackImage!}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={() => setFallbackFailed(true)}
+              />
+            )}
+            {/* Photo carousel — overlays the fallback */}
+            <div className="relative w-full h-full overflow-hidden">
+              <div
+                className="flex h-full transition-transform duration-300 ease-out"
+                style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+              >
+                {images.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`${provider.name} - Image ${index + 1}`}
+                    className="w-full h-full object-cover flex-shrink-0"
+                    onError={() => setImgFailed(true)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Staff Info Overlay - Shown when staff avatar is hovered */}

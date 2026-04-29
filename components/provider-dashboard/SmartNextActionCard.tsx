@@ -14,6 +14,13 @@ interface SmartNextActionCardProps {
   onOpenSection: (sectionId: NudgeSectionId) => void;
   /** Show a dismiss button. Default true. Per-section, not global. */
   dismissable?: boolean;
+  /**
+   * Extra classes merged onto the outer card div. Use this for layout
+   * spacing (e.g., `mt-6`) instead of wrapping the picker in a parent
+   * `<div className="mt-6">` — when the picker returns null, no DOM
+   * means no leftover margin gap.
+   */
+  className?: string;
 }
 
 const DISMISS_KEY_PREFIX = "olera_picker_dismissed_";
@@ -67,6 +74,7 @@ export default function SmartNextActionCard({
   completeness,
   onOpenSection,
   dismissable = true,
+  className,
 }: SmartNextActionCardProps) {
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(readDismissedFromStorage);
 
@@ -112,7 +120,7 @@ export default function SmartNextActionCard({
 
   return (
     <div
-      className="bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
+      className={`bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between${className ? ` ${className}` : ""}`}
       style={{ animation: "card-enter 0.25s ease-out both" }}
     >
       <div className="min-w-0">

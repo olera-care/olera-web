@@ -62,6 +62,7 @@ export default function PostAnswerPicker() {
       profile={profile}
       completeness={completeness}
       onOpenSection={handleOpenSection}
+      className="mt-6"
     />
   );
 }

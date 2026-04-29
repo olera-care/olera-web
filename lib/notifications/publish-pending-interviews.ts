@@ -52,6 +52,7 @@ export async function publishPendingInterviews(
 
   try {
     // Fetch all pending verification interviews with student details
+    // Only fetch "proposed" status - don't release cancelled/confirmed interviews
     const { data: pendingInterviews, error: fetchError } = await db
       .from("interviews")
       .select(`
@@ -61,7 +62,8 @@ export async function publishPendingInterviews(
         )
       `)
       .eq("provider_profile_id", providerProfileId)
-      .eq("is_pending_verification", true);
+      .eq("is_pending_verification", true)
+      .eq("status", "proposed");
 
     if (fetchError) {
       result.errors.push(`Failed to fetch pending interviews: ${fetchError.message}`);
@@ -73,7 +75,8 @@ export async function publishPendingInterviews(
       return result;
     }
 
-    // Update all interviews to released state
+    // Update all pending proposed interviews to released state
+    // Also clear the flag on any cancelled ones (no notification sent for those)
     const { error: updateError } = await db
       .from("interviews")
       .update({

@@ -651,12 +651,12 @@ function BenefitsFunnelCard({
         "Distinct sessions that completed step 3 (medicaid + income). % shown is conversion from Age.",
     },
     {
-      label: "Saved",
+      label: "Submitted email",
       value: f.saved,
       prior: pf?.saved ?? null,
       prev: f.financial_completed,
       tooltip:
-        "Distinct sessions that submitted the save step (email captured, programs persisted). % shown is conversion from Financial.",
+        "Distinct sessions that clicked submit on the final step with a valid email. Event fires immediately before the backend save POST, so a rare backend failure won't reduce this count. % shown is conversion from Financial.",
     },
   ];
 
@@ -696,7 +696,7 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
         A/B Test — entry-point copy
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        control = production headline. money_loss = &ldquo;You may be losing money on care&rdquo; + dynamic-state sub-line. Deterministic 50/50 by session id (djb2 hash). Conversion % = saved / started.
+        control = production headline. money_loss = &ldquo;You may be losing money on care&rdquo; + dynamic-state sub-line. Deterministic 50/50 by session id (djb2 hash). Conversion % = email submitted / started.
       </p>
       {waitingForFirstStart && (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
@@ -712,8 +712,8 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
               <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Age ✓</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Financial ✓</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Saved</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion (saved/started)</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted email</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion (email/started)</th>
             </tr>
           </thead>
           <tbody>

@@ -432,10 +432,10 @@ async function fetchWindow(
       financial_completed: new Set(), saved: new Set(),
     },
   };
-  // step_name → funnel-stage mapping. The "results" step is post-save and
-  // doesn't represent a separate funnel commitment; its completion is
-  // coincident with `saved`. We ignore step_name="results" here (it's
-  // captured by the save-step-completed event firing first).
+  // step_name → funnel-stage mapping. Only the four step_completed events
+  // BenefitsDiscoveryModule actually fires (care-need / age / financial /
+  // save). The post-save "results" step fires step_viewed but never
+  // step_completed, so it has no entry here.
   const STEP_TO_STAGE: Record<string, keyof BenefitsFunnel | undefined> = {
     "care-need": "care_need_completed",
     age: "age_completed",

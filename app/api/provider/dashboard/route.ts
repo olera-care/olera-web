@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const { data: account } = await supabase
       .from("accounts")
-      .select("id")
+      .select("id, active_profile_id")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -39,14 +39,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No account found" }, { status: 400 });
     }
 
-    const { data: profiles } = await supabase
-      .from("business_profiles")
-      .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, created_at, updated_at")
-      .eq("account_id", account.id)
-      .in("type", ["organization", "caregiver"])
-      .limit(1);
+    // Prefer the account's active_profile_id when set — accounts can have
+    // more than one provider profile attached (rare in practice, but the
+    // data model allows it). Without this preference, `.limit(1)` picked
+    // a row in unspecified Postgres order, so the dashboard could resolve
+    // to a profile other than the one the user has selected. Fall back to
+    // limit(1) when active_profile_id is unset (legacy accounts).
+    const profileSelect = "id, slug, source_provider_id, display_name, email, city, state, category, metadata, created_at, updated_at";
+    let profile: {
+      id: string;
+      slug: string | null;
+      source_provider_id: string | null;
+      display_name: string | null;
+      email: string | null;
+      city: string | null;
+      state: string | null;
+      category: string | null;
+      metadata: Record<string, unknown> | null;
+      created_at: string;
+      updated_at: string;
+    } | null = null;
 
-    const profile = profiles?.[0];
+    if (account.active_profile_id) {
+      const { data: active } = await supabase
+        .from("business_profiles")
+        .select(profileSelect)
+        .eq("id", account.active_profile_id)
+        .eq("account_id", account.id)
+        .in("type", ["organization", "caregiver"])
+        .maybeSingle();
+      profile = active;
+    }
+
+    if (!profile) {
+      const { data: profiles } = await supabase
+        .from("business_profiles")
+        .select(profileSelect)
+        .eq("account_id", account.id)
+        .in("type", ["organization", "caregiver"])
+        .limit(1);
+      profile = profiles?.[0] ?? null;
+    }
+
     if (!profile?.slug) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
     }

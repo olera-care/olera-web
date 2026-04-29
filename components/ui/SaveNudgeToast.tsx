@@ -66,11 +66,11 @@ export default function SaveNudgeToast({
       role="alert"
       aria-live="polite"
     >
-      {/* Card */}
+      {/* Card - Apple/Airbnb style elevation with layered shadows */}
       <div
-        className="bg-white rounded-2xl overflow-hidden"
+        className="bg-white rounded-2xl overflow-hidden border border-gray-200/60"
         style={{
-          boxShadow: "0 8px 40px -8px rgba(0, 0, 0, 0.15), 0 2px 12px -2px rgba(0, 0, 0, 0.08)",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 12px 24px -4px rgba(0, 0, 0, 0.12), 0 24px 48px -8px rgba(0, 0, 0, 0.08)",
         }}
       >
         <div className="p-5">
@@ -127,35 +127,35 @@ export default function SaveNudgeToast({
             </button>
           </div>
 
-          {/* Buttons - secondary left, primary right */}
+          {/* Buttons - aligned with text content (offset by icon width + gap) */}
           <div
             className={`
-              flex items-center justify-end gap-2
+              flex items-center gap-3 ml-[60px]
               transition-all duration-500 delay-[100ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
             <button
-              onClick={handleDismiss}
-              className="
-                py-2.5 px-4
-                text-gray-500 hover:text-gray-900
-                text-[14px] font-medium
-                transition-colors
-              "
-            >
-              Maybe Later
-            </button>
-            <button
               onClick={handleSignUp}
               className="
-                py-2.5 px-5
+                flex-1 py-2.5 px-6
                 bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
                 text-white text-[14px] font-semibold
                 rounded-full transition-all
               "
             >
               Sign Up Free
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="
+                py-2.5 px-4
+                text-gray-500 hover:text-gray-700
+                text-[14px] font-medium
+                transition-colors whitespace-nowrap
+              "
+            >
+              Maybe Later
             </button>
           </div>
         </div>

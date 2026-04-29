@@ -33,6 +33,7 @@ import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
+import DashboardHeroSkeleton from "./v2/DashboardHeroSkeleton";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
@@ -162,7 +163,6 @@ export default function DashboardPage() {
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
       v2Data={v2.data}
-      v2Loading={v2.loading && !v2.data}
     />
   );
 }
@@ -179,7 +179,6 @@ function DashboardContent({
   refreshAccountData,
   userEmail,
   v2Data,
-  v2Loading,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -190,7 +189,6 @@ function DashboardContent({
   refreshAccountData: () => Promise<void>;
   userEmail?: string;
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
-  v2Loading: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
@@ -324,9 +322,6 @@ function DashboardContent({
         lastUpdated={profile.updated_at}
       />
 
-      {/* Phase 2 pillars skeleton while loading */}
-      {v2Loading && <DashboardPillarsSkeleton />}
-
       {/* Page header - outside grid so both columns align */}
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -352,8 +347,14 @@ function DashboardContent({
               headline + CTA across engagement signals (leads, Qs, view
               spikes) and completion gaps (highest-impact incomplete section
               when engagement is sparse). See DashboardHero for the priority
-              stack. */}
-          {v2Data && (
+              stack.
+
+              Inline skeleton holds the slot at the same dimensions until
+              v2Data arrives, so the swap is content-only — no layout shift,
+              no half-second of empty space. The "Hey {firstName}" greeting
+              renders inside the skeleton too, so the loading moment is
+              partial-content rather than pure shimmer. */}
+          {v2Data ? (
             <div style={{ animation: "card-enter 0.25s ease-out both" }}>
               <DashboardHero
                 firstName={deriveFirstName(profile.display_name)}
@@ -364,6 +365,10 @@ function DashboardContent({
                 providerSlug={profile.slug}
               />
             </div>
+          ) : (
+            <DashboardHeroSkeleton
+              firstName={deriveFirstName(profile.display_name)}
+            />
           )}
 
           {/* Recent Activity card in left column */}
@@ -838,79 +843,6 @@ function deriveFirstName(displayName: string | null): string {
   // That reads slightly weirdly as a greeting but it's better than "there" for
   // most providers. True personalization awaits a provider-name field.
   return first || "there";
-}
-
-/**
- * Placeholder skeleton for the new two-column layout while v2Data is loading.
- * LEFT: Hero + profile cards (scrollable)
- * RIGHT: Stats + Activity + Completeness (sticky)
- */
-function DashboardPillarsSkeleton() {
-  return (
-    <div aria-hidden className="animate-pulse">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
-        {/* Left column skeleton */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Hero skeleton */}
-          <div className="rounded-2xl bg-warm-950/80 p-6 min-h-[200px]">
-            <div className="h-3 w-24 bg-warm-800 rounded mb-3" />
-            <div className="h-6 w-64 max-w-full bg-warm-800 rounded mb-2" />
-            <div className="h-4 w-48 max-w-full bg-warm-800 rounded mb-4" />
-            <div className="h-9 w-32 bg-vanilla-100/20 rounded-full" />
-          </div>
-          {/* Profile card skeletons */}
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl bg-white border border-gray-100 p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-xl bg-gray-100" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-32 bg-gray-100 rounded" />
-                  <div className="h-5 w-48 bg-gray-100 rounded" />
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-4 w-full bg-gray-100 rounded" />
-                <div className="h-4 w-3/4 bg-gray-100 rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Right column skeleton */}
-        <div className="hidden lg:block lg:col-span-1 space-y-4">
-          {/* Stats skeleton */}
-          <div className="rounded-2xl bg-white border border-gray-100 p-5">
-            <div className="h-10 w-12 bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-28 bg-gray-100 rounded mb-4" />
-            <div className="h-6 w-10 bg-gray-100 rounded mb-2" />
-            <div className="h-4 w-24 bg-gray-100 rounded" />
-          </div>
-          {/* Activity skeleton */}
-          <div className="rounded-2xl bg-white border border-gray-100 p-5">
-            <div className="h-3 w-28 bg-gray-100 rounded mb-4" />
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-10 h-4 bg-gray-100 rounded shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-full bg-gray-100 rounded" />
-                    <div className="h-3 w-20 bg-gray-100 rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Completeness skeleton */}
-          <div className="rounded-2xl bg-white border border-gray-100 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-4 w-36 bg-gray-100 rounded" />
-              <div className="h-4 w-10 bg-gray-100 rounded" />
-            </div>
-            <div className="h-2 w-full bg-gray-100 rounded-full" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /**

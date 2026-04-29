@@ -192,9 +192,19 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(-4px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        slideDown: {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(100%)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
+        slideUp: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        slideDown: "slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
     },
   },

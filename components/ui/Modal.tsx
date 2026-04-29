@@ -189,7 +189,7 @@ export default function Modal({
                 // Mobile: bottom sheet (top corners rounded only)
                 "max-h-[92dvh] animate-sheet-up rounded-t-2xl",
                 // Desktop: centered modal with all corners rounded
-                "sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop sm:rounded-2xl",
+                "sm:min-h-[60vh] sm:max-h-[85dvh] sm:animate-modal-pop sm:rounded-2xl",
               ].join(" "),
           sizeClasses[size],
         ].join(" ")}

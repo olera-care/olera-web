@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
+import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable, getProfileCompletionGaps } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
@@ -1552,8 +1553,10 @@ function MatchesSidebar({
 
 export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
-  const { membership, refreshAccountData } = useAuth();
+  const { user, membership, refreshAccountData } = useAuth();
   const { metadata: dashboardMetadata } = useProviderDashboardData(providerProfile);
+  // Fetch v2 data (reviews, response rate) for accurate profile completeness
+  const v2 = useProviderDashboardV2Data("30d", true, user?.id);
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
@@ -1648,12 +1651,19 @@ export default function ProviderMatchesPage() {
 
   const profileId = providerProfile?.id;
 
-  // Profile completeness for sidebar snapshot
+  // Profile completeness for sidebar snapshot (synced with dashboard calculation)
   const profileCompleteness = useMemo(() => {
     if (!providerProfile) return 0;
     const meta = (dashboardMetadata || providerProfile.metadata || {}) as ExtendedMetadata;
-    return calculateProfileCompleteness(providerProfile, meta).overall;
-  }, [providerProfile, dashboardMetadata]);
+    // Include reviews and response rate from v2 data for consistent 9-section calculation
+    const reviewsSummary = v2.data
+      ? { count: v2.data.reviews.count, avgRating: v2.data.reviews.avgRating }
+      : undefined;
+    const responseRateSummary = v2.data
+      ? { totalQuestions: v2.data.responseRate.totalQuestions, answeredCount: v2.data.responseRate.answeredCount }
+      : undefined;
+    return calculateProfileCompleteness(providerProfile, meta, reviewsSummary, responseRateSummary).overall;
+  }, [providerProfile, dashboardMetadata, v2.data]);
 
   // ── Drawer handlers ──
 

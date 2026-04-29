@@ -16,8 +16,12 @@ import {
   addAnonSave,
   removeAnonSave,
   clearAnonSaves,
+  shouldShowNudge,
+  recordNudgeShown,
+  recordNudgeDismissed,
   type SavedProviderEntry,
 } from "@/lib/saved-providers";
+import SaveNudgeToast from "@/components/ui/SaveNudgeToast";
 
 export type { SavedProviderEntry } from "@/lib/saved-providers";
 
@@ -67,6 +71,9 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
   const [dbSaves, setDbSaves] = useState<SavedProviderEntry[]>([]);
   // Error state for save/unsave operations
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Nudge toast state for prompting guests to sign up
+  const [showNudge, setShowNudge] = useState(false);
+  const [nudgeCount, setNudgeCount] = useState(0);
 
   const migrationDone = useRef(false);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -294,8 +301,8 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             })
             .catch(() => setSaveError("Couldn't save. Please try again."));
         } else {
-          // Anonymous save
-          const added = addAnonSave({
+          // Anonymous save — no limit, just save and maybe show nudge
+          const newCount = addAnonSave({
             providerId: provider.providerId,
             slug: provider.slug,
             name: provider.name,
@@ -305,35 +312,60 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             rating: provider.rating,
           });
 
-          if (!added) {
-            // At limit — prompt auth
-            openAuth({
-              defaultMode: "sign-up",
-              intent: "family",
-              deferred: {
-                action: "save",
-                targetProfileId: provider.providerId,
-                returnUrl: typeof window !== "undefined" ? window.location.pathname : "/",
-              },
-            });
-            return;
-          }
-
           setAnonSaves(getAnonSaves());
+
+          // Check if we should show the nudge at this milestone
+          if (shouldShowNudge(newCount)) {
+            setNudgeCount(newCount);
+            setShowNudge(true);
+            recordNudgeShown(newCount);
+          }
         }
       }
     },
-    [user, activeProfile, dbSaveIds, anonSaves, openAuth]
+    [user, activeProfile, dbSaveIds, anonSaves]
   );
 
   const savedCount = dbSaveIds.size + anonSaves.length;
   const savedProviders = user && activeProfile ? dbSaves : anonSaves;
+
+  // Nudge toast handlers
+  const handleNudgeSignUp = useCallback(() => {
+    setShowNudge(false);
+    openAuth({
+      defaultMode: "sign-up",
+      intent: "family",
+      deferred: {
+        action: "save",
+        returnUrl: typeof window !== "undefined" ? window.location.pathname : "/",
+      },
+    });
+  }, [openAuth]);
+
+  const handleNudgeDismiss = useCallback(() => {
+    setShowNudge(false);
+    recordNudgeDismissed();
+  }, []);
+
+  // Auto-dismiss doesn't count against the user's dismiss limit
+  const handleNudgeAutoDismiss = useCallback(() => {
+    setShowNudge(false);
+  }, []);
 
   return (
     <SavedProvidersContext.Provider
       value={{ isSaved, toggleSave, savedCount, anonSaves, savedProviders, hasInitialized, saveError }}
     >
       {children}
+      {/* Non-intrusive nudge toast for guests */}
+      {showNudge && (
+        <SaveNudgeToast
+          savedCount={nudgeCount}
+          onSignUp={handleNudgeSignUp}
+          onDismiss={handleNudgeDismiss}
+          onAutoDismiss={handleNudgeAutoDismiss}
+        />
+      )}
     </SavedProvidersContext.Provider>
   );
 }

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       proposedTime,
       alternativeTime,
       notes,
+      termsAcceptedAt,
       provider,
     } = body;
 
@@ -224,18 +225,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Paywall check: if using an existing profile (found by email, org slug, or org name+city), enforce credits
+    // Paywall check and verification state check
+    let isPendingVerification = false;
+
     if (!isNewProfile) {
-      const { data: existingMeta } = await admin
+      const { data: existingProfile } = await admin
         .from("business_profiles")
-        .select("metadata")
+        .select("metadata, verification_state")
         .eq("id", providerProfileId)
         .single();
-      const meta = ((existingMeta?.metadata as Record<string, unknown>) ?? {});
+      const meta = ((existingProfile?.metadata as Record<string, unknown>) ?? {});
       const access = getAccessTier(true, meta);
       if (!canScheduleInterview(access)) {
         return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
       }
+
+      // Check verification state - if not verified, hold the interview
+      const verificationState = existingProfile?.verification_state as string | null;
+      const isVerified = verificationState === "verified" || verificationState === "not_required";
+      isPendingVerification = !isVerified;
+    } else {
+      // New profiles are always pending verification
+      isPendingVerification = true;
     }
 
     // Create the interview
@@ -250,6 +261,7 @@ export async function POST(request: NextRequest) {
         alternative_time: alternativeTime || null,
         notes: notes || null,
         proposed_by: providerProfileId,
+        is_pending_verification: isPendingVerification,
       })
       .select("id")
       .single();
@@ -270,6 +282,29 @@ export async function POST(request: NextRequest) {
     });
     if (creditError) {
       console.error("[medjobs/interviews/quick] credit increment error:", creditError);
+    }
+
+    // Store T&C acceptance timestamp in provider metadata (for audit trail)
+    if (termsAcceptedAt) {
+      const { data: currentProfile } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", providerProfileId)
+        .single();
+
+      const currentMeta = (currentProfile?.metadata as Record<string, unknown>) ?? {};
+      // Only set if not already set (preserve first acceptance)
+      if (!currentMeta.interview_terms_accepted_at) {
+        await admin
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...currentMeta,
+              interview_terms_accepted_at: termsAcceptedAt,
+            },
+          })
+          .eq("id", providerProfileId);
+      }
     }
 
     // Generate magic link URL for the confirmation email
@@ -313,8 +348,9 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email fails — the interview is created
     }
 
-    // Also notify the student that they have an interview request
-    if (student.email) {
+    // Notify the student only if NOT pending verification
+    // If pending verification, email will be sent when provider verifies
+    if (!isPendingVerification && student.email) {
       // Format alternative time if provided
       const formattedAltTime = alternativeTime
         ? new Date(alternativeTime).toLocaleString("en-US", {
@@ -346,12 +382,15 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error("[medjobs/interviews/quick] student email error:", emailError);
       }
+    } else if (isPendingVerification) {
+      console.log(`[medjobs/interviews/quick] Interview ${interview.id} pending verification - student email will be sent after provider verifies`);
     }
 
     return NextResponse.json({
       success: true,
       interviewId: interview.id,
       providerProfileId,
+      isPendingVerification,
     });
   } catch (err) {
     console.error("[medjobs/interviews/quick] POST error:", err);

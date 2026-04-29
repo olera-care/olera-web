@@ -9,6 +9,7 @@ import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 
 // Storage bucket for verification documents/screenshots
 const VERIFICATION_BUCKET = "verification-docs";
@@ -339,6 +340,17 @@ export async function POST(request: NextRequest) {
         profile.slug
       ).catch((err) => {
         console.error("[verify] Error delivering pending connections:", err);
+      });
+
+      // Publish pending interviews and notify students (fire-and-forget)
+      // These are interviews the provider scheduled while unverified
+      publishPendingInterviews(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify] Error publishing pending interviews:", err);
       });
 
       console.log(`[verify] Auto-verified ${profile.display_name} via ${method}: ${result.reason}`);

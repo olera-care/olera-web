@@ -92,9 +92,17 @@ interface Props {
   providerSlug: string;
 }
 
+/** Engagement-tier CTA tags (Tiers 1, 2). Used for tracking clicks so the
+ *  same provider_picker_clicked event covers both engagement and completion
+ *  tiers — the admin funnel + Slack alert see all hero engagement, not
+ *  only the completion-section subset. */
+type EngagementTier = "leads" | "questions";
+
 interface NavCta {
   label: string;
   href: string;
+  /** Set on engagement-tier CTAs so click tracking knows which tier fired. */
+  engagementTier?: EngagementTier;
 }
 
 interface SectionCta {
@@ -163,10 +171,24 @@ export default function DashboardHero({
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {
       source: "hero",
+      tier: "completion",
       section: cta.sectionId,
       weight: cta.weight,
     });
     onOpenSection(cta.sectionId);
+  };
+
+  // Engagement-tier clicks (Tiers 1-2) fire the same provider_picker_clicked
+  // event so the admin funnel + Slack alert cover all hero engagement, not
+  // only the completion-section subset. The Link still navigates — track is
+  // fire-and-forget with keepalive so the POST survives the navigation.
+  const handleNavClick = (cta: NavCta) => {
+    if (!cta.engagementTier) return;
+    track("provider_picker_clicked", providerSlug, {
+      source: "hero",
+      tier: cta.engagementTier,
+      destination: cta.href,
+    });
   };
 
   return (
@@ -239,6 +261,7 @@ export default function DashboardHero({
           ) : (
             <Link
               href={hook.cta.href}
+              onClick={() => handleNavClick(hook.cta as NavCta)}
               className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
             >
               {hook.cta.label}
@@ -281,7 +304,7 @@ function resolveHook(
       headline: `${n} new ${n === 1 ? "inquiry" : "inquiries"} this month.`,
       subline:
         "Families expect a response within a day — quick replies read as professional.",
-      cta: { label: "View inquiries", href: "/provider/connections" },
+      cta: { label: "View inquiries", href: "/provider/connections", engagementTier: "leads" },
       imageUrl: TIER_LEADS_IMAGE,
     };
   }
@@ -293,7 +316,7 @@ function resolveHook(
       headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
       subline:
         "Under a minute each, and families feel like you're paying attention.",
-      cta: { label: "Review questions", href: "/provider/qna" },
+      cta: { label: "Review questions", href: "/provider/qna", engagementTier: "questions" },
       imageUrl: TIER_QUESTIONS_IMAGE,
     };
   }

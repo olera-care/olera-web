@@ -331,9 +331,15 @@ export async function POST(request: NextRequest) {
       if (meta.source === "hero") {
         try {
           const { sendSlackAlert, slackHeroCtaClicked } = await import("@/lib/slack");
+          // Two shapes feed this alert: completion-tier clicks carry a
+          // section (modal-opening); engagement-tier clicks carry a tier +
+          // destination (leads / questions, Link navigation). slackHeroCtaClicked
+          // renders the right fields based on which is present.
           const alert = slackHeroCtaClicked({
             providerSlug: provider_id,
-            section: (meta.section as string) || "unknown",
+            section: typeof meta.section === "string" ? meta.section : undefined,
+            tier: typeof meta.tier === "string" ? meta.tier : undefined,
+            destination: typeof meta.destination === "string" ? meta.destination : undefined,
           });
           sendSlackAlert(alert.text, alert.blocks).catch(() => {});
         } catch {

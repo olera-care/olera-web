@@ -815,7 +815,7 @@ export default function QuickScheduleModal({
               // Record timestamp when user accepts T&C
               setTermsAcceptedAt(checked ? new Date().toISOString() : null);
             }}
-            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+            className="mt-0.5 w-4 h-4 rounded border-gray-300 accent-primary-600 focus:ring-primary-500 cursor-pointer"
           />
           <span className="text-sm text-gray-600 leading-snug">
             I agree to the{" "}

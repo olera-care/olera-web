@@ -46,6 +46,8 @@ export default function ProviderContactSection({
   const [showModal, setShowModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
+  // Track if the interview was scheduled but is pending verification
+  const [scheduledButPending, setScheduledButPending] = useState(false);
   // Store form data when verification is triggered, so we can restore it after
   const [pendingFormData, setPendingFormData] = useState<ScheduleFormData | null>(null);
   // Track previous verification state to detect when user becomes verified
@@ -53,15 +55,21 @@ export default function ProviderContactSection({
 
   const isFreeExhausted = accessTier === "free_exhausted";
 
-  // Re-open schedule modal with saved form data after user verifies
+  // Clear scheduledButPending when user becomes verified
   useEffect(() => {
     // Detect transition from unverified to verified
-    if (isVerified && !wasVerifiedRef.current && pendingFormData) {
-      setShowModal(true);
-      // Note: pendingFormData is passed as initialValues below
+    if (isVerified && !wasVerifiedRef.current) {
+      // If they had a pending interview, it's now released - update UI
+      if (scheduledButPending) {
+        setScheduledButPending(false);
+      }
+      // Re-open schedule modal if they have pending form data
+      if (pendingFormData) {
+        setShowModal(true);
+      }
     }
     wasVerifiedRef.current = isVerified;
-  }, [isVerified, pendingFormData]);
+  }, [isVerified, pendingFormData, scheduledButPending]);
 
   // Wrapped callback that closes schedule modal before opening verification modal
   const handleVerifyWithFormData = useCallback((formData?: ScheduleFormData) => {
@@ -161,6 +169,7 @@ export default function ProviderContactSection({
             otherName={studentName}
             onClose={() => { setShowModal(false); setPendingFormData(null); }}
             onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+            onScheduledUnverified={() => setScheduledButPending(true)}
             isVerified={isVerified}
             onVerifyClick={handleVerifyWithFormData}
             initialValues={pendingFormData || undefined}
@@ -231,7 +240,22 @@ export default function ProviderContactSection({
       )}
 
       {/* Primary CTA - Schedule Interview */}
-      {scheduled ? (
+      {scheduled && scheduledButPending && !isVerified ? (
+        <div className="space-y-3">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium text-center">
+            Interview saved! {firstName} will be notified once you verify.
+          </div>
+          <button
+            onClick={() => onVerifyClick?.()}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Verify to Complete
+          </button>
+        </div>
+      ) : scheduled ? (
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
           Interview request sent to {firstName}!
         </div>
@@ -251,6 +275,7 @@ export default function ProviderContactSection({
           otherName={studentName}
           onClose={() => { setShowModal(false); setPendingFormData(null); }}
           onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+          onScheduledUnverified={() => setScheduledButPending(true)}
           isVerified={isVerified}
           onVerifyClick={handleVerifyWithFormData}
           initialValues={pendingFormData || undefined}

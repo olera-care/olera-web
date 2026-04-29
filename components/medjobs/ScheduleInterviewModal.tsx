@@ -34,6 +34,8 @@ interface ScheduleInterviewModalProps {
   isVerified?: boolean;
   /** Called when unverified provider tries to submit - receives form data to preserve */
   onVerifyClick?: (formData?: ScheduleFormData) => void;
+  /** Called when interview scheduled but pending verification (student not notified yet) */
+  onScheduledUnverified?: () => void;
 }
 
 const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[] = [
@@ -222,6 +224,7 @@ export default function ScheduleInterviewModal({
   initialValues,
   isVerified,
   onVerifyClick,
+  onScheduledUnverified,
 }: ScheduleInterviewModalProps) {
   const [type, setType] = useState<"video" | "in_person" | "phone">(initialValues?.type ?? "video");
   const [date, setDate] = useState(initialValues?.date ?? "");
@@ -264,21 +267,9 @@ export default function ScheduleInterviewModal({
       return;
     }
 
-    // Check verification before scheduling (provider scheduling interviews)
-    // Use !isVerified to catch both false and undefined
-    if (!isVerified && onVerifyClick) {
-      // Pass form data so parent can restore state after verification
-      onVerifyClick({
-        type,
-        date,
-        time,
-        altDate: altDate || undefined,
-        altTime: altTime || undefined,
-        notes: notes.trim() || undefined,
-        termsAccepted,
-      });
-      return;
-    }
+    // NOTE: We no longer block submission for unverified providers.
+    // Instead, the interview is saved with is_pending_verification=true
+    // and the student is notified after verification completes.
 
     setSubmitting(true);
 
@@ -305,6 +296,10 @@ export default function ScheduleInterviewModal({
         return;
       }
       if (!res.ok) { setError(data.error || "Failed to schedule."); return; }
+      // If interview is pending verification, notify parent so it can show appropriate CTA
+      if (data.isPendingVerification && onScheduledUnverified) {
+        onScheduledUnverified();
+      }
       onScheduled();
     } catch {
       setError("Network error.");

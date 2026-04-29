@@ -102,6 +102,9 @@ export async function POST(request: NextRequest) {
     let providerProfile: { id: string; display_name: string; email: string; slug?: string };
     let studentProfile: { id: string; display_name: string; email: string; slug?: string };
 
+    // Track if interview should be held for verification
+    let isPendingVerification = false;
+
     if (studentProfileId) {
       // Provider → Student flow
       const callerProvider = callerProfiles.find((p) => p.type === "organization" || p.type === "caregiver");
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
       // Paywall gate: check provider's access tier before allowing outbound request
       const { data: providerFull } = await admin
         .from("business_profiles")
-        .select("metadata")
+        .select("metadata, verification_state")
         .eq("id", callerProvider.id)
         .single();
       const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
@@ -118,6 +121,11 @@ export async function POST(request: NextRequest) {
       if (!canScheduleInterview(access)) {
         return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
       }
+
+      // Check verification state - if not verified, hold the interview
+      const verificationState = providerFull?.verification_state as string | null;
+      const isVerified = verificationState === "verified" || verificationState === "not_required";
+      isPendingVerification = !isVerified;
 
       const { data: target } = await admin
         .from("business_profiles")
@@ -165,6 +173,7 @@ export async function POST(request: NextRequest) {
         location: location || null,
         notes: notes || null,
         proposed_by: proposedById,
+        is_pending_verification: isPendingVerification,
       })
       .select("id")
       .single();
@@ -209,53 +218,58 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send notification email to the other party
-    try {
-      const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";
-      const time = new Date(proposedTime).toLocaleString("en-US", {
-        weekday: "long", month: "long", day: "numeric",
-        hour: "numeric", minute: "2-digit", timeZoneName: "short",
-      });
+    // Send notification email to the other party (only if NOT pending verification)
+    // If pending verification, email will be sent when provider verifies
+    if (!isPendingVerification) {
+      try {
+        const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";
+        const time = new Date(proposedTime).toLocaleString("en-US", {
+          weekday: "long", month: "long", day: "numeric",
+          hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        });
 
-      // Email goes to whoever did NOT propose
-      const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
-      const proposerName = proposedById === providerProfile.id ? providerProfile.display_name : studentProfile.display_name;
+        // Email goes to whoever did NOT propose
+        const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
+        const proposerName = proposedById === providerProfile.id ? providerProfile.display_name : studentProfile.display_name;
 
-      // When sending to provider (Student → Provider flow), use magic link with otk token
-      // When sending to student (Provider → Student flow), use direct portal link
-      const isProviderRecipient = proposedById !== providerProfile.id;
-      let viewUrl: string;
-      if (isProviderRecipient) {
-        // Provider receives - use magic link if slug available, otherwise original fallback
-        viewUrl = providerProfile.slug && providerProfile.email
-          ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
-          : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
-      } else {
-        // Student receives - use portal link (unchanged from original)
-        viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        // When sending to provider (Student → Provider flow), use magic link with otk token
+        // When sending to student (Provider → Student flow), use direct portal link
+        const isProviderRecipient = proposedById !== providerProfile.id;
+        let viewUrl: string;
+        if (isProviderRecipient) {
+          // Provider receives - use magic link if slug available, otherwise original fallback
+          viewUrl = providerProfile.slug && providerProfile.email
+            ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
+            : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+        } else {
+          // Student receives - use portal link (unchanged from original)
+          viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        }
+
+        // Determine recipient profile ID for preference checking
+        const recipientIsStudent = !isProviderRecipient;
+        await sendEmail({
+          to: recipientEmail!,
+          subject: `Interview request from ${proposerName}`,
+          html: `
+            <h2>You have an interview request!</h2>
+            <p><strong>${proposerName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
+            <p><strong>Proposed time:</strong> ${time}</p>
+            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
+            <p><a href="${viewUrl}">View & respond on Olera</a></p>
+          `,
+          emailType: "interview_proposed",
+          recipientType: recipientIsStudent ? "student" : "provider",
+          recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
+        });
+      } catch (err) {
+        console.error("[medjobs/interviews] email error:", err);
       }
-
-      // Determine recipient profile ID for preference checking
-      const recipientIsStudent = !isProviderRecipient;
-      await sendEmail({
-        to: recipientEmail!,
-        subject: `Interview request from ${proposerName}`,
-        html: `
-          <h2>You have an interview request!</h2>
-          <p><strong>${proposerName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
-          <p><strong>Proposed time:</strong> ${time}</p>
-          ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
-          <p><a href="${viewUrl}">View & respond on Olera</a></p>
-        `,
-        emailType: "interview_proposed",
-        recipientType: recipientIsStudent ? "student" : "provider",
-        recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
-      });
-    } catch (err) {
-      console.error("[medjobs/interviews] email error:", err);
+    } else {
+      console.log(`[medjobs/interviews] Interview ${interview.id} pending verification - email will be sent after provider verifies`);
     }
 
-    return NextResponse.json({ interviewId: interview.id });
+    return NextResponse.json({ interviewId: interview.id, isPendingVerification });
   } catch (err) {
     console.error("[medjobs/interviews] POST error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

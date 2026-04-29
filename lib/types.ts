@@ -527,6 +527,8 @@ export interface Interview {
   location: string | null;
   notes: string | null;
   proposed_by: string;
+  /** When true, interview is saved but student not notified until provider verifies */
+  is_pending_verification: boolean;
   created_at: string;
   updated_at: string;
 }

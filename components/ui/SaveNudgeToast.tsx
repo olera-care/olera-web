@@ -125,14 +125,25 @@ export default function SaveNudgeToast({
             Sign up to sync across all your devices
           </p>
 
-          {/* Buttons - horizontal on larger, stack on tiny */}
+          {/* Buttons - secondary left, primary right (Apple/Airbnb convention) */}
           <div
             className={`
-              flex flex-col sm:flex-row items-center justify-center gap-2.5
+              flex flex-col-reverse sm:flex-row items-center justify-center gap-2.5
               transition-all duration-500 delay-[150ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
+            <button
+              onClick={handleDismiss}
+              className="
+                py-2.5 px-4
+                text-gray-500 hover:text-gray-900
+                text-[14px] font-medium
+                transition-colors
+              "
+            >
+              Maybe Later
+            </button>
             <button
               onClick={handleSignUp}
               className="
@@ -144,17 +155,6 @@ export default function SaveNudgeToast({
               "
             >
               Sign Up Free
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="
-                py-2.5 px-4
-                text-gray-500 hover:text-gray-900
-                text-[14px] font-medium
-                transition-colors
-              "
-            >
-              Maybe Later
             </button>
           </div>
         </div>

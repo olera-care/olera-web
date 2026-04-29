@@ -58,6 +58,7 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Cancelled",
   no_show: "No Show",
   rescheduled: "Rescheduled",
+  pending_verification: "Awaiting Verification",
 };
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -67,6 +68,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
   cancelled: { bg: "bg-gray-50", text: "text-gray-400", dot: "bg-gray-300" },
   no_show: { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-400" },
   rescheduled: { bg: "bg-blue-50", text: "text-blue-600", dot: "bg-blue-400" },
+  // Used for provider's view of their pending verification interviews
+  pending_verification: { bg: "bg-primary-50", text: "text-primary-700", dot: "bg-primary-500" },
 };
 
 function getDaysInMonth(year: number, month: number) {
@@ -343,7 +346,10 @@ export default function InterviewCalendar({
                       : iv.provider?.display_name || "Unknown";
                     const firstName = name.split(" ")[0];
                     const shortName = firstName.length > 10 ? firstName.slice(0, 8) + "…" : firstName;
-                    const styles = STATUS_STYLES[iv.status] || STATUS_STYLES.completed;
+                    // For providers: show distinct style if interview is pending their verification
+                    const isPendingVerification = perspective === "provider" && iv.is_pending_verification;
+                    const styleKey = isPendingVerification ? "pending_verification" : iv.status;
+                    const styles = STATUS_STYLES[styleKey] || STATUS_STYLES.completed;
                     const time = formatShortTime(iv.confirmed_time || iv.proposed_time);
 
                     return (
@@ -388,7 +394,7 @@ export default function InterviewCalendar({
         </div>
 
         {/* Legend — integrated at bottom */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center gap-6">
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center gap-x-6 gap-y-2">
           <span className="flex items-center gap-2 text-sm text-gray-600">
             <span className="w-3 h-3 rounded-full bg-emerald-500" />
             Confirmed
@@ -397,6 +403,12 @@ export default function InterviewCalendar({
             <span className="w-3 h-3 rounded-full bg-amber-400" />
             Pending
           </span>
+          {perspective === "provider" && (
+            <span className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="w-3 h-3 rounded-full bg-primary-500" />
+              Needs Verification
+            </span>
+          )}
           <span className="flex items-center gap-2 text-sm text-gray-600">
             <span className="w-3 h-3 rounded-full bg-gray-300" />
             Past
@@ -571,12 +583,42 @@ function InterviewDetailModal({
     : interview.student_profile_id;
   const iProposed = interview.proposed_by === myProfileId;
 
-  const styles = STATUS_STYLES[interview.status] || STATUS_STYLES.completed;
+  // For providers: show distinct style if interview is pending their verification
+  const isPendingVerification = perspective === "provider" && interview.is_pending_verification;
+  const styleKey = isPendingVerification ? "pending_verification" : interview.status;
+  const styles = STATUS_STYLES[styleKey] || STATUS_STYLES.completed;
+  const statusLabel = isPendingVerification ? STATUS_LABELS.pending_verification : (STATUS_LABELS[interview.status] || interview.status);
 
   // Build footer actions
   const footerActions = (() => {
     if (interview.status === "proposed") {
       if (iProposed) {
+        // Provider scheduled this interview
+        if (isPendingVerification && onVerifyClick) {
+          // Pending verification - show verify CTA with withdraw option
+          return (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={onVerifyClick}
+                className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-base font-semibold text-white transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Verify to Notify {otherName.split(" ")[0]}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAction("cancelled")}
+                disabled={isLoading}
+                className="w-full py-3 text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+              >
+                {isLoading ? "Withdrawing..." : "Withdraw Request"}
+              </button>
+            </div>
+          );
+        }
         return (
           <button
             type="button"
@@ -635,6 +677,25 @@ function InterviewDetailModal({
       footer={footerActions ? <div className="pt-2">{footerActions}</div> : undefined}
     >
       <div className="py-4 space-y-6">
+        {/* Pending verification banner - provider scheduled but hasn't verified yet */}
+        {isPendingVerification && (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Interview saved, not sent yet</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  {otherName.split(" ")[0]} will be notified once you complete verification.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Person card */}
         <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
           <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden shrink-0">
@@ -664,7 +725,7 @@ function InterviewDetailModal({
             )}
             <span className={`inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
               <span className={`w-2 h-2 rounded-full ${styles.dot}`} />
-              {STATUS_LABELS[interview.status] || interview.status}
+              {statusLabel}
             </span>
           </div>
         </div>

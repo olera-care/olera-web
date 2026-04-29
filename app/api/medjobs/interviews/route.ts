@@ -467,7 +467,12 @@ export async function PATCH(request: NextRequest) {
           <p>The interview with <strong>${otherName}</strong> has been cancelled.</p>
           <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View on Olera</a></p>
         `;
-        await sendEmail({ to: student.email, subject: "Interview cancelled", html: cancelHtml(provider.display_name), emailType: "interview_cancelled" });
+        // Only notify student if they were actually notified about the interview
+        // (i.e., it wasn't pending provider verification)
+        if (!interview.is_pending_verification) {
+          await sendEmail({ to: student.email, subject: "Interview cancelled", html: cancelHtml(provider.display_name), emailType: "interview_cancelled" });
+        }
+        // Always notify provider
         await sendEmail({ to: provider.email, subject: "Interview cancelled", html: cancelHtml(student.display_name), emailType: "interview_cancelled" });
       } catch (err) {
         console.error("[medjobs/interviews] cancel email error:", err);

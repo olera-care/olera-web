@@ -35,7 +35,30 @@ export async function GET(request: NextRequest) {
 
     if (profileIds.length === 0) return NextResponse.json({ interviews: [] });
 
-    // Fetch interviews where user is either provider or student
+    // Determine which profiles are providers vs students
+    const providerProfileIds = (profiles || [])
+      .filter((p: { type: string }) => p.type === "organization" || p.type === "caregiver")
+      .map((p: { id: string }) => p.id);
+    const studentProfileIds = (profiles || [])
+      .filter((p: { type: string }) => p.type === "student")
+      .map((p: { id: string }) => p.id);
+
+    // If user has no provider or student profiles, they have no interviews
+    if (providerProfileIds.length === 0 && studentProfileIds.length === 0) {
+      return NextResponse.json({ interviews: [] });
+    }
+
+    // Build the query filter
+    // IMPORTANT: Students should NOT see interviews that are pending provider verification
+    // Providers should see all their interviews (including pending ones they created)
+    const filterParts: string[] = [];
+    if (providerProfileIds.length > 0) {
+      filterParts.push(`provider_profile_id.in.(${providerProfileIds.join(",")})`);
+    }
+    if (studentProfileIds.length > 0) {
+      filterParts.push(`and(student_profile_id.in.(${studentProfileIds.join(",")}),is_pending_verification.eq.false)`);
+    }
+
     const { data: interviews } = await admin
       .from("interviews")
       .select(`
@@ -43,7 +66,7 @@ export async function GET(request: NextRequest) {
         provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, image_url, city, state, email, phone),
         student:business_profiles!interviews_student_profile_id_fkey(id, slug, display_name, image_url, email, metadata)
       `)
-      .or(`provider_profile_id.in.(${profileIds.join(",")}),student_profile_id.in.(${profileIds.join(",")})`)
+      .or(filterParts.join(","))
       .order("created_at", { ascending: false });
 
     return NextResponse.json({ interviews: interviews || [] });
@@ -320,6 +343,15 @@ export async function PATCH(request: NextRequest) {
     const userProfileIds = (userProfiles || []).map((p: { id: string }) => p.id);
     const isParticipant = userProfileIds.includes(interview.provider_profile_id) || userProfileIds.includes(interview.student_profile_id);
     if (!isParticipant) return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    // Block students from modifying interviews that are pending provider verification
+    // The interview shouldn't even be visible to them, but this is a safety check
+    const isStudentOnlyParticipant =
+      userProfileIds.includes(interview.student_profile_id) &&
+      !userProfileIds.includes(interview.provider_profile_id);
+    if (interview.is_pending_verification && isStudentOnlyParticipant) {
+      return NextResponse.json({ error: "Interview pending provider verification" }, { status: 403 });
+    }
 
     // Paywall gate: if a provider is confirming an inbound interview, check their tier
     if (status === "confirmed") {

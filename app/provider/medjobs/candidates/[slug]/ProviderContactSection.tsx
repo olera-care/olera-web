@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import type { AccessTier } from "@/lib/medjobs-access";
 
@@ -48,40 +48,18 @@ export default function ProviderContactSection({
   const [scheduled, setScheduled] = useState(initialScheduled);
   // Track if the interview was scheduled but is pending verification
   const [scheduledButPending, setScheduledButPending] = useState(false);
-  // Store form data when verification is triggered, so we can restore it after
-  const [pendingFormData, setPendingFormData] = useState<ScheduleFormData | null>(null);
   // Track previous verification state to detect when user becomes verified
   const wasVerifiedRef = useRef(isVerified);
 
   const isFreeExhausted = accessTier === "free_exhausted";
 
-  // Clear scheduledButPending when user becomes verified
+  // Clear scheduledButPending when user becomes verified (interview was released)
   useEffect(() => {
-    // Detect transition from unverified to verified
-    if (isVerified && !wasVerifiedRef.current) {
-      // If they had a pending interview, it's now released - update UI
-      if (scheduledButPending) {
-        setScheduledButPending(false);
-      }
-      // Re-open schedule modal if they have pending form data
-      if (pendingFormData) {
-        setShowModal(true);
-      }
+    if (isVerified && !wasVerifiedRef.current && scheduledButPending) {
+      setScheduledButPending(false);
     }
     wasVerifiedRef.current = isVerified;
-  }, [isVerified, pendingFormData, scheduledButPending]);
-
-  // Wrapped callback that closes schedule modal before opening verification modal
-  const handleVerifyWithFormData = useCallback((formData?: ScheduleFormData) => {
-    if (formData) {
-      setPendingFormData(formData);
-    }
-    setShowModal(false); // Close schedule modal first
-    // Small delay to prevent visual stacking
-    setTimeout(() => {
-      onVerifyClick?.();
-    }, 100);
-  }, [onVerifyClick]);
+  }, [isVerified, scheduledButPending]);
 
   // If initial state changes (e.g., parent fetched interviews), update
   useEffect(() => {
@@ -179,12 +157,9 @@ export default function ProviderContactSection({
           <ScheduleInterviewModal
             studentProfileId={studentId}
             otherName={studentName}
-            onClose={() => { setShowModal(false); setPendingFormData(null); }}
-            onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+            onClose={() => setShowModal(false)}
+            onScheduled={() => { setShowModal(false); setScheduled(true); }}
             onScheduledUnverified={() => setScheduledButPending(true)}
-            isVerified={isVerified}
-            onVerifyClick={handleVerifyWithFormData}
-            initialValues={pendingFormData || undefined}
           />
         )}
         {showUpgradeModal && (
@@ -285,12 +260,9 @@ export default function ProviderContactSection({
         <ScheduleInterviewModal
           studentProfileId={studentId}
           otherName={studentName}
-          onClose={() => { setShowModal(false); setPendingFormData(null); }}
-          onScheduled={() => { setShowModal(false); setScheduled(true); setPendingFormData(null); }}
+          onClose={() => setShowModal(false)}
+          onScheduled={() => { setShowModal(false); setScheduled(true); }}
           onScheduledUnverified={() => setScheduledButPending(true)}
-          isVerified={isVerified}
-          onVerifyClick={handleVerifyWithFormData}
-          initialValues={pendingFormData || undefined}
         />
       )}
       {showUpgradeModal && (

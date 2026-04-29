@@ -30,10 +30,6 @@ interface ScheduleInterviewModalProps {
   onAuthRequired?: (data: ScheduleFormData) => void;
   /** Pre-fill form with saved data (e.g., after returning from auth) */
   initialValues?: ScheduleFormData;
-  /** Provider verification status */
-  isVerified?: boolean;
-  /** Called when unverified provider tries to submit - receives form data to preserve */
-  onVerifyClick?: (formData?: ScheduleFormData) => void;
   /** Called when interview scheduled but pending verification (student not notified yet) */
   onScheduledUnverified?: () => void;
 }
@@ -222,8 +218,6 @@ export default function ScheduleInterviewModal({
   requiresAuth = false,
   onAuthRequired,
   initialValues,
-  isVerified,
-  onVerifyClick,
   onScheduledUnverified,
 }: ScheduleInterviewModalProps) {
   const [type, setType] = useState<"video" | "in_person" | "phone">(initialValues?.type ?? "video");

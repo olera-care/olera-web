@@ -362,3 +362,45 @@ Two compounding issues on program pages:
 3. **Memory saved**: Texas has parallel routes at `/texas/benefits/` that shadow `/senior-benefits/texas/` — any future benefits page changes must update BOTH
 
 **Lesson**: When a Next.js project has 301 redirects, the redirect destination is the REAL route that users hit. Upgrading the source route without upgrading the destination means nobody sees your changes. Always follow the redirect chain to find where traffic actually lands.
+
+---
+
+### 2026-04-29: Silent CHECK constraint rejection — 7 hours of zero engagement signal
+
+**Symptom**: After shipping the post-answer engagement work to prod (PRs #676 / #679 / #688 / #690), every Slack alert downstream of the new event types was silent. The /admin/analytics Q&A funnel columns showed 0 across the board. Daily digest counters showed 0. TJ noticed when an engagement-tier hero click on Aggie's leads banner produced no Slack alert. Investigation revealed **zero rows** in `provider_activity` for the four new event types across the entire history — they had never landed.
+
+**Root cause**: PRs #676 / #679 / #688 / #690 added `provider_picker_impression`, `provider_picker_clicked`, `provider_profile_edited`, and `dashboard_arrival` to:
+
+- The application allowlist in `app/api/activity/track/route.ts` (PROVIDER_EVENT_TYPES)
+- The summary route's distinct-event allowlist (`app/api/admin/analytics/summary/route.ts`)
+- The daily digest's distinct-event allowlist (`app/api/cron/daily-digest/route.ts`)
+
+But NOT to the database `CHECK (event_type IN (...))` constraint on `provider_activity`. Every insert from the new events failed with a 500 at the DB layer. The route's fire-and-forget client `.catch(() => {})` swallowed the failure silently. Zero feedback to the user, zero feedback to the developer, zero events in the funnel.
+
+The pattern is documented in `feedback_schema_text_not_enum.md` (Olera uses TEXT + CHECK, not enums). I had the memory but didn't apply it — I added the events to four pieces of application code without grepping the migrations for the matching CHECK constraint.
+
+**Fix**: `055_post_answer_engagement_event_types.sql` extends the constraint to include the four new types. `ALTER TABLE provider_activity DROP CONSTRAINT ... ADD CONSTRAINT ... CHECK (event_type IN (...))` with the full updated list. TJ applied via Supabase dashboard SQL editor. Within seconds, events started landing and Slack alerts began firing for real engagement.
+
+**Time to Resolution**: 7 hours from first ship to detection (the bug was invisible — events looked like "no engagement happening" rather than "events failing to log"). 30 minutes from detection to root cause + migration committed + applied + verified. Detection latency dwarfed resolution latency by 14×.
+
+**Why I didn't catch this earlier**:
+
+1. **Pre-test review didn't include schema verification.** I traced the chain end-to-end multiple times across the four PRs but never grepped for CHECK constraints on the destination table. The existing `/pre-test` skill calls out "CHECK constraint mismatches in DB inserts" as a bug class — I just didn't apply it because I was focused on logical correctness, not DDL.
+
+2. **Fire-and-forget hides everything.** The route inserts via `await db.from("provider_activity").insert(...)`, checks `if (error) return 500`. The CLIENT call is `fetch(...).catch(() => {})`. So the server logs the error (we'd see it in Vercel logs if we checked) but the developer / user gets zero signal. No retry, no surfaced toast, nothing.
+
+3. **All upstream observability surfaces showed "0 engagement," which read as a product issue, not an infrastructure issue.** TJ thought providers weren't engaging. I thought the analytics columns just hadn't accumulated yet. Neither of us suspected the DB was rejecting writes silently.
+
+4. **Memory existed but wasn't triggered by the work.** `feedback_schema_text_not_enum.md` literally says "schema uses CHECK constraints, not enums — when adding values to constrained columns, ADD migrations." Had I read this memory before shipping PR #676, the fix would have been part of that PR.
+
+**Prevention**:
+
+1. **New memory: `feedback_event_allowlist_needs_db_migration.md`** — when adding a new `event_type` value to the provider_activity / seeker_activity allowlists (in track route, summary route, digest cron), ALSO write a migration to extend the CHECK constraint. Pattern: grep `supabase/migrations/*.sql` for `provider_activity_event_type_check` to find the latest constraint, copy its full list, add new values, write `ALTER TABLE DROP/ADD CONSTRAINT`. Without this, every insert fails silently at the DB.
+
+2. **Surface infrastructure failures in the activity-track route.** The `.catch(() => {})` on the client is fire-and-forget by design (we don't want page navigation to hang on the alert). But the SERVER could log structured errors that we'd see during /pre-test review. Worth a follow-up: add a `console.error("[activity/track] CHECK constraint rejected:", event_type)` so future failures show up in Vercel logs as searchable signal.
+
+3. **Pre-test review checklist update**: when modifying any code that inserts into a `CHECK`-constrained column, grep migrations for the constraint and verify the values being inserted are in the allowlist. Same standard as null-safety + RLS checks already in the skill.
+
+**Lesson**: An application allowlist is a design intent. A DB CHECK constraint is the actual gate. Adding to the first without the second produces the worst kind of failure: silent at the user level, silent at the route logs (without inspection), and visible only as "no engagement" in the analytics dashboards we built specifically to detect engagement. Memory existed; I didn't apply it. Next time I add an event type to ANY allowlist, the first reflex is `grep -r "provider_activity_event_type_check" supabase/migrations/`. If the value isn't there, the migration is part of the same PR.
+
+---

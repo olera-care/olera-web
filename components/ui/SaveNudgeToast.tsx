@@ -12,8 +12,8 @@ interface SaveNudgeToastProps {
 }
 
 /**
- * A beautiful, non-intrusive floating toast that nudges guests to sign up
- * after saving providers. Apple/Airbnb quality with spring animations.
+ * A beautiful, centered toast card that nudges guests to sign up.
+ * Airbnb-style with Apple-level polish.
  */
 export default function SaveNudgeToast({
   savedCount,
@@ -27,39 +27,28 @@ export default function SaveNudgeToast({
 
   useEffect(() => {
     setMounted(true);
-    // Staggered content entrance
-    const timer = setTimeout(() => setShowContent(true), 100);
+    const timer = setTimeout(() => setShowContent(true), 80);
     return () => clearTimeout(timer);
   }, []);
 
-  // Manual dismiss (user clicked "Later" or X) - counts against dismiss limit
   const handleDismiss = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => {
-      onDismiss();
-    }, 250);
+    setTimeout(() => onDismiss(), 250);
   }, [onDismiss]);
 
-  // Auto-dismiss (timeout) - does NOT count against dismiss limit
   const handleAutoDismiss = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => {
-      (onAutoDismiss || onDismiss)();
-    }, 250);
+    setTimeout(() => (onAutoDismiss || onDismiss)(), 250);
   }, [onAutoDismiss, onDismiss]);
 
   const handleSignUp = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => {
-      onSignUp();
-    }, 150);
+    setTimeout(() => onSignUp(), 150);
   }, [onSignUp]);
 
   // Auto-dismiss after 12 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
-      handleAutoDismiss();
-    }, 12000);
+    const timer = setTimeout(handleAutoDismiss, 12000);
     return () => clearTimeout(timer);
   }, [handleAutoDismiss]);
 
@@ -69,103 +58,89 @@ export default function SaveNudgeToast({
     <div
       className={`
         fixed left-1/2 -translate-x-1/2 z-[100]
-        w-[calc(100%-24px)] max-w-[380px]
-        bottom-4 sm:bottom-6
+        w-[calc(100%-32px)] max-w-[340px]
+        bottom-5 sm:bottom-8
         ${isExiting ? "animate-toastExit" : "animate-toastEnter"}
       `}
-      style={{
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       role="alert"
       aria-live="polite"
     >
-      {/* Card — clean white with refined shadow */}
+      {/* Card */}
       <div
-        className="bg-white rounded-2xl overflow-hidden"
+        className="bg-white rounded-[20px] overflow-hidden relative"
         style={{
-          boxShadow: "0 4px 24px -4px rgba(0, 0, 0, 0.12), 0 8px 48px -8px rgba(0, 0, 0, 0.08)",
+          boxShadow: "0 8px 40px -8px rgba(0, 0, 0, 0.15), 0 2px 12px -2px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <div className="p-5">
-          {/* Header row */}
-          <div className="flex items-start gap-3.5 mb-3.5">
-            {/* Animated heart icon */}
-            <div
-              className={`
-                w-10 h-10 rounded-full bg-gray-100
-                flex items-center justify-center shrink-0
-                transition-all duration-500
-                ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-75"}
-              `}
-            >
-              <svg
-                className="w-5 h-5 text-rose-500 animate-heartPulse"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-            </div>
+        {/* Close button - top right */}
+        <button
+          onClick={handleDismiss}
+          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10"
+          aria-label="Dismiss"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-            {/* Text content */}
-            <div
-              className={`
-                flex-1 min-w-0 pt-0.5
-                transition-all duration-500 delay-75
-                ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-              `}
+        {/* Content - centered */}
+        <div className="px-6 pt-7 pb-6 text-center">
+          {/* Heart icon */}
+          <div
+            className={`
+              inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-50 mb-4
+              transition-all duration-500
+              ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-90"}
+            `}
+          >
+            <svg
+              className="w-6 h-6 text-rose-500 animate-heartPulse"
+              fill="currentColor"
+              viewBox="0 0 24 24"
             >
-              <p className="text-[15px] font-semibold text-gray-900 leading-tight">
-                {savedCount} provider{savedCount !== 1 ? "s" : ""} saved
-              </p>
-              <p className="text-[13px] text-gray-500 mt-0.5">
-                On this device only
-              </p>
-            </div>
-
-            {/* Close button */}
-            <button
-              onClick={handleDismiss}
-              className={`
-                w-8 h-8 -mt-1 -mr-1 flex items-center justify-center
-                rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                transition-all duration-200
-                ${showContent ? "opacity-100" : "opacity-0"}
-              `}
-              aria-label="Dismiss"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
           </div>
 
-          {/* Value prop */}
-          <p
+          {/* Title */}
+          <h3
             className={`
-              text-[14px] text-gray-600 leading-relaxed mb-4
-              transition-all duration-500 delay-100
+              text-[17px] font-semibold text-gray-900 mb-1
+              transition-all duration-500 delay-[50ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            Create a free account to sync across devices.
+            {savedCount} provider{savedCount !== 1 ? "s" : ""} saved
+          </h3>
+
+          {/* Subtitle */}
+          <p
+            className={`
+              text-[14px] text-gray-500 mb-5
+              transition-all duration-500 delay-[100ms]
+              ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            Sign up to sync across all your devices
           </p>
 
-          {/* Action buttons — black primary, refined secondary */}
+          {/* Buttons - horizontal on larger, stack on tiny */}
           <div
             className={`
-              flex items-center gap-2.5
-              transition-all duration-500 delay-150
+              flex flex-col sm:flex-row items-center justify-center gap-2.5
+              transition-all duration-500 delay-[150ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
             <button
               onClick={handleSignUp}
               className="
-                flex-1 py-2.5 px-5
-                bg-gray-900 hover:bg-gray-800 active:bg-gray-950
-                text-white text-[14px] font-medium
-                rounded-xl transition-colors
+                w-full sm:w-auto sm:min-w-[140px]
+                py-2.5 px-6
+                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
+                text-white text-[14px] font-semibold
+                rounded-full transition-all
               "
             >
               Sign Up Free
@@ -179,7 +154,7 @@ export default function SaveNudgeToast({
                 transition-colors
               "
             >
-              Later
+              Maybe Later
             </button>
           </div>
         </div>

@@ -839,21 +839,24 @@ export default function QuickScheduleModal({
         </label>
       </div>
 
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!canSubmit || submitting}
-        className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
-      >
-        {submitting ? "Sending..." : "Send request"}
-      </button>
-      <button
-        type="button"
-        onClick={handleBack}
-        className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
-      >
-        Back
-      </button>
+      {/* Button row - Back (secondary) + Send (primary) */}
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="px-5 py-3.5 border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors min-h-[48px]"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+          className="flex-1 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+        >
+          {submitting ? "Sending..." : "Send request"}
+        </button>
+      </div>
     </div>
   );
 

@@ -201,29 +201,6 @@ export default function SavedProvidersPage() {
           )}
         </div>
 
-        {/* Banner — compact for logged-out users */}
-        {savedProviders.length > 0 && !user && (
-          <div className="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-xl flex items-center justify-between gap-3">
-            <p className="text-sm text-primary-800">
-              <span className="font-medium">Sign up</span> to sync across devices
-            </p>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href="/browse"
-                className="px-4 py-2 min-h-[40px] text-sm font-medium text-primary-700 hover:bg-primary-100 rounded-lg transition-colors whitespace-nowrap flex items-center"
-              >
-                Browse
-              </Link>
-              <button
-                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-                className="px-4 py-2 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
-              >
-                Sign up
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Saved programs */}
         {savedPrograms.length > 0 && (
           <div className="mb-8">

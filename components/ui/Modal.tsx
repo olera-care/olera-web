@@ -207,7 +207,7 @@ export default function Modal({
         {/* Header — pinned top */}
         {hideHeader ? (
           /* Minimal close button for fullscreen/custom layouts */
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
             <button
               onClick={handleClose}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"

@@ -37,6 +37,21 @@ interface QuickScheduleModalProps {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
+const DRAFT_STORAGE_PREFIX = "medjobs_quick_schedule_draft_";
+
+function getDraftKey(candidateId: string): string {
+  return `${DRAFT_STORAGE_PREFIX}${candidateId}`;
+}
+
+// Check if a date string (YYYY-MM-DD) is today or in the future
+function isDateValid(dateStr: string): boolean {
+  if (!dateStr) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const date = new Date(dateStr + "T00:00:00");
+  return date >= today;
+}
+
 const FORMAT_OPTIONS: { value: InterviewFormat; label: string }[] = [
   { value: "video", label: "Video" },
   { value: "phone", label: "Phone" },
@@ -256,6 +271,92 @@ export default function QuickScheduleModal({
   const [state, setState] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [email, setEmail] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
+
+  // Track if we've loaded the draft to avoid overwriting on first render
+  const draftLoadedRef = useRef(false);
+
+  // Load draft from localStorage on mount (candidate-specific)
+  useEffect(() => {
+    if (draftLoadedRef.current) return;
+    try {
+      const draftKey = getDraftKey(candidate.id);
+      const saved = localStorage.getItem(draftKey);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.format) setFormat(draft.format);
+        // Only restore dates if they're still valid (not in the past)
+        if (draft.selectedDate && isDateValid(draft.selectedDate)) {
+          setSelectedDate(draft.selectedDate);
+        }
+        if (draft.selectedTime) setSelectedTime(draft.selectedTime);
+        if (draft.showAltTime) setShowAltTime(draft.showAltTime);
+        // Only restore alt date if valid
+        if (draft.altDate && isDateValid(draft.altDate)) {
+          setAltDate(draft.altDate);
+        }
+        if (draft.altTime) setAltTime(draft.altTime);
+        if (draft.notes) setNotes(draft.notes);
+        if (draft.organization) setOrganization(draft.organization);
+        // Restore selectedOrg object for proper org linking
+        if (draft.selectedOrg) setSelectedOrg(draft.selectedOrg);
+        if (draft.city) setCity(draft.city);
+        if (draft.state) setState(draft.state);
+        if (draft.email) setEmail(draft.email);
+        // Don't restore termsAccepted - user must re-accept each session
+        // Don't restore step - always start from beginning
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    draftLoadedRef.current = true;
+  }, [candidate.id]);
+
+  // Save draft to localStorage when form changes (candidate-specific)
+  useEffect(() => {
+    // Don't save until we've loaded the draft
+    if (!draftLoadedRef.current) return;
+    // Don't save if on confirmation step (submission successful)
+    if (step === "confirmation") return;
+
+    const draft = {
+      format,
+      selectedDate,
+      selectedTime,
+      showAltTime,
+      altDate,
+      altTime,
+      notes,
+      organization,
+      selectedOrg, // Persist org selection for proper linking
+      city,
+      state,
+      email,
+    };
+
+    try {
+      const draftKey = getDraftKey(candidate.id);
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [
+    candidate.id,
+    step,
+    format,
+    selectedDate,
+    selectedTime,
+    showAltTime,
+    altDate,
+    altTime,
+    notes,
+    organization,
+    selectedOrg,
+    city,
+    state,
+    email,
+  ]);
 
   // City search
   const { results: cityResults } = useCitySearch(city);
@@ -303,7 +404,7 @@ export default function QuickScheduleModal({
 
   // Validation
   const canProceedToStep2 = selectedDate && selectedTime;
-  const canSubmit = organization.trim() && city.trim() && email.trim() && email.includes("@");
+  const canSubmit = organization.trim() && city.trim() && email.trim() && email.includes("@") && termsAccepted;
 
   // Handlers
   const handleNext = useCallback(() => {
@@ -337,6 +438,7 @@ export default function QuickScheduleModal({
           proposedTime,
           alternativeTime,
           notes: notes.trim() || undefined,
+          termsAcceptedAt, // Send T&C acceptance timestamp for audit trail
           provider: {
             email: email.trim().toLowerCase(),
             organization: organization.trim(),
@@ -361,6 +463,12 @@ export default function QuickScheduleModal({
         return;
       }
 
+      // Clear draft on successful submission
+      try {
+        localStorage.removeItem(getDraftKey(candidate.id));
+      } catch {
+        // Ignore storage errors
+      }
       setStep("confirmation");
       onScheduled?.();
     } catch {
@@ -368,7 +476,7 @@ export default function QuickScheduleModal({
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, selectedDate, selectedTime, altDate, altTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
+  }, [canSubmit, selectedDate, selectedTime, altDate, altTime, format, notes, candidate.id, email, organization, city, state, selectedOrg, termsAcceptedAt]);
 
   const handleCitySelect = useCallback((selectedCity: string, selectedState: string) => {
     setCity(selectedCity);
@@ -414,6 +522,8 @@ export default function QuickScheduleModal({
       setCity("");
       setState("");
       setEmail("");
+      setTermsAccepted(false);
+      setTermsAcceptedAt(null);
       setError("");
       setShowUpgradeModal(false);
     }, 200);
@@ -691,6 +801,36 @@ export default function QuickScheduleModal({
           className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
         />
         <p className="mt-2 text-xs text-gray-500">We&apos;ll send interview details here</p>
+      </div>
+
+      {/* Terms & Conditions */}
+      <div className="mt-6">
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setTermsAccepted(checked);
+              // Record timestamp when user accepts T&C
+              setTermsAcceptedAt(checked ? new Date().toISOString() : null);
+            }}
+            className="mt-0.5 w-4 h-4 rounded border-gray-300 accent-primary-600 focus:ring-primary-500 cursor-pointer"
+          />
+          <span className="text-sm text-gray-600 leading-snug">
+            I agree to the{" "}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-primary-600 hover:text-primary-700 underline underline-offset-2"
+            >
+              Terms & Conditions
+            </a>{" "}
+            for using Olera&apos;s interview scheduling service.
+          </span>
+        </label>
       </div>
 
       {/* Submit button */}

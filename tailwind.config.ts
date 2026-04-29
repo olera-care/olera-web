@@ -192,9 +192,37 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(-4px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        slideDown: {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(100%)" },
+        },
+        // Airbnb-style: slide up + fade, no scale, smooth ease-out
+        toastEnter: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        toastExit: {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(100%)" },
+        },
+        // Subtle heart pulse
+        heartPulse: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
+        slideUp: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        slideDown: "slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        // Airbnb-style: smooth ease-out, no spring bounce
+        toastEnter: "toastEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+        toastExit: "toastExit 0.25s cubic-bezier(0.4, 0, 1, 1) forwards",
+        heartPulse: "heartPulse 1.5s ease-in-out infinite",
       },
     },
   },

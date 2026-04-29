@@ -64,6 +64,19 @@ const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg
 const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
 const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
 
+// Every hero image we might render. Preloaded on mount so tier swaps during
+// the session (provider saves a section → completeness changes → picker
+// chooses a different section → hero re-renders with a new image) are
+// instant from browser cache instead of fetching ~150-260KB on swap.
+const ALL_HERO_IMAGES: readonly string[] = [
+  HERO_IMAGE_DEFAULT,
+  TIER_LEADS_IMAGE,
+  TIER_QUESTIONS_IMAGE,
+  TIER_SPIKE_IMAGE,
+  TIER_FALLBACK_IMAGE,
+  ...Object.values(SECTION_IMAGES),
+];
+
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
 interface Props {
@@ -116,6 +129,20 @@ export default function DashboardHero({
   // the admin Q&A funnel can compute click-through on the hero. Engagement
   // tiers don't fire — they're a different funnel, tracked by their own
   // existing event types (question_responded, etc.).
+  // Preload every tier image once the hero mounts. After a provider saves
+  // a section the picker re-evaluates and the hero swaps to a different
+  // image; without preload, the new image's ~150-260KB fetch causes a
+  // visible flash of either no-image or stale-image before the swap. With
+  // preload, all 11 images sit in browser cache and tier swaps are instant.
+  // Total preload payload is ~1.6MB, fired off the critical path.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    for (const url of ALL_HERO_IMAGES) {
+      const img = new window.Image();
+      img.src = url;
+    }
+  }, []);
+
   const firedImpression = useRef<string | null>(null);
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;

@@ -7,6 +7,65 @@
 
 ## Current Focus
 
+### 2026-04-29 — Post-answer hook P1 + dashboard hero overhaul — all merged to staging
+
+Massive day. 6 PRs merged to staging in sequence. Architecture pivoted twice based on TJ feedback. Hero is now a fully dynamic, photo-driven, 6-tier priority surface with per-section imagery and skeleton loading.
+
+**PR #676 — `60bab22c`.** Smart picker folded into existing DashboardHero as 6-tier priority stack:
+1. Fresh leads → "View inquiries" (engagement, leads supersede questions per TJ)
+2. Unanswered Qs → "Review questions" (engagement)
+3. View spike ≥25% → no CTA (positive reinforcement)
+4. Views ≥ 10 + incomplete → engagement headline + section-specific CTA
+5. Views < 10 + incomplete → section-specific completion pick (full headline)
+6. Views < 10 + complete → "Your page is live" fallback (no CTA)
+
+Engagement-tier CTAs (1-3) navigate via `<Link>`; completion-tier CTAs (4-5) fire `provider_picker_clicked` with `metadata.source: "hero"` and open the relevant edit modal in place. Pre-test caught one phantom-impression race — fixed by reading localStorage in `useState` initializer. [Notion merge report](https://app.notion.com/p/3515903a0ffe8187b714d2d097cbcf42).
+
+**PR #679 — `3df7442e`.** Post-answer hook on `/provider/[slug]/onboard`. After 4/10 self-assessment of the picker-on-success-state approach (4 stacked cards), pivoted to **auto-redirect**: brief 400ms "✓ Response sent" pulse → `router.push("/provider?from=qa-success")` → dashboard hero handles next-action from there. Pure subtraction — deleted `PostAnswerPicker.tsx`, `SmartNextActionCard.tsx`, simplified ActionCard + DashboardPage. Funnel sharpened: dropped `picker_qa_success_clickers` bucket, added `qa_success_arrivals` column backed by new `dashboard_arrival` event. Diagnostic: separates "did redirect work?" from "did hero nudge action?" Bug shipped to staging then fixed (`9731698a`): redirect was via `useEffect` on `submitted`, but `onSubmitted` flipped parent's `questionAnswered`, the `{!questionAnswered && (...)}` conditional collapsed children, React's reconciler unmounted `InlineQuestionResponse`, useEffect cleanup killed the timer. Fix: moved `setTimeout` into submit handler closure (timer survives unmount; `router` from `useRouter` is stable global). [Notion merge report](https://app.notion.com/p/3515903a0ffe8108ae80f54e70d04ce4).
+
+**PR #683 — `614d0738`.** Hotfix: `/api/provider/dashboard` resolved wrong profile for multi-profile accounts. Query did `.eq("account_id", id) .in("type", [org, caregiver]) .limit(1)` with no ORDER BY — Postgres returned rows in unspecified order. With TJ's account having both Aggie + a `[TEST]` profile, dashboard rendered Aggie's "4 inquiries" hero on the test profile. Fix: query by `account.active_profile_id` first, fall back to limit(1) for legacy accounts. Same anti-pattern in ~14 other endpoints (review-requests, care-post/*, medjobs/*, etc.) — flagged in commit message, latent until multi-profile becomes a real flow.
+
+**PR #685 + #686 — `b0a78dae` + `30256cba`.** Per-tier and per-section hero images. 11 unique 1920×1080 images sourced via Pexels/Unsplash:
+- Tier 1: `dashboard-hero-leads.jpg`
+- Tier 2: `dashboard-hero-questions.jpg`
+- Tier 3: `dashboard-hero-spike.jpg`
+- Tier 4 + 5: section-specific (gallery, about, pricing, services, screening, payment, overview)
+- Tier 6: `dashboard-hero-fallback.jpg`
+
+Visual mood matches the ask — gallery prompt gets a community/photographer image, leads get an active inquiry image, etc. `imageUrl` field on `Hook` interface; `hook.imageUrl ?? HERO_IMAGE_DEFAULT` fallback. Image hunt spec saved at `docs/hero-image-hunt.md` for future hunts.
+
+**PR #687 — `91ec835f`.** De-jank: hero used to wait ~500ms for V2 fetch with empty slot, then pop in causing layout shift. Fixed three ways: (a) inline `DashboardHeroSkeleton` reserves identical dimensions (no layout shift on swap), (b) "Hey {firstName}" greeting renders immediately during skeleton (we have it from auth context — partial-content load, not pure shimmer), (c) all 11 tier images preloaded on mount via `new Image()` so tier swaps during the session are instant from cache. Dropped the misplaced top-level `DashboardPillarsSkeleton` (62 lines removed) — it was rendered above the page header, causing a double layout shift TJ wasn't even seeing.
+
+**PR #688 — Slack alerts + daily digest extension.** Three new alerts: 🎯 dashboard arrival (qa-success only), ✋ hero CTA click, ✅ profile edit. Daily digest gains a 3rd Providers row covering same chain. `slackHeroCtaClicked` + `slackDashboardArrival` + `slackProfileEdited` helpers in `lib/slack.ts`. Wired through activity-track route. Daily digest extended in `app/api/cron/daily-digest/route.ts`.
+
+**PR #690 — engagement-tier click tracking.** TJ caught on prod that clicking Aggie's leads banner (Tier 1) didn't fire a Slack alert. Original tracking only covered completion-tier (section pickers). Engagement-tier `<Link>` CTAs were navigations with no event handler. Fix: added `engagementTier?: "leads" | "questions"` to `NavCta`, fire `provider_picker_clicked` from Link onClick with metadata.tier + metadata.destination. `slackHeroCtaClicked` extended to render engagement shape ("Going to: Inquiries (/provider/connections)") OR completion shape ("Opening section: Gallery") based on which fields are present. PR #691 — cosmetic tooltip update on /admin/analytics to reflect that the "Clicked dashboard" hero bucket now covers both engagement + completion tiers.
+
+**Test infrastructure used + cleaned up:**
+- Created `[TEST] Empty State Provider` (Tier 5 — gallery completion pick, place-based memory care) — TJ screenshot grabbed, deleted.
+- Created `[TEST] Questions State Provider` with 3 unanswered questions (Tier 2 — questions hero) — TJ screenshot grabbed, deleted.
+- Created `[TEST] Completion State Provider` (memory care, place-based) — TJ screenshot grabbed, deleted.
+- TJ's `active_profile_id` restored to Aggie (`d4242723-f94b-4c3a-92c3-dc65ad44e72a`).
+- Three distinct hero visual states captured for team demo (leads / questions / completion).
+
+**🚨 PR #693 — CRITICAL silent-failure bug + hotfix.** After staging→main promote, TJ noticed engagement-tier hero clicks were producing no Slack alerts. Diagnostic: ZERO rows in `provider_activity` for any of the four new event types (`provider_picker_impression`, `provider_picker_clicked`, `provider_profile_edited`, `dashboard_arrival`) across the entire history. Root cause: PRs #676 / #679 / #688 / #690 added the events to the application allowlist but **NEVER added a migration to extend the DB CHECK constraint** on `provider_activity.event_type`. Every insert failed silently — route's fire-and-forget client `.catch(() => {})` swallowed the rejection. Memory `feedback_schema_text_not_enum.md` (43 days old) literally documented this pattern. I had it but didn't apply it. **Detection latency: ~7 hours. Resolution latency: ~30 min.** Migration `055_post_answer_engagement_event_types.sql` extends the constraint. TJ applied via Supabase dashboard SQL editor; events started landing immediately, Slack alerts began firing on real engagement.
+
+**PR #694 — postmortem.** Documented in `docs/POSTMORTEMS.md`. New memory `feedback_event_allowlist_needs_db_migration.md` saved (sharper guidance than the 43-day-old one — leads with the specific reflex `grep -rn "provider_activity_event_type_check" supabase/migrations/` whenever adding event types).
+
+**Notion tasks created:**
+- [Mobile-optimize provider portal: drop card containers on phones](https://app.notion.com/p/3515903a0ffe81baa949f4e34b5ebfb8) — P2, triple-nesting wastes horizontal real estate on mobile
+- [Hero image library: per-tier asset hunt + wiring](https://app.notion.com/p/3515903a0ffe81709c0eef2b1bf74cee) — P3, completed (all 11 images sourced)
+
+**Memories saved (4 project dirs):**
+- `feedback_default_to_now_not_later.md` in olera-web, olera-hq, TJ-hq, olera-expansion-map. TJ called out the "save it for later" reflex as outdated — AI-paired dev inverts the cost calculus.
+- `feedback_event_allowlist_needs_db_migration.md` in olera-web. Sharper guidance for adding event types, born from the 7h silent-failure incident.
+
+**Live on main:** all of today's work has been promoted (staging → main multiple times). All 4 new event types now logging + Slack alerts firing + funnel columns incrementing.
+
+**Still open:**
+- Mobile container cleanup (separate P2)
+- Image preload could be optimized (currently 1.6MB on mount; lazy load per-tier on demand would be lighter but needs more code)
+- ~14 other endpoints share the `account_id + .limit(1)` anti-pattern — latent until multi-profile becomes a real flow
+
 ### 2026-04-28 — Post-answer hook + smart picker (P1) — planned, not started
 
 Three-PR sequence to capture peak engagement at the post-answer moment and redirect providers into the V2 dashboard. Plan: [`plans/post-answer-hook-and-smart-picker-plan.md`](plans/post-answer-hook-and-smart-picker-plan.md). Notion: [P1 task](https://www.notion.so/Hook-the-post-answer-moment-lure-providers-into-the-V2-profile-edit-dashboard-34e5903a0ffe818eb372fb6539e65391).

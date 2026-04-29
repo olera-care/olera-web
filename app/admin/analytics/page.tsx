@@ -40,6 +40,13 @@ interface ProviderQaFunnel {
   complained: number;
   signed_in: number;
   answered: number;
+  clicked_dashboard: number;
+  edited_profile: number;
+  clicked_dashboard_by_source: {
+    qa_teaser: number;
+    hero: number;
+    picker_qa_success: number;
+  };
 }
 
 interface ProviderQaVariantRow {
@@ -421,6 +428,22 @@ function QaFunnelCard({
       prev: f.signed_in,
       tooltip:
         "Distinct providers who responded to ≥1 question in this window. Same approximate-attribution caveat as Signed in.",
+    },
+    {
+      label: "Clicked dashboard",
+      value: f.clicked_dashboard,
+      prior: pf?.clicked_dashboard ?? null,
+      prev: f.answered,
+      tooltip:
+        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + completion-tier CTA on the dashboard hero (${f.clicked_dashboard_by_source.hero}) + smart picker on post-answer (${f.clicked_dashboard_by_source.picker_qa_success}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Answered.`,
+    },
+    {
+      label: "Edited profile",
+      value: f.edited_profile,
+      prior: pf?.edited_profile ?? null,
+      prev: f.clicked_dashboard,
+      tooltip:
+        "Distinct providers who saved an edit to any profile section in this window. Lagging activation indicator — measures whether dashboard nudges convert into real profile work.",
     },
   ];
 

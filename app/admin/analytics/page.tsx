@@ -40,12 +40,12 @@ interface ProviderQaFunnel {
   complained: number;
   signed_in: number;
   answered: number;
+  qa_success_arrivals: number;
   clicked_dashboard: number;
   edited_profile: number;
   clicked_dashboard_by_source: {
     qa_teaser: number;
     hero: number;
-    picker_qa_success: number;
   };
 }
 
@@ -430,12 +430,20 @@ function QaFunnelCard({
         "Distinct providers who responded to ≥1 question in this window. Same approximate-attribution caveat as Signed in.",
     },
     {
+      label: "Arrived (qa-success)",
+      value: f.qa_success_arrivals,
+      prior: pf?.qa_success_arrivals ?? null,
+      prev: f.answered,
+      tooltip:
+        "Distinct providers who answered a question and were auto-redirected to /provider with ?from=qa-success. Diagnostic for the redirect mechanic — separates 'did they reach the dashboard?' (this column) from 'did the dashboard hero nudge them into action?' (Edited profile, below). Should be ≈ Answered when the redirect is healthy.",
+    },
+    {
       label: "Clicked dashboard",
       value: f.clicked_dashboard,
       prior: pf?.clicked_dashboard ?? null,
-      prev: f.answered,
+      prev: f.qa_success_arrivals,
       tooltip:
-        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + completion-tier CTA on the dashboard hero (${f.clicked_dashboard_by_source.hero}) + smart picker on post-answer (${f.clicked_dashboard_by_source.picker_qa_success}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Answered.`,
+        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + completion-tier CTA on the dashboard hero (${f.clicked_dashboard_by_source.hero}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Arrived.`,
     },
     {
       label: "Edited profile",

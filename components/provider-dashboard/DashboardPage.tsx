@@ -34,20 +34,6 @@ import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
 
-// Section ids the dashboard can deep-link into via ?open=<sectionId>. Mirrors
-// the modal switch below — kept as a const set so the URL handler validates
-// the param before calling setEditingSection.
-const DEEP_LINK_SECTIONS = new Set<SectionId>([
-  "overview",
-  "gallery",
-  "services",
-  "screening",
-  "about",
-  "pricing",
-  "payment",
-  "owner",
-]);
-
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
@@ -62,21 +48,35 @@ export default function DashboardPage() {
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
-  // Deep-link handler: when arriving from the post-answer picker (or any
-  // ?open= URL), pop the matching edit modal as soon as profile data lands.
-  // Once-per-page-load via ref so closing the modal doesn't re-open it, and
-  // we strip the ?open / ?from params so a reload doesn't replay the action.
-  const handledOpenParam = useRef(false);
+  // Arrival tracking: when the dashboard mounts with `?from=qa-success`, the
+  // provider just answered a question on /provider/[slug]/onboard and was
+  // auto-redirected here. Fire one dashboard_arrival event so the admin Q&A
+  // funnel can measure whether the redirect mechanic is working separately
+  // from whether the dashboard hero successfully nudges them into action
+  // (the existing edited_profile column tracks the latter). Strip the param
+  // so reloads don't replay; ref-guarded so a re-render doesn't double-fire.
+  const firedArrival = useRef(false);
   useEffect(() => {
-    if (handledOpenParam.current) return;
+    if (firedArrival.current) return;
     if (!profile) return;
-    const openParam = searchParams.get("open");
-    if (!openParam) return;
-    if (!DEEP_LINK_SECTIONS.has(openParam as SectionId)) return;
-    handledOpenParam.current = true;
-    setEditingSection(openParam as SectionId);
+    const fromParam = searchParams.get("from");
+    if (!fromParam) return;
+    firedArrival.current = true;
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        actor_type: "provider",
+        provider_id: profile.slug,
+        event_type: "dashboard_arrival",
+        metadata: { source: fromParam },
+      }),
+    }).catch(() => {
+      /* fire-and-forget */
+    });
     const url = new URL(window.location.href);
-    url.searchParams.delete("open");
     url.searchParams.delete("from");
     router.replace(url.pathname + (url.search ? url.search : ""));
   }, [profile, searchParams, router]);

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
 import AnalyticsTeaserCard from "@/components/provider-onboarding/AnalyticsTeaserCard";
-import PostAnswerPicker from "@/components/provider-onboarding/PostAnswerPicker";
 
 // ============================================================
 // Types
@@ -532,6 +532,23 @@ function InlineQuestionResponse({
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
+
+  // After a successful submit, briefly show the success pulse so the
+  // provider sees their answer was received, then auto-navigate to the
+  // dashboard. The dashboard hero handles next-action nudging from there
+  // — this surface stops being its own next-action UI.
+  // 400ms is long enough to register "✓ Response sent" but short enough
+  // that the redirect doesn't feel sluggish. The parent renders the
+  // question dissolution + answer recap during this same window for a
+  // small moment of closure before nav.
+  useEffect(() => {
+    if (!submitted) return;
+    const timer = setTimeout(() => {
+      router.push("/provider?from=qa-success");
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [submitted, router]);
 
   const handleSubmit = async () => {
     const trimmed = answer.trim();
@@ -884,17 +901,10 @@ export default function ActionCard({
           )}
         </div>
 
-        {/* Post-answer next-best-action picker. Sits between the
-            response confirmation and the profile preview so the
-            primary CTA is visible in the same scroll as "Response sent."
-            Renders nothing until the auth-resolved provider profile
-            arrives, and nothing when the profile is fully complete or
-            every section has been dismissed. mt-6 lives on the picker's
-            own outer div (via className prop) so a null return leaves
-            no DOM and no leftover margin gap. */}
-        {questionAnswered && <PostAnswerPicker />}
-
-        {/* Profile preview — always visible, adapts to pre/post response state */}
+        {/* Profile preview — always visible, adapts to pre/post response state.
+            Briefly shows the answer recap during the ~400ms post-submit pulse
+            before InlineQuestionResponse navigates to /provider, where the
+            dashboard hero handles next-action nudging. */}
         <div className="mt-6">
           <ProfilePreviewCard
             provider={provider}

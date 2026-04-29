@@ -17,6 +17,7 @@ const PROVIDER_EVENT_TYPES = [
   "provider_profile_edited",
   "provider_picker_impression",
   "provider_picker_clicked",
+  "dashboard_arrival",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [

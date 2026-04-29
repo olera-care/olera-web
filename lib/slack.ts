@@ -483,6 +483,123 @@ export function slackAnalyticsTeaserCtaClicked(opts: {
   };
 }
 
+// ── Post-answer engagement chain alerts ──────────────────────────
+// These three fire across the redirect → hero → action flow that ships
+// providers from the question email into profile activation. Real-time
+// signal that the funnel is converting; complements the /admin/analytics
+// Q&A funnel card which shows the same events in aggregate.
+//
+// Section keys map to the modal IDs the picker can land on; the labels
+// are the human-readable card titles on the dashboard.
+
+const HERO_SECTION_LABELS: Record<string, string> = {
+  gallery: "Gallery",
+  about: "About",
+  pricing: "Pricing",
+  services: "Care Services",
+  screening: "Staff Screening",
+  payment: "Accepted Payments",
+  overview: "Profile Overview",
+  owner: "Owner Info",
+};
+
+function humanizeHeroSection(section: string): string {
+  return HERO_SECTION_LABELS[section] || section;
+}
+
+/**
+ * 🎯 Provider arrived at /provider via the post-answer redirect.
+ * Fires when /provider mounts with `?from=qa-success`. Diagnostic for
+ * the redirect mechanic separately from whether the hero nudges them
+ * into action — see `slackHeroCtaClicked` and `slackProfileEdited`
+ * for the downstream signals.
+ */
+export function slackDashboardArrival(opts: {
+  providerSlug: string;
+  source: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sourceLabel = opts.source === "qa-success" ? "After answering a question" : opts.source;
+  return {
+    text: `Provider arrived at dashboard: ${opts.providerSlug} (${sourceLabel})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🎯 Provider Arrived at Dashboard", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerSlug}` },
+          { type: "mrkdwn", text: `*From:*\n${sourceLabel}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * ✋ Provider clicked the dashboard hero's completion-tier CTA.
+ * Means they engaged with the smart picker on the V2 hero — the section
+ * the picker chose is in `section`. Opens the corresponding edit modal
+ * in place; the next signal is `slackProfileEdited` if they save.
+ */
+export function slackHeroCtaClicked(opts: {
+  providerSlug: string;
+  section: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sectionLabel = humanizeHeroSection(opts.section);
+  return {
+    text: `Provider clicked hero CTA: ${opts.providerSlug} → ${sectionLabel}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "✋ Provider Clicked Hero CTA", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerSlug}` },
+          { type: "mrkdwn", text: `*Opening section:*\n${sectionLabel}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * ✅ Provider saved an edit to a profile section. Conversion outcome —
+ * the activation we're trying to drive. Fires for every save (post-answer
+ * flow OR routine housekeeping), not scoped to qa-success sessions.
+ */
+export function slackProfileEdited(opts: {
+  providerSlug: string;
+  section: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sectionLabel = humanizeHeroSection(opts.section);
+  return {
+    text: `Provider edited profile: ${opts.providerSlug} → ${sectionLabel}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "✅ Provider Edited Profile", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerSlug}` },
+          { type: "mrkdwn", text: `*Section saved:*\n${sectionLabel}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── MedJobs alerts ────────────────────────────────────────────
 
 export function slackMedJobsNewStudent(opts: {

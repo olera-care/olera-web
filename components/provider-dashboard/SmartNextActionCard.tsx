@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Profile } from "@/lib/types";
 import type { ProfileCompleteness } from "@/lib/profile-completeness";
-import { pickNextAction, type NudgeSectionId } from "@/lib/next-best-action";
+import { NUDGE_SECTION_IDS, pickNextAction, type NudgeSectionId } from "@/lib/next-best-action";
 
 interface SmartNextActionCardProps {
   /** Where the card is rendered. Controls event source attribution. */
@@ -18,10 +18,11 @@ interface SmartNextActionCardProps {
 
 const DISMISS_KEY_PREFIX = "olera_picker_dismissed_";
 
-function readDismissed(sectionIds: string[]): Set<string> {
+function readDismissedFromStorage(): Set<string> {
   const set = new Set<string>();
+  if (typeof window === "undefined") return set;
   try {
-    for (const id of sectionIds) {
+    for (const id of NUDGE_SECTION_IDS) {
       if (window.localStorage.getItem(`${DISMISS_KEY_PREFIX}${id}`) === "true") {
         set.add(id);
       }
@@ -51,6 +52,14 @@ function persistDismiss(sectionId: string): void {
  * never see the same section nudge twice once dismissed.
  *
  * Renders nothing when every nudgeable section is at 100% (or dismissed).
+ *
+ * Hydration: localStorage is read in the useState initializer, not via
+ * useEffect. The picker only renders inside DashboardPage's profile-loaded
+ * branch (which itself is "use client" + auth-gated, so it never hits SSR
+ * HTML), so an init-function read is safe and avoids a phantom-impression
+ * race where an effect-driven hydration would fire two impressions per
+ * mount on returning providers — one for the wrong (un-dismissed) pick
+ * before the effect ran, then one for the right pick after.
  */
 export default function SmartNextActionCard({
   source,
@@ -59,21 +68,7 @@ export default function SmartNextActionCard({
   onOpenSection,
   dismissable = true,
 }: SmartNextActionCardProps) {
-  // SSR + first client render must agree, so dismissed starts empty and is
-  // hydrated from localStorage in a post-mount effect. The first paint may
-  // briefly show a section the provider already dismissed; the effect below
-  // immediately re-renders with the right pick. Mismatch-free.
-  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
-
-  useEffect(() => {
-    const ids = completeness.sections.map((s) => s.id);
-    const next = readDismissed(ids);
-    setDismissed((prev) => {
-      if (prev.size !== next.size) return next;
-      for (const id of next) if (!prev.has(id)) return next;
-      return prev;
-    });
-  }, [completeness.sections]);
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(readDismissedFromStorage);
 
   const action = useMemo(
     () => pickNextAction(completeness, profile.category, dismissed),

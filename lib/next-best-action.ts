@@ -16,7 +16,7 @@ export type NudgeSectionId =
   | "about"
   | "payment";
 
-const NUDGE_SECTION_IDS = new Set<string>([
+export const NUDGE_SECTION_IDS: readonly NudgeSectionId[] = [
   "overview",
   "pricing",
   "screening",
@@ -24,7 +24,9 @@ const NUDGE_SECTION_IDS = new Set<string>([
   "gallery",
   "about",
   "payment",
-]);
+];
+
+const NUDGE_SECTION_ID_SET = new Set<string>(NUDGE_SECTION_IDS);
 
 /** Profile categories where the provider IS a physical place families visit. */
 const PLACE_CATEGORIES = new Set<ProfileCategory>([
@@ -157,7 +159,7 @@ export function pickNextAction(
   exclude?: ReadonlySet<string>,
 ): NextAction | null {
   const candidates = completeness.sections
-    .filter((s) => NUDGE_SECTION_IDS.has(s.id) && s.percent < 100 && !exclude?.has(s.id))
+    .filter((s) => NUDGE_SECTION_ID_SET.has(s.id) && s.percent < 100 && !exclude?.has(s.id))
     .slice()
     .sort((a, b) => {
       const aZero = a.percent === 0 ? 0 : 1;

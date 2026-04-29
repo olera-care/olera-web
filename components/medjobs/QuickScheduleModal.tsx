@@ -804,8 +804,13 @@ export default function QuickScheduleModal({
         <p className="mt-2 text-xs text-gray-500">We&apos;ll send interview details here</p>
       </div>
 
-      {/* Terms & Conditions */}
-      <div className="mt-6">
+    </div>
+  );
+
+  const renderInfoFooter = () => (
+    <div className="pt-2 space-y-4">
+      {/* Terms & Conditions - in footer so always visible with submit button */}
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
             type="checkbox"
@@ -833,11 +838,7 @@ export default function QuickScheduleModal({
           </span>
         </label>
       </div>
-    </div>
-  );
 
-  const renderInfoFooter = () => (
-    <div className="pt-2 space-y-3">
       <button
         type="button"
         onClick={handleSubmit}

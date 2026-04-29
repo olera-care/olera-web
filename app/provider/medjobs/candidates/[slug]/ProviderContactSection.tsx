@@ -142,14 +142,26 @@ export default function ProviderContactSection({
       <>
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <div className="flex gap-2">
-            <button
-              onClick={handleScheduleClick}
-              disabled={scheduled}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
-            >
-              <CalendarIcon />
-              {scheduled ? "Interview Requested!" : "Schedule Interview"}
-            </button>
+            {scheduled && scheduledButPending && !isVerified ? (
+              <button
+                onClick={() => onVerifyClick?.()}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Verify to Notify {firstName}
+              </button>
+            ) : (
+              <button
+                onClick={handleScheduleClick}
+                disabled={scheduled}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
+              >
+                <CalendarIcon />
+                {scheduled ? "Interview Requested!" : "Schedule Interview"}
+              </button>
+            )}
             {/* Phone button */}
             {studentPhone && (
               <a

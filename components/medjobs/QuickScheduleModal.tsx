@@ -534,7 +534,7 @@ export default function QuickScheduleModal({
   // ─────────────────────────────────────────────────────────────────────────────
 
   const renderScheduleStep = () => (
-    <div className="pt-4 pb-6">
+    <div className="pt-4 pb-4">
       {/* Step indicator */}
       {renderStepIndicator()}
 
@@ -657,18 +657,19 @@ export default function QuickScheduleModal({
           className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-colors"
         />
       </div>
+    </div>
+  );
 
-      {/* Next button */}
-      <div className="mt-8">
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={!canProceedToStep2}
-          className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
-        >
-          Continue
-        </button>
-      </div>
+  const renderScheduleFooter = () => (
+    <div className="pt-2">
+      <button
+        type="button"
+        onClick={handleNext}
+        disabled={!canProceedToStep2}
+        className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+      >
+        Continue
+      </button>
     </div>
   );
 
@@ -677,7 +678,7 @@ export default function QuickScheduleModal({
   // ─────────────────────────────────────────────────────────────────────────────
 
   const renderInfoStep = () => (
-    <div className="pt-4 pb-6">
+    <div className="pt-4 pb-4">
       {/* Step indicator */}
       {renderStepIndicator()}
 
@@ -832,29 +833,26 @@ export default function QuickScheduleModal({
           </span>
         </label>
       </div>
+    </div>
+  );
 
-      {/* Submit button */}
-      <div className="mt-8">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!canSubmit || submitting}
-          className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
-        >
-          {submitting ? "Sending..." : "Send request"}
-        </button>
-      </div>
-
-      {/* Back link */}
-      <div className="mt-4 text-center">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors py-2 px-4"
-        >
-          Back
-        </button>
-      </div>
+  const renderInfoFooter = () => (
+    <div className="pt-2 space-y-3">
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!canSubmit || submitting}
+        className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+      >
+        {submitting ? "Sending..." : "Send request"}
+      </button>
+      <button
+        type="button"
+        onClick={handleBack}
+        className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
+      >
+        Back
+      </button>
     </div>
   );
 
@@ -906,17 +904,18 @@ export default function QuickScheduleModal({
           </div>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Close button */}
-      <div className="mt-8">
-        <button
-          type="button"
-          onClick={handleClose}
-          className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
-        >
-          Got it
-        </button>
-      </div>
+  const renderConfirmationFooter = () => (
+    <div className="pt-2">
+      <button
+        type="button"
+        onClick={handleClose}
+        className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+      >
+        Got it
+      </button>
     </div>
   );
 
@@ -936,12 +935,21 @@ export default function QuickScheduleModal({
     return <UpgradeModal creditsUsed={3} onClose={handleClose} />;
   }
 
+  // Get the appropriate footer for current step
+  const currentFooter = (() => {
+    if (step === "schedule") return renderScheduleFooter();
+    if (step === "info") return renderInfoFooter();
+    if (step === "confirmation") return renderConfirmationFooter();
+    return undefined;
+  })();
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
       size="lg"
       hideHeader
+      footer={currentFooter}
     >
       {step === "schedule" && renderScheduleStep()}
       {step === "info" && renderInfoStep()}

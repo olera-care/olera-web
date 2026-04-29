@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       proposedTime,
       alternativeTime,
       notes,
+      termsAcceptedAt,
       provider,
     } = body;
 
@@ -270,6 +271,29 @@ export async function POST(request: NextRequest) {
     });
     if (creditError) {
       console.error("[medjobs/interviews/quick] credit increment error:", creditError);
+    }
+
+    // Store T&C acceptance timestamp in provider metadata (for audit trail)
+    if (termsAcceptedAt) {
+      const { data: currentProfile } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", providerProfileId)
+        .single();
+
+      const currentMeta = (currentProfile?.metadata as Record<string, unknown>) ?? {};
+      // Only set if not already set (preserve first acceptance)
+      if (!currentMeta.interview_terms_accepted_at) {
+        await admin
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...currentMeta,
+              interview_terms_accepted_at: termsAcceptedAt,
+            },
+          })
+          .eq("id", providerProfileId);
+      }
     }
 
     // Generate magic link URL for the confirmation email

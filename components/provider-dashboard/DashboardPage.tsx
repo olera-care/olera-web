@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
@@ -37,6 +38,8 @@ export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Passing user?.id makes the hook refetch when auth resolves — covers the
   // first-load-401 race where the session cookie lands after mount.
@@ -44,6 +47,39 @@ export default function DashboardPage() {
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
+
+  // Arrival tracking: when the dashboard mounts with `?from=qa-success`, the
+  // provider just answered a question on /provider/[slug]/onboard and was
+  // auto-redirected here. Fire one dashboard_arrival event so the admin Q&A
+  // funnel can measure whether the redirect mechanic is working separately
+  // from whether the dashboard hero successfully nudges them into action
+  // (the existing edited_profile column tracks the latter). Strip the param
+  // so reloads don't replay; ref-guarded so a re-render doesn't double-fire.
+  const firedArrival = useRef(false);
+  useEffect(() => {
+    if (firedArrival.current) return;
+    if (!profile) return;
+    const fromParam = searchParams.get("from");
+    if (!fromParam) return;
+    firedArrival.current = true;
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        actor_type: "provider",
+        provider_id: profile.slug,
+        event_type: "dashboard_arrival",
+        metadata: { source: fromParam },
+      }),
+    }).catch(() => {
+      /* fire-and-forget */
+    });
+    const url = new URL(window.location.href);
+    url.searchParams.delete("from");
+    router.replace(url.pathname + (url.search ? url.search : ""));
+  }, [profile, searchParams, router]);
 
   // Only show skeleton if we don't have a profile yet
   // Metadata is returned immediately (base data), enrichment happens in background

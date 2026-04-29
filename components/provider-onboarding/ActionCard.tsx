@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import { getPrimaryImage } from "@/lib/types/provider";
@@ -531,6 +532,7 @@ function InlineQuestionResponse({
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     const trimmed = answer.trim();
@@ -567,6 +569,24 @@ function InlineQuestionResponse({
 
       setSubmitted(true);
       onSubmitted?.(trimmed);
+
+      // Auto-navigate to the dashboard after a brief pulse so the provider
+      // registers "✓ Response sent" before the page transitions. The
+      // dashboard hero handles next-action nudging from there — this
+      // surface stops being its own next-action UI.
+      //
+      // setTimeout lives inside the submit handler (not a useEffect) on
+      // purpose. When `onSubmitted` flips the parent's `questionAnswered`
+      // state, the `{!questionAnswered && ...}` conditional in ActionCard
+      // shifts the children list, which can cause React's reconciler to
+      // unmount this component. A useEffect-driven timer would have its
+      // cleanup fire on that unmount and the redirect would never run —
+      // exactly the bug TJ caught on staging. A timer scheduled in the
+      // handler closure runs regardless of mount state, and `router` from
+      // useRouter is a stable global facade so router.push still navigates.
+      window.setTimeout(() => {
+        router.push("/provider?from=qa-success");
+      }, 400);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -883,7 +903,10 @@ export default function ActionCard({
           )}
         </div>
 
-        {/* Profile preview — always visible, adapts to pre/post response state */}
+        {/* Profile preview — always visible, adapts to pre/post response state.
+            Briefly shows the answer recap during the ~400ms post-submit pulse
+            before InlineQuestionResponse navigates to /provider, where the
+            dashboard hero handles next-action nudging. */}
         <div className="mt-6">
           <ProfilePreviewCard
             provider={provider}

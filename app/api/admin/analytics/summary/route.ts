@@ -29,6 +29,7 @@ const PROVIDER_DISTINCT_EVENT_TYPES = [
   "analytics_teaser_cta_clicked",
   "provider_picker_clicked",
   "provider_profile_edited",
+  "dashboard_arrival",
 ] as const;
 
 type ProviderEvent = (typeof PROVIDER_EVENT_TYPES)[number];
@@ -45,10 +46,10 @@ type DistinctCounts = {
   qa_email_openers: number;
   /** Distinct providers who clicked a completion-tier CTA on the dashboard hero. */
   hero_clickers: number;
-  /** Distinct providers who clicked the smart picker on the post-answer success state (PR C — zero until that ships). */
-  picker_qa_success_clickers: number;
   /** Distinct providers who saved an edit to any profile section. */
   profile_editors: number;
+  /** Distinct providers who arrived at /provider with `?from=qa-success` — auto-redirected after answering a question. Diagnostic for whether the redirect mechanic is working separately from whether the hero nudges them into action. */
+  qa_success_arrivals: number;
 };
 // Cohort-anchored funnel for the provider question_received email. `sent`
 // through `complained` are raw email-row counts (one row per send) over the
@@ -64,7 +65,9 @@ type ProviderQaFunnel = {
   complained: number;
   signed_in: number;
   answered: number;
-  /** Distinct providers who clicked through to /provider in the window — union of analytics teaser + smart picker, any source. */
+  /** Distinct providers who arrived at /provider with `?from=qa-success` — auto-redirected after answering a question. Sits between answered and clicked_dashboard in the journey: did the redirect mechanic work? */
+  qa_success_arrivals: number;
+  /** Distinct providers who clicked any dashboard CTA in the window — union of analytics teaser on /onboard + dashboard hero on /provider. */
   clicked_dashboard: number;
   /** Distinct providers who saved an edit to any profile section in the window. Lagging activation indicator. */
   edited_profile: number;
@@ -72,7 +75,6 @@ type ProviderQaFunnel = {
   clicked_dashboard_by_source: {
     qa_teaser: number;
     hero: number;
-    picker_qa_success: number;
   };
 };
 type QaEmailIssue = {
@@ -147,8 +149,8 @@ const EMPTY_DISTINCT = (): DistinctCounts => ({
   teaser_clickers: 0,
   qa_email_openers: 0,
   hero_clickers: 0,
-  picker_qa_success_clickers: 0,
   profile_editors: 0,
+  qa_success_arrivals: 0,
 });
 const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   sent: 0,
@@ -159,12 +161,12 @@ const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   complained: 0,
   signed_in: 0,
   answered: 0,
+  qa_success_arrivals: 0,
   clicked_dashboard: 0,
   edited_profile: 0,
   clicked_dashboard_by_source: {
     qa_teaser: 0,
     hero: 0,
-    picker_qa_success: 0,
   },
 });
 const EMPTY_VARIANT_ROW = (): ProviderQaVariantRow => ({
@@ -327,11 +329,11 @@ async function fetchWindow(
     lead_engagers: new Set<string>(),
     teaser_clickers: new Set<string>(),
     hero_clickers: new Set<string>(),
-    picker_qa_success_clickers: new Set<string>(),
     profile_editors: new Set<string>(),
-    // Union of teaser + picker (any source) — feeds funnel.clicked_dashboard.
-    // Kept here rather than derived later so a provider isn't double-counted
-    // when they used both paths.
+    qa_success_arrivals: new Set<string>(),
+    // Union of teaser + hero — feeds funnel.clicked_dashboard. Kept here
+    // rather than derived later so a provider isn't double-counted when
+    // they used both paths.
     any_dashboard_clickers: new Set<string>(),
   };
   for (const r of (distinctRes.data ?? []) as Array<{
@@ -355,10 +357,12 @@ async function fetchWindow(
     } else if (r.event_type === "provider_picker_clicked") {
       const source = r.metadata?.source;
       if (source === "hero") sets.hero_clickers.add(pid);
-      else if (source === "qa-success") sets.picker_qa_success_clickers.add(pid);
       sets.any_dashboard_clickers.add(pid);
     } else if (r.event_type === "provider_profile_edited") {
       sets.profile_editors.add(pid);
+    } else if (r.event_type === "dashboard_arrival") {
+      const source = r.metadata?.source;
+      if (source === "qa-success") sets.qa_success_arrivals.add(pid);
     }
   }
   distinct.qa_signins = sets.qa_signins.size;
@@ -367,8 +371,8 @@ async function fetchWindow(
   distinct.lead_engagers = sets.lead_engagers.size;
   distinct.teaser_clickers = sets.teaser_clickers.size;
   distinct.hero_clickers = sets.hero_clickers.size;
-  distinct.picker_qa_success_clickers = sets.picker_qa_success_clickers.size;
   distinct.profile_editors = sets.profile_editors.size;
+  distinct.qa_success_arrivals = sets.qa_success_arrivals.size;
 
   const qaOpeners = new Set<string>();
   for (const r of (openersRes.data ?? []) as Array<{ provider_id: string | null }>) {
@@ -406,10 +410,10 @@ async function fetchWindow(
   // smart picker once both have been live long enough to generate signal.
   funnel.clicked_dashboard = sets.any_dashboard_clickers.size;
   funnel.edited_profile = distinct.profile_editors;
+  funnel.qa_success_arrivals = distinct.qa_success_arrivals;
   funnel.clicked_dashboard_by_source = {
     qa_teaser: distinct.teaser_clickers,
     hero: distinct.hero_clickers,
-    picker_qa_success: distinct.picker_qa_success_clickers,
   };
   // bounced / complained are populated below from the event-anchored issues
   // query so they stay in lockstep with the issues list.

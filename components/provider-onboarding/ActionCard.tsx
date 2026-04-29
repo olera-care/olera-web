@@ -534,22 +534,6 @@ function InlineQuestionResponse({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
-  // After a successful submit, briefly show the success pulse so the
-  // provider sees their answer was received, then auto-navigate to the
-  // dashboard. The dashboard hero handles next-action nudging from there
-  // — this surface stops being its own next-action UI.
-  // 400ms is long enough to register "✓ Response sent" but short enough
-  // that the redirect doesn't feel sluggish. The parent renders the
-  // question dissolution + answer recap during this same window for a
-  // small moment of closure before nav.
-  useEffect(() => {
-    if (!submitted) return;
-    const timer = setTimeout(() => {
-      router.push("/provider?from=qa-success");
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [submitted, router]);
-
   const handleSubmit = async () => {
     const trimmed = answer.trim();
     if (!trimmed || isSubmitting) return;
@@ -585,6 +569,24 @@ function InlineQuestionResponse({
 
       setSubmitted(true);
       onSubmitted?.(trimmed);
+
+      // Auto-navigate to the dashboard after a brief pulse so the provider
+      // registers "✓ Response sent" before the page transitions. The
+      // dashboard hero handles next-action nudging from there — this
+      // surface stops being its own next-action UI.
+      //
+      // setTimeout lives inside the submit handler (not a useEffect) on
+      // purpose. When `onSubmitted` flips the parent's `questionAnswered`
+      // state, the `{!questionAnswered && ...}` conditional in ActionCard
+      // shifts the children list, which can cause React's reconciler to
+      // unmount this component. A useEffect-driven timer would have its
+      // cleanup fire on that unmount and the redirect would never run —
+      // exactly the bug TJ caught on staging. A timer scheduled in the
+      // handler closure runs regardless of mount state, and `router` from
+      // useRouter is a stable global facade so router.push still navigates.
+      window.setTimeout(() => {
+        router.push("/provider?from=qa-success");
+      }, 400);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

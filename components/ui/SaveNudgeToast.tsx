@@ -13,7 +13,7 @@ interface SaveNudgeToastProps {
 
 /**
  * A beautiful, non-intrusive floating toast that nudges guests to sign up
- * after saving providers. Designed to be Apple/Airbnb quality.
+ * after saving providers. Apple/Airbnb quality with spring animations.
  */
 export default function SaveNudgeToast({
   savedCount,
@@ -23,36 +23,39 @@ export default function SaveNudgeToast({
 }: SaveNudgeToastProps) {
   const [mounted, setMounted] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Staggered content entrance
+    const timer = setTimeout(() => setShowContent(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Manual dismiss (user clicked "Maybe Later" or X) - counts against dismiss limit
+  // Manual dismiss (user clicked "Later" or X) - counts against dismiss limit
   const handleDismiss = useCallback(() => {
     setIsExiting(true);
     setTimeout(() => {
       onDismiss();
-    }, 300); // Match slideDown animation duration
+    }, 250);
   }, [onDismiss]);
 
   // Auto-dismiss (timeout) - does NOT count against dismiss limit
   const handleAutoDismiss = useCallback(() => {
     setIsExiting(true);
     setTimeout(() => {
-      // Use onAutoDismiss if provided (doesn't record dismiss), otherwise fall back
       (onAutoDismiss || onDismiss)();
-    }, 300);
+    }, 250);
   }, [onAutoDismiss, onDismiss]);
 
   const handleSignUp = useCallback(() => {
     setIsExiting(true);
     setTimeout(() => {
       onSignUp();
-    }, 200);
+    }, 150);
   }, [onSignUp]);
 
-  // Auto-dismiss after 12 seconds (doesn't count as user dismiss)
+  // Auto-dismiss after 12 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       handleAutoDismiss();
@@ -66,9 +69,9 @@ export default function SaveNudgeToast({
     <div
       className={`
         fixed left-1/2 -translate-x-1/2 z-[100]
-        w-[calc(100%-24px)] max-w-[400px]
+        w-[calc(100%-24px)] max-w-[380px]
         bottom-4 sm:bottom-6
-        ${isExiting ? "animate-slideDown" : "animate-slideUp"}
+        ${isExiting ? "animate-toastExit" : "animate-toastEnter"}
       `}
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -76,45 +79,59 @@ export default function SaveNudgeToast({
       role="alert"
       aria-live="polite"
     >
-      {/* Card container — glassmorphism with subtle shadow */}
+      {/* Card — clean white with refined shadow */}
       <div
-        className="
-          bg-white/95 backdrop-blur-xl
-          rounded-2xl
-          shadow-lg
-          border border-white/60
-          overflow-hidden
-        "
+        className="bg-white rounded-2xl overflow-hidden"
         style={{
-          boxShadow: "0 8px 32px -8px rgba(0, 0, 0, 0.12), 0 2px 8px -2px rgba(0, 0, 0, 0.06)",
+          boxShadow: "0 4px 24px -4px rgba(0, 0, 0, 0.12), 0 8px 48px -8px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <div className="px-5 pt-5 pb-5">
-          {/* Header with icon and dismiss */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-3">
-              {/* Heart icon — subtle tint, no heavy circle */}
+        <div className="p-5">
+          {/* Header row */}
+          <div className="flex items-start gap-3.5 mb-3.5">
+            {/* Animated heart icon */}
+            <div
+              className={`
+                w-10 h-10 rounded-full bg-gray-100
+                flex items-center justify-center shrink-0
+                transition-all duration-500
+                ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-75"}
+              `}
+            >
               <svg
-                className="w-6 h-6 text-primary-400 shrink-0"
+                className="w-5 h-5 text-rose-500 animate-heartPulse"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
-              <div>
-                <p className="text-[15px] font-semibold text-gray-900 leading-snug">
-                  {savedCount} provider{savedCount !== 1 ? "s" : ""} saved
-                </p>
-                <p className="text-[13px] text-gray-500 leading-snug">
-                  On this device only
-                </p>
-              </div>
             </div>
 
-            {/* Dismiss button — minimal */}
+            {/* Text content */}
+            <div
+              className={`
+                flex-1 min-w-0 pt-0.5
+                transition-all duration-500 delay-75
+                ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+              `}
+            >
+              <p className="text-[15px] font-semibold text-gray-900 leading-tight">
+                {savedCount} provider{savedCount !== 1 ? "s" : ""} saved
+              </p>
+              <p className="text-[13px] text-gray-500 mt-0.5">
+                On this device only
+              </p>
+            </div>
+
+            {/* Close button */}
             <button
               onClick={handleDismiss}
-              className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 transition-colors -mt-0.5 -mr-1"
+              className={`
+                w-8 h-8 -mt-1 -mr-1 flex items-center justify-center
+                rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100
+                transition-all duration-200
+                ${showContent ? "opacity-100" : "opacity-0"}
+              `}
               aria-label="Dismiss"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,22 +140,44 @@ export default function SaveNudgeToast({
             </button>
           </div>
 
-          {/* Value proposition — concise */}
-          <p className="text-[14px] text-gray-600 leading-relaxed mb-4">
+          {/* Value prop */}
+          <p
+            className={`
+              text-[14px] text-gray-600 leading-relaxed mb-4
+              transition-all duration-500 delay-100
+              ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
             Create a free account to sync across devices.
           </p>
 
-          {/* Action buttons — refined, not loud */}
-          <div className="flex items-center gap-2">
+          {/* Action buttons — black primary, refined secondary */}
+          <div
+            className={`
+              flex items-center gap-2.5
+              transition-all duration-500 delay-150
+              ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
             <button
               onClick={handleSignUp}
-              className="flex-1 py-2.5 px-4 bg-primary-50 hover:bg-primary-100 text-primary-700 text-[14px] font-medium rounded-xl transition-colors"
+              className="
+                flex-1 py-2.5 px-5
+                bg-gray-900 hover:bg-gray-800 active:bg-gray-950
+                text-white text-[14px] font-medium
+                rounded-xl transition-colors
+              "
             >
               Sign Up Free
             </button>
             <button
               onClick={handleDismiss}
-              className="py-2.5 px-4 text-gray-500 hover:text-gray-700 text-[14px] transition-colors"
+              className="
+                py-2.5 px-4
+                text-gray-500 hover:text-gray-900
+                text-[14px] font-medium
+                transition-colors
+              "
             >
               Later
             </button>

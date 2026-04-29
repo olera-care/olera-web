@@ -200,11 +200,29 @@ const config: Config = {
           "0%": { opacity: "1", transform: "translateY(0)" },
           "100%": { opacity: "0", transform: "translateY(100%)" },
         },
+        // Spring-based toast entrance with scale
+        toastEnter: {
+          "0%": { opacity: "0", transform: "translateY(100%) scale(0.95)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        toastExit: {
+          "0%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "100%": { opacity: "0", transform: "translateY(16px) scale(0.98)" },
+        },
+        // Subtle heart pulse
+        heartPulse: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
         slideUp: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         slideDown: "slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        // Spring easing for natural feel
+        toastEnter: "toastEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        toastExit: "toastExit 0.25s cubic-bezier(0.4, 0, 1, 1) forwards",
+        heartPulse: "heartPulse 1.5s ease-in-out infinite",
       },
     },
   },

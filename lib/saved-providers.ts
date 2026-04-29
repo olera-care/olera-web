@@ -102,7 +102,7 @@ let sessionDismissCount = 0;
 
 /**
  * Check if we should show the nudge for the current save count.
- * Returns true if this count is a milestone and we haven't shown recently.
+ * Returns true if this count is a milestone and we haven't shown yet.
  */
 export function shouldShowNudge(currentCount: number): boolean {
   // Don't show if user has dismissed 3+ times this session (nudge fatigue)
@@ -113,15 +113,8 @@ export function shouldShowNudge(currentCount: number): boolean {
 
   const state = readNudgeState();
 
-  // Don't show if we already showed for this count
+  // Don't show if we already showed for this milestone or higher
   if (state.lastShownCount >= currentCount) return false;
-
-  // Don't show if shown within last 2 minutes (prevent rapid re-shows)
-  if (state.lastShownAt) {
-    const lastShown = new Date(state.lastShownAt).getTime();
-    const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
-    if (lastShown > twoMinutesAgo) return false;
-  }
 
   return true;
 }

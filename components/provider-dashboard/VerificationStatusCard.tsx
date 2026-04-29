@@ -16,6 +16,8 @@ interface ProfileMetadata {
 interface VerificationStatusCardProps {
   /** Profile metadata containing verification_submission and badge_approved */
   metadata?: ProfileMetadata | null;
+  /** Profile verification_state (e.g., "verified", "unverified", "pending") */
+  verificationState?: string | null;
   /** Callback when provider wants to submit verification form */
   onRequestVerification: () => void;
 }
@@ -27,7 +29,8 @@ interface VerificationStatusCardProps {
  * - Provider was rejected (can resubmit)
  *
  * Hides if:
- * - Badge is approved
+ * - Badge is admin-approved (badge_approved = true)
+ * - Provider is self-verified (verification_state = "verified")
  * - Form submitted and pending review (not yet approved/rejected)
  *
  * Note: This is now for optional badge requests, not access control.
@@ -35,10 +38,11 @@ interface VerificationStatusCardProps {
  */
 export default function VerificationStatusCard({
   metadata,
+  verificationState,
   onRequestVerification,
 }: VerificationStatusCardProps) {
-  // Don't render if badge already approved
-  if (metadata?.badge_approved) {
+  // Don't render if already verified (admin-approved badge OR self-verified)
+  if (metadata?.badge_approved || verificationState === "verified") {
     return null;
   }
 

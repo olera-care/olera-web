@@ -382,7 +382,14 @@ export default function VerificationMethodModal({
     setError(null);
 
     try {
-      const result = await onSubmit({ method, value, fullName: fullName.trim(), documentData, documentType, linkedinScreenshots });
+      const result = await onSubmit({
+        method,
+        value,
+        fullName: fullName.trim(),
+        documentData,
+        documentType,
+        linkedinScreenshots,
+      });
       if (result?.verified) {
         setScreen("success");
       } else if (result?.pendingReview) {

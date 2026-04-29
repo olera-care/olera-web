@@ -22,6 +22,7 @@ export interface Provider {
   name: string;
   image: string;
   imageType?: CardImageType;
+  fallbackImage?: string; // Category stock photo, used when `image` fails to load
   images?: string[]; // Multiple images for carousel
   address: string;
   rating: number;
@@ -83,6 +84,7 @@ const getCareTypeColor = (type: string) => {
 export default function ProviderCard({ provider }: ProviderCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
   const [showPricingInfo, setShowPricingInfo] = useState(false);
   const [showStaffInfo, setShowStaffInfo] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -142,6 +144,13 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const primaryUnusable = provider.imageType === "placeholder" || imgFailed;
+  const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
+  const providerImageState = {
+    showFallbackPhoto: primaryUnusable && fallbackAvailable,
+    showGradient: primaryUnusable && !fallbackAvailable,
+  };
+
   return (
     <Link
       href={`/provider/${provider.slug}`}
@@ -150,9 +159,9 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200"
     >
       {/* Image Container */}
-      <div className={`relative h-64 group/image ${provider.imageType === "logo" || provider.imageType === "placeholder" || imgFailed ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
-        {provider.imageType === "placeholder" || imgFailed ? (
-          /* No image — gradient + initials */
+      <div className={`relative h-64 group/image ${provider.imageType === "logo" || providerImageState.showGradient ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
+        {providerImageState.showGradient ? (
+          /* Last resort — gradient + initials */
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
               <span className="text-2xl font-bold text-primary-400">
@@ -161,6 +170,14 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             </div>
             <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
+        ) : providerImageState.showFallbackPhoto ? (
+          /* Stock photo — when real image is unavailable or failed */
+          <img
+            src={provider.fallbackImage!}
+            alt={provider.name}
+            className="w-full h-full object-cover"
+            onError={() => setFallbackFailed(true)}
+          />
         ) : provider.imageType === "logo" ? (
           /* Logo — contained, not cropped */
           <div className="w-full h-full flex items-center justify-center p-8">

@@ -143,6 +143,34 @@ const CATEGORY_MAP = {
 
 const NON_CMS_CATEGORIES = ['Assisted Living', 'Memory Care', 'Home Care (Non-medical)', 'Independent Living'];
 
+// Shared definitions used by all entity-verification prompts.
+// Source of truth: docs/provider-category-definitions.md + docs/data-sweep-runbook.md.
+const SIX_CATEGORY_DEFINITIONS = `Olera matches care seekers to providers in EXACTLY 6 categories:
+
+1. Home Care (Non-medical) — non-clinical in-home assistance with ADLs (bathing, dressing, meals, companionship). Caregivers are NOT licensed clinicians. Includes franchise/staffing models that place caregivers (Visiting Angels, Comfort Keepers, BrightStar Care, etc.).
+2. Home Health Care — Medicare-certified intermittent skilled clinical care in the home. Provider must be a Medicare-certified Home Health Agency.
+3. Assisted Living — residential community with 24/7 ADL support. Includes Adult Family Homes (WA/OR/ID), Personal Care Homes (PA/MI), Residential Care Facilities for the Elderly (CA, "RCFE"), Care Homes (CA).
+4. Independent Living — senior-restricted residential community (55+/62+) WITH services (dining, transportation, programming). Pure age-restricted housing without services does NOT count.
+5. Memory Care — secured residential community for dementia/Alzheimer's.
+6. Nursing Home — 24/7 skilled nursing facility (SNF). Includes "Nursing and Rehabilitation Center". Does NOT include Inpatient Rehab Hospitals.
+
+Combined-service providers qualify if AT LEAST ONE primary line is in the 6.`;
+
+const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line)
+- Adult day care / PACE / geriatric care management / care navigation
+- Inpatient rehab hospital
+- Mental illness / addiction / behavioral health facility
+- Pediatric care
+- Outside the United States
+- Test data / placeholder / demo entries
+- DME / pharmacy / medical equipment supplier
+- Hospital / urgent care / primary care clinic / physician practice
+- Pure 55+ apartments / mobile home parks WITHOUT services
+- Property management / real estate / construction / general healthcare staffing (not in-home caregiver placement)
+- Government office / aging services agency / senior recreation center
+- Wedding venues / event spaces / community centers / YMCAs
+- Retail / food service / churches / universities / generic nonprofits`;
+
 const KEYWORD_BLOCKLIST = [
   'pharmacy', 'hospital', 'pediatric', 'veterinary', 'dental', 'optometrist',
   'chiropractor', 'urgent care', 'physical therapy', 'dialysis', 'medical supply',
@@ -636,28 +664,19 @@ async function phaseClean(cities, opts) {
           `${j + 1}. "${entry.p.provider_name}" — category: ${entry.p.provider_category}, address: ${entry.p.address || 'unknown'} (${entry.cd.c.city}, ${entry.cd.c.state})`
         ).join('\n');
 
-        const prompt = `For each business below, determine if its PRIMARY BUSINESS is providing senior care.
+        const prompt = `${SIX_CATEGORY_DEFINITIONS}
 
-Answer YES only if the entity is one of these:
-- Residential senior living facility (assisted living, memory care, nursing home, independent living)
-- In-home care agency (home health, non-medical home care, hospice)
-- Dedicated senior care program (adult day care, geriatric care management)
+For each business below, determine if its PRIMARY BUSINESS matches one of the 6 categories.
 
-Answer NO if the entity is:
-- A place seniors might USE but that is not a care provider (community centers, recreation facilities, YMCAs)
-- General medical (family medicine, urgent care, VA clinics, hospitals, rehab clinics)
-- Mental health / therapy only (counselors, psychologists, behavioral health)
-- A DME supplier, medical supply store, or equipment rental company
-- Retail, food service, construction, IT, storage, or any non-care business
-- Nonprofit / community service that serves the general public
-- Funeral homes, universities, churches, government agencies
-- Wedding venues, event spaces, banquet halls
-- General apartment complexes (not senior-specific independent living)
+Answer is_senior_care = true ONLY if primary business clearly matches one of the 6.
+
+Answer is_senior_care = false if the entity is:
+${OUT_OF_SCOPE_TYPES}
 
 Businesses:
 ${list}
 
-Return JSON: {"results": [{"num": 1, "is_senior_care": true, "reason": "brief reason"}]}`;
+Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one of the 6 if true, else null>", "reason": "brief reason"}]}`;
 
         try {
           const content = await perplexityChat(prompt);
@@ -738,28 +757,19 @@ async function cleanCityPerCity(c, i, total, csvPath, opts, dedupNameSet, dedupP
     for (let b = 0; b < providers.length; b += BATCH) {
       const batch = providers.slice(b, b + BATCH);
       const list = batch.map((p, j) => `${j + 1}. "${p.provider_name}" — category: ${p.provider_category}, address: ${p.address || 'unknown'}`).join('\n');
-      const prompt = `For each business below, determine if its PRIMARY BUSINESS is providing senior care.
+      const prompt = `${SIX_CATEGORY_DEFINITIONS}
 
-Answer YES only if the entity is one of these:
-- Residential senior living facility (assisted living, memory care, nursing home, independent living)
-- In-home care agency (home health, non-medical home care, hospice)
-- Dedicated senior care program (adult day care, geriatric care management)
+For each business below, determine if its PRIMARY BUSINESS matches one of the 6 categories.
 
-Answer NO if the entity is:
-- A place seniors might USE but that is not a care provider (community centers, recreation facilities, YMCAs)
-- General medical (family medicine, urgent care, VA clinics, hospitals, rehab clinics)
-- Mental health / therapy only (counselors, psychologists, behavioral health)
-- A DME supplier, medical supply store, or equipment rental company
-- Retail, food service, construction, IT, storage, or any non-care business
-- Nonprofit / community service that serves the general public
-- Funeral homes, universities, churches, government agencies
-- Wedding venues, event spaces, banquet halls
-- General apartment complexes (not senior-specific independent living)
+Answer is_senior_care = true ONLY if primary business clearly matches one of the 6.
+
+Answer is_senior_care = false if the entity is:
+${OUT_OF_SCOPE_TYPES}
 
 Businesses:
 ${list}
 
-Return JSON: {"results": [{"num": 1, "is_senior_care": true, "reason": "brief reason"}]}`;
+Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one of the 6 if true, else null>", "reason": "brief reason"}]}`;
       try {
         const content = await perplexityChat(prompt);
         const match = content.match(/\{[\s\S]*"results"[\s\S]*\}/);
@@ -1182,22 +1192,24 @@ Provider ${j + 1}:
   Website: ${p.website || 'unknown'}
 `).join('\n');
 
-    const prompt = `Search the web for each business below and answer two questions for EACH.
+    const prompt = `${SIX_CATEGORY_DEFINITIONS}
+
+Search the web for each business below (their website, reviews, directory listings) and answer two questions for EACH.
 
 ${providerList}
 
-For EACH provider:
-
 QUESTION 1 — ENTITY VERIFICATION
-Is its PRIMARY BUSINESS senior care (residential senior living, in-home senior care, or dedicated senior programs)?
-Mark is_senior_care = false if it's: a wedding venue, community center, general medical, DME supplier, retail, nonprofit, general apartments, or in a different location than listed.
+Mark is_senior_care = true ONLY if primary business clearly matches one of the 6 categories above.
+
+Mark is_senior_care = false if the entity is:
+${OUT_OF_SCOPE_TYPES}
 
 QUESTION 2 — TRUST SIGNALS (only if is_senior_care = true)
 Verify: state_licensed, accredited, bbb_rated, years_in_operation, regulatory_actions, active_website, google_business, community_presence.
 
 Return ONLY this JSON:
 {"providers": [
-  {"num": 1, "is_senior_care": true/false, "entity_reason": "...", "signals": {...}, "confidence": "high/medium/low"},
+  {"num": 1, "is_senior_care": true/false, "category": "<one of the 6 if true, else null>", "entity_reason": "...", "signals": {...}, "confidence": "high/medium/low"},
   {"num": 2, ...},
   {"num": 3, ...}
 ]}`;
@@ -1270,8 +1282,10 @@ async function enrichReviewsAndImages(allProviders) {
     const wantReviews = needReviews.has(p.provider_id);
     const wantImages = needImages.has(p.provider_id);
 
-    // Build fields list — one call for both
-    const fields = [];
+    // Build fields list — one call for reviews + photos + classification metadata.
+    // types/businessStatus/addressComponents are cheap to fetch in the same request and
+    // give us future filtering signals (CLOSED_PERMANENTLY, non-US country, hospice/DME/etc).
+    const fields = ['types', 'businessStatus', 'addressComponents'];
     if (wantReviews) fields.push('reviews');
     if (wantImages) fields.push('photos');
 
@@ -1279,6 +1293,25 @@ async function enrichReviewsAndImages(allProviders) {
       const data = await googlePlacesField(p.place_id, fields.join(','));
       apiCalls++;
       const updates = {};
+
+      // Classification metadata — always store when available.
+      const existingMeta = p.google_reviews_data || {};
+      let metaChanged = false;
+      if (Array.isArray(data?.types)) {
+        existingMeta.places_types = data.types;
+        metaChanged = true;
+      }
+      if (data?.businessStatus) {
+        existingMeta.business_status = data.businessStatus;
+        metaChanged = true;
+      }
+      if (Array.isArray(data?.addressComponents)) {
+        const country = data.addressComponents.find(c => c.types?.includes('country'));
+        if (country?.shortText) {
+          existingMeta.country_code = country.shortText;
+          metaChanged = true;
+        }
+      }
 
       // Reviews
       if (wantReviews && data?.reviews?.length > 0) {
@@ -1289,11 +1322,12 @@ async function enrichReviewsAndImages(allProviders) {
           time: r.publishTime || '',
           relative_time: r.relativePublishTimeDescription || '',
         }));
-        const existing = p.google_reviews_data || {};
-        existing.reviews = reviews;
-        existing.last_synced = new Date().toISOString();
-        updates.google_reviews_data = existing;
+        existingMeta.reviews = reviews;
+        existingMeta.last_synced = new Date().toISOString();
+        updates.google_reviews_data = existingMeta;
         snippetsFetched++;
+      } else if (metaChanged) {
+        updates.google_reviews_data = existingMeta;
       }
 
       // Images

@@ -160,6 +160,8 @@ export interface ProviderCardData {
   isMetroAdjusted?: boolean;
   /** Raw provider_category for pricing tier logic (e.g., "Nursing Home", "nursing_home") */
   providerCategory?: string;
+  /** Category stock photo URL — rendered when `image` fails to load at runtime. */
+  fallbackImage?: string;
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -252,10 +254,18 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-function getCategoryFallbackImage(category: string, providerId: string): string {
+export function getCategoryFallbackImage(category: string, providerId: string): string {
   const pool = CATEGORY_FALLBACK_POOLS[category] || DEFAULT_FALLBACK_POOL;
   const index = hashString(providerId) % pool.length;
   return pool[index];
+}
+
+export function getProfileCategoryFallbackImage(
+  category: ProfileCategory | null,
+  providerId: string,
+): string {
+  const supabaseCat = category ? PROFILE_CAT_TO_SUPABASE_CAT[category] || "" : "";
+  return getCategoryFallbackImage(supabaseCat, providerId);
 }
 
 /**
@@ -328,6 +338,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     name: provider.provider_name,
     image: cardImage,
     imageType,
+    fallbackImage: getCategoryFallbackImage(provider.provider_category, provider.provider_id),
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
@@ -435,7 +446,6 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const meta = bp.metadata as Record<string, unknown> | null;
   const metaImages = Array.isArray(meta?.images) ? (meta.images as string[]) : [];
   const primaryImage = bp.image_url || metaImages[0] || null;
-  const hasImage = !!primaryImage;
 
   // Pricing: Tier 3 categories suppress dollar amounts on cards — education badge instead.
   const bpPricingConfig = bp.category ? getPricingConfig(bp.category) : null;
@@ -473,7 +483,8 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     slug: bp.slug,
     name: bp.display_name,
     image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
-    imageType: hasImage ? "photo" : "placeholder",
+    imageType: "photo",
+    fallbackImage: getCategoryFallbackImage(supabaseCat, bp.id),
     images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,

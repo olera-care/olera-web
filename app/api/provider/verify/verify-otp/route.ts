@@ -6,6 +6,8 @@ import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { verificationApprovedEmail } from "@/lib/email-templates";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 
 // ============================================================
 // Types
@@ -217,22 +219,26 @@ export async function POST(request: NextRequest) {
         console.error("[verify-otp] Failed to send verification email:", emailErr);
       }
 
-      // Publish any pending Q&A answers
-      const { error: publishError, count: publishedCount } = await admin
-        .from("provider_questions")
-        .update({
-          answer_status: "published",
-          is_public: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("answered_by", profileId)
-        .eq("answer_status", "pending");
+      // Publish any pending Q&A answers and notify askers (fire-and-forget)
+      publishPendingQAAnswers(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify-otp] Error publishing pending Q&A answers:", err);
+      });
 
-      if (publishError) {
-        console.error("[verify-otp] Failed to publish pending answers:", publishError);
-      } else if (publishedCount && publishedCount > 0) {
-        console.log(`[verify-otp] Published ${publishedCount} pending Q&A answers`);
-      }
+      // Deliver all pending_verification connections with notifications (fire-and-forget)
+      // These are inquiries the provider saved while unverified
+      deliverPendingConnections(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify-otp] Error delivering pending connections:", err);
+      });
 
       console.log(`[verify-otp] Auto-verified ${profile.display_name} via email OTP: ${trustResult.reason}`);
 

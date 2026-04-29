@@ -455,6 +455,7 @@ function DashboardContent({
             {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
+              verificationState={verificationState}
               onRequestVerification={handleOpenVerificationModal}
             />
 

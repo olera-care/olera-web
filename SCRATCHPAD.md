@@ -7,9 +7,111 @@
 
 ## Current Focus
 
+### 2026-04-28 — Post-answer hook + smart picker (P1) — planned, not started
+
+Three-PR sequence to capture peak engagement at the post-answer moment and redirect providers into the V2 dashboard. Plan: [`plans/post-answer-hook-and-smart-picker-plan.md`](plans/post-answer-hook-and-smart-picker-plan.md). Notion: [P1 task](https://www.notion.so/Hook-the-post-answer-moment-lure-providers-into-the-V2-profile-edit-dashboard-34e5903a0ffe818eb372fb6539e65391).
+
+Discovery confirmed: the answer form already lives on `/provider/[slug]/onboard` (`ActionCard.tsx`), so this is a success-state UI swap, not an architecture rebuild. Esther confirmed the verification gate on answer publication is intentional — keep it, monitor. Smart picker is a single component shared between the post-answer surface and the dashboard's existing static 30%-banner (which gets upgraded in the same work).
+
+- **PR A (funnel instrumentation, ships first):** extend `qa_funnel` rollup with `clicked_dashboard` (reads existing `analytics_teaser_cta_clicked` events) + `edited_profile` columns on `/admin/analytics`. Baseline before any UI ships.
+- **PR B (smart picker on dashboard):** new `<SmartNextActionCard>` + `lib/next-best-action.ts` scoring function. Replaces the static "Complete your profile" banner on `DashboardPage.tsx`. Category-aware soft-honest copy (no data-claim multipliers).
+- **PR C (post-answer hook):** swap the `if (submitted)` branch in `ActionCard.tsx` for the same picker with `source="qa-success"`. Source-tagged links + per-source funnel attribution.
+
+### 2026-04-28 — Restore category stock-image fallback (P2) — shipped to staging via PR #670
+
+**[PR #670](https://github.com/olera-care/olera-web/pull/670)** on branch `feat/provider-stock-image-fallback`. Two commits:
+
+1. **`8a5b488b`** — empty-array fix. Wired `getCategoryFallbackImage` into the provider detail hero (`app/provider/[slug]/page.tsx`) and fixed `businessProfileToCardFormat` so `imageType: "photo"` for stock URLs (was `"placeholder"`, short-circuiting three card components to gradient). Helper + 15-image library at `public/images/fallback/` had existed since `d4ffa24a` but was never wired to the V2 hero. TJ verified the photoless case works on staging across all 6 in-scope categories.
+
+2. **`17ce40cf`** — runtime-failure extension (TJ asked to keep the extension on the same PR to avoid context fragmentation). TJ found a second case via DevTools: providers WITH image URLs that 502 through next/image (R2 / cdn-api hosts on staging) still showed gradient. The carousel cycled "1/6 → 1/5 → ... → 1/1 → gradient" as each onError fired. Fix: new `fallbackImage` prop on `ProviderHeroGallery` and new `fallbackImage` field on `ProviderCardData`. When `validImages.length === 0` (whether from empty array OR runtime onError cascade) the gallery now renders the stock photo, not the gradient. Same fallback path added to all three browse-card components. Verified working on Visiting Angels + Choice Home Care detail pages, plus Comfort Keepers / Visiting Angels browse cards.
+
+3. **`217a2f7a`** — polish (TJ flagged "a little bit of jank" — the counter cycling "1/6 → 1/5 → ..." was still visible during the onError cascade even though the end state was correct). Render-stack approach: stock photo as a base layer (z-0) always rendered when fallback available; real image(s) as overlay (z-1). While real image is loading it's transparent, so the stock shows through — no flash. Once real image loads, it covers stock. If it fails, stock stays. Gallery's counter + arrows now gated on `anyRealImageLoaded` — only appear once a real image confirms `onLoad`, hiding the cycling visibility entirely. Same pattern applied to all three browse-card components (`BrowsePageClient`, `BrowseCard`, `ProviderCard`).
+
+**Diff: 8 files, +258 / -110.** Build clean (3795/3795), typecheck 0 errors. Pre-test review traced 18 vectors — no bugs.
+
+**Categories in scope:** 6 (Home Care Non-medical, Home Health Care, Assisted Living, Independent Living, Memory Care, Nursing Home). Two home-care types share the home-care pool. Artifact categories (hospice/rehab/adult day care/wellness/private caregiver) fall through to home-care imagery via `DEFAULT_FALLBACK_POOL` — separate cleanup project per TJ.
+
+**Underlying root cause** (not addressed in this PR): some real provider image URLs are 502'ing through Vercel's `/next/image` optimizer on staging — could be stale R2 URLs, image-domain config, or a transient. Worth its own investigation; this PR makes the symptom invisible.
+
+**Next:** TJ to re-verify the polish commit on staging (counter "1/6 → 1/1" cycle should no longer be visible on detail pages with broken images), then merge to main via `/pr-merge`.
+
+### 2026-04-28 — Benefits QA queue populated for all 49 remaining states
+
+Bulk-populated the [Benefits QA — Program Review Queue](https://www.notion.so/fb03b87a9918460086ae728ee879b9e2) Notion DB with **614 program rows** across all states with completed pipeline data (FL + TX were already there). Queue now has 626 total rows. Cess can filter by State and work through states one at a time; the high-severity rows (62 across 49 states) are the priority since they're real numeric mismatches >15% from a fresh source check.
+
+**Approach:** built `scripts/build-qa-rows.js` to assemble row data from `data/pipeline/{STATE}/{classify,drafts,factcheck}.json`, derive Severity from flag list, format flag fields as readable summaries. Split into 100-page batches and delegated insertion to a subagent (the MCP `notion-create-pages` payload was too large to inline). One typo introduced in a Wyoming source URL (`Database` → `Department`) caught and corrected via update-page.
+
+**Flag totals across 49 new states:** 161 programs flagged, 62 high-severity, 99 medium. Most medium flags are phone mismatches where pipeline drafted local numbers and verifier returned a national hotline — judgment calls, not defects.
+
+### 2026-04-28 — Benefits intake conversion lift (P1) — planned, not started
+
+Three-PR sequence to lift visit→started + started→completed on the embedded benefits intake on provider pages. Plan: [`plans/benefits-intake-conversion-lift-plan.md`](plans/benefits-intake-conversion-lift-plan.md). Notion: [P1 task](https://www.notion.so/Improve-benefits-intake-conversion-copy-visual-treatment-to-lift-completion-rate-34e5903a0ffe813aa547d2cc4378e761).
+
+Audit of all 5 steps showed only the **save step** has fat to trim (the others are clean). Resequenced to fix that first — instrumenting before the redesign would give us a week of baseline data on a form we're about to change.
+
+- **PR A (save-step rework, ships first):** drop name field; cut redundant "We found programs for your family." H2 (eyebrow + button already carry the proof); drop pointless "1 ·" / "2 ·" field-label numbering (one field doesn't need a counter). Backend tolerates missing firstName via existing `display_name: "Care Seeker"` fallback. Single-field forms convert dramatically better than multi-field — likely 10-25% lift on its own.
+- **PR B (per-step instrumentation, after PR A stable):** new `/api/benefits/track-step` route + `useTrackStep` helper; fires `benefits_entry_viewed`, `benefits_step_viewed`, `benefits_step_completed` to `provider_activity`. All carry a `variant` field (forced to `"control"` in PR B). No Slack pings on the new events. Watch ~1 week before PR C.
+- **PR C (entry-point copy A/B + trust strip, after PR B watch):** deterministic 50/50 hash on `session_id` (no GrowthBook installed); money-loss headline + dynamic-state sub-line on the variant arm; trust strip on **both** arms. Decision rule: 20%+ lift → ship; <5% movement → kill and look downstream.
+- **Scope:** ONLY `BenefitsDiscoveryModule` (the embedded 5-step entry on provider pages). Standalone `BenefitsIntakeForm` out of scope.
+
+### 2026-04-27 — Sweep #1 (provider data-quality cleanup) shipped
+
+End-to-end provider directory cleanup. Started with 73,304 active providers, ended with 70,722 — net 2,582 deletes + 270 reclassifications.
+
+**Approach evolution (regex iteration → LLM self-correction):**
+- v1 (sweep day): regex amnesia detector caught 320 amnesia cases (199 reclass-eligible).
+- v2.0–v2.2 (this morning): widened regex 4x to catch ThedaCare-style long-list-negation FPs, Lexie Rae-style "residential care facility" FNs, Joyful-style definitional-context confusions. Reached 245 reclass / 2,569 deletions.
+- **Final: scrapped regex.** Did a focused LLM re-pass (4.1 min, ~$5) on the 2,936 OUT_OF_SCOPE verdicts with a forced-choice anti-amnesia prompt. 354 recovered (271 reclass / 83 silent), 2,582 confirmed deletions. Replaced regex output with this.
+- **Disagreement file:** generated alongside (regex v2.2 vs re-pass) — 233 cases where the two signals diverged. Useful sanity-check artifact for TJ's spot-check.
+
+**Total cost: ~$170** ($0 Tier 1 + $3 calibration + $160 Phase 3 LLM verify + $5 LLM re-pass + $2 retries).
+
+**Files in this PR (`feat/data-sweep-skill` off staging):**
+- `docs/provider-category-definitions.md` (NEW) — 6-category source of truth, with state-specific terms (RCFE, PCH, AFH).
+- `docs/data-sweep-runbook.md` (NEW) — operational details: Tier 1 regex, inverted Phase 3 prompt, contradiction detection logic, MD format, cost expectations, change log.
+- `.claude/commands/data-sweep.md` (NEW) — slash command / skill for future sweeps.
+- `scripts/pipeline-batch.js` — three Stream A prompts now share the new `SIX_CATEGORY_DEFINITIONS` + `OUT_OF_SCOPE_TYPES` constants. Tight YES list (the 6) + comprehensive NO list. Stream B Places call now also fetches `types`/`businessStatus`/`addressComponents` (stored in `google_reviews_data` for future filter logic).
+- `scripts/discovery-batch.py` — search terms tightened: removed '55+', 'senior apartments', 'rehabilitation center', 'cognitive care', 'memory support', 'visiting nurse' (alone), and other contamination sources. New comment block documents the rationale.
+
+**Backups for revert (in `~/Desktop/TJ-hq/Olera/Provider Database/Cleanup/`):**
+- `deletions-executed-2026-04-27.csv` (2,582 rows: provider_id, name, current_category, city, state)
+- `reclassifications-executed-2026-04-27.csv` (270 rows: provider_id, name, old_category, new_category, city, state)
+- All MD versions kept: `*.v1.md`, `*.v2-regex.md`, current files = LLM re-pass output.
+
+**Key learnings → runbook for sweep #2:**
+- Free-text LLM reasoning + regex parsing = compounding fragility. Default to forced-choice prompts when possible.
+- Whenever you find yourself patching regex 5+ times, step back and ask if the approach is wrong.
+- LLM re-pass with anti-amnesia prompt gives structured output for ~$5; replaces regex post-processing entirely.
+- Some patterns regex still catches that LLM misses, and vice versa — disagreement file surfaces these for human triage.
+
+**Next steps after this PR merges:**
+- Phase 7 reflection (already in runbook — formalize once we run sweep #2).
+- Wrong-category cleanup of INSUFFICIENT_EVIDENCE providers (~50K) — would need different prompt + signal.
+- Backfill `google_reviews_data.{places_types, business_status, country_code}` for existing providers (separate workstream).
+- Migrate the 13-type backend ProfileCategory enum to match the 6 (longer-term cleanup).
+
+---
+
+### 2026-04-27 EOD — Phase 2 A/B live in prod, Phase 3 picked up tomorrow
+
+Four PRs shipped in one day across Phase 1 + Phase 2:
+- PR #648 / #651 — Phase 1 funnel visibility on `/admin/analytics`
+- PR #653 — Phase 2 A/B variant assignment + admin split table
+- PR #658 — Phase 2 to prod (bundled with Cess's FL editorial)
+- PR #659 / #661 — visibility fix so the A/B table renders before first send
+
+Slack [addendum thread](https://oleraworkspace.slack.com/archives/C0A91BA205T/p1777334076195659?thread_ts=1777319720.741329) live in `#ai-product-development` to inform the team.
+
+Resuming tomorrow: Phase 3 (follow-ups for unopened — biggest open-rate lever per audit). Notion task ([Phase 3 Resume-here pre-flight](https://www.notion.so/34f5903a0ffe81809188d977573d27d2)) updated with file paths, sequence priority, and the Phase 2 dependency note. Pre-flight summary:
+- All infra in place: cron route just needs to be added at `app/api/cron/qa-email-followups/route.ts` + `vercel.json` cron entry
+- Sequence #1 (24h unopened resend) ships first; #2 (channel switch via Twilio/Slack) and #3 (6h opened-not-clicked nudge) are follow-ups
+- Earliest clean ship date: 2026-05-04 (lets Phase 2 A/B accumulate ~1 week of un-tainted signal). Or accept noise and run concurrently — velocity call
+
+---
+
 ### 2026-04-27 — Q&A email A/B test on subject + preheader (Phase 2 of P1) — PR #653
 
-**Status:** open against staging, ready to merge once Vercel green. Build clean locally.
+**Status:** shipped to staging via PR #653, promoted to main via PR #658. Visibility fix shipped via PR #659/#661. Notion task moved to In Progress/Doing — awaiting 2-3 weeks of A/B data.
 
 Started Phase 2 ([Notion](https://www.notion.so/34f5903a0ffe81dc8d6fd39cdb40fe23)) the same day Phase 1 shipped — startup velocity, no point waiting for clean baseline data to start iterating on copy. First commit was a tame "for"-instead-of-"about" subject + preheader = question excerpt. TJ pushed back twice: (1) PHI concern on asker name in subject, (2) "we can do way better, do research." Refolded into a real A/B with research-backed B variant.
 
@@ -562,6 +664,12 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**After PR `feat/data-sweep-skill` merges:**
+- Backfill `google_reviews_data.{places_types, business_status, country_code}` for existing 70,722 active providers (Stream B only populates this on next sync — separate one-shot script if we want it sooner).
+- Run sweep #2 in ~3 months (default quarterly cadence) on full DB — see runbook for procedure. Validate the v2.2 regex isn't catching new patterns before scrapping it for sweep #3.
+- Wrong-category cleanup of `INSUFFICIENT_EVIDENCE` providers (~50K) — would need different prompt + signal (website fetch, Google Places `types`).
+- Migrate the 13-type backend `ProfileCategory` enum down to the 6 — separate workstream for claim UI restriction + dead enum cleanup.
+
 0. **Re-open the email audit task** ([Notion](https://www.notion.so/Audit-provider-question-lead-notification-email-Resend-find-the-open-rate-lift)) after ~7 days of real webhook data accumulates. Reframe primary metric from "open-rate lift" to "engagement lift, primarily clicks" given Apple Mail noise.
 0a. **Wave 2 admin analytics polish** — per-tile sparklines + multi-series chart upgrade with annotations. Deferred from PR #634 (which merged 2026-04-25). Needs a new time-series-per-metric endpoint.
 1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
@@ -586,6 +694,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-27 | Scrap regex amnesia detector for LLM self-correction pass | After 5 regex iterations (v1 → v2.2) chasing TJ-flagged FPs, recognized regex-on-LLM-free-text is fundamentally fragile. Forced-choice anti-amnesia prompt on the 2,936 OUT_OF_SCOPE verdicts gave structured output for ~$5 in 4 min. Replaced regex output entirely. |
+| 2026-04-27 | Generate disagreements file as third review artifact | When two noisy signals disagree (regex v2.2 vs LLM re-pass), the cases worth highest scrutiny are the 233 disagreements (8% of OUT_OF_SCOPE). Cheap to produce, valuable for spot-check, surfaces blindspots in either signal. |
+| 2026-04-27 | Backup CSVs written BEFORE DB writes, not after | If execution fails partway, we still have the full intended-state record. Recovery is a single SQL UPDATE per CSV. Previous data sweeps generated backups after which is recoverable but more painful. |
+| 2026-04-27 | Tighten discovery search terms over relying on entity verification to clean up | Sweep #1's $160 entity verification cost reflects too-loose discovery: '55+', 'senior apartments', 'rehab center', 'cognitive care' pulled massive false positives. Tightening discovery prevents pollution; cheaper than per-batch LLM cleanup. |
+| 2026-04-27 | Forced-choice prompts > free-text reasoning for verification | Free-text LLM reasoning often contradicts its own verdict (amnesia: "Non-medical home care provider" → marked OUT_OF_SCOPE). Forced-choice with anti-amnesia guidance forces the LLM to commit to one of {6 cats, NONE} without contradicting itself. |
 | 2026-03-28 | MedJobs candidates page is a search tool, not a gallery | Hiring is purposeful evaluation, not emotional discovery. Giant image blocks waste space when most students don't have photos. List rows let providers scan 8-10 candidates per screen vs 3. |
 | 2026-03-28 | Any authenticated user sees contact info (not just providers) | Provider profile creation is progressive profiling, not a prerequisite. Gating on "is provider" after auth creates a second wall that breaks the onboarding flow. |
 | 2026-03-28 | Infinite scroll over pagination buttons | Pagination feels dated and adds cognitive load. IntersectionObserver with 200px rootMargin pre-fetches the next batch before the user reaches bottom. Feels like Telegram. |
@@ -701,4 +814,37 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-04-27 — Sweep #1 wrap (resume → execution → pipeline updates)
+
+**Resumed** the data-sweep work paused at end of 2026-04-26. TJ had paused review on the deletions + reclass-from-deletions MDs after flagging Lexie Rae's Care Home as another regex amnesia gap.
+
+**Iterated regex 4x (v1 → v2.2):**
+- v2: widened AL pattern (drop "for the elderly"), added META_REFS for category-by-name signals ("falls under", "matches", "should be reclassified as"), service vocab broadened
+- v2.1: added clause-level negation after TJ flagged ThedaCare Physicians (long-list-of-negation FP that fixed-window check missed)
+- v2.2: added definitional-context exclusion + "indicate" META_REF after TJ flagged Joyful Home Health Care (LLM described HHC business model but my regex matched the definitional sentence about HC Non-medical)
+
+**Strategic pivot:** TJ called out that the fix-cycle pattern was a smell — 5+ patches without converging. Stepped back, articulated that regex-on-LLM-free-text is fundamentally fragile, and proposed an LLM self-correction pass with forced-choice anti-amnesia prompt. TJ agreed.
+
+**Executed the pivot:** Wrote `repass-out-of-scope.js` + `regen-from-repass.js`. Re-pass on 2,936 OUT_OF_SCOPE verdicts: 4.1 min, ~$5. Produced 2,582 confirmed deletions / 271 reclass / 83 silent / 0 missing. Generated `disagreements-2026-04-27.md` (233 cases where regex v2.2 vs re-pass diverged) as a third review artifact.
+
+**TJ reviewed all 3 files:** approved. Found one stale-website edge case (`8M1Gdy4` Oakview Park — actually AL/MC, but website field points at a Comfort Keepers office that misled the LLM). Unchecked that row with a TJ override note.
+
+**Executed cleanup:** `execute-cleanup.js` ran in 4.6s. Soft-deleted 2,582 providers, reclassified 270 (Oakview Park stayed AL|MC). Active providers: 73,304 → 70,722. Backup CSVs written before any DB writes.
+
+**Pipeline updates** (this session, ready for PR):
+- `scripts/pipeline-batch.js`: 3 prompts unified via `SIX_CATEGORY_DEFINITIONS` + `OUT_OF_SCOPE_TYPES` constants. Tight YES list (the 6) + comprehensive NO list. Each prompt now also returns `category` (one of the 6) for richer signal. Stream B Places call expanded with `types`/`businessStatus`/`addressComponents`, stored in `google_reviews_data.{places_types, business_status, country_code}` for future filter logic.
+- `scripts/discovery-batch.py`: search terms tightened, removed contamination sources from sweep #1 (55+, senior apartments, rehab center, cognitive care, memory support, visiting nurse alone, personal care, caregiver). Comment block at top documents the rationale.
+- `docs/data-sweep-runbook.md`: updated change log with v2/v2.1/v2.2 + the "scrapped regex for LLM re-pass" learning.
+- `SCRATCHPAD.md`: this file.
+
+**Branch state:** `feat/data-sweep-skill` off `origin/staging`. 3 modified files (SCRATCHPAD, pipeline-batch.js, discovery-batch.py), 3 untracked (definitions doc, runbook, skill). Ready to commit + PR.
+
+**Cost summary for sweep #1:** ~$170 total ($0 Tier 1 + $3 calibration + $160 LLM verify on 73K + $5 LLM re-pass + $2 retries). Active providers post-sweep: 70,722.
+
+**Skill + runbook artifacts:**
+- `.claude/commands/data-sweep.md` — slash command for sweep #2+
+- `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
+- `docs/provider-category-definitions.md` — source of truth for the 6 categories
+
 

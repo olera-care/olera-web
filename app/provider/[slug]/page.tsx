@@ -22,6 +22,7 @@ import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
 import { getPricingConfig } from "@/lib/pricing-config";
+import { getProfileCategoryFallbackImage } from "@/lib/types/provider";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
@@ -363,6 +364,7 @@ export default async function ProviderPage({
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
+  const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
 
@@ -725,6 +727,7 @@ export default async function ProviderPage({
                 images={images}
                 providerName={profile.display_name}
                 category={profile.category}
+                fallbackImage={heroFallbackImage}
               />
               <MobileGalleryActionBar
                 provider={{

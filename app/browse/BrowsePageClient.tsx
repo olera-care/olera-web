@@ -237,7 +237,13 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
   const [imgFailed, setImgFailed] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
+
+  const primaryUnusable = provider.imageType === "placeholder" || !provider.image || imgFailed;
+  const fallbackAvailable = !!provider.fallbackImage && !fallbackFailed;
+  const showGradient = primaryUnusable && !fallbackAvailable;
+  const showFallbackPhoto = primaryUnusable && fallbackAvailable;
 
   return (
     <Link
@@ -248,7 +254,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
     >
       {/* Image */}
       <div className="relative h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
-        {provider.imageType === "placeholder" || !provider.image || imgFailed ? (
+        {showGradient ? (
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-14 h-14 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
               <span className="text-xl font-bold text-primary-400">
@@ -257,6 +263,13 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
             </div>
             <span className="text-xs font-medium text-primary-300 mt-1.5">{provider.primaryCategory}</span>
           </div>
+        ) : showFallbackPhoto ? (
+          <img
+            src={provider.fallbackImage}
+            alt={provider.name}
+            className="w-full h-full object-cover"
+            onError={() => setFallbackFailed(true)}
+          />
         ) : provider.imageType === "logo" ? (
           <div className="w-full h-full flex items-center justify-center p-6">
             <img

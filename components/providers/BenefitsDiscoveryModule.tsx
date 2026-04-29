@@ -12,6 +12,8 @@ import {
   Spinner,
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
+import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -162,6 +164,16 @@ function filterPrograms(
 
 type Step = "care-need" | "age" | "financial" | "results" | "save";
 
+// Step → ordinal for funnel events. Hyphenated keys match the internal Step
+// values so step_name in metadata is the source-of-truth identifier.
+const STEP_NUMBERS: Record<Step, number> = {
+  "care-need": 1,
+  age: 2,
+  financial: 3,
+  save: 4,
+  results: 5,
+};
+
 export default function BenefitsDiscoveryModule({
   providerState,
   stateId,
@@ -176,7 +188,6 @@ export default function BenefitsDiscoveryModule({
   const [age, setAge] = useState("");
   const [medicaid, setMedicaid] = useState<MedicaidStatus>("");
   const [incomeRange, setIncomeRange] = useState<IncomeRange | "">("");
-  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -184,6 +195,58 @@ export default function BenefitsDiscoveryModule({
   const savedMatchCountRef = useRef<number | null>(null);
   const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
   const [echoVisible, setEchoVisible] = useState(false);
+
+  // ─── Per-step funnel tracking + A/B variant (PR B + PR C) ──────────
+  // sessionId + variant are deferred to useState/useEffect so server-side
+  // rendering doesn't compute a different sessionId than the client cookie
+  // (getOrCreateSessionId falls back to a fresh random UUID on the server
+  // since `document` is undefined). useMemo would have caused a hydration
+  // mismatch on the variant-conditional copy AND would have fired the first
+  // entry_viewed event with the wrong variant ~50% of the time.
+  //
+  // variant defaults to "control" so server-rendered HTML matches the
+  // client's first render. After mount, useEffect computes the real
+  // variant from the cookie. Event-firing useEffects gate on sessionId
+  // being non-empty so events fire only after the real variant is set.
+  //
+  // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
+  // back-button revisits within the same session.
+  // stepEnterTimeRef captures step entry time for time_on_step_ms.
+  const [sessionId, setSessionId] = useState<string>("");
+  const [variant, setVariant] = useState<BenefitsVariant>("control");
+  const entryTrackedRef = useRef(false);
+  const viewedStepsRef = useRef<Set<Step>>(new Set());
+  const stepEnterTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const sid = getOrCreateSessionId();
+    setSessionId(sid);
+    setVariant(assignBenefitsVariant(sid));
+  }, []);
+
+  function fireFunnelEvent(
+    event: BenefitsStepEvent,
+    extras?: { stepNumber?: number; stepName?: string; timeOnStepMs?: number },
+  ) {
+    trackBenefitsEvent({
+      event,
+      sessionId,
+      stateCode: providerState,
+      stateName,
+      providerName: providerName || null,
+      providerSlug: providerSlug || null,
+      variant,
+      ...extras,
+    });
+  }
+
+  function trackStepCompleted(stepKey: Step) {
+    fireFunnelEvent("benefits_step_completed", {
+      stepNumber: STEP_NUMBERS[stepKey],
+      stepName: stepKey,
+      timeOnStepMs: Date.now() - stepEnterTimeRef.current,
+    });
+  }
 
   // ─── Spotlight handoff from Q&A section ───────────────────────────
   // When a caregiver submits a question, the room quiets around us:
@@ -249,6 +312,37 @@ export default function BenefitsDiscoveryModule({
     };
   }, []);
 
+  // ─── Funnel: entry_viewed (mount, gated on sessionId) ──────────────
+  // Fires once per module mount, AFTER sessionId is resolved client-side
+  // so the event carries the real variant. entryTrackedRef survives Strict
+  // Mode's double-mount in dev; it does NOT survive a full unmount (page
+  // leave + return), which is desired — that's a real new view.
+  useEffect(() => {
+    if (!sessionId || entryTrackedRef.current) return;
+    entryTrackedRef.current = true;
+    fireFunnelEvent("benefits_entry_viewed");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
+
+  // ─── Funnel: step_viewed + entry-time reset (gated on sessionId) ───
+  // Always reset entry time so time_on_step_ms reflects the current visit.
+  // step_viewed itself is deduped per session — back-button revisits don't
+  // refire the event, but they do reset the timer (so a re-submit gives us
+  // accurate dwell time on the second visit). Gated on sessionId so the
+  // event carries the real variant (otherwise the first step_viewed for
+  // care-need would fire with the default "control" variant for everyone).
+  useEffect(() => {
+    stepEnterTimeRef.current = Date.now();
+    if (!sessionId) return;
+    if (viewedStepsRef.current.has(step)) return;
+    viewedStepsRef.current.add(step);
+    fireFunnelEvent("benefits_step_viewed", {
+      stepNumber: STEP_NUMBERS[step],
+      stepName: step,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, sessionId]);
+
   // Fire-and-forget: notify Slack + log that a user started the intake.
   // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.
   function trackStart(selectedCareNeed: CareNeed) {
@@ -265,7 +359,8 @@ export default function BenefitsDiscoveryModule({
           stateName,
           providerName: providerName || null,
           providerSlug: providerSlug || null,
-          sessionId: getOrCreateSessionId(),
+          sessionId,
+          variant,
         }),
         keepalive: true,
       }).catch(() => {});
@@ -297,10 +392,11 @@ export default function BenefitsDiscoveryModule({
   // actually works.
   async function handleSave() {
     setSaveError(null);
-    if (!firstName.trim() || !email.trim() || !email.includes("@")) {
-      setSaveError("Please enter your name and a valid email.");
+    if (!email.trim() || !email.includes("@")) {
+      setSaveError("Please enter a valid email.");
       return;
     }
+    trackStepCompleted("save");
     setSaving(true);
 
     try {
@@ -313,7 +409,6 @@ export default function BenefitsDiscoveryModule({
           medicaidStatus: medicaid || null,
           incomeRange: incomeRange || null,
           stateCode: providerState,
-          firstName: firstName.trim(),
           email: email.trim().toLowerCase(),
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
@@ -332,7 +427,7 @@ export default function BenefitsDiscoveryModule({
         setSaving(false);
         return;
       }
-      // Name/email captured → reveal results inline on the provider page.
+      // Email captured → reveal results inline on the provider page.
       // The user can click through to /welcome from the results CTA, which
       // does the full-page reload needed to refresh the Supabase client singleton.
       setSaving(false);
@@ -362,13 +457,10 @@ export default function BenefitsDiscoveryModule({
     step === "results" ? 5 :
     1;
   const totalSteps = 5;
-  // For step 4 (save): compute partial fill of the 4th segment based on form completeness
+  // For step 4 (save): the 4th segment fills once the email field holds a valid value.
   const saveProgress = (() => {
     if (step !== "save") return 0;
-    let p = 0;
-    if (firstName.trim().length > 0) p += 0.5;
-    if (email.trim().length > 0 && email.includes("@")) p += 0.5;
-    return p;
+    return email.trim().length > 0 && email.includes("@") ? 1 : 0;
   })();
 
   const StepHeader = ({ onBack }: { onBack?: () => void }) => (
@@ -385,7 +477,7 @@ export default function BenefitsDiscoveryModule({
       <div className="flex-1 flex items-center gap-1.5">
         {Array.from({ length: totalSteps }).map((_, i) => {
           // Segments 1-3: binary (filled once that step is reached).
-          // Segment 4 (the save gate): partial fill driven by name+email completeness,
+          // Segment 4 (the save gate): fills once the email field holds a valid value,
           //   pulses softly when empty to telegraph "you're not done yet".
           // Segment 5 (the results reveal): fills once save succeeds.
           const isSaveSegment = i === 3;
@@ -439,10 +531,28 @@ export default function BenefitsDiscoveryModule({
         )}
 
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          Families like yours qualify for help.
+          {variant === "money_loss"
+            ? "You might be leaving money on the table."
+            : "Families like yours qualify for help."}
         </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          {stateName} has {allPrograms.length} programs. What kind of help does your family need?
+        <p className="text-sm text-gray-500 mt-1 mb-3">
+          {variant === "money_loss"
+            ? `Most ${stateName} families don't realize they qualify for $400-$900/month in benefits.`
+            : `${stateName} has ${allPrograms.length} programs. What kind of help does your family need?`}
+        </p>
+
+        {/* Trust strip — same on both arms. Dynamic state + count so it
+            works in TX, FL, CA, etc. without per-state hardcoding. */}
+        <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+          <span>Free</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>No signup to start</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>30 seconds</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>Private, never sold to insurers</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          <span>{allPrograms.length} {stateName} programs</span>
         </p>
 
         {/* Care need cards — the main visual focal point */}
@@ -456,6 +566,7 @@ export default function BenefitsDiscoveryModule({
                 onClick={() => {
                   setCareNeed(opt.value);
                   trackStart(opt.value);
+                  trackStepCompleted("care-need");
                   setTimeout(() => setStep("age"), 180);
                 }}
                 className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
@@ -530,13 +641,13 @@ export default function BenefitsDiscoveryModule({
           placeholder="e.g. 72"
           value={age}
           onChange={(e) => setAge(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && canContinue) setStep("financial"); }}
+          onKeyDown={(e) => { if (e.key === "Enter" && canContinue) { trackStepCompleted("age"); setStep("financial"); } }}
           className="w-full px-4 py-4 text-lg rounded-xl border border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-200 outline-none transition-colors mb-4"
           autoFocus
         />
 
         <button
-          onClick={() => setStep("financial")}
+          onClick={() => { trackStepCompleted("age"); setStep("financial"); }}
           disabled={!canContinue}
           className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
             canContinue
@@ -611,7 +722,7 @@ export default function BenefitsDiscoveryModule({
         </div>
 
         <button
-          onClick={() => setStep("save")}
+          onClick={() => { trackStepCompleted("financial"); setStep("save"); }}
           disabled={!canContinue}
           className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
             canContinue
@@ -642,7 +753,7 @@ export default function BenefitsDiscoveryModule({
       <div>
         <StepHeader />
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          {firstName ? `${firstName}, you` : "You"} may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
+          You may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
         </h2>
         {contextBits.length > 0 && (
           <p className="text-sm text-gray-500 mt-1 mb-6">
@@ -726,79 +837,43 @@ export default function BenefitsDiscoveryModule({
     );
   }
 
-  // ─── Step 4: Save gate (name + email) — now BEFORE results ───────────
-  // Typeform-style: one big question, huge underlined inputs, warm microcopy.
-  // The match count is teased in the headline so the user knows what they're
-  // unlocking — "loss aversion" pull instead of a cold form.
+  // ─── Step 4: Save gate (email only) — gates the results reveal ─────
+  // Single big underlined input, Typeform-feel. The match count is teased
+  // in the eyebrow + button so the user knows what they're unlocking —
+  // loss-aversion pull instead of a cold form.
   if (step === "save") {
     const matchCount = matchingPrograms.length;
-    const canSubmit = !saving && firstName.trim().length > 0 && email.includes("@");
-    const greeting = firstName.trim()
-      ? `Nice to meet you, ${firstName.trim().split(/\s+/)[0]}.`
-      : "We found programs for your family.";
+    const canSubmit = !saving && email.trim().length > 0 && email.includes("@");
 
     return (
       <div>
         <StepHeader onBack={() => setStep("financial")} />
 
-        {/* ── Big headline — teases the reveal behind the gate ─────────── */}
+        {/* ── Big headline — eyebrow carries the proof, headline carries the ask ── */}
         <p className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-3">
           {matchCount > 0 ? `${matchCount} ${matchCount === 1 ? "match" : "matches"} ready` : "Almost there"}
         </p>
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display leading-[1.1] mb-3">
-          {matchCount > 0 ? (
-            <>
-              {greeting}
-              <br />
-              <span className="text-gray-500">Where should we send your {matchCount === 1 ? "match" : "matches"}?</span>
-            </>
-          ) : (
-            <>Where should we send your results?</>
-          )}
+          Where should we send your {matchCount === 1 ? "match" : matchCount > 0 ? "matches" : "results"}?
         </h2>
         <p className="text-sm text-gray-500 mb-8">
           No password. Just a magic link so you can come back anytime.
         </p>
 
-        {/* ── Typeform-style underlined inputs ─────────────────────────── */}
-        <div className="space-y-8 mb-8">
-          <div>
-            <label htmlFor="benefits-name" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
-              1 · Your first name
-            </label>
-            <input
-              id="benefits-name"
-              type="text"
-              placeholder="Sarah"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  document.getElementById("benefits-email")?.focus();
-                }
-              }}
-              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
-              autoFocus
-              autoComplete="given-name"
-            />
-          </div>
-          <div>
-            <label htmlFor="benefits-email" className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-2 block">
-              2 · Your email
-            </label>
-            <input
-              id="benefits-email"
-              type="email"
-              inputMode="email"
-              placeholder="sarah@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
-              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
-              autoComplete="email"
-            />
-          </div>
+        {/* ── Single underlined input — Typeform feel, one ask ────────── */}
+        <div className="mb-8">
+          <input
+            id="benefits-email"
+            type="email"
+            inputMode="email"
+            placeholder="sarah@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
+            className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
+            autoFocus
+            autoComplete="email"
+          />
         </div>
 
         {saveError && (

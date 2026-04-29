@@ -111,24 +111,25 @@ export async function PATCH(request: NextRequest) {
 
       return NextResponse.json({ success: true, updated: count ?? ids.length });
     } else {
-      // Reject: delete the profiles to free up the listing
-      const { data: toDelete } = await db
+      // Reject: update claim_state to "rejected" (soft delete)
+      // Also clear source_provider_id to free up the listing for new claimants
+      const { error: updateError, count } = await db
         .from("business_profiles")
-        .select("id, display_name")
-        .in("id", ids);
-
-      const { error: deleteError, count } = await db
-        .from("business_profiles")
-        .delete({ count: "exact" })
+        .update({
+          claim_state: "rejected",
+          source_provider_id: null,
+          updated_at: new Date().toISOString(),
+        })
         .in("id", ids)
         .in("type", ["organization", "caregiver"]);
 
-      if (deleteError) {
-        console.error("Bulk reject error:", deleteError);
+      if (updateError) {
+        console.error("Bulk reject error:", updateError);
         return NextResponse.json({ error: "Failed to reject providers" }, { status: 500 });
       }
 
-      // Clear active_profile_id for accounts that referenced deleted profiles
+      // Clear active_profile_id for accounts that referenced rejected profiles
+      // So rejected users' portals don't show dead profiles as active
       await db
         .from("accounts")
         .update({ active_profile_id: null })
@@ -141,13 +142,12 @@ export async function PATCH(request: NextRequest) {
         targetId: "bulk",
         details: {
           ids,
-          names: (toDelete ?? []).map((p) => p.display_name),
-          action: "deleted_to_free_listing",
+          new_state: "rejected",
           count: count ?? ids.length,
         },
       });
 
-      return NextResponse.json({ success: true, deleted: count ?? ids.length });
+      return NextResponse.json({ success: true, updated: count ?? ids.length });
     }
   } catch (err) {
     console.error("Bulk provider action error:", err);

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-import CandidateFilters from "@/components/medjobs/CandidateFilters";
+import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 
@@ -30,12 +30,7 @@ export default function CandidateBrowsePage() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState<CandidateFilterValues>({
-    search: "",
-    state: "",
-    track: "",
-    sort: "newest",
-  });
+  const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +48,20 @@ export default function CandidateBrowsePage() {
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
+        if (filters.city) params.set("city", filters.city);
         if (filters.state) params.set("state", filters.state);
-        if (filters.search.trim()) params.set("search", filters.search.trim());
         if (filters.track) params.set("programTrack", filters.track);
+        if (filters.certifications.length > 0) {
+          params.set("certifications", filters.certifications.join(","));
+        }
+        if (filters.availability.length > 0) {
+          params.set("availability", filters.availability.join(","));
+        }
+        if (filters.hoursPerWeek) params.set("hoursPerWeek", filters.hoursPerWeek);
+        if (filters.languages.length > 0) {
+          params.set("languages", filters.languages.join(","));
+        }
+        if (filters.hasVideo) params.set("hasVideo", "true");
 
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
@@ -106,20 +112,11 @@ export default function CandidateBrowsePage() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, page, fetchCandidates]);
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
     (newFilters: CandidateFilterValues) => {
-      if (newFilters.search !== filters.search) {
-        setFilters((prev) => ({ ...prev, search: newFilters.search }));
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          setFilters(newFilters);
-        }, 300);
-      } else {
-        setFilters(newFilters);
-      }
+      setFilters(newFilters);
     },
-    [filters.search]
+    []
   );
 
   return (
@@ -173,6 +170,7 @@ export default function CandidateBrowsePage() {
           filters={filters}
           onChange={handleFilterChange}
           showSort
+          totalResults={total}
         />
 
         {/* Results */}

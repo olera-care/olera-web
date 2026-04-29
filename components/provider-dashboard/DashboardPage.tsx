@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
@@ -33,10 +34,26 @@ import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
 
+// Section ids the dashboard can deep-link into via ?open=<sectionId>. Mirrors
+// the modal switch below — kept as a const set so the URL handler validates
+// the param before calling setEditingSection.
+const DEEP_LINK_SECTIONS = new Set<SectionId>([
+  "overview",
+  "gallery",
+  "services",
+  "screening",
+  "about",
+  "pricing",
+  "payment",
+  "owner",
+]);
+
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Passing user?.id makes the hook refetch when auth resolves — covers the
   // first-load-401 race where the session cookie lands after mount.
@@ -44,6 +61,25 @@ export default function DashboardPage() {
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
+
+  // Deep-link handler: when arriving from the post-answer picker (or any
+  // ?open= URL), pop the matching edit modal as soon as profile data lands.
+  // Once-per-page-load via ref so closing the modal doesn't re-open it, and
+  // we strip the ?open / ?from params so a reload doesn't replay the action.
+  const handledOpenParam = useRef(false);
+  useEffect(() => {
+    if (handledOpenParam.current) return;
+    if (!profile) return;
+    const openParam = searchParams.get("open");
+    if (!openParam) return;
+    if (!DEEP_LINK_SECTIONS.has(openParam as SectionId)) return;
+    handledOpenParam.current = true;
+    setEditingSection(openParam as SectionId);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("open");
+    url.searchParams.delete("from");
+    router.replace(url.pathname + (url.search ? url.search : ""));
+  }, [profile, searchParams, router]);
 
   // Only show skeleton if we don't have a profile yet
   // Metadata is returned immediately (base data), enrichment happens in background

@@ -6,6 +6,7 @@ import type { Provider } from "@/lib/types/provider";
 import { getPrimaryImage } from "@/lib/types/provider";
 import Link from "next/link";
 import AnalyticsTeaserCard from "@/components/provider-onboarding/AnalyticsTeaserCard";
+import PostAnswerPicker from "@/components/provider-onboarding/PostAnswerPicker";
 
 // ============================================================
 // Types
@@ -882,6 +883,18 @@ export default function ActionCard({
             </>
           )}
         </div>
+
+        {/* Post-answer next-best-action picker. Sits between the
+            response confirmation and the profile preview so the
+            primary CTA is visible in the same scroll as "Response sent."
+            Renders nothing until the auth-resolved provider profile
+            arrives, and nothing when the profile is fully complete or
+            every section has been dismissed. */}
+        {questionAnswered && (
+          <div className="mt-6">
+            <PostAnswerPicker />
+          </div>
+        )}
 
         {/* Profile preview — always visible, adapts to pre/post response state */}
         <div className="mt-6">

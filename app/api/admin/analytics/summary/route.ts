@@ -95,6 +95,29 @@ type ProviderQaFunnelByVariant = {
   B: ProviderQaVariantRow;
   unassigned: ProviderQaVariantRow;
 };
+// Care-seeker benefits intake funnel. Distinct sessions per stage. Read from
+// provider_activity (where session_id + variant are persisted on every event);
+// seeker_activity.benefits_completed is unusable here because it carries
+// neither field. The save-step's `benefits_step_completed step_name="save"`
+// event fires immediately before the save-results POST, so it's the cleaner
+// signal for the saved stage anyway.
+type BenefitsFunnel = {
+  started: number;
+  care_need_completed: number;
+  age_completed: number;
+  financial_completed: number;
+  saved: number;
+};
+// A/B variant split for the benefits intake. Variant arms come from
+// lib/analytics/variant.ts (deterministic djb2 hash on session_id):
+// "control" vs "money_loss". `unassigned` covers events fired before the
+// variant deploy or with missing metadata.variant.
+type BenefitsVariantRow = BenefitsFunnel;
+type BenefitsFunnelByVariant = {
+  control: BenefitsVariantRow;
+  money_loss: BenefitsVariantRow;
+  unassigned: BenefitsVariantRow;
+};
 type WindowResult = {
   counts: WindowedCounts;
   unique_sessions_page_view: number;
@@ -102,6 +125,8 @@ type WindowResult = {
   qa_funnel: ProviderQaFunnel;
   qa_funnel_by_variant: ProviderQaFunnelByVariant;
   qa_email_issues: QaEmailIssue[];
+  benefits_funnel: BenefitsFunnel;
+  benefits_funnel_by_variant: BenefitsFunnelByVariant;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -153,6 +178,18 @@ const EMPTY_FUNNEL_BY_VARIANT = (): ProviderQaFunnelByVariant => ({
   A: EMPTY_VARIANT_ROW(),
   B: EMPTY_VARIANT_ROW(),
   unassigned: EMPTY_VARIANT_ROW(),
+});
+const EMPTY_BENEFITS_FUNNEL = (): BenefitsFunnel => ({
+  started: 0,
+  care_need_completed: 0,
+  age_completed: 0,
+  financial_completed: 0,
+  saved: 0,
+});
+const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
+  control: EMPTY_BENEFITS_FUNNEL(),
+  money_loss: EMPTY_BENEFITS_FUNNEL(),
+  unassigned: EMPTY_BENEFITS_FUNNEL(),
 });
 
 /**
@@ -232,13 +269,26 @@ async function fetchWindow(
   if (from) issuesEventsQ = issuesEventsQ.gte("occurred_at", from);
   if (to) issuesEventsQ = issuesEventsQ.lt("occurred_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes] = await Promise.all([
+  // Care-seeker benefits intake funnel: distinct sessions per stage. The four
+  // upstream events all live on provider_activity with metadata.session_id +
+  // metadata.variant. Stages distinguished by event_type for `started`, and
+  // by metadata.step_name within `benefits_step_completed` for the rest.
+  let benefitsQ = db
+    .from("provider_activity")
+    .select("event_type, metadata")
+    .in("event_type", ["benefits_started", "benefits_step_completed"])
+    .limit(50000);
+  if (from) benefitsQ = benefitsQ.gte("created_at", from);
+  if (to) benefitsQ = benefitsQ.lt("created_at", to);
+
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
     openersQ,
     funnelQ,
     issuesEventsQ,
+    benefitsQ,
   ]);
 
   if (providerRes.error) return { error: "provider window query failed" };
@@ -247,6 +297,7 @@ async function fetchWindow(
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
+  if (benefitsRes.error) return { error: "benefits funnel query failed" };
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
@@ -411,6 +462,82 @@ async function fetchWindow(
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
+  // Benefits intake funnel rollup. Build per-stage Sets keyed on session_id —
+  // distinct sessions, not raw events. A session that re-enters the form
+  // counts once per stage. Per-variant Sets in parallel; the overall funnel
+  // is the union (one session always carries the same variant).
+  type BenefitsBucket = "control" | "money_loss" | "unassigned";
+  const benefitsStageSets: Record<keyof BenefitsFunnel, Set<string>> = {
+    started: new Set(),
+    care_need_completed: new Set(),
+    age_completed: new Set(),
+    financial_completed: new Set(),
+    saved: new Set(),
+  };
+  const benefitsByVariantSets: Record<BenefitsBucket, Record<keyof BenefitsFunnel, Set<string>>> = {
+    control: {
+      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
+      financial_completed: new Set(), saved: new Set(),
+    },
+    money_loss: {
+      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
+      financial_completed: new Set(), saved: new Set(),
+    },
+    unassigned: {
+      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
+      financial_completed: new Set(), saved: new Set(),
+    },
+  };
+  // step_name → funnel-stage mapping. Only the four step_completed events
+  // BenefitsDiscoveryModule actually fires (care-need / age / financial /
+  // save). The post-save "results" step fires step_viewed but never
+  // step_completed, so it has no entry here.
+  const STEP_TO_STAGE: Record<string, keyof BenefitsFunnel | undefined> = {
+    "care-need": "care_need_completed",
+    age: "age_completed",
+    financial: "financial_completed",
+    save: "saved",
+  };
+  for (const r of (benefitsRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const sid = r.metadata?.session_id;
+    if (typeof sid !== "string" || !sid) continue;
+    const v = r.metadata?.variant;
+    const bucket: BenefitsBucket =
+      v === "control" ? "control" : v === "money_loss" ? "money_loss" : "unassigned";
+    let stage: keyof BenefitsFunnel | undefined;
+    if (r.event_type === "benefits_started") {
+      stage = "started";
+    } else if (r.event_type === "benefits_step_completed") {
+      const stepName = r.metadata?.step_name;
+      if (typeof stepName === "string") stage = STEP_TO_STAGE[stepName];
+    }
+    if (!stage) continue;
+    benefitsStageSets[stage].add(sid);
+    benefitsByVariantSets[bucket][stage].add(sid);
+  }
+  const benefitsFunnel: BenefitsFunnel = {
+    started: benefitsStageSets.started.size,
+    care_need_completed: benefitsStageSets.care_need_completed.size,
+    age_completed: benefitsStageSets.age_completed.size,
+    financial_completed: benefitsStageSets.financial_completed.size,
+    saved: benefitsStageSets.saved.size,
+  };
+  const sizesFor = (b: BenefitsBucket): BenefitsVariantRow => ({
+    started: benefitsByVariantSets[b].started.size,
+    care_need_completed: benefitsByVariantSets[b].care_need_completed.size,
+    age_completed: benefitsByVariantSets[b].age_completed.size,
+    financial_completed: benefitsByVariantSets[b].financial_completed.size,
+    saved: benefitsByVariantSets[b].saved.size,
+  });
+  const benefitsFunnelByVariant: BenefitsFunnelByVariant = {
+    control: sizesFor("control"),
+    money_loss: sizesFor("money_loss"),
+    unassigned: sizesFor("unassigned"),
+  };
+
   return {
     counts,
     unique_sessions_page_view: uniqueSessions.size,
@@ -418,6 +545,8 @@ async function fetchWindow(
     qa_funnel: funnel,
     qa_funnel_by_variant: funnelByVariant,
     qa_email_issues: qaEmailIssues,
+    benefits_funnel: benefitsFunnel,
+    benefits_funnel_by_variant: benefitsFunnelByVariant,
   };
 }
 
@@ -640,6 +769,8 @@ export async function GET(request: NextRequest) {
         qa_funnel: windowedRes.qa_funnel,
         qa_funnel_by_variant: windowedRes.qa_funnel_by_variant,
         qa_email_issues: windowedRes.qa_email_issues,
+        benefits_funnel: windowedRes.benefits_funnel,
+        benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
       },
       prior: prior
         ? {
@@ -649,6 +780,8 @@ export async function GET(request: NextRequest) {
             qa_funnel: prior.qa_funnel,
             qa_funnel_by_variant: prior.qa_funnel_by_variant,
             qa_email_issues: prior.qa_email_issues,
+            benefits_funnel: prior.benefits_funnel,
+            benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
           }
         : null,
       insight,

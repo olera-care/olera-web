@@ -69,6 +69,20 @@ interface QaEmailIssue {
   type: "bounced" | "complained";
 }
 
+interface BenefitsFunnel {
+  started: number;
+  care_need_completed: number;
+  age_completed: number;
+  financial_completed: number;
+  saved: number;
+}
+
+interface BenefitsFunnelByVariant {
+  control: BenefitsFunnel;
+  money_loss: BenefitsFunnel;
+  unassigned: BenefitsFunnel;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
@@ -78,6 +92,8 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    benefits_funnel: BenefitsFunnel;
+    benefits_funnel_by_variant: BenefitsFunnelByVariant;
   };
   prior: {
     counts: WindowedCounts;
@@ -86,6 +102,8 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    benefits_funnel: BenefitsFunnel;
+    benefits_funnel_by_variant: BenefitsFunnelByVariant;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -186,6 +204,7 @@ export default function AdminAnalyticsPage() {
 
       <WindowedCard summary={summary} loading={loading} range={range} />
       <QaFunnelCard summary={summary} loading={loading} range={range} />
+      <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
@@ -585,6 +604,166 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
       {byVariant.unassigned.sent > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
           {byVariant.unassigned.sent} pre-deploy emails in window with no variant assigned (sent before A/B was wired up).
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Benefits Intake Funnel ───────────────────────────────────────────────
+
+function BenefitsFunnelCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const f = summary.windowed.benefits_funnel;
+  const pf = summary.prior?.benefits_funnel ?? null;
+
+  // Distinct sessions per stage. `started` is the cohort denominator (the
+  // user clicked a care-need card). Each subsequent stage is a session that
+  // fired benefits_step_completed for that step. The save step's completion
+  // is the conversion event — it fires immediately before the save-results
+  // POST in BenefitsDiscoveryModule.
+  const stages: Array<{
+    label: string;
+    value: number;
+    prior: number | null;
+    prev: number | null;
+    tooltip: string;
+  }> = [
+    {
+      label: "Started",
+      value: f.started,
+      prior: pf?.started ?? null,
+      prev: null,
+      tooltip:
+        "Distinct sessions that clicked a care-need card to launch the benefits intake (cohort denominator).",
+    },
+    {
+      label: "Care need ✓",
+      value: f.care_need_completed,
+      prior: pf?.care_need_completed ?? null,
+      prev: f.started,
+      tooltip:
+        "Distinct sessions that completed step 1 (care need). % shown is conversion from Started.",
+    },
+    {
+      label: "Age ✓",
+      value: f.age_completed,
+      prior: pf?.age_completed ?? null,
+      prev: f.care_need_completed,
+      tooltip:
+        "Distinct sessions that completed step 2 (age). % shown is conversion from Care need.",
+    },
+    {
+      label: "Financial ✓",
+      value: f.financial_completed,
+      prior: pf?.financial_completed ?? null,
+      prev: f.age_completed,
+      tooltip:
+        "Distinct sessions that completed step 3 (medicaid + income). % shown is conversion from Age.",
+    },
+    {
+      label: "Submitted email",
+      value: f.saved,
+      prior: pf?.saved ?? null,
+      prev: f.financial_completed,
+      tooltip:
+        "Distinct sessions that clicked submit on the final step with a valid email. Event fires immediately before the backend save POST, so a rare backend failure won't reduce this count. % shown is conversion from Financial.",
+    },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <div className="flex items-baseline gap-3 mb-1">
+        <h2 className="text-base font-semibold text-gray-900">Benefits Intake Funnel</h2>
+        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
+      </div>
+      <p className="text-xs text-gray-500 mb-5">
+        Cohort: distinct sessions that started the benefits intake on a provider page {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+        {stages.map((s) => (
+          <FunnelStat key={s.label} {...s} />
+        ))}
+      </div>
+
+      <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} />
+    </div>
+  );
+}
+
+function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVariant }) {
+  const c = byVariant.control;
+  const m = byVariant.money_loss;
+  const totalAssigned = c.started + m.started;
+  const waitingForFirstStart = totalAssigned === 0;
+
+  const rate = (num: number, den: number) =>
+    den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+        A/B Test — entry-point copy
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        control = production headline. money_loss = &ldquo;You may be losing money on care&rdquo; + dynamic-state sub-line. Deterministic 50/50 by session id (djb2 hash). Conversion % = email submitted / started.
+      </p>
+      {waitingForFirstStart && (
+        <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
+          Waiting for the first variant-tagged start. The numbers below populate once a new <code className="text-[11px] bg-white/60 px-1 rounded">benefits_started</code> event fires in this window.
+        </p>
+      )}
+      <div className="overflow-x-auto -mx-1">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Age ✓</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Financial ✓</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted email</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion (email/started)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-gray-50">
+              <td className="px-3 py-2 font-medium text-gray-700">control</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{c.started}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.care_need_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.age_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.financial_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.saved}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(c.saved, c.started)}</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2 font-medium text-gray-700">money_loss</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{m.started}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.care_need_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.age_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.financial_completed}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.saved}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(m.saved, m.started)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {byVariant.unassigned.started > 0 && (
+        <p className="text-[11px] text-gray-400 mt-3">
+          {byVariant.unassigned.started} pre-deploy sessions in window with no variant assigned (started before the A/B was wired up).
         </p>
       )}
     </div>

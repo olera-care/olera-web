@@ -32,7 +32,6 @@ import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
-import SmartNextActionCard from "./SmartNextActionCard";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
@@ -313,23 +312,20 @@ function DashboardContent({
 
         {/* ─── LEFT COLUMN: scrollable profile content ─── */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Smart next-best-action picker — replaces the old "Complete your profile" banner.
-              Picks the highest-impact incomplete section per provider; CTA opens that
-              section's edit modal directly. Per-section dismiss; renders nothing when
-              every nudgeable section is at 100% or dismissed. */}
-          <SmartNextActionCard
-            source="dashboard"
-            profile={profile}
-            completeness={completeness}
-            onOpenSection={setEditingSection}
-          />
-
-          {/* Hero banner */}
+          {/* Hero banner — single dynamic moment per surface. Picks one
+              headline + CTA across engagement signals (leads, Qs, view
+              spikes) and completion gaps (highest-impact incomplete section
+              when engagement is sparse). See DashboardHero for the priority
+              stack. */}
           {v2Data && (
             <div style={{ animation: "card-enter 0.25s ease-out both" }}>
               <DashboardHero
                 firstName={deriveFirstName(profile.display_name)}
                 data={v2Data}
+                completeness={completeness}
+                category={profile.category}
+                onOpenSection={setEditingSection}
+                providerSlug={profile.slug}
               />
             </div>
           )}

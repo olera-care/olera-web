@@ -43,8 +43,8 @@ type DistinctCounts = {
   lead_engagers: number;
   teaser_clickers: number;
   qa_email_openers: number;
-  /** Distinct providers who clicked the smart picker on the V2 dashboard. */
-  picker_dashboard_clickers: number;
+  /** Distinct providers who clicked a completion-tier CTA on the dashboard hero. */
+  hero_clickers: number;
   /** Distinct providers who clicked the smart picker on the post-answer success state (PR C — zero until that ships). */
   picker_qa_success_clickers: number;
   /** Distinct providers who saved an edit to any profile section. */
@@ -71,7 +71,7 @@ type ProviderQaFunnel = {
   /** Per-source attribution for clicked_dashboard. A provider counted in multiple sources if they used multiple paths. */
   clicked_dashboard_by_source: {
     qa_teaser: number;
-    picker_dashboard: number;
+    hero: number;
     picker_qa_success: number;
   };
 };
@@ -121,7 +121,7 @@ const EMPTY_DISTINCT = (): DistinctCounts => ({
   lead_engagers: 0,
   teaser_clickers: 0,
   qa_email_openers: 0,
-  picker_dashboard_clickers: 0,
+  hero_clickers: 0,
   picker_qa_success_clickers: 0,
   profile_editors: 0,
 });
@@ -138,7 +138,7 @@ const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   edited_profile: 0,
   clicked_dashboard_by_source: {
     qa_teaser: 0,
-    picker_dashboard: 0,
+    hero: 0,
     picker_qa_success: 0,
   },
 });
@@ -275,7 +275,7 @@ async function fetchWindow(
     question_answerers: new Set<string>(),
     lead_engagers: new Set<string>(),
     teaser_clickers: new Set<string>(),
-    picker_dashboard_clickers: new Set<string>(),
+    hero_clickers: new Set<string>(),
     picker_qa_success_clickers: new Set<string>(),
     profile_editors: new Set<string>(),
     // Union of teaser + picker (any source) — feeds funnel.clicked_dashboard.
@@ -303,7 +303,7 @@ async function fetchWindow(
       sets.any_dashboard_clickers.add(pid);
     } else if (r.event_type === "provider_picker_clicked") {
       const source = r.metadata?.source;
-      if (source === "dashboard") sets.picker_dashboard_clickers.add(pid);
+      if (source === "hero") sets.hero_clickers.add(pid);
       else if (source === "qa-success") sets.picker_qa_success_clickers.add(pid);
       sets.any_dashboard_clickers.add(pid);
     } else if (r.event_type === "provider_profile_edited") {
@@ -315,7 +315,7 @@ async function fetchWindow(
   distinct.question_answerers = sets.question_answerers.size;
   distinct.lead_engagers = sets.lead_engagers.size;
   distinct.teaser_clickers = sets.teaser_clickers.size;
-  distinct.picker_dashboard_clickers = sets.picker_dashboard_clickers.size;
+  distinct.hero_clickers = sets.hero_clickers.size;
   distinct.picker_qa_success_clickers = sets.picker_qa_success_clickers.size;
   distinct.profile_editors = sets.profile_editors.size;
 
@@ -357,7 +357,7 @@ async function fetchWindow(
   funnel.edited_profile = distinct.profile_editors;
   funnel.clicked_dashboard_by_source = {
     qa_teaser: distinct.teaser_clickers,
-    picker_dashboard: distinct.picker_dashboard_clickers,
+    hero: distinct.hero_clickers,
     picker_qa_success: distinct.picker_qa_success_clickers,
   };
   // bounced / complained are populated below from the event-anchored issues

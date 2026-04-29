@@ -1,7 +1,14 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
+import type { ProfileCompleteness } from "@/lib/profile-completeness";
+import type { ProfileCategory } from "@/lib/types";
+import {
+  pickNextAction,
+  type NudgeSectionId,
+} from "@/lib/next-best-action";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -13,25 +20,104 @@ import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data
  * Greeting is serif italic for a personal-letter touch. Single light pill
  * CTA on the dark surface.
  *
- * Prioritized signal stack, one line of copy + one CTA:
- *   1. Unanswered questions (action needed — most valuable)
- *   2. Fresh leads this period
- *   3. View spike vs. prior period
- *   4. Steady traffic, no urgent action
- *   5. Fallback: brand-new provider
+ * Prioritized signal stack (after the 2026-04-29 refactor that folded the
+ * standalone smart-picker banner into this hero — one banner per surface):
+ *
+ *   1. Fresh leads this period   (highest intent — someone reaching out)
+ *   2. Unanswered questions      (action needed)
+ *   3. View spike vs. prior      (positive momentum, no CTA)
+ *   4. Views ≥ 10                (engagement headline; if profile is
+ *                                 incomplete, CTA opens the highest-impact
+ *                                 section's edit modal — otherwise no CTA)
+ *   5. Views < 10 + incomplete   (section-specific completion pick — the
+ *                                 hero acts as the picker until engagement
+ *                                 picks up)
+ *   6. Views < 10 + complete     (informational fallback, no CTA)
  *
  * Rule: pick ONE headline signal. Never stack multiple "you have X, Y, and Z."
+ * Tiers 1-3 navigate via Link (existing engagement funnel); tier 4-5 section
+ * CTAs open an edit modal in place (new completion funnel — same metadata
+ * shape as the deprecated SmartNextActionCard so the admin analytics rollup
+ * keeps working with a `source: "hero"` bucket).
  */
 
 const HERO_IMAGE_URL = "/images/for-providers/dashboard-hero.jpg";
 
+const ENGAGEMENT_VIEW_THRESHOLD = 10;
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
+  /** Profile completeness — feeds the completion-tier picker. */
+  completeness: ProfileCompleteness;
+  /** Provider category — feeds category-aware copy (place vs service). */
+  category: ProfileCategory | null;
+  /** Open the relevant edit modal in place. Only fires for completion-tier CTAs. */
+  onOpenSection: (sectionId: NudgeSectionId) => void;
+  /** Slug used as provider_id for fire-and-forget activity events. */
+  providerSlug: string;
 }
 
-export default function DashboardHero({ firstName, data }: Props) {
-  const hook = resolveHook(data);
+interface NavCta {
+  label: string;
+  href: string;
+}
+
+interface SectionCta {
+  label: string;
+  sectionId: NudgeSectionId;
+  weight: number;
+}
+
+interface Hook {
+  headline: string;
+  subline?: string;
+  cta?: NavCta | SectionCta;
+}
+
+function isSectionCta(cta: NavCta | SectionCta): cta is SectionCta {
+  return "sectionId" in cta;
+}
+
+export default function DashboardHero({
+  firstName,
+  data,
+  completeness,
+  category,
+  onOpenSection,
+  providerSlug,
+}: Props) {
+  const hook = resolveHook(data, completeness, category);
+
+  // Fire one provider_picker_impression per (provider visit, sectionId) so
+  // the admin Q&A funnel can compute click-through on the hero. Engagement
+  // tiers don't fire — they're a different funnel, tracked by their own
+  // existing event types (question_responded, etc.).
+  const firedImpression = useRef<string | null>(null);
+  const sectionId =
+    hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
+  const sectionWeight =
+    hook.cta && isSectionCta(hook.cta) ? hook.cta.weight : null;
+
+  useEffect(() => {
+    if (!sectionId || sectionWeight === null) return;
+    if (firedImpression.current === sectionId) return;
+    firedImpression.current = sectionId;
+    track("provider_picker_impression", providerSlug, {
+      source: "hero",
+      section: sectionId,
+      weight: sectionWeight,
+    });
+  }, [sectionId, sectionWeight, providerSlug]);
+
+  const handleSectionClick = (cta: SectionCta) => {
+    track("provider_picker_clicked", providerSlug, {
+      source: "hero",
+      section: cta.sectionId,
+      weight: cta.weight,
+    });
+    onOpenSection(cta.sectionId);
+  };
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6 md:min-h-[260px]">
@@ -91,51 +177,54 @@ export default function DashboardHero({ firstName, data }: Props) {
           </p>
         )}
         {hook.cta && (
-          <Link
-            href={hook.cta.href}
-            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
-          >
-            {hook.cta.label}
-            <svg
-              className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-              aria-hidden
+          isSectionCta(hook.cta) ? (
+            <button
+              type="button"
+              onClick={() => handleSectionClick(hook.cta as SectionCta)}
+              className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </Link>
+              {hook.cta.label}
+              <CtaArrow />
+            </button>
+          ) : (
+            <Link
+              href={hook.cta.href}
+              className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
+            >
+              {hook.cta.label}
+              <CtaArrow />
+            </Link>
+          )
         )}
       </div>
     </div>
   );
 }
 
-interface Hook {
-  headline: string;
-  subline?: string;
-  cta?: { label: string; href: string };
+function CtaArrow() {
+  return (
+    <svg
+      className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+      aria-hidden
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+    </svg>
+  );
 }
 
-function resolveHook(data: ProviderDashboardV2Data): Hook {
+function resolveHook(
+  data: ProviderDashboardV2Data,
+  completeness: ProfileCompleteness,
+  category: ProfileCategory | null,
+): Hook {
   const { greeting } = data;
 
-  // Priority 1 — unanswered questions. Highest-leverage action.
-  // Count is questions, not families — one family can ask several, so the
-  // noun "questions" is more honest than "families waiting."
-  if (greeting.unansweredQuestions > 0) {
-    const n = greeting.unansweredQuestions;
-    return {
-      headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
-      subline:
-        "Under a minute each, and families feel like you're paying attention.",
-      cta: { label: "Review questions", href: "/provider/qna" },
-    };
-  }
-
-  // Priority 2 — fresh leads this period.
+  // Priority 1 — fresh leads this period. Highest intent: a family is
+  // actively reaching out for placement. Beats info-gathering questions.
   if (greeting.newLeadsThisPeriod > 0) {
     const n = greeting.newLeadsThisPeriod;
     return {
@@ -146,31 +235,102 @@ function resolveHook(data: ProviderDashboardV2Data): Hook {
     };
   }
 
-  // Priority 3 — meaningful view spike.
+  // Priority 2 — unanswered questions. Real family on the other end.
+  if (greeting.unansweredQuestions > 0) {
+    const n = greeting.unansweredQuestions;
+    return {
+      headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
+      subline:
+        "Under a minute each, and families feel like you're paying attention.",
+      cta: { label: "Review questions", href: "/provider/qna" },
+    };
+  }
+
+  // Priority 3 — meaningful view spike. Positive reinforcement, no CTA —
+  // the headline IS the value.
   if (greeting.deltaPct !== null && greeting.deltaPct >= 25 && greeting.viewsThisPeriod >= 5) {
     return {
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
       subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
-      // No CTA — the headline is the value.
     };
   }
 
-  // Priority 4 — steady traffic, no urgent action.
-  if (greeting.viewsThisPeriod > 0) {
+  const next = pickNextAction(completeness, category);
+
+  // Priority 4 — meaningful traffic (≥ 10 views) with a completion gap.
+  // Engagement headline rewards the activity; section-specific CTA fills
+  // the activation lever. If the profile is fully complete, the headline
+  // alone — no CTA — keeps the moment recognition-only, no nag.
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
     const n = greeting.viewsThisPeriod;
+    if (next) {
+      return {
+        headline: `${n} families viewed your page this month.`,
+        subline: next.copy.subline,
+        cta: {
+          label: next.copy.cta,
+          sectionId: next.sectionId,
+          weight: next.weight,
+        },
+      };
+    }
     return {
-      headline: `${n} ${n === 1 ? "family" : "families"} viewed your page this month.`,
-      subline:
-        "A complete profile with photos and reviews helps more of them reach out.",
-      cta: { label: "Improve your listing", href: "#overview" },
+      headline: `${n} families viewed your page this month.`,
+      subline: "Questions and inquiries land here as families decide.",
     };
   }
 
-  // Fallback — brand-new provider, no data yet.
+  // Priority 5 — sparse traffic AND a completion gap. The hero takes over
+  // the picker role: section-specific copy as the headline, opens the right
+  // edit modal in place. The "Hey Aggie" greeting still appears above.
+  if (next) {
+    return {
+      headline: next.copy.headline,
+      subline: next.copy.subline,
+      cta: {
+        label: next.copy.cta,
+        sectionId: next.sectionId,
+        weight: next.weight,
+      },
+    };
+  }
+
+  // Priority 6 — sparse traffic AND fully complete. Profile is dialed in;
+  // we just don't have demand data yet. Informational, no CTA. (Better
+  // than the old "Improve your listing" generic — there's nothing left to
+  // improve and no need to manufacture a CTA.)
   return {
     headline: "Your page is live on Olera.",
     subline:
-      "Families are searching in your area. The more complete your listing, the more likely they'll reach out.",
-    cta: { label: "Improve your listing", href: "#overview" },
+      "Families in your area are searching every day. Inquiries and questions will land here as they come in.",
   };
+}
+
+/**
+ * Fire-and-forget event capture. `keepalive: true` ensures the POST survives
+ * a same-tab navigation. Mirrors the AnalyticsTeaserCard tracking pattern.
+ */
+function track(
+  eventType: "provider_picker_impression" | "provider_picker_clicked",
+  providerSlug: string,
+  metadata: Record<string, unknown>,
+): void {
+  try {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      keepalive: true,
+      body: JSON.stringify({
+        actor_type: "provider",
+        provider_id: providerSlug,
+        event_type: eventType,
+        metadata,
+      }),
+    }).catch(() => {
+      /* fire-and-forget */
+    });
+  } catch {
+    /* fire-and-forget */
+  }
 }

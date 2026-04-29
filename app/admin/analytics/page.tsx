@@ -44,7 +44,7 @@ interface ProviderQaFunnel {
   edited_profile: number;
   clicked_dashboard_by_source: {
     qa_teaser: number;
-    picker_dashboard: number;
+    hero: number;
     picker_qa_success: number;
   };
 }
@@ -435,7 +435,7 @@ function QaFunnelCard({
       prior: pf?.clicked_dashboard ?? null,
       prev: f.answered,
       tooltip:
-        `Distinct providers who clicked through to /provider in this window — union of the analytics teaser (${f.clicked_dashboard_by_source.qa_teaser}) + smart picker on dashboard (${f.clicked_dashboard_by_source.picker_dashboard}) + smart picker on post-answer (${f.clicked_dashboard_by_source.picker_qa_success}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Answered.`,
+        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + completion-tier CTA on the dashboard hero (${f.clicked_dashboard_by_source.hero}) + smart picker on post-answer (${f.clicked_dashboard_by_source.picker_qa_success}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Answered.`,
     },
     {
       label: "Edited profile",

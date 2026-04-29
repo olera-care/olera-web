@@ -32,6 +32,7 @@ import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
+import SmartNextActionCard from "./SmartNextActionCard";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
@@ -312,41 +313,16 @@ function DashboardContent({
 
         {/* ─── LEFT COLUMN: scrollable profile content ─── */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Guided onboarding banner */}
-          {guided.shouldPrompt && !guided.isGuidedActive && (
-            <div
-              className="bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
-              style={{ animation: "card-enter 0.25s ease-out both" }}
-            >
-              <div>
-                <p className="text-[15px] font-semibold text-gray-900">
-                  Complete your profile to attract more families
-                </p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  We&apos;ll guide you through each section step by step.
-                </p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  onClick={guided.dismiss}
-                  className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 min-h-[44px] flex items-center"
-                >
-                  Dismiss
-                </button>
-                <button
-                  onClick={() => {
-                    guided.startGuided();
-                    if (guided.firstIncompleteSection) {
-                      setEditingSection(guided.firstIncompleteSection);
-                    }
-                  }}
-                  className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px] flex items-center"
-                >
-                  Get Started
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Smart next-best-action picker — replaces the old "Complete your profile" banner.
+              Picks the highest-impact incomplete section per provider; CTA opens that
+              section's edit modal directly. Per-section dismiss; renders nothing when
+              every nudgeable section is at 100% or dismissed. */}
+          <SmartNextActionCard
+            source="dashboard"
+            profile={profile}
+            completeness={completeness}
+            onOpenSection={setEditingSection}
+          />
 
           {/* Hero banner */}
           {v2Data && (

@@ -27,6 +27,8 @@ const PROVIDER_DISTINCT_EVENT_TYPES = [
   "claim_completed",
   "question_responded",
   "analytics_teaser_cta_clicked",
+  "provider_picker_clicked",
+  "provider_profile_edited",
 ] as const;
 
 type ProviderEvent = (typeof PROVIDER_EVENT_TYPES)[number];
@@ -41,6 +43,12 @@ type DistinctCounts = {
   lead_engagers: number;
   teaser_clickers: number;
   qa_email_openers: number;
+  /** Distinct providers who clicked the smart picker on the V2 dashboard. */
+  picker_dashboard_clickers: number;
+  /** Distinct providers who clicked the smart picker on the post-answer success state (PR C — zero until that ships). */
+  picker_qa_success_clickers: number;
+  /** Distinct providers who saved an edit to any profile section. */
+  profile_editors: number;
 };
 // Cohort-anchored funnel for the provider question_received email. `sent`
 // through `complained` are raw email-row counts (one row per send) over the
@@ -56,6 +64,16 @@ type ProviderQaFunnel = {
   complained: number;
   signed_in: number;
   answered: number;
+  /** Distinct providers who clicked through to /provider in the window — union of analytics teaser + smart picker, any source. */
+  clicked_dashboard: number;
+  /** Distinct providers who saved an edit to any profile section in the window. Lagging activation indicator. */
+  edited_profile: number;
+  /** Per-source attribution for clicked_dashboard. A provider counted in multiple sources if they used multiple paths. */
+  clicked_dashboard_by_source: {
+    qa_teaser: number;
+    picker_dashboard: number;
+    picker_qa_success: number;
+  };
 };
 type QaEmailIssue = {
   reason: string;
@@ -103,6 +121,9 @@ const EMPTY_DISTINCT = (): DistinctCounts => ({
   lead_engagers: 0,
   teaser_clickers: 0,
   qa_email_openers: 0,
+  picker_dashboard_clickers: 0,
+  picker_qa_success_clickers: 0,
+  profile_editors: 0,
 });
 const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   sent: 0,
@@ -113,6 +134,13 @@ const EMPTY_FUNNEL = (): ProviderQaFunnel => ({
   complained: 0,
   signed_in: 0,
   answered: 0,
+  clicked_dashboard: 0,
+  edited_profile: 0,
+  clicked_dashboard_by_source: {
+    qa_teaser: 0,
+    picker_dashboard: 0,
+    picker_qa_success: 0,
+  },
 });
 const EMPTY_VARIANT_ROW = (): ProviderQaVariantRow => ({
   sent: 0,
@@ -247,6 +275,13 @@ async function fetchWindow(
     question_answerers: new Set<string>(),
     lead_engagers: new Set<string>(),
     teaser_clickers: new Set<string>(),
+    picker_dashboard_clickers: new Set<string>(),
+    picker_qa_success_clickers: new Set<string>(),
+    profile_editors: new Set<string>(),
+    // Union of teaser + picker (any source) — feeds funnel.clicked_dashboard.
+    // Kept here rather than derived later so a provider isn't double-counted
+    // when they used both paths.
+    any_dashboard_clickers: new Set<string>(),
   };
   for (const r of (distinctRes.data ?? []) as Array<{
     provider_id: string | null;
@@ -265,6 +300,14 @@ async function fetchWindow(
       sets.question_answerers.add(pid);
     } else if (r.event_type === "analytics_teaser_cta_clicked") {
       sets.teaser_clickers.add(pid);
+      sets.any_dashboard_clickers.add(pid);
+    } else if (r.event_type === "provider_picker_clicked") {
+      const source = r.metadata?.source;
+      if (source === "dashboard") sets.picker_dashboard_clickers.add(pid);
+      else if (source === "qa-success") sets.picker_qa_success_clickers.add(pid);
+      sets.any_dashboard_clickers.add(pid);
+    } else if (r.event_type === "provider_profile_edited") {
+      sets.profile_editors.add(pid);
     }
   }
   distinct.qa_signins = sets.qa_signins.size;
@@ -272,6 +315,9 @@ async function fetchWindow(
   distinct.question_answerers = sets.question_answerers.size;
   distinct.lead_engagers = sets.lead_engagers.size;
   distinct.teaser_clickers = sets.teaser_clickers.size;
+  distinct.picker_dashboard_clickers = sets.picker_dashboard_clickers.size;
+  distinct.picker_qa_success_clickers = sets.picker_qa_success_clickers.size;
+  distinct.profile_editors = sets.profile_editors.size;
 
   const qaOpeners = new Set<string>();
   for (const r of (openersRes.data ?? []) as Array<{ provider_id: string | null }>) {
@@ -304,6 +350,16 @@ async function fetchWindow(
   // signed_in / answered are activity-event-anchored, projected for display.
   funnel.signed_in = distinct.qa_signins;
   funnel.answered = distinct.question_answerers;
+  // clicked_dashboard / edited_profile are also activity-event-anchored. Per-
+  // source breakdown lets us compare the existing analytics teaser vs the
+  // smart picker once both have been live long enough to generate signal.
+  funnel.clicked_dashboard = sets.any_dashboard_clickers.size;
+  funnel.edited_profile = distinct.profile_editors;
+  funnel.clicked_dashboard_by_source = {
+    qa_teaser: distinct.teaser_clickers,
+    picker_dashboard: distinct.picker_dashboard_clickers,
+    picker_qa_success: distinct.picker_qa_success_clickers,
+  };
   // bounced / complained are populated below from the event-anchored issues
   // query so they stay in lockstep with the issues list.
 

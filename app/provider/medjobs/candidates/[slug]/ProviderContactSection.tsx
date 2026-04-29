@@ -126,7 +126,10 @@ export default function ProviderContactSection({
   if (variant === "sticky") {
     return (
       <>
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+        <div
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        >
           <div className="flex gap-2">
             {scheduled && scheduledButPending && !isVerified ? (
               <button

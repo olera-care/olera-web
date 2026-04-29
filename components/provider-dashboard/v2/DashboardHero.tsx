@@ -41,7 +41,26 @@ import {
  * keeps working with a `source: "hero"` bucket).
  */
 
-const HERO_IMAGE_URL = "/images/for-providers/dashboard-hero.jpg";
+const HERO_IMAGE_DEFAULT = "/images/for-providers/dashboard-hero.jpg";
+
+// Per-section images for completion-tier picks (Tiers 4 + 5). When the picker
+// lands on a section, the hero uses that section's dedicated image to give
+// the nudge a context-specific visual mood. Sections without a custom image
+// (or that get added later) fall back to HERO_IMAGE_DEFAULT.
+const SECTION_IMAGES: Record<NudgeSectionId, string> = {
+  gallery: "/images/for-providers/dashboard-hero-gallery.jpg",
+  about: "/images/for-providers/dashboard-hero-about.jpg",
+  pricing: "/images/for-providers/dashboard-hero-pricing.jpg",
+  services: "/images/for-providers/dashboard-hero-services.jpg",
+  screening: "/images/for-providers/dashboard-hero-screening.jpg",
+  payment: "/images/for-providers/dashboard-hero-payment.jpg",
+  overview: "/images/for-providers/dashboard-hero-overview.jpg",
+};
+
+// Per-engagement-tier images (Tiers 1, 2). Tiers 3 and 6 don't have dedicated
+// images yet — they fall back to HERO_IMAGE_DEFAULT.
+const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
+const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
@@ -73,6 +92,8 @@ interface Hook {
   headline: string;
   subline?: string;
   cta?: NavCta | SectionCta;
+  /** Optional per-tier / per-section image. Falls back to HERO_IMAGE_DEFAULT. */
+  imageUrl?: string;
 }
 
 function isSectionCta(cta: NavCta | SectionCta): cta is SectionCta {
@@ -133,7 +154,7 @@ export default function DashboardHero({
         aria-hidden
         className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `url('${HERO_IMAGE_URL}')`,
+          backgroundImage: `url('${hook.imageUrl ?? HERO_IMAGE_DEFAULT}')`,
           backgroundSize: "auto 150%",
           backgroundPosition: "right 35%",
           backgroundRepeat: "no-repeat",
@@ -232,6 +253,7 @@ function resolveHook(
       subline:
         "Families expect a response within a day — quick replies read as professional.",
       cta: { label: "View inquiries", href: "/provider/connections" },
+      imageUrl: TIER_LEADS_IMAGE,
     };
   }
 
@@ -243,11 +265,12 @@ function resolveHook(
       subline:
         "Under a minute each, and families feel like you're paying attention.",
       cta: { label: "Review questions", href: "/provider/qna" },
+      imageUrl: TIER_QUESTIONS_IMAGE,
     };
   }
 
   // Priority 3 — meaningful view spike. Positive reinforcement, no CTA —
-  // the headline IS the value.
+  // the headline IS the value. No dedicated image yet → falls back to default.
   if (greeting.deltaPct !== null && greeting.deltaPct >= 25 && greeting.viewsThisPeriod >= 5) {
     return {
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
@@ -260,7 +283,9 @@ function resolveHook(
   // Priority 4 — meaningful traffic (≥ 10 views) with a completion gap.
   // Engagement headline rewards the activity; section-specific CTA fills
   // the activation lever. If the profile is fully complete, the headline
-  // alone — no CTA — keeps the moment recognition-only, no nag.
+  // alone — no CTA — keeps the moment recognition-only, no nag. Image
+  // tracks the section the picker chose (gallery → photos image, about →
+  // conversation image, etc.) so the visual mood matches the ask.
   if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
     const n = greeting.viewsThisPeriod;
     if (next) {
@@ -272,6 +297,7 @@ function resolveHook(
           sectionId: next.sectionId,
           weight: next.weight,
         },
+        imageUrl: SECTION_IMAGES[next.sectionId],
       };
     }
     return {
@@ -282,7 +308,7 @@ function resolveHook(
 
   // Priority 5 — sparse traffic AND a completion gap. The hero takes over
   // the picker role: section-specific copy as the headline, opens the right
-  // edit modal in place. The "Hey Aggie" greeting still appears above.
+  // edit modal in place. Image matches the section being nudged.
   if (next) {
     return {
       headline: next.copy.headline,
@@ -292,13 +318,15 @@ function resolveHook(
         sectionId: next.sectionId,
         weight: next.weight,
       },
+      imageUrl: SECTION_IMAGES[next.sectionId],
     };
   }
 
   // Priority 6 — sparse traffic AND fully complete. Profile is dialed in;
   // we just don't have demand data yet. Informational, no CTA. (Better
   // than the old "Improve your listing" generic — there's nothing left to
-  // improve and no need to manufacture a CTA.)
+  // improve and no need to manufacture a CTA.) No dedicated image yet →
+  // falls back to default.
   return {
     headline: "Your page is live on Olera.",
     subline:

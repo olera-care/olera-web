@@ -180,7 +180,10 @@ export default function ContactSection({
   if (isViewingOwnProfile) {
     if (variant === "sticky") {
       return (
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+        <div
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -244,7 +247,10 @@ export default function ContactSection({
   if (variant === "sticky") {
     return (
       <>
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb space-y-2">
+        <div
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 space-y-2"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        >
           {/* Success banner */}
           {scheduled && (
             <div className="flex items-center justify-center gap-2 text-sm text-emerald-700">

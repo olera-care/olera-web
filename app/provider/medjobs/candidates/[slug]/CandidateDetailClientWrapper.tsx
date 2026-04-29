@@ -32,6 +32,8 @@ export default function CandidateDetailClientWrapper({
   const router = useRouter();
   const { activeProfile, user } = useAuth();
   const [hasExistingInterview, setHasExistingInterview] = useState(false);
+  // Track if existing interview is pending verification (for UI state after refresh)
+  const [existingInterviewPending, setExistingInterviewPending] = useState(false);
 
   // Verification state
   const verificationState = activeProfile?.verification_state as string | null;
@@ -66,13 +68,17 @@ export default function CandidateDetailClientWrapper({
         // Check if there's an active interview with this student
         // Exclude cancelled/no_show so provider can re-schedule
         const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
-        const hasInterview = (data.interviews || []).some(
+        const matchingInterview = (data.interviews || []).find(
           (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string; status: string }) =>
             interview.student_profile_id === studentId &&
             interview.proposed_by === interview.provider_profile_id &&
             activeStatuses.includes(interview.status)
         );
-        setHasExistingInterview(hasInterview);
+        setHasExistingInterview(!!matchingInterview);
+        // Track if the existing interview is pending verification
+        if (matchingInterview?.is_pending_verification) {
+          setExistingInterviewPending(true);
+        }
       } catch {
         // Silently fail
       }
@@ -91,6 +97,7 @@ export default function CandidateDetailClientWrapper({
         studentSlug={studentSlug}
         variant={variant}
         initialScheduled={hasExistingInterview}
+        initialScheduledButPending={existingInterviewPending}
         accessTier={accessTier}
         creditsUsed={creditsUsed}
         isVerified={isVerified}

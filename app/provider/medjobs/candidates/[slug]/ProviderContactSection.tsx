@@ -16,6 +16,8 @@ interface ProviderContactSectionProps {
   variant?: "sidebar" | "sticky" | "inline";
   /** Pre-fetched: whether an interview has already been scheduled */
   initialScheduled?: boolean;
+  /** Pre-fetched: whether the existing interview is pending verification */
+  initialScheduledButPending?: boolean;
   /** Provider's access tier for paywall gating */
   accessTier?: AccessTier;
   /** Provider's credits used count for upgrade modal */
@@ -34,6 +36,7 @@ export default function ProviderContactSection({
   studentSlug,
   variant = "sidebar",
   initialScheduled = false,
+  initialScheduledButPending = false,
   accessTier,
   creditsUsed = 0,
   isVerified,
@@ -47,7 +50,7 @@ export default function ProviderContactSection({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
   // Track if the interview was scheduled but is pending verification
-  const [scheduledButPending, setScheduledButPending] = useState(false);
+  const [scheduledButPending, setScheduledButPending] = useState(initialScheduledButPending);
   // Track previous verification state to detect when user becomes verified
   const wasVerifiedRef = useRef(isVerified);
 
@@ -65,6 +68,11 @@ export default function ProviderContactSection({
   useEffect(() => {
     if (initialScheduled) setScheduled(true);
   }, [initialScheduled]);
+
+  // Sync pending state from fetched data (handles page refresh)
+  useEffect(() => {
+    if (initialScheduledButPending) setScheduledButPending(true);
+  }, [initialScheduledButPending]);
 
   // Auto-open schedule modal when arriving from inline onboarding flow
   const hasHandledScheduleParam = useRef(false);
@@ -118,7 +126,10 @@ export default function ProviderContactSection({
   if (variant === "sticky") {
     return (
       <>
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+        <div
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        >
           <div className="flex gap-2">
             {scheduled && scheduledButPending && !isVerified ? (
               <button

@@ -305,6 +305,55 @@ export default function ScheduleInterviewModal({
   // Providers must accept T&C before scheduling; students don't need to
   const canSubmit = date && time && !submitting && (isStudentInitiated || termsAccepted);
 
+  // Footer with T&C and submit button - always visible at bottom
+  const footer = (
+    <div className="space-y-4 pt-2">
+      {/* T&C checkbox - only for providers scheduling interviews */}
+      {!isStudentInitiated && (
+        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => {
+                setTermsAccepted(e.target.checked);
+                if (e.target.checked) {
+                  setTermsAcceptedAt(new Date().toISOString());
+                } else {
+                  setTermsAcceptedAt(null);
+                }
+              }}
+              className="mt-0.5 w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-sm text-gray-700">
+              I agree to the{" "}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 hover:text-primary-700 underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Terms & Conditions
+              </a>
+              {" "}for using the Olera interview scheduling service
+            </span>
+          </label>
+        </div>
+      )}
+
+      {/* Submit button */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+      >
+        {submitting ? "Sending..." : isStudentInitiated ? `Request interview with ${firstName}` : `Invite ${firstName}`}
+      </button>
+    </div>
+  );
+
   if (showUpgradeModal) {
     return <UpgradeModal creditsUsed={3} onClose={onClose} />;
   }
@@ -315,6 +364,7 @@ export default function ScheduleInterviewModal({
       onClose={onClose}
       title={isStudentInitiated ? "Request an interview" : "Schedule an interview"}
       size="lg"
+      footer={footer}
     >
       <div className="py-4 space-y-6">
         {/* Subtitle */}
@@ -442,51 +492,6 @@ export default function ScheduleInterviewModal({
           />
         </div>
 
-        {/* T&C checkbox - only for providers scheduling interviews */}
-        {!isStudentInitiated && (
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={(e) => {
-                  setTermsAccepted(e.target.checked);
-                  if (e.target.checked) {
-                    setTermsAcceptedAt(new Date().toISOString());
-                  } else {
-                    setTermsAcceptedAt(null);
-                  }
-                }}
-                className="mt-0.5 w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-gray-700">
-                I agree to the{" "}
-                <a
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary-600 hover:text-primary-700 underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Terms & Conditions
-                </a>
-                {" "}for using the Olera interview scheduling service
-              </span>
-            </label>
-          </div>
-        )}
-
-        {/* Submit button */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
-          >
-            {submitting ? "Sending..." : isStudentInitiated ? `Request interview with ${firstName}` : `Invite ${firstName}`}
-          </button>
-        </div>
       </div>
     </Modal>
   );

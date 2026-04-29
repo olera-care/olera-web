@@ -462,7 +462,7 @@ function QaFunnelCard({
       prior: pf?.clicked_dashboard ?? null,
       prev: f.qa_success_arrivals,
       tooltip:
-        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + completion-tier CTA on the dashboard hero (${f.clicked_dashboard_by_source.hero}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Arrived.`,
+        `Distinct providers who clicked a dashboard CTA in this window — union of the analytics teaser on /onboard (${f.clicked_dashboard_by_source.qa_teaser}) + dashboard hero CTA, engagement OR completion tier (${f.clicked_dashboard_by_source.hero}). A provider counted once even if they used multiple paths. Activity-anchored, not strictly subset of Arrived.`,
     },
     {
       label: "Edited profile",

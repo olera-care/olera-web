@@ -1234,6 +1234,29 @@ export default async function ProviderPage({
                 providerCity={profile.city}
                 providerState={profile.state}
               />
+              {/* Care Shifts — editorial sidebar card */}
+              <div className="mt-6 bg-primary-50 border border-primary-200 rounded-2xl p-4">
+                <span className="inline-flex items-center gap-1.5 bg-primary-100 text-primary-700 text-[11px] font-semibold tracking-[0.1em] uppercase rounded-full px-3 py-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  More affordable option
+                </span>
+                <h3 className="mt-3 text-2xl font-bold text-gray-900 font-display">Save <span className="text-primary-600">50%</span> on care</h3>
+                <p className="mt-3 text-sm text-gray-800 leading-relaxed">
+                  Hire a vetted medical student starting at <span className="font-bold">$15/hr</span>.
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-gray-800">
+                  <li className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></span>Highly qualified</li>
+                  <li className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></span>Background-checked</li>
+                  <li className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></span>CPR-trained</li>
+                </ul>
+                <p className="mt-3 text-[13px] italic text-gray-400">Launching soon in Texas.</p>
+                <a
+                  href="/care-shifts"
+                  className="inline-flex items-center mt-4 text-primary-700 font-semibold hover:text-primary-900 transition-colors group"
+                >
+                  Join the waitlist <span className="ml-1.5 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>

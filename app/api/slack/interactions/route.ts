@@ -6,6 +6,8 @@ import {
   verificationApprovedEmail,
   verificationRejectedEmail,
 } from "@/lib/email-templates";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
 
@@ -206,6 +208,26 @@ async function handleVerificationAction(
     } else if (publishedCount && publishedCount > 0) {
       console.log(`[slack] Published ${publishedCount} pending Q&A answers for ${actualProviderName}`);
     }
+
+    // Deliver pending connections (fire-and-forget)
+    deliverPendingConnections(
+      admin,
+      profileId,
+      actualProviderName,
+      profile.slug
+    ).catch((err) => {
+      console.error("[slack] Error delivering pending connections:", err);
+    });
+
+    // Release pending interviews and notify students (fire-and-forget)
+    publishPendingInterviews(
+      admin,
+      profileId,
+      actualProviderName,
+      profile.slug
+    ).catch((err) => {
+      console.error("[slack] Error publishing pending interviews:", err);
+    });
 
     // Send approval email
     if (claimerEmail) {

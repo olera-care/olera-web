@@ -13,7 +13,7 @@ interface SaveNudgeToastProps {
 
 /**
  * A refined, non-intrusive toast that nudges guests to sign up.
- * Horizontal layout with brand-consistent styling.
+ * Centered layout on mobile, horizontal on desktop.
  */
 export default function SaveNudgeToast({
   savedCount,
@@ -73,13 +73,30 @@ export default function SaveNudgeToast({
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 12px 24px -4px rgba(0, 0, 0, 0.12), 0 24px 48px -8px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <div className="p-5">
-          {/* Header row: Icon + Text + Close */}
-          <div className="flex items-start gap-4 mb-5">
+        <div className="p-5 relative">
+          {/* Close button - absolute on mobile, in-flow on desktop */}
+          <button
+            onClick={handleDismiss}
+            className={`
+              absolute top-3 right-3 sm:hidden
+              w-8 h-8 flex items-center justify-center
+              rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100
+              transition-all duration-200
+              ${showContent ? "opacity-100" : "opacity-0"}
+            `}
+            aria-label="Dismiss"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Header: Centered column on mobile, horizontal row on desktop */}
+          <div className="flex flex-col items-center sm:flex-row sm:items-start gap-3 sm:gap-4 mb-5">
             {/* Heart icon - brand teal color */}
             <div
               className={`
-                w-11 h-11 rounded-full bg-primary-50
+                w-12 h-12 sm:w-11 sm:h-11 rounded-full bg-primary-50
                 flex items-center justify-center shrink-0
                 transition-all duration-500
                 ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-90"}
@@ -94,10 +111,10 @@ export default function SaveNudgeToast({
               </svg>
             </div>
 
-            {/* Text content */}
+            {/* Text content - centered on mobile, left-aligned on desktop */}
             <div
               className={`
-                flex-1 min-w-0 pt-0.5
+                text-center sm:text-left sm:flex-1 sm:min-w-0 sm:pt-0.5
                 transition-all duration-500 delay-[50ms]
                 ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
               `}
@@ -110,11 +127,12 @@ export default function SaveNudgeToast({
               </p>
             </div>
 
-            {/* Close button */}
+            {/* Close button - desktop only (in-flow) */}
             <button
               onClick={handleDismiss}
               className={`
-                w-8 h-8 -mt-0.5 -mr-1 flex items-center justify-center
+                hidden sm:flex
+                w-8 h-8 -mt-0.5 -mr-1 items-center justify-center
                 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100
                 transition-all duration-200 shrink-0
                 ${showContent ? "opacity-100" : "opacity-0"}
@@ -127,35 +145,36 @@ export default function SaveNudgeToast({
             </button>
           </div>
 
-          {/* Buttons - aligned with text content (offset by icon width + gap) */}
+          {/* Buttons - stacked on mobile, horizontal on desktop */}
           <div
             className={`
-              flex items-center gap-3 ml-[60px]
+              flex flex-col-reverse sm:flex-row items-center gap-2 sm:gap-3
+              sm:ml-[60px]
               transition-all duration-500 delay-[100ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
             <button
-              onClick={handleSignUp}
-              className="
-                flex-1 py-2.5 px-6
-                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
-                text-white text-[14px] font-semibold
-                rounded-full transition-all
-              "
-            >
-              Sign Up Free
-            </button>
-            <button
               onClick={handleDismiss}
               className="
-                py-2.5 px-4
+                py-2 sm:py-2.5 px-4
                 text-gray-500 hover:text-gray-700
                 text-[14px] font-medium
                 transition-colors whitespace-nowrap
               "
             >
               Maybe Later
+            </button>
+            <button
+              onClick={handleSignUp}
+              className="
+                w-full sm:w-auto sm:flex-1 py-2.5 px-6
+                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
+                text-white text-[14px] font-semibold
+                rounded-full transition-all
+              "
+            >
+              Sign Up Free
             </button>
           </div>
         </div>

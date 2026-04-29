@@ -8,6 +8,7 @@ import {
 } from "@/lib/email-templates";
 import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
 
@@ -192,22 +193,16 @@ async function handleVerificationAction(
       return updateSlackMessage(payload, "❌ Failed to update profile");
     }
 
-    // Publish any pending Q&A answers now that provider is verified
-    const { error: publishError, count: publishedCount } = await admin
-      .from("provider_questions")
-      .update({
-        answer_status: "published",
-        is_public: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("answered_by", profileId)
-      .eq("answer_status", "pending");
-
-    if (publishError) {
-      console.error("[slack] Failed to publish pending answers:", publishError);
-    } else if (publishedCount && publishedCount > 0) {
-      console.log(`[slack] Published ${publishedCount} pending Q&A answers for ${actualProviderName}`);
-    }
+    // Publish pending Q&A answers and notify askers (fire-and-forget)
+    // Uses shared function to ensure Slack alerts + email notifications are sent
+    publishPendingQAAnswers(
+      admin,
+      profileId,
+      actualProviderName,
+      profile.slug
+    ).catch((err) => {
+      console.error("[slack] Error publishing pending Q&A answers:", err);
+    });
 
     // Deliver pending connections (fire-and-forget)
     deliverPendingConnections(

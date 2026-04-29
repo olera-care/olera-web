@@ -41,7 +41,41 @@ import {
  * keeps working with a `source: "hero"` bucket).
  */
 
-const HERO_IMAGE_URL = "/images/for-providers/dashboard-hero.jpg";
+const HERO_IMAGE_DEFAULT = "/images/for-providers/dashboard-hero.jpg";
+
+// Per-section images for completion-tier picks (Tiers 4 + 5). When the picker
+// lands on a section, the hero uses that section's dedicated image to give
+// the nudge a context-specific visual mood. Sections without a custom image
+// (or that get added later) fall back to HERO_IMAGE_DEFAULT.
+const SECTION_IMAGES: Record<NudgeSectionId, string> = {
+  gallery: "/images/for-providers/dashboard-hero-gallery.jpg",
+  about: "/images/for-providers/dashboard-hero-about.jpg",
+  pricing: "/images/for-providers/dashboard-hero-pricing.jpg",
+  services: "/images/for-providers/dashboard-hero-services.jpg",
+  screening: "/images/for-providers/dashboard-hero-screening.jpg",
+  payment: "/images/for-providers/dashboard-hero-payment.jpg",
+  overview: "/images/for-providers/dashboard-hero-overview.jpg",
+};
+
+// Per-tier images for engagement signals (Tiers 1, 2, 3) and the
+// fully-complete fallback (Tier 6).
+const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
+const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
+const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
+const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
+
+// Every hero image we might render. Preloaded on mount so tier swaps during
+// the session (provider saves a section → completeness changes → picker
+// chooses a different section → hero re-renders with a new image) are
+// instant from browser cache instead of fetching ~150-260KB on swap.
+const ALL_HERO_IMAGES: readonly string[] = [
+  HERO_IMAGE_DEFAULT,
+  TIER_LEADS_IMAGE,
+  TIER_QUESTIONS_IMAGE,
+  TIER_SPIKE_IMAGE,
+  TIER_FALLBACK_IMAGE,
+  ...Object.values(SECTION_IMAGES),
+];
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
@@ -73,6 +107,8 @@ interface Hook {
   headline: string;
   subline?: string;
   cta?: NavCta | SectionCta;
+  /** Optional per-tier / per-section image. Falls back to HERO_IMAGE_DEFAULT. */
+  imageUrl?: string;
 }
 
 function isSectionCta(cta: NavCta | SectionCta): cta is SectionCta {
@@ -93,6 +129,20 @@ export default function DashboardHero({
   // the admin Q&A funnel can compute click-through on the hero. Engagement
   // tiers don't fire — they're a different funnel, tracked by their own
   // existing event types (question_responded, etc.).
+  // Preload every tier image once the hero mounts. After a provider saves
+  // a section the picker re-evaluates and the hero swaps to a different
+  // image; without preload, the new image's ~150-260KB fetch causes a
+  // visible flash of either no-image or stale-image before the swap. With
+  // preload, all 11 images sit in browser cache and tier swaps are instant.
+  // Total preload payload is ~1.6MB, fired off the critical path.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    for (const url of ALL_HERO_IMAGES) {
+      const img = new window.Image();
+      img.src = url;
+    }
+  }, []);
+
   const firedImpression = useRef<string | null>(null);
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
@@ -133,7 +183,7 @@ export default function DashboardHero({
         aria-hidden
         className="hidden md:block absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `url('${HERO_IMAGE_URL}')`,
+          backgroundImage: `url('${hook.imageUrl ?? HERO_IMAGE_DEFAULT}')`,
           backgroundSize: "auto 150%",
           backgroundPosition: "right 35%",
           backgroundRepeat: "no-repeat",
@@ -232,6 +282,7 @@ function resolveHook(
       subline:
         "Families expect a response within a day — quick replies read as professional.",
       cta: { label: "View inquiries", href: "/provider/connections" },
+      imageUrl: TIER_LEADS_IMAGE,
     };
   }
 
@@ -243,6 +294,7 @@ function resolveHook(
       subline:
         "Under a minute each, and families feel like you're paying attention.",
       cta: { label: "Review questions", href: "/provider/qna" },
+      imageUrl: TIER_QUESTIONS_IMAGE,
     };
   }
 
@@ -252,6 +304,7 @@ function resolveHook(
     return {
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
       subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
+      imageUrl: TIER_SPIKE_IMAGE,
     };
   }
 
@@ -260,7 +313,9 @@ function resolveHook(
   // Priority 4 — meaningful traffic (≥ 10 views) with a completion gap.
   // Engagement headline rewards the activity; section-specific CTA fills
   // the activation lever. If the profile is fully complete, the headline
-  // alone — no CTA — keeps the moment recognition-only, no nag.
+  // alone — no CTA — keeps the moment recognition-only, no nag. Image
+  // tracks the section the picker chose (gallery → photos image, about →
+  // conversation image, etc.) so the visual mood matches the ask.
   if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
     const n = greeting.viewsThisPeriod;
     if (next) {
@@ -272,6 +327,7 @@ function resolveHook(
           sectionId: next.sectionId,
           weight: next.weight,
         },
+        imageUrl: SECTION_IMAGES[next.sectionId],
       };
     }
     return {
@@ -282,7 +338,7 @@ function resolveHook(
 
   // Priority 5 — sparse traffic AND a completion gap. The hero takes over
   // the picker role: section-specific copy as the headline, opens the right
-  // edit modal in place. The "Hey Aggie" greeting still appears above.
+  // edit modal in place. Image matches the section being nudged.
   if (next) {
     return {
       headline: next.copy.headline,
@@ -292,6 +348,7 @@ function resolveHook(
         sectionId: next.sectionId,
         weight: next.weight,
       },
+      imageUrl: SECTION_IMAGES[next.sectionId],
     };
   }
 
@@ -303,6 +360,7 @@ function resolveHook(
     headline: "Your page is live on Olera.",
     subline:
       "Families in your area are searching every day. Inquiries and questions will land here as they come in.",
+    imageUrl: TIER_FALLBACK_IMAGE,
   };
 }
 

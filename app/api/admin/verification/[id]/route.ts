@@ -6,6 +6,7 @@ import { verificationDecisionEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 
 /**
  * PATCH /api/admin/verification/[id]
@@ -107,6 +108,16 @@ export async function PATCH(
         profile?.slug
       ).catch((err) => {
         console.error("[admin] Error delivering pending connections:", err);
+      });
+
+      // Release pending interviews and notify students (fire-and-forget)
+      publishPendingInterviews(
+        db,
+        id,
+        profile?.display_name || "A provider",
+        profile?.slug
+      ).catch((err) => {
+        console.error("[admin] Error publishing pending interviews:", err);
       });
     } else {
       // If rejected, archive the pending_verification connections

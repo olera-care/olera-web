@@ -298,6 +298,68 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Post-answer engagement chain Slack alerts. These three events fill
+    // the new "Arrived (qa-success)", "Clicked dashboard", "Edited profile"
+    // funnel columns on /admin/analytics. Pushing them to Slack gives real-
+    // time visibility into whether the redirect → hero → action pipeline
+    // is converting providers, alongside the dashboard view of aggregates.
+
+    // 🎯 Provider arrived at /provider via the post-answer redirect. Filter
+    // to source="qa-success" so future redirect sources opt in explicitly
+    // rather than alerting on every ?from=… URL.
+    if (event_type === "dashboard_arrival") {
+      const meta = (metadata as Record<string, unknown>) || {};
+      if (meta.source === "qa-success") {
+        try {
+          const { sendSlackAlert, slackDashboardArrival } = await import("@/lib/slack");
+          const alert = slackDashboardArrival({
+            providerSlug: provider_id,
+            source: meta.source as string,
+          });
+          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        } catch {
+          // Non-critical — activity already logged
+        }
+      }
+    }
+
+    // ✋ Provider clicked the dashboard hero's completion-tier CTA. Filter
+    // to source="hero" — picker_qa_success was deprecated in PR #679, but
+    // belt-and-suspenders in case other surfaces ever fire this event.
+    if (event_type === "provider_picker_clicked") {
+      const meta = (metadata as Record<string, unknown>) || {};
+      if (meta.source === "hero") {
+        try {
+          const { sendSlackAlert, slackHeroCtaClicked } = await import("@/lib/slack");
+          const alert = slackHeroCtaClicked({
+            providerSlug: provider_id,
+            section: (meta.section as string) || "unknown",
+          });
+          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        } catch {
+          // Non-critical — activity already logged
+        }
+      }
+    }
+
+    // ✅ Provider saved edits to a profile section. Conversion outcome —
+    // fires for every save (post-answer flow OR routine housekeeping), not
+    // scoped to qa-success sessions. Cleanest signal that activation is
+    // happening.
+    if (event_type === "provider_profile_edited") {
+      try {
+        const { sendSlackAlert, slackProfileEdited } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackProfileEdited({
+          providerSlug: provider_id,
+          section: (meta.section as string) || "unknown",
+        });
+        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[activity/track] Error:", err);

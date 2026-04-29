@@ -29,6 +29,9 @@ const PROVIDER_DISTINCT_EVENT_TYPES = [
   "claim_completed",
   "question_responded",
   "analytics_teaser_cta_clicked",
+  "dashboard_arrival",
+  "provider_picker_clicked",
+  "provider_profile_edited",
 ] as const;
 
 const SEEKER_RAW_EVENT_TYPES = ["benefits_completed", "matches_activated"] as const;
@@ -41,6 +44,12 @@ type ProviderDistinctCounts = {
   question_answerers: number;
   lead_engagers: number;
   teaser_clickers: number;
+  /** Distinct providers redirected to /provider after answering a question (?from=qa-success). */
+  qa_success_arrivals: number;
+  /** Distinct providers who clicked a completion-tier CTA on the dashboard hero. */
+  hero_clickers: number;
+  /** Distinct providers who saved an edit to any profile section. Conversion outcome. */
+  profile_editors: number;
 };
 
 export async function GET(request: NextRequest) {
@@ -167,6 +176,9 @@ export async function GET(request: NextRequest) {
       question_answerers: new Set<string>(),
       lead_engagers: new Set<string>(),
       teaser_clickers: new Set<string>(),
+      qa_success_arrivals: new Set<string>(),
+      hero_clickers: new Set<string>(),
+      profile_editors: new Set<string>(),
     };
     for (const r of (providerDistinctRes.data ?? []) as Array<{
       event_type: string;
@@ -185,6 +197,12 @@ export async function GET(request: NextRequest) {
         distinctSets.question_answerers.add(pid);
       } else if (r.event_type === "analytics_teaser_cta_clicked") {
         distinctSets.teaser_clickers.add(pid);
+      } else if (r.event_type === "dashboard_arrival") {
+        if (r.metadata?.source === "qa-success") distinctSets.qa_success_arrivals.add(pid);
+      } else if (r.event_type === "provider_picker_clicked") {
+        if (r.metadata?.source === "hero") distinctSets.hero_clickers.add(pid);
+      } else if (r.event_type === "provider_profile_edited") {
+        distinctSets.profile_editors.add(pid);
       }
     }
     const providerDistinct: ProviderDistinctCounts = {
@@ -193,6 +211,9 @@ export async function GET(request: NextRequest) {
       question_answerers: distinctSets.question_answerers.size,
       lead_engagers: distinctSets.lead_engagers.size,
       teaser_clickers: distinctSets.teaser_clickers.size,
+      qa_success_arrivals: distinctSets.qa_success_arrivals.size,
+      hero_clickers: distinctSets.hero_clickers.size,
+      profile_editors: distinctSets.profile_editors.size,
     };
 
     const qaEmailOpeners = new Set<string>();
@@ -341,6 +362,12 @@ function buildSlackMessage(p: DigestPayload): string {
   lines.push(
     `• ${providerDistinct.page_claims} page-flow claims · ${providerDistinct.lead_engagers} engaged with leads · ${providerDistinct.teaser_clickers} clicked dashboard CTA`,
   );
+  // Post-answer engagement chain (PR #679 + PR #685): redirect → hero → action.
+  // Diagnostic for whether the new banner work is converting providers into
+  // real activation (profile edits = revenue path).
+  lines.push(
+    `• ${providerDistinct.qa_success_arrivals} arrived from Q&A redirect · ${providerDistinct.hero_clickers} clicked hero CTA · ${providerDistinct.profile_editors} saved profile edits`,
+  );
 
   const actionLines: string[] = [];
   if (newDisputes > 0) {
@@ -401,6 +428,8 @@ function buildEmailHtml(p: DigestPayload & { dateLabel: string }): string {
   const providerRows = [
     `${qaEmailOpenersCount} opened Q&A emails · ${providerDistinct.qa_signins} signed in from Q&A · ${providerDistinct.question_answerers} answered`,
     `${providerDistinct.page_claims} page-flow claims · ${providerDistinct.lead_engagers} engaged with leads · ${providerDistinct.teaser_clickers} clicked dashboard CTA`,
+    // Post-answer engagement chain — see Slack message comment for context.
+    `${providerDistinct.qa_success_arrivals} arrived from Q&A redirect · ${providerDistinct.hero_clickers} clicked hero CTA · ${providerDistinct.profile_editors} saved profile edits`,
   ];
 
   const sectionStyle = "margin:24px 0 6px;font-size:14px;color:#666;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;";

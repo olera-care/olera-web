@@ -57,10 +57,12 @@ const SECTION_IMAGES: Record<NudgeSectionId, string> = {
   overview: "/images/for-providers/dashboard-hero-overview.jpg",
 };
 
-// Per-engagement-tier images (Tiers 1, 2). Tiers 3 and 6 don't have dedicated
-// images yet — they fall back to HERO_IMAGE_DEFAULT.
+// Per-tier images for engagement signals (Tiers 1, 2, 3) and the
+// fully-complete fallback (Tier 6).
 const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
 const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
+const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
+const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
@@ -270,11 +272,12 @@ function resolveHook(
   }
 
   // Priority 3 — meaningful view spike. Positive reinforcement, no CTA —
-  // the headline IS the value. No dedicated image yet → falls back to default.
+  // the headline IS the value.
   if (greeting.deltaPct !== null && greeting.deltaPct >= 25 && greeting.viewsThisPeriod >= 5) {
     return {
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
       subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
+      imageUrl: TIER_SPIKE_IMAGE,
     };
   }
 
@@ -325,12 +328,12 @@ function resolveHook(
   // Priority 6 — sparse traffic AND fully complete. Profile is dialed in;
   // we just don't have demand data yet. Informational, no CTA. (Better
   // than the old "Improve your listing" generic — there's nothing left to
-  // improve and no need to manufacture a CTA.) No dedicated image yet →
-  // falls back to default.
+  // improve and no need to manufacture a CTA.)
   return {
     headline: "Your page is live on Olera.",
     subline:
       "Families in your area are searching every day. Inquiries and questions will land here as they come in.",
+    imageUrl: TIER_FALLBACK_IMAGE,
   };
 }
 

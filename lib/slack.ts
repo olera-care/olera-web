@@ -539,20 +539,56 @@ export function slackDashboardArrival(opts: {
   };
 }
 
+const HERO_TIER_LABELS: Record<string, string> = {
+  leads: "Inquiries",
+  questions: "Q&A",
+  completion: "Profile completion",
+};
+
 /**
- * ✋ Provider clicked the dashboard hero's completion-tier CTA.
- * Means they engaged with the smart picker on the V2 hero — the section
- * the picker chose is in `section`. Opens the corresponding edit modal
- * in place; the next signal is `slackProfileEdited` if they save.
+ * ✋ Provider clicked the dashboard hero's CTA. Covers both completion-tier
+ * picks (section provided — opens an edit modal) and engagement-tier
+ * navigations (tier provided — Link to /provider/connections, /provider/qna,
+ * etc.). Renders the right field shape based on which is present.
  */
 export function slackHeroCtaClicked(opts: {
   providerSlug: string;
-  section: string;
+  /** Set when provider clicked a completion-tier CTA (modal-opening). */
+  section?: string;
+  /** Set when provider clicked an engagement-tier CTA (leads / questions). */
+  tier?: string;
+  /** Where the engagement-tier CTA navigated to. */
+  destination?: string;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-  const sectionLabel = humanizeHeroSection(opts.section);
+
+  // Completion-tier shape: "Opening section: Gallery"
+  if (opts.section) {
+    const sectionLabel = humanizeHeroSection(opts.section);
+    return {
+      text: `Provider clicked hero CTA: ${opts.providerSlug} → ${sectionLabel}`,
+      blocks: [
+        {
+          type: "header",
+          text: { type: "plain_text", text: "✋ Provider Clicked Hero CTA", emoji: true },
+        },
+        {
+          type: "section",
+          fields: [
+            { type: "mrkdwn", text: `*Provider:*\n${opts.providerSlug}` },
+            { type: "mrkdwn", text: `*Opening section:*\n${sectionLabel}` },
+            { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+          ],
+        },
+      ],
+    };
+  }
+
+  // Engagement-tier shape: "Going to: Inquiries (/provider/connections)"
+  const tierLabel = opts.tier ? (HERO_TIER_LABELS[opts.tier] || opts.tier) : "unknown";
+  const destination = opts.destination || "—";
   return {
-    text: `Provider clicked hero CTA: ${opts.providerSlug} → ${sectionLabel}`,
+    text: `Provider clicked hero CTA: ${opts.providerSlug} → ${tierLabel}`,
     blocks: [
       {
         type: "header",
@@ -562,7 +598,7 @@ export function slackHeroCtaClicked(opts: {
         type: "section",
         fields: [
           { type: "mrkdwn", text: `*Provider:*\n${opts.providerSlug}` },
-          { type: "mrkdwn", text: `*Opening section:*\n${sectionLabel}` },
+          { type: "mrkdwn", text: `*Going to:*\n${tierLabel} (${destination})` },
           { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
         ],
       },

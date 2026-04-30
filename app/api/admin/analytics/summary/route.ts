@@ -9,6 +9,7 @@ const PROVIDER_EVENT_TYPES = [
   "lead_received",
   "review_received",
   "question_received",
+  "provider_saved",
 ] as const;
 
 const SEEKER_EVENT_TYPES = [
@@ -138,6 +139,7 @@ const EMPTY_COUNTS = (): WindowedCounts => ({
   lead_received: 0,
   review_received: 0,
   question_received: 0,
+  provider_saved: 0,
   benefits_completed: 0,
   matches_activated: 0,
 });

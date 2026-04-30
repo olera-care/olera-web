@@ -18,6 +18,7 @@ interface WindowedCounts {
   lead_received: number;
   review_received: number;
   question_received: number;
+  provider_saved: number;
   benefits_completed: number;
   matches_activated: number;
 }
@@ -295,6 +296,12 @@ function WindowedCard({
                 prior={summary.prior?.counts.review_received ?? null}
                 href="/admin/reviews"
                 tooltip="New reviews submitted on provider pages."
+              />
+              <Stat
+                label="Saved"
+                value={summary.windowed.counts.provider_saved}
+                prior={summary.prior?.counts.provider_saved ?? null}
+                tooltip="Providers saved by care seekers (guest + authenticated)."
               />
             </SubRow>
             <SubRow label="Family funnel">
@@ -1165,6 +1172,7 @@ const EVENT_TONE: Record<string, string> = {
   lead_opened: "bg-gray-100 text-gray-600",
   question_responded: "bg-gray-100 text-gray-600",
   review_viewed: "bg-gray-100 text-gray-600",
+  provider_saved: "bg-pink-50 text-pink-700",
 };
 
 function formatRelative(iso: string): string {

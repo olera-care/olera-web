@@ -22,6 +22,7 @@ import {
   type SavedProviderEntry,
 } from "@/lib/saved-providers";
 import SaveNudgeToast from "@/components/ui/SaveNudgeToast";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type { SavedProviderEntry } from "@/lib/saved-providers";
 
@@ -158,6 +159,31 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     if (saves.length === 0) return;
 
     migrationDone.current = true;
+
+    // Track conversion if user signed up via save nudge (for OAuth users)
+    // Magic link users already tracked in /auth/magic-link and cleared deferred action
+    try {
+      const deferredAction = getDeferredAction();
+      if (deferredAction?.action === "save") {
+        fetch("/api/activity/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actor_type: "family",
+            event_type: "save_nudge_converted",
+            metadata: {
+              saved_count: saves.length,
+              saved_provider_names: saves.map((s) => s.name),
+              user_email: user.email,
+              user_name: user.email?.split("@")[0] || "User",
+            },
+          }),
+        }).catch(() => {}); // Fire-and-forget
+        clearDeferredAction();
+      }
+    } catch {
+      // Non-blocking — conversion tracking failure should not affect migration
+    }
 
     const migrate = async () => {
       // Migrate each save via API (handles FK resolution)
@@ -314,11 +340,34 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
           setAnonSaves(getAnonSaves());
 
+          // Track provider_saved event (fire-and-forget)
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "provider",
+              provider_id: provider.slug,
+              event_type: "provider_saved",
+              metadata: { anonymous_session: true },
+            }),
+          }).catch(() => {});
+
           // Check if we should show the nudge at this milestone
           if (shouldShowNudge(newCount)) {
             setNudgeCount(newCount);
             setShowNudge(true);
             recordNudgeShown(newCount);
+
+            // Track save_nudge_shown event (fire-and-forget)
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_type: "family",
+                event_type: "save_nudge_shown",
+                metadata: { milestone: newCount, saved_count: newCount },
+              }),
+            }).catch(() => {});
           }
         }
       }

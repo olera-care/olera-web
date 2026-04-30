@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getDeferredAction } from "@/lib/deferred-action";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { getAnonSaves } from "@/lib/saved-providers";
 import { Suspense } from "react";
 
 /**
@@ -103,6 +104,34 @@ function MagicLinkHandler() {
         } catch (err) {
           console.error("ensure-account error:", err);
           // Non-blocking — continue to redirect
+        }
+
+        // Track save nudge conversion if new user signed up via save flow
+        try {
+          const deferredAction = getDeferredAction();
+          if (deferredAction?.action === "save" && isNewUser) {
+            const anonSaves = getAnonSaves();
+            if (anonSaves.length > 0) {
+              // Fire conversion tracking (Slack alert is sent server-side)
+              fetch("/api/activity/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  actor_type: "family",
+                  event_type: "save_nudge_converted",
+                  metadata: {
+                    saved_count: anonSaves.length,
+                    saved_provider_names: anonSaves.map((s) => s.name),
+                    user_email: data.session.user.email,
+                    user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
+                  },
+                }),
+              }).catch(() => {}); // Fire-and-forget
+            }
+            clearDeferredAction();
+          }
+        } catch {
+          // Non-blocking — conversion tracking failure should not affect auth
         }
 
         // Clear the hash from URL (for cleaner experience)

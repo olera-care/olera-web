@@ -38,9 +38,20 @@ export default function SaveNudgeToast({
   }, []);
 
   const handleDismiss = useCallback(() => {
+    // Track dismiss event (fire-and-forget)
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "save_nudge_dismissed",
+        metadata: { saved_count: savedCount },
+      }),
+    }).catch(() => {});
+
     setIsExiting(true);
     setTimeout(() => onDismiss(), 250);
-  }, [onDismiss]);
+  }, [onDismiss, savedCount]);
 
   const handleAutoDismiss = useCallback(() => {
     setIsExiting(true);
@@ -48,9 +59,20 @@ export default function SaveNudgeToast({
   }, [onAutoDismiss, onDismiss]);
 
   const handleSignUp = useCallback(() => {
+    // Track signup CTA click (fire-and-forget)
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "save_nudge_signup_clicked",
+        metadata: { saved_count: savedCount },
+      }),
+    }).catch(() => {});
+
     setIsExiting(true);
     setTimeout(() => onSignUp(), 150);
-  }, [onSignUp]);
+  }, [onSignUp, savedCount]);
 
   // Progress bar countdown
   useEffect(() => {

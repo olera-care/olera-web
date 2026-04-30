@@ -953,19 +953,22 @@ async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet, deletedN
   // soft-deleted slots (which would corrupt sweep audit history). Without this guard,
   // sequential `0001` assignment collides with previously-soft-deleted rows in the
   // same city and the upsert flips them to active with stale deleted_at preserved.
+  // ORDER BY DESC + LIMIT 1 returns the lexicographically largest ID, which equals
+  // the numerically largest because suffixes are zero-padded to 4 digits. Avoids
+  // the implicit 1000-row cap on a non-paginated select.
   const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
   const stateSlug = c.state.toLowerCase();
   const idPrefix = `${citySlug}-${stateSlug}-`;
   let maxSuffix = 0;
-  const { data: existingIds } = await supabase
+  const { data: maxRow } = await supabase
     .from('olera-providers')
     .select('provider_id')
-    .like('provider_id', `${idPrefix}%`);
-  if (existingIds) {
-    for (const r of existingIds) {
-      const m = r.provider_id?.match(/-(\d+)$/);
-      if (m) maxSuffix = Math.max(maxSuffix, parseInt(m[1], 10));
-    }
+    .like('provider_id', `${idPrefix}%`)
+    .order('provider_id', { ascending: false })
+    .limit(1);
+  if (maxRow && maxRow.length > 0) {
+    const m = maxRow[0].provider_id?.match(/-(\d+)$/);
+    if (m) maxSuffix = parseInt(m[1], 10);
   }
   const startId = maxSuffix + 1;
   for (let j = 0; j < providers.length; j++) {

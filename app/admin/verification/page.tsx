@@ -457,6 +457,16 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "pending" && (
                             <>
+                              {provider.slug && (
+                                <a
+                                  href={`/provider/${provider.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                  View Profile
+                                </a>
+                              )}
                               <button
                                 onClick={() => setSelectedProvider(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
@@ -480,22 +490,46 @@ export default function AdminVerificationPage() {
                             </>
                           )}
                           {filter === "approved" && (
-                            <button
-                              onClick={() => handleAction(provider.id, "reject")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
-                            >
-                              {actionLoading === provider.id ? "..." : "Revoke Badge"}
-                            </button>
+                            <>
+                              {provider.slug && (
+                                <a
+                                  href={`/provider/${provider.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                  View Profile
+                                </a>
+                              )}
+                              <button
+                                onClick={() => handleAction(provider.id, "reject")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Revoke Badge"}
+                              </button>
+                            </>
                           )}
                           {filter === "rejected" && (
-                            <button
-                              onClick={() => handleAction(provider.id, "approve")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                            >
-                              {actionLoading === provider.id ? "..." : "Approve Badge"}
-                            </button>
+                            <>
+                              {provider.slug && (
+                                <a
+                                  href={`/provider/${provider.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                  View Profile
+                                </a>
+                              )}
+                              <button
+                                onClick={() => handleAction(provider.id, "approve")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Approve Badge"}
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>

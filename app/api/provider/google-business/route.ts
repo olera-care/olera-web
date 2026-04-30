@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { validateGooglePlaceId } from "@/lib/google-places";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 
 /**
  * Extract Google Place ID from various URL formats:
@@ -160,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, slug, display_name, metadata")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -207,6 +210,22 @@ export async function POST(request: NextRequest) {
       console.error("Failed to update Google Business Profile:", updateError);
       return NextResponse.json({ error: "Failed to save" }, { status: 500 });
     }
+
+    // Release pending content and notify (fire-and-forget)
+    const providerName = profile.display_name || "A provider";
+    const providerSlug = profile.slug;
+
+    publishPendingQAAnswers(db, profile.id, providerName, providerSlug).catch((err) => {
+      console.error("[google-business] Error publishing pending Q&A answers:", err);
+    });
+
+    deliverPendingConnections(db, profile.id, providerName, providerSlug).catch((err) => {
+      console.error("[google-business] Error delivering pending connections:", err);
+    });
+
+    publishPendingInterviews(db, profile.id, providerName, providerSlug).catch((err) => {
+      console.error("[google-business] Error publishing pending interviews:", err);
+    });
 
     return NextResponse.json({
       success: true,

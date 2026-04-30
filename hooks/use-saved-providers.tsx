@@ -150,6 +150,71 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     fetchDbSaves();
   }, [activeProfile, user]);
 
+  // Create family profile for OAuth users who signed up via save nudge
+  // This handles the case where ensure-account doesn't create a profile (no claimToken)
+  const profileCreationAttempted = useRef(false);
+  useEffect(() => {
+    // Only run if user exists but no activeProfile yet
+    if (!user || activeProfile || !isSupabaseConfigured()) return;
+    if (profileCreationAttempted.current) return;
+
+    const deferredAction = getDeferredAction();
+    if (deferredAction?.action !== "save") return;
+
+    const saves = getAnonSaves();
+    if (saves.length === 0) return;
+
+    profileCreationAttempted.current = true;
+
+    // Create family profile for save nudge signups (OAuth flow)
+    // This will trigger AuthProvider to refetch profiles, setting activeProfile
+    const createFamilyProfile = async () => {
+      try {
+        const res = await fetch("/api/auth/create-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            intent: "family",
+            displayName: user.email?.split("@")[0] || "My Family",
+          }),
+        });
+
+        if (res.ok) {
+          // Track conversion after successful profile creation
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "family",
+              event_type: "save_nudge_converted",
+              metadata: {
+                saved_count: saves.length,
+                saved_provider_names: saves.map((s) => s.name),
+                user_email: user.email,
+                user_name: user.email?.split("@")[0] || "User",
+                signup_method: "oauth",
+              },
+            }),
+          }).catch(() => {});
+          clearDeferredAction();
+
+          // Force page refresh to reload auth state with new profile
+          // This ensures activeProfile gets set and migration can proceed
+          window.location.reload();
+        } else {
+          // Profile creation failed (e.g., account type mismatch)
+          // Clear deferred action so we don't keep retrying
+          clearDeferredAction();
+        }
+      } catch {
+        // Non-blocking
+        clearDeferredAction();
+      }
+    };
+
+    createFamilyProfile();
+  }, [user, activeProfile]);
+
   // Migrate anonymous saves to DB when user authenticates
   useEffect(() => {
     if (!user || !activeProfile || !isSupabaseConfigured()) return;
@@ -161,7 +226,8 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     migrationDone.current = true;
 
     // Track conversion if user signed up via save nudge (for OAuth users)
-    // Magic link users already tracked in /auth/magic-link and cleared deferred action
+    // Note: Most conversions are now tracked in the profile creation effect above
+    // or in magic-link handler. This is a fallback for edge cases.
     try {
       const deferredAction = getDeferredAction();
       if (deferredAction?.action === "save") {

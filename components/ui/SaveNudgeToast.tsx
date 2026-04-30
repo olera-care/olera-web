@@ -134,7 +134,7 @@ export default function SaveNudgeToast({
                   : `Keep your ${savedCount} saved providers`}
               </p>
               <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">
-                Sign up to access them on any device, anytime.
+                Sign up to access {savedCount === 1 ? "it" : "them"} on any device, anytime.
               </p>
             </div>
 

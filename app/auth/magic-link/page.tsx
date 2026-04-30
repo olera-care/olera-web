@@ -88,34 +88,40 @@ function MagicLinkHandler() {
         }
 
         // Ensure account exists (same as OAuth callback)
+        // Retry once on failure to handle transient network issues
         let isNewUser = false;
         let accountReady = false;
-        try {
-          const res = await fetch("/api/auth/ensure-account", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              claimToken: searchParams.get("token") || null,
-            }),
-          });
-          if (res.ok) {
-            const { account } = await res.json();
-            isNewUser = account?.onboarding_completed === false;
-            accountReady = true;
-          } else {
-            console.error("[magic-link] ensure-account failed:", res.status);
+        for (let attempt = 0; attempt < 2 && !accountReady; attempt++) {
+          try {
+            const res = await fetch("/api/auth/ensure-account", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                claimToken: searchParams.get("token") || null,
+              }),
+            });
+            if (res.ok) {
+              const { account } = await res.json();
+              isNewUser = account?.onboarding_completed === false;
+              accountReady = true;
+            } else {
+              console.error(`[magic-link] ensure-account failed (attempt ${attempt + 1}):`, res.status);
+              if (attempt === 0) await new Promise(r => setTimeout(r, 500));
+            }
+          } catch (err) {
+            console.error(`[magic-link] ensure-account error (attempt ${attempt + 1}):`, err);
+            if (attempt === 0) await new Promise(r => setTimeout(r, 500));
           }
-        } catch (err) {
-          console.error("[magic-link] ensure-account error:", err);
-          // Non-blocking — continue to redirect
         }
 
         // Handle save nudge signup: create family profile + track conversion
-        // Only proceed if account was created successfully
+        // If account creation failed, skip this block and let client-side fallback handle it
+        // (deferred action will persist in sessionStorage)
         try {
           const deferredAction = getDeferredAction();
           if (deferredAction?.action === "save" && accountReady) {
             let profileCreated = false;
+            let isPermanentFailure = false;
 
             // Create family profile for save nudge signups
             // ensure-account doesn't create profiles without claimToken
@@ -135,18 +141,27 @@ function MagicLinkHandler() {
               if (profileRes.ok) {
                 profileCreated = true;
               } else {
-                // Profile creation failed - likely account type mismatch
-                // (user has provider/caregiver profile with this email)
                 const errorData = await profileRes.json().catch(() => ({}));
                 if (errorData.code === "ACCOUNT_TYPE_MISMATCH") {
+                  // Permanent failure - user has provider/caregiver profile with this email
+                  // Can't create family profile, clear deferred action to prevent retry loops
                   console.warn("[magic-link] Cannot create family profile - account type mismatch");
+                  isPermanentFailure = true;
+                } else if (profileRes.status === 409) {
+                  // Profile already exists - treat as success for tracking purposes
+                  profileCreated = true;
+                } else {
+                  // Transient failure (500, network) - don't clear deferred action
+                  // Client-side fallback will retry
+                  console.error("[magic-link] create-profile failed:", profileRes.status, errorData);
                 }
               }
-            } catch {
-              // Non-blocking — profile creation failure logged server-side
+            } catch (err) {
+              // Network error - don't clear deferred action, let fallback retry
+              console.error("[magic-link] create-profile network error:", err);
             }
 
-            // Only track conversion if profile was created successfully
+            // Track conversion if profile was created (or already existed) and user is new
             if (profileCreated && isNewUser) {
               const anonSaves = getAnonSaves();
               if (anonSaves.length > 0) {
@@ -160,8 +175,8 @@ function MagicLinkHandler() {
                     metadata: {
                       saved_count: anonSaves.length,
                       saved_provider_names: anonSaves.map((s) => s.name),
-                      user_email: data.session.user.email,
-                      user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
+                      user_email: data.session.user.email || "unknown",
+                      user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0] || "User",
                       signup_method: "magic_link",
                     },
                   }),
@@ -169,10 +184,16 @@ function MagicLinkHandler() {
                 }).catch(() => {});
               }
             }
-            clearDeferredAction();
+
+            // Only clear deferred action if we succeeded OR hit a permanent failure
+            // Transient failures should preserve deferred action for client-side retry
+            if (profileCreated || isPermanentFailure) {
+              clearDeferredAction();
+            }
           }
         } catch {
           // Non-blocking — conversion tracking failure should not affect auth
+          // Deferred action preserved for client-side fallback
         }
 
         // Clear the hash from URL (for cleaner experience)

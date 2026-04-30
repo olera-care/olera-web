@@ -188,27 +188,136 @@ Claude's role in batch mode:
 - Report final results
 - Handle any errors that need human judgment
 
-### Pre-Flight
+### Pre-Flight + orientation gate
 
-When TJ provides a batch `.md` file:
+Every `/city-pipeline` run starts with an **orientation block** that summarizes what was found and asks TJ to confirm the run before any money is spent. Always orient — even single-city runs. Once TJ picks a numbered option, the rest runs fully autonomous through to the final report (no pauses between phases).
 
-1. **Parse the city list** from the machine-readable block at the bottom
-2. **Show estimates** (based on actual batch data from 88-city and 90-city runs):
-   - Discovery: `cities × ~$1.20 = $X` (Google Places, quick mode), `cities × ~0.5min = Xh`
-   - Processing: `cities × ~$2.70 = $X` (geocoding + enrichment), `~35min enrichment overhead`
-   - Total: `~$4/city`
-3. **If >20 cities**, warn about discovery time and suggest running discovery in background while TJ does other work
-4. **Ask TJ to confirm**, then proceed
+Steps:
+
+1. **Parse input** — see "Input parsing + mode detection" below. Tolerate any format (raw text, file path, tabular dump). Extract `(city, state)` pairs.
+2. **Query Supabase per city** — active count, deleted count. This determines mode.
+3. **Query Notion per city** — does the page exist? what's its current status? Use this to plan reset-vs-create.
+4. **Detect surprises** — flags anything that warrants attention:
+   - Atlas label conflicts with DB-derived mode (e.g., Atlas says `thin` but DB says 0 active → really fresh; Atlas says `missing` but DB has active rows → really expand)
+   - Mixed modes in one batch (some fresh, some expand)
+   - Notion state doesn't match mode expectation (e.g., a "fresh" city already has a Complete page from a previous wiped run; an "expand" city has no page)
+   - High soft-deleted count for a "fresh" city (sweep wiped a previous attempt — worth flagging)
+5. **Show the orientation block** in one of two formats and wait for TJ's numbered choice.
+
+#### Condensed format (when there are no surprises)
+
+Use when ALL of these are true: same mode for every city, Atlas labels (if present) align with DB-derived mode, every fresh city has no Notion page, every expand city has an existing Complete page, no high soft-deleted volume.
+
+```
+PRE-FLIGHT: 3 fresh cities (all 0 active, no surprises)
+  Hacienda Heights, CA · Calexico, CA · Brighton, NY
+ESTIMATE: ~$12 · ~35–45 min
+
+OPTIONS  1. Proceed  2. Drop  3. Cancel
+```
+
+#### Full format (when any surprise is present)
+
+```
+PRE-FLIGHT — 3 cities
+──────────────────────────────────────────────────────────────────────
+City                    Atlas    DB Active  DB Deleted  Mode    Notion
+──────────────────────────────────────────────────────────────────────
+Hacienda Heights, CA    Thin     0          0           fresh   missing
+Roy, UT                 Thin     0          1           fresh   exists
+Calexico, CA            Thin     0          0           fresh   missing
+──────────────────────────────────────────────────────────────────────
+
+NOTES
+- Atlas label "Thin" disagrees with DB (0 active) — running as fresh. Atlas snapshot probably stale.
+- Roy: 1 prior sweep-deletion. Existing Notion page from previous run, will reset.
+- Hacienda Heights + Calexico: net-new; will create Notion pages.
+
+ESTIMATE: ~$12 · ~35–45 min
+
+OPTIONS
+1. Proceed (fresh mode, autonomous)
+2. Drop one or more cities (reply with names)
+3. Cancel
+```
+
+#### Routing on TJ's choice
+
+| Choice | Action |
+|---|---|
+| `1` (or "proceed", "go", anything affirmative) | Begin autonomous run. Do not pause again until the final report. |
+| `2` + city name(s) | Remove those cities from the list, re-run pre-flight on the remainder, present a fresh orientation block. |
+| `3` | Stop. No work done. |
+
+Anything else (e.g., free-form question, ambiguous reply) → ask for one of 1/2/3 explicitly. Don't infer.
+
+#### Cost/time estimates
+
+Based on 88-city and 90-city batch actuals:
+- Discovery: `cities × ~$1.20` (Google Places, quick mode), `cities × ~0.5min`
+- Processing: `cities × ~$2.70` (geocoding + enrichment), `~35min enrichment overhead`
+- Total: `~$4/city`
+
+For >20 cities, also note the discovery time and suggest running discovery in background while TJ does other work.
+
+### Input parsing + mode detection
+
+TJ rarely hands over a path to an `.md` file. The slash command typically receives **pasted text** in one of several shapes — directly in the `/city-pipeline` invocation or in a follow-up message. The skill must extract `(city, state)` pairs from whatever it sees, then determine the run mode by querying Supabase for current active counts.
+
+**Recognizable input shapes (any one of these — be tolerant):**
+
+- **Raw `.md` file content** pasted from `map.olera.care` (Atlas) — has a `## Cities` markdown table and a `## Machine-Readable List` block with `City,ST` per line. Use the machine-readable section.
+- **Tabular row dump** — tab- or whitespace-separated rows like `1    Massapequa    New York    NY    21,822    0    86.8    missing`. The 2-letter uppercase state code is the anchor; the column immediately to its left is the city. Skip the rank, population, etc.
+- **Markdown table rows** — `| 1 | Massapequa | New York | NY | 21,822 | 0 | 86.8 | thin |`. Same anchor logic.
+- **Plain CSV** — `City,ST` per line.
+- **Atlas CSV export** — `city,state,state_id,population,...` with header row. Use `city` and `state_id`.
+- **One city per line** in any prose form (e.g., `Massapequa, NY`) — the 2-letter state code anchor still works.
+- **Path to a file** — `~/Desktop/.../batch.md`. Read the file and parse as one of the above.
+
+The skill should produce a clean `[(city, state), ...]` list regardless of input shape. If parsing is ambiguous (e.g., "Springfield" with no state), surface the ambiguity to TJ rather than guess.
+
+**Mode detection — query Supabase, don't trust the label.** Any gap-status label in the pasted text (`missing` / `thin` / `moderate` / `covered`) is informational only — show it in the pre-run summary so TJ can sanity-check what's about to happen, but DO NOT use it to choose flags. Atlas's gap status reflects whatever snapshot the app last loaded; the DB is the source of truth right now. For each city in the parsed list, query:
+
+```javascript
+const { count } = await supabase.from('olera-providers')
+  .select('*', { count: 'exact', head: true })
+  .like('provider_id', `${citySlug}-${stateSlug}-%`)
+  .eq('deleted', false);
+```
+
+Then route by current active count:
+
+| count | Mode for this city | Pipeline flags | Notion handling |
+|---|---|---|---|
+| `0` | **Fresh** | discovery: no `--force`. pipeline: no `--force`. | Search for existing Notion page first. If found (e.g., a previously-attempted run that got wiped by the sweep): reset status to `Upload to Backend` + uncheck `Done: *` boxes. If not found: create new page with status `Upload to Backend`. After run: flip to `Complete`, check off boxes. |
+| `> 0` | **Expand** | discovery: `--force`. pipeline: `--force --cities "C1,ST;C2,ST"`. | Existing Notion page is expected. Reset status to `Upload to Backend` + uncheck `Done: *` boxes BEFORE the run. After run: flip back to `Complete`, re-check boxes. |
+
+Per TJ's convention, batches are typically all-fresh or all-expand. If a single batch contains both, run them as separate phases (fresh cities first without `--force`, expand cities second with `--force --cities`) so the flags don't bleed across.
+
+**Why expand mode needs `--force`.** Three idempotency guards in `pipeline-batch.js` (cached `providers_ready.json`, "already in DB" count, `--resume` Notion filter) silently skip cities that have any prior pipeline output. For cities with existing active providers, that's exactly wrong — you'd report "pipeline complete" with zero net work done.
+
+**Why expand mode resets Notion before the run.** During an expansion the city's data is in flux. Leaving Notion as `Complete` while that's in progress makes the board lie about live state. Resetting to `Upload to Backend` and unchecking boxes uses the same fluid-state pattern as fresh ingestion; after the pipeline completes, status restores to `Complete` and boxes re-check.
+
+**Pre-run baseline snapshot (expand mode only).** Save the active provider count per city before the run so the post-run report can show before→after deltas. Fresh cities have a baseline of 0 by definition.
 
 ### Stage 1: Discovery
 
 Save the batch file's city list to a temporary CSV, then run:
 
 ```bash
+# Fresh batch (all-missing cities)
 python3 scripts/discovery-batch.py \
   --batch <cities.csv or batch.md> \
   --mode quick \
   --auto-confirm \
+  --output-dir ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion
+
+# Expand batch (thin/moderate/covered cities — add --force to overwrite stale CSVs)
+python3 scripts/discovery-batch.py \
+  --batch <batch.md> \
+  --mode quick \
+  --auto-confirm \
+  --force \
   --output-dir ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion
 ```
 
@@ -219,19 +328,27 @@ This runs non-interactively, outputs one CSV per city, prints per-city progress.
 python3 scripts/discovery-batch.py --batch batch.md --mode quick --auto-confirm &
 ```
 
-The script is **idempotent** — cities with existing discovery CSVs are skipped unless `--force` is used.
+The script is **idempotent** — cities with existing discovery CSVs are skipped unless `--force` is used. Expand batches must always pass `--force` because thin cities by definition have stale CSVs from earlier (less comprehensive) discovery runs.
 
 ### Stage 2: Processing
 
 After discovery completes, run the processing pipeline. **Always redirect raw stdout to a log file and arm a Monitor** — do NOT pipe through `tail -N`, which buffers everything until the process exits and leaves you blind for the whole phase.
 
 ```bash
-# Launch (run_in_background: true)
+# Fresh batch (all-missing) — resume-friendly
 cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
   --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
   --phase all \
   --resume \
   > /tmp/pipeline-all.log 2>&1
+
+# Expand batch (thin/moderate/covered) — bypass idempotency guards, scope by --cities
+cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
+  --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
+  --cities "Hacienda Heights,CA;Roy,UT;Calexico,CA" \
+  --force \
+  --phase all \
+  > /tmp/pipeline-expand.log 2>&1
 ```
 
 Then arm a `Monitor` that tails the log with a grep covering progress + failure signatures:
@@ -249,6 +366,8 @@ This runs 4 internal phases:
 - **Load**: Upload to Supabase + geocode + out-of-area cleanup (per city)
 - **Enrich**: Descriptions + reviews + trust signals + images (all providers as one pool, parallel streams)
 - **Finalize**: Notion updates (one call per city) + final report
+
+**Clean-phase upgrades (2026-04-30, post-sweep #1):** beyond the keyword filter + AI classify, the clean phase now applies several deterministic layers ported from `docs/data-sweep-runbook.md`: Tier 1 deletion regex (pharmacy/DME chains, funeral, wedding, fitness, PACE, Spanish-language non-US patterns, test-data leakage), a Google Places `types` reject list with save-type override (movie_theater, casino, transit_station, etc., but never when `assisted_living_facility`/`nursing_home`/`health` is also present), `country != "US"` reject (discovery now captures country from Places `addressComponents`), Tier 1 slam-dunk reclassification (Visiting Angels/Home Instead/etc. → Home Care (Non-medical); Bayada/Amedisys/etc. → Home Health Care; explicit-name patterns for NH/MC/IL/AL when no competing category word in the name), and LLM `category` persistence — new providers get the LLM's category when it disagrees with discovery's search-term-origin guess. Dedup additionally pulls soft-deleted rows so the pipeline never re-adds a provider sweep #1 already removed; per-city log surfaces `prior-sweep:-N`, `t1-reclass:N`, and `llm-reclass:N` counters when these layers fire. None of this changes the CLI surface — the slash command and script invocations are unchanged.
 
 Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
 
@@ -668,7 +787,7 @@ Report: How many emails found vs. how many remain without.
 
 ## After All Steps Complete
 
-1. **Update Notion:** Check off all completed boxes. Set "City Status" to **"Complete"**.
+1. **Update Notion:** Check off all completed boxes. Set "City Status" to **"Complete"**. For expand batches, this restores the pre-run Complete state with the boxes re-checked.
 
 2. **Verify on live site:** Check power pages at `https://olera.com/{category}/{state-slug}/{city-slug}` (e.g., `/assisted-living/nebraska/bellevue`). Confirm:
    - Provider cards render with ratings and review counts
@@ -678,7 +797,31 @@ Report: How many emails found vs. how many remain without.
 
 3. **Verify trust signals on a provider detail page:** Pick a non-CMS provider, visit its page, and confirm the "Verified Credentials" section renders with green checkmarks.
 
-4. **Ask TJ** if there's another in-progress city to work on.
+4. **Post-run report — split by mode.** When the batch is from Atlas, the report should distinguish what happened to each city. For a fresh batch, every row is a "new" city. For an expand batch, every row is an "expanded" city with a before/after delta.
+
+   ```
+   FRESH BATCH (3 cities, all `missing`)
+   ─────────────────────────────────────────────────────────────
+   City                        Providers   Cost
+   Bellevue, NE                 27          $3.84
+   Lincoln, NE                  41          $5.12
+   Omaha, NE                    62          $7.05
+   ─────────────────────────────────────────────────────────────
+   Total: 130 providers added across 3 new cities — $16.01
+
+   EXPAND BATCH (3 cities, all `thin`)
+   ─────────────────────────────────────────────────────────────
+   City                        Before  After  +Delta  Cost
+   Hacienda Heights, CA         8       18     +10    $4.20
+   Roy, UT                      5       12     +7     $3.95
+   Calexico, CA                 6       14     +8     $4.10
+   ─────────────────────────────────────────────────────────────
+   Total: +25 providers (was 19, now 44) across 3 expanded cities — $12.25
+   ```
+
+   Pull the "before" counts from the pre-run baseline snapshot taken in pre-flight (Atlas batch detection step). Pull the "after" counts via Supabase queries on `provider_id LIKE '<slug>-<state>-%' AND deleted=false`. If a city's `+delta` is 0, flag it — that means the active dedup blocked everything (city is genuinely covered, not actually thin per current discovery).
+
+5. **Ask TJ** if there's another in-progress city to work on.
 
 ## Scoring System (IMPORTANT — Read This)
 

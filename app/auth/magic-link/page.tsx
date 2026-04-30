@@ -106,27 +106,48 @@ function MagicLinkHandler() {
           // Non-blocking — continue to redirect
         }
 
-        // Track save nudge conversion if new user signed up via save flow
+        // Handle save nudge signup: create family profile + track conversion
         try {
           const deferredAction = getDeferredAction();
-          if (deferredAction?.action === "save" && isNewUser) {
-            const anonSaves = getAnonSaves();
-            if (anonSaves.length > 0) {
-              // Fire conversion tracking (Slack alert is sent server-side)
-              fetch("/api/activity/track", {
+          if (deferredAction?.action === "save") {
+            // Create family profile for save nudge signups
+            // ensure-account doesn't create profiles without claimToken
+            try {
+              await fetch("/api/auth/create-profile", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  actor_type: "family",
-                  event_type: "save_nudge_converted",
-                  metadata: {
-                    saved_count: anonSaves.length,
-                    saved_provider_names: anonSaves.map((s) => s.name),
-                    user_email: data.session.user.email,
-                    user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
-                  },
+                  type: "family",
+                  name: data.session.user.user_metadata?.full_name
+                    || data.session.user.user_metadata?.name
+                    || data.session.user.email?.split("@")[0]
+                    || "My Family",
                 }),
-              }).catch(() => {}); // Fire-and-forget
+              });
+            } catch {
+              // Non-blocking — profile creation failure logged server-side
+            }
+
+            // Track conversion if new user
+            if (isNewUser) {
+              const anonSaves = getAnonSaves();
+              if (anonSaves.length > 0) {
+                // Fire conversion tracking (Slack alert is sent server-side)
+                fetch("/api/activity/track", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    actor_type: "family",
+                    event_type: "save_nudge_converted",
+                    metadata: {
+                      saved_count: anonSaves.length,
+                      saved_provider_names: anonSaves.map((s) => s.name),
+                      user_email: data.session.user.email,
+                      user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
+                    },
+                  }),
+                }).catch(() => {}); // Fire-and-forget
+              }
             }
             clearDeferredAction();
           }

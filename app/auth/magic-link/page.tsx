@@ -89,6 +89,7 @@ function MagicLinkHandler() {
 
         // Ensure account exists (same as OAuth callback)
         let isNewUser = false;
+        let accountReady = false;
         try {
           const res = await fetch("/api/auth/ensure-account", {
             method: "POST",
@@ -100,16 +101,20 @@ function MagicLinkHandler() {
           if (res.ok) {
             const { account } = await res.json();
             isNewUser = account?.onboarding_completed === false;
+            accountReady = true;
+          } else {
+            console.error("[magic-link] ensure-account failed:", res.status);
           }
         } catch (err) {
-          console.error("ensure-account error:", err);
+          console.error("[magic-link] ensure-account error:", err);
           // Non-blocking — continue to redirect
         }
 
         // Handle save nudge signup: create family profile + track conversion
+        // Only proceed if account was created successfully
         try {
           const deferredAction = getDeferredAction();
-          if (deferredAction?.action === "save") {
+          if (deferredAction?.action === "save" && accountReady) {
             let profileCreated = false;
 
             // Create family profile for save nudge signups

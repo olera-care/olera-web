@@ -949,11 +949,27 @@ async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet, deletedN
   });
   const dupes = beforeDedup - providers.length - priorSweepRejected;
 
-  // IDs + slugs
+  // IDs + slugs — start sequence from max(existing) + 1 so new rows never overwrite
+  // soft-deleted slots (which would corrupt sweep audit history). Without this guard,
+  // sequential `0001` assignment collides with previously-soft-deleted rows in the
+  // same city and the upsert flips them to active with stale deleted_at preserved.
   const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
   const stateSlug = c.state.toLowerCase();
+  const idPrefix = `${citySlug}-${stateSlug}-`;
+  let maxSuffix = 0;
+  const { data: existingIds } = await supabase
+    .from('olera-providers')
+    .select('provider_id')
+    .like('provider_id', `${idPrefix}%`);
+  if (existingIds) {
+    for (const r of existingIds) {
+      const m = r.provider_id?.match(/-(\d+)$/);
+      if (m) maxSuffix = Math.max(maxSuffix, parseInt(m[1], 10));
+    }
+  }
+  const startId = maxSuffix + 1;
   for (let j = 0; j < providers.length; j++) {
-    providers[j].provider_id = `${citySlug}-${stateSlug}-${String(j + 1).padStart(4, '0')}`;
+    providers[j].provider_id = `${idPrefix}${String(startId + j).padStart(4, '0')}`;
     providers[j].slug = slug(providers[j].provider_name, c.city, c.state);
     if (!providers[j].city) providers[j].city = c.city;
     if (!providers[j].state) providers[j].state = c.state;
@@ -1069,6 +1085,7 @@ async function phaseLoad(cities, opts) {
           place_id: row.place_id || null,
           slug: s,
           deleted: false,
+          deleted_at: null,
         };
       });
 

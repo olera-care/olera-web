@@ -173,11 +173,17 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         // IMPORTANT: Call ensure-account first to create the account if it doesn't exist.
         // This fixes a race condition where create-profile was called before AuthProvider
         // had a chance to call ensure-account, resulting in "Account not found" errors.
-        await fetch("/api/auth/ensure-account", {
+        const ensureRes = await fetch("/api/auth/ensure-account", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mark_onboarding_complete: true }),
         });
+
+        if (!ensureRes.ok) {
+          console.error("[save-nudge] ensure-account failed:", ensureRes.status);
+          // Don't clear deferred action - let user retry on next page load
+          return;
+        }
 
         const res = await fetch("/api/auth/create-profile", {
           method: "POST",
@@ -211,13 +217,25 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
           // This ensures activeProfile gets set and migration can proceed
           window.location.reload();
         } else {
-          // Profile creation failed (e.g., account type mismatch)
-          // Clear deferred action so we don't keep retrying
-          clearDeferredAction();
+          // Profile creation failed
+          const errorData = await res.json().catch(() => ({}));
+          console.error("[save-nudge] create-profile failed:", res.status, errorData);
+
+          if (res.status === 409) {
+            // Permanent failure (account type mismatch) - clear deferred action
+            // User needs to use a different email for family account
+            clearDeferredAction();
+            setSaveError("This email is already used for a different account type.");
+          } else {
+            // Transient failure (500, network) - allow retry on next page load
+            console.error("[save-nudge] Transient error, will retry on next load");
+            profileCreationAttempted.current = false;
+          }
         }
-      } catch {
-        // Non-blocking
-        clearDeferredAction();
+      } catch (err) {
+        // Network error - allow retry on next page load
+        console.error("[save-nudge] Network error:", err);
+        profileCreationAttempted.current = false;
       }
     };
 
@@ -490,6 +508,14 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
           onDismiss={handleNudgeDismiss}
           onAutoDismiss={handleNudgeAutoDismiss}
         />
+      )}
+      {/* Error toast for save/profile creation failures */}
+      {saveError && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg">
+            <p className="text-sm">{saveError}</p>
+          </div>
+        </div>
       )}
     </SavedProvidersContext.Provider>
   );

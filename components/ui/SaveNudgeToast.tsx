@@ -136,10 +136,10 @@ export default function SaveNudgeToast({
                 </p>
               </div>
 
-              {/* Buttons - aligned with text column */}
+              {/* Buttons - stacked on mobile, horizontal on desktop */}
               <div
                 className={`
-                  flex items-center justify-between mt-4
+                  flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 mt-4
                   transition-all duration-500 delay-[100ms]
                   ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
                 `}
@@ -147,10 +147,10 @@ export default function SaveNudgeToast({
                 <button
                   onClick={handleSignUp}
                   className="
-                    flex-1 py-2.5 px-5 mr-3
+                    w-full sm:w-auto sm:flex-1 py-2.5 px-5 sm:mr-3
                     bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
                     text-white text-[14px] font-semibold
-                    rounded-full transition-all
+                    rounded-full transition-all whitespace-nowrap
                   "
                 >
                   Sign up free
@@ -158,7 +158,7 @@ export default function SaveNudgeToast({
                 <button
                   onClick={handleDismiss}
                   className="
-                    shrink-0 py-2.5 px-3
+                    py-2 sm:py-2.5 px-3
                     text-gray-500 hover:text-gray-700
                     text-[14px] font-medium
                     transition-colors

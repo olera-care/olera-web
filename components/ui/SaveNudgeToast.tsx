@@ -105,7 +105,7 @@ export default function SaveNudgeToast({
             {/* Stacked avatars */}
             <div
               className={`
-                flex -space-x-2.5 shrink-0
+                flex -space-x-2.5 shrink-0 pt-0.5
                 transition-all duration-500
                 ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-90"}
               `}
@@ -120,20 +120,53 @@ export default function SaveNudgeToast({
               ))}
             </div>
 
-            {/* Text content */}
-            <div
-              className={`
-                flex-1 min-w-0
-                transition-all duration-500 delay-[50ms]
-                ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-              `}
-            >
-              <p className="text-[15px] font-semibold text-gray-900 leading-snug">
-                Keep your {savedCount} saved provider{savedCount !== 1 ? "s" : ""}
-              </p>
-              <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">
-                Sign up to access them on any device, anytime.
-              </p>
+            {/* Text content + buttons column */}
+            <div className="flex-1 min-w-0">
+              <div
+                className={`
+                  transition-all duration-500 delay-[50ms]
+                  ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+                `}
+              >
+                <p className="text-[15px] font-semibold text-gray-900 leading-snug">
+                  Keep your {savedCount} saved provider{savedCount !== 1 ? "s" : ""}
+                </p>
+                <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">
+                  Sign up to access them on any device, anytime.
+                </p>
+              </div>
+
+              {/* Buttons - aligned with text column */}
+              <div
+                className={`
+                  flex items-center justify-between mt-4
+                  transition-all duration-500 delay-[100ms]
+                  ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+                `}
+              >
+                <button
+                  onClick={handleSignUp}
+                  className="
+                    flex-1 py-2.5 px-5 mr-3
+                    bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
+                    text-white text-[14px] font-semibold
+                    rounded-full transition-all
+                  "
+                >
+                  Sign up free
+                </button>
+                <button
+                  onClick={handleDismiss}
+                  className="
+                    shrink-0 py-2.5 px-3
+                    text-gray-500 hover:text-gray-700
+                    text-[14px] font-medium
+                    transition-colors
+                  "
+                >
+                  Not now
+                </button>
+              </div>
             </div>
 
             {/* Close button */}
@@ -148,38 +181,6 @@ export default function SaveNudgeToast({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
-          </div>
-
-          {/* Buttons */}
-          <div
-            className={`
-              flex items-center gap-3 mt-4
-              transition-all duration-500 delay-[100ms]
-              ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            <button
-              onClick={handleSignUp}
-              className="
-                py-2.5 px-5
-                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
-                text-white text-[14px] font-semibold
-                rounded-full transition-all
-              "
-            >
-              Sign up free
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="
-                py-2.5 px-3
-                text-gray-500 hover:text-gray-700
-                text-[14px] font-medium
-                transition-colors
-              "
-            >
-              Not now
             </button>
           </div>
         </div>

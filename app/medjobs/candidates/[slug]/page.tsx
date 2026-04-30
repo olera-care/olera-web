@@ -33,8 +33,8 @@ function getAdminSupabase() {
   );
 }
 
-/** Check if current user is a paid provider (has active MedJobs subscription) */
-async function checkIsPaidProvider(): Promise<boolean> {
+/** Check if current user is a provider with full access (paid AND verified) */
+async function checkHasFullAccess(): Promise<boolean> {
   try {
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -49,10 +49,10 @@ async function checkIsPaidProvider(): Promise<boolean> {
 
     if (!account) return false;
 
-    // Check if user has an organization profile with active subscription
+    // Check if user has an organization profile with active subscription AND verified status
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, metadata, verification_state")
       .eq("account_id", account.id)
       .eq("type", "organization")
       .eq("is_active", true)
@@ -63,7 +63,14 @@ async function checkIsPaidProvider(): Promise<boolean> {
 
     // Check for active subscription in metadata
     const meta = (profile.metadata || {}) as Record<string, unknown>;
-    return !!(meta.medjobs_subscription_active as boolean);
+    const isPaid = !!(meta.medjobs_subscription_active as boolean);
+
+    // Check verification state (verified or not_required)
+    const verificationState = profile.verification_state as string | null;
+    const isVerified = verificationState === "verified" || verificationState === "not_required";
+
+    // Require BOTH paid AND verified for full access
+    return isPaid && isVerified;
   } catch {
     return false;
   }
@@ -146,8 +153,8 @@ function formatLastUpdated(dateStr: string): string {
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Check if current user is a paid provider (has active subscription)
-  const isPaidProvider = await checkIsPaidProvider();
+  // Check if current user is a provider with full access (paid + verified)
+  const providerHasFullAccess = await checkHasFullAccess();
 
   // Check if caregiver is viewing their own profile
   const isOwnProfile = await checkIsOwnProfile(slug);
@@ -176,8 +183,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents - for paid providers OR profile owner
-  const canViewFullProfile = isPaidProvider || isOwnProfile;
+  // Generate signed URLs for private documents - for providers with full access (paid + verified) OR profile owner
+  const canViewFullProfile = providerHasFullAccess || isOwnProfile;
   const adminSb = getAdminSupabase();
   async function getSignedUrl(path: string | undefined): Promise<string | null> {
     if (!canViewFullProfile) return null; // Only paid providers and profile owners can access
@@ -699,7 +706,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                   {isOwnProfile && (
                     <p className="mt-4 text-xs text-gray-400">
-                      Only you and verified providers can see this section.
+                      Only you and verified, subscribed providers can see this section.
                     </p>
                   )}
                 </div>

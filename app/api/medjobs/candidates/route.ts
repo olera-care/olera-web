@@ -36,7 +36,7 @@ async function getAuthenticatedProvider(req: NextRequest) {
 
   const { data: profiles } = await supabaseAdmin
     .from("business_profiles")
-    .select("id, type, display_name, metadata")
+    .select("id, type, display_name, metadata, verification_state")
     .eq("account_id", account.id)
     .in("type", ["organization", "caregiver"]);
 
@@ -197,12 +197,13 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Compute access tier for redaction
+    // Compute access tier for redaction (requires both paid AND verified for full access)
     const providerMeta = auth?.providerProfile?.metadata as Record<string, unknown> | undefined;
-    const accessInfo = getAccessTier(isProvider, providerMeta ?? null);
+    const verificationState = auth?.providerProfile?.verification_state as string | null | undefined;
+    const accessInfo = getAccessTier(isProvider, providerMeta ?? null, verificationState ?? null);
 
-    // Redact de-platforming data for all non-paid users
-    if (!accessInfo.isPaid) {
+    // Redact de-platforming data for providers without full access (must be paid AND verified)
+    if (!accessInfo.isPaid || !accessInfo.isVerified) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       candidates = candidates.map((c: any) => ({
         ...c,

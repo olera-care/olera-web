@@ -62,6 +62,43 @@ Cutting the embedded SBF on provider pages from 5 steps to 2 (care need → cont
 
 **Pre-implementation check** (Phase 0): sample SBF match output for $400+ floor in Arm B's subhead; if matched programs don't credibly hit that range, soften Arm B to drop the dollar specificity.
 
+### 2026-04-30 — /product-led-growth strategic session: revenue architecture embedded, 5 Notion tasks queued
+
+Long strategic session. Started as a /product-led-growth daily run, surfaced a 3-day state drift (post-answer hook shipped 4/29 across 9 PRs, never tracked on Active Experiments board), pivoted into a deep revenue conversation, ended with 5 tasks on the Web App Action Items board and the slash command rewired to load revenue context up front.
+
+**State hygiene first.** Post-answer hook (Strategic Backlog #5 / TJ Task B) finally landed on the Active Experiments board with shipped 2026-04-29, decide-by 2026-05-13. Strategic Backlog row 5 status updated to shipped. Run entry appended to the Running Thread. Daily Report created at https://app.notion.com/p/3525903a0ffe81ea978cd7a9c0e30bb5. Three skipped daily runs (4/27-29) had let the post-answer hook ship into prod with no measurement plan or kept/rolled-back trigger — the failure mode the Running Thread exists to prevent.
+
+**Pulled real funnel data instead of relying on the screenshot.** 7d window: page views 9x prior week (642 → 5,996), question volume slightly down (497 → 458), provider distinct sign-ins flat (25 → 25), benefits intake completion 7/50 = 14%. Q&A funnel cohort: 377 sent → 145 opened (56% of delivered) → 110 clicked (76% of opened) → 25 signed in (~23% of clicked) → 21 answered (84% of signed-in). My initial "click-to-signin leak" framing was sloppy because of time-window misalignment between email-send-date and activity-event-date. TJ called it: "providers are skeptical, get tons of spam, don't know we're legit." The right read on the Q&A funnel is provider trust, not a backend bug. Could spend hours diagnosing residual unexplained drop — agreed not the highest-leverage next move.
+
+**The 96% asker orphan rate is the actual structural ceiling.** 458 weekly questions, only ~12 askers leave email (3-4%). One `questionAnsweredEmail` actually fires per week (because asker_email is empty for 96% of askers). My family-return instrumentation play was dead in the water as framed — the link doesn't exist for 96% of askers. This is the variable that bounds revenue across all three streams.
+
+**Revenue architecture conversation.** TJ pushed back on me re-explaining what he'd already documented. Read what I'd missed: `/Users/tfalohun/Desktop/olera-hq/strategy/BUSINESS-MODEL.md` (canonical) + Olera Strategic Narrative (Notion `3025903a-0ffe-816d-9ceb-c8986c17425a`). Ranked the three streams: MedJobs ($49/mo, live since 4/10, 0 paid in 20d, retarget at senior living not small home care), Olera Pro (intentionally unpackaged, Q&A is the de facto provider acquisition funnel — 24/24 sign-ins via Q&A, 0 via claim CTA), Marketplace transaction rails (parked, Phase 3). The wedge (SBF) is acquisition not revenue. TJ explicitly chose to stay build-value-first per Resend / Airtable / Fathom Loops playbook — don't gate prematurely, watch usage form, gate where logical. Acknowledged risk: defers revenue, requires discipline reading signal.
+
+**Embedded revenue context into /product-led-growth command.** New "Revenue architecture" section (lines 18-30) lays out the three streams + customer profiles + the wedge + company horizon ($1M ARR threshold). New "Product philosophy" section (lines 32-46) states the build-value-first bet explicitly and tells future runs not to propose paywalls or pricing changes as daily/weekly moves. Phase 1 context-loading expanded to read BUSINESS-MODEL.md + Strategic Narrative before drawing conclusions. Reference section updated. Memory file `feedback_build_value_first_gate_later.md` saved + indexed in MEMORY.md so the philosophy is durable across conversations even outside /product-led-growth.
+
+**Deep research on what makes Olera sticky for senior care providers, staffing aside.** Walked the operator's day, the competitive landscape (APFM/Caring on lead gen; Birdeye/Reputation on review management; HubSpot/Salesforce on CRM; Tadpoles for daycare communication as a model; nothing strong on family communication for home care; nothing on benefits navigation for providers). Identified three things Olera is uniquely positioned to build: lead intelligence (Zillow Premier Agent model, intent signals competitors can't replicate), SBF for providers as a tour-day tool ($1,800/mo paying-capacity unlock for the family at the moment of decision), Q&A SEO attribution (turn answered questions into measurable marketing). Three rhythms align with sticky power-user behavior: daily / per-prospect / weekly.
+
+**Five tasks created on the Web App Action Items board:**
+
+- [Lead intelligence: turn provider analytics into a daily intent feed](https://app.notion.com/p/3525903a0ffe816ebc6de2392d161ace) — P3, concept exploration
+- [SBF for providers: pre-tour benefits screening tool](https://app.notion.com/p/3525903a0ffe8125b4b4c15575db52d7) — P3, concept exploration
+- [Q&A SEO attribution: show providers what their answers earn](https://app.notion.com/p/3525903a0ffe8152b920fc367f30f190) — P3, concept exploration
+- [SBF redesign: cut embedded form to Care Need + Email, silently create the care profile](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) — **P1, frontend, TJ owning**
+- [Unify SBF results with existing care profile: one family record, not two parallel systems](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) — P2, backend
+
+**The SBF redesign discovery is the headline of this session.** Pulled per-step funnel data on the embedded `BenefitsDiscoveryModule.tsx`. 14-day window: 50 sessions started, 18 reached care need (36%), 8 reached age (16%), 4 reached financial (8%), 3 saved (6%). 64% of starters never even pick a care need. Of 3 completers, 1 is the Aggie test profile — so 2 real completions in 14 days. The 5-step SBF on provider pages is structurally broken at step 1. TJ's proposal: cut to 2 steps (Care Need → Email), silently create the care profile, redirect to `/welcome` (`app/welcome/page.tsx` rendering `components/welcome/WelcomeClient.tsx` — the existing "Your matches are saved" page). Conservative estimate of completion lift: 3% → 18-26%. The orphan-rate ceiling (which has been blocking everything across the three revenue streams) gets a 6-9x lift. This is the move TJ flagged as next.
+
+**Files modified:**
+
+- `.claude/commands/product-led-growth.md` — added revenue architecture (lines 18-30) and product philosophy (lines 32-46) sections; expanded Phase 1 to load BUSINESS-MODEL.md + Strategic Narrative; expanded Reference section with the new doc paths
+
+**Memory updates** (outside git):
+
+- `feedback_build_value_first_gate_later.md` — TJ's Resend / Airtable / Fathom Loops monetization sequencing philosophy
+- MEMORY.md index entry pointing to it
+
+**Next up:** TJ working on the SBF redesign (P1, Care Need + Email + redirect to /welcome). Sibling tasks queue behind it. Three concept tasks deserve due diligence as separate explorations. Post-answer hook continues measuring through 2026-05-13. First /weekly run scheduled for Mon 2026-05-04.
+
 ### 2026-04-29 — Post-answer hook P1 + dashboard hero overhaul — all merged to staging
 
 Massive day. 6 PRs merged to staging in sequence. Architecture pivoted twice based on TJ feedback. Hero is now a fully dynamic, photo-driven, 6-tier priority surface with per-section imagery and skeleton loading.

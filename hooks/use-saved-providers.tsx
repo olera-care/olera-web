@@ -195,27 +195,25 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         });
 
         if (res.ok) {
-          // Track conversion after successful profile creation
-          // IMPORTANT: Await this to ensure Slack notification is sent before page reload
-          try {
-            await fetch("/api/activity/track", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                actor_type: "family",
-                event_type: "save_nudge_converted",
-                metadata: {
-                  saved_count: saves.length,
-                  saved_provider_names: saves.map((s) => s.name),
-                  user_email: user.email,
-                  user_name: user.email?.split("@")[0] || "User",
-                  signup_method: "oauth",
-                },
-              }),
-            });
-          } catch {
-            // Non-critical - continue with reload even if tracking fails
-          }
+          // Track conversion - use keepalive to ensure request completes even after page unload
+          // This prevents the browser from canceling the request when we reload
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "family",
+              event_type: "save_nudge_converted",
+              metadata: {
+                saved_count: saves.length,
+                saved_provider_names: saves.map((s) => s.name),
+                user_email: user.email,
+                user_name: user.email?.split("@")[0] || "User",
+                signup_method: "oauth",
+              },
+            }),
+            keepalive: true,
+          }).catch(() => {});
+
           clearDeferredAction();
 
           // Force page refresh to reload auth state with new profile

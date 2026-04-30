@@ -150,26 +150,23 @@ function MagicLinkHandler() {
             if (profileCreated && isNewUser) {
               const anonSaves = getAnonSaves();
               if (anonSaves.length > 0) {
-                // Track conversion - await to ensure Slack notification is sent
-                try {
-                  await fetch("/api/activity/track", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      actor_type: "family",
-                      event_type: "save_nudge_converted",
-                      metadata: {
-                        saved_count: anonSaves.length,
-                        saved_provider_names: anonSaves.map((s) => s.name),
-                        user_email: data.session.user.email,
-                        user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
-                        signup_method: "magic_link",
-                      },
-                    }),
-                  });
-                } catch {
-                  // Non-critical - continue even if tracking fails
-                }
+                // Track conversion - use keepalive to ensure request completes during navigation
+                fetch("/api/activity/track", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    actor_type: "family",
+                    event_type: "save_nudge_converted",
+                    metadata: {
+                      saved_count: anonSaves.length,
+                      saved_provider_names: anonSaves.map((s) => s.name),
+                      user_email: data.session.user.email,
+                      user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
+                      signup_method: "magic_link",
+                    },
+                  }),
+                  keepalive: true,
+                }).catch(() => {});
               }
             }
             clearDeferredAction();

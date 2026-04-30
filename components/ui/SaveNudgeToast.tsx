@@ -129,7 +129,9 @@ export default function SaveNudgeToast({
               `}
             >
               <p className="text-[15px] font-semibold text-gray-900 leading-snug">
-                Keep your {savedCount} saved provider{savedCount !== 1 ? "s" : ""}
+                {savedCount === 1
+                  ? "Keep your saved provider"
+                  : `Keep your ${savedCount} saved providers`}
               </p>
               <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">
                 Sign up to access them on any device, anytime.

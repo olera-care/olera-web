@@ -272,7 +272,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 saved_count: saves.length,
                 saved_provider_names: saves.map((s) => s.name),
                 user_email: user.email || "unknown",
-                user_name: user.email?.split("@")[0] || user.user_metadata?.full_name || "User",
+                user_name: user.email?.split("@")[0] || "User",
                 signup_method: "oauth",
               },
             }),

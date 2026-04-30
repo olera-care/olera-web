@@ -49,6 +49,8 @@ interface ProviderMetadata extends OrganizationMetadata {
   verification_method?: string;
   badge_approved?: boolean;
   badge_rejected?: boolean;
+  auto_verified?: boolean;
+  claim_trust_level?: "high" | "medium" | "low";
 }
 
 interface Provider {
@@ -58,6 +60,7 @@ interface Provider {
   category: string | null;
   city: string | null;
   state: string | null;
+  claim_state: string | null;
   verification_state: string;
   metadata: ProviderMetadata | null;
   created_at: string;
@@ -85,10 +88,10 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   document: { label: "Document", icon: "📄" },
 };
 
-type StatusFilter = "pending" | "approved" | "rejected";
+type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
 
 export default function AdminVerificationPage() {
-  const [filter, setFilter] = useState<StatusFilter>("pending");
+  const [filter, setFilter] = useState<StatusFilter>("unverified_claims");
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,8 +137,9 @@ export default function AdminVerificationPage() {
   }, [fetchProviders]);
 
   const filters: { label: string; value: StatusFilter }[] = [
-    { label: "Pending", value: "pending" },
-    { label: "Approved", value: "approved" },
+    { label: "Unverified Claims", value: "unverified_claims" },
+    { label: "Awaiting Review", value: "pending" },
+    { label: "Verified", value: "approved" },
     { label: "Rejected", value: "rejected" },
   ];
 
@@ -303,16 +307,20 @@ export default function AdminVerificationPage() {
           <p className="text-lg font-semibold text-gray-900">
             {search
               ? "No results found"
-              : filter === "pending"
-                ? "All caught up!"
-                : `No ${filter} badge requests`}
+              : filter === "unverified_claims"
+                ? "No unverified claims"
+                : filter === "pending"
+                  ? "All caught up!"
+                  : `No ${filter} badge requests`}
           </p>
           <p className="text-sm text-gray-500 mt-1">
             {search
               ? `No providers matching "${search}"`
-              : filter === "pending"
-                ? "No badge requests waiting for review."
-                : `No providers with ${filter} badges.`}
+              : filter === "unverified_claims"
+                ? "No claimed providers awaiting verification."
+                : filter === "pending"
+                  ? "No badge requests waiting for review."
+                  : `No providers with ${filter} badges.`}
           </p>
         </div>
       ) : (
@@ -326,11 +334,11 @@ export default function AdminVerificationPage() {
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
                   )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
-                  {filter !== "pending" && (
+                  {filter !== "pending" && filter !== "unverified_claims" && (
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    {filter === "pending" ? "Submitted" : "Updated"}
+                    {filter === "pending" ? "Submitted" : filter === "unverified_claims" ? "Claimed" : "Updated"}
                   </th>
                   <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
@@ -382,27 +390,38 @@ export default function AdminVerificationPage() {
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
                       </td>
-                      {filter !== "pending" && (
+                      {filter !== "pending" && filter !== "unverified_claims" && (
                         <td className="px-6 py-4">
                           {filter === "approved" ? (
-                            // Distinguish between admin-approved and self-verified
-                            provider.metadata?.badge_approved ? (
-                              <Badge variant="verified">Admin Approved</Badge>
-                            ) : provider.verification_state === "verified" ? (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="verified">Self-Verified</Badge>
-                                {provider.metadata?.verification_method && (
-                                  <span className="text-xs text-gray-500">
-                                    via {provider.metadata.verification_method === "email" ? "Email" :
-                                         provider.metadata.verification_method === "linkedin" ? "LinkedIn" :
-                                         provider.metadata.verification_method === "website" ? "Website" :
-                                         provider.metadata.verification_method}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <Badge variant="verified">Badge Approved</Badge>
-                            )
+                            // Show verification type badge based on how they got verified
+                            <div className="flex items-center gap-2">
+                              <Badge variant="verified">Verified</Badge>
+                              {/* Instant: High-trust email at claim time (no verification needed) */}
+                              {provider.verification_state === "not_required" ? (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                  Instant
+                                </span>
+                              ) : /* Auto: Claude AI auto-verified */
+                              provider.metadata?.auto_verified ? (
+                                <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium">
+                                  Auto
+                                </span>
+                              ) : /* Admin: Manual admin approval */
+                              provider.metadata?.verification_method === "admin_approval" ? (
+                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
+                                  Admin
+                                </span>
+                              ) : /* Self-verified: Show verification method */
+                              provider.metadata?.verification_method ? (
+                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">
+                                  {provider.metadata.verification_method === "email" ? "Email" :
+                                   provider.metadata.verification_method === "linkedin" ? "LinkedIn" :
+                                   provider.metadata.verification_method === "website" ? "Website" :
+                                   provider.metadata.verification_method === "document" ? "Document" :
+                                   provider.metadata.verification_method}
+                                </span>
+                              ) : null}
+                            </div>
                           ) : (
                             <Badge variant="rejected">Badge Rejected</Badge>
                           )}
@@ -415,6 +434,27 @@ export default function AdminVerificationPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex gap-2 justify-end">
+                          {filter === "unverified_claims" && (
+                            <>
+                              {provider.slug && (
+                                <a
+                                  href={`/provider/${provider.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                  View Profile
+                                </a>
+                              )}
+                              <button
+                                onClick={() => handleAction(provider.id, "approve")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Verify"}
+                              </button>
+                            </>
+                          )}
                           {filter === "pending" && (
                             <>
                               <button

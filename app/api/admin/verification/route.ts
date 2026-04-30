@@ -8,6 +8,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Query params: status (default: "pending"), limit, offset
  *
  * Status filters:
+ * - unverified_claims: Claimed profile with no verification submissions (for admin proactive verification)
  * - pending: Has verification_submission OR verification_attempts OR email_otp_attempt, but no badge_approved/badge_rejected
  * - approved: badge_approved = true
  * - rejected: badge_rejected = true
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Using JS filtering since Supabase JSONB OR queries are unreliable
     const { data: allProviders, error } = await db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug")
+      .select("id, display_name, type, category, city, state, claim_state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug")
       .in("type", ["organization", "caregiver"])
       .order("updated_at", { ascending: false });
 
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
       verification_submission?: unknown;
       verification_attempts?: unknown[];
       email_otp_attempt?: unknown;
+      auto_verified?: boolean;
     };
 
     /**
@@ -75,7 +77,21 @@ export async function GET(request: NextRequest) {
 
     let filtered = allProviders ?? [];
 
-    if (status === "pending") {
+    if (status === "unverified_claims") {
+      // Profiles needing verification — either claimed listings or new profiles with low-trust emails
+      // Includes both claim_state "claimed" (claimed existing listing) and "pending" (created new profile)
+      filtered = filtered.filter((p) => {
+        const meta = p.metadata as ProfileMetadata | null;
+        const claimState = (p as { claim_state?: string }).claim_state;
+        const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
+        const isUnverified = p.verification_state === "unverified";
+        const hasNoSubmissions =
+          !meta?.verification_submission &&
+          (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
+          !meta?.email_otp_attempt;
+        return isClaimedOrPending && isUnverified && hasNoSubmissions;
+      });
+    } else if (status === "pending") {
       // Has verification data but not yet approved or rejected
       // Also exclude providers who are already verified (they auto-verified after initial failure)
       filtered = filtered.filter((p) => {
@@ -86,11 +102,17 @@ export async function GET(request: NextRequest) {
         return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
       });
     } else if (status === "approved") {
-      // Include both admin-approved (badge_approved) and self-verified (verification_state)
+      // Include all verified providers:
+      // - badge_approved = true (admin or Claude AI auto-approved)
+      // - verification_state = "verified" (self-verified via email/linkedin/website/document)
+      // - verification_state = "not_required" (high-trust email at claim time, instant access)
       // Exclude providers whose badge was revoked (badge_rejected)
       filtered = filtered.filter((p) => {
         const meta = p.metadata as ProfileMetadata | null;
-        const isApproved = meta?.badge_approved === true || p.verification_state === "verified";
+        const isApproved =
+          meta?.badge_approved === true ||
+          p.verification_state === "verified" ||
+          p.verification_state === "not_required";
         const isRevoked = meta?.badge_rejected === true;
         return isApproved && !isRevoked;
       });

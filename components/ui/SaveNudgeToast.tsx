@@ -208,12 +208,16 @@ function ProviderAvatar({
   image: string | null;
   index: number;
 }) {
+  const [imgError, setImgError] = useState(false);
+
+  // Generate initials from name, fallback to "?" if empty
   const initials = name
     .split(" ")
     .map((w) => w[0])
+    .filter(Boolean)
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "?";
 
   // Stagger z-index so first avatar is on top
   const zIndex = 10 - index;
@@ -225,21 +229,24 @@ function ProviderAvatar({
     "bg-primary-50 text-primary-600",
   ];
 
+  const showInitials = !image || imgError;
+
   return (
     <div
       className={`
         w-10 h-10 rounded-full border-2 border-white overflow-hidden
         flex items-center justify-center shrink-0
-        ${!image ? bgColors[index % bgColors.length] : ""}
+        ${showInitials ? bgColors[index % bgColors.length] : ""}
       `}
       style={{ zIndex }}
     >
-      {image ? (
+      {image && !imgError ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={image}
           alt={name}
           className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
         />
       ) : (
         <span className="text-xs font-semibold">{initials}</span>

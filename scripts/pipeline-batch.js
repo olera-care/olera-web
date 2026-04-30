@@ -1677,13 +1677,16 @@ async function main() {
 
   // --cities filter: narrow the list to an explicit allowlist (reprocess mode).
   // Format: "City1,ST;City2,ST" — matches by (city, state) case-insensitively.
+  // Whitespace and hyphens are normalized to a common form so that dir-derived
+  // names like "Hacienda-Heights" match user input "Hacienda Heights".
   if (opts.citiesFilter) {
-    const keyOf = c => `${c.city.toLowerCase()}|${c.state.toUpperCase()}`;
+    const normalizeCity = s => s.toLowerCase().replace(/\s+/g, '-');
+    const keyOf = c => `${normalizeCity(c.city)}|${c.state.toUpperCase()}`;
     const allowlist = new Set(
       opts.citiesFilter.split(';').map(pair => {
         const [city, state] = pair.split(',').map(s => (s || '').trim());
         if (!city || !state) return null;
-        return `${city.toLowerCase()}|${state.toUpperCase()}`;
+        return `${normalizeCity(city)}|${state.toUpperCase()}`;
       }).filter(Boolean)
     );
     const originalCount = cities.length;

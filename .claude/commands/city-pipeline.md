@@ -213,7 +213,7 @@ PRE-FLIGHT: 3 fresh cities (all 0 active, no surprises)
   Hacienda Heights, CA · Calexico, CA · Brighton, NY
 ESTIMATE: ~$12 · ~35–45 min
 
-OPTIONS  1. Proceed  2. Drop  3. Override mode  4. Cancel
+OPTIONS  1. Proceed  2. Drop  3. Cancel
 ```
 
 #### Full format (when any surprise is present)
@@ -238,8 +238,7 @@ ESTIMATE: ~$12 · ~35–45 min
 OPTIONS
 1. Proceed (fresh mode, autonomous)
 2. Drop one or more cities (reply with names)
-3. Override mode (force expand)
-4. Cancel
+3. Cancel
 ```
 
 #### Routing on TJ's choice
@@ -248,10 +247,9 @@ OPTIONS
 |---|---|
 | `1` (or "proceed", "go", anything affirmative) | Begin autonomous run. Do not pause again until the final report. |
 | `2` + city name(s) | Remove those cities from the list, re-run pre-flight on the remainder, present a fresh orientation block. |
-| `3` | Switch the mode. If detected as fresh → run all as expand (with `--force --cities`). If detected as expand → run all as fresh. Re-present orientation block with the override applied. |
-| `4` | Stop. No work done. |
+| `3` | Stop. No work done. |
 
-Anything else (e.g., free-form question, ambiguous reply) → ask for one of 1/2/3/4 explicitly. Don't infer.
+Anything else (e.g., free-form question, ambiguous reply) → ask for one of 1/2/3 explicitly. Don't infer.
 
 #### Cost/time estimates
 

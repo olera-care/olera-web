@@ -188,18 +188,79 @@ Claude's role in batch mode:
 - Report final results
 - Handle any errors that need human judgment
 
-### Pre-Flight
+### Pre-Flight + orientation gate
 
-When TJ provides a batch `.md` file:
+Every `/city-pipeline` run starts with an **orientation block** that summarizes what was found and asks TJ to confirm the run before any money is spent. Always orient — even single-city runs. Once TJ picks a numbered option, the rest runs fully autonomous through to the final report (no pauses between phases).
 
-1. **Parse the city list** from the machine-readable block at the bottom
-2. **Parse input + detect batch mode** (see "Input parsing + mode detection" below) — TJ may paste raw text, hand over an `.md` file path, or drop a tabular dump. Mode comes from current Supabase counts, not from any gap-status label in the text.
-3. **Show estimates** (based on actual batch data from 88-city and 90-city runs):
-   - Discovery: `cities × ~$1.20 = $X` (Google Places, quick mode), `cities × ~0.5min = Xh`
-   - Processing: `cities × ~$2.70 = $X` (geocoding + enrichment), `~35min enrichment overhead`
-   - Total: `~$4/city`
-4. **If >20 cities**, warn about discovery time and suggest running discovery in background while TJ does other work
-5. **Ask TJ to confirm**, then proceed
+Steps:
+
+1. **Parse input** — see "Input parsing + mode detection" below. Tolerate any format (raw text, file path, tabular dump). Extract `(city, state)` pairs.
+2. **Query Supabase per city** — active count, deleted count. This determines mode.
+3. **Query Notion per city** — does the page exist? what's its current status? Use this to plan reset-vs-create.
+4. **Detect surprises** — flags anything that warrants attention:
+   - Atlas label conflicts with DB-derived mode (e.g., Atlas says `thin` but DB says 0 active → really fresh; Atlas says `missing` but DB has active rows → really expand)
+   - Mixed modes in one batch (some fresh, some expand)
+   - Notion state doesn't match mode expectation (e.g., a "fresh" city already has a Complete page from a previous wiped run; an "expand" city has no page)
+   - High soft-deleted count for a "fresh" city (sweep wiped a previous attempt — worth flagging)
+5. **Show the orientation block** in one of two formats and wait for TJ's numbered choice.
+
+#### Condensed format (when there are no surprises)
+
+Use when ALL of these are true: same mode for every city, Atlas labels (if present) align with DB-derived mode, every fresh city has no Notion page, every expand city has an existing Complete page, no high soft-deleted volume.
+
+```
+PRE-FLIGHT: 3 fresh cities (all 0 active, no surprises)
+  Hacienda Heights, CA · Calexico, CA · Brighton, NY
+ESTIMATE: ~$12 · ~35–45 min
+
+OPTIONS  1. Proceed  2. Drop  3. Override mode  4. Cancel
+```
+
+#### Full format (when any surprise is present)
+
+```
+PRE-FLIGHT — 3 cities
+──────────────────────────────────────────────────────────────────────
+City                    Atlas    DB Active  DB Deleted  Mode    Notion
+──────────────────────────────────────────────────────────────────────
+Hacienda Heights, CA    Thin     0          0           fresh   missing
+Roy, UT                 Thin     0          1           fresh   exists
+Calexico, CA            Thin     0          0           fresh   missing
+──────────────────────────────────────────────────────────────────────
+
+NOTES
+- Atlas label "Thin" disagrees with DB (0 active) — running as fresh. Atlas snapshot probably stale.
+- Roy: 1 prior sweep-deletion. Existing Notion page from previous run, will reset.
+- Hacienda Heights + Calexico: net-new; will create Notion pages.
+
+ESTIMATE: ~$12 · ~35–45 min
+
+OPTIONS
+1. Proceed (fresh mode, autonomous)
+2. Drop one or more cities (reply with names)
+3. Override mode (force expand)
+4. Cancel
+```
+
+#### Routing on TJ's choice
+
+| Choice | Action |
+|---|---|
+| `1` (or "proceed", "go", anything affirmative) | Begin autonomous run. Do not pause again until the final report. |
+| `2` + city name(s) | Remove those cities from the list, re-run pre-flight on the remainder, present a fresh orientation block. |
+| `3` | Switch the mode. If detected as fresh → run all as expand (with `--force --cities`). If detected as expand → run all as fresh. Re-present orientation block with the override applied. |
+| `4` | Stop. No work done. |
+
+Anything else (e.g., free-form question, ambiguous reply) → ask for one of 1/2/3/4 explicitly. Don't infer.
+
+#### Cost/time estimates
+
+Based on 88-city and 90-city batch actuals:
+- Discovery: `cities × ~$1.20` (Google Places, quick mode), `cities × ~0.5min`
+- Processing: `cities × ~$2.70` (geocoding + enrichment), `~35min enrichment overhead`
+- Total: `~$4/city`
+
+For >20 cities, also note the discovery time and suggest running discovery in background while TJ does other work.
 
 ### Input parsing + mode detection
 

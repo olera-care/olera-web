@@ -170,6 +170,15 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     // This will trigger AuthProvider to refetch profiles, setting activeProfile
     const createFamilyProfile = async () => {
       try {
+        // IMPORTANT: Call ensure-account first to create the account if it doesn't exist.
+        // This fixes a race condition where create-profile was called before AuthProvider
+        // had a chance to call ensure-account, resulting in "Account not found" errors.
+        await fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_onboarding_complete: true }),
+        });
+
         const res = await fetch("/api/auth/create-profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

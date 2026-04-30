@@ -2,21 +2,26 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import type { SavedProviderEntry } from "@/lib/saved-providers";
 
 interface SaveNudgeToastProps {
   savedCount: number;
+  savedProviders: SavedProviderEntry[];
   onSignUp: () => void;
   onDismiss: () => void;
   /** Called when toast auto-dismisses (shouldn't count against dismiss limit) */
   onAutoDismiss?: () => void;
 }
 
+const AUTO_DISMISS_MS = 12000;
+
 /**
  * A refined, non-intrusive toast that nudges guests to sign up.
- * Centered layout with icon on top, stacked buttons on mobile, horizontal on desktop.
+ * Shows stacked provider avatars, loss-aversion copy, and a progress bar.
  */
 export default function SaveNudgeToast({
   savedCount,
+  savedProviders,
   onSignUp,
   onDismiss,
   onAutoDismiss,
@@ -24,6 +29,7 @@ export default function SaveNudgeToast({
   const [mounted, setMounted] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [progress, setProgress] = useState(100);
 
   useEffect(() => {
     setMounted(true);
@@ -32,9 +38,20 @@ export default function SaveNudgeToast({
   }, []);
 
   const handleDismiss = useCallback(() => {
+    // Track dismiss event (fire-and-forget)
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "save_nudge_dismissed",
+        metadata: { saved_count: savedCount },
+      }),
+    }).catch(() => {});
+
     setIsExiting(true);
     setTimeout(() => onDismiss(), 250);
-  }, [onDismiss]);
+  }, [onDismiss, savedCount]);
 
   const handleAutoDismiss = useCallback(() => {
     setIsExiting(true);
@@ -42,15 +59,46 @@ export default function SaveNudgeToast({
   }, [onAutoDismiss, onDismiss]);
 
   const handleSignUp = useCallback(() => {
+    // Track signup CTA click (fire-and-forget)
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "save_nudge_signup_clicked",
+        metadata: { saved_count: savedCount },
+      }),
+    }).catch(() => {});
+
     setIsExiting(true);
     setTimeout(() => onSignUp(), 150);
-  }, [onSignUp]);
+  }, [onSignUp, savedCount]);
 
-  // Auto-dismiss after 12 seconds
+  // Progress bar countdown
   useEffect(() => {
-    const timer = setTimeout(handleAutoDismiss, 12000);
-    return () => clearTimeout(timer);
-  }, [handleAutoDismiss]);
+    const interval = 50; // Update every 50ms for smooth animation
+    const decrement = (interval / AUTO_DISMISS_MS) * 100;
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        const next = prev - decrement;
+        if (next <= 0) {
+          clearInterval(timer);
+          return 0;
+        }
+        return next;
+      });
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Auto-dismiss when progress reaches 0
+  useEffect(() => {
+    if (progress <= 0) {
+      handleAutoDismiss();
+    }
+  }, [progress, handleAutoDismiss]);
 
   if (!mounted) return null;
 
@@ -58,7 +106,7 @@ export default function SaveNudgeToast({
     <div
       className={`
         fixed left-1/2 -translate-x-1/2 z-[100]
-        w-[calc(100%-32px)] max-w-[400px]
+        w-[calc(100%-32px)] max-w-[420px]
         bottom-5 sm:bottom-8
         ${isExiting ? "animate-toastExit" : "animate-toastEnter"}
       `}
@@ -66,86 +114,169 @@ export default function SaveNudgeToast({
       role="alert"
       aria-live="polite"
     >
-      {/* Card - Apple/Airbnb style elevation with layered shadows */}
+      {/* Card */}
       <div
         className="bg-white rounded-2xl overflow-hidden border border-gray-200/60"
         style={{
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 12px 24px -4px rgba(0, 0, 0, 0.12), 0 24px 48px -8px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <div className="p-5 pt-6">
-          {/* Header: Centered icon on top, centered text below */}
-          <div className="flex flex-col items-center gap-3 mb-5">
-            {/* Heart icon - brand teal color */}
+        <div className="p-5">
+          {/* Main content row */}
+          <div className="flex items-start gap-4">
+            {/* Stacked avatars */}
             <div
               className={`
-                w-12 h-12 rounded-full bg-primary-50
-                flex items-center justify-center shrink-0
+                flex -space-x-2.5 shrink-0 pt-0.5
                 transition-all duration-500
                 ${showContent ? "opacity-100 scale-100" : "opacity-0 scale-90"}
               `}
             >
-              <svg
-                className="w-5 h-5 text-primary-500 animate-heartPulse"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
+              {savedProviders.slice(0, 3).map((provider, idx) => (
+                <ProviderAvatar
+                  key={provider.providerId}
+                  name={provider.name}
+                  image={provider.image}
+                  index={idx}
+                />
+              ))}
             </div>
 
-            {/* Text content - always centered */}
+            {/* Text content */}
             <div
               className={`
-                text-center
+                flex-1 min-w-0
                 transition-all duration-500 delay-[50ms]
                 ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
               `}
             >
-              <p className="text-[16px] font-semibold text-gray-900 leading-tight">
-                {savedCount} provider{savedCount !== 1 ? "s" : ""} saved
+              <p className="text-[15px] font-semibold text-gray-900 leading-snug">
+                {savedCount === 1
+                  ? "Keep your saved provider"
+                  : `Keep your ${savedCount} saved providers`}
               </p>
-              <p className="text-[14px] text-gray-500 mt-0.5">
-                Sign up to sync across devices
+              <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">
+                Sign up to access {savedCount === 1 ? "it" : "them"} on any device, anytime.
               </p>
             </div>
+
+            {/* Close button */}
+            <button
+              onClick={handleDismiss}
+              className={`
+                shrink-0 p-1 -m-1 text-gray-400 hover:text-gray-600 transition-colors
+                ${showContent ? "opacity-100" : "opacity-0"}
+              `}
+              aria-label="Close"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
-          {/* Buttons - stacked on mobile, horizontal centered on desktop */}
+          {/* Buttons - full width on mobile, aligned with text on desktop */}
+          {/* Desktop padding: 56px for 1 avatar, 116px for 3 avatars (milestones are 1, 3, 7, 15) */}
           <div
             className={`
-              flex flex-col-reverse sm:flex-row items-center justify-center gap-2 sm:gap-3
+              flex items-center justify-between mt-4
               transition-all duration-500 delay-[100ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+              ${savedProviders.length === 1 ? "sm:pl-[56px]" : "sm:pl-[116px]"}
             `}
           >
             <button
+              onClick={handleSignUp}
+              className="
+                flex-1 py-2.5 px-5 mr-3
+                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
+                text-white text-[14px] font-semibold
+                rounded-full transition-all whitespace-nowrap
+              "
+            >
+              Sign up free
+            </button>
+            <button
               onClick={handleDismiss}
               className="
-                py-2 sm:py-2.5 px-4
+                shrink-0 py-2.5 px-3
                 text-gray-500 hover:text-gray-700
                 text-[14px] font-medium
                 transition-colors whitespace-nowrap
               "
             >
-              Maybe Later
-            </button>
-            <button
-              onClick={handleSignUp}
-              className="
-                w-full sm:w-auto py-2.5 px-6
-                bg-gray-900 hover:bg-gray-800 active:scale-[0.98]
-                text-white text-[14px] font-semibold
-                rounded-full transition-all
-              "
-            >
-              Sign Up Free
+              Not now
             </button>
           </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-1 bg-gray-100">
+          <div
+            className="h-full bg-gray-300 transition-none"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>
   );
 
   return createPortal(toast, document.body);
+}
+
+/** Individual provider avatar with image or initials */
+function ProviderAvatar({
+  name,
+  image,
+  index,
+}: {
+  name: string;
+  image: string | null;
+  index: number;
+}) {
+  const [imgError, setImgError] = useState(false);
+
+  // Generate initials from name, fallback to "?" if empty
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "?";
+
+  // Stagger z-index so first avatar is on top
+  const zIndex = 10 - index;
+
+  // Subtle color variations for initials backgrounds
+  const bgColors = [
+    "bg-primary-100 text-primary-700",
+    "bg-primary-200 text-primary-800",
+    "bg-primary-50 text-primary-600",
+  ];
+
+  const showInitials = !image || imgError;
+
+  return (
+    <div
+      className={`
+        w-10 h-10 rounded-full border-2 border-white overflow-hidden
+        flex items-center justify-center shrink-0
+        ${showInitials ? bgColors[index % bgColors.length] : ""}
+      `}
+      style={{ zIndex }}
+    >
+      {image && !imgError ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span className="text-xs font-semibold">{initials}</span>
+      )}
+    </div>
+  );
 }

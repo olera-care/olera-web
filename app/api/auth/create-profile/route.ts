@@ -5,6 +5,7 @@ import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types"
 import { sendLoopsEvent } from "@/lib/loops";
 import { generateUniqueSlug } from "@/lib/slug";
 import { validateDisplayName, sanitizeCareTypes } from "@/lib/validation";
+import { scoreClaimTrust } from "@/lib/claim-trust";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -281,6 +282,17 @@ export async function POST(request: Request) {
 
         const slug = await generateUniqueSlug(db, name, city || "", state || "");
 
+        // Score email trust to determine verification state
+        // High trust emails (matching business domain) get instant access
+        // Medium/Low trust emails (generic like gmail) require admin verification
+        const trustResult = await scoreClaimTrust({
+          email: user.email || "",
+          providerName: name,
+          providerCity: city || null,
+          providerState: state || null,
+        });
+        const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
+
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
           .insert({
@@ -296,7 +308,8 @@ export async function POST(request: Request) {
             zip: zip || null,
             care_types: sanitizedCareTypes,
             claim_state: "pending",
-            verification_state: "verified",
+            verification_state: verificationState,
+            claim_trust_level: trustResult.level,
             source: "user_created",
             is_active: true,
             metadata: {

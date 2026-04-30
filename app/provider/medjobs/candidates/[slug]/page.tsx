@@ -15,7 +15,7 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
-import { getAccessTier, filterCandidateForTier, type AccessTier, type AccessInfo } from "@/lib/medjobs-access";
+import { getAccessTier, filterCandidateForTier, hasFullAccess, type AccessTier, type AccessInfo } from "@/lib/medjobs-access";
 import CandidateDetailClientWrapper from "./CandidateDetailClientWrapper";
 
 function getSupabase() {
@@ -100,7 +100,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
   // Determine the viewing provider's access tier for paywall gating
   const adminSb = getAdminSupabase();
   let accessTier: AccessTier = "anonymous";
-  let accessInfo: AccessInfo = { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false };
+  let accessInfo: AccessInfo = { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false, isVerified: false };
   try {
     const serverSb = await createServerClient();
     const { data: { user } } = await serverSb.auth.getUser();
@@ -109,14 +109,15 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
       if (account) {
         const { data: providerProfile } = await adminSb
           .from("business_profiles")
-          .select("metadata")
+          .select("metadata, verification_state")
           .eq("account_id", account.id)
           .in("type", ["organization", "caregiver"])
           .limit(1)
           .single();
         if (providerProfile) {
           const providerMeta = (providerProfile.metadata ?? {}) as Record<string, unknown>;
-          accessInfo = getAccessTier(true, providerMeta);
+          const verificationState = providerProfile.verification_state as string | null;
+          accessInfo = getAccessTier(true, providerMeta, verificationState);
           accessTier = accessInfo.tier;
         }
       }
@@ -142,7 +143,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;
   }
-  const resumeUrl = accessInfo.isPaid ? await getSignedUrl(meta.resume_url) : null;
+  const resumeUrl = hasFullAccess(accessInfo) ? await getSignedUrl(meta.resume_url) : null;
 
   // Verification status
   const isVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
@@ -272,8 +273,8 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                     </div>
                   )}
 
-                  {/* Quick Links - only visible to paid providers */}
-                  {accessInfo.isPaid && (resumeUrl || filtered.linkedinUrl) && (
+                  {/* Quick Links - only visible to providers with full access (paid + verified) */}
+                  {hasFullAccess(accessInfo) && (resumeUrl || filtered.linkedinUrl) && (
                     <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
                       {resumeUrl && (
                         <a

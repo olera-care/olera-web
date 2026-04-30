@@ -18,6 +18,7 @@ const PROVIDER_EVENT_TYPES = [
   "provider_picker_impression",
   "provider_picker_clicked",
   "dashboard_arrival",
+  "provider_saved",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -26,6 +27,10 @@ const FAMILY_EVENT_TYPES = [
   "email_click",
   "question_asked",
   "matches_activated",
+  "save_nudge_shown",
+  "save_nudge_signup_clicked",
+  "save_nudge_dismissed",
+  "save_nudge_converted",
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.
@@ -171,9 +176,25 @@ export async function POST(request: NextRequest) {
 
     // --- Family events → seeker_activity ---
     if (actor_type === "family") {
-      if (!profile_id || !event_type) {
+      // Save nudge events fire for GUESTS who don't have a profile yet
+      const profileOptionalEvents = [
+        "save_nudge_shown",
+        "save_nudge_signup_clicked",
+        "save_nudge_dismissed",
+        "save_nudge_converted",
+      ];
+      const requiresProfile = !profileOptionalEvents.includes(event_type);
+
+      if (requiresProfile && !profile_id) {
         return NextResponse.json(
-          { error: "profile_id and event_type are required for family events" },
+          { error: "profile_id is required for this family event" },
+          { status: 400 }
+        );
+      }
+
+      if (!event_type) {
+        return NextResponse.json(
+          { error: "event_type is required for family events" },
           { status: 400 }
         );
       }
@@ -186,7 +207,7 @@ export async function POST(request: NextRequest) {
       }
 
       const { error } = await db.from("seeker_activity").insert({
-        profile_id,
+        profile_id: profile_id || null,
         event_type,
         email_log_id: email_log_id || null,
         email_type: email_type || null,
@@ -200,6 +221,25 @@ export async function POST(request: NextRequest) {
           { error: "Failed to log activity" },
           { status: 500 }
         );
+      }
+
+      // Send Slack alert for save nudge → signup conversions
+      if (event_type === "save_nudge_converted") {
+        try {
+          const { sendSlackAlert, slackSaveNudgeConverted } = await import("@/lib/slack");
+          const meta = (metadata as Record<string, unknown>) || {};
+          const alert = slackSaveNudgeConverted({
+            familyName: (meta.user_name as string) || "Unknown",
+            email: (meta.user_email as string) || "unknown",
+            savedCount: typeof meta.saved_count === "number" ? meta.saved_count : 0,
+            savedProviderNames: Array.isArray(meta.saved_provider_names)
+              ? (meta.saved_provider_names as string[])
+              : [],
+          });
+          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        } catch {
+          // Non-critical — activity already logged
+        }
       }
 
       return NextResponse.json({ success: true });

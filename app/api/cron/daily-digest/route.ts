@@ -36,6 +36,12 @@ const PROVIDER_DISTINCT_EVENT_TYPES = [
 
 const SEEKER_RAW_EVENT_TYPES = ["benefits_completed", "matches_activated"] as const;
 
+const SAVE_FUNNEL_EVENT_TYPES = [
+  "save_nudge_shown",
+  "save_nudge_signup_clicked",
+  "save_nudge_converted",
+] as const;
+
 type ProviderRawCounts = Record<(typeof PROVIDER_RAW_EVENT_TYPES)[number], number>;
 type SeekerRawCounts = Record<(typeof SEEKER_RAW_EVENT_TYPES)[number], number>;
 type ProviderDistinctCounts = {
@@ -73,6 +79,8 @@ export async function GET(request: NextRequest) {
       needsEmailRes,
       justStaleRes,
       staleBacklogRes,
+      saveFunnelRes,
+      providerSavesRes,
     ] = await Promise.all([
       db
         .from("provider_activity")
@@ -136,6 +144,19 @@ export async function GET(request: NextRequest) {
         .is("answered_at", null)
         .neq("status", "archived")
         .neq("status", "rejected"),
+      // Save funnel metrics from seeker_activity
+      db
+        .from("seeker_activity")
+        .select("event_type")
+        .in("event_type", [...SAVE_FUNNEL_EVENT_TYPES])
+        .gte("created_at", oneDayAgo)
+        .limit(50000),
+      // Provider saves count (from provider_activity)
+      db
+        .from("provider_activity")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "provider_saved")
+        .gte("created_at", oneDayAgo),
     ]);
 
     const providerRaw: ProviderRawCounts = {
@@ -231,6 +252,23 @@ export async function GET(request: NextRequest) {
     const justHit48hCount = justStaleRes.count ?? 0;
     const staleBacklogTotal = staleBacklogRes.count ?? 0;
 
+    // Save funnel metrics
+    const saveFunnel = {
+      providers_saved: providerSavesRes.count ?? 0,
+      nudges_shown: 0,
+      signup_clicked: 0,
+      conversions: 0,
+    };
+    for (const r of (saveFunnelRes.data ?? []) as Array<{ event_type: string }>) {
+      if (r.event_type === "save_nudge_shown") saveFunnel.nudges_shown++;
+      else if (r.event_type === "save_nudge_signup_clicked") saveFunnel.signup_clicked++;
+      else if (r.event_type === "save_nudge_converted") saveFunnel.conversions++;
+    }
+    const saveConversionRate =
+      saveFunnel.nudges_shown > 0
+        ? ((saveFunnel.conversions / saveFunnel.nudges_shown) * 100).toFixed(1)
+        : "0.0";
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const adminAnalyticsUrl = `${siteUrl}/admin/analytics`;
     const adminQuestionsUrl = `${siteUrl}/admin/questions`;
@@ -247,6 +285,8 @@ export async function GET(request: NextRequest) {
       needsEmailBacklog,
       justHit48hCount,
       staleBacklogTotal,
+      saveFunnel,
+      saveConversionRate,
       adminAnalyticsUrl,
       adminQuestionsUrl,
     });
@@ -263,6 +303,8 @@ export async function GET(request: NextRequest) {
       needsEmailBacklog,
       justHit48hCount,
       staleBacklogTotal,
+      saveFunnel,
+      saveConversionRate,
       adminAnalyticsUrl,
       adminQuestionsUrl,
     });
@@ -310,6 +352,13 @@ function formatDateLabel(d: Date): string {
   });
 }
 
+type SaveFunnel = {
+  providers_saved: number;
+  nudges_shown: number;
+  signup_clicked: number;
+  conversions: number;
+};
+
 type DigestPayload = {
   providerRaw: ProviderRawCounts;
   uniqueSessionsCount: number;
@@ -321,6 +370,8 @@ type DigestPayload = {
   needsEmailBacklog: number;
   justHit48hCount: number;
   staleBacklogTotal: number;
+  saveFunnel: SaveFunnel;
+  saveConversionRate: string;
   adminAnalyticsUrl: string;
   adminQuestionsUrl: string;
 };
@@ -337,6 +388,8 @@ function buildSlackMessage(p: DigestPayload): string {
     needsEmailBacklog,
     justHit48hCount,
     staleBacklogTotal,
+    saveFunnel,
+    saveConversionRate,
     adminAnalyticsUrl,
     adminQuestionsUrl,
   } = p;
@@ -368,6 +421,16 @@ function buildSlackMessage(p: DigestPayload): string {
   lines.push(
     `• ${providerDistinct.qa_success_arrivals} arrived from Q&A redirect · ${providerDistinct.hero_clickers} clicked hero CTA · ${providerDistinct.profile_editors} saved profile edits`,
   );
+
+  // Save Funnel section (only show if there's any activity)
+  if (saveFunnel.providers_saved > 0 || saveFunnel.nudges_shown > 0) {
+    lines.push("");
+    lines.push("*Save Funnel*");
+    lines.push(`• ${saveFunnel.providers_saved} providers saved`);
+    lines.push(
+      `• ${saveFunnel.nudges_shown} nudges shown → ${saveFunnel.signup_clicked} clicked "Sign up" → ${saveFunnel.conversions} converted (${saveConversionRate}%)`,
+    );
+  }
 
   const actionLines: string[] = [];
   if (newDisputes > 0) {
@@ -416,6 +479,8 @@ function buildEmailHtml(p: DigestPayload & { dateLabel: string }): string {
     needsEmailBacklog,
     justHit48hCount,
     staleBacklogTotal,
+    saveFunnel,
+    saveConversionRate,
     adminAnalyticsUrl,
     adminQuestionsUrl,
   } = p;
@@ -447,6 +512,16 @@ function buildEmailHtml(p: DigestPayload & { dateLabel: string }): string {
 
   html.push(`<p style="${sectionStyle}">Providers</p>`);
   html.push(`<ul style="margin:0;padding-left:20px;">${renderRows(providerRows)}</ul>`);
+
+  // Save Funnel section (only show if there's any activity)
+  if (saveFunnel.providers_saved > 0 || saveFunnel.nudges_shown > 0) {
+    const saveFunnelRows = [
+      `${saveFunnel.providers_saved} providers saved`,
+      `${saveFunnel.nudges_shown} nudges → ${saveFunnel.signup_clicked} clicked → ${saveFunnel.conversions} converted (${saveConversionRate}%)`,
+    ];
+    html.push(`<p style="${sectionStyle}">Save Funnel</p>`);
+    html.push(`<ul style="margin:0;padding-left:20px;">${renderRows(saveFunnelRows)}</ul>`);
+  }
 
   const hasActions =
     newDisputes > 0 ||

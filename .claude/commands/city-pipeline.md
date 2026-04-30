@@ -250,6 +250,8 @@ This runs 4 internal phases:
 - **Enrich**: Descriptions + reviews + trust signals + images (all providers as one pool, parallel streams)
 - **Finalize**: Notion updates (one call per city) + final report
 
+**Clean-phase upgrades (2026-04-30, post-sweep #1):** beyond the keyword filter + AI classify, the clean phase now applies several deterministic layers ported from `docs/data-sweep-runbook.md`: Tier 1 deletion regex (pharmacy/DME chains, funeral, wedding, fitness, PACE, Spanish-language non-US patterns, test-data leakage), a Google Places `types` reject list with save-type override (movie_theater, casino, transit_station, etc., but never when `assisted_living_facility`/`nursing_home`/`health` is also present), `country != "US"` reject (discovery now captures country from Places `addressComponents`), Tier 1 slam-dunk reclassification (Visiting Angels/Home Instead/etc. → Home Care (Non-medical); Bayada/Amedisys/etc. → Home Health Care; explicit-name patterns for NH/MC/IL/AL when no competing category word in the name), and LLM `category` persistence — new providers get the LLM's category when it disagrees with discovery's search-term-origin guess. Dedup additionally pulls soft-deleted rows so the pipeline never re-adds a provider sweep #1 already removed; per-city log surfaces `prior-sweep:-N`, `t1-reclass:N`, and `llm-reclass:N` counters when these layers fire. None of this changes the CLI surface — the slash command and script invocations are unchanged.
+
 Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
 
 The `--resume` flag skips cities already marked Complete in Notion, enabling multi-session batches.

@@ -31,9 +31,8 @@ export default function CandidateDetailClientWrapper({
 }: CandidateDetailClientWrapperProps) {
   const router = useRouter();
   const { activeProfile, user } = useAuth();
-  const [hasExistingInterview, setHasExistingInterview] = useState(false);
-  // Track if existing interview is pending verification (for UI state after refresh)
-  const [existingInterviewPending, setExistingInterviewPending] = useState(false);
+  const [interviewCount, setInterviewCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Verification state
   const verificationState = activeProfile?.verification_state as string | null;
@@ -56,35 +55,35 @@ export default function CandidateDetailClientWrapper({
     },
   });
 
-  // Fetch existing interviews to check if provider already contacted this student
+  // Fetch existing interviews to count how many are scheduled with this student
   useEffect(() => {
     if (!user) return;
 
-    const checkExistingInterview = async () => {
+    const fetchInterviewCounts = async () => {
       try {
         const res = await fetch("/api/medjobs/interviews");
         if (!res.ok) return;
         const data = await res.json();
-        // Check if there's an active interview with this student
-        // Exclude cancelled/no_show so provider can re-schedule
+        // Count active interviews with this student (exclude cancelled/no_show)
         const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
-        const matchingInterview = (data.interviews || []).find(
-          (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string; status: string }) =>
+        const interviews = (data.interviews || []).filter(
+          (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string; status: string; is_pending_verification?: boolean }) =>
             interview.student_profile_id === studentId &&
             interview.proposed_by === interview.provider_profile_id &&
             activeStatuses.includes(interview.status)
         );
-        setHasExistingInterview(!!matchingInterview);
-        // Track if the existing interview is pending verification
-        if (matchingInterview?.is_pending_verification) {
-          setExistingInterviewPending(true);
-        }
+        setInterviewCount(interviews.length);
+        // Count how many are pending verification
+        const pending = interviews.filter(
+          (interview: { is_pending_verification?: boolean }) => interview.is_pending_verification
+        ).length;
+        setPendingCount(pending);
       } catch {
         // Silently fail
       }
     };
 
-    checkExistingInterview();
+    fetchInterviewCounts();
   }, [user, studentId]);
 
   return (
@@ -96,8 +95,8 @@ export default function CandidateDetailClientWrapper({
         studentPhone={studentPhone}
         studentSlug={studentSlug}
         variant={variant}
-        initialScheduled={hasExistingInterview}
-        initialScheduledButPending={existingInterviewPending}
+        initialInterviewCount={interviewCount}
+        initialPendingCount={pendingCount}
         accessTier={accessTier}
         creditsUsed={creditsUsed}
         isVerified={isVerified}

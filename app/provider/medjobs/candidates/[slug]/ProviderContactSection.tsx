@@ -14,10 +14,10 @@ interface ProviderContactSectionProps {
   studentPhone: string | null;
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
-  /** Pre-fetched: whether an interview has already been scheduled */
-  initialScheduled?: boolean;
-  /** Pre-fetched: whether the existing interview is pending verification */
-  initialScheduledButPending?: boolean;
+  /** Pre-fetched count of active interviews with this student */
+  initialInterviewCount?: number;
+  /** Pre-fetched count of pending verification interviews */
+  initialPendingCount?: number;
   /** Provider's access tier for paywall gating */
   accessTier?: AccessTier;
   /** Provider's credits used count for upgrade modal */
@@ -35,8 +35,8 @@ export default function ProviderContactSection({
   studentPhone,
   studentSlug,
   variant = "sidebar",
-  initialScheduled = false,
-  initialScheduledButPending = false,
+  initialInterviewCount = 0,
+  initialPendingCount = 0,
   accessTier,
   creditsUsed = 0,
   isVerified,
@@ -48,31 +48,19 @@ export default function ProviderContactSection({
   const { user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [scheduled, setScheduled] = useState(initialScheduled);
-  // Track if the interview was scheduled but is pending verification
-  const [scheduledButPending, setScheduledButPending] = useState(initialScheduledButPending);
-  // Track previous verification state to detect when user becomes verified
-  const wasVerifiedRef = useRef(isVerified);
+  // Track interview counts
+  const [interviewCount, setInterviewCount] = useState(initialInterviewCount);
+  const [pendingCount, setPendingCount] = useState(initialPendingCount);
 
   const isFreeExhausted = accessTier === "free_exhausted";
+  const hasInterviews = interviewCount > 0;
+  const hasPendingInterviews = pendingCount > 0;
 
-  // Clear scheduledButPending when user becomes verified (interview was released)
+  // Sync with parent state when it updates
   useEffect(() => {
-    if (isVerified && !wasVerifiedRef.current && scheduledButPending) {
-      setScheduledButPending(false);
-    }
-    wasVerifiedRef.current = isVerified;
-  }, [isVerified, scheduledButPending]);
-
-  // If initial state changes (e.g., parent fetched interviews), update
-  useEffect(() => {
-    if (initialScheduled) setScheduled(true);
-  }, [initialScheduled]);
-
-  // Sync pending state from fetched data (handles page refresh)
-  useEffect(() => {
-    if (initialScheduledButPending) setScheduledButPending(true);
-  }, [initialScheduledButPending]);
+    setInterviewCount(initialInterviewCount);
+    setPendingCount(initialPendingCount);
+  }, [initialInterviewCount, initialPendingCount]);
 
   // Auto-open schedule modal when arriving from inline onboarding flow
   const hasHandledScheduleParam = useRef(false);
@@ -120,10 +108,23 @@ export default function ProviderContactSection({
     setShowModal(true);
   }, [requiresAuth, handleAuthRequired, isFreeExhausted]);
 
+  // Called when interview is successfully scheduled
+  const handleInterviewScheduled = useCallback(() => {
+    setShowModal(false);
+    // Increment the count (if unverified, also increment pending)
+    setInterviewCount((c) => c + 1);
+    if (!isVerified) {
+      setPendingCount((c) => c + 1);
+    }
+  }, [isVerified]);
+
   const firstName = studentName.split(" ")[0];
 
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
+    // Unverified with pending interviews: show Verify + Schedule buttons horizontally
+    const showDualButtons = !isVerified && hasPendingInterviews;
+
     return (
       <>
         <div
@@ -131,31 +132,43 @@ export default function ProviderContactSection({
           style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
         >
           <div className="flex gap-2">
-            {scheduled && scheduledButPending && !isVerified ? (
-              <button
-                onClick={() => onVerifyClick?.()}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Verify to Notify {firstName}
-              </button>
+            {showDualButtons ? (
+              <>
+                {/* Verify button (primary) */}
+                <button
+                  onClick={() => onVerifyClick?.()}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
+                >
+                  <CheckIcon />
+                  <span>Verify</span>
+                  <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">{pendingCount}</span>
+                </button>
+                {/* Schedule another button (secondary) */}
+                <button
+                  onClick={handleScheduleClick}
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-700 transition-colors"
+                >
+                  <PlusIcon />
+                </button>
+              </>
             ) : (
+              /* Single schedule button */
               <button
                 onClick={handleScheduleClick}
-                disabled={scheduled}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
               >
                 <CalendarIcon />
-                {scheduled ? "Interview Requested!" : "Schedule Interview"}
+                <span>{hasInterviews ? "Schedule Another" : "Schedule Interview"}</span>
+                {hasInterviews && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">{interviewCount}</span>
+                )}
               </button>
             )}
-            {/* Phone button */}
+            {/* Phone button - only shows if studentPhone is available (paid+verified) */}
             {studentPhone && (
               <a
                 href={`tel:${studentPhone}`}
-                className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
+                className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors flex-shrink-0"
               >
                 <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -169,8 +182,7 @@ export default function ProviderContactSection({
             studentProfileId={studentId}
             otherName={studentName}
             onClose={() => setShowModal(false)}
-            onScheduled={() => { setShowModal(false); setScheduled(true); }}
-            onScheduledUnverified={() => setScheduledButPending(true)}
+            onScheduled={handleInterviewScheduled}
           />
         )}
         {showUpgradeModal && (
@@ -237,47 +249,68 @@ export default function ProviderContactSection({
         </div>
       )}
 
-      {/* Primary CTA - Schedule Interview */}
-      {scheduled && scheduledButPending && !isVerified ? (
-        <div className="space-y-3">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium text-center">
-            Interview saved! {firstName} will be notified once you verify.
-          </div>
-          <button
-            onClick={() => onVerifyClick?.()}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Verify to Complete
-          </button>
+      {/* Interview Status Badge */}
+      {hasInterviews && (
+        <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+          hasPendingInterviews && !isVerified
+            ? "bg-amber-50 border border-amber-200 text-amber-700"
+            : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+        }`}>
+          {hasPendingInterviews && !isVerified ? (
+            <>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <span>
+                {pendingCount} interview{pendingCount > 1 ? "s" : ""} pending
+                <span className="hidden sm:inline"> — verify to notify {firstName}</span>
+              </span>
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{interviewCount} interview{interviewCount > 1 ? "s" : ""} requested</span>
+            </>
+          )}
         </div>
-      ) : scheduled ? (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
-          Interview request sent to {firstName}!
-        </div>
-      ) : (
+      )}
+
+      {/* Primary CTA - Verify (for unverified with pending) */}
+      {hasPendingInterviews && !isVerified && (
         <button
-          onClick={handleScheduleClick}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          onClick={() => onVerifyClick?.()}
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
         >
-          <CalendarIcon />
-          Schedule Interview
+          <CheckIcon />
+          Verify Account
         </button>
       )}
+
+      {/* Schedule Button - always available */}
+      <button
+        onClick={handleScheduleClick}
+        className={`flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+          hasPendingInterviews && !isVerified
+            ? "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            : "bg-gray-900 hover:bg-gray-800 text-white"
+        }`}
+      >
+        <CalendarIcon />
+        {hasInterviews ? "Schedule Another Interview" : "Schedule Interview"}
+      </button>
 
       {showModal && (
         <ScheduleInterviewModal
           studentProfileId={studentId}
           otherName={studentName}
           onClose={() => setShowModal(false)}
-          onScheduled={() => { setShowModal(false); setScheduled(true); }}
-          onScheduledUnverified={() => setScheduledButPending(true)}
+          onScheduled={handleInterviewScheduled}
         />
       )}
       {showUpgradeModal && (
-        <UpgradeModal creditsUsed={1} onClose={() => setShowUpgradeModal(false)} />
+        <UpgradeModal creditsUsed={creditsUsed} onClose={() => setShowUpgradeModal(false)} />
       )}
     </div>
   );
@@ -287,6 +320,22 @@ function CalendarIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   );
 }

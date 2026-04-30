@@ -176,12 +176,13 @@ export default function SaveNudgeToast({
           </div>
 
           {/* Buttons - full width on mobile, aligned with text on desktop */}
+          {/* Desktop padding: 56px for 1 avatar, 116px for 3 avatars (milestones are 1, 3, 7, 15) */}
           <div
             className={`
               flex items-center justify-between mt-4
-              sm:pl-[116px]
               transition-all duration-500 delay-[100ms]
               ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+              ${savedProviders.length === 1 ? "sm:pl-[56px]" : "sm:pl-[116px]"}
             `}
           >
             <button

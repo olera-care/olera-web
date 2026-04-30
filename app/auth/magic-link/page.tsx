@@ -119,6 +119,8 @@ function MagicLinkHandler() {
         // (deferred action will persist in sessionStorage)
         try {
           const deferredAction = getDeferredAction();
+          console.log("[magic-link-debug] Deferred action:", deferredAction, "accountReady:", accountReady, "isNewUser:", isNewUser);
+
           if (deferredAction?.action === "save" && accountReady) {
             let profileCreated = false;
             let isPermanentFailure = false;
@@ -162,9 +164,12 @@ function MagicLinkHandler() {
             }
 
             // Track conversion if profile was created (or already existed) and user is new
+            console.log("[magic-link-debug] profileCreated:", profileCreated, "isNewUser:", isNewUser);
             if (profileCreated && isNewUser) {
               const anonSaves = getAnonSaves();
+              console.log("[magic-link-debug] anonSaves count:", anonSaves.length);
               if (anonSaves.length > 0) {
+                console.log("[magic-link-debug] Firing conversion tracking...");
                 // Track conversion - use keepalive to ensure request completes during navigation
                 fetch("/api/activity/track", {
                   method: "POST",

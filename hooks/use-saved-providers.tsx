@@ -247,21 +247,31 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   // Migrate anonymous saves to DB when user authenticates
   useEffect(() => {
+    console.log("[save-nudge-debug] Migration effect running", {
+      hasUser: !!user,
+      hasActiveProfile: !!activeProfile,
+      migrationDone: migrationDone.current,
+    });
+
     if (!user || !activeProfile || !isSupabaseConfigured()) return;
     if (migrationDone.current) return;
 
     const saves = getAnonSaves();
+    console.log("[save-nudge-debug] Saves count:", saves.length);
 
     // Handle deferred action BEFORE checking saves count.
     // This ensures we always clear stale deferred actions, even if saves are empty
     // (e.g., localStorage was cleared, user in incognito closed tab, etc.)
     try {
       const deferredAction = getDeferredAction();
+      console.log("[save-nudge-debug] Deferred action:", deferredAction);
+
       if (deferredAction?.action === "save") {
         // Track conversion only if there are saves to migrate
         // (Most conversions are tracked in profile creation effect or magic-link handler;
         // this is a fallback for OAuth users)
         if (saves.length > 0) {
+          console.log("[save-nudge-debug] Firing conversion tracking...");
           fetch("/api/activity/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -277,12 +287,19 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
               },
             }),
             keepalive: true,
-          }).catch(() => {}); // Fire-and-forget with keepalive to survive navigation
+          })
+            .then((res) => console.log("[save-nudge-debug] Track response:", res.status))
+            .catch((err) => console.error("[save-nudge-debug] Track error:", err));
+        } else {
+          console.log("[save-nudge-debug] No saves to track");
         }
         // Always clear deferred action to prevent stale state
         clearDeferredAction();
+      } else {
+        console.log("[save-nudge-debug] No save deferred action found");
       }
-    } catch {
+    } catch (err) {
+      console.error("[save-nudge-debug] Error:", err);
       // Non-blocking — conversion tracking failure should not affect migration
     }
 

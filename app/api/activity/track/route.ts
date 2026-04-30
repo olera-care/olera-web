@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
               ? (meta.saved_provider_names as string[])
               : [],
           });
-          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+          await sendSlackAlert(alert.text, alert.blocks);
         } catch {
           // Non-critical — activity already logged
         }
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
           trustLevel,
           trustReason: meta.trust_reason || null,
         });
-        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        await sendSlackAlert(alert.text, alert.blocks);
       } catch {
         // Non-critical — activity already logged
       }
@@ -310,7 +310,7 @@ export async function POST(request: NextRequest) {
           providerSlug: provider_id,
           source: meta.source || "onboard",
         });
-        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        await sendSlackAlert(alert.text, alert.blocks);
       } catch {
         // Non-critical — activity already logged
       }
@@ -332,7 +332,7 @@ export async function POST(request: NextRequest) {
           cohortSize: typeof meta.cohort_size === "number" ? meta.cohort_size : null,
           tier: (meta.tier as string) || "unknown",
         });
-        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        await sendSlackAlert(alert.text, alert.blocks);
       } catch {
         // Non-critical — activity already logged
       }
@@ -356,7 +356,7 @@ export async function POST(request: NextRequest) {
             providerSlug: provider_id,
             source: meta.source as string,
           });
-          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+          await sendSlackAlert(alert.text, alert.blocks);
         } catch {
           // Non-critical — activity already logged
         }
@@ -381,7 +381,7 @@ export async function POST(request: NextRequest) {
             tier: typeof meta.tier === "string" ? meta.tier : undefined,
             destination: typeof meta.destination === "string" ? meta.destination : undefined,
           });
-          sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+          await sendSlackAlert(alert.text, alert.blocks);
         } catch {
           // Non-critical — activity already logged
         }
@@ -400,7 +400,7 @@ export async function POST(request: NextRequest) {
           providerSlug: provider_id,
           section: (meta.section as string) || "unknown",
         });
-        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+        await sendSlackAlert(alert.text, alert.blocks);
       } catch {
         // Non-critical — activity already logged
       }

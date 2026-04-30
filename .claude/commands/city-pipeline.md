@@ -193,7 +193,7 @@ Claude's role in batch mode:
 When TJ provides a batch `.md` file:
 
 1. **Parse the city list** from the machine-readable block at the bottom
-2. **Detect Atlas format + batch mode** (see "Atlas batch detection" below) — this determines whether the run is a *fresh batch* (new cities) or an *expand batch* (existing thin/moderate/covered cities). Different Notion handling + script flags follow.
+2. **Parse input + detect batch mode** (see "Input parsing + mode detection" below) — TJ may paste raw text, hand over an `.md` file path, or drop a tabular dump. Mode comes from current Supabase counts, not from any gap-status label in the text.
 3. **Show estimates** (based on actual batch data from 88-city and 90-city runs):
    - Discovery: `cities × ~$1.20 = $X` (Google Places, quick mode), `cities × ~0.5min = Xh`
    - Processing: `cities × ~$2.70 = $X` (geocoding + enrichment), `~35min enrichment overhead`
@@ -201,26 +201,45 @@ When TJ provides a batch `.md` file:
 4. **If >20 cities**, warn about discovery time and suggest running discovery in background while TJ does other work
 5. **Ask TJ to confirm**, then proceed
 
-### Atlas batch detection
+### Input parsing + mode detection
 
-Most batch `.md` files come from TJ's expansion-map app (`map.olera.care`, internal name "Atlas"). The export format is recognizable by:
+TJ rarely hands over a path to an `.md` file. The slash command typically receives **pasted text** in one of several shapes — directly in the `/city-pipeline` invocation or in a follow-up message. The skill must extract `(city, state)` pairs from whatever it sees, then determine the run mode by querying Supabase for current active counts.
 
-- A header line containing `Generated from: map.olera.care`
-- A `## Cities` markdown table with a `Gap Status` column (`missing` / `thin` / `moderate` / `covered`)
-- A `## Machine-Readable List` block with `City,ST` per line
+**Recognizable input shapes (any one of these — be tolerant):**
 
-**Per-batch single gap status convention.** TJ exports one gap status per batch — either all-`missing` (fresh) or all-`thin` / all-`moderate` / all-`covered` (expand). The skill picks one mode per batch; mixed-status batches are not the norm.
+- **Raw `.md` file content** pasted from `map.olera.care` (Atlas) — has a `## Cities` markdown table and a `## Machine-Readable List` block with `City,ST` per line. Use the machine-readable section.
+- **Tabular row dump** — tab- or whitespace-separated rows like `1    Massapequa    New York    NY    21,822    0    86.8    missing`. The 2-letter uppercase state code is the anchor; the column immediately to its left is the city. Skip the rank, population, etc.
+- **Markdown table rows** — `| 1 | Massapequa | New York | NY | 21,822 | 0 | 86.8 | thin |`. Same anchor logic.
+- **Plain CSV** — `City,ST` per line.
+- **Atlas CSV export** — `city,state,state_id,population,...` with header row. Use `city` and `state_id`.
+- **One city per line** in any prose form (e.g., `Massapequa, NY`) — the 2-letter state code anchor still works.
+- **Path to a file** — `~/Desktop/.../batch.md`. Read the file and parse as one of the above.
 
-| Detected mode | Cities | Pipeline flags | Notion handling |
+The skill should produce a clean `[(city, state), ...]` list regardless of input shape. If parsing is ambiguous (e.g., "Springfield" with no state), surface the ambiguity to TJ rather than guess.
+
+**Mode detection — query Supabase, don't trust the label.** Any gap-status label in the pasted text (`missing` / `thin` / `moderate` / `covered`) is informational only — show it in the pre-run summary so TJ can sanity-check what's about to happen, but DO NOT use it to choose flags. Atlas's gap status reflects whatever snapshot the app last loaded; the DB is the source of truth right now. For each city in the parsed list, query:
+
+```javascript
+const { count } = await supabase.from('olera-providers')
+  .select('*', { count: 'exact', head: true })
+  .like('provider_id', `${citySlug}-${stateSlug}-%`)
+  .eq('deleted', false);
+```
+
+Then route by current active count:
+
+| count | Mode for this city | Pipeline flags | Notion handling |
 |---|---|---|---|
-| **Fresh** | All `missing` (or no Atlas table → fall back to fresh) | discovery: no `--force`. pipeline: no `--force`. | Create new Notion pages with status `Upload to Backend`. After run: flip to `Complete`, check off `Done: *` boxes. |
-| **Expand** | Any `thin`, `moderate`, or `covered` | discovery: `--force`. pipeline: `--force --cities "C1,ST;C2,ST"` (semicolon-delimited). | For existing pages: reset status to `Upload to Backend` and uncheck all `Done: *` boxes BEFORE the run. After run: flip back to `Complete`, re-check boxes. For any cities in the batch that don't yet have Notion pages (rare in expand): create them as you would in fresh mode. |
+| `0` | **Fresh** | discovery: no `--force`. pipeline: no `--force`. | Search for existing Notion page first. If found (e.g., a previously-attempted run that got wiped by the sweep): reset status to `Upload to Backend` + uncheck `Done: *` boxes. If not found: create new page with status `Upload to Backend`. After run: flip to `Complete`, check off boxes. |
+| `> 0` | **Expand** | discovery: `--force`. pipeline: `--force --cities "C1,ST;C2,ST"`. | Existing Notion page is expected. Reset status to `Upload to Backend` + uncheck `Done: *` boxes BEFORE the run. After run: flip back to `Complete`, re-check boxes. |
 
-**Why expand mode needs `--force`.** Three idempotency guards in `pipeline-batch.js` (cached `providers_ready.json`, "already in DB" count, `--resume` Notion filter) silently skip cities that have any prior pipeline output. For Atlas-thin/moderate/covered cities, that's exactly wrong — you'd report "pipeline complete" with zero net work done. `--force` bypasses both cache layers and is harmless for fresh cities, so it's safe to always pass for Atlas-detected expand batches.
+Per TJ's convention, batches are typically all-fresh or all-expand. If a single batch contains both, run them as separate phases (fresh cities first without `--force`, expand cities second with `--force --cities`) so the flags don't bleed across.
 
-**Why expand mode resets Notion before the run.** During an expansion, the city's data is in flux (new providers being added, descriptions/reviews pending). Leaving Notion as `Complete` while this is in progress makes the board lie about what's happening. Resetting to `Upload to Backend` and unchecking boxes is the same fluid-state pattern used during the original ingestion. After the pipeline completes, status flips back to `Complete` and boxes re-check.
+**Why expand mode needs `--force`.** Three idempotency guards in `pipeline-batch.js` (cached `providers_ready.json`, "already in DB" count, `--resume` Notion filter) silently skip cities that have any prior pipeline output. For cities with existing active providers, that's exactly wrong — you'd report "pipeline complete" with zero net work done.
 
-**Pre-run baseline snapshot (expand mode only).** Before running, query Supabase for current active provider counts per city (`provider_id LIKE '<city>-<state>-%' AND deleted=false`). Save these as a baseline so the post-run report can show before→after deltas. For fresh cities, the baseline is 0 by definition.
+**Why expand mode resets Notion before the run.** During an expansion the city's data is in flux. Leaving Notion as `Complete` while that's in progress makes the board lie about live state. Resetting to `Upload to Backend` and unchecking boxes uses the same fluid-state pattern as fresh ingestion; after the pipeline completes, status restores to `Complete` and boxes re-check.
+
+**Pre-run baseline snapshot (expand mode only).** Save the active provider count per city before the run so the post-run report can show before→after deltas. Fresh cities have a baseline of 0 by definition.
 
 ### Stage 1: Discovery
 

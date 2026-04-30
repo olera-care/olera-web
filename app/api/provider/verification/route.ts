@@ -8,6 +8,9 @@ import {
   verificationApprovedEmail,
   verificationPendingReviewEmail,
 } from "@/lib/email-templates";
+import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
+import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -234,6 +237,36 @@ async function runAutoVerification(opts: {
           metadata: { auto_approved: true },
         });
       }
+
+      // Publish pending Q&A answers and notify askers (fire-and-forget)
+      publishPendingQAAnswers(
+        admin,
+        opts.profileId,
+        opts.businessName,
+        opts.profileSlug
+      ).catch((err) => {
+        console.error("[verification] Error publishing pending Q&A answers:", err);
+      });
+
+      // Deliver pending connections with notifications (fire-and-forget)
+      deliverPendingConnections(
+        admin,
+        opts.profileId,
+        opts.businessName,
+        opts.profileSlug
+      ).catch((err) => {
+        console.error("[verification] Error delivering pending connections:", err);
+      });
+
+      // Release pending interviews and notify students (fire-and-forget)
+      publishPendingInterviews(
+        admin,
+        opts.profileId,
+        opts.businessName,
+        opts.profileSlug
+      ).catch((err) => {
+        console.error("[verification] Error publishing pending interviews:", err);
+      });
 
       return { autoApproved: true, reason: result.reason };
     } else {

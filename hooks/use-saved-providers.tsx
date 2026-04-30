@@ -361,6 +361,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
       {showNudge && (
         <SaveNudgeToast
           savedCount={nudgeCount}
+          savedProviders={anonSaves.slice(0, 3)}
           onSignUp={handleNudgeSignUp}
           onDismiss={handleNudgeDismiss}
           onAutoDismiss={handleNudgeAutoDismiss}

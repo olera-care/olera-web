@@ -251,35 +251,45 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     if (migrationDone.current) return;
 
     const saves = getAnonSaves();
-    if (saves.length === 0) return;
 
-    migrationDone.current = true;
-
-    // Track conversion if user signed up via save nudge (for OAuth users)
-    // Note: Most conversions are now tracked in the profile creation effect above
-    // or in magic-link handler. This is a fallback for edge cases.
+    // Handle deferred action BEFORE checking saves count.
+    // This ensures we always clear stale deferred actions, even if saves are empty
+    // (e.g., localStorage was cleared, user in incognito closed tab, etc.)
     try {
       const deferredAction = getDeferredAction();
       if (deferredAction?.action === "save") {
-        fetch("/api/activity/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            actor_type: "family",
-            event_type: "save_nudge_converted",
-            metadata: {
-              saved_count: saves.length,
-              saved_provider_names: saves.map((s) => s.name),
-              user_email: user.email,
-              user_name: user.email?.split("@")[0] || "User",
-            },
-          }),
-        }).catch(() => {}); // Fire-and-forget
+        // Track conversion only if there are saves to migrate
+        // (Most conversions are tracked in profile creation effect or magic-link handler;
+        // this is a fallback for OAuth users)
+        if (saves.length > 0) {
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "family",
+              event_type: "save_nudge_converted",
+              metadata: {
+                saved_count: saves.length,
+                saved_provider_names: saves.map((s) => s.name),
+                user_email: user.email || "unknown",
+                user_name: user.email?.split("@")[0] || "User",
+                signup_method: "oauth",
+              },
+            }),
+            keepalive: true,
+          }).catch(() => {}); // Fire-and-forget with keepalive to survive navigation
+        }
+        // Always clear deferred action to prevent stale state
         clearDeferredAction();
       }
     } catch {
       // Non-blocking — conversion tracking failure should not affect migration
     }
+
+    // Nothing to migrate if no saves
+    if (saves.length === 0) return;
+
+    migrationDone.current = true;
 
     const migrate = async () => {
       // Migrate each save via API (handles FK resolution)

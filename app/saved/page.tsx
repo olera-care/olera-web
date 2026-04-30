@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
@@ -8,6 +8,8 @@ import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import ProviderCard, {
   type Provider,
 } from "@/components/providers/ProviderCard";
+
+type SavedTab = "providers" | "benefits";
 
 /** Map a saved entry to the Provider shape expected by ProviderCard */
 function toProvider(entry: {
@@ -40,7 +42,16 @@ export default function SavedProvidersPage() {
   const { savedPrograms } = useSavedPrograms();
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const [showToast, setShowToast] = useState(false);
+  const [activeTab, setActiveTab] = useState<SavedTab>("providers");
   const totalSaved = savedProviders.length + savedPrograms.length;
+  const hasBoth = savedProviders.length > 0 && savedPrograms.length > 0;
+
+  // Set default tab based on which has more items (only on initial load)
+  useEffect(() => {
+    if (savedPrograms.length > savedProviders.length) {
+      setActiveTab("benefits");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if user is logged in but doesn't have a family profile
   const hasFamilyProfile = profiles.some((p) => p.type === "family");
@@ -201,10 +212,50 @@ export default function SavedProvidersPage() {
           )}
         </div>
 
-        {/* Saved programs */}
-        {savedPrograms.length > 0 && (
-          <div className="mb-8">
-            {savedProviders.length > 0 && (
+        {/* Tabs - only show when user has both providers and benefits */}
+        {hasBoth && (
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-6 w-fit">
+            <button
+              onClick={() => setActiveTab("providers")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "providers"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Providers
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                activeTab === "providers"
+                  ? "bg-primary-100 text-primary-700"
+                  : "bg-gray-200 text-gray-500"
+              }`}>
+                {savedProviders.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("benefits")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "benefits"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Benefits
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                activeTab === "benefits"
+                  ? "bg-primary-100 text-primary-700"
+                  : "bg-gray-200 text-gray-500"
+              }`}>
+                {savedPrograms.length}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Benefits tab content (or standalone if no providers) */}
+        {savedPrograms.length > 0 && (activeTab === "benefits" || !hasBoth) && (
+          <div className={hasBoth ? "" : "mb-8"}>
+            {!hasBoth && savedProviders.length > 0 && (
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Programs</p>
             )}
             <div className="space-y-2">
@@ -239,10 +290,10 @@ export default function SavedProvidersPage() {
           </div>
         )}
 
-        {/* Provider grid or empty state */}
-        {savedProviders.length > 0 ? (
-          <>
-            {savedPrograms.length > 0 && (
+        {/* Providers tab content (or standalone if no benefits) */}
+        {savedProviders.length > 0 && (activeTab === "providers" || !hasBoth) ? (
+          <div>
+            {!hasBoth && savedPrograms.length > 0 && (
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Providers</p>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,7 +304,7 @@ export default function SavedProvidersPage() {
                 />
               ))}
             </div>
-          </>
+          </div>
         ) : totalSaved === 0 ? (
           <div>
             <div className="relative w-full max-w-md">

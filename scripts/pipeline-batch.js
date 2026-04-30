@@ -589,7 +589,7 @@ function discoveryCsvForCity(expansionDir, city, state) {
 function readyCityList(expansionDir) {
   // Find all city dirs that have a discovery CSV
   if (!fs.existsSync(expansionDir)) return [];
-  return fs.readdirSync(expansionDir)
+  const all = fs.readdirSync(expansionDir)
     .filter(d => {
       const parts = d.split('-');
       return parts.length >= 2 && fs.statSync(path.join(expansionDir, d)).isDirectory();
@@ -602,6 +602,20 @@ function readyCityList(expansionDir) {
       return { city, state, dir: d, csvPath: csv };
     })
     .filter(c => c.csvPath);
+  // Dedup by normalized (city, state) key — older runs sometimes left dirs in
+  // different naming conventions (space vs hyphen), and both would otherwise
+  // process as separate cities racing to upsert the same provider_ids. Pick
+  // the entry whose CSV has the most recent mtime (freshest discovery wins).
+  const byKey = new Map();
+  for (const c of all) {
+    const key = c.city.toLowerCase().replace(/\s+/g, '-') + '|' + c.state.toUpperCase();
+    const existing = byKey.get(key);
+    if (!existing) { byKey.set(key, c); continue; }
+    const existingMtime = fs.statSync(existing.csvPath).mtimeMs;
+    const candidateMtime = fs.statSync(c.csvPath).mtimeMs;
+    if (candidateMtime > existingMtime) byKey.set(key, c);
+  }
+  return [...byKey.values()];
 }
 
 function parseBatchMd(mdPath) {

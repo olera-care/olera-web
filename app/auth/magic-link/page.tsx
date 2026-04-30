@@ -110,26 +110,39 @@ function MagicLinkHandler() {
         try {
           const deferredAction = getDeferredAction();
           if (deferredAction?.action === "save") {
+            let profileCreated = false;
+
             // Create family profile for save nudge signups
             // ensure-account doesn't create profiles without claimToken
             try {
-              await fetch("/api/auth/create-profile", {
+              const profileRes = await fetch("/api/auth/create-profile", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  type: "family",
-                  name: data.session.user.user_metadata?.full_name
+                  intent: "family",
+                  displayName: data.session.user.user_metadata?.full_name
                     || data.session.user.user_metadata?.name
                     || data.session.user.email?.split("@")[0]
                     || "My Family",
                 }),
               });
+
+              if (profileRes.ok) {
+                profileCreated = true;
+              } else {
+                // Profile creation failed - likely account type mismatch
+                // (user has provider/caregiver profile with this email)
+                const errorData = await profileRes.json().catch(() => ({}));
+                if (errorData.code === "ACCOUNT_TYPE_MISMATCH") {
+                  console.warn("[magic-link] Cannot create family profile - account type mismatch");
+                }
+              }
             } catch {
               // Non-blocking — profile creation failure logged server-side
             }
 
-            // Track conversion if new user
-            if (isNewUser) {
+            // Only track conversion if profile was created successfully
+            if (profileCreated && isNewUser) {
               const anonSaves = getAnonSaves();
               if (anonSaves.length > 0) {
                 // Fire conversion tracking (Slack alert is sent server-side)
@@ -144,6 +157,7 @@ function MagicLinkHandler() {
                       saved_provider_names: anonSaves.map((s) => s.name),
                       user_email: data.session.user.email,
                       user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0],
+                      signup_method: "magic_link",
                     },
                   }),
                 }).catch(() => {}); // Fire-and-forget

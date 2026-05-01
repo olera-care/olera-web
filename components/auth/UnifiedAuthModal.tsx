@@ -421,8 +421,18 @@ export default function UnifiedAuthModal({
       // 3. No race conditions with page navigation or state updates
       if (otpContext === "signup") {
         const deferred = options.deferred || getDeferredAction();
+        const anonSaves = getAnonSaves();
+
+        // Debug logging to understand why tracking might not fire
+        console.log("[save-nudge] OTP verification complete, checking conditions:", {
+          otpContext,
+          deferredAction: deferred?.action,
+          anonSavesCount: anonSaves.length,
+          optionsDeferred: !!options.deferred,
+          sessionDeferred: !!getDeferredAction(),
+        });
+
         if (deferred?.action === "save") {
-          const anonSaves = getAnonSaves();
           if (anonSaves.length > 0) {
             // Fire conversion tracking (fire-and-forget with keepalive)
             // Set idempotency flag first to prevent duplicate tracking from other effects
@@ -431,6 +441,7 @@ export default function UnifiedAuthModal({
             } catch {
               // sessionStorage unavailable
             }
+            console.log("[save-nudge] Firing conversion tracking for email signup");
             fetch("/api/activity/track", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -449,8 +460,20 @@ export default function UnifiedAuthModal({
                 },
               }),
               keepalive: true,
-            }).catch(() => {});
+            })
+              .then((res) => {
+                if (!res.ok) {
+                  console.error("[save-nudge] converted track failed (otp):", res.status);
+                } else {
+                  console.log("[save-nudge] converted track success (otp)");
+                }
+              })
+              .catch((err) => console.error("[save-nudge] converted track error (otp):", err));
+          } else {
+            console.log("[save-nudge] Skipping conversion tracking: no anon saves");
           }
+        } else {
+          console.log("[save-nudge] Skipping conversion tracking: deferred action is not 'save'");
         }
       }
 

@@ -38,7 +38,7 @@ export default function SaveNudgeToast({
   }, []);
 
   const handleDismiss = useCallback(() => {
-    // Track dismiss event (fire-and-forget)
+    // Track dismiss event
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -47,7 +47,11 @@ export default function SaveNudgeToast({
         event_type: "save_nudge_dismissed",
         metadata: { saved_count: savedCount },
       }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) console.error("[save-nudge] dismiss track failed:", res.status);
+      })
+      .catch((err) => console.error("[save-nudge] dismiss track error:", err));
 
     setIsExiting(true);
     setTimeout(() => onDismiss(), 250);
@@ -59,7 +63,7 @@ export default function SaveNudgeToast({
   }, [onAutoDismiss, onDismiss]);
 
   const handleSignUp = useCallback(() => {
-    // Track signup CTA click (fire-and-forget)
+    // Track signup CTA click
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +72,11 @@ export default function SaveNudgeToast({
         event_type: "save_nudge_signup_clicked",
         metadata: { saved_count: savedCount },
       }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) console.error("[save-nudge] signup_clicked track failed:", res.status);
+      })
+      .catch((err) => console.error("[save-nudge] signup_clicked track error:", err));
 
     setIsExiting(true);
     setTimeout(() => onSignUp(), 150);

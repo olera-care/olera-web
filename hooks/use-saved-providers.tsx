@@ -237,9 +237,15 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 },
               }),
               keepalive: true,
-            }).then(() => {
-              sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
-            }).catch(() => {});
+            })
+              .then((res) => {
+                if (!res.ok) {
+                  console.error("[save-nudge] converted track failed (profile_creation):", res.status);
+                } else {
+                  sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+                }
+              })
+              .catch((err) => console.error("[save-nudge] converted track error (profile_creation):", err));
           }
 
           clearDeferredAction();
@@ -312,10 +318,14 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             }),
             keepalive: true,
           })
-            .then(() => {
-              sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+            .then((res) => {
+              if (!res.ok) {
+                console.error("[save-nudge] converted track failed (migration):", res.status);
+              } else {
+                sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+              }
             })
-            .catch(() => {});
+            .catch((err) => console.error("[save-nudge] converted track error (migration):", err));
           // Always clear deferred action to prevent stale state
           clearDeferredAction();
         } else {
@@ -505,7 +515,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             setShowNudge(true);
             recordNudgeShown(newCount);
 
-            // Track save_nudge_shown event (fire-and-forget)
+            // Track save_nudge_shown event
             fetch("/api/activity/track", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -514,7 +524,11 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 event_type: "save_nudge_shown",
                 metadata: { milestone: newCount, saved_count: newCount },
               }),
-            }).catch(() => {});
+            })
+              .then((res) => {
+                if (!res.ok) console.error("[save-nudge] shown track failed:", res.status);
+              })
+              .catch((err) => console.error("[save-nudge] shown track error:", err));
           }
         }
       }

@@ -201,10 +201,12 @@ export async function GET(request: NextRequest) {
         // 2. No race conditions with sessionStorage/page navigation
         // 3. Server-side tracking doesn't get blocked by browser extensions
         let saveNudgeTracked = false;
+        console.log("[callback] Checking save nudge tracking:", { actionParam, isNewUser: true });
         if (actionParam === "save") {
           try {
             const savedCount = parseInt(searchParams.get("saved_count") || "0", 10);
             const savedNames = searchParams.get("saved_names")?.split(",").filter(Boolean) || [];
+            console.log("[callback] Tracking save nudge conversion:", { savedCount, savedNamesCount: savedNames.length });
 
             // Await tracking with timeout to ensure completion in serverless environment
             // 2s timeout prevents blocking the redirect for too long
@@ -231,8 +233,10 @@ export async function GET(request: NextRequest) {
               ),
             ]);
             saveNudgeTracked = trackResponse.ok;
-          } catch {
+            console.log("[callback] Save nudge track result:", { ok: trackResponse.ok, status: trackResponse.status });
+          } catch (err) {
             // Timeout or network error - client-side will be fallback
+            console.error("[callback] Save nudge track error:", err);
             saveNudgeTracked = false;
           }
         }

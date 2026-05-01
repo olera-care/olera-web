@@ -34,6 +34,10 @@ import {
   Brain,
   HandHeart,
   Spinner,
+  UsersThree,
+  Heart,
+  User,
+  UsersFour,
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
@@ -90,25 +94,68 @@ const CARE_NEED_OPTIONS: Array<{
 //     Strings live here AND in the SBF Copy Variants Notion DB. When you
 //     change copy, update both — the Notion DB is the durable record of
 //     what each arm earned.
+//
+//     "find" not "show" in subs: matches the actual experience (we work to
+//     find programs, then surface them in the post-submit overlay) — and
+//     avoids the show-then-send framing whiplash on step 3.
 const VARIANT_COPY: Record<BenefitsVariant, { h2: (state: string) => string; sub: (state: string) => string }> = {
   availability: {
     h2: (state) => `There's help paying for care in ${state}.`,
-    sub: () => "Tell us what's needed — we'll show what fits.",
+    sub: () => "Tell us what's needed — we'll find what fits.",
   },
   loss: {
     h2: (state) => `Most ${state} families miss out on help paying for care.`,
     sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
   },
   empathic: {
-    h2: () => "Care is expensive.",
-    sub: (state) => `Tell us what's needed and we'll show ${state} programs that fit.`,
+    // Anchored to state so the punchy short H2 doesn't read naked on a
+    // provider page where the user hasn't been primed for empathy.
+    h2: (state) => `Care is expensive in ${state}.`,
+    sub: () => "Tell us what's needed — we'll find programs that may help.",
   },
 };
 
-type Step = "care-need" | "contact";
+// ─── Relationship — step 2's tap-question. Powers the personalized H2 on
+//     step 3 ("Save your parent's matches") AND gives us a structural data
+//     point we currently don't capture for downstream personalization.
+type Relationship = "my-parent" | "my-spouse" | "myself" | "other-family";
+
+const RELATIONSHIP_OPTIONS: Array<{
+  value: Relationship;
+  label: string;
+  description: string;
+  icon: typeof User;
+}> = [
+  { value: "my-parent", label: "For my parent", description: "Mom, Dad, or both", icon: UsersThree },
+  { value: "my-spouse", label: "For my spouse", description: "Husband, wife, or partner", icon: Heart },
+  { value: "myself", label: "For me", description: "I'm planning my own care", icon: User },
+  { value: "other-family", label: "Someone else in the family", description: "Grandparent, sibling, or other relative", icon: UsersFour },
+];
+
+// Possessive phrase used in step 3's H2 + the post-submit overlay's contextual
+// copy. "Save your parent's matches" feels like saving something for someone
+// you love. "Save your matches" is fine but less personal.
+function relationshipPhrase(rel: Relationship | null): string {
+  switch (rel) {
+    case "my-parent":
+      return "your parent's";
+    case "my-spouse":
+      return "your spouse's";
+    case "myself":
+      return "your";
+    case "other-family":
+      return "these";
+    case null:
+    default:
+      return "your";
+  }
+}
+
+type Step = "care-need" | "relationship" | "contact";
 const STEP_NUMBERS: Record<Step, number> = {
   "care-need": 1,
-  contact: 2,
+  relationship: 2,
+  contact: 3,
 };
 
 // Phone normalization helper — UI-side only. Server re-validates with normalizeUSPhone.
@@ -131,7 +178,10 @@ export default function BenefitsDiscoveryModule({
   // ─── Step + form state ───────────────────────────────────────────────
   const [step, setStep] = useState<Step>("care-need");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
-  const [channel, setChannel] = useState<"email" | "sms">("email");
+  const [relationship, setRelationship] = useState<Relationship | null>(null);
+  // Phone-as-optional design: both fields visible, email required, phone is
+  // a bonus signal. Drops the older toggle-based SMS path. The server still
+  // accepts SMS-only payloads from any caller, but this UI always submits email.
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -289,17 +339,16 @@ export default function BenefitsDiscoveryModule({
   async function handleSubmit() {
     setError(null);
 
-    // Client-side validation gate — server re-validates strictly.
-    if (channel === "email") {
-      if (!email.trim() || !email.includes("@")) {
-        setError("Please enter a valid email.");
-        return;
-      }
-    } else {
-      if (!isPlausiblePhone(phone)) {
-        setError("Please enter a valid US phone number.");
-        return;
-      }
+    // Email is always required in V3 — phone is the bonus signal.
+    // Client-side gate; server re-validates strictly via validateEmailStrict.
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    // Phone optional — only validate format if user typed something.
+    if (phone.trim() && !isPlausiblePhone(phone)) {
+      setError("That phone number doesn't look right. You can leave it blank.");
+      return;
     }
 
     trackStepCompleted("contact");
@@ -315,9 +364,12 @@ export default function BenefitsDiscoveryModule({
           medicaidStatus: null,
           incomeRange: null,
           stateCode: providerState,
-          contactChannel: channel,
-          email: channel === "email" ? email.trim().toLowerCase() : undefined,
-          phone: channel === "sms" ? phone : undefined,
+          // Email-primary contact in the V3 flow. Phone (if given) attaches
+          // to the same family profile as a secondary channel.
+          contactChannel: "email",
+          email: email.trim().toLowerCase(),
+          phone: phone.trim() ? phone : undefined,
+          relationship: relationship || undefined,
           providerSlug: providerSlug || undefined,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
@@ -339,11 +391,12 @@ export default function BenefitsDiscoveryModule({
         return;
       }
 
-      // Success — open the ResultsSheet overlay in place.
+      // Success — open the ResultsSheet overlay in place. Email is always
+      // the primary contact in V3, so the footer line shows the email.
       setOverlayMatches(matchingPrograms as unknown as WaiverProgram[]);
       setOverlayMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
-      setOverlayContactDest(channel === "email" ? email.trim().toLowerCase() : phone);
-      setOverlayContactChannel(channel);
+      setOverlayContactDest(email.trim().toLowerCase());
+      setOverlayContactChannel("email");
       setSaving(false);
       setOverlayOpen(true);
     } catch (err) {
@@ -360,13 +413,19 @@ export default function BenefitsDiscoveryModule({
   const v = VARIANT_COPY[variant];
   const allProgramsCount = allPrograms.length;
 
-  // Progress dots — 2 segments. First fills on care-need pick, second
-  // pulses when waiting on contact, fills on success.
+  // Progress dots — 3 segments tracking care-need / relationship / contact.
+  // Each segment fills when the user has committed to that step (selection
+  // made or, on the final step, form submitted). The current step's segment
+  // pulses gently to telegraph "you're here, do this thing."
+  const stepIndex = STEP_NUMBERS[step] - 1;
   const ProgressDots = () => (
     <div className="flex items-center gap-1.5 mb-6">
-      {[0, 1].map((i) => {
-        const filled = i === 0 ? !!careNeed : false; // step 2 fill happens via overlay open
-        const pulse = i === 1 && step === "contact";
+      {[0, 1, 2].map((i) => {
+        const filled =
+          (i === 0 && (!!careNeed || stepIndex > 0)) ||
+          (i === 1 && (!!relationship || stepIndex > 1)) ||
+          (i === 2 && false); // step 3 fills via overlay open, not here
+        const pulse = i === stepIndex && !filled;
         return (
           <div key={i} className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden relative">
             <div
@@ -401,11 +460,11 @@ export default function BenefitsDiscoveryModule({
         </p>
       )}
 
-      {/* Back button (only on step 2) */}
-      {step === "contact" && (
+      {/* Back button — visible on steps 2 and 3, points one step back */}
+      {(step === "relationship" || step === "contact") && (
         <button
           onClick={() => {
-            setStep("care-need");
+            setStep(step === "contact" ? "relationship" : "care-need");
             setError(null);
           }}
           aria-label="Go back"
@@ -443,6 +502,52 @@ export default function BenefitsDiscoveryModule({
                     setCareNeed(opt.value);
                     trackStart(opt.value);
                     trackStepCompleted("care-need", opt.value);
+                    setTimeout(() => setStep("relationship"), 180);
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
+                    isSelected
+                      ? "bg-gray-900 text-white"
+                      : "bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                      isSelected ? "bg-white/15 text-white" : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" weight="regular" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[15px] font-semibold leading-tight ${isSelected ? "text-white" : "text-gray-900"}`}>
+                      {opt.label}
+                    </div>
+                    <div className={`mt-0.5 text-[13px] leading-snug ${isSelected ? "text-white/70" : "text-gray-500"}`}>
+                      {opt.description}
+                    </div>
+                  </div>
+                  <ArrowRight className={`h-4 w-4 flex-shrink-0 ${isSelected ? "text-white/60" : "text-gray-300"}`} weight="bold" />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {step === "relationship" && (
+        <>
+          <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">Who is care for?</h2>
+          <p className="mt-1 mb-5 text-sm text-gray-500">So we send the right matches.</p>
+
+          <div className="space-y-2 mb-2">
+            {RELATIONSHIP_OPTIONS.map((opt) => {
+              const Icon = opt.icon;
+              const isSelected = relationship === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    setRelationship(opt.value);
+                    trackStepCompleted("relationship");
                     setTimeout(() => setStep("contact"), 180);
                   }}
                   className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
@@ -477,44 +582,36 @@ export default function BenefitsDiscoveryModule({
       {step === "contact" && (
         <>
           <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">
-            {careNeed && `Where should we send your ${matchingPrograms.length} ${matchingPrograms.length === 1 ? "match" : "matches"}?`}
+            {matchingPrograms.length > 0
+              ? `Save ${relationshipPhrase(relationship)} ${matchingPrograms.length} ${matchingPrograms.length === 1 ? "match" : "matches"}.`
+              : `Save ${relationshipPhrase(relationship)} matches.`}
           </h2>
           <p className="mt-1 mb-5 text-sm text-gray-500">
-            Real {stateName} programs you may qualify for. Takes a moment to look up your contact info.
+            We&apos;ll send a magic link so you can come back anytime.
           </p>
 
-          {/* Channel toggle */}
-          <div className="mb-3 flex items-center justify-end text-[13px]">
-            <button
-              type="button"
-              onClick={() => {
-                setChannel(channel === "email" ? "sms" : "email");
-                setError(null);
-              }}
-              className="text-gray-500 hover:text-gray-700 transition underline-offset-2 hover:underline"
-            >
-              {channel === "email" ? "Or text me instead →" : "Or use email →"}
-            </button>
-          </div>
-
-          {/* Input */}
+          {/* Email — required */}
           <label className="block">
-            <span className="sr-only">{channel === "email" ? "Email address" : "Phone number"}</span>
-            {channel === "email" ? (
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (error) setError(null);
-                }}
-                placeholder="you@example.com"
-                autoComplete="email"
-                inputMode="email"
-                disabled={saving}
-                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
-              />
-            ) : (
+            <span className="sr-only">Email address</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              placeholder="you@example.com"
+              autoComplete="email"
+              inputMode="email"
+              disabled={saving}
+              className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
+            />
+          </label>
+
+          {/* Phone — optional, visually secondary */}
+          <label className="mt-3 block">
+            <span className="sr-only">Phone number (optional)</span>
+            <div className="relative">
               <input
                 type="tel"
                 value={phone}
@@ -522,20 +619,18 @@ export default function BenefitsDiscoveryModule({
                   setPhone(e.target.value);
                   if (error) setError(null);
                 }}
-                placeholder="(555) 123-4567"
+                placeholder="Phone (optional, reaches you faster)"
                 autoComplete="tel-national"
                 inputMode="tel"
                 disabled={saving}
-                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
+                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
               />
-            )}
+            </div>
           </label>
 
-          {/* Channel-specific consent text */}
+          {/* Combined consent — covers both channels honestly */}
           <p className="mt-2.5 text-[12px] leading-relaxed text-gray-400">
-            {channel === "email"
-              ? "We'll send your matches and a magic link to come back. We never sell your info."
-              : "By tapping See my matches, you agree to receive a one-time text from Olera at this number. Reply STOP to opt out. Msg & data rates may apply."}
+            We&apos;ll save your matches and email you a magic link to come back. If you add a phone, you&apos;ll get one text (reply STOP to opt out). We never sell your info.
           </p>
 
           {error && (
@@ -556,7 +651,7 @@ export default function BenefitsDiscoveryModule({
               </>
             ) : (
               <>
-                See my matches
+                Save my matches
                 <ArrowRight className="h-4 w-4" weight="bold" />
               </>
             )}

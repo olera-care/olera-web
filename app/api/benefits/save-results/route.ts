@@ -46,9 +46,13 @@ interface SaveResultsPayload {
   // Save payload
   firstName?: string;
   email?: string;                         // V3: optional — required only when contactChannel='email'
-  phone?: string;                         // V3: required when contactChannel='sms'
+  phone?: string;                         // V3: required when contactChannel='sms'; optional bonus on email path
   contactChannel?: "email" | "sms";       // V3: defaults to 'email' for back-compat with V2 5-step
   providerSlug?: string;                  // V3: provider page they came from, for tie-in copy on /m/{token}
+  /** V3: who care is for. Drives personalization on /m/{token} + welcome
+   *  email + downstream re-engagement copy. Optional — falls back to
+   *  generic copy when missing. */
+  relationship?: "my-parent" | "my-spouse" | "myself" | "other-family";
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -79,6 +83,7 @@ export async function POST(req: Request) {
     phone,
     contactChannel = "email",
     providerSlug,
+    relationship,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -119,6 +124,14 @@ export async function POST(req: Request) {
       );
     }
     normalizedEmail = email.trim().toLowerCase();
+    // V3 email path also accepts an optional phone — captures bonus signal
+    // and enables a follow-up SMS if the user wants both. Validate format
+    // only when provided; ignore silently if it doesn't normalize (don't
+    // 400 the whole submission for a bad bonus field).
+    if (phone) {
+      const e164 = normalizeUSPhone(phone);
+      if (e164) normalizedPhone = e164;
+    }
   }
 
   const db = getAdminClient();
@@ -351,6 +364,10 @@ export async function POST(req: Request) {
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
     income_range: incomeRange || undefined,
     medicaid_status: medicaidStatus || undefined,
+    // V3: who care is for. Powers personalization on /m/{token}, welcome
+    // emails, downstream re-engagement copy. Stored as a flat metadata
+    // field (not a column) since it's optional + only used in display logic.
+    relationship: relationship || undefined,
     benefits_results: {
       matchCount,
       completed_at: new Date().toISOString(),
@@ -543,20 +560,17 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 6. Send welcome notification — TRULY fire-and-forget so the response
+  // 6. Send welcome notifications — TRULY fire-and-forget so the response
   //    doesn't wait on Resend (~500-1500ms) / Twilio (~200-800ms).
   //
-  //    Channel selection follows what the user picked at submit:
-  //      - 'email' → Resend magic-link email (existing pattern)
-  //      - 'sms'   → Twilio SMS with /m/{token} short link
-  //
-  //    For SMS users without a token (rare — careNeed or state missing),
-  //    we skip the SMS rather than send a broken link.
+  //    V3 design: email is always primary (and required on the new flow);
+  //    if the user also gave a phone, we ALSO send an SMS. Both fire in
+  //    parallel for new users.
   //
   //    Email body content upgrade (state-filtered starter list) is Phase 6
   //    of the plan — for now we keep the existing generic body.
   // ═══════════════════════════════════════════════════════════════════
-  if (isNewUser && contactChannel === "email" && normalizedEmail) {
+  if (isNewUser && normalizedEmail) {
     (async () => {
       try {
         const { data: linkData } = await authClient.auth.admin.generateLink({
@@ -600,7 +614,12 @@ export async function POST(req: Request) {
         console.error("[save-results] Failed to send welcome email:", emailErr);
       }
     })();
-  } else if (isNewUser && contactChannel === "sms" && normalizedPhone && benefitsToken) {
+  }
+
+  // Bonus SMS — fires in parallel with email when the user provided a phone
+  // (V3 phone-as-optional). Either channel can fail without affecting the
+  // other; both are best-effort.
+  if (isNewUser && normalizedPhone && benefitsToken) {
     (async () => {
       const programWord = matchCount === 1 ? "program" : "programs";
       const url = `${siteUrl}/m/${benefitsToken}`;

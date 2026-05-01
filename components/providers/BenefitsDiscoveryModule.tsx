@@ -95,16 +95,18 @@ const CARE_NEED_OPTIONS: Array<{
 //     change copy, update both — the Notion DB is the durable record of
 //     what each arm earned.
 //
-//     "find" not "show" in subs: matches the actual experience (we work to
-//     find programs, then surface them in the post-submit overlay) — and
-//     avoids the show-then-send framing whiplash on step 3.
+//     Umbrella term is "care benefits" not "paying for care" — the latter
+//     overlaps with the first card label and creates a confusing
+//     "wait, one of four options is the same as the headline?" moment.
+//     "Care benefits" is the conceptual layer above the cards, which are
+//     TYPES of care needs.
 const VARIANT_COPY: Record<BenefitsVariant, { h2: (state: string) => string; sub: (state: string) => string }> = {
   availability: {
-    h2: (state) => `There's help paying for care in ${state}.`,
+    h2: (state) => `${state} care benefits for families like yours.`,
     sub: () => "Tell us what's needed — we'll find what fits.",
   },
   loss: {
-    h2: (state) => `Most ${state} families miss out on help paying for care.`,
+    h2: (state) => `Most ${state} families miss the care benefits they qualify for.`,
     sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
   },
   empathic: {
@@ -411,7 +413,6 @@ export default function BenefitsDiscoveryModule({
   // ═════════════════════════════════════════════════════════════════════
 
   const v = VARIANT_COPY[variant];
-  const allProgramsCount = allPrograms.length;
 
   // Progress bar — single proportional bar across the full width. Fills as
   // the user completes steps. Beats the segmented design (3 separate bars
@@ -478,17 +479,10 @@ export default function BenefitsDiscoveryModule({
       {step === "care-need" && (
         <>
           <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">{v.h2(stateName)}</h2>
-          <p className="mt-1 mb-3 text-sm text-gray-500">{v.sub(stateName)}</p>
-
-          <p className="mb-6 text-xs leading-relaxed text-gray-400">
-            <span>Free</span>
-            <span className="mx-1.5 text-gray-300">·</span>
-            <span>Under a minute</span>
-            <span className="mx-1.5 text-gray-300">·</span>
-            <span>Never sold to insurers</span>
-            <span className="mx-1.5 text-gray-300">·</span>
-            <span>{allProgramsCount} {stateName} programs</span>
-          </p>
+          {/* Subtitle takes the visual weight that the now-removed trust
+              strip used to carry. Larger + darker than before so it lands
+              as a clear "do this" beat between the H2 and the cards. */}
+          <p className="mt-2 mb-6 text-base leading-relaxed text-gray-700">{v.sub(stateName)}</p>
 
           <div className="space-y-2 mb-2">
             {CARE_NEED_OPTIONS.map((opt) => {

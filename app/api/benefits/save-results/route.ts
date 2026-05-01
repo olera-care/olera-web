@@ -53,6 +53,27 @@ function relationshipPossessive(rel: string | null | undefined): string {
   }
 }
 
+/** Convert the V3 enum to a natural-language value compatible with the
+ *  existing FamilyMetadata.relationship_to_recipient field. The /portal/profile
+ *  page, admin/care-seekers view, CarePostSidebar, ProfileEditWizard, etc.
+ *  all read this field for the "Who needs care" display. Writing here keeps
+ *  V3 family profiles visually complete on the existing UI without touching
+ *  any consumer. */
+function relationshipDisplayName(rel: string | null | undefined): string | null {
+  switch (rel) {
+    case "my-parent":
+      return "Parent";
+    case "my-spouse":
+      return "Spouse";
+    case "myself":
+      return "Self";
+    case "other-family":
+      return "Family member";
+    default:
+      return null;
+  }
+}
+
 /** Derive a display state name from a 2-letter abbreviation. Falls back to
  *  the abbreviation itself when the slug lookup fails (rare — covers
  *  territories or invalid input). */
@@ -433,15 +454,23 @@ export async function POST(req: Request) {
   // Storing it ONCE here (not at top level) keeps a single source of truth
   // and matches the V2-era schema, so existing V2 family profiles continue
   // to render correctly without backfill.
+  // Mirror the V3 enum to the existing free-form display field so every
+  // existing consumer of `relationship_to_recipient` (the /portal/profile
+  // "Who needs care" row, admin/care-seekers view, CarePostSidebar,
+  // ProfileEditWizard, completeness scorer) lights up with V3 data —
+  // no consumer changes needed. We keep `relationship` (enum) too for
+  // our internal personalization logic; the display field is downstream.
+  const relationshipDisplay = relationshipDisplayName(relationship);
+
   const intakeMetadata: Record<string, unknown> = {
     age: age || undefined,
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
     income_range: incomeRange || undefined,
     medicaid_status: medicaidStatus || undefined,
-    // V3: who care is for. Powers personalization on /m/{token}, welcome
-    // emails, downstream re-engagement copy. Stored as a flat metadata
-    // field (not a column) since it's optional + only used in display logic.
+    // V3 enum — internal use (welcome email phrases, /m/{token} hero copy)
     relationship: relationship || undefined,
+    // Display value — what /portal/profile and admin pages render
+    relationship_to_recipient: relationshipDisplay || undefined,
     benefits_results: {
       answers: careNeed ? { careNeed } : undefined,
       matchCount,

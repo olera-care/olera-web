@@ -7,6 +7,7 @@ import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth, type OpenAuthOptions } from "@/components/auth/AuthProvider";
 import { validateReturnUrl } from "@/lib/validation";
 import { getDeferredAction } from "@/lib/deferred-action";
+import { getAnonSaves } from "@/lib/saved-providers";
 import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -139,7 +140,7 @@ export default function UnifiedAuthModal({
 
     // Store current page for "Skip for now" redirect on /welcome
     try {
-      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname + window.location.search);
     } catch { /* localStorage not available */ }
 
     const supabase = createClient();
@@ -147,9 +148,23 @@ export default function UnifiedAuthModal({
     // Build callback URL with action hint if there's a deferred action
     // This lets the server-side callback know to skip the welcome redirect
     const deferred = options.deferred || getDeferredAction();
-    let callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`;
+    // Preserve full URL including query string so user returns to same state after OAuth
+    const currentPath = window.location.pathname + window.location.search;
+    let callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
     if (deferred?.action) {
       callbackUrl += `&action=${encodeURIComponent(deferred.action)}`;
+
+      // For save action, include save count and names for server-side tracking
+      // This allows reliable conversion tracking even if sessionStorage is cleared
+      if (deferred.action === "save") {
+        const anonSaves = getAnonSaves();
+        if (anonSaves.length > 0) {
+          callbackUrl += `&saved_count=${anonSaves.length}`;
+          // Include up to 5 provider names for context (URL-safe)
+          const savedNames = anonSaves.slice(0, 5).map(s => s.name).join(",");
+          callbackUrl += `&saved_names=${encodeURIComponent(savedNames)}`;
+        }
+      }
     }
 
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -178,7 +193,7 @@ export default function UnifiedAuthModal({
 
     // Store current page for "Skip for now" redirect on /welcome
     try {
-      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname + window.location.search);
     } catch { /* localStorage not available */ }
 
     setLoading(true);
@@ -271,7 +286,7 @@ export default function UnifiedAuthModal({
 
     // Store current page for "Skip for now" redirect on /welcome
     try {
-      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname + window.location.search);
     } catch { /* localStorage not available */ }
 
     setLoading(true);
@@ -399,6 +414,69 @@ export default function UnifiedAuthModal({
         }
       }
 
+      // Track save nudge conversion for email signups
+      // This is the most reliable place to track email conversions since:
+      // 1. We're in the same tab/session where the deferred action was set
+      // 2. OTP verification just succeeded (confirmed new signup if otpContext === "signup")
+      // 3. No race conditions with page navigation or state updates
+      if (otpContext === "signup") {
+        const deferred = options.deferred || getDeferredAction();
+        const anonSaves = getAnonSaves();
+
+        // Debug logging to understand why tracking might not fire
+        console.log("[save-nudge] OTP verification complete, checking conditions:", {
+          otpContext,
+          deferredAction: deferred?.action,
+          anonSavesCount: anonSaves.length,
+          optionsDeferred: !!options.deferred,
+          sessionDeferred: !!getDeferredAction(),
+        });
+
+        if (deferred?.action === "save") {
+          if (anonSaves.length > 0) {
+            // Fire conversion tracking (fire-and-forget with keepalive)
+            // Set idempotency flag first to prevent duplicate tracking from other effects
+            try {
+              sessionStorage.setItem("olera_save_nudge_tracked", Date.now().toString());
+            } catch {
+              // sessionStorage unavailable
+            }
+            console.log("[save-nudge] Firing conversion tracking for email signup");
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_type: "family",
+                event_type: "save_nudge_converted",
+                metadata: {
+                  saved_count: anonSaves.length,
+                  saved_provider_names: anonSaves.slice(0, 5).map(s => s.name),
+                  user_email: verifyData.user?.email || "unknown",
+                  user_name: verifyData.user?.user_metadata?.display_name
+                    || verifyData.user?.email?.split("@")[0]
+                    || "User",
+                  signup_method: "email",
+                  tracked_at: "otp_verification",
+                },
+              }),
+              keepalive: true,
+            })
+              .then((res) => {
+                if (!res.ok) {
+                  console.error("[save-nudge] converted track failed (otp):", res.status);
+                } else {
+                  console.log("[save-nudge] converted track success (otp)");
+                }
+              })
+              .catch((err) => console.error("[save-nudge] converted track error (otp):", err));
+          } else {
+            console.log("[save-nudge] Skipping conversion tracking: no anon saves");
+          }
+        } else {
+          console.log("[save-nudge] Skipping conversion tracking: deferred action is not 'save'");
+        }
+      }
+
       setLoading(false);
       handleAuthComplete();
     } catch (err) {
@@ -466,7 +544,7 @@ export default function UnifiedAuthModal({
 
     // Store current page for "Skip for now" redirect on /welcome
     try {
-      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname + window.location.search);
     } catch { /* localStorage not available */ }
 
     setError("");

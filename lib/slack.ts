@@ -959,7 +959,7 @@ export function slackSaveNudgeConverted(opts: {
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "💾 Save → Signup Conversion", emoji: true },
+        text: { type: "plain_text", text: "💚 Save → Signup Conversion", emoji: true },
       },
       {
         type: "section",

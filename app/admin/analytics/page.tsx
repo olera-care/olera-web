@@ -79,6 +79,12 @@ interface BenefitsFunnel {
 }
 
 interface BenefitsFunnelByVariant {
+  // V3 active arms (post-cutover)
+  availability: BenefitsFunnel;
+  loss: BenefitsFunnel;
+  empathic: BenefitsFunnel;
+  // Legacy V2 arms — historical, retained for the rollup window when V2 data
+  // exists. Frozen after cutover.
   control: BenefitsFunnel;
   money_loss: BenefitsFunnel;
   unassigned: BenefitsFunnel;
@@ -720,21 +726,48 @@ function BenefitsFunnelCard({
 }
 
 function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVariant }) {
-  const c = byVariant.control;
-  const m = byVariant.money_loss;
-  const totalAssigned = c.started + m.started;
+  const totalAssigned =
+    byVariant.availability.started +
+    byVariant.loss.started +
+    byVariant.empathic.started +
+    byVariant.control.started +
+    byVariant.money_loss.started;
   const waitingForFirstStart = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
+  // Active V3 arms shipped in the cutover. Empty rows are still shown so the
+  // layout stays stable as data trickles in.
+  const activeArms: Array<{ key: keyof BenefitsFunnelByVariant; label: string; description: string }> = [
+    { key: "availability", label: "availability", description: "There's help paying for care in {state}." },
+    { key: "loss", label: "loss", description: "Most {state} families miss out on help paying for care." },
+    { key: "empathic", label: "empathic", description: "Care is expensive." },
+  ];
+  // Legacy V2 arms only render when they have data in the window — once the
+  // historical window rolls past V2, these rows disappear automatically.
+  const legacyCandidates = [
+    { key: "control" as const, label: "control (legacy V2)" },
+    { key: "money_loss" as const, label: "money_loss (legacy V2)" },
+  ];
+  const legacyArms = legacyCandidates.filter((a) => byVariant[a.key].started > 0);
+
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point copy
+        A/B Test — entry-point copy (3-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        control = production headline. money_loss = &ldquo;You may be losing money on care&rdquo; + dynamic-state sub-line. Deterministic 50/50 by session id (djb2 hash). Conversion % = email submitted / started.
+        Deterministic 1/3 split by session id (djb2 hash mod 3). Conversion % = contact submitted / started. Variant copy strings + commentary live in the{" "}
+        <a
+          href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-2 hover:text-gray-600"
+        >
+          SBF Copy Variants Notion DB
+        </a>
+        .
       </p>
       {waitingForFirstStart && (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
@@ -748,37 +781,53 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
               <th className="px-3 py-2 font-medium">Variant</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Age ✓</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Financial ✓</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted email</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion (email/started)</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-50">
-              <td className="px-3 py-2 font-medium text-gray-700">control</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{c.started}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.care_need_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.age_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.financial_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{c.saved}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(c.saved, c.started)}</td>
-            </tr>
-            <tr>
-              <td className="px-3 py-2 font-medium text-gray-700">money_loss</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-900">{m.started}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.care_need_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.age_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.financial_completed}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-700">{m.saved}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(m.saved, m.started)}</td>
-            </tr>
+            {activeArms.map(({ key, label, description }) => {
+              const r = byVariant[key];
+              return (
+                <tr key={key} className="border-b border-gray-50">
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    {label}
+                    <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px]">{description}</div>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.started}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.care_need_completed}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.started)}</td>
+                </tr>
+              );
+            })}
+            {legacyArms.length > 0 && (
+              <>
+                <tr>
+                  <td colSpan={5} className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-gray-400">
+                    Legacy V2 (historical)
+                  </td>
+                </tr>
+                {legacyArms.map(({ key, label }) => {
+                  const r = byVariant[key];
+                  return (
+                    <tr key={key} className="border-b border-gray-50 opacity-60">
+                      <td className="px-3 py-2 font-medium text-gray-500">{label}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{rate(r.saved, r.started)}</td>
+                    </tr>
+                  );
+                })}
+              </>
+            )}
           </tbody>
         </table>
       </div>
       {byVariant.unassigned.started > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
-          {byVariant.unassigned.started} pre-deploy sessions in window with no variant assigned (started before the A/B was wired up).
+          {byVariant.unassigned.started} sessions in window with no variant assigned (events fired before any A/B was wired).
         </p>
       )}
     </div>

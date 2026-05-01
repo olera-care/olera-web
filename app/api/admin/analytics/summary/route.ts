@@ -112,13 +112,18 @@ type BenefitsFunnel = {
   saved: number;
 };
 // A/B variant split for the benefits intake. Variant arms come from
-// lib/analytics/variant.ts (deterministic djb2 hash on session_id):
-// "control" vs "money_loss". `unassigned` covers events fired before the
-// variant deploy or with missing metadata.variant.
+// lib/analytics/variant.ts (deterministic djb2 hash on session_id, mod 3):
+// "availability" / "loss" / "empathic". The legacy "control" / "money_loss"
+// arms shipped with the V2 5-step flow and are retained here for historical
+// rows produced before the V3 cutover. `unassigned` covers events fired
+// before any variant assignment.
 type BenefitsVariantRow = BenefitsFunnel;
 type BenefitsFunnelByVariant = {
-  control: BenefitsVariantRow;
-  money_loss: BenefitsVariantRow;
+  availability: BenefitsVariantRow;
+  loss: BenefitsVariantRow;
+  empathic: BenefitsVariantRow;
+  control: BenefitsVariantRow;     // legacy V2
+  money_loss: BenefitsVariantRow;  // legacy V2
   unassigned: BenefitsVariantRow;
 };
 type WindowResult = {
@@ -191,8 +196,11 @@ const EMPTY_BENEFITS_FUNNEL = (): BenefitsFunnel => ({
   saved: 0,
 });
 const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
-  control: EMPTY_BENEFITS_FUNNEL(),
-  money_loss: EMPTY_BENEFITS_FUNNEL(),
+  availability: EMPTY_BENEFITS_FUNNEL(),
+  loss: EMPTY_BENEFITS_FUNNEL(),
+  empathic: EMPTY_BENEFITS_FUNNEL(),
+  control: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
+  money_loss: EMPTY_BENEFITS_FUNNEL(),  // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
 });
 
@@ -472,38 +480,52 @@ async function fetchWindow(
   // distinct sessions, not raw events. A session that re-enters the form
   // counts once per stage. Per-variant Sets in parallel; the overall funnel
   // is the union (one session always carries the same variant).
-  type BenefitsBucket = "control" | "money_loss" | "unassigned";
-  const benefitsStageSets: Record<keyof BenefitsFunnel, Set<string>> = {
+  //
+  // The age_completed / financial_completed stages are retained for
+  // historical V2 5-step rows. V3 (2-step) events don't fire them — those
+  // columns will read 0 going forward.
+  type BenefitsBucket =
+    | "availability"
+    | "loss"
+    | "empathic"
+    | "control"      // legacy V2
+    | "money_loss"   // legacy V2
+    | "unassigned";
+  const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
     started: new Set(),
     care_need_completed: new Set(),
     age_completed: new Set(),
     financial_completed: new Set(),
     saved: new Set(),
-  };
+  });
+  const benefitsStageSets = emptyStages();
   const benefitsByVariantSets: Record<BenefitsBucket, Record<keyof BenefitsFunnel, Set<string>>> = {
-    control: {
-      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
-      financial_completed: new Set(), saved: new Set(),
-    },
-    money_loss: {
-      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
-      financial_completed: new Set(), saved: new Set(),
-    },
-    unassigned: {
-      started: new Set(), care_need_completed: new Set(), age_completed: new Set(),
-      financial_completed: new Set(), saved: new Set(),
-    },
+    availability: emptyStages(),
+    loss: emptyStages(),
+    empathic: emptyStages(),
+    control: emptyStages(),
+    money_loss: emptyStages(),
+    unassigned: emptyStages(),
   };
-  // step_name → funnel-stage mapping. Only the four step_completed events
-  // BenefitsDiscoveryModule actually fires (care-need / age / financial /
-  // save). The post-save "results" step fires step_viewed but never
-  // step_completed, so it has no entry here.
+  // step_name → funnel-stage mapping. Pre-cutover the embedded module fired
+  // care-need / age / financial / save; post-cutover the V3 2-step fires
+  // care-need / contact (where contact is the email/SMS submission step).
+  // Both contact and save map to the same `saved` stage so historical and
+  // current data remain comparable end-to-end.
   const STEP_TO_STAGE: Record<string, keyof BenefitsFunnel | undefined> = {
     "care-need": "care_need_completed",
     age: "age_completed",
     financial: "financial_completed",
     save: "saved",
+    contact: "saved",
   };
+  const VARIANT_BUCKETS = new Set<BenefitsBucket>([
+    "availability",
+    "loss",
+    "empathic",
+    "control",
+    "money_loss",
+  ]);
   for (const r of (benefitsRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -512,7 +534,9 @@ async function fetchWindow(
     if (typeof sid !== "string" || !sid) continue;
     const v = r.metadata?.variant;
     const bucket: BenefitsBucket =
-      v === "control" ? "control" : v === "money_loss" ? "money_loss" : "unassigned";
+      typeof v === "string" && VARIANT_BUCKETS.has(v as BenefitsBucket)
+        ? (v as BenefitsBucket)
+        : "unassigned";
     let stage: keyof BenefitsFunnel | undefined;
     if (r.event_type === "benefits_started") {
       stage = "started";
@@ -539,6 +563,9 @@ async function fetchWindow(
     saved: benefitsByVariantSets[b].saved.size,
   });
   const benefitsFunnelByVariant: BenefitsFunnelByVariant = {
+    availability: sizesFor("availability"),
+    loss: sizesFor("loss"),
+    empathic: sizesFor("empathic"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),
     unassigned: sizesFor("unassigned"),

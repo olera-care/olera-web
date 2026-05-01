@@ -34,7 +34,15 @@ import { X, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
 import type { WaiverProgram } from "@/data/waiver-library";
 import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import { getProviderTieIn, type MatchableProvider } from "@/lib/benefits/provider-tie-in";
-import { maskPhone } from "@/lib/twilio";
+
+// Phone masking — kept inline because lib/twilio.ts top-level-imports the
+// Twilio Node SDK (native deps), which webpack would try to bundle into the
+// client. This 5-line helper avoids that.
+function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 6) return "****";
+  return `+${digits.slice(0, 4)}****${digits.slice(-3)}`;
+}
 
 export interface ResultsSheetProps {
   mode: "overlay" | "page";
@@ -184,15 +192,21 @@ export default function ResultsSheet({
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto px-5 pb-8 sm:px-7">
-        {/* Hero */}
+        {/* Hero — copy adapts to match count so we don't say "0 programs" */}
         <div className="pt-2 sm:pt-1">
-          <h2 className="font-display text-[28px] leading-[1.15] tracking-tight text-gray-900 sm:text-[32px]">
-            Your family may qualify for{" "}
-            <span className="text-gray-900">
-              {matchCount} {matchCount === 1 ? "program" : "programs"}
-            </span>{" "}
-            in {state.name}.
-          </h2>
+          {matchCount > 0 ? (
+            <h2 className="font-display text-[28px] leading-[1.15] tracking-tight text-gray-900 sm:text-[32px]">
+              Your family may qualify for{" "}
+              <span className="text-gray-900">
+                {matchCount} {matchCount === 1 ? "program" : "programs"}
+              </span>{" "}
+              in {state.name}.
+            </h2>
+          ) : (
+            <h2 className="font-display text-[28px] leading-[1.15] tracking-tight text-gray-900 sm:text-[32px]">
+              Programs in {state.name} we can show you.
+            </h2>
+          )}
           <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
             Based on what you shared — <span className="text-gray-700">{careLabel}</span>.
           </p>

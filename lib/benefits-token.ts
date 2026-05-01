@@ -56,6 +56,7 @@ export interface ResultBundle {
     phone: string | null;
     state: string | null;
     metadata: Record<string, unknown>;
+    preferred_contact_channel: "email" | "sms" | null;
   };
   matchedPrograms: WaiverProgram[];
   stateName: string;
@@ -84,7 +85,7 @@ export async function lookupResultByToken(
 
   const { data: profile } = await client
     .from("business_profiles")
-    .select("id, display_name, email, phone, state, metadata")
+    .select("id, display_name, email, phone, state, metadata, preferred_contact_channel")
     .eq("id", tokenRow.profile_id)
     .maybeSingle();
 
@@ -104,14 +105,16 @@ export async function lookupResultByToken(
     matchesCareNeed(p, tokenRow.care_need as CareNeed),
   );
 
-  // Bump last_viewed_at — fire-and-forget, don't block render
+  // Bump last_viewed_at — fire-and-forget, don't block render. Supabase
+  // resolves the promise with {data, error} rather than rejecting, so we
+  // read .error explicitly here. The .then(undefined, ...) pattern would
+  // never fire because Supabase doesn't reject on DB errors.
   client
     .from("benefits_results_tokens")
     .update({ last_viewed_at: new Date().toISOString() })
     .eq("token", token)
-    .then(() => {})
-    .then(undefined, (err: unknown) => {
-      console.error("[benefits-token] last_viewed_at update failed:", err);
+    .then(({ error }: { error: { message: string } | null }) => {
+      if (error) console.error("[benefits-token] last_viewed_at update failed:", error);
     });
 
   // State name from waiver-library or fallback

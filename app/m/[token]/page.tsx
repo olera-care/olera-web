@@ -80,7 +80,7 @@ export default async function BenefitsResultsPage({
       provider={provider}
       providerSlug={bundle.token.provider_slug}
       contactChannel={
-        (bundle.profile.metadata?.preferred_contact_channel as "email" | "sms" | undefined) ||
+        bundle.profile.preferred_contact_channel ||
         (bundle.profile.email ? "email" : "sms")
       }
       contactDestination={bundle.profile.email || bundle.profile.phone}

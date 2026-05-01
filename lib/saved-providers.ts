@@ -9,7 +9,7 @@ const STORAGE_KEY = "olera_saved_providers";
 const NUDGE_STATE_KEY = "olera_save_nudge_state";
 
 // Milestones where we show the sign-up nudge toast
-export const NUDGE_MILESTONES = [3, 7, 15, 30, 50];
+export const NUDGE_MILESTONES = [1, 3, 7, 15];
 
 // Legacy limit kept for backwards compatibility (no longer enforced)
 export const ANON_SAVE_LIMIT = 3;

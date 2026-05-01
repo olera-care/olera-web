@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getDeferredAction } from "@/lib/deferred-action";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { getAnonSaves } from "@/lib/saved-providers";
 import { Suspense } from "react";
 
 /**
@@ -87,22 +88,117 @@ function MagicLinkHandler() {
         }
 
         // Ensure account exists (same as OAuth callback)
+        // Retry once on failure to handle transient network issues
         let isNewUser = false;
-        try {
-          const res = await fetch("/api/auth/ensure-account", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              claimToken: searchParams.get("token") || null,
-            }),
-          });
-          if (res.ok) {
-            const { account } = await res.json();
-            isNewUser = account?.onboarding_completed === false;
+        let accountReady = false;
+        for (let attempt = 0; attempt < 2 && !accountReady; attempt++) {
+          try {
+            const res = await fetch("/api/auth/ensure-account", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                claimToken: searchParams.get("token") || null,
+              }),
+            });
+            if (res.ok) {
+              const { account } = await res.json();
+              isNewUser = account?.onboarding_completed === false;
+              accountReady = true;
+            } else {
+              console.error(`[magic-link] ensure-account failed (attempt ${attempt + 1}):`, res.status);
+              if (attempt === 0) await new Promise(r => setTimeout(r, 500));
+            }
+          } catch (err) {
+            console.error(`[magic-link] ensure-account error (attempt ${attempt + 1}):`, err);
+            if (attempt === 0) await new Promise(r => setTimeout(r, 500));
           }
-        } catch (err) {
-          console.error("ensure-account error:", err);
-          // Non-blocking — continue to redirect
+        }
+
+        // Handle save nudge signup: create family profile + track conversion
+        // If account creation failed, skip this block and let client-side fallback handle it
+        // (deferred action will persist in sessionStorage)
+        try {
+          const deferredAction = getDeferredAction();
+          console.log("[magic-link-debug] Deferred action:", deferredAction, "accountReady:", accountReady, "isNewUser:", isNewUser);
+
+          if (deferredAction?.action === "save" && accountReady) {
+            let profileCreated = false;
+            let isPermanentFailure = false;
+
+            // Create family profile for save nudge signups
+            // ensure-account doesn't create profiles without claimToken
+            try {
+              const profileRes = await fetch("/api/auth/create-profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  intent: "family",
+                  displayName: data.session.user.user_metadata?.full_name
+                    || data.session.user.user_metadata?.name
+                    || data.session.user.email?.split("@")[0]
+                    || "My Family",
+                }),
+              });
+
+              if (profileRes.ok) {
+                profileCreated = true;
+              } else {
+                const errorData = await profileRes.json().catch(() => ({}));
+                if (errorData.code === "ACCOUNT_TYPE_MISMATCH") {
+                  // Permanent failure - user has provider/caregiver profile with this email
+                  // Can't create family profile, clear deferred action to prevent retry loops
+                  console.warn("[magic-link] Cannot create family profile - account type mismatch");
+                  isPermanentFailure = true;
+                } else if (profileRes.status === 409) {
+                  // Profile already exists - treat as success for tracking purposes
+                  profileCreated = true;
+                } else {
+                  // Transient failure (500, network) - don't clear deferred action
+                  // Client-side fallback will retry
+                  console.error("[magic-link] create-profile failed:", profileRes.status, errorData);
+                }
+              }
+            } catch (err) {
+              // Network error - don't clear deferred action, let fallback retry
+              console.error("[magic-link] create-profile network error:", err);
+            }
+
+            // Track conversion if profile was created (or already existed) and user is new
+            console.log("[magic-link-debug] profileCreated:", profileCreated, "isNewUser:", isNewUser);
+            if (profileCreated && isNewUser) {
+              const anonSaves = getAnonSaves();
+              console.log("[magic-link-debug] anonSaves count:", anonSaves.length);
+              if (anonSaves.length > 0) {
+                console.log("[magic-link-debug] Firing conversion tracking...");
+                // Track conversion - use keepalive to ensure request completes during navigation
+                fetch("/api/activity/track", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    actor_type: "family",
+                    event_type: "save_nudge_converted",
+                    metadata: {
+                      saved_count: anonSaves.length,
+                      saved_provider_names: anonSaves.map((s) => s.name),
+                      user_email: data.session.user.email || "unknown",
+                      user_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split("@")[0] || "User",
+                      signup_method: "magic_link",
+                    },
+                  }),
+                  keepalive: true,
+                }).catch(() => {});
+              }
+            }
+
+            // Only clear deferred action if we succeeded OR hit a permanent failure
+            // Transient failures should preserve deferred action for client-side retry
+            if (profileCreated || isPermanentFailure) {
+              clearDeferredAction();
+            }
+          }
+        } catch {
+          // Non-blocking — conversion tracking failure should not affect auth
+          // Deferred action preserved for client-side fallback
         }
 
         // Clear the hash from URL (for cleaner experience)

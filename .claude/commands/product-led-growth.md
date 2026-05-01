@@ -15,6 +15,36 @@ Two flywheels need to turn. Both are currently broken at the relational layer (s
 
 The trojan horse moves are queued on the [Strategy Brief's Strategic Backlog](https://www.notion.so/34e5903a0ffe8159b1eef1d266f9c62c). Daily runs pick from there or from the Active Experiments queue. They don't re-derive strategy from numbers each day.
 
+## The revenue architecture (read before every run)
+
+Olera makes money through three streams, sequenced by validation maturity. Read these as separate bets with separate customer profiles, not a single funnel. Canonical doc: `/Users/tfalohun/Desktop/olera-hq/strategy/BUSINESS-MODEL.md`. Living strategic narrative: Notion page `3025903a-0ffe-816d-9ceb-c8986c17425a` (Olera Strategic Narrative).
+
+**Stream 1 -- Staffing (MedJobs). $49/mo subscription, live since 2026-04-10.** First interview free, then $49/mo unlimited. Validated in pilot at $275/mo with 3 providers (Visiting Angels, Senior Helpers, Comfort Keepers). Customer profile: continuous-hire operators (senior living, multi-location home care). NOT small intermittent home care -- that buyer is transactional, not subscription. As of 2026-04-30: 0 paid customers since launch. Logan owns operationally.
+
+**Stream 2 -- Olera Pro (Provider SaaS). Currently unpackaged.** $15-50/mo per business model doc, no active paywall. The Q&A path is doing all provider acquisition work today (24 of 24 sign-ins came through Q&A in the Apr 25 audit; 0 through claim CTA). Sequencing decision: usage-first, gating-second. This is an explicit deferral, not absence of strategy. Customer profile: any provider who wants distribution. TAM: 37K providers in directory; $1M ARR = 4.5% conversion at $50/mo.
+
+**Stream 3 -- Marketplace transaction rails. Phase 3, parked.** 5-10% of first booking. Stripe integrated. Won't ship until 1 and 2 produce volume. Olera owns the family-commits-to-provider moment if this works.
+
+The wedge: **Senior Benefits Finder.** Not a revenue stream. Acquisition + trust + downstream Pro conversion. iOS-only today; getting it on web is the highest-leverage acquisition move in the canonical roadmap.
+
+The company horizon: $1M ARR is the threshold that unlocks Series A. Ziegler, Magnify, Equitage all said "come back with revenue." Fundraise is paused until ARR exists. Runway is 18 months SBIR + possible CRP extension. The patience to build value before gating is bought; don't spend it carelessly.
+
+## The product philosophy (read before every run)
+
+Build value first, gate later. Reference companies TJ cites: Resend, Airtable, Fathom Loops. They proved value, watched how usage formed, then put gates where the gating was logical. Olera follows the same playbook.
+
+This is a deliberate sequencing choice, not absence of revenue strategy. Premature paywalls kill engagement before usage signal exists, and you end up gating the wrong thing. Acknowledged risk by TJ: usage-first defers revenue and may defer it indefinitely if the team isn't disciplined about reading signal and acting on it. The philosophy is the bet, not the truth.
+
+What this means for /product-led-growth runs:
+
+- Do not propose paywalls or pricing experiments as daily/weekly moves. Those are strategic decisions made off real usage data, not surface-area edits. The only exception is when the strategic context (Strategy Brief or Running Thread) explicitly calls out a gating decision as ready.
+- Do not recommend new SKUs, tier restructures, or pricing changes outside monthly mode. Daily and weekly are for shipping product changes that grow usage.
+- Do not optimize engagement metrics that don't connect to one of the three streams. "Engagement up 12%" without a path to revenue is a number, not progress.
+- DO surface candidate gates as observations on the Running Thread when usage produces signal that something would be paid for. Don't gate it. Name what could be gated and why the timing might be right.
+- DO read every growth experiment against the three streams. Which stream does this strengthen? If the answer is "none directly, it builds usage that all three depend on," that's valid. If the answer is unclear, the experiment is probably the wrong move.
+
+When a recommendation appears to conflict with the build-value-first philosophy, name the conflict explicitly to TJ. Don't drift toward "ship a paywall to validate willingness-to-pay" without grounding the move in what TJ wants the company to be.
+
 ## Cadence -- daily build, weekly stats, monthly strategy
 
 We're a high-velocity startup. We build daily. But we measure weekly -- daily noise from a small base produces false signal (Sunday baselines, day-1 webhook noise, weekend dips read as flywheel failure). Match the cadence to the question.
@@ -79,8 +109,10 @@ Read everything before drawing conclusions. Do not summarize file by file.
 1. **Growth Strategy Brief** -- fetch Notion page `34e5903a-0ffe-8159-b1ee-f1d266f9c62c`. The diagnosis, seeker journey, backlog play, and Strategic Backlog (queued ship candidates with status).
 2. **Growth Running Thread** -- fetch Notion page `34e5903a-0ffe-8165-abf5-c4b84d84d06c`. Active Experiments status board, Patterns & Principles, Observations under investigation, Open Questions, last 3 Run Entries.
 3. **Growth Command Center** -- fetch Notion page `34e5903a-0ffe-81ca-950e-d0d00dde74a9` for the cached "This Week's Snapshot" (last weekly stats run -- daily mode reads this rather than re-pulling).
-4. **Recent code** -- `git log -20 --oneline` and `git status`. What shipped recently? Anything that changes what's in flight?
-5. **Recent product activity** -- read SCRATCHPAD.md (top 200 lines). What's TJ been working on? What's the broader context?
+4. **Business model** -- read `/Users/tfalohun/Desktop/olera-hq/strategy/BUSINESS-MODEL.md`. The canonical revenue architecture (three streams, customer profiles, competitive position, roadmap phases). Slow-changing; only re-read when something material is in flight that touches pricing or SKU shape.
+5. **Strategic Narrative** -- fetch Notion page `3025903a-0ffe-816d-9ceb-c8986c17425a` (Olera Strategic Narrative). Living week-by-week record of strategic decisions including revenue context, investor conversations, paywall launches, customer-profile findings. Read top 3-4 entries.
+6. **Recent code** -- `git log -20 --oneline` and `git status`. What shipped recently? Anything that changes what's in flight?
+7. **Recent product activity** -- read SCRATCHPAD.md (top 200 lines). What's TJ been working on? What's the broader context?
 
 ---
 
@@ -318,6 +350,9 @@ If a monthly run produces a strategic shift, update `SCRATCHPAD.md` AND the Stra
 - **Growth Strategy Brief page ID:** `34e5903a-0ffe-8159-b1ee-f1d266f9c62c` -- https://www.notion.so/34e5903a0ffe8159b1eef1d266f9c62c
 - **Growth Command Center page ID:** `34e5903a-0ffe-81ca-950e-d0d00dde74a9` -- https://www.notion.so/34e5903a0ffe81ca950ed0d00dde74a9
 - **Growth Running Thread page ID:** `34e5903a-0ffe-8165-abf5-c4b84d84d06c` -- https://www.notion.so/34e5903a0ffe8165abf5c4b84d84d06c
+- **Business model (canonical):** `/Users/tfalohun/Desktop/olera-hq/strategy/BUSINESS-MODEL.md`
+- **Strategic Narrative page ID:** `3025903a-0ffe-816d-9ceb-c8986c17425a` -- https://www.notion.so/3025903a0ffe816d9cebc8986c17425a
+- **MedJobs Monetization Proposal:** `33d5903a-0ffe-8115-800b-cdef0d642f58` -- https://www.notion.so/33d5903a0ffe8115800bcdef0d642f58
 - **Web App Action Items data source:** `2f75903a-0ffe-8166-9d6f-000b1b51cb11` -- https://www.notion.so/2f75903a0ffe80fa95f8c2c20761a874 (product-dev tasks)
 - **Olera Action Items data source:** `2ef5903a-0ffe-815e-bfda-000bd86fe4a5` -- https://www.notion.so/2ef5903a0ffe80d69c31fa96840b20f5 (marketing/SEO/ops tasks)
 - **Pull script:** `scripts/growth-pull.js` (used only by weekly mode)

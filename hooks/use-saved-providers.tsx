@@ -22,6 +22,7 @@ import {
   type SavedProviderEntry,
 } from "@/lib/saved-providers";
 import SaveNudgeToast from "@/components/ui/SaveNudgeToast";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type { SavedProviderEntry } from "@/lib/saved-providers";
 
@@ -149,12 +150,160 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     fetchDbSaves();
   }, [activeProfile, user]);
 
+  // Create family profile for OAuth users who signed up via save nudge
+  // This handles the case where ensure-account doesn't create a profile (no claimToken)
+  const profileCreationAttempted = useRef(false);
+  useEffect(() => {
+    // Only run if user exists but no activeProfile yet
+    if (!user || activeProfile || !isSupabaseConfigured()) return;
+    if (profileCreationAttempted.current) return;
+
+    const deferredAction = getDeferredAction();
+    if (deferredAction?.action !== "save") return;
+
+    const saves = getAnonSaves();
+    if (saves.length === 0) return;
+
+    profileCreationAttempted.current = true;
+
+    // Create family profile for save nudge signups (OAuth flow)
+    // This will trigger AuthProvider to refetch profiles, setting activeProfile
+    const createFamilyProfile = async () => {
+      try {
+        // IMPORTANT: Call ensure-account first to create the account if it doesn't exist.
+        // This fixes a race condition where create-profile was called before AuthProvider
+        // had a chance to call ensure-account, resulting in "Account not found" errors.
+        const ensureRes = await fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_onboarding_complete: true }),
+        });
+
+        if (!ensureRes.ok) {
+          console.error("[save-nudge] ensure-account failed:", ensureRes.status);
+          // Don't clear deferred action - let user retry on next page load
+          return;
+        }
+
+        const res = await fetch("/api/auth/create-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            intent: "family",
+            displayName: user.email?.split("@")[0] || "My Family",
+          }),
+        });
+
+        if (res.ok) {
+          // Track conversion - use keepalive to ensure request completes even after page unload
+          // This prevents the browser from canceling the request when we reload
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "family",
+              event_type: "save_nudge_converted",
+              metadata: {
+                saved_count: saves.length,
+                saved_provider_names: saves.map((s) => s.name),
+                user_email: user.email,
+                user_name: user.email?.split("@")[0] || "User",
+                signup_method: "oauth",
+              },
+            }),
+            keepalive: true,
+          }).catch(() => {});
+
+          clearDeferredAction();
+
+          // Force page refresh to reload auth state with new profile
+          // This ensures activeProfile gets set and migration can proceed
+          window.location.reload();
+        } else {
+          // Profile creation failed
+          const errorData = await res.json().catch(() => ({}));
+          console.error("[save-nudge] create-profile failed:", res.status, errorData);
+
+          if (res.status === 409) {
+            // Permanent failure (account type mismatch) - clear deferred action
+            // User needs to use a different email for family account
+            clearDeferredAction();
+            setSaveError("This email is already used for a different account type.");
+          } else {
+            // Transient failure (500, network) - allow retry on next page load
+            console.error("[save-nudge] Transient error, will retry on next load");
+            profileCreationAttempted.current = false;
+          }
+        }
+      } catch (err) {
+        // Network error - allow retry on next page load
+        console.error("[save-nudge] Network error:", err);
+        profileCreationAttempted.current = false;
+      }
+    };
+
+    createFamilyProfile();
+  }, [user, activeProfile]);
+
   // Migrate anonymous saves to DB when user authenticates
   useEffect(() => {
+    console.log("[save-nudge-debug] Migration effect running", {
+      hasUser: !!user,
+      hasActiveProfile: !!activeProfile,
+      migrationDone: migrationDone.current,
+    });
+
     if (!user || !activeProfile || !isSupabaseConfigured()) return;
     if (migrationDone.current) return;
 
     const saves = getAnonSaves();
+    console.log("[save-nudge-debug] Saves count:", saves.length);
+
+    // Handle deferred action BEFORE checking saves count.
+    // This ensures we always clear stale deferred actions, even if saves are empty
+    // (e.g., localStorage was cleared, user in incognito closed tab, etc.)
+    try {
+      const deferredAction = getDeferredAction();
+      console.log("[save-nudge-debug] Deferred action:", deferredAction);
+
+      if (deferredAction?.action === "save") {
+        // Track conversion only if there are saves to migrate
+        // (Most conversions are tracked in profile creation effect or magic-link handler;
+        // this is a fallback for OAuth users)
+        if (saves.length > 0) {
+          console.log("[save-nudge-debug] Firing conversion tracking...");
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "family",
+              event_type: "save_nudge_converted",
+              metadata: {
+                saved_count: saves.length,
+                saved_provider_names: saves.map((s) => s.name),
+                user_email: user.email || "unknown",
+                user_name: user.email?.split("@")[0] || "User",
+                signup_method: "oauth",
+              },
+            }),
+            keepalive: true,
+          })
+            .then((res) => console.log("[save-nudge-debug] Track response:", res.status))
+            .catch((err) => console.error("[save-nudge-debug] Track error:", err));
+        } else {
+          console.log("[save-nudge-debug] No saves to track");
+        }
+        // Always clear deferred action to prevent stale state
+        clearDeferredAction();
+      } else {
+        console.log("[save-nudge-debug] No save deferred action found");
+      }
+    } catch (err) {
+      console.error("[save-nudge-debug] Error:", err);
+      // Non-blocking — conversion tracking failure should not affect migration
+    }
+
+    // Nothing to migrate if no saves
     if (saves.length === 0) return;
 
     migrationDone.current = true;
@@ -314,11 +463,34 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
           setAnonSaves(getAnonSaves());
 
+          // Track provider_saved event (fire-and-forget)
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor_type: "provider",
+              provider_id: provider.slug,
+              event_type: "provider_saved",
+              metadata: { anonymous_session: true },
+            }),
+          }).catch(() => {});
+
           // Check if we should show the nudge at this milestone
           if (shouldShowNudge(newCount)) {
             setNudgeCount(newCount);
             setShowNudge(true);
             recordNudgeShown(newCount);
+
+            // Track save_nudge_shown event (fire-and-forget)
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_type: "family",
+                event_type: "save_nudge_shown",
+                metadata: { milestone: newCount, saved_count: newCount },
+              }),
+            }).catch(() => {});
           }
         }
       }
@@ -361,10 +533,19 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
       {showNudge && (
         <SaveNudgeToast
           savedCount={nudgeCount}
+          savedProviders={anonSaves.slice(0, 3)}
           onSignUp={handleNudgeSignUp}
           onDismiss={handleNudgeDismiss}
           onAutoDismiss={handleNudgeAutoDismiss}
         />
+      )}
+      {/* Error toast for save/profile creation failures */}
+      {saveError && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg">
+            <p className="text-sm">{saveError}</p>
+          </div>
+        </div>
       )}
     </SavedProvidersContext.Provider>
   );

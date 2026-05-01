@@ -3,9 +3,97 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
+import { validateEmailStrict } from "@/lib/email-validation";
+import { generateBenefitsToken } from "@/lib/benefits-token";
+import { getStateSlug } from "@/lib/program-data";
+
+// ─── Email + SMS body helpers ────────────────────────────────────────────
+//
+// Pulled out of the route handler so the welcome-message construction is
+// readable. All pure string-building — no DB or network.
+
+const CARE_NEED_LABEL_FOR_COPY: Record<string, string> = {
+  stayingAtHome: "in-home care",
+  payingForCare: "paying for care",
+  memoryHealth: "memory & medical care",
+  companionship: "caregiver & social support",
+};
+
+function relationshipFamilyPhrase(rel: string | null | undefined): string {
+  switch (rel) {
+    case "my-parent":
+      return "your parent";
+    case "my-spouse":
+      return "your spouse";
+    case "myself":
+      return "you";
+    case "other-family":
+      return "your family member";
+    default:
+      return "your family";
+  }
+}
+
+function relationshipPossessive(rel: string | null | undefined): string {
+  switch (rel) {
+    case "my-parent":
+      return "Your parent's";
+    case "my-spouse":
+      return "Your spouse's";
+    case "myself":
+      return "Your";
+    case "other-family":
+      return "Your family's";
+    default:
+      return "Your";
+  }
+}
+
+/** Convert the V3 enum to a natural-language value compatible with the
+ *  existing FamilyMetadata.relationship_to_recipient field. The /portal/profile
+ *  page, admin/care-seekers view, CarePostSidebar, ProfileEditWizard, etc.
+ *  all read this field for the "Who needs care" display. Writing here keeps
+ *  V3 family profiles visually complete on the existing UI without touching
+ *  any consumer. */
+function relationshipDisplayName(rel: string | null | undefined): string | null {
+  switch (rel) {
+    case "my-parent":
+      return "Parent";
+    case "my-spouse":
+      return "Spouse";
+    case "myself":
+      return "Self";
+    case "other-family":
+      return "Family member";
+    default:
+      return null;
+  }
+}
+
+/** Derive a display state name from a 2-letter abbreviation. Falls back to
+ *  the abbreviation itself when the slug lookup fails (rare — covers
+ *  territories or invalid input). */
+function stateDisplayName(stateAbbrev: string | null): string {
+  if (!stateAbbrev) return "your state";
+  const slug = getStateSlug(stateAbbrev);
+  if (!slug) return stateAbbrev;
+  return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+}
+
+/** Pull the upper-bound dollar string from a savingsRange like
+ *  "$10,000 – $30,000/year" → "$30,000/year". Returns null when no $ found. */
+function topSavingsCopy(range: string | undefined): string | null {
+  if (!range) return null;
+  const matches = range.match(/\$[\d,]+/g);
+  if (!matches || matches.length === 0) return null;
+  const top = matches[matches.length - 1];
+  const period = /\bmo\b|month/i.test(range) ? "/mo" : "/yr";
+  return `Up to ${top}${period}`;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -42,7 +130,14 @@ interface SaveResultsPayload {
 
   // Save payload
   firstName?: string;
-  email: string;
+  email?: string;                         // V3: optional — required only when contactChannel='email'
+  phone?: string;                         // V3: required when contactChannel='sms'; optional bonus on email path
+  contactChannel?: "email" | "sms";       // V3: defaults to 'email' for back-compat with V2 5-step
+  providerSlug?: string;                  // V3: provider page they came from, for tie-in copy on /m/{token}
+  /** V3: who care is for. Drives personalization on /m/{token} + welcome
+   *  email + downstream re-engagement copy. Optional — falls back to
+   *  generic copy when missing. */
+  relationship?: "my-parent" | "my-spouse" | "myself" | "other-family";
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -62,15 +157,66 @@ export async function POST(req: Request) {
   }
   mark("parse_body");
 
-  const { careNeed, age, medicaidStatus, incomeRange, stateCode, firstName, email, matchedPrograms, matchCount } = payload;
+  const {
+    careNeed,
+    age,
+    medicaidStatus,
+    incomeRange,
+    stateCode,
+    firstName,
+    email,
+    phone,
+    contactChannel = "email",
+    providerSlug,
+    relationship,
+    matchedPrograms,
+    matchCount,
+  } = payload;
 
-  // Validate required fields
-  if (!email) {
-    return NextResponse.json({ error: "Email is required." }, { status: 400 });
-  }
-  const normalizedEmail = email.trim().toLowerCase();
-  if (!normalizedEmail.includes("@")) {
-    return NextResponse.json({ error: "Invalid email." }, { status: 400 });
+  // Channel-dependent contact validation. The V3 2-step flow lets the user
+  // pick email or SMS at submit; legacy V2 5-step always sent email.
+  let normalizedEmail = "";
+  let normalizedPhone = "";
+
+  if (contactChannel === "sms") {
+    if (!phone) {
+      return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
+    }
+    const e164 = normalizeUSPhone(phone);
+    if (!e164) {
+      return NextResponse.json({ error: "Please enter a valid US phone number." }, { status: 400 });
+    }
+    normalizedPhone = e164;
+    // Email is optional on SMS path. If provided, still validate (so a stray
+    // junk address doesn't pollute the profile), but don't require it.
+    if (email) {
+      const v = validateEmailStrict(email);
+      if (v.valid) normalizedEmail = email.trim().toLowerCase();
+    }
+  } else {
+    if (!email) {
+      return NextResponse.json({ error: "Email is required." }, { status: 400 });
+    }
+    const v = validateEmailStrict(email);
+    if (!v.valid) {
+      return NextResponse.json(
+        {
+          error: v.error || "Please enter a valid email address.",
+          suggestion: v.suggestion,
+          suggestedEmail: v.suggestedEmail,
+        },
+        { status: 400 },
+      );
+    }
+    normalizedEmail = email.trim().toLowerCase();
+    // V3 email path also accepts an optional phone — captures bonus signal
+    // and enables a follow-up SMS if the user wants both. Validate format
+    // only when provided; ignore silently if it doesn't normalize (don't
+    // 400 the whole submission for a bad bonus field).
+    if (phone) {
+      const e164 = normalizeUSPhone(phone);
+      if (e164) normalizedPhone = e164;
+    }
   }
 
   const db = getAdminClient();
@@ -78,27 +224,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
   }
 
-  // Check if already authenticated AND check provider email block in parallel
-  // (the provider check only matters if the user is anonymous — we'll skip it for logged-in users)
+  // Check if already authenticated AND check provider email/phone block in parallel.
+  // Provider check only matters for anonymous users; authenticated users have
+  // already been validated. We check by whichever contact channel was provided.
   const serverSupabase = await createServerClient();
+  const providerCheckQuery = normalizedEmail
+    ? db.from("business_profiles")
+        .select("id, type")
+        .eq("email", normalizedEmail)
+        .in("type", ["organization", "caregiver", "student"])
+        .limit(1)
+        .maybeSingle()
+    : db.from("business_profiles")
+        .select("id, type")
+        .eq("phone", normalizedPhone)
+        .in("type", ["organization", "caregiver", "student"])
+        .limit(1)
+        .maybeSingle();
+
   const [{ data: { user: currentUser } }, { data: existingProviderProfile }] = await Promise.all([
     serverSupabase.auth.getUser(),
-    db.from("business_profiles")
-      .select("id, type")
-      .eq("email", normalizedEmail)
-      .in("type", ["organization", "caregiver", "student"])
-      .limit(1)
-      .maybeSingle(),
+    providerCheckQuery,
   ]);
   mark("parallel_auth_and_provider_check");
 
-  // Block provider emails (only matters for new user creation; logged-in users with
-  // existing accounts have already been validated)
+  // Block provider emails/phones (only matters for new user creation; logged-in
+  // users with existing accounts have already been validated)
   if (!currentUser && existingProviderProfile) {
+    const channelLabel = normalizedEmail ? "email" : "phone number";
     return NextResponse.json(
       {
-        error: "This email is linked to a provider account. Please use a different email.",
-        code: "PROVIDER_EMAIL",
+        error: `This ${channelLabel} is linked to a provider account. Please use a different ${channelLabel}.`,
+        code: normalizedEmail ? "PROVIDER_EMAIL" : "PROVIDER_PHONE",
       },
       { status: 409 }
     );
@@ -136,7 +293,47 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (account) accountId = account.id;
+  } else if (contactChannel === "sms") {
+    // ── Anonymous SMS path ───────────────────────────────────────────────
+    // Phone-based user creation. Simpler than the email path: no magic-link
+    // session/cookie flow because:
+    //   - The in-session overlay receives match data directly (no need to
+    //     authenticate against Supabase to render it).
+    //   - The user's later access via /m/{token} uses the token as auth, not
+    //     a Supabase session.
+    //   - SMS users can sign in fully later via standard phone OTP if they
+    //     decide to engage with /portal — out of scope for v1.
+    const tCreate = Date.now();
+    const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
+      phone: normalizedPhone,
+      phone_confirm: false,
+      user_metadata: { full_name: displayName, contact_channel: "sms" },
+    });
+    timings["create_user"] = Date.now() - tCreate;
+
+    if (!createUserErr && newUser?.user) {
+      userId = newUser.user.id;
+      isNewUser = true;
+    } else if (
+      createUserErr?.message?.includes("already") ||
+      createUserErr?.message?.includes("exists")
+    ) {
+      // Phone already has a user — for v1 we ask them to use a different
+      // number or sign in. Reconciling cross-channel identities is
+      // structurally complex; deferring until we see real demand.
+      return NextResponse.json(
+        {
+          error: "This phone number is already linked to an Olera account. Please use a different number or sign in.",
+          code: "PHONE_EXISTS",
+        },
+        { status: 409 },
+      );
+    } else {
+      console.error("[save-results] Failed to create user (phone):", createUserErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    }
   } else {
+    // ── Anonymous email path (legacy V2 + V3 email default) ────────────
     // Try to create user
     const tCreate = Date.now();
     const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
@@ -241,13 +438,41 @@ export async function POST(req: Request) {
   const granularCareNeeds = careNeed ? CARE_NEED_MAP[careNeed] || [] : [];
   const stateAbbrev = stateCode?.toUpperCase() || null;
 
+  // Sibling P2 cleanup (partial): previously stored a duplicate
+  // `benefits_results.answers` blob with age/medicaidStatus/incomeRange/
+  // stateCode that all had flat-metadata equivalents — those are dropped.
+  //
+  // We keep a MINIMAL answers blob with just `careNeed` because:
+  //   - The UI care-need bucket ('payingForCare', 'stayingAtHome', etc.) has
+  //     NO flat-metadata equivalent (top-level care_needs is the granular
+  //     array we map TO from careNeed).
+  //   - components/welcome/WelcomeClient.tsx reads benefits_results.answers
+  //     .careNeed for the careNeedLabel switch and the
+  //     careNeedProviderCategory mapping. Removing it entirely broke the
+  //     welcome page for V3 users who arrive via the "See full list" CTA.
+  //
+  // Storing it ONCE here (not at top level) keeps a single source of truth
+  // and matches the V2-era schema, so existing V2 family profiles continue
+  // to render correctly without backfill.
+  // Mirror the V3 enum to the existing free-form display field so every
+  // existing consumer of `relationship_to_recipient` (the /portal/profile
+  // "Who needs care" row, admin/care-seekers view, CarePostSidebar,
+  // ProfileEditWizard, completeness scorer) lights up with V3 data —
+  // no consumer changes needed. We keep `relationship` (enum) too for
+  // our internal personalization logic; the display field is downstream.
+  const relationshipDisplay = relationshipDisplayName(relationship);
+
   const intakeMetadata: Record<string, unknown> = {
     age: age || undefined,
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
     income_range: incomeRange || undefined,
     medicaid_status: medicaidStatus || undefined,
+    // V3 enum — internal use (welcome email phrases, /m/{token} hero copy)
+    relationship: relationship || undefined,
+    // Display value — what /portal/profile and admin pages render
+    relationship_to_recipient: relationshipDisplay || undefined,
     benefits_results: {
-      answers: { careNeed, age, medicaidStatus, incomeRange, stateCode: stateAbbrev },
+      answers: careNeed ? { careNeed } : undefined,
       matchCount,
       completed_at: new Date().toISOString(),
     },
@@ -270,12 +495,20 @@ export async function POST(req: Request) {
         Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
       ),
     };
+    const profileUpdate: Record<string, unknown> = {
+      metadata: mergedMetadata,
+      preferred_contact_channel: contactChannel,
+    };
+    if (stateAbbrev) profileUpdate.state = stateAbbrev;
+    // Don't overwrite an existing email/phone — only fill in if missing.
+    // (Caller may have submitted a different email than what's on file from
+    // a prior provider-claim or save-nudge flow; preserve original to avoid
+    // surprising the user.)
+    if (normalizedEmail) profileUpdate.email = normalizedEmail;
+    if (normalizedPhone) profileUpdate.phone = normalizedPhone;
     const { error: updateErr } = await db
       .from("business_profiles")
-      .update({
-        metadata: mergedMetadata,
-        ...(stateAbbrev ? { state: stateAbbrev } : {}),
-      })
+      .update(profileUpdate)
       .eq("id", familyProfileId);
     if (updateErr) console.error("[save-results] Failed to update family profile:", updateErr);
   } else {
@@ -284,20 +517,23 @@ export async function POST(req: Request) {
     const cleanedMetadata = Object.fromEntries(
       Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
     );
+    const profileInsert: Record<string, unknown> = {
+      account_id: accountId,
+      slug,
+      type: "family",
+      display_name: displayName,
+      state: stateAbbrev,
+      claim_state: "claimed",
+      verification_state: "unverified",
+      source: "benefits_intake",
+      metadata: cleanedMetadata,
+      preferred_contact_channel: contactChannel,
+    };
+    if (normalizedEmail) profileInsert.email = normalizedEmail;
+    if (normalizedPhone) profileInsert.phone = normalizedPhone;
     const { data: newProfile, error: createErr } = await db
       .from("business_profiles")
-      .insert({
-        account_id: accountId,
-        email: normalizedEmail,
-        slug,
-        type: "family",
-        display_name: displayName,
-        state: stateAbbrev,
-        claim_state: "claimed",
-        verification_state: "unverified",
-        source: "benefits_intake",
-        metadata: cleanedMetadata,
-      })
+      .insert(profileInsert)
       .select("id")
       .single();
     if (createErr || !newProfile) {
@@ -307,6 +543,33 @@ export async function POST(req: Request) {
     familyProfileId = newProfile.id;
   }
   mark("profile_resolved");
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 3.5. Issue a benefits-results token for /m/{token} addressable access.
+  //      Token is the auth — anyone with the URL can see this profile's
+  //      matches. Used by the post-submit overlay (in-session) AND by the
+  //      welcome email/SMS magic link (post-session). Skipped when we
+  //      don't have enough info to render the page (no careNeed or state).
+  // ═══════════════════════════════════════════════════════════════════
+  let benefitsToken: string | null = null;
+  if (careNeed && stateAbbrev) {
+    benefitsToken = generateBenefitsToken();
+    const { error: tokenErr } = await db.from("benefits_results_tokens").insert({
+      token: benefitsToken,
+      profile_id: familyProfileId,
+      care_need: careNeed,
+      state_code: stateAbbrev,
+      provider_slug: providerSlug || null,
+      match_count: matchCount,
+    });
+    if (tokenErr) {
+      // Token issuance is best-effort — the in-session overlay still works
+      // because it has match data passed directly. We log and continue.
+      console.error("[save-results] Token issuance failed:", tokenErr);
+      benefitsToken = null;
+    }
+  }
+  mark("token_issued");
 
   // ═══════════════════════════════════════════════════════════════════
   // 4. Parallelize: set active profile + batch-save matching programs
@@ -378,9 +641,13 @@ export async function POST(req: Request) {
       return `up to ${matches[matches.length - 1]}/yr`;
     })();
 
+    // Slack alert lists the actual contact (email if email-path, phone if SMS).
+    // The helper's `email` field is the contact display — we pass whichever
+    // channel the user chose. Refining the helper to know about channel is
+    // out of scope for this PR.
     const alert = slackBenefitsCompleted({
       familyName: displayName,
-      email: normalizedEmail,
+      email: normalizedEmail || normalizedPhone || "(no contact)",
       stateCode: stateAbbrev,
       careNeedLabel,
       age: age || null,
@@ -397,51 +664,141 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 6. Send magic link email — TRULY fire-and-forget so the response
-  //    doesn't wait on Resend (~500-1500ms) or another generateLink (~200-400ms)
+  // 6. Send welcome notifications — TRULY fire-and-forget so the response
+  //    doesn't wait on Resend (~500-1500ms) / Twilio (~200-800ms).
+  //
+  //    V3 design: email is always primary (and required on the new flow);
+  //    if the user also gave a phone, we ALSO send an SMS. Both fire in
+  //    parallel for new users.
+  //
+  //    Email body delivers REAL value — top 5 matched programs as a
+  //    state-filtered starter list, personalized for relationship, primary
+  //    CTA goes to /m/{token} (token IS the auth — no magic-link redirect
+  //    indirection). This is the bar TJ set in the task: "real value before
+  //    we capture at scale" — 95% of users won't engage with email, so when
+  //    one does, the email needs to be worth their time.
   // ═══════════════════════════════════════════════════════════════════
-  if (isNewUser) {
+  if (isNewUser && normalizedEmail) {
     (async () => {
       try {
-        const { data: linkData } = await authClient.auth.admin.generateLink({
-          type: "magiclink",
-          email: normalizedEmail,
-          options: { redirectTo: `${siteUrl}/portal` },
-        });
-        const actionLink = linkData?.properties?.action_link;
-        if (!actionLink) return;
+        const stateNameForEmail = stateDisplayName(stateAbbrev);
+        const careLabel = careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
+        const familyPhrase = relationshipFamilyPhrase(relationship);
+        const possessive = relationshipPossessive(relationship);
 
+        // Top 5 programs for the starter list. Limit chosen for inbox
+        // scannability — anything past 5 in an email feels like a wall.
+        // Full list lives at /m/{token} via the CTA below.
+        const topMatches = matchedPrograms.slice(0, 5);
+        const programsHtml = topMatches
+          .map((p) => {
+            const programLink = `${siteUrl}/benefits/${p.stateId}/${p.programId}`;
+            const savings = topSavingsCopy(p.savingsRange);
+            const name = p.shortName || p.name;
+            return `
+              <a href="${programLink}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
+                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
+                  ${name}
+                </div>
+                ${savings
+                  ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${savings}</div>`
+                  : ""}
+              </a>
+            `;
+          })
+          .join("");
+
+        const matchesUrl = benefitsToken
+          ? `${siteUrl}/m/${benefitsToken}`
+          : `${siteUrl}/portal`;
+
+        // Subject — personalized when relationship known, falls back cleanly.
+        const subject =
+          matchCount > 0
+            ? `${possessive} ${matchCount} care benefit ${matchCount === 1 ? "match" : "matches"} in ${stateNameForEmail}`
+            : `Care benefit programs in ${stateNameForEmail}`;
+
+        const emailType = "benefits_results_saved";
         const emailLogId = await reserveEmailLogId({
           to: normalizedEmail,
-          subject: "Your Olera benefits results are saved",
-          emailType: "benefits_results_saved",
+          subject,
+          emailType,
           recipientType: "family",
         });
-        const trackedLink = appendTrackingParams(actionLink, emailLogId);
+        const trackedMatchesUrl = appendTrackingParams(matchesUrl, emailLogId);
+
+        // Hero copy adapts to whether we found matches.
+        const heroLine =
+          matchCount > 0
+            ? `We found <strong>${matchCount} ${matchCount === 1 ? "program" : "programs"}</strong> in ${stateNameForEmail} that may help with ${careLabel} for ${familyPhrase}.`
+            : `We saved your search. We'll keep an eye out for ${stateNameForEmail} programs that may help with ${careLabel}.`;
+
         await sendEmail({
           to: normalizedEmail,
-          subject: "Your Olera benefits results are saved",
+          subject,
           html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-              <h2 style="font-size: 22px; margin: 0 0 16px;">Hi ${hasRealName ? displayName : "there"},</h2>
-              <p style="font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                You just explored benefits programs your family may qualify for on Olera. We saved ${matchCount} matching ${matchCount === 1 ? "program" : "programs"} to your profile.
-              </p>
-              <p style="font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                Click below to come back anytime:
-              </p>
-              <a href="${trackedLink}" style="display: inline-block; background: #111827; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
-                View my saved benefits →
-              </a>
-              <p style="font-size: 13px; color: #6b7280; margin-top: 32px;">
-                This link will log you in instantly — no password needed. It works for 24 hours.
-              </p>
-            </div>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
+    Hi ${hasRealName ? displayName : "there"},
+  </p>
+
+  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
+    ${heroLine}
+  </h1>
+
+  ${topMatches.length > 0
+    ? `
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
+    Here are the top ${topMatches.length} matches we saved for you. Tap any program to see eligibility and how to apply:
+  </p>
+
+  <div style="margin: 0 0 32px;">
+    ${programsHtml}
+  </div>
+  `
+    : ""}
+
+  <a href="${trackedMatchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    View ${matchCount > 0 ? `all ${matchCount} ` : ""}matches →
+  </a>
+
+  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
+  </p>
+</div>
           `,
           emailLogId: emailLogId ?? undefined,
         });
       } catch (emailErr) {
         console.error("[save-results] Failed to send welcome email:", emailErr);
+      }
+    })();
+  }
+
+  // Bonus SMS — fires in parallel with email when the user provided a phone
+  // (V3 phone-as-optional). Either channel can fail without affecting the
+  // other; both are best-effort. Body is relationship-aware where helpful
+  // (160-char SMS budget caps how much personalization we can fit).
+  if (isNewUser && normalizedPhone && benefitsToken) {
+    (async () => {
+      const programWord = matchCount === 1 ? "program" : "programs";
+      const familyPhrase = relationshipFamilyPhrase(relationship);
+      const url = `${siteUrl}/m/${benefitsToken}`;
+      const body =
+        matchCount > 0
+          ? `Olera: We found ${matchCount} care benefit ${programWord} for ${familyPhrase}. View: ${url} Reply STOP to opt out.`
+          : `Olera: Your care benefit search is saved. We'll keep looking. View: ${url} Reply STOP to opt out.`;
+      const result = await sendSMS({ to: normalizedPhone, body });
+      if (!result.success) {
+        console.error("[save-results] SMS send failed:", result.error);
+        // Twilio error 21610 = recipient texted STOP previously. Update profile.
+        if (result.error?.includes("21610")) {
+          await db
+            .from("business_profiles")
+            .update({ phone_validity: "opted_out" })
+            .eq("id", familyProfileId);
+        }
       }
     })();
   }
@@ -463,6 +820,8 @@ export async function POST(req: Request) {
     isNewUser,
     matchCount,
     programsSaved: matchedPrograms.length,
+    token: benefitsToken,
+    contactChannel,
   });
 
   if (accessToken && refreshToken) {

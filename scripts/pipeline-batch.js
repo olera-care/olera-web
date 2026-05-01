@@ -143,6 +143,11 @@ const CATEGORY_MAP = {
 
 const NON_CMS_CATEGORIES = ['Assisted Living', 'Memory Care', 'Home Care (Non-medical)', 'Independent Living'];
 
+const VALID_CATEGORIES = new Set([
+  'Home Care (Non-medical)', 'Home Health Care', 'Assisted Living',
+  'Independent Living', 'Memory Care', 'Nursing Home',
+]);
+
 // Shared definitions used by all entity-verification prompts.
 // Source of truth: docs/provider-category-definitions.md + docs/data-sweep-runbook.md.
 const SIX_CATEGORY_DEFINITIONS = `Olera matches care seekers to providers in EXACTLY 6 categories:
@@ -177,6 +182,74 @@ const KEYWORD_BLOCKLIST = [
   'staffing agency', 'storage', 'plumbing', 'construction', 'insurance',
   'real estate', 'auto', 'restaurant', 'grocery', 'hardware',
 ];
+
+// Tier 1 deterministic deletion regex — ported from docs/data-sweep-runbook.md.
+// Only the `default_checked: true` buckets (sweep #1's near-zero-FP rate). Lower-
+// confidence buckets (pure hospice, adult-day, hospital/clinic, gov-office) are
+// intentionally excluded — those need human review and live in the sweep.
+const SLAM_DUNK_DELETE_REGEX = [
+  /^(walgreens|cvs|rite aid|rite-aid)\b/i,                                          // pharmacy chains
+  /^(apria|lincare)\b/i,                                                            // DME chains
+  /\b(funeral|mortuary|crematory|crematorium)\b/i,                                  // funeral
+  /\b(wedding|banquet hall|event venue|reception hall)\b/i,                         // wedding/event venues
+  /\b(anytime fitness|onelife fitness|peak fitness|24 hour fitness|equinox|orange ?theory|pilates|yoga studio)\b/i, // fitness
+  /\bPACE\b/,                                                                        // PACE programs (case-sensitive: avoids "pace of grace", etc.)
+  /(\basilo\b|estancia geri[áa]trica|casa sacerdotal|adultos mayores|\bA\.?C\.?$)/i, // Spanish-language / non-US facility names
+  /\((test|demo|placeholder|dummy)\)/i,                                              // test data leakage
+];
+
+// Tier 1 deterministic reclassification — slam-dunk wrong-category fixes.
+// Order matters: HC franchise wins first, then HHC brand, then explicit-name.
+// Skip combined-category providers (current category contains `|`) — those
+// are explicit multi-level facilities and need LLM/human judgment.
+const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care)\b/i;
+const HHC_BRAND_REGEX    = /\b(amedisys|encompass health home health|kindred at home|bayada home health|interim healthcare|interim health ?care|lhc group)\b/i;
+const NH_EXPLICIT_REGEX  = /\b(skilled nursing facility|skilled nursing & rehab|skilled nursing and rehab|convalescent hospital|skilled nursing center)\b/i;
+const MC_EXPLICIT_REGEX  = /\bmemory care\b/i;
+const IL_EXPLICIT_REGEX  = /\bindependent living\b/i;
+const AL_EXPLICIT_REGEX  = /\bassisted living\b/i;
+
+// Returns the slam-dunk category for a name, or null if no deterministic match.
+// Caller is responsible for skipping combined-category rows.
+function slamDunkReclass(name) {
+  if (!name) return null;
+  if (HC_FRANCHISE_REGEX.test(name)) return 'Home Care (Non-medical)';
+  if (HHC_BRAND_REGEX.test(name))    return 'Home Health Care';
+  if (NH_EXPLICIT_REGEX.test(name))  return 'Nursing Home';
+  const hasMC = MC_EXPLICIT_REGEX.test(name);
+  const hasIL = IL_EXPLICIT_REGEX.test(name);
+  const hasAL = AL_EXPLICIT_REGEX.test(name);
+  if (hasMC && !hasAL && !hasIL) return 'Memory Care';
+  if (hasIL && !hasAL && !hasMC) return 'Independent Living';
+  if (hasAL && !hasMC && !hasIL) return 'Assisted Living';
+  return null;
+}
+
+// Google Places types — extra deterministic reject layer beyond KEYWORD_BLOCKLIST.
+// Reject only when a place has a reject-type AND no save-type (so combined-service
+// facilities tagged with both `health` and a borderline type stay in for LLM review).
+const PLACES_REJECT_TYPES = new Set([
+  'bar', 'bakery', 'cafe', 'meal_takeaway', 'meal_delivery',
+  'night_club', 'casino', 'movie_theater', 'bowling_alley',
+  'amusement_park', 'zoo', 'aquarium', 'art_gallery', 'museum', 'tourist_attraction',
+  'gas_station', 'car_dealer', 'car_repair',
+  'airport', 'train_station', 'subway_station', 'bus_station', 'transit_station', 'light_rail_station', 'taxi_stand',
+  'shopping_mall', 'clothing_store', 'shoe_store', 'jewelry_store', 'book_store',
+  'electronics_store', 'furniture_store', 'home_goods_store',
+  'supermarket', 'convenience_store', 'liquor_store', 'pet_store', 'florist',
+  'cemetery', 'atm',
+]);
+const PLACES_SAVE_TYPES = new Set([
+  'assisted_living_facility', 'nursing_home', 'health', 'doctor', 'physiotherapist', 'hospital',
+]);
+
+// Returns true if the place's `types` field signals a deterministic reject.
+function placesTypesReject(typesStr) {
+  if (!typesStr) return false;
+  const types = typesStr.toLowerCase().split(/[,\s]+/).filter(Boolean);
+  if (types.some(t => PLACES_SAVE_TYPES.has(t))) return false;
+  return types.some(t => PLACES_REJECT_TYPES.has(t));
+}
 
 const DESC_TEMPLATES = {
   'Assisted Living': { article: 'an', desc: 'assisted living community offering personal care support and daily living assistance' },
@@ -516,7 +589,7 @@ function discoveryCsvForCity(expansionDir, city, state) {
 function readyCityList(expansionDir) {
   // Find all city dirs that have a discovery CSV
   if (!fs.existsSync(expansionDir)) return [];
-  return fs.readdirSync(expansionDir)
+  const all = fs.readdirSync(expansionDir)
     .filter(d => {
       const parts = d.split('-');
       return parts.length >= 2 && fs.statSync(path.join(expansionDir, d)).isDirectory();
@@ -529,6 +602,20 @@ function readyCityList(expansionDir) {
       return { city, state, dir: d, csvPath: csv };
     })
     .filter(c => c.csvPath);
+  // Dedup by normalized (city, state) key — older runs sometimes left dirs in
+  // different naming conventions (space vs hyphen), and both would otherwise
+  // process as separate cities racing to upsert the same provider_ids. Pick
+  // the entry whose CSV has the most recent mtime (freshest discovery wins).
+  const byKey = new Map();
+  for (const c of all) {
+    const key = c.city.toLowerCase().replace(/\s+/g, '-') + '|' + c.state.toUpperCase();
+    const existing = byKey.get(key);
+    if (!existing) { byKey.set(key, c); continue; }
+    const existingMtime = fs.statSync(existing.csvPath).mtimeMs;
+    const candidateMtime = fs.statSync(c.csvPath).mtimeMs;
+    if (candidateMtime > existingMtime) byKey.set(key, c);
+  }
+  return [...byKey.values()];
 }
 
 function parseBatchMd(mdPath) {
@@ -555,31 +642,38 @@ async function phaseClean(cities, opts) {
   console.log(`${'='.repeat(70)}`);
   console.log(`  Cities: ${cities.length}`);
 
-  // Step 1: Load dedup sets ONCE — live from Supabase (not stale CSV)
+  // Step 1: Load dedup sets ONCE — live from Supabase (active + soft-deleted).
+  // Soft-deleted rows are tracked separately so the pipeline never re-adds a
+  // provider the sweep removed (and per-city log surfaces the count).
   console.log(`\n  Loading dedup data from Supabase (live)...`);
-  const dedupNameSet = new Set();    // name|state for name-based dedup
-  const dedupPlaceSet = new Set();   // place_id for exact-match dedup
+  const dedupNameSet = new Set();      // active providers: name|state
+  const dedupPlaceSet = new Set();     // active providers: place_id
+  const deletedNameSet = new Set();    // sweep-deleted: name|state — never re-add
+  const deletedPlaceSet = new Set();   // sweep-deleted: place_id
   let offset = 0;
   const PAGE = 1000;
   while (true) {
     const { data, error } = await supabase
       .from('olera-providers')
-      .select('provider_name, state, place_id')
-      .eq('deleted', false)
+      .select('provider_name, state, place_id, deleted')
       .range(offset, offset + PAGE - 1);
     if (error || !data || data.length === 0) break;
     for (const row of data) {
-      if (row.provider_name && row.state) {
-        dedupNameSet.add(row.provider_name.trim().toLowerCase() + '|' + row.state.trim().toUpperCase());
-      }
-      if (row.place_id) {
-        dedupPlaceSet.add(row.place_id);
+      const nameKey = row.provider_name && row.state
+        ? row.provider_name.trim().toLowerCase() + '|' + row.state.trim().toUpperCase()
+        : null;
+      if (row.deleted === true) {
+        if (nameKey) deletedNameSet.add(nameKey);
+        if (row.place_id) deletedPlaceSet.add(row.place_id);
+      } else {
+        if (nameKey) dedupNameSet.add(nameKey);
+        if (row.place_id) dedupPlaceSet.add(row.place_id);
       }
     }
     offset += data.length;
     if (data.length < PAGE) break;
   }
-  console.log(`  Dedup sets loaded: ${dedupNameSet.size} names, ${dedupPlaceSet.size} place_ids (live from Supabase)`);
+  console.log(`  Dedup sets loaded: ${dedupNameSet.size} active names / ${dedupPlaceSet.size} active place_ids; ${deletedNameSet.size} prior-sweep names / ${deletedPlaceSet.size} prior-sweep place_ids`);
 
   // Step 2: Process cities
   // Pooled classify (non-watch mode) vs per-city streaming (watch mode)
@@ -609,7 +703,7 @@ async function phaseClean(cities, opts) {
         console.log(`    CSV arrived: ${path.basename(csvPath)}`);
       }
 
-      await cleanCityPerCity(c, i, cities.length, csvPath, opts, dedupNameSet, dedupPlaceSet);
+      await cleanCityPerCity(c, i, cities.length, csvPath, opts, dedupNameSet, dedupPlaceSet, deletedNameSet, deletedPlaceSet);
     }
   } else {
     // --- POOLED MODE: global keyword filter → global AI classify → per-city finalize ---
@@ -634,12 +728,15 @@ async function phaseClean(cities, opts) {
       let providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
       const discovered = providers.length;
       providers = providers.filter(row => {
-        const name = (row.provider_name || '').toLowerCase();
+        const name = row.provider_name || '';
         const cat = (row.provider_category || '').toLowerCase();
         const types = (row.types || '').toLowerCase();
-        const combined = name + ' ' + cat + ' ' + types;
+        const combined = name.toLowerCase() + ' ' + cat + ' ' + types;
         if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
         if ((row.business_status || '').includes('CLOSED')) return false;
+        if ((row.country || '').toUpperCase() && (row.country || '').toUpperCase() !== 'US') return false;
+        if (SLAM_DUNK_DELETE_REGEX.some(re => re.test(name))) return false;
+        if (placesTypesReject(row.types)) return false;
         return true;
       });
       const afterKeyword = providers.length;
@@ -689,7 +786,12 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one o
               const idx = (r.num || 0) - 1;
               if (idx >= 0 && idx < batch.length) {
                 resultNums.add(r.num);
-                if (r.is_senior_care) keepSet.add(batch[idx].p);
+                if (r.is_senior_care) {
+                  keepSet.add(batch[idx].p);
+                  if (r.category && VALID_CATEGORIES.has(r.category)) {
+                    batch[idx].p._llm_category = r.category;
+                  }
+                }
               }
             }
             // Unreturned entries: keep to be safe
@@ -717,7 +819,7 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one o
     // Pass 3: per-city finalize (category map + name clean + dedup + IDs + write JSON)
     console.log(`\n  Pass 3/3: per-city finalize...`);
     for (const cd of cityData) {
-      await finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet);
+      await finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet, deletedNameSet, deletedPlaceSet);
     }
   }
 
@@ -725,7 +827,7 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one o
 }
 
 // Helper: run the full per-city clean pipeline for a single city (watch mode path).
-async function cleanCityPerCity(c, i, total, csvPath, opts, dedupNameSet, dedupPlaceSet) {
+async function cleanCityPerCity(c, i, total, csvPath, opts, dedupNameSet, dedupPlaceSet, deletedNameSet, deletedPlaceSet) {
   const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
   if (fs.existsSync(readyPath) && !opts.force) {
     const existing = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
@@ -740,12 +842,15 @@ async function cleanCityPerCity(c, i, total, csvPath, opts, dedupNameSet, dedupP
   const discovered = providers.length;
 
   providers = providers.filter(row => {
-    const name = (row.provider_name || '').toLowerCase();
+    const name = row.provider_name || '';
     const cat = (row.provider_category || '').toLowerCase();
     const types = (row.types || '').toLowerCase();
-    const combined = name + ' ' + cat + ' ' + types;
+    const combined = name.toLowerCase() + ' ' + cat + ' ' + types;
     if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
     if ((row.business_status || '').includes('CLOSED')) return false;
+    if ((row.country || '').toUpperCase() && (row.country || '').toUpperCase() !== 'US') return false;
+    if (SLAM_DUNK_DELETE_REGEX.some(re => re.test(name))) return false;
+    if (placesTypesReject(row.types)) return false;
     return true;
   });
   const afterKeyword = providers.length;
@@ -778,7 +883,12 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one o
           const results = parsed.results || [];
           for (const r of results) {
             const idx = (r.num || 0) - 1;
-            if (idx >= 0 && idx < batch.length && r.is_senior_care) kept.push(batch[idx]);
+            if (idx >= 0 && idx < batch.length && r.is_senior_care) {
+              if (r.category && VALID_CATEGORIES.has(r.category)) {
+                batch[idx]._llm_category = r.category;
+              }
+              kept.push(batch[idx]);
+            }
           }
           const resultNums = new Set(results.map(r => r.num));
           for (let j = 0; j < batch.length; j++) {
@@ -798,19 +908,34 @@ Return JSON: {"results": [{"num": 1, "is_senior_care": true, "category": "<one o
 
   await finalizeCityClean(
     { c, providers, discovered, afterKeyword, afterAI },
-    opts, dedupNameSet, dedupPlaceSet
+    opts, dedupNameSet, dedupPlaceSet, deletedNameSet, deletedPlaceSet
   );
 }
 
 // Helper: category map + name clean + dedup + IDs + write JSON + log (shared by both modes).
-async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet) {
+async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet, deletedNameSet, deletedPlaceSet) {
   const { c, discovered, afterKeyword, afterAI } = cd;
   let providers = cd.providers;
 
-  // Category mapping
+  // Category resolution: discovery-mapped → Tier 1 reclass → LLM override.
+  // Skip combined-category rows (`AL | MC`) — those need LLM/human judgment.
+  let tier1Reclassed = 0, llmReclassed = 0;
   for (const p of providers) {
     const mapped = CATEGORY_MAP[p.provider_category];
     if (mapped) p.provider_category = mapped;
+
+    const isCombined = (p.provider_category || '').includes('|');
+    if (!isCombined) {
+      const t1 = slamDunkReclass(p.provider_name);
+      if (t1 && t1 !== p.provider_category) {
+        p.provider_category = t1;
+        tier1Reclassed++;
+      } else if (p._llm_category && p._llm_category !== p.provider_category) {
+        p.provider_category = p._llm_category;
+        llmReclassed++;
+      }
+    }
+    delete p._llm_category;
   }
 
   // Name cleaning
@@ -823,20 +948,45 @@ async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet) {
     if (p.provider_name !== orig) namesCleaned++;
   }
 
-  // Dedup
+  // Dedup — split into prior-sweep rejects (deleted=true rows) vs active duplicates.
+  // Prior-sweep rejects mean the sweep already removed this provider; never re-add.
+  let priorSweepRejected = 0;
   const beforeDedup = providers.length;
   providers = providers.filter(p => {
-    if (p.place_id && dedupPlaceSet.has(p.place_id)) return false;
     const key = p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase();
+    if ((p.place_id && deletedPlaceSet && deletedPlaceSet.has(p.place_id)) || (deletedNameSet && deletedNameSet.has(key))) {
+      priorSweepRejected++;
+      return false;
+    }
+    if (p.place_id && dedupPlaceSet.has(p.place_id)) return false;
     return !dedupNameSet.has(key);
   });
-  const dupes = beforeDedup - providers.length;
+  const dupes = beforeDedup - providers.length - priorSweepRejected;
 
-  // IDs + slugs
+  // IDs + slugs — start sequence from max(existing) + 1 so new rows never overwrite
+  // soft-deleted slots (which would corrupt sweep audit history). Without this guard,
+  // sequential `0001` assignment collides with previously-soft-deleted rows in the
+  // same city and the upsert flips them to active with stale deleted_at preserved.
+  // ORDER BY DESC + LIMIT 1 returns the lexicographically largest ID, which equals
+  // the numerically largest because suffixes are zero-padded to 4 digits. Avoids
+  // the implicit 1000-row cap on a non-paginated select.
   const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
   const stateSlug = c.state.toLowerCase();
+  const idPrefix = `${citySlug}-${stateSlug}-`;
+  let maxSuffix = 0;
+  const { data: maxRow } = await supabase
+    .from('olera-providers')
+    .select('provider_id')
+    .like('provider_id', `${idPrefix}%`)
+    .order('provider_id', { ascending: false })
+    .limit(1);
+  if (maxRow && maxRow.length > 0) {
+    const m = maxRow[0].provider_id?.match(/-(\d+)$/);
+    if (m) maxSuffix = parseInt(m[1], 10);
+  }
+  const startId = maxSuffix + 1;
   for (let j = 0; j < providers.length; j++) {
-    providers[j].provider_id = `${citySlug}-${stateSlug}-${String(j + 1).padStart(4, '0')}`;
+    providers[j].provider_id = `${idPrefix}${String(startId + j).padStart(4, '0')}`;
     providers[j].slug = slug(providers[j].provider_name, c.city, c.state);
     if (!providers[j].city) providers[j].city = c.city;
     if (!providers[j].state) providers[j].state = c.state;
@@ -851,8 +1001,13 @@ async function finalizeCityClean(cd, opts, dedupNameSet, dedupPlaceSet) {
   for (const p of providers) cats[p.provider_category] = (cats[p.provider_category] || 0) + 1;
   const catStr = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}: ${v}`).join(', ');
 
-  console.log(`    ${c.city}, ${c.state}: ${discovered} → kw:${afterKeyword} → ai:${afterAI} → dedup:-${dupes} → ready:${providers.length}`);
-  console.log(`    ${catStr}${namesCleaned > 0 ? ` | ${namesCleaned} names cleaned` : ''}`);
+  const priorSweepStr = priorSweepRejected > 0 ? ` → prior-sweep:-${priorSweepRejected}` : '';
+  console.log(`    ${c.city}, ${c.state}: ${discovered} → kw:${afterKeyword} → ai:${afterAI}${priorSweepStr} → dedup:-${dupes} → ready:${providers.length}`);
+  const reclassParts = [];
+  if (namesCleaned > 0) reclassParts.push(`${namesCleaned} names cleaned`);
+  if (tier1Reclassed > 0) reclassParts.push(`t1-reclass:${tier1Reclassed}`);
+  if (llmReclassed > 0) reclassParts.push(`llm-reclass:${llmReclassed}`);
+  console.log(`    ${catStr}${reclassParts.length ? ` | ${reclassParts.join(', ')}` : ''}`);
 
   for (const p of providers) {
     dedupNameSet.add(p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase());
@@ -947,6 +1102,7 @@ async function phaseLoad(cities, opts) {
           place_id: row.place_id || null,
           slug: s,
           deleted: false,
+          deleted_at: null,
         };
       });
 
@@ -1538,13 +1694,16 @@ async function main() {
 
   // --cities filter: narrow the list to an explicit allowlist (reprocess mode).
   // Format: "City1,ST;City2,ST" — matches by (city, state) case-insensitively.
+  // Whitespace and hyphens are normalized to a common form so that dir-derived
+  // names like "Hacienda-Heights" match user input "Hacienda Heights".
   if (opts.citiesFilter) {
-    const keyOf = c => `${c.city.toLowerCase()}|${c.state.toUpperCase()}`;
+    const normalizeCity = s => s.toLowerCase().replace(/\s+/g, '-');
+    const keyOf = c => `${normalizeCity(c.city)}|${c.state.toUpperCase()}`;
     const allowlist = new Set(
       opts.citiesFilter.split(';').map(pair => {
         const [city, state] = pair.split(',').map(s => (s || '').trim());
         if (!city || !state) return null;
-        return `${city.toLowerCase()}|${state.toUpperCase()}`;
+        return `${normalizeCity(city)}|${state.toUpperCase()}`;
       }).filter(Boolean)
     );
     const originalCount = cities.length;

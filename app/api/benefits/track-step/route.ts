@@ -47,6 +47,10 @@ export async function POST(request: Request) {
     const stepName: string | null = body.stepName || null;
     const timeOnStepMs: number | null = typeof body.timeOnStepMs === "number" ? body.timeOnStepMs : null;
     const variant: string | null = body.variant || null;
+    // V3 per-card pickup tracking — only present on benefits_step_completed
+    // for stepName === "care-need". Lets the admin funnel break out which of
+    // the four cards is actually pulling clicks.
+    const careNeedSelected: string | null = body.careNeedSelected || null;
 
     const db = getServiceDb();
     if (db && providerSlug && sessionId) {
@@ -63,6 +67,7 @@ export async function POST(request: Request) {
           step_name: stepName,
           time_on_step_ms: timeOnStepMs,
           variant,
+          care_need_selected: careNeedSelected,
         },
       }).then(({ error }: { error: { message: string } | null }) => {
         if (error) console.error(`[track-step] ${event} insert failed:`, error);

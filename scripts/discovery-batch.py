@@ -143,7 +143,7 @@ class BatchDiscovery:
                 'places.location,places.primaryType,places.types,'
                 'places.nationalPhoneNumber,places.internationalPhoneNumber,'
                 'places.websiteUri,places.rating,places.userRatingCount,'
-                'places.businessStatus,nextPageToken'
+                'places.businessStatus,places.addressComponents,nextPageToken'
             )
         }
 
@@ -221,6 +221,16 @@ class BatchDiscovery:
 
             phone = place.get('nationalPhoneNumber') or place.get('internationalPhoneNumber') or ''
 
+            # Country code (ISO 3166-1 alpha-2) from addressComponents — used by
+            # pipeline clean filter to reject non-US placements before any LLM call.
+            # Only use shortText: pipeline checks `country !== 'US'`, so the longText
+            # fallback ("United States") would falsely reject real US providers.
+            country = ''
+            for comp in place.get('addressComponents', []):
+                if 'country' in comp.get('types', []):
+                    country = comp.get('shortText') or ''
+                    break
+
             return {
                 'place_id': place_id,
                 'provider_name': name,
@@ -240,6 +250,7 @@ class BatchDiscovery:
                 'discovery_method': method,
                 'confidence_score': 1.0,
                 'business_status': place.get('businessStatus', ''),
+                'country': country,
             }
         except Exception as e:
             logger.debug(f"Parse error: {e}")

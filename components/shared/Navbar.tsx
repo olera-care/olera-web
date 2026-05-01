@@ -854,8 +854,8 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* For Providers link — hidden for logged-in users (they don't need marketing page) */}
-                    {!isMinimalNav && !hasFamilyProfile && !hasProviderProfile && !hasStudentProfile && (
+                    {/* For Providers link — shown for guests and family accounts, hidden for providers/students */}
+                    {!isMinimalNav && !hasProviderProfile && !hasStudentProfile && (
                       <button
                         onClick={handleForProviders}
                         className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
@@ -1392,8 +1392,8 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  {/* For Providers — hidden for logged-in users (they don't need marketing page) */}
-                  {!hasFamilyProfile && !hasProviderProfile && !hasStudentProfile && (
+                  {/* For Providers — shown for guests and family accounts, hidden for providers/students */}
+                  {!hasProviderProfile && !hasStudentProfile && (
                     <>
                       <div className="my-3 border-t border-gray-100" />
                       <Link

@@ -935,3 +935,54 @@ export function slackBenefitsCompleted(opts: {
     ],
   };
 }
+
+export function slackSaveNudgeConverted(opts: {
+  familyName: string;
+  email: string;
+  savedCount: number;
+  savedProviderNames: string[];
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  const providerWord = opts.savedCount === 1 ? "provider" : "providers";
+  const providerList = opts.savedProviderNames
+    .slice(0, 5)
+    .map((n) => `• ${n}`)
+    .join("\n");
+  const moreText =
+    opts.savedProviderNames.length > 5
+      ? `\n_+${opts.savedProviderNames.length - 5} more_`
+      : "";
+
+  return {
+    text: `Save → Signup: ${opts.familyName} signed up after saving ${opts.savedCount} ${providerWord}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "💾 Save → Signup Conversion", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Family:*\n${opts.familyName}` },
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Providers Saved:*\n${opts.savedCount}` },
+          { type: "mrkdwn", text: `*Source:*\nNudge Toast` },
+        ],
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Saved:*\n${providerList}${moreText}`,
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/admin/activity?actor=families|View Activity>` },
+        ],
+      },
+    ],
+  };
+}

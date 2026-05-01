@@ -8,6 +8,7 @@ import { verificationApprovedEmail } from "@/lib/email-templates";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
+import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 
 // ============================================================
 // Types
@@ -238,6 +239,16 @@ export async function POST(request: NextRequest) {
         profile.slug
       ).catch((err) => {
         console.error("[verify-otp] Error delivering pending connections:", err);
+      });
+
+      // Release pending interviews and notify students (fire-and-forget)
+      publishPendingInterviews(
+        admin,
+        profileId,
+        profile.display_name || "A provider",
+        profile.slug
+      ).catch((err) => {
+        console.error("[verify-otp] Error publishing pending interviews:", err);
       });
 
       console.log(`[verify-otp] Auto-verified ${profile.display_name} via email OTP: ${trustResult.reason}`);

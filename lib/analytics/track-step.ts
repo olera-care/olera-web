@@ -20,6 +20,10 @@ export interface TrackBenefitsEventPayload {
   stepNumber?: number;
   stepName?: string;
   timeOnStepMs?: number;
+  /** V3: which care-need card the user picked at step 1. Lets the admin
+   *  funnel break out per-card pickup rates. Only set on
+   *  `benefits_step_completed` for stepName === "care-need". */
+  careNeedSelected?: string | null;
 }
 
 export function trackBenefitsEvent(payload: TrackBenefitsEventPayload): void {

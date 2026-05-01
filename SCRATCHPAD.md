@@ -7,6 +7,157 @@
 
 ## Current Focus
 
+### 2026-04-30 → 2026-05-01 — SBF redesign (P1) — full V3 stack + Phase 6 + multiple QA-driven fixes shipped to `good-thompson`, awaiting final QA
+
+Branch `good-thompson` has 11 commits covering the complete V3 redesign + welcome-email upgrade + multiple post-QA refinements. **Migrations applied to Supabase** (057, 058, 059). Vercel preview deploys on each push for build validation.
+
+**Plan:** [`plans/sbf-2step-redesign-plan.md`](plans/sbf-2step-redesign-plan.md) — original was 9 phases / 8 PRs; actual ship was 5 commits on a single branch (faster iteration cycle).
+
+**Notion:** [P1 task](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) · [sibling P2 closed via metadata-blob deletion](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) · [SBF Copy Variants tracking DB](https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d) (5 rows seeded — control/money_loss legacy, availability/loss/empathic planned)
+
+**Commits on `good-thompson`:**
+
+- `a9631f90` — Phase 0/1/2: 3 migrations + token lib + email validation extension + Resend bounce → `email_validity` flag + save-results route major update (channel toggle, drops `metadata.benefits_results.answers` duplicate blob, hardened validation, token issuance, SMS-anonymous path via Supabase phone auth, channel-specific welcome dispatch). Backend foundation, silent.
+- `3fe7531e` — Phase 4/5: `ResultsSheet` unified component (mobile bottom sheet / desktop right panel, Telegram-grade animation, body-scroll lock, focus mgmt) + `/m/[token]` standalone page (token-as-auth, no login wall, force-dynamic, noindex robots) + `lib/benefits/provider-tie-in.ts` (heuristic overlap → "Some of these may help cover services at {Provider X}.") + new `panel-in-right` keyframe in globals.css. Components silent — not yet wired.
+- `c749e993` — Phase 3 CUTOVER: variant rename (`control|money_loss` → `availability|loss|empathic`, djb2 mod 3) + rewrote `BenefitsDiscoveryModule` for 2 steps (was 917 → 585 lines) + admin analytics 3-arm split table with auto-collapsing legacy V2 row + `care_need_selected` event property for per-card pickup + provider page passes `care_types`/`category` for tie-in. **Visible change.**
+- `22cb1933` — pre-test review fixes (4 bugs caught before user testing): Twilio Node SDK leaking into client bundle via `lib/twilio` import in ResultsSheet (would have failed prod build); hero copy *"0 programs"* mismatch with empty-state below; last_viewed_at error handler used `.then(undefined, ...)` which never fires for Supabase resolved-with-error promises; `preferred_contact_channel` read from metadata blob instead of column.
+- `ab05f9dd` — 3-step restructure (TJ flagged step 2 felt unnatural): inserted *"Who is care for?"* tap-question between care need + contact (4 cards: parent/spouse/me/other-family) → step 3 H2 personalized via `relationshipPhrase()` ("Save your parent's 11 matches"). Switched framing from "send" to "save" (matches actual experience — matches are computed, we're preserving them). Killed channel toggle in favor of email + phone both visible, phone optional. Combined honest consent. Empathic H2 anchored to state ("Care is expensive in {state}." — was naked). All variant subs use "find" not "show" — fixes show/send framing whiplash.
+- `6a8ec1fe` — Phase 6 welcome email upgrade: replaces generic "your results saved" body with state-filtered top-5 program list, personalized for relationship, primary CTA → `/m/{token}` (token IS auth — dropped Supabase magic-link generateLink + verifyOtp roundtrip, saves ~200-400ms). Subject personalized: "Your parent's 11 care benefit matches in Texas." Email body uses display-font headers, scannable program cards with savings + tap-through to `/benefits/{state}/{programId}`. SMS body also relationship-aware. Helpers extracted: `relationshipFamilyPhrase` / `relationshipPossessive` / `stateDisplayName` / `topSavingsCopy` / `CARE_NEED_LABEL_FOR_COPY`. Drops the unsubscribe link (transactional email; existing `/unsubscribe/[slug]` route is provider-focused).
+- `f936f117` — pre-test review caught critical regression from sibling P2 cleanup: removing `metadata.benefits_results.answers` entirely broke `WelcomeClient.tsx:401-411` which reads `benefitsAnswers.careNeed` for the careNeedLabel switch + careNeedProviderCategory mapping. The UI care-need bucket has NO flat-metadata equivalent (top-level `care_needs` is the granular array). V3 users clicking "See full list at olera.care" from the overlay would land on degraded `/welcome`. Fix: restored minimal `answers: { careNeed }` blob; truly-duplicate fields (age/income/medicaid/stateCode) stayed deleted.
+- `6b77a107` — dejank pass (TJ: "progress bars don't really make sense and the animation transitions look odd and janky"): replaced 3 segmented progress bars with a single proportional bar across the full width (the old design's filled segment only spanned ~30% of visual width — eye reads as "barely started" not "1/3 done"). Added `step-in` keyframe (220ms slide-up + fade) + keyed wrapper `<div key={step}>` so React remounts on step change → animation plays. Dropped indefinite progress-dot pulse (was annoying on step 3 where it never filled). Tightened post-click setTimeout 180ms → 140ms now that step-in animation provides smooth visual continuity.
+- `31bd59f5` — two QA-found bugs: (1) 🔴 clicking match cards → 404. Root cause: `app/benefits/[slug]/[program]/page.tsx`'s `resolveProgram()` only looked up programs in pipelineDrafts, but `getEnrichedProgram` returns waiver-library IDs for any program in base data — those never matched. Added waiver-library fallback path. (2) 🟡 `/portal/profile` "Who needs care" empty after V3 submit. Root cause: V3 wrote relationship to `metadata.relationship` (new V3 enum field) but every existing UI consumer reads `metadata.relationship_to_recipient` (free-form text). Fix: added `relationshipDisplayName()` mapping ("my-parent" → "Parent") and write to BOTH fields. Profile + admin views + completeness scorer all light up.
+- `f0e685bf` — copy refresh based on TJ feedback ("There's help paying for care in Texas + Paying for care as an option as a low-income user"): dropped trust strip (Free · Under a minute · Never sold to insurers · N programs — chrome fighting for attention), bumped subtitle visual weight (text-sm/gray-500 → text-base/gray-700) so it carries the "do this" beat. Reframed H2 vocabulary from "paying for care" (overlapped with the first card label) to "care benefits" (umbrella concept above the cards): availability *"Texas care benefits for families like yours."* / loss *"Most Texas families miss the care benefits they qualify for."* / empathic unchanged. Notion variant rows synced to deployed copy.
+
+**Locked decisions:** retire 5-step entirely (no gated revert — git is revert); 3-arm A/B on entry-point copy (availability/loss/empathic) replaces V2 control/money_loss; "Paying for care" first card (highest pain-universality + H2 fluency across all arms); per-card pickup tracking via `care_need_selected` property on existing `benefits_step_completed` event; phone is now optional bonus signal (not forced channel); welcome notifications fire email always + SMS additionally when phone provided; `/welcome` stays untouched as opt-in destination via "See full list" CTA only. Decision rule = step-1 pickup (39% → 55%+) AND contact submission (8.2% → 15%+); <8% triggers revert.
+
+**Phase 0.1 verification result** (preserved at `scripts/verify-arm-b-dollar-floor.ts`): sampled enriched program data across TX/FL/CA × 4 care needs → 10/12 combos clear the $400/mo floor. `payingForCare` (most-clicked card) clears comfortably everywhere. Two failures: `companionship` in FL+CA (programs match but no savings data). Verdict: ship Arm B as written; "often" qualifier defends population-level claim. Watch for companionship-pickup conversion under Arm B in FL/CA. Logged in Notion `loss` row.
+
+**Audience truth that drove the design:** TJ's sustained-audience knowledge → ~95% of users won't engage with email (and senior-care families are typical users). This made Pattern G (in-session overlay as deliverable) the right move over the original Pattern A (redirect to /welcome): the SESSION is the conversion, email is a backup for the 5%. SMS (~98% read rate) is the strategic upside — driven the channel toggle decision, then evolved to phone-as-optional-bonus when toggle felt too friction-y.
+
+**What's NOT polished (intentionally — known follow-up phases):**
+- ~~Phase 6: welcome email body~~ ✅ shipped in `6a8ec1fe` — state-filtered top-5 list, personalized, links to `/m/{token}`
+- Phase 7: Privacy policy page not yet updated. Inline consent text in module IS shipped.
+- Phase 8: Admin per-card pickup chart not yet — data flowing via `care_need_selected` event property, just no UI exposure.
+- Phase 9: Notion legacy `control`/`money_loss` archival → wait for V3 to have a few weeks of data before flipping their Status to Archived with final numbers.
+
+**Pre-test reviews caught real bugs at every stage:**
+- 4 bugs in initial cutover (Twilio in client bundle, hero "0 programs" mismatch, last_viewed_at error swallow, preferred_contact_channel from wrong location)
+- 1 bug after Phase 6 (sibling P2 cleanup over-deletion broke WelcomeClient)
+- 0 bugs in dejank pass (clean)
+- 2 bugs from QA on preview (404 on match clicks, "Who needs care" empty)
+The pattern of every-pass-finds-1-4-bugs continues to hold. Skipping the pre-test would have shipped most of these.
+
+**Surprising data discoveries that shape the system:**
+- `getEnrichedProgram` returns the waiver-library ID for any program in base data, even when a draft fuzzy-matches it. Pipeline-only programs return draft IDs. Mixed sourcing of IDs means routes that consume "any program ID" need to handle both. The `/benefits/[slug]/[program]` route was waiver-library-blind — fixed in `31bd59f5`.
+- `metadata.relationship_to_recipient` is the canonical display field across `/portal/profile`, admin views, CarePostSidebar, ProfileEditWizard, completeness scorer. Anything writing relationship data to a different field is invisible to the existing UI. V3 now writes both the enum and the display version.
+- Removing the `benefits_results.answers` blob entirely is NOT safe even though most fields have flat-metadata equivalents — `answers.careNeed` (UI bucket) has no flat equivalent. Single source of truth is fine; over-deleting breaks downstream consumers.
+
+**Vercel preview status:** auto-deploys on each push to `good-thompson`. PR creation URL: https://github.com/olera-care/olera-web/pull/new/good-thompson
+
+### 2026-04-30 — SBF redesign — original planning entry (kept for context)
+
+Cutting the embedded SBF on provider pages from 5 steps to 2 (care need → contact). Silent profile creation via existing `/api/benefits/save-results`. Pattern G post-submit: side-panel/bottom-sheet overlay on the provider page, not a redirect to `/welcome`. Same component renders at new `/m/[token]` route. Email or SMS — user picks. Three copy arms (`availability` / `loss` / `empathic`) replace the existing copy A/B.
+
+**Locked decisions** (from extended exploration with TJ): retire 5-step entirely (no gated revert — git is revert), three copy arms in 3-way A/B, refined trust strip (drops "Private" filler + the now-false "No signup to start"), 4 cards reordered with "Paying for care" first (highest pain-universality + H2 fluency), per-card pickup tracking, contact channel toggle (email default, SMS opt-in via existing Twilio infra) — TJ's audience knowledge = ~95% won't engage with email, so SMS (~98% read rate) is the strategic upside. Pattern G makes the in-session experience the deliverable rather than email follow-up. `/welcome` stays untouched as opt-in destination only. Decision rule = two metrics: step-1 pickup (39% → 55%+) AND contact submission (8.2% → 15%+ for clear win, <8% revert).
+
+**Pre-implementation check** (Phase 0): sample SBF match output for $400+ floor in Arm B's subhead; if matched programs don't credibly hit that range, soften Arm B to drop the dollar specificity.
+
+### 2026-04-30 — /product-led-growth strategic session: revenue architecture embedded, 5 Notion tasks queued
+
+Long strategic session. Started as a /product-led-growth daily run, surfaced a 3-day state drift (post-answer hook shipped 4/29 across 9 PRs, never tracked on Active Experiments board), pivoted into a deep revenue conversation, ended with 5 tasks on the Web App Action Items board and the slash command rewired to load revenue context up front.
+
+**State hygiene first.** Post-answer hook (Strategic Backlog #5 / TJ Task B) finally landed on the Active Experiments board with shipped 2026-04-29, decide-by 2026-05-13. Strategic Backlog row 5 status updated to shipped. Run entry appended to the Running Thread. Daily Report created at https://app.notion.com/p/3525903a0ffe81ea978cd7a9c0e30bb5. Three skipped daily runs (4/27-29) had let the post-answer hook ship into prod with no measurement plan or kept/rolled-back trigger — the failure mode the Running Thread exists to prevent.
+
+**Pulled real funnel data instead of relying on the screenshot.** 7d window: page views 9x prior week (642 → 5,996), question volume slightly down (497 → 458), provider distinct sign-ins flat (25 → 25), benefits intake completion 7/50 = 14%. Q&A funnel cohort: 377 sent → 145 opened (56% of delivered) → 110 clicked (76% of opened) → 25 signed in (~23% of clicked) → 21 answered (84% of signed-in). My initial "click-to-signin leak" framing was sloppy because of time-window misalignment between email-send-date and activity-event-date. TJ called it: "providers are skeptical, get tons of spam, don't know we're legit." The right read on the Q&A funnel is provider trust, not a backend bug. Could spend hours diagnosing residual unexplained drop — agreed not the highest-leverage next move.
+
+**The 96% asker orphan rate is the actual structural ceiling.** 458 weekly questions, only ~12 askers leave email (3-4%). One `questionAnsweredEmail` actually fires per week (because asker_email is empty for 96% of askers). My family-return instrumentation play was dead in the water as framed — the link doesn't exist for 96% of askers. This is the variable that bounds revenue across all three streams.
+
+**Revenue architecture conversation.** TJ pushed back on me re-explaining what he'd already documented. Read what I'd missed: `/Users/tfalohun/Desktop/olera-hq/strategy/BUSINESS-MODEL.md` (canonical) + Olera Strategic Narrative (Notion `3025903a-0ffe-816d-9ceb-c8986c17425a`). Ranked the three streams: MedJobs ($49/mo, live since 4/10, 0 paid in 20d, retarget at senior living not small home care), Olera Pro (intentionally unpackaged, Q&A is the de facto provider acquisition funnel — 24/24 sign-ins via Q&A, 0 via claim CTA), Marketplace transaction rails (parked, Phase 3). The wedge (SBF) is acquisition not revenue. TJ explicitly chose to stay build-value-first per Resend / Airtable / Fathom Loops playbook — don't gate prematurely, watch usage form, gate where logical. Acknowledged risk: defers revenue, requires discipline reading signal.
+
+**Embedded revenue context into /product-led-growth command.** New "Revenue architecture" section (lines 18-30) lays out the three streams + customer profiles + the wedge + company horizon ($1M ARR threshold). New "Product philosophy" section (lines 32-46) states the build-value-first bet explicitly and tells future runs not to propose paywalls or pricing changes as daily/weekly moves. Phase 1 context-loading expanded to read BUSINESS-MODEL.md + Strategic Narrative before drawing conclusions. Reference section updated. Memory file `feedback_build_value_first_gate_later.md` saved + indexed in MEMORY.md so the philosophy is durable across conversations even outside /product-led-growth.
+
+**Deep research on what makes Olera sticky for senior care providers, staffing aside.** Walked the operator's day, the competitive landscape (APFM/Caring on lead gen; Birdeye/Reputation on review management; HubSpot/Salesforce on CRM; Tadpoles for daycare communication as a model; nothing strong on family communication for home care; nothing on benefits navigation for providers). Identified three things Olera is uniquely positioned to build: lead intelligence (Zillow Premier Agent model, intent signals competitors can't replicate), SBF for providers as a tour-day tool ($1,800/mo paying-capacity unlock for the family at the moment of decision), Q&A SEO attribution (turn answered questions into measurable marketing). Three rhythms align with sticky power-user behavior: daily / per-prospect / weekly.
+
+**Five tasks created on the Web App Action Items board:**
+
+- [Lead intelligence: turn provider analytics into a daily intent feed](https://app.notion.com/p/3525903a0ffe816ebc6de2392d161ace) — P3, concept exploration
+- [SBF for providers: pre-tour benefits screening tool](https://app.notion.com/p/3525903a0ffe8125b4b4c15575db52d7) — P3, concept exploration
+- [Q&A SEO attribution: show providers what their answers earn](https://app.notion.com/p/3525903a0ffe8152b920fc367f30f190) — P3, concept exploration
+- [SBF redesign: cut embedded form to Care Need + Email, silently create the care profile](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) — **P1, frontend, TJ owning**
+- [Unify SBF results with existing care profile: one family record, not two parallel systems](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) — P2, backend
+
+**The SBF redesign discovery is the headline of this session.** Pulled per-step funnel data on the embedded `BenefitsDiscoveryModule.tsx`. 14-day window: 50 sessions started, 18 reached care need (36%), 8 reached age (16%), 4 reached financial (8%), 3 saved (6%). 64% of starters never even pick a care need. Of 3 completers, 1 is the Aggie test profile — so 2 real completions in 14 days. The 5-step SBF on provider pages is structurally broken at step 1. TJ's proposal: cut to 2 steps (Care Need → Email), silently create the care profile, redirect to `/welcome` (`app/welcome/page.tsx` rendering `components/welcome/WelcomeClient.tsx` — the existing "Your matches are saved" page). Conservative estimate of completion lift: 3% → 18-26%. The orphan-rate ceiling (which has been blocking everything across the three revenue streams) gets a 6-9x lift. This is the move TJ flagged as next.
+
+**Files modified:**
+
+- `.claude/commands/product-led-growth.md` — added revenue architecture (lines 18-30) and product philosophy (lines 32-46) sections; expanded Phase 1 to load BUSINESS-MODEL.md + Strategic Narrative; expanded Reference section with the new doc paths
+
+**Memory updates** (outside git):
+
+- `feedback_build_value_first_gate_later.md` — TJ's Resend / Airtable / Fathom Loops monetization sequencing philosophy
+- MEMORY.md index entry pointing to it
+
+**Next up:** TJ working on the SBF redesign (P1, Care Need + Email + redirect to /welcome). Sibling tasks queue behind it. Three concept tasks deserve due diligence as separate explorations. Post-answer hook continues measuring through 2026-05-13. First /weekly run scheduled for Mon 2026-05-04.
+
+### 2026-04-29 — Post-answer hook P1 + dashboard hero overhaul — all merged to staging
+
+Massive day. 6 PRs merged to staging in sequence. Architecture pivoted twice based on TJ feedback. Hero is now a fully dynamic, photo-driven, 6-tier priority surface with per-section imagery and skeleton loading.
+
+**PR #676 — `60bab22c`.** Smart picker folded into existing DashboardHero as 6-tier priority stack:
+1. Fresh leads → "View inquiries" (engagement, leads supersede questions per TJ)
+2. Unanswered Qs → "Review questions" (engagement)
+3. View spike ≥25% → no CTA (positive reinforcement)
+4. Views ≥ 10 + incomplete → engagement headline + section-specific CTA
+5. Views < 10 + incomplete → section-specific completion pick (full headline)
+6. Views < 10 + complete → "Your page is live" fallback (no CTA)
+
+Engagement-tier CTAs (1-3) navigate via `<Link>`; completion-tier CTAs (4-5) fire `provider_picker_clicked` with `metadata.source: "hero"` and open the relevant edit modal in place. Pre-test caught one phantom-impression race — fixed by reading localStorage in `useState` initializer. [Notion merge report](https://app.notion.com/p/3515903a0ffe8187b714d2d097cbcf42).
+
+**PR #679 — `3df7442e`.** Post-answer hook on `/provider/[slug]/onboard`. After 4/10 self-assessment of the picker-on-success-state approach (4 stacked cards), pivoted to **auto-redirect**: brief 400ms "✓ Response sent" pulse → `router.push("/provider?from=qa-success")` → dashboard hero handles next-action from there. Pure subtraction — deleted `PostAnswerPicker.tsx`, `SmartNextActionCard.tsx`, simplified ActionCard + DashboardPage. Funnel sharpened: dropped `picker_qa_success_clickers` bucket, added `qa_success_arrivals` column backed by new `dashboard_arrival` event. Diagnostic: separates "did redirect work?" from "did hero nudge action?" Bug shipped to staging then fixed (`9731698a`): redirect was via `useEffect` on `submitted`, but `onSubmitted` flipped parent's `questionAnswered`, the `{!questionAnswered && (...)}` conditional collapsed children, React's reconciler unmounted `InlineQuestionResponse`, useEffect cleanup killed the timer. Fix: moved `setTimeout` into submit handler closure (timer survives unmount; `router` from `useRouter` is stable global). [Notion merge report](https://app.notion.com/p/3515903a0ffe8108ae80f54e70d04ce4).
+
+**PR #683 — `614d0738`.** Hotfix: `/api/provider/dashboard` resolved wrong profile for multi-profile accounts. Query did `.eq("account_id", id) .in("type", [org, caregiver]) .limit(1)` with no ORDER BY — Postgres returned rows in unspecified order. With TJ's account having both Aggie + a `[TEST]` profile, dashboard rendered Aggie's "4 inquiries" hero on the test profile. Fix: query by `account.active_profile_id` first, fall back to limit(1) for legacy accounts. Same anti-pattern in ~14 other endpoints (review-requests, care-post/*, medjobs/*, etc.) — flagged in commit message, latent until multi-profile becomes a real flow.
+
+**PR #685 + #686 — `b0a78dae` + `30256cba`.** Per-tier and per-section hero images. 11 unique 1920×1080 images sourced via Pexels/Unsplash:
+- Tier 1: `dashboard-hero-leads.jpg`
+- Tier 2: `dashboard-hero-questions.jpg`
+- Tier 3: `dashboard-hero-spike.jpg`
+- Tier 4 + 5: section-specific (gallery, about, pricing, services, screening, payment, overview)
+- Tier 6: `dashboard-hero-fallback.jpg`
+
+Visual mood matches the ask — gallery prompt gets a community/photographer image, leads get an active inquiry image, etc. `imageUrl` field on `Hook` interface; `hook.imageUrl ?? HERO_IMAGE_DEFAULT` fallback. Image hunt spec saved at `docs/hero-image-hunt.md` for future hunts.
+
+**PR #687 — `91ec835f`.** De-jank: hero used to wait ~500ms for V2 fetch with empty slot, then pop in causing layout shift. Fixed three ways: (a) inline `DashboardHeroSkeleton` reserves identical dimensions (no layout shift on swap), (b) "Hey {firstName}" greeting renders immediately during skeleton (we have it from auth context — partial-content load, not pure shimmer), (c) all 11 tier images preloaded on mount via `new Image()` so tier swaps during the session are instant from cache. Dropped the misplaced top-level `DashboardPillarsSkeleton` (62 lines removed) — it was rendered above the page header, causing a double layout shift TJ wasn't even seeing.
+
+**PR #688 — Slack alerts + daily digest extension.** Three new alerts: 🎯 dashboard arrival (qa-success only), ✋ hero CTA click, ✅ profile edit. Daily digest gains a 3rd Providers row covering same chain. `slackHeroCtaClicked` + `slackDashboardArrival` + `slackProfileEdited` helpers in `lib/slack.ts`. Wired through activity-track route. Daily digest extended in `app/api/cron/daily-digest/route.ts`.
+
+**PR #690 — engagement-tier click tracking.** TJ caught on prod that clicking Aggie's leads banner (Tier 1) didn't fire a Slack alert. Original tracking only covered completion-tier (section pickers). Engagement-tier `<Link>` CTAs were navigations with no event handler. Fix: added `engagementTier?: "leads" | "questions"` to `NavCta`, fire `provider_picker_clicked` from Link onClick with metadata.tier + metadata.destination. `slackHeroCtaClicked` extended to render engagement shape ("Going to: Inquiries (/provider/connections)") OR completion shape ("Opening section: Gallery") based on which fields are present. PR #691 — cosmetic tooltip update on /admin/analytics to reflect that the "Clicked dashboard" hero bucket now covers both engagement + completion tiers.
+
+**Test infrastructure used + cleaned up:**
+- Created `[TEST] Empty State Provider` (Tier 5 — gallery completion pick, place-based memory care) — TJ screenshot grabbed, deleted.
+- Created `[TEST] Questions State Provider` with 3 unanswered questions (Tier 2 — questions hero) — TJ screenshot grabbed, deleted.
+- Created `[TEST] Completion State Provider` (memory care, place-based) — TJ screenshot grabbed, deleted.
+- TJ's `active_profile_id` restored to Aggie (`d4242723-f94b-4c3a-92c3-dc65ad44e72a`).
+- Three distinct hero visual states captured for team demo (leads / questions / completion).
+
+**🚨 PR #693 — CRITICAL silent-failure bug + hotfix.** After staging→main promote, TJ noticed engagement-tier hero clicks were producing no Slack alerts. Diagnostic: ZERO rows in `provider_activity` for any of the four new event types (`provider_picker_impression`, `provider_picker_clicked`, `provider_profile_edited`, `dashboard_arrival`) across the entire history. Root cause: PRs #676 / #679 / #688 / #690 added the events to the application allowlist but **NEVER added a migration to extend the DB CHECK constraint** on `provider_activity.event_type`. Every insert failed silently — route's fire-and-forget client `.catch(() => {})` swallowed the rejection. Memory `feedback_schema_text_not_enum.md` (43 days old) literally documented this pattern. I had it but didn't apply it. **Detection latency: ~7 hours. Resolution latency: ~30 min.** Migration `055_post_answer_engagement_event_types.sql` extends the constraint. TJ applied via Supabase dashboard SQL editor; events started landing immediately, Slack alerts began firing on real engagement.
+
+**PR #694 — postmortem.** Documented in `docs/POSTMORTEMS.md`. New memory `feedback_event_allowlist_needs_db_migration.md` saved (sharper guidance than the 43-day-old one — leads with the specific reflex `grep -rn "provider_activity_event_type_check" supabase/migrations/` whenever adding event types).
+
+**Notion tasks created:**
+- [Mobile-optimize provider portal: drop card containers on phones](https://app.notion.com/p/3515903a0ffe81baa949f4e34b5ebfb8) — P2, triple-nesting wastes horizontal real estate on mobile
+- [Hero image library: per-tier asset hunt + wiring](https://app.notion.com/p/3515903a0ffe81709c0eef2b1bf74cee) — P3, completed (all 11 images sourced)
+
+**Memories saved (4 project dirs):**
+- `feedback_default_to_now_not_later.md` in olera-web, olera-hq, TJ-hq, olera-expansion-map. TJ called out the "save it for later" reflex as outdated — AI-paired dev inverts the cost calculus.
+- `feedback_event_allowlist_needs_db_migration.md` in olera-web. Sharper guidance for adding event types, born from the 7h silent-failure incident.
+
+**Live on main:** all of today's work has been promoted (staging → main multiple times). All 4 new event types now logging + Slack alerts firing + funnel columns incrementing.
+
+**Still open:**
+- Mobile container cleanup (separate P2)
+- Image preload could be optimized (currently 1.6MB on mount; lazy load per-tier on demand would be lighter but needs more code)
+- ~14 other endpoints share the `account_id + .limit(1)` anti-pattern — latent until multi-profile becomes a real flow
+
 ### 2026-04-28 — Post-answer hook + smart picker (P1) — planned, not started
 
 Three-PR sequence to capture peak engagement at the post-answer moment and redirect providers into the V2 dashboard. Plan: [`plans/post-answer-hook-and-smart-picker-plan.md`](plans/post-answer-hook-and-smart-picker-plan.md). Notion: [P1 task](https://www.notion.so/Hook-the-post-answer-moment-lure-providers-into-the-V2-profile-edit-dashboard-34e5903a0ffe818eb372fb6539e65391).

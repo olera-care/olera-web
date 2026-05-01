@@ -224,11 +224,35 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
           const errorData = await res.json().catch(() => ({}));
           console.error("[save-nudge] create-profile failed:", res.status, errorData);
 
-          if (res.status === 409) {
-            // Permanent failure (account type mismatch) - clear deferred action
-            // User needs to use a different email for family account
+          if (errorData.code === "ACCOUNT_TYPE_MISMATCH") {
+            // Permanent failure - user has provider/caregiver profile with this email
+            // Can't create family profile, clear deferred action to prevent retry loops
             clearDeferredAction();
             setSaveError("This email is already used for a different account type.");
+          } else if (res.status === 409) {
+            // Profile already exists (created by AuthProvider's ensure-account)
+            // Still fire tracking since this is effectively a successful signup
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_type: "family",
+                event_type: "save_nudge_converted",
+                metadata: {
+                  saved_count: saves.length,
+                  saved_provider_names: saves.map((s) => s.name),
+                  user_email: user.email,
+                  user_name: user.email?.split("@")[0] || "User",
+                  signup_method: "email_otp",
+                },
+              }),
+              keepalive: true,
+            }).catch(() => {});
+
+            clearDeferredAction();
+
+            // Reload to pick up the existing profile
+            window.location.reload();
           } else {
             // Transient failure (500, network) - allow retry on next page load
             console.error("[save-nudge] Transient error, will retry on next load");

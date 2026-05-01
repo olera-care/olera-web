@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-04-30 — SBF redesign (P1) — planned, not started
+
+Cutting the embedded SBF on provider pages from 5 steps to 2 (care need → contact). Silent profile creation via existing `/api/benefits/save-results`. Pattern G post-submit: side-panel/bottom-sheet overlay on the provider page, not a redirect to `/welcome`. Same component renders at new `/m/[token]` route. Email or SMS — user picks. Three copy arms (`availability` / `loss` / `empathic`) replace the existing copy A/B.
+
+**Plan:** [`plans/sbf-2step-redesign-plan.md`](plans/sbf-2step-redesign-plan.md) — 9 phases, 8 sequenced PRs (5 silent foundation ships + cutover + post-launch).
+
+**Notion:** [P1 task](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) · [sibling P2 (unify SBF results with care profile — solved by deleting `metadata.benefits_results.answers` blob)](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) · [SBF Copy Variants tracking DB](https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d)
+
+**Locked decisions** (from extended exploration with TJ): retire 5-step entirely (no gated revert — git is revert), three copy arms in 3-way A/B, refined trust strip (drops "Private" filler + the now-false "No signup to start"), 4 cards reordered with "Paying for care" first (highest pain-universality + H2 fluency), per-card pickup tracking, contact channel toggle (email default, SMS opt-in via existing Twilio infra) — TJ's audience knowledge = ~95% won't engage with email, so SMS (~98% read rate) is the strategic upside. Pattern G makes the in-session experience the deliverable rather than email follow-up. `/welcome` stays untouched as opt-in destination only. Decision rule = two metrics: step-1 pickup (39% → 55%+) AND contact submission (8.2% → 15%+ for clear win, <8% revert).
+
+**Pre-implementation check** (Phase 0): sample SBF match output for $400+ floor in Arm B's subhead; if matched programs don't credibly hit that range, soften Arm B to drop the dollar specificity.
+
 ### 2026-04-29 — Post-answer hook P1 + dashboard hero overhaul — all merged to staging
 
 Massive day. 6 PRs merged to staging in sequence. Architecture pivoted twice based on TJ feedback. Hero is now a fully dynamic, photo-driven, 6-tier priority surface with per-section imagery and skeleton loading.

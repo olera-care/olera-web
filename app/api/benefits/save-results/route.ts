@@ -3,9 +3,12 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
+import { validateEmailStrict } from "@/lib/email-validation";
+import { generateBenefitsToken } from "@/lib/benefits-token";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -42,7 +45,10 @@ interface SaveResultsPayload {
 
   // Save payload
   firstName?: string;
-  email: string;
+  email?: string;                         // V3: optional — required only when contactChannel='email'
+  phone?: string;                         // V3: required when contactChannel='sms'
+  contactChannel?: "email" | "sms";       // V3: defaults to 'email' for back-compat with V2 5-step
+  providerSlug?: string;                  // V3: provider page they came from, for tie-in copy on /m/{token}
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -62,15 +68,57 @@ export async function POST(req: Request) {
   }
   mark("parse_body");
 
-  const { careNeed, age, medicaidStatus, incomeRange, stateCode, firstName, email, matchedPrograms, matchCount } = payload;
+  const {
+    careNeed,
+    age,
+    medicaidStatus,
+    incomeRange,
+    stateCode,
+    firstName,
+    email,
+    phone,
+    contactChannel = "email",
+    providerSlug,
+    matchedPrograms,
+    matchCount,
+  } = payload;
 
-  // Validate required fields
-  if (!email) {
-    return NextResponse.json({ error: "Email is required." }, { status: 400 });
-  }
-  const normalizedEmail = email.trim().toLowerCase();
-  if (!normalizedEmail.includes("@")) {
-    return NextResponse.json({ error: "Invalid email." }, { status: 400 });
+  // Channel-dependent contact validation. The V3 2-step flow lets the user
+  // pick email or SMS at submit; legacy V2 5-step always sent email.
+  let normalizedEmail = "";
+  let normalizedPhone = "";
+
+  if (contactChannel === "sms") {
+    if (!phone) {
+      return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
+    }
+    const e164 = normalizeUSPhone(phone);
+    if (!e164) {
+      return NextResponse.json({ error: "Please enter a valid US phone number." }, { status: 400 });
+    }
+    normalizedPhone = e164;
+    // Email is optional on SMS path. If provided, still validate (so a stray
+    // junk address doesn't pollute the profile), but don't require it.
+    if (email) {
+      const v = validateEmailStrict(email);
+      if (v.valid) normalizedEmail = email.trim().toLowerCase();
+    }
+  } else {
+    if (!email) {
+      return NextResponse.json({ error: "Email is required." }, { status: 400 });
+    }
+    const v = validateEmailStrict(email);
+    if (!v.valid) {
+      return NextResponse.json(
+        {
+          error: v.error || "Please enter a valid email address.",
+          suggestion: v.suggestion,
+          suggestedEmail: v.suggestedEmail,
+        },
+        { status: 400 },
+      );
+    }
+    normalizedEmail = email.trim().toLowerCase();
   }
 
   const db = getAdminClient();
@@ -78,27 +126,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
   }
 
-  // Check if already authenticated AND check provider email block in parallel
-  // (the provider check only matters if the user is anonymous — we'll skip it for logged-in users)
+  // Check if already authenticated AND check provider email/phone block in parallel.
+  // Provider check only matters for anonymous users; authenticated users have
+  // already been validated. We check by whichever contact channel was provided.
   const serverSupabase = await createServerClient();
+  const providerCheckQuery = normalizedEmail
+    ? db.from("business_profiles")
+        .select("id, type")
+        .eq("email", normalizedEmail)
+        .in("type", ["organization", "caregiver", "student"])
+        .limit(1)
+        .maybeSingle()
+    : db.from("business_profiles")
+        .select("id, type")
+        .eq("phone", normalizedPhone)
+        .in("type", ["organization", "caregiver", "student"])
+        .limit(1)
+        .maybeSingle();
+
   const [{ data: { user: currentUser } }, { data: existingProviderProfile }] = await Promise.all([
     serverSupabase.auth.getUser(),
-    db.from("business_profiles")
-      .select("id, type")
-      .eq("email", normalizedEmail)
-      .in("type", ["organization", "caregiver", "student"])
-      .limit(1)
-      .maybeSingle(),
+    providerCheckQuery,
   ]);
   mark("parallel_auth_and_provider_check");
 
-  // Block provider emails (only matters for new user creation; logged-in users with
-  // existing accounts have already been validated)
+  // Block provider emails/phones (only matters for new user creation; logged-in
+  // users with existing accounts have already been validated)
   if (!currentUser && existingProviderProfile) {
+    const channelLabel = normalizedEmail ? "email" : "phone number";
     return NextResponse.json(
       {
-        error: "This email is linked to a provider account. Please use a different email.",
-        code: "PROVIDER_EMAIL",
+        error: `This ${channelLabel} is linked to a provider account. Please use a different ${channelLabel}.`,
+        code: normalizedEmail ? "PROVIDER_EMAIL" : "PROVIDER_PHONE",
       },
       { status: 409 }
     );
@@ -136,7 +195,47 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (account) accountId = account.id;
+  } else if (contactChannel === "sms") {
+    // ── Anonymous SMS path ───────────────────────────────────────────────
+    // Phone-based user creation. Simpler than the email path: no magic-link
+    // session/cookie flow because:
+    //   - The in-session overlay receives match data directly (no need to
+    //     authenticate against Supabase to render it).
+    //   - The user's later access via /m/{token} uses the token as auth, not
+    //     a Supabase session.
+    //   - SMS users can sign in fully later via standard phone OTP if they
+    //     decide to engage with /portal — out of scope for v1.
+    const tCreate = Date.now();
+    const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
+      phone: normalizedPhone,
+      phone_confirm: false,
+      user_metadata: { full_name: displayName, contact_channel: "sms" },
+    });
+    timings["create_user"] = Date.now() - tCreate;
+
+    if (!createUserErr && newUser?.user) {
+      userId = newUser.user.id;
+      isNewUser = true;
+    } else if (
+      createUserErr?.message?.includes("already") ||
+      createUserErr?.message?.includes("exists")
+    ) {
+      // Phone already has a user — for v1 we ask them to use a different
+      // number or sign in. Reconciling cross-channel identities is
+      // structurally complex; deferring until we see real demand.
+      return NextResponse.json(
+        {
+          error: "This phone number is already linked to an Olera account. Please use a different number or sign in.",
+          code: "PHONE_EXISTS",
+        },
+        { status: 409 },
+      );
+    } else {
+      console.error("[save-results] Failed to create user (phone):", createUserErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    }
   } else {
+    // ── Anonymous email path (legacy V2 + V3 email default) ────────────
     // Try to create user
     const tCreate = Date.now();
     const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
@@ -241,13 +340,18 @@ export async function POST(req: Request) {
   const granularCareNeeds = careNeed ? CARE_NEED_MAP[careNeed] || [] : [];
   const stateAbbrev = stateCode?.toUpperCase() || null;
 
+  // Sibling P2 cleanup: previously stored a duplicate `benefits_results.answers`
+  // blob alongside flat metadata fields (age, care_needs, income_range,
+  // medicaid_status). Nothing read it — flat fields are the canonical source
+  // for /portal/profile and the welcome page. Now keeping only matchCount +
+  // completed_at, which the welcome page DOES read for hero copy + funnel
+  // timestamps.
   const intakeMetadata: Record<string, unknown> = {
     age: age || undefined,
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
     income_range: incomeRange || undefined,
     medicaid_status: medicaidStatus || undefined,
     benefits_results: {
-      answers: { careNeed, age, medicaidStatus, incomeRange, stateCode: stateAbbrev },
       matchCount,
       completed_at: new Date().toISOString(),
     },
@@ -270,12 +374,20 @@ export async function POST(req: Request) {
         Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
       ),
     };
+    const profileUpdate: Record<string, unknown> = {
+      metadata: mergedMetadata,
+      preferred_contact_channel: contactChannel,
+    };
+    if (stateAbbrev) profileUpdate.state = stateAbbrev;
+    // Don't overwrite an existing email/phone — only fill in if missing.
+    // (Caller may have submitted a different email than what's on file from
+    // a prior provider-claim or save-nudge flow; preserve original to avoid
+    // surprising the user.)
+    if (normalizedEmail) profileUpdate.email = normalizedEmail;
+    if (normalizedPhone) profileUpdate.phone = normalizedPhone;
     const { error: updateErr } = await db
       .from("business_profiles")
-      .update({
-        metadata: mergedMetadata,
-        ...(stateAbbrev ? { state: stateAbbrev } : {}),
-      })
+      .update(profileUpdate)
       .eq("id", familyProfileId);
     if (updateErr) console.error("[save-results] Failed to update family profile:", updateErr);
   } else {
@@ -284,20 +396,23 @@ export async function POST(req: Request) {
     const cleanedMetadata = Object.fromEntries(
       Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
     );
+    const profileInsert: Record<string, unknown> = {
+      account_id: accountId,
+      slug,
+      type: "family",
+      display_name: displayName,
+      state: stateAbbrev,
+      claim_state: "claimed",
+      verification_state: "unverified",
+      source: "benefits_intake",
+      metadata: cleanedMetadata,
+      preferred_contact_channel: contactChannel,
+    };
+    if (normalizedEmail) profileInsert.email = normalizedEmail;
+    if (normalizedPhone) profileInsert.phone = normalizedPhone;
     const { data: newProfile, error: createErr } = await db
       .from("business_profiles")
-      .insert({
-        account_id: accountId,
-        email: normalizedEmail,
-        slug,
-        type: "family",
-        display_name: displayName,
-        state: stateAbbrev,
-        claim_state: "claimed",
-        verification_state: "unverified",
-        source: "benefits_intake",
-        metadata: cleanedMetadata,
-      })
+      .insert(profileInsert)
       .select("id")
       .single();
     if (createErr || !newProfile) {
@@ -307,6 +422,33 @@ export async function POST(req: Request) {
     familyProfileId = newProfile.id;
   }
   mark("profile_resolved");
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 3.5. Issue a benefits-results token for /m/{token} addressable access.
+  //      Token is the auth — anyone with the URL can see this profile's
+  //      matches. Used by the post-submit overlay (in-session) AND by the
+  //      welcome email/SMS magic link (post-session). Skipped when we
+  //      don't have enough info to render the page (no careNeed or state).
+  // ═══════════════════════════════════════════════════════════════════
+  let benefitsToken: string | null = null;
+  if (careNeed && stateAbbrev) {
+    benefitsToken = generateBenefitsToken();
+    const { error: tokenErr } = await db.from("benefits_results_tokens").insert({
+      token: benefitsToken,
+      profile_id: familyProfileId,
+      care_need: careNeed,
+      state_code: stateAbbrev,
+      provider_slug: providerSlug || null,
+      match_count: matchCount,
+    });
+    if (tokenErr) {
+      // Token issuance is best-effort — the in-session overlay still works
+      // because it has match data passed directly. We log and continue.
+      console.error("[save-results] Token issuance failed:", tokenErr);
+      benefitsToken = null;
+    }
+  }
+  mark("token_issued");
 
   // ═══════════════════════════════════════════════════════════════════
   // 4. Parallelize: set active profile + batch-save matching programs
@@ -378,9 +520,13 @@ export async function POST(req: Request) {
       return `up to ${matches[matches.length - 1]}/yr`;
     })();
 
+    // Slack alert lists the actual contact (email if email-path, phone if SMS).
+    // The helper's `email` field is the contact display — we pass whichever
+    // channel the user chose. Refining the helper to know about channel is
+    // out of scope for this PR.
     const alert = slackBenefitsCompleted({
       familyName: displayName,
-      email: normalizedEmail,
+      email: normalizedEmail || normalizedPhone || "(no contact)",
       stateCode: stateAbbrev,
       careNeedLabel,
       age: age || null,
@@ -397,10 +543,20 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 6. Send magic link email — TRULY fire-and-forget so the response
-  //    doesn't wait on Resend (~500-1500ms) or another generateLink (~200-400ms)
+  // 6. Send welcome notification — TRULY fire-and-forget so the response
+  //    doesn't wait on Resend (~500-1500ms) / Twilio (~200-800ms).
+  //
+  //    Channel selection follows what the user picked at submit:
+  //      - 'email' → Resend magic-link email (existing pattern)
+  //      - 'sms'   → Twilio SMS with /m/{token} short link
+  //
+  //    For SMS users without a token (rare — careNeed or state missing),
+  //    we skip the SMS rather than send a broken link.
+  //
+  //    Email body content upgrade (state-filtered starter list) is Phase 6
+  //    of the plan — for now we keep the existing generic body.
   // ═══════════════════════════════════════════════════════════════════
-  if (isNewUser) {
+  if (isNewUser && contactChannel === "email" && normalizedEmail) {
     (async () => {
       try {
         const { data: linkData } = await authClient.auth.admin.generateLink({
@@ -444,6 +600,23 @@ export async function POST(req: Request) {
         console.error("[save-results] Failed to send welcome email:", emailErr);
       }
     })();
+  } else if (isNewUser && contactChannel === "sms" && normalizedPhone && benefitsToken) {
+    (async () => {
+      const programWord = matchCount === 1 ? "program" : "programs";
+      const url = `${siteUrl}/m/${benefitsToken}`;
+      const body = `Olera: We found ${matchCount} care benefit ${programWord} for your family. View: ${url} Reply STOP to opt out.`;
+      const result = await sendSMS({ to: normalizedPhone, body });
+      if (!result.success) {
+        console.error("[save-results] SMS send failed:", result.error);
+        // Twilio error 21610 = recipient texted STOP previously. Update profile.
+        if (result.error?.includes("21610")) {
+          await db
+            .from("business_profiles")
+            .update({ phone_validity: "opted_out" })
+            .eq("id", familyProfileId);
+        }
+      }
+    })();
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -463,6 +636,8 @@ export async function POST(req: Request) {
     isNewUser,
     matchCount,
     programsSaved: matchedPrograms.length,
+    token: benefitsToken,
+    contactChannel,
   });
 
   if (accessToken && refreshToken) {

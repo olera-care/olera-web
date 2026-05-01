@@ -194,6 +194,48 @@ export async function GET(request: NextRequest) {
         // skip welcome and let them complete their task first.
         // Check both the callback URL params and the destination URL.
         const actionParam = searchParams.get("action"); // From OAuth redirect (e.g., "review", "question")
+
+        // Track save nudge conversion for new users who signed up via "Save" action
+        // This is the most reliable tracking point for OAuth signups since:
+        // 1. We have access to user data immediately after account creation
+        // 2. No race conditions with sessionStorage/page navigation
+        // 3. Server-side tracking doesn't get blocked by browser extensions
+        let saveNudgeTracked = false;
+        if (actionParam === "save") {
+          try {
+            const savedCount = parseInt(searchParams.get("saved_count") || "0", 10);
+            const savedNames = searchParams.get("saved_names")?.split(",").filter(Boolean) || [];
+
+            // Await tracking with timeout to ensure completion in serverless environment
+            // 2s timeout prevents blocking the redirect for too long
+            const trackUrl = `${origin}/api/activity/track`;
+            const trackResponse = await Promise.race([
+              fetch(trackUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  actor_type: "family",
+                  event_type: "save_nudge_converted",
+                  metadata: {
+                    user_email: data.user.email || "unknown",
+                    user_name: displayName,
+                    signup_method: "oauth",
+                    tracked_at: "callback",
+                    saved_count: savedCount,
+                    saved_provider_names: savedNames,
+                  },
+                }),
+              }),
+              new Promise<Response>((_, reject) =>
+                setTimeout(() => reject(new Error("Track timeout")), 2000)
+              ),
+            ]);
+            saveNudgeTracked = trackResponse.ok;
+          } catch {
+            // Timeout or network error - client-side will be fallback
+            saveNudgeTracked = false;
+          }
+        }
         const hasTaskAction = actionParam && ["review", "question", "inquiry", "save", "connection_request", "phone_reveal"].includes(actionParam);
         const isTaskUrl = next.includes("/reviews") ||
           next.includes("/qna") ||
@@ -204,6 +246,16 @@ export async function GET(request: NextRequest) {
 
         if (hasTaskAction || isTaskUrl) {
           // Let user complete their task, skip welcome redirect
+          // If we tracked save nudge conversion, add marker to URL so client doesn't duplicate
+          if (saveNudgeTracked) {
+            const markedNext = next.includes("?") ? `${next}&_snt=1` : `${next}?_snt=1`;
+            const markedResponse = NextResponse.redirect(`${origin}${markedNext}`);
+            // Copy cookies from original response (destructure to separate name/value from options)
+            response.cookies.getAll().forEach(({ name, value, ...options }) => {
+              markedResponse.cookies.set(name, value, options);
+            });
+            return markedResponse;
+          }
           return response;
         }
 

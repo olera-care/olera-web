@@ -26,6 +26,9 @@ import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type { SavedProviderEntry } from "@/lib/saved-providers";
 
+// Key for tracking if conversion was already tracked this session (prevents duplicates)
+const CONVERSION_TRACKED_KEY = "olera_save_nudge_tracked";
+
 export interface SaveProviderData {
   providerId: string;
   slug: string;
@@ -99,6 +102,24 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
   // Hydrate anonymous saves from sessionStorage on mount
   useEffect(() => {
     setAnonSaves(getAnonSaves());
+  }, []);
+
+  // Check for server-side tracking marker (_snt=1) in URL
+  // This indicates the OAuth callback already tracked the save_nudge_converted event
+  // Set sessionStorage flag to prevent duplicate client-side tracking
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("_snt") === "1") {
+      sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+
+      // Clean up URL to remove the marker (cosmetic)
+      params.delete("_snt");
+      const newSearch = params.toString();
+      const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
+      window.history.replaceState({}, "", newUrl);
+    }
   }, []);
 
   // Fetch DB saves for authenticated users
@@ -197,22 +218,29 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         if (res.ok) {
           // Track conversion - use keepalive to ensure request completes even after page unload
           // This prevents the browser from canceling the request when we reload
-          fetch("/api/activity/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              actor_type: "family",
-              event_type: "save_nudge_converted",
-              metadata: {
-                saved_count: saves.length,
-                saved_provider_names: saves.map((s) => s.name),
-                user_email: user.email,
-                user_name: user.email?.split("@")[0] || "User",
-                signup_method: "oauth",
-              },
-            }),
-            keepalive: true,
-          }).catch(() => {});
+          // Check for idempotency first - server may have already tracked this in callback
+          const alreadyTracked = sessionStorage.getItem(CONVERSION_TRACKED_KEY);
+          if (!alreadyTracked) {
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_type: "family",
+                event_type: "save_nudge_converted",
+                metadata: {
+                  saved_count: saves.length,
+                  saved_provider_names: saves.map((s) => s.name),
+                  user_email: user.email,
+                  user_name: user.email?.split("@")[0] || "User",
+                  signup_method: "oauth",
+                  tracked_at: "profile_creation_effect",
+                },
+              }),
+              keepalive: true,
+            }).then(() => {
+              sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+            }).catch(() => {});
+          }
 
           clearDeferredAction();
 
@@ -247,31 +275,26 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   // Migrate anonymous saves to DB when user authenticates
   useEffect(() => {
-    console.log("[save-nudge-debug] Migration effect running", {
-      hasUser: !!user,
-      hasActiveProfile: !!activeProfile,
-      migrationDone: migrationDone.current,
-    });
-
     if (!user || !activeProfile || !isSupabaseConfigured()) return;
     if (migrationDone.current) return;
 
     const saves = getAnonSaves();
-    console.log("[save-nudge-debug] Saves count:", saves.length);
 
     // Handle deferred action BEFORE checking saves count.
     // This ensures we always clear stale deferred actions, even if saves are empty
     // (e.g., localStorage was cleared, user in incognito closed tab, etc.)
     try {
       const deferredAction = getDeferredAction();
-      console.log("[save-nudge-debug] Deferred action:", deferredAction);
 
       if (deferredAction?.action === "save") {
-        // Track conversion only if there are saves to migrate
-        // (Most conversions are tracked in profile creation effect or magic-link handler;
-        // this is a fallback for OAuth users)
-        if (saves.length > 0) {
-          console.log("[save-nudge-debug] Firing conversion tracking...");
+        // Check for idempotency first - server may have already tracked this in callback
+        const alreadyTracked = sessionStorage.getItem(CONVERSION_TRACKED_KEY);
+        if (alreadyTracked) {
+          clearDeferredAction();
+        } else if (saves.length > 0) {
+          // Track conversion only if there are saves to migrate
+          // (Most conversions are tracked in profile creation effect or magic-link handler;
+          // this is a fallback for OAuth users)
           fetch("/api/activity/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -284,22 +307,23 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 user_email: user.email || "unknown",
                 user_name: user.email?.split("@")[0] || "User",
                 signup_method: "oauth",
+                tracked_at: "migration_effect",
               },
             }),
             keepalive: true,
           })
-            .then((res) => console.log("[save-nudge-debug] Track response:", res.status))
-            .catch((err) => console.error("[save-nudge-debug] Track error:", err));
+            .then(() => {
+              sessionStorage.setItem(CONVERSION_TRACKED_KEY, Date.now().toString());
+            })
+            .catch(() => {});
+          // Always clear deferred action to prevent stale state
+          clearDeferredAction();
         } else {
-          console.log("[save-nudge-debug] No saves to track");
+          // Always clear deferred action to prevent stale state
+          clearDeferredAction();
         }
-        // Always clear deferred action to prevent stale state
-        clearDeferredAction();
-      } else {
-        console.log("[save-nudge-debug] No save deferred action found");
       }
-    } catch (err) {
-      console.error("[save-nudge-debug] Error:", err);
+    } catch {
       // Non-blocking — conversion tracking failure should not affect migration
     }
 

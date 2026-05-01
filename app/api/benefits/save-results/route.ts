@@ -417,12 +417,22 @@ export async function POST(req: Request) {
   const granularCareNeeds = careNeed ? CARE_NEED_MAP[careNeed] || [] : [];
   const stateAbbrev = stateCode?.toUpperCase() || null;
 
-  // Sibling P2 cleanup: previously stored a duplicate `benefits_results.answers`
-  // blob alongside flat metadata fields (age, care_needs, income_range,
-  // medicaid_status). Nothing read it — flat fields are the canonical source
-  // for /portal/profile and the welcome page. Now keeping only matchCount +
-  // completed_at, which the welcome page DOES read for hero copy + funnel
-  // timestamps.
+  // Sibling P2 cleanup (partial): previously stored a duplicate
+  // `benefits_results.answers` blob with age/medicaidStatus/incomeRange/
+  // stateCode that all had flat-metadata equivalents — those are dropped.
+  //
+  // We keep a MINIMAL answers blob with just `careNeed` because:
+  //   - The UI care-need bucket ('payingForCare', 'stayingAtHome', etc.) has
+  //     NO flat-metadata equivalent (top-level care_needs is the granular
+  //     array we map TO from careNeed).
+  //   - components/welcome/WelcomeClient.tsx reads benefits_results.answers
+  //     .careNeed for the careNeedLabel switch and the
+  //     careNeedProviderCategory mapping. Removing it entirely broke the
+  //     welcome page for V3 users who arrive via the "See full list" CTA.
+  //
+  // Storing it ONCE here (not at top level) keeps a single source of truth
+  // and matches the V2-era schema, so existing V2 family profiles continue
+  // to render correctly without backfill.
   const intakeMetadata: Record<string, unknown> = {
     age: age || undefined,
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
@@ -433,6 +443,7 @@ export async function POST(req: Request) {
     // field (not a column) since it's optional + only used in display logic.
     relationship: relationship || undefined,
     benefits_results: {
+      answers: careNeed ? { careNeed } : undefined,
       matchCount,
       completed_at: new Date().toISOString(),
     },

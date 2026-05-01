@@ -161,6 +161,10 @@ function familyEventTypeLabel(type: string): string {
     question_asked: "Question",
     matches_activated: "Matches",
     benefits_completed: "Benefits",
+    save_nudge_shown: "Nudge Shown",
+    save_nudge_signup_clicked: "Nudge Clicked",
+    save_nudge_dismissed: "Nudge Dismissed",
+    save_nudge_converted: "Converted",
   };
   return map[type] || type;
 }
@@ -173,6 +177,10 @@ function familyEventTypeBadgeColor(type: string): string {
     question_asked: "bg-teal-50 text-teal-700",
     matches_activated: "bg-emerald-50 text-emerald-700",
     benefits_completed: "bg-rose-50 text-rose-700",
+    save_nudge_shown: "bg-pink-50 text-pink-700",
+    save_nudge_signup_clicked: "bg-purple-50 text-purple-700",
+    save_nudge_dismissed: "bg-gray-50 text-gray-500",
+    save_nudge_converted: "bg-emerald-50 text-emerald-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -698,6 +706,9 @@ const FAMILY_EVENT_FILTER_OPTIONS = [
   { value: "email_click", label: "Email clicks" },
   { value: "question_asked", label: "Questions" },
   { value: "matches_activated", label: "Matches" },
+  { value: "save_nudge_shown", label: "Save nudge shown" },
+  { value: "save_nudge_signup_clicked", label: "Save nudge clicked" },
+  { value: "save_nudge_converted", label: "Save conversions" },
 ];
 
 export default function ActivityCenterPage() {

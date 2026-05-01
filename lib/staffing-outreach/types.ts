@@ -2,7 +2,7 @@
  * Shared types for the Staffing Outreach feature.
  *
  * Status enum mirrors the CHECK constraint in
- * supabase/migrations/052_staffing_outreach.sql. Touchpoint type enum
+ * supabase/migrations/061_staffing_outreach.sql. Touchpoint type enum
  * does the same.
  */
 

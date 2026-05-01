@@ -4,7 +4,7 @@ Tracking doc for capabilities intentionally left out of the Staffing
 Outreach MVP. Each entry has the rationale for deferral, the trigger
 that should make us revisit it, and notes on how it'd plug in.
 
-The schema in `supabase/migrations/052_staffing_outreach.sql` already
+The schema in `supabase/migrations/061_staffing_outreach.sql` already
 includes enum values for the deferred channels (`fax_sent`, `mail_sent`)
 so adding them later is non-breaking.
 

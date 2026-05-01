@@ -137,6 +137,20 @@
   animation: modal-pop 0.2s ease-out forwards;
 }
 
+/* Side panel — slide in from right for desktop ResultsSheet */
+@keyframes panel-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-panel-in-right {
+  animation: panel-in-right 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 /* Count pulse — subtle scale+color flash for live preview updates */
 @keyframes count-pulse {
   0% {

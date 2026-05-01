@@ -7,13 +7,39 @@
 
 ## Current Focus
 
-### 2026-04-30 — SBF redesign (P1) — planned, not started
+### 2026-04-30 — SBF redesign (P1) — full V3 stack shipped to `good-thompson` branch, awaiting QA
+
+Branch `good-thompson` has the complete V3 redesign across 5 commits. **Migrations applied to Supabase** (057, 058, 059). Vercel preview deploys on each push for build validation. All 4 phases shipped silent → cutover → restructure in one long session.
+
+**Plan:** [`plans/sbf-2step-redesign-plan.md`](plans/sbf-2step-redesign-plan.md) — original was 9 phases / 8 PRs; actual ship was 5 commits on a single branch (faster iteration cycle).
+
+**Notion:** [P1 task](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) · [sibling P2 closed via metadata-blob deletion](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) · [SBF Copy Variants tracking DB](https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d) (5 rows seeded — control/money_loss legacy, availability/loss/empathic planned)
+
+**Commits on `good-thompson`:**
+
+- `a9631f90` — Phase 0/1/2: 3 migrations + token lib + email validation extension + Resend bounce → `email_validity` flag + save-results route major update (channel toggle, drops `metadata.benefits_results.answers` duplicate blob, hardened validation, token issuance, SMS-anonymous path via Supabase phone auth, channel-specific welcome dispatch). Backend foundation, silent.
+- `3fe7531e` — Phase 4/5: `ResultsSheet` unified component (mobile bottom sheet / desktop right panel, Telegram-grade animation, body-scroll lock, focus mgmt) + `/m/[token]` standalone page (token-as-auth, no login wall, force-dynamic, noindex robots) + `lib/benefits/provider-tie-in.ts` (heuristic overlap → "Some of these may help cover services at {Provider X}.") + new `panel-in-right` keyframe in globals.css. Components silent — not yet wired.
+- `c749e993` — Phase 3 CUTOVER: variant rename (`control|money_loss` → `availability|loss|empathic`, djb2 mod 3) + rewrote `BenefitsDiscoveryModule` for 2 steps (was 917 → 585 lines) + admin analytics 3-arm split table with auto-collapsing legacy V2 row + `care_need_selected` event property for per-card pickup + provider page passes `care_types`/`category` for tie-in. **Visible change.**
+- `22cb1933` — pre-test review fixes (4 bugs caught before user testing): Twilio Node SDK leaking into client bundle via `lib/twilio` import in ResultsSheet (would have failed prod build); hero copy *"0 programs"* mismatch with empty-state below; last_viewed_at error handler used `.then(undefined, ...)` which never fires for Supabase resolved-with-error promises; `preferred_contact_channel` read from metadata blob instead of column.
+- `ab05f9dd` — 3-step restructure (TJ flagged step 2 felt unnatural): inserted *"Who is care for?"* tap-question between care need + contact (4 cards: parent/spouse/me/other-family) → step 3 H2 personalized via `relationshipPhrase()` ("Save your parent's 11 matches"). Switched framing from "send" to "save" (matches actual experience — matches are computed, we're preserving them). Killed channel toggle in favor of email + phone both visible, phone optional. Combined honest consent. Empathic H2 anchored to state ("Care is expensive in {state}." — was naked). All variant subs use "find" not "show" — fixes show/send framing whiplash.
+
+**Locked decisions:** retire 5-step entirely (no gated revert — git is revert); 3-arm A/B on entry-point copy (availability/loss/empathic) replaces V2 control/money_loss; "Paying for care" first card (highest pain-universality + H2 fluency across all arms); per-card pickup tracking via `care_need_selected` property on existing `benefits_step_completed` event; phone is now optional bonus signal (not forced channel); welcome notifications fire email always + SMS additionally when phone provided; `/welcome` stays untouched as opt-in destination via "See full list" CTA only. Decision rule = step-1 pickup (39% → 55%+) AND contact submission (8.2% → 15%+); <8% triggers revert.
+
+**Phase 0.1 verification result** (preserved at `scripts/verify-arm-b-dollar-floor.ts`): sampled enriched program data across TX/FL/CA × 4 care needs → 10/12 combos clear the $400/mo floor. `payingForCare` (most-clicked card) clears comfortably everywhere. Two failures: `companionship` in FL+CA (programs match but no savings data). Verdict: ship Arm B as written; "often" qualifier defends population-level claim. Watch for companionship-pickup conversion under Arm B in FL/CA. Logged in Notion `loss` row.
+
+**Audience truth that drove the design:** TJ's sustained-audience knowledge → ~95% of users won't engage with email (and senior-care families are typical users). This made Pattern G (in-session overlay as deliverable) the right move over the original Pattern A (redirect to /welcome): the SESSION is the conversion, email is a backup for the 5%. SMS (~98% read rate) is the strategic upside — driven the channel toggle decision, then evolved to phone-as-optional-bonus when toggle felt too friction-y.
+
+**What's NOT polished (intentionally — known follow-up phases):**
+- Phase 6: welcome email body still generic ("your benefits results are saved") — not yet the state-filtered starter list. Magic link still points to `/portal` not `/m/{token}`.
+- Phase 7: Privacy policy page not yet updated. Inline consent text in module IS shipped.
+- Phase 8: Admin per-card pickup chart not yet — data flowing via `care_need_selected` event property, just no UI exposure.
+- Phase 9: Notion legacy `control`/`money_loss` archival → wait for V3 to have a few weeks of data before flipping their Status to Archived with final numbers.
+
+**Vercel preview status:** auto-deploys on each push to `good-thompson`. PR creation URL: https://github.com/olera-care/olera-web/pull/new/good-thompson
+
+### 2026-04-30 — SBF redesign — original planning entry (kept for context)
 
 Cutting the embedded SBF on provider pages from 5 steps to 2 (care need → contact). Silent profile creation via existing `/api/benefits/save-results`. Pattern G post-submit: side-panel/bottom-sheet overlay on the provider page, not a redirect to `/welcome`. Same component renders at new `/m/[token]` route. Email or SMS — user picks. Three copy arms (`availability` / `loss` / `empathic`) replace the existing copy A/B.
-
-**Plan:** [`plans/sbf-2step-redesign-plan.md`](plans/sbf-2step-redesign-plan.md) — 9 phases, 8 sequenced PRs (5 silent foundation ships + cutover + post-launch).
-
-**Notion:** [P1 task](https://app.notion.com/p/3525903a0ffe81338f59d5b5326b1796) · [sibling P2 (unify SBF results with care profile — solved by deleting `metadata.benefits_results.answers` blob)](https://app.notion.com/p/3525903a0ffe81a2b7a8c0e746ad35ae) · [SBF Copy Variants tracking DB](https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d)
 
 **Locked decisions** (from extended exploration with TJ): retire 5-step entirely (no gated revert — git is revert), three copy arms in 3-way A/B, refined trust strip (drops "Private" filler + the now-false "No signup to start"), 4 cards reordered with "Paying for care" first (highest pain-universality + H2 fluency), per-card pickup tracking, contact channel toggle (email default, SMS opt-in via existing Twilio infra) — TJ's audience knowledge = ~95% won't engage with email, so SMS (~98% read rate) is the strategic upside. Pattern G makes the in-session experience the deliverable rather than email follow-up. `/welcome` stays untouched as opt-in destination only. Decision rule = two metrics: step-1 pickup (39% → 55%+) AND contact submission (8.2% → 15%+ for clear win, <8% revert).
 

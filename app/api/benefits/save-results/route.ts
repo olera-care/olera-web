@@ -9,6 +9,70 @@ import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { generateBenefitsToken } from "@/lib/benefits-token";
+import { getStateSlug } from "@/lib/program-data";
+
+// ─── Email + SMS body helpers ────────────────────────────────────────────
+//
+// Pulled out of the route handler so the welcome-message construction is
+// readable. All pure string-building — no DB or network.
+
+const CARE_NEED_LABEL_FOR_COPY: Record<string, string> = {
+  stayingAtHome: "in-home care",
+  payingForCare: "paying for care",
+  memoryHealth: "memory & medical care",
+  companionship: "caregiver & social support",
+};
+
+function relationshipFamilyPhrase(rel: string | null | undefined): string {
+  switch (rel) {
+    case "my-parent":
+      return "your parent";
+    case "my-spouse":
+      return "your spouse";
+    case "myself":
+      return "you";
+    case "other-family":
+      return "your family member";
+    default:
+      return "your family";
+  }
+}
+
+function relationshipPossessive(rel: string | null | undefined): string {
+  switch (rel) {
+    case "my-parent":
+      return "Your parent's";
+    case "my-spouse":
+      return "Your spouse's";
+    case "myself":
+      return "Your";
+    case "other-family":
+      return "Your family's";
+    default:
+      return "Your";
+  }
+}
+
+/** Derive a display state name from a 2-letter abbreviation. Falls back to
+ *  the abbreviation itself when the slug lookup fails (rare — covers
+ *  territories or invalid input). */
+function stateDisplayName(stateAbbrev: string | null): string {
+  if (!stateAbbrev) return "your state";
+  const slug = getStateSlug(stateAbbrev);
+  if (!slug) return stateAbbrev;
+  return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+}
+
+/** Pull the upper-bound dollar string from a savingsRange like
+ *  "$10,000 – $30,000/year" → "$30,000/year". Returns null when no $ found. */
+function topSavingsCopy(range: string | undefined): string | null {
+  if (!range) return null;
+  const matches = range.match(/\$[\d,]+/g);
+  if (!matches || matches.length === 0) return null;
+  const top = matches[matches.length - 1];
+  const period = /\bmo\b|month/i.test(range) ? "/mo" : "/yr";
+  return `Up to ${top}${period}`;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -567,46 +631,102 @@ export async function POST(req: Request) {
   //    if the user also gave a phone, we ALSO send an SMS. Both fire in
   //    parallel for new users.
   //
-  //    Email body content upgrade (state-filtered starter list) is Phase 6
-  //    of the plan — for now we keep the existing generic body.
+  //    Email body delivers REAL value — top 5 matched programs as a
+  //    state-filtered starter list, personalized for relationship, primary
+  //    CTA goes to /m/{token} (token IS the auth — no magic-link redirect
+  //    indirection). This is the bar TJ set in the task: "real value before
+  //    we capture at scale" — 95% of users won't engage with email, so when
+  //    one does, the email needs to be worth their time.
   // ═══════════════════════════════════════════════════════════════════
   if (isNewUser && normalizedEmail) {
     (async () => {
       try {
-        const { data: linkData } = await authClient.auth.admin.generateLink({
-          type: "magiclink",
-          email: normalizedEmail,
-          options: { redirectTo: `${siteUrl}/portal` },
-        });
-        const actionLink = linkData?.properties?.action_link;
-        if (!actionLink) return;
+        const stateNameForEmail = stateDisplayName(stateAbbrev);
+        const careLabel = careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
+        const familyPhrase = relationshipFamilyPhrase(relationship);
+        const possessive = relationshipPossessive(relationship);
 
+        // Top 5 programs for the starter list. Limit chosen for inbox
+        // scannability — anything past 5 in an email feels like a wall.
+        // Full list lives at /m/{token} via the CTA below.
+        const topMatches = matchedPrograms.slice(0, 5);
+        const programsHtml = topMatches
+          .map((p) => {
+            const programLink = `${siteUrl}/benefits/${p.stateId}/${p.programId}`;
+            const savings = topSavingsCopy(p.savingsRange);
+            const name = p.shortName || p.name;
+            return `
+              <a href="${programLink}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
+                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
+                  ${name}
+                </div>
+                ${savings
+                  ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${savings}</div>`
+                  : ""}
+              </a>
+            `;
+          })
+          .join("");
+
+        const matchesUrl = benefitsToken
+          ? `${siteUrl}/m/${benefitsToken}`
+          : `${siteUrl}/portal`;
+
+        // Subject — personalized when relationship known, falls back cleanly.
+        const subject =
+          matchCount > 0
+            ? `${possessive} ${matchCount} care benefit ${matchCount === 1 ? "match" : "matches"} in ${stateNameForEmail}`
+            : `Care benefit programs in ${stateNameForEmail}`;
+
+        const emailType = "benefits_results_saved";
         const emailLogId = await reserveEmailLogId({
           to: normalizedEmail,
-          subject: "Your Olera benefits results are saved",
-          emailType: "benefits_results_saved",
+          subject,
+          emailType,
           recipientType: "family",
         });
-        const trackedLink = appendTrackingParams(actionLink, emailLogId);
+        const trackedMatchesUrl = appendTrackingParams(matchesUrl, emailLogId);
+
+        // Hero copy adapts to whether we found matches.
+        const heroLine =
+          matchCount > 0
+            ? `We found <strong>${matchCount} ${matchCount === 1 ? "program" : "programs"}</strong> in ${stateNameForEmail} that may help with ${careLabel} for ${familyPhrase}.`
+            : `We saved your search. We'll keep an eye out for ${stateNameForEmail} programs that may help with ${careLabel}.`;
+
         await sendEmail({
           to: normalizedEmail,
-          subject: "Your Olera benefits results are saved",
+          subject,
           html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-              <h2 style="font-size: 22px; margin: 0 0 16px;">Hi ${hasRealName ? displayName : "there"},</h2>
-              <p style="font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                You just explored benefits programs your family may qualify for on Olera. We saved ${matchCount} matching ${matchCount === 1 ? "program" : "programs"} to your profile.
-              </p>
-              <p style="font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                Click below to come back anytime:
-              </p>
-              <a href="${trackedLink}" style="display: inline-block; background: #111827; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
-                View my saved benefits →
-              </a>
-              <p style="font-size: 13px; color: #6b7280; margin-top: 32px;">
-                This link will log you in instantly — no password needed. It works for 24 hours.
-              </p>
-            </div>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
+    Hi ${hasRealName ? displayName : "there"},
+  </p>
+
+  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
+    ${heroLine}
+  </h1>
+
+  ${topMatches.length > 0
+    ? `
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
+    Here are the top ${topMatches.length} matches we saved for you. Tap any program to see eligibility and how to apply:
+  </p>
+
+  <div style="margin: 0 0 32px;">
+    ${programsHtml}
+  </div>
+  `
+    : ""}
+
+  <a href="${trackedMatchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    View ${matchCount > 0 ? `all ${matchCount} ` : ""}matches →
+  </a>
+
+  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
+  </p>
+</div>
           `,
           emailLogId: emailLogId ?? undefined,
         });
@@ -618,12 +738,17 @@ export async function POST(req: Request) {
 
   // Bonus SMS — fires in parallel with email when the user provided a phone
   // (V3 phone-as-optional). Either channel can fail without affecting the
-  // other; both are best-effort.
+  // other; both are best-effort. Body is relationship-aware where helpful
+  // (160-char SMS budget caps how much personalization we can fit).
   if (isNewUser && normalizedPhone && benefitsToken) {
     (async () => {
       const programWord = matchCount === 1 ? "program" : "programs";
+      const familyPhrase = relationshipFamilyPhrase(relationship);
       const url = `${siteUrl}/m/${benefitsToken}`;
-      const body = `Olera: We found ${matchCount} care benefit ${programWord} for your family. View: ${url} Reply STOP to opt out.`;
+      const body =
+        matchCount > 0
+          ? `Olera: We found ${matchCount} care benefit ${programWord} for ${familyPhrase}. View: ${url} Reply STOP to opt out.`
+          : `Olera: Your care benefit search is saved. We'll keep looking. View: ${url} Reply STOP to opt out.`;
       const result = await sendSMS({ to: normalizedPhone, body });
       if (!result.success) {
         console.error("[save-results] SMS send failed:", result.error);

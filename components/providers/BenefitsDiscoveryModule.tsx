@@ -413,28 +413,23 @@ export default function BenefitsDiscoveryModule({
   const v = VARIANT_COPY[variant];
   const allProgramsCount = allPrograms.length;
 
-  // Progress dots — 3 segments tracking care-need / relationship / contact.
-  // Each segment fills when the user has committed to that step (selection
-  // made or, on the final step, form submitted). The current step's segment
-  // pulses gently to telegraph "you're here, do this thing."
-  const stepIndex = STEP_NUMBERS[step] - 1;
-  const ProgressDots = () => (
-    <div className="flex items-center gap-1.5 mb-6">
-      {[0, 1, 2].map((i) => {
-        const filled =
-          (i === 0 && (!!careNeed || stepIndex > 0)) ||
-          (i === 1 && (!!relationship || stepIndex > 1)) ||
-          (i === 2 && false); // step 3 fills via overlay open, not here
-        const pulse = i === stepIndex && !filled;
-        return (
-          <div key={i} className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden relative">
-            <div
-              className={`h-full bg-gray-900 rounded-full transition-all duration-300 ${pulse ? "animate-pulse opacity-60" : ""}`}
-              style={{ width: filled ? "100%" : pulse ? "12%" : "0%" }}
-            />
-          </div>
-        );
-      })}
+  // Progress bar — single proportional bar across the full width. Fills as
+  // the user completes steps. Beats the segmented design (3 separate bars
+  // with gaps) where one filled segment only spans ~30% of the visual
+  // width — the eye reads that as "barely started" rather than "1/3 done."
+  // No pulse, no flicker. The bar's width transition (500ms ease-out)
+  // does the work; CSS handles the smoothness.
+  const completedSteps =
+    (careNeed ? 1 : 0) +
+    (relationship ? 1 : 0) +
+    (overlayOpen ? 1 : 0);
+  const progressPct = (completedSteps / 3) * 100;
+  const ProgressBar = () => (
+    <div className="h-1 w-full rounded-full bg-gray-200 overflow-hidden mb-6">
+      <div
+        className="h-full bg-gray-900 rounded-full transition-all duration-500 ease-out"
+        style={{ width: `${progressPct}%` }}
+      />
     </div>
   );
 
@@ -474,8 +469,12 @@ export default function BenefitsDiscoveryModule({
         </button>
       )}
 
-      <ProgressDots />
+      <ProgressBar />
 
+      {/* Step content wrapper — keyed on `step` so React remounts on each
+          transition; the wrapper's animate-step-in class plays a 220ms
+          slide-up + fade. Replaces the prior abrupt content swap. */}
+      <div key={step} className="animate-step-in">
       {step === "care-need" && (
         <>
           <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">{v.h2(stateName)}</h2>
@@ -502,7 +501,7 @@ export default function BenefitsDiscoveryModule({
                     setCareNeed(opt.value);
                     trackStart(opt.value);
                     trackStepCompleted("care-need", opt.value);
-                    setTimeout(() => setStep("relationship"), 180);
+                    setTimeout(() => setStep("relationship"), 140);
                   }}
                   className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
                     isSelected
@@ -548,7 +547,7 @@ export default function BenefitsDiscoveryModule({
                   onClick={() => {
                     setRelationship(opt.value);
                     trackStepCompleted("relationship");
-                    setTimeout(() => setStep("contact"), 180);
+                    setTimeout(() => setStep("contact"), 140);
                   }}
                   className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
                     isSelected
@@ -658,6 +657,7 @@ export default function BenefitsDiscoveryModule({
           </button>
         </>
       )}
+      </div>
 
       {/* Post-submit overlay — same component as /m/{token}, mode="overlay" */}
       {careNeed && (

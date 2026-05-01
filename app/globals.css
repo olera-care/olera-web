@@ -151,6 +151,25 @@
   animation: panel-in-right 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
+/* Step transitions — small slide-up + fade for the SBF embedded module's
+   step-to-step swap. ~220ms ease-out is fast enough to feel responsive,
+   long enough to register as an intentional transition. Triggered by
+   keying the step wrapper on the current step name so React remounts. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-step-in {
+  animation: step-in 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 /* Count pulse — subtle scale+color flash for live preview updates */
 @keyframes count-pulse {
   0% {

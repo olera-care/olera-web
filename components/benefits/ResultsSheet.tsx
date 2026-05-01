@@ -289,13 +289,23 @@ export default function ResultsSheet({
                 <ArrowRight className="h-4 w-4" weight="bold" />
               </button>
             )}
-            <Link
+            {/* Plain <a>, not Next.js <Link>, so the click triggers a full
+                page reload. This is the SAME workaround documented at length
+                in BenefitsDiscoveryModule.tsx around the V2 5-step's save:
+                /api/benefits/save-results writes Supabase session cookies via
+                Set-Cookie on the POST response, but the browser's Supabase
+                client SINGLETON was loaded before those cookies existed and
+                a Next.js client-side nav doesn't flush it. /welcome would
+                then render with user=null and stall forever in skeletons
+                (the enrichedPrograms fetch is gated on user). Full reload
+                kills the singleton; fresh page sees the session. */}
+            <a
               href="/welcome?from=benefits"
               className="inline-flex items-center justify-center gap-1.5 rounded-full border border-gray-200 px-5 py-2.5 text-[14px] font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
             >
               See full list at olera.care
               <ArrowRight className="h-4 w-4" weight="bold" />
-            </Link>
+            </a>
           </div>
         </div>
       </div>

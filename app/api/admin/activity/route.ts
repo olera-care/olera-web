@@ -557,8 +557,9 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
   }
 
   // Hydrate with family profile info
+  // Filter out null profile_ids (guest events like save_nudge_* don't have profiles)
   const profileIds = Array.from(
-    new Set((events || []).map((e: { profile_id: string }) => e.profile_id))
+    new Set((events || []).map((e: { profile_id: string | null }) => e.profile_id).filter(Boolean))
   ) as string[];
 
   const familyMap: Record<string, {
@@ -639,6 +640,9 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
 
   for (const event of allEvents || []) {
     const pid = event.profile_id;
+    // Skip events without a profile_id (guest events like save_nudge_*)
+    // People view aggregates per-person, so guest events don't belong here
+    if (!pid) continue;
     if (!familyStats[pid]) {
       familyStats[pid] = {
         profile_id: pid,
@@ -683,7 +687,8 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
     .sort((a, b) => new Date(b.last_active).getTime() - new Date(a.last_active).getTime());
 
   // Hydrate with family profile info
-  const profileIds = sortedFamilies.map((f) => f.profile_id);
+  // Filter is defensive — null profile_ids are already skipped above
+  const profileIds = sortedFamilies.map((f) => f.profile_id).filter(Boolean) as string[];
   const familyMap: Record<string, {
     name: string; email: string | null; phone: string | null; city: string | null;
     state: string | null; care_types: string[]; timeline: string | null;

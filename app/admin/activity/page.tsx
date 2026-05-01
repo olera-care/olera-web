@@ -532,10 +532,16 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
           <div key={event.id} className="flex items-center gap-3 py-3.5 border-b border-gray-100/80 group">
             <RowCheckbox checked={selected.has(event.id)} onChange={() => onToggle(event.id)} />
             <div className="min-w-0 flex-1">
-              <Link href={`/admin/care-seekers/${event.profile_id}`}
-                className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate block">
-                {event.family?.name || "Unknown"}
-              </Link>
+              {event.profile_id ? (
+                <Link href={`/admin/care-seekers/${event.profile_id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate block">
+                  {event.family?.name || "Unknown"}
+                </Link>
+              ) : (
+                <span className="text-sm font-medium text-gray-400 truncate block">
+                  Guest (not signed up)
+                </span>
+              )}
               {event.family && (
                 <span className="text-xs text-gray-400">
                   {[

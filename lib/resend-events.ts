@@ -248,4 +248,38 @@ export async function recordEmailEvent(
   if (updateErr) {
     console.error("[resend-webhook] email_log update failed:", updateErr);
   }
+
+  // 3. Flag family-profile email_validity on bounce/complaint.
+  //
+  // Used by the SBF V3 flow to mark dead email destinations so we don't:
+  //   (a) include them in the "captured & contactable" KPI in admin/analytics
+  //   (b) keep trying to send to them in any future re-engagement loop
+  //
+  // Lookup is by email + type='family' (scoped to the partial index added
+  // in migration 058). Family profiles share email column with their auth
+  // user; provider profiles use their own email which is excluded here.
+  //
+  // Validity precedence: 'complained' > 'bounced' > 'delivered' > 'unverified'.
+  // We never downgrade — `.in('email_validity', allowed)` enforces this:
+  // a 'bounced' update will skip a row already 'complained', and a 'complained'
+  // update will overwrite a 'bounced' row.
+  if (eventType === "bounced" || eventType === "complained") {
+    const rawTo = payload.data?.to;
+    const recipient = Array.isArray(rawTo) ? rawTo[0] : rawTo;
+    if (recipient && typeof recipient === "string") {
+      const allowedCurrent =
+        eventType === "bounced"
+          ? ["unverified", "delivered"]
+          : ["unverified", "delivered", "bounced"];
+      const { error: validityErr } = await db
+        .from("business_profiles")
+        .update({ email_validity: eventType })
+        .eq("email", recipient.trim().toLowerCase())
+        .eq("type", "family")
+        .in("email_validity", allowedCurrent);
+      if (validityErr) {
+        console.error("[resend-webhook] email_validity update failed:", validityErr);
+      }
+    }
+  }
 }

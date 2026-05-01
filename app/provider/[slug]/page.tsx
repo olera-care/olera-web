@@ -1006,6 +1006,8 @@ export default async function ProviderPage({
                     stateName={benefitsData.stateName}
                     providerName={profile.display_name}
                     providerSlug={profile.slug}
+                    providerCareTypes={profile.care_types}
+                    providerCategory={profile.category}
                     topPrograms={benefitsData.programs.map((p) => ({
                       id: p.id,
                       name: p.name,

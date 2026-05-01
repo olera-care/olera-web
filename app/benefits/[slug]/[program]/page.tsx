@@ -5,6 +5,7 @@ import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
 import { getRelatedArticles } from "@/lib/content";
 import { getDisplayName } from "@/lib/program-name";
+import { getEnrichedProgram } from "@/lib/program-data";
 
 interface Props {
   params: Promise<{ slug: string; program: string }>;
@@ -66,6 +67,8 @@ function resolveProgram(slug: string, programId: string): {
   const stateMetadata = getStateById(slug);
   if (stateMetadata) {
     const drafts = pipelineDrafts[stateMetadata.abbreviation];
+
+    // Direct pipeline-draft ID match (existing path)
     if (drafts?.programs) {
       const draft = drafts.programs.find((d) => d.id === programId);
       if (draft) {
@@ -75,6 +78,26 @@ function resolveProgram(slug: string, programId: string): {
         };
         return { state, program: draftToWaiverProgram(draft) };
       }
+    }
+
+    // Fallback: waiver-library ID match. The V3 SBF embeds matched-program
+    // links via `getEnrichedProgram`, which returns the waiver-library ID
+    // for any program that exists there (even if a draft also matches it
+    // via fuzzy lookup). Without this fallback, every link to a base-only
+    // or merged program 404s. Using getEnrichedProgram here gets us the
+    // merged data (waiver-library + draft fill-ins) for richer rendering.
+    const baseProgram = stateMetadata.programs?.find((p) => p.id === programId);
+    if (baseProgram) {
+      const enriched = getEnrichedProgram(slug, programId) ?? baseProgram;
+      const allPrograms: WaiverProgram[] = [
+        ...stateMetadata.programs,
+        ...(drafts?.programs || []).map(draftToWaiverProgram),
+      ];
+      const state: StateData = {
+        ...stateMetadata,
+        programs: allPrograms,
+      };
+      return { state, program: enriched };
     }
   }
 

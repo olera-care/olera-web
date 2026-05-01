@@ -188,6 +188,61 @@ export function validateEmail(email: string): EmailValidationResult {
   return { valid: true };
 }
 
+// Disposable / throwaway domains. Filters obviously-junk SBF submissions.
+// Kept short and well-known — false positives here block legitimate users at
+// submit, so we add carefully. Determined adversaries with a fresh domain win
+// regardless; this catches the lazy/accidental case.
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com",
+  "guerrillamail.com",
+  "guerrillamail.net",
+  "guerrillamail.org",
+  "sharklasers.com",
+  "yopmail.com",
+  "yopmail.net",
+  "yopmail.fr",
+  "tempmail.com",
+  "temp-mail.org",
+  "trashmail.com",
+  "throwaway.email",
+  "10minutemail.com",
+  "10minutemail.net",
+  "fakeinbox.com",
+  "maildrop.cc",
+  "getnada.com",
+  "dispostable.com",
+]);
+
+/**
+ * Returns true if the email's domain is on the disposable blocklist.
+ * Assumes email has already passed basic format validation.
+ */
+export function isDisposableEmail(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  if (!domain) return false;
+  return DISPOSABLE_DOMAINS.has(domain);
+}
+
+/**
+ * Strict validation for the SBF V3 benefits intake. Wraps `validateEmail`
+ * (format + typo detection) and adds a disposable-domain check on top.
+ *
+ * Use this for any flow where capturing an obviously-fake email defeats the
+ * purpose (the SBF flow is the canonical example — every saved profile
+ * needs a contactable address or it's dead weight).
+ */
+export function validateEmailStrict(email: string): EmailValidationResult {
+  const base = validateEmail(email);
+  if (!base.valid) return base;
+  if (isDisposableEmail(email)) {
+    return {
+      valid: false,
+      error: "Please use a real email address so we can send your matches.",
+    };
+  }
+  return base;
+}
+
 /**
  * Check if email is from a consumer domain (gmail, yahoo, etc.)
  */

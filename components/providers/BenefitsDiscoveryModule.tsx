@@ -1,7 +1,31 @@
 "use client";
 
+/**
+ * BenefitsDiscoveryModule (V3 — 2-step embedded SBF on provider pages).
+ *
+ * Replaces the V2 5-step intake. Two steps only: care need → contact
+ * (email or SMS). On submit, the API silently creates the family profile
+ * (auth.users + accounts + business_profiles type='family' + token), then
+ * the ResultsSheet overlay opens in place — no redirect.
+ *
+ * Why this exists: V2 was at 8.2% completion / 39% step-1 pickup. The
+ * structural friction (visible 5-step form on a provider page) was the
+ * killer. V3 removes everything between the first care-need pick and the
+ * email field. Targets: 55%+ step-1 pickup, 15%+ contact completion.
+ *
+ * 3-arm A/B on entry-point copy (lib/analytics/variant.ts):
+ *   - availability — "There's help paying for care in {state}." (positive)
+ *   - loss         — "Most {state} families miss out…" + dollar floor (loss)
+ *   - empathic     — "Care is expensive." (shared truth)
+ *
+ * Per-card pickup tracking added: benefits_step_completed for step
+ * "care-need" carries `care_need_selected` so we can see which card pulls.
+ *
+ * Standalone /benefits/finder is intentionally untouched — different
+ * surface, different intent. Don't copy V3's structural bet there.
+ */
+
 import { useState, useMemo, useRef, useEffect } from "react";
-import Link from "next/link";
 import {
   ArrowRight,
   ArrowLeft,
@@ -10,12 +34,20 @@ import {
   Brain,
   HandHeart,
   Spinner,
+  UsersThree,
+  Heart,
+  User,
+  UsersFour,
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
 import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
+import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
+import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
+import type { WaiverProgram } from "@/data/waiver-library";
+import ResultsSheet from "@/components/benefits/ResultsSheet";
 
-/** Minimal program shape passed from server — keeps client bundle small */
+/** Minimal program shape passed from the provider page server component. */
 export interface BenefitsProgram {
   id: string;
   name: string;
@@ -33,146 +65,106 @@ interface BenefitsDiscoveryModuleProps {
   providerState: string; // 2-letter abbreviation (e.g., "TX")
   stateId: string;       // slug (e.g., "texas")
   stateName: string;
-  topPrograms: BenefitsProgram[];
+  topPrograms: BenefitsProgram[];   // retained for back-compat; unused in V3 layout
   allPrograms: BenefitsProgram[];
   providerName?: string;
   providerSlug?: string;
+  /** care_types array for the provider tie-in helper. */
+  providerCareTypes?: string[] | null;
+  /** category string for the provider tie-in helper. */
+  providerCategory?: string | null;
 }
 
-// ─── URL helpers ─────────────────────────────────────────────────────────
-function benefitsUrl(stateId: string): string {
-  return `/benefits/${stateId}`;
-}
-
-function programUrl(stateId: string, programId: string): string {
-  return `/benefits/${stateId}/${programId}`;
-}
-
-// ─── Savings helpers ─────────────────────────────────────────────────────
-function extractTopSavings(savingsRange?: string): string | null {
-  if (!savingsRange) return null;
-  const matches = savingsRange.match(/\$[\d,]+/g);
-  if (!matches || matches.length === 0) return null;
-  return matches[matches.length - 1];
-}
-
-function shortSavings(savingsRange?: string): string | null {
-  const top = extractTopSavings(savingsRange);
-  if (!top) return null;
-  return `Up to ${top}/yr`;
-}
-
-function plainDescription(tagline?: string): string | null {
-  if (!tagline) return null;
-  return tagline.split(/\.\s|,\s(?![0-9])/)[0];
-}
-
-// ─── Care need categories ────────────────────────────────────────────────
-type CareNeed = "stayingAtHome" | "payingForCare" | "memoryHealth" | "companionship";
-
+// ─── Care need cards — order matters. "Paying for care" first because it's
+//     the most-universal pain across senior-care provider visitors and creates
+//     instant fluency with all 3 H2 arms (each mentions "paying for care").
 const CARE_NEED_OPTIONS: Array<{
   value: CareNeed;
   label: string;
   description: string;
   icon: typeof House;
 }> = [
-  { value: "stayingAtHome", label: "Staying at home", description: "Personal care, daily tasks, mobility help", icon: House },
-  { value: "payingForCare", label: "Paying for care", description: "Medicare, financial assistance, cash help", icon: Coin },
-  { value: "memoryHealth", label: "Memory & health care", description: "Dementia care, medical support", icon: Brain },
-  { value: "companionship", label: "Companionship & support", description: "Social activities, caregiver support", icon: HandHeart },
+  { value: "payingForCare", label: "Paying for care", description: "Medicare savings, cash benefits, food help", icon: Coin },
+  { value: "stayingAtHome", label: "In-home care", description: "Personal care, daily tasks, mobility", icon: House },
+  { value: "memoryHealth", label: "Memory & medical care", description: "Dementia care, doctor visits, prescriptions", icon: Brain },
+  { value: "companionship", label: "Caregiver & social support", description: "Respite breaks, social programs", icon: HandHeart },
 ];
 
-// ─── Care need keyword matching ──────────────────────────────────────────
-function matchesCareNeed(program: BenefitsProgram, careNeed: CareNeed | null): boolean {
-  if (!careNeed) return true;
-  const text = `${program.name} ${program.shortName} ${program.tagline || ""}`.toLowerCase();
-  switch (careNeed) {
-    case "stayingAtHome":
-      return /\b(home care|home.based|hcbs|community.based|in.home|attendant|adult day|waiver|personal care|daily|stay home)\b/.test(text);
-    case "payingForCare":
-      return /\b(medicare savings|financial|cash|premium|snap|food|ssi|pension|assistance|qmb|slmb|pharmac|low.income|groceries|pay)\b/.test(text);
-    case "memoryHealth":
-      return /\b(memory|alzheimer|dementia|medical|health|pace|medicaid|nursing|hospice|prescription)\b/.test(text);
-    case "companionship":
-      return /\b(companion|support|caregiver|respite|social)\b/.test(text);
+// ─── 3-arm copy: H2 + sub for step 1.
+//     Strings live here AND in the SBF Copy Variants Notion DB. When you
+//     change copy, update both — the Notion DB is the durable record of
+//     what each arm earned.
+//
+//     Umbrella term is "care benefits" not "paying for care" — the latter
+//     overlaps with the first card label and creates a confusing
+//     "wait, one of four options is the same as the headline?" moment.
+//     "Care benefits" is the conceptual layer above the cards, which are
+//     TYPES of care needs.
+const VARIANT_COPY: Record<BenefitsVariant, { h2: (state: string) => string; sub: (state: string) => string }> = {
+  availability: {
+    h2: (state) => `${state} care benefits for families like yours.`,
+    sub: () => "Tell us what's needed — we'll find what fits.",
+  },
+  loss: {
+    h2: (state) => `Most ${state} families miss the care benefits they qualify for.`,
+    sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
+  },
+  empathic: {
+    // Anchored to state so the punchy short H2 doesn't read naked on a
+    // provider page where the user hasn't been primed for empathy.
+    h2: (state) => `Care is expensive in ${state}.`,
+    sub: () => "Tell us what's needed — we'll find programs that may help.",
+  },
+};
+
+// ─── Relationship — step 2's tap-question. Powers the personalized H2 on
+//     step 3 ("Save your parent's matches") AND gives us a structural data
+//     point we currently don't capture for downstream personalization.
+type Relationship = "my-parent" | "my-spouse" | "myself" | "other-family";
+
+const RELATIONSHIP_OPTIONS: Array<{
+  value: Relationship;
+  label: string;
+  description: string;
+  icon: typeof User;
+}> = [
+  { value: "my-parent", label: "For my parent", description: "Mom, Dad, or both", icon: UsersThree },
+  { value: "my-spouse", label: "For my spouse", description: "Husband, wife, or partner", icon: Heart },
+  { value: "myself", label: "For me", description: "I'm planning my own care", icon: User },
+  { value: "other-family", label: "Someone else in the family", description: "Grandparent, sibling, or other relative", icon: UsersFour },
+];
+
+// Possessive phrase used in step 3's H2 + the post-submit overlay's contextual
+// copy. "Save your parent's matches" feels like saving something for someone
+// you love. "Save your matches" is fine but less personal.
+function relationshipPhrase(rel: Relationship | null): string {
+  switch (rel) {
+    case "my-parent":
+      return "your parent's";
+    case "my-spouse":
+      return "your spouse's";
+    case "myself":
+      return "your";
+    case "other-family":
+      return "these";
+    case null:
     default:
-      return true;
+      return "your";
   }
 }
 
-// ─── Income bracket matching ─────────────────────────────────────────────
-type IncomeRange = "under1500" | "under2500" | "under4000" | "over4000" | "preferNotToSay";
-
-const INCOME_MAX: Record<IncomeRange, number | null> = {
-  under1500: 1500,
-  under2500: 2500,
-  under4000: 4000,
-  over4000: Infinity,
-  preferNotToSay: null,
-};
-
-function matchesIncome(program: BenefitsProgram, incomeRange: IncomeRange | ""): boolean {
-  if (!incomeRange || incomeRange === "preferNotToSay") return true;
-  const max = INCOME_MAX[incomeRange as IncomeRange];
-  if (max === null || max === Infinity) return true;
-  const row1 = program.structuredEligibility?.incomeTable?.[0];
-  if (!row1?.monthlyLimit) return true; // No income limit data → include (don't exclude programs we can't evaluate)
-  // Include if program's limit is at or above user's income (they qualify)
-  return row1.monthlyLimit >= max;
-}
-
-// ─── Screener filter ─────────────────────────────────────────────────────
-type MedicaidStatus = "alreadyHas" | "doesNotHave" | "notSure" | "";
-
-function filterPrograms(
-  programs: BenefitsProgram[],
-  careNeed: CareNeed | null,
-  age: string,
-  medicaid: MedicaidStatus,
-  incomeRange: IncomeRange | "",
-): BenefitsProgram[] {
-  return programs.filter((p) => {
-    // Care need filter
-    if (careNeed && !matchesCareNeed(p, careNeed)) return false;
-
-    // Age filter
-    const ageNum = parseInt(age);
-    if (ageNum && p.structuredEligibility?.ageRequirement) {
-      const ageReq = parseInt(p.structuredEligibility.ageRequirement);
-      if (ageReq && ageNum < ageReq) return false;
-    }
-
-    // Medicaid filter — if "doesNotHave", exclude Medicaid-dependent programs
-    if (medicaid === "doesNotHave") {
-      const nameAndTag = `${p.name} ${p.tagline || ""}`.toLowerCase();
-      if (nameAndTag.includes("medicaid") && !nameAndTag.includes("savings")) return false;
-    }
-
-    // Income filter
-    if (!matchesIncome(p, incomeRange)) return false;
-
-    // Resources/navigators always included
-    if (p.programType === "resource" || p.programType === "navigator") return true;
-
-    return true;
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Main component
-// ═══════════════════════════════════════════════════════════════════════════
-
-type Step = "care-need" | "age" | "financial" | "results" | "save";
-
-// Step → ordinal for funnel events. Hyphenated keys match the internal Step
-// values so step_name in metadata is the source-of-truth identifier.
+type Step = "care-need" | "relationship" | "contact";
 const STEP_NUMBERS: Record<Step, number> = {
   "care-need": 1,
-  age: 2,
-  financial: 3,
-  save: 4,
-  results: 5,
+  relationship: 2,
+  contact: 3,
 };
+
+// Phone normalization helper — UI-side only. Server re-validates with normalizeUSPhone.
+function isPlausiblePhone(input: string): boolean {
+  const digits = input.replace(/\D/g, "");
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
+}
 
 export default function BenefitsDiscoveryModule({
   providerState,
@@ -182,42 +174,36 @@ export default function BenefitsDiscoveryModule({
   allPrograms,
   providerName,
   providerSlug,
+  providerCareTypes,
+  providerCategory,
 }: BenefitsDiscoveryModuleProps) {
+  // ─── Step + form state ───────────────────────────────────────────────
   const [step, setStep] = useState<Step>("care-need");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
-  const [age, setAge] = useState("");
-  const [medicaid, setMedicaid] = useState<MedicaidStatus>("");
-  const [incomeRange, setIncomeRange] = useState<IncomeRange | "">("");
+  const [relationship, setRelationship] = useState<Relationship | null>(null);
+  // Phone-as-optional design: both fields visible, email required, phone is
+  // a bonus signal. Drops the older toggle-based SMS path. The server still
+  // accepts SMS-only payloads from any caller, but this UI always submits email.
   const [email, setEmail] = useState("");
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const startTrackedRef = useRef(false);
-  const savedMatchCountRef = useRef<number | null>(null);
-  const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
-  const [echoVisible, setEchoVisible] = useState(false);
 
-  // ─── Per-step funnel tracking + A/B variant (PR B + PR C) ──────────
-  // sessionId + variant are deferred to useState/useEffect so server-side
-  // rendering doesn't compute a different sessionId than the client cookie
-  // (getOrCreateSessionId falls back to a fresh random UUID on the server
-  // since `document` is undefined). useMemo would have caused a hydration
-  // mismatch on the variant-conditional copy AND would have fired the first
-  // entry_viewed event with the wrong variant ~50% of the time.
-  //
-  // variant defaults to "control" so server-rendered HTML matches the
-  // client's first render. After mount, useEffect computes the real
-  // variant from the cookie. Event-firing useEffects gate on sessionId
-  // being non-empty so events fire only after the real variant is set.
-  //
-  // entryTrackedRef + viewedStepsRef dedupe Strict Mode double-mount and
-  // back-button revisits within the same session.
-  // stepEnterTimeRef captures step entry time for time_on_step_ms.
-  const [sessionId, setSessionId] = useState<string>("");
-  const [variant, setVariant] = useState<BenefitsVariant>("control");
+  // ─── Tracking refs ───────────────────────────────────────────────────
+  const startTrackedRef = useRef(false);
   const entryTrackedRef = useRef(false);
   const viewedStepsRef = useRef<Set<Step>>(new Set());
   const stepEnterTimeRef = useRef<number>(Date.now());
 
+  // ─── Spotlight echo from Q&A section (preserved from V2) ──────────────
+  const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
+  const [echoVisible, setEchoVisible] = useState(false);
+
+  // ─── Session + variant — deferred to useEffect to avoid SSR hydration ──
+  // mismatch. Default to "availability" so the SSR HTML matches client's
+  // first render; useEffect computes the real variant after mount.
+  const [sessionId, setSessionId] = useState<string>("");
+  const [variant, setVariant] = useState<BenefitsVariant>("availability");
   useEffect(() => {
     const sid = getOrCreateSessionId();
     setSessionId(sid);
@@ -226,7 +212,7 @@ export default function BenefitsDiscoveryModule({
 
   function fireFunnelEvent(
     event: BenefitsStepEvent,
-    extras?: { stepNumber?: number; stepName?: string; timeOnStepMs?: number },
+    extras?: { stepNumber?: number; stepName?: string; timeOnStepMs?: number; careNeedSelected?: CareNeed | null },
   ) {
     trackBenefitsEvent({
       event,
@@ -240,70 +226,43 @@ export default function BenefitsDiscoveryModule({
     });
   }
 
-  function trackStepCompleted(stepKey: Step) {
+  function trackStepCompleted(stepKey: Step, careNeedSelected?: CareNeed | null) {
     fireFunnelEvent("benefits_step_completed", {
       stepNumber: STEP_NUMBERS[stepKey],
       stepName: stepKey,
       timeOnStepMs: Date.now() - stepEnterTimeRef.current,
+      careNeedSelected,
     });
   }
 
-  // ─── Spotlight handoff from Q&A section ───────────────────────────
-  // When a caregiver submits a question, the room quiets around us:
-  // body gets `benefits-spotlight-active`, siblings fade, the page bg
-  // warms to cream. We hold the quoted question as an italic serif line
-  // above the header and smooth-scroll into view. Perena/Wispr Flow move —
-  // no glow on the card, the environment does the work.
+  // ─── Spotlight handoff from Q&A section ───────────────────────────────
+  // When a caregiver submits a question, the room quiets around us. Move
+  // preserved verbatim from V2 — Perena/Wispr Flow vibe.
   useEffect(() => {
     let pendingTimeouts: number[] = [];
-
     function clearPending() {
       pendingTimeouts.forEach((id) => window.clearTimeout(id));
       pendingTimeouts = [];
     }
-
     function handleQuestionSubmitted(e: Event) {
       const detail = (e as CustomEvent<{ question: string }>).detail;
       if (!detail?.question) return;
-
-      // Clear any in-flight spotlight from a previous submission so a rapid
-      // second submit doesn't get cut short by the first timer.
       clearPending();
       setEchoVisible(false);
       setQuotedQuestion(detail.question);
-
-      // Defensive blur: if the caregiver just submitted from a text input
-      // (or the enrichment field on a page without benefits), drop focus so
-      // a) the browser doesn't fight our scroll, and b) subsequent typing
-      // doesn't land in an off-screen input.
       const active = document.activeElement as HTMLElement | null;
       if (active && typeof active.blur === "function") active.blur();
-
-      // Delay scroll one frame so the echo mounts before we animate.
-      // Respect prefers-reduced-motion — jump instantly instead of animating.
       const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       requestAnimationFrame(() => {
         const el = document.getElementById("benefits");
-        if (el) {
-          el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-        }
+        if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
         document.body.classList.add("benefits-spotlight-active");
       });
-
-      // Echo line fades in after the scroll has a moment to settle
+      pendingTimeouts.push(window.setTimeout(() => setEchoVisible(true), 450));
       pendingTimeouts.push(
-        window.setTimeout(() => setEchoVisible(true), 450),
-      );
-
-      // Spotlight holds briefly, then the room returns to normal.
-      // The echo line stays — it's the caregiver's own words, not a toast.
-      pendingTimeouts.push(
-        window.setTimeout(() => {
-          document.body.classList.remove("benefits-spotlight-active");
-        }, 2700),
+        window.setTimeout(() => document.body.classList.remove("benefits-spotlight-active"), 2700),
       );
     }
-
     window.addEventListener("olera:question-submitted", handleQuestionSubmitted);
     return () => {
       window.removeEventListener("olera:question-submitted", handleQuestionSubmitted);
@@ -312,11 +271,7 @@ export default function BenefitsDiscoveryModule({
     };
   }, []);
 
-  // ─── Funnel: entry_viewed (mount, gated on sessionId) ──────────────
-  // Fires once per module mount, AFTER sessionId is resolved client-side
-  // so the event carries the real variant. entryTrackedRef survives Strict
-  // Mode's double-mount in dev; it does NOT survive a full unmount (page
-  // leave + return), which is desired — that's a real new view.
+  // ─── Funnel: entry_viewed (mount, gated on sessionId) ─────────────────
   useEffect(() => {
     if (!sessionId || entryTrackedRef.current) return;
     entryTrackedRef.current = true;
@@ -324,13 +279,7 @@ export default function BenefitsDiscoveryModule({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  // ─── Funnel: step_viewed + entry-time reset (gated on sessionId) ───
-  // Always reset entry time so time_on_step_ms reflects the current visit.
-  // step_viewed itself is deduped per session — back-button revisits don't
-  // refire the event, but they do reset the timer (so a re-submit gives us
-  // accurate dwell time on the second visit). Gated on sessionId so the
-  // event carries the real variant (otherwise the first step_viewed for
-  // care-need would fire with the default "control" variant for everyone).
+  // ─── Funnel: step_viewed + entry-time reset ────────────────────────────
   useEffect(() => {
     stepEnterTimeRef.current = Date.now();
     if (!sessionId) return;
@@ -344,7 +293,6 @@ export default function BenefitsDiscoveryModule({
   }, [step, sessionId]);
 
   // Fire-and-forget: notify Slack + log that a user started the intake.
-  // Guarded so re-selecting a care-need card (or going back/forward) only fires once per session.
   function trackStart(selectedCareNeed: CareNeed) {
     if (startTrackedRef.current) return;
     startTrackedRef.current = true;
@@ -369,34 +317,43 @@ export default function BenefitsDiscoveryModule({
     }
   }
 
-  // Live match count (based on whatever's been answered so far)
-  const matchingPrograms = useMemo(
-    () => filterPrograms(allPrograms, careNeed, age, medicaid, incomeRange),
-    [allPrograms, careNeed, age, medicaid, incomeRange],
-  );
+  // ─── Match list — recomputed when careNeed changes. Used both for the
+  //     "matchedPrograms" payload sent to the server AND for the post-submit
+  //     overlay (passed via overlayMatches state below).
+  const matchingPrograms = useMemo(() => {
+    if (!careNeed) return [];
+    return allPrograms.filter((p) => matchesCareNeed(p, careNeed));
+  }, [allPrograms, careNeed]);
+
+  // ─── Post-submit overlay state ────────────────────────────────────────
+  // Set on successful submit, opens the ResultsSheet. Snapshotted because
+  // the matchingPrograms upstream could change if the user later flips
+  // careNeed (they shouldn't be able to in V3, but defensive).
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayMatches, setOverlayMatches] = useState<WaiverProgram[]>([]);
+  const [overlayMatchCount, setOverlayMatchCount] = useState(0);
+  const [overlayContactDest, setOverlayContactDest] = useState<string | null>(null);
+  const [overlayContactChannel, setOverlayContactChannel] = useState<"email" | "sms">("email");
 
   if (topPrograms.length === 0) return null;
 
-  // ─── Handle save submission ───────────────────────────────────────────
-  // IMPORTANT: We use window.location.href (full page reload) instead of
-  // router.push (client-side nav). Reason: the Supabase browser client is
-  // a module-level singleton that was initialized on the provider page
-  // BEFORE any auth cookies existed. When the server writes session cookies
-  // via Set-Cookie headers on our POST response, the browser stores them,
-  // but the stale Supabase client singleton never re-reads them because
-  // client-side navigation keeps the same React root + same module state.
-  //
-  // Full page reload throws away the singleton, fresh page load re-reads
-  // cookies from scratch, AuthProvider sees the session, welcome page
-  // renders the personalized state. ~500ms extra vs router.push but it
-  // actually works.
-  async function handleSave() {
-    setSaveError(null);
+  // ─── Handle submit ────────────────────────────────────────────────────
+  async function handleSubmit() {
+    setError(null);
+
+    // Email is always required in V3 — phone is the bonus signal.
+    // Client-side gate; server re-validates strictly via validateEmailStrict.
     if (!email.trim() || !email.includes("@")) {
-      setSaveError("Please enter a valid email.");
+      setError("Please enter a valid email address.");
       return;
     }
-    trackStepCompleted("save");
+    // Phone optional — only validate format if user typed something.
+    if (phone.trim() && !isPlausiblePhone(phone)) {
+      setError("That phone number doesn't look right. You can leave it blank.");
+      return;
+    }
+
+    trackStepCompleted("contact");
     setSaving(true);
 
     try {
@@ -405,11 +362,17 @@ export default function BenefitsDiscoveryModule({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed,
-          age: age ? parseInt(age) : null,
-          medicaidStatus: medicaid || null,
-          incomeRange: incomeRange || null,
+          age: null,
+          medicaidStatus: null,
+          incomeRange: null,
           stateCode: providerState,
+          // Email-primary contact in the V3 flow. Phone (if given) attaches
+          // to the same family profile as a secondary channel.
+          contactChannel: "email",
           email: email.trim().toLowerCase(),
+          phone: phone.trim() ? phone : undefined,
+          relationship: relationship || undefined,
+          providerSlug: providerSlug || undefined,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
             stateId,
@@ -423,495 +386,289 @@ export default function BenefitsDiscoveryModule({
       });
       const data = await res.json();
       if (!res.ok) {
-        setSaveError(data?.error || "Something went wrong. Please try again.");
+        // The server returns { error, suggestion?, suggestedEmail?, code? }
+        const msg = data?.suggestion || data?.error || "Something went wrong. Please try again.";
+        setError(msg);
         setSaving(false);
         return;
       }
-      // Email captured → reveal results inline on the provider page.
-      // The user can click through to /welcome from the results CTA, which
-      // does the full-page reload needed to refresh the Supabase client singleton.
+
+      // Success — open the ResultsSheet overlay in place. Email is always
+      // the primary contact in V3, so the footer line shows the email.
+      setOverlayMatches(matchingPrograms as unknown as WaiverProgram[]);
+      setOverlayMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
+      setOverlayContactDest(email.trim().toLowerCase());
+      setOverlayContactChannel("email");
       setSaving(false);
-      setStep("results");
-      // Track the match count the server actually saved, for the welcome redirect
-      savedMatchCountRef.current = data.matchCount || matchingPrograms.length;
-      return;
+      setOverlayOpen(true);
     } catch (err) {
-      console.error("[BenefitsDiscoveryModule] Save failed:", err);
-      setSaveError("Network error. Please try again.");
+      console.error("[BenefitsDiscoveryModule] Submit failed:", err);
+      setError("Network error. Please try again.");
       setSaving(false);
     }
   }
 
   // ═════════════════════════════════════════════════════════════════════
-  // RENDER — state machine
+  // RENDER
   // ═════════════════════════════════════════════════════════════════════
 
-  // ─── Progress indicator + back button wrapper ─────────────────────────
-  // Step 4 (save) starts EMPTY and fills as the user types — see render block.
-  // Step 5 (results) is the reveal after save succeeds.
-  const baseStepNum =
-    step === "care-need" ? 1 :
-    step === "age" ? 2 :
-    step === "financial" ? 3 :
-    step === "save" ? 3 :
-    step === "results" ? 5 :
-    1;
-  const totalSteps = 5;
-  // For step 4 (save): the 4th segment fills once the email field holds a valid value.
-  const saveProgress = (() => {
-    if (step !== "save") return 0;
-    return email.trim().length > 0 && email.includes("@") ? 1 : 0;
-  })();
+  const v = VARIANT_COPY[variant];
 
-  const StepHeader = ({ onBack }: { onBack?: () => void }) => (
-    <div className="flex items-center gap-3 mb-6">
-      {onBack && (
-        <button
-          onClick={onBack}
-          aria-label="Go back"
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 text-gray-600" />
-        </button>
-      )}
-      <div className="flex-1 flex items-center gap-1.5">
-        {Array.from({ length: totalSteps }).map((_, i) => {
-          // Segments 1-3: binary (filled once that step is reached).
-          // Segment 4 (the save gate): fills once the email field holds a valid value,
-          //   pulses softly when empty to telegraph "you're not done yet".
-          // Segment 5 (the results reveal): fills once save succeeds.
-          const isSaveSegment = i === 3;
-          if (isSaveSegment) {
-            const fill = step === "save" ? saveProgress * 100 : step === "results" ? 100 : 0;
-            const isPulsing = step === "save" && saveProgress === 0;
-            return (
-              <div key={i} className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden relative">
-                <div
-                  className={`h-full bg-gray-900 rounded-full transition-all duration-300 ${isPulsing ? "animate-pulse opacity-60" : ""}`}
-                  style={{ width: isPulsing ? "12%" : `${fill}%` }}
-                />
-              </div>
-            );
-          }
-          return (
-            <div
-              key={i}
-              className={`h-1 flex-1 rounded-full transition-colors ${
-                i < baseStepNum ? "bg-gray-900" : "bg-gray-200"
-              }`}
-            />
-          );
-        })}
-      </div>
+  // Progress bar — single proportional bar across the full width. Fills as
+  // the user completes steps. Beats the segmented design (3 separate bars
+  // with gaps) where one filled segment only spans ~30% of the visual
+  // width — the eye reads that as "barely started" rather than "1/3 done."
+  // No pulse, no flicker. The bar's width transition (500ms ease-out)
+  // does the work; CSS handles the smoothness.
+  const completedSteps =
+    (careNeed ? 1 : 0) +
+    (relationship ? 1 : 0) +
+    (overlayOpen ? 1 : 0);
+  const progressPct = (completedSteps / 3) * 100;
+  const ProgressBar = () => (
+    <div className="h-1 w-full rounded-full bg-gray-200 overflow-hidden mb-6">
+      <div
+        className="h-full bg-gray-900 rounded-full transition-all duration-500 ease-out"
+        style={{ width: `${progressPct}%` }}
+      />
     </div>
   );
 
-  // ─── Step 1: Care need (first sequence — entry point) ───────────────
-  if (step === "care-need") {
-    // Build typographic support strip — top programs by savings, name only
-    const stripPrograms = topPrograms
-      .concat(allPrograms.filter((p) => !topPrograms.find((t) => t.id === p.id)))
-      .slice(0, 8)
-      .map((p) => p.shortName || p.name);
-    const remainingCount = Math.max(0, allPrograms.length - stripPrograms.length);
+  const provider: MatchableProvider | null = providerName
+    ? {
+        display_name: providerName,
+        care_types: providerCareTypes,
+        category: providerCategory,
+      }
+    : null;
 
-    return (
-      <div>
-        <StepHeader />
-
-        {/* ── Echo of the caregiver's question (appears after Q&A submit) ──
-            Italic serif, quiet. Proves the page heard them. Not a toast —
-            it stays in place as context for the rest of the flow. */}
-        {quotedQuestion && (
-          <p
-            className={`benefits-echo-line ${echoVisible ? "is-visible" : ""} font-display italic text-[15px] text-gray-500 mb-3 leading-relaxed`}
-          >
-            You just asked: <span className="text-gray-700">&ldquo;{quotedQuestion}&rdquo;</span>
-          </p>
-        )}
-
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          {variant === "money_loss"
-            ? "You might be leaving money on the table."
-            : "Families like yours qualify for help."}
-        </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-3">
-          {variant === "money_loss"
-            ? `Most ${stateName} families don't realize they qualify for $400-$900/month in benefits.`
-            : `${stateName} has ${allPrograms.length} programs. What kind of help does your family need?`}
-        </p>
-
-        {/* Trust strip — same on both arms. Dynamic state + count so it
-            works in TX, FL, CA, etc. without per-state hardcoding. */}
-        <p className="text-xs text-gray-400 mb-6 leading-relaxed">
-          <span>Free</span>
-          <span className="text-gray-300 mx-1.5">·</span>
-          <span>No signup to start</span>
-          <span className="text-gray-300 mx-1.5">·</span>
-          <span>30 seconds</span>
-          <span className="text-gray-300 mx-1.5">·</span>
-          <span>Private, never sold to insurers</span>
-          <span className="text-gray-300 mx-1.5">·</span>
-          <span>{allPrograms.length} {stateName} programs</span>
-        </p>
-
-        {/* Care need cards — the main visual focal point */}
-        <div className="space-y-2 mb-10">
-          {CARE_NEED_OPTIONS.map((opt) => {
-            const Icon = opt.icon;
-            const isSelected = careNeed === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  setCareNeed(opt.value);
-                  trackStart(opt.value);
-                  trackStepCompleted("care-need");
-                  setTimeout(() => setStep("age"), 180);
-                }}
-                className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
-                  isSelected
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-50 hover:bg-gray-100 text-gray-900"
-                }`}
-              >
-                <Icon
-                  className={`w-5 h-5 shrink-0 ${isSelected ? "text-white" : "text-gray-600"}`}
-                  weight="duotone"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{opt.label}</p>
-                  <p className={`text-xs mt-0.5 truncate ${isSelected ? "text-gray-300" : "text-gray-500"}`}>
-                    {opt.description}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── Typographic support strip — Perena-style ─────────────────
-            Quiet evidence that real programs exist behind the cards.
-            No pills, no chrome, just typography. */}
-        <div className="border-t border-gray-100 pt-5">
-          <div className="flex items-baseline justify-between mb-2">
-            <p className="text-[11px] font-medium tracking-[0.1em] text-gray-400 uppercase">
-              Programs
-            </p>
-            <Link
-              href={benefitsUrl(stateId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] tracking-wide text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              Browse all →
-            </Link>
-          </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            {stripPrograms.map((name, i) => (
-              <span key={i}>
-                {i > 0 && <span className="text-gray-300"> · </span>}
-                <span className="text-gray-600">{name}</span>
-              </span>
-            ))}
-            {remainingCount > 0 && (
-              <span className="text-gray-400"> · +{remainingCount} more</span>
-            )}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Step 2: Age ──────────────────────────────────────────────────────
-  if (step === "age") {
-    const canContinue = age && parseInt(age) > 0;
-    return (
-      <div>
-        <StepHeader onBack={() => setStep("care-need")} />
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          How old is your loved one?
-        </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          Most programs are for adults 60+ — we&apos;ll filter to the right ones.
-        </p>
-
-        <input
-          type="number"
-          placeholder="e.g. 72"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && canContinue) { trackStepCompleted("age"); setStep("financial"); } }}
-          className="w-full px-4 py-4 text-lg rounded-xl border border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-200 outline-none transition-colors mb-4"
-          autoFocus
-        />
-
-        <button
-          onClick={() => { trackStepCompleted("age"); setStep("financial"); }}
-          disabled={!canContinue}
-          className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
-            canContinue
-              ? "bg-gray-900 text-white hover:bg-gray-800"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          }`}
+  return (
+    <section
+      id="benefits"
+      className="benefits-discovery-module rounded-3xl border border-gray-100 bg-white px-5 py-6 sm:px-7 sm:py-8 shadow-sm"
+    >
+      {/* Quoted-question echo from Q&A section (preserved) */}
+      {quotedQuestion && (
+        <p
+          className={`benefits-echo-line ${echoVisible ? "is-visible" : ""} font-display italic text-[15px] text-gray-500 mb-3 leading-relaxed`}
         >
-          Continue
-          <ArrowRight className="w-4 h-4" weight="bold" />
-        </button>
-      </div>
-    );
-  }
-
-  // ─── Step 3: Financial situation ──────────────────────────────────────
-  if (step === "financial") {
-    const canContinue = medicaid && incomeRange;
-    return (
-      <div>
-        <StepHeader onBack={() => setStep("age")} />
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          What&apos;s their financial situation?
-        </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          This helps us match programs that fit. We never share this.
+          You just asked: <span className="text-gray-700">&ldquo;{quotedQuestion}&rdquo;</span>
         </p>
+      )}
 
-        {/* Medicaid */}
-        <p className="text-sm font-semibold text-gray-900 mb-2">Are they on Medicaid?</p>
-        <div className="flex flex-wrap gap-2 mb-5">
-          {[
-            { value: "alreadyHas", label: "Yes" },
-            { value: "doesNotHave", label: "No" },
-            { value: "notSure", label: "Not sure" },
-          ].map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setMedicaid(opt.value as MedicaidStatus)}
-              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
-                medicaid === opt.value
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Income */}
-        <p className="text-sm font-semibold text-gray-900 mb-2">Monthly income</p>
-        <div className="flex flex-wrap gap-2 mb-6">
-          {[
-            { value: "under1500", label: "Under $1,500" },
-            { value: "under2500", label: "$1,500–$2,500" },
-            { value: "under4000", label: "$2,500–$4,000" },
-            { value: "over4000", label: "Over $4,000" },
-            { value: "preferNotToSay", label: "Prefer not to say" },
-          ].map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setIncomeRange(opt.value as IncomeRange)}
-              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
-                incomeRange === opt.value
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
+      {/* Back button — visible on steps 2 and 3, points one step back */}
+      {(step === "relationship" || step === "contact") && (
         <button
-          onClick={() => { trackStepCompleted("financial"); setStep("save"); }}
-          disabled={!canContinue}
-          className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
-            canContinue
-              ? "bg-gray-900 text-white hover:bg-gray-800"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          }`}
+          onClick={() => {
+            setStep(step === "contact" ? "relationship" : "care-need");
+            setError(null);
+          }}
+          aria-label="Go back"
+          className="mb-3 -ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
         >
-          See my results
-          <ArrowRight className="w-4 h-4" weight="bold" />
+          <ArrowLeft className="h-4 w-4" />
         </button>
-      </div>
-    );
-  }
+      )}
 
-  // ─── Step 5: Results reveal (post-gate) ───────────────────────────────
-  if (step === "results") {
-    const ageNum = parseInt(age);
-    const contextBits: string[] = [];
-    if (ageNum) contextBits.push(`age ${ageNum}`);
-    if (careNeed) {
-      const opt = CARE_NEED_OPTIONS.find((o) => o.value === careNeed);
-      if (opt) contextBits.push(opt.label.toLowerCase());
-    }
-    if (medicaid === "alreadyHas") contextBits.push("on Medicaid");
-    else if (medicaid === "doesNotHave") contextBits.push("not on Medicaid");
+      <ProgressBar />
 
-    return (
-      <div>
-        <StepHeader />
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          You may qualify for {matchingPrograms.length} {matchingPrograms.length === 1 ? "program" : "programs"}
-        </h2>
-        {contextBits.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1 mb-6">
-            Based on {contextBits.join(", ")}
-          </p>
-        )}
+      {/* Step content wrapper — keyed on `step` so React remounts on each
+          transition; the wrapper's animate-step-in class plays a 220ms
+          slide-up + fade. Replaces the prior abrupt content swap. */}
+      <div key={step} className="animate-step-in">
+      {step === "care-need" && (
+        <>
+          <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">{v.h2(stateName)}</h2>
+          {/* Subtitle takes the visual weight that the now-removed trust
+              strip used to carry. Larger + darker than before so it lands
+              as a clear "do this" beat between the H2 and the cards. */}
+          <p className="mt-2 mb-6 text-base leading-relaxed text-gray-700">{v.sub(stateName)}</p>
 
-        {matchingPrograms.length === 0 ? (
-          <>
-            <div className="rounded-xl bg-gray-50 p-5 mb-6">
-              <p className="text-sm text-gray-700">
-                No exact matches based on what you shared. But don&apos;t give up — there may be other programs we can help you find.
-              </p>
-            </div>
-            <Link
-              href={benefitsUrl(stateId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
-            >
-              Browse all {stateName} programs
-              <ArrowRight className="w-4 h-4" weight="bold" />
-            </Link>
-            <button
-              onClick={() => setStep("care-need")}
-              className="w-full mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Adjust my answers
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="space-y-2 mb-6">
-              {matchingPrograms.slice(0, 4).map((p) => {
-                const savings = shortSavings(p.savingsRange);
-                const desc = plainDescription(p.tagline);
-                return (
-                  <Link
-                    key={p.id}
-                    href={programUrl(stateId, p.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
+          <div className="space-y-2 mb-2">
+            {CARE_NEED_OPTIONS.map((opt) => {
+              const Icon = opt.icon;
+              const isSelected = careNeed === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    setCareNeed(opt.value);
+                    trackStart(opt.value);
+                    trackStepCompleted("care-need", opt.value);
+                    setTimeout(() => setStep("relationship"), 140);
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
+                    isSelected
+                      ? "bg-gray-900 text-white"
+                      : "bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                      isSelected ? "bg-white/15 text-white" : "bg-gray-100 text-gray-700"
+                    }`}
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
-                        {p.shortName || p.name}
-                      </p>
-                      {desc && <p className="text-xs text-gray-500 mt-0.5 truncate">{desc}</p>}
+                    <Icon className="h-5 w-5" weight="regular" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[15px] font-semibold leading-tight ${isSelected ? "text-white" : "text-gray-900"}`}>
+                      {opt.label}
                     </div>
-                    <span className="flex items-center gap-2 shrink-0">
-                      {savings && <span className="text-sm text-gray-500">{savings}</span>}
-                      <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                    </span>
-                  </Link>
-                );
-              })}
-              {matchingPrograms.length > 4 && (
-                <p className="text-xs text-gray-400 pl-4 pt-1">
-                  + {matchingPrograms.length - 4} more {matchingPrograms.length - 4 === 1 ? "match" : "matches"}
-                </p>
-              )}
-            </div>
+                    <div className={`mt-0.5 text-[13px] leading-snug ${isSelected ? "text-white/70" : "text-gray-500"}`}>
+                      {opt.description}
+                    </div>
+                  </div>
+                  <ArrowRight className={`h-4 w-4 flex-shrink-0 ${isSelected ? "text-white/60" : "text-gray-300"}`} weight="bold" />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
 
-            <button
-              onClick={() => {
-                const matchCount = savedMatchCountRef.current ?? matchingPrograms.length;
-                window.location.href = `/welcome?from=benefits&matches=${matchCount}`;
+      {step === "relationship" && (
+        <>
+          <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">Who is care for?</h2>
+          <p className="mt-1 mb-5 text-sm text-gray-500">So we send the right matches.</p>
+
+          <div className="space-y-2 mb-2">
+            {RELATIONSHIP_OPTIONS.map((opt) => {
+              const Icon = opt.icon;
+              const isSelected = relationship === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    setRelationship(opt.value);
+                    trackStepCompleted("relationship");
+                    setTimeout(() => setStep("contact"), 140);
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
+                    isSelected
+                      ? "bg-gray-900 text-white"
+                      : "bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                      isSelected ? "bg-white/15 text-white" : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" weight="regular" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[15px] font-semibold leading-tight ${isSelected ? "text-white" : "text-gray-900"}`}>
+                      {opt.label}
+                    </div>
+                    <div className={`mt-0.5 text-[13px] leading-snug ${isSelected ? "text-white/70" : "text-gray-500"}`}>
+                      {opt.description}
+                    </div>
+                  </div>
+                  <ArrowRight className={`h-4 w-4 flex-shrink-0 ${isSelected ? "text-white/60" : "text-gray-300"}`} weight="bold" />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {step === "contact" && (
+        <>
+          <h2 className="font-display text-2xl font-bold text-gray-900 leading-tight">
+            {matchingPrograms.length > 0
+              ? `Save ${relationshipPhrase(relationship)} ${matchingPrograms.length} ${matchingPrograms.length === 1 ? "match" : "matches"}.`
+              : `Save ${relationshipPhrase(relationship)} matches.`}
+          </h2>
+          <p className="mt-1 mb-5 text-sm text-gray-500">
+            We&apos;ll send a magic link so you can come back anytime.
+          </p>
+
+          {/* Email — required */}
+          <label className="block">
+            <span className="sr-only">Email address</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
               }}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
-            >
-              Go to my dashboard
-              <ArrowRight className="w-4 h-4" weight="bold" />
-            </button>
-            <p className="text-xs text-gray-400 mt-3 text-center">
-              Your matches are saved. Your dashboard has providers in your area and next steps.
+              placeholder="you@example.com"
+              autoComplete="email"
+              inputMode="email"
+              disabled={saving}
+              className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
+            />
+          </label>
+
+          {/* Phone — optional, visually secondary */}
+          <label className="mt-3 block">
+            <span className="sr-only">Phone number (optional)</span>
+            <div className="relative">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder="Phone (optional, reaches you faster)"
+                autoComplete="tel-national"
+                inputMode="tel"
+                disabled={saving}
+                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
+              />
+            </div>
+          </label>
+
+          {/* Combined consent — covers both channels honestly */}
+          <p className="mt-2.5 text-[12px] leading-relaxed text-gray-400">
+            We&apos;ll save your matches and email you a magic link to come back. If you add a phone, you&apos;ll get one text (reply STOP to opt out). We never sell your info.
+          </p>
+
+          {error && (
+            <p className="mt-2 text-[13px] text-red-600" role="alert">
+              {error}
             </p>
-          </>
-        )}
-      </div>
-    );
-  }
+          )}
 
-  // ─── Step 4: Save gate (email only) — gates the results reveal ─────
-  // Single big underlined input, Typeform-feel. The match count is teased
-  // in the eyebrow + button so the user knows what they're unlocking —
-  // loss-aversion pull instead of a cold form.
-  if (step === "save") {
-    const matchCount = matchingPrograms.length;
-    const canSubmit = !saving && email.trim().length > 0 && email.includes("@");
-
-    return (
-      <div>
-        <StepHeader onBack={() => setStep("financial")} />
-
-        {/* ── Big headline — eyebrow carries the proof, headline carries the ask ── */}
-        <p className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase mb-3">
-          {matchCount > 0 ? `${matchCount} ${matchCount === 1 ? "match" : "matches"} ready` : "Almost there"}
-        </p>
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display leading-[1.1] mb-3">
-          Where should we send your {matchCount === 1 ? "match" : matchCount > 0 ? "matches" : "results"}?
-        </h2>
-        <p className="text-sm text-gray-500 mb-8">
-          No password. Just a magic link so you can come back anytime.
-        </p>
-
-        {/* ── Single underlined input — Typeform feel, one ask ────────── */}
-        <div className="mb-8">
-          <input
-            id="benefits-email"
-            type="email"
-            inputMode="email"
-            placeholder="sarah@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) handleSave(); }}
-            className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 px-0 py-2 text-2xl md:text-3xl font-display text-gray-900 placeholder:text-gray-300 outline-none transition-colors"
-            autoFocus
-            autoComplete="email"
-          />
-        </div>
-
-        {saveError && (
-          <p className="text-sm text-red-600 mb-4">{saveError}</p>
-        )}
-
-        {/* ── Big, inviting primary button + keyboard hint ─────────────── */}
-        <div className="flex items-center gap-4">
           <button
-            onClick={handleSave}
-            disabled={!canSubmit}
-            className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-base transition-all ${
-              canSubmit
-                ? "bg-gray-900 text-white hover:bg-gray-800 hover:scale-[1.02] shadow-lg shadow-gray-900/10"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-            }`}
+            onClick={handleSubmit}
+            disabled={saving}
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>
-                <Spinner className="w-5 h-5 animate-spin" weight="bold" />
-                Saving your matches...
+                <Spinner className="h-4 w-4 animate-spin" weight="bold" />
+                Saving…
               </>
             ) : (
               <>
-                Show me my {matchCount === 1 ? "match" : matchCount > 0 ? `${matchCount} matches` : "results"}
-                <ArrowRight className="w-4 h-4" weight="bold" />
+                Save my matches
+                <ArrowRight className="h-4 w-4" weight="bold" />
               </>
             )}
           </button>
-          {canSubmit && !saving && (
-            <span className="text-xs text-gray-400 hidden sm:inline">
-              or press <kbd className="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 font-mono text-[10px]">Enter ↵</kbd>
-            </span>
-          )}
-        </div>
+        </>
+      )}
       </div>
-    );
-  }
 
-  return null;
+      {/* Post-submit overlay — same component as /m/{token}, mode="overlay" */}
+      {careNeed && (
+        <ResultsSheet
+          mode="overlay"
+          isOpen={overlayOpen}
+          onClose={() => setOverlayOpen(false)}
+          matches={overlayMatches}
+          matchCount={overlayMatchCount}
+          careNeed={careNeed}
+          state={{ name: stateName, slug: stateId }}
+          provider={provider}
+          providerSlug={providerSlug || null}
+          contactChannel={overlayContactChannel}
+          contactDestination={overlayContactDest}
+        />
+      )}
+    </section>
+  );
 }

@@ -56,6 +56,7 @@ interface ResendEventPayload {
   created_at: string;
   data: {
     email_id: string;
+    to?: string[] | string;
     click?: { link?: string };
     bounce?: { subType?: string; message?: string };
   };
@@ -166,6 +167,30 @@ async function recordEmailEvent(payload: ResendEventPayload, svixId: string): Pr
     .eq("id", logRow.id);
   if (updateErr) {
     console.error("[resend-webhook] email_log update failed:", updateErr);
+  }
+
+  // 3. Flag family-profile email_validity on bounce/complaint.
+  // Mirrors the logic in lib/resend-events.ts — see that file for full reasoning.
+  // Validity precedence: 'complained' > 'bounced' > 'delivered' > 'unverified'.
+  // Never downgrade — `.in('email_validity', allowed)` enforces this.
+  if (eventType === "bounced" || eventType === "complained") {
+    const rawTo = payload.data?.to;
+    const recipient = Array.isArray(rawTo) ? rawTo[0] : rawTo;
+    if (recipient && typeof recipient === "string") {
+      const allowedCurrent =
+        eventType === "bounced"
+          ? ["unverified", "delivered"]
+          : ["unverified", "delivered", "bounced"];
+      const { error: validityErr } = await supabase
+        .from("business_profiles")
+        .update({ email_validity: eventType })
+        .eq("email", recipient.trim().toLowerCase())
+        .eq("type", "family")
+        .in("email_validity", allowedCurrent);
+      if (validityErr) {
+        console.error("[resend-webhook] email_validity update failed:", validityErr);
+      }
+    }
   }
 }
 

@@ -147,6 +147,11 @@ export default function AdminVerificationPage() {
     }, 300);
   };
 
+  const openProviderModal = (provider: Provider) => {
+    setActionError(null);
+    setSelectedProvider(provider);
+  };
+
   const clearSearch = () => {
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
@@ -196,7 +201,7 @@ export default function AdminVerificationPage() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  async function handleAction(id: string, action: "approve" | "reject") {
+  async function handleAction(id: string, action: "approve" | "reject" | "unclaim") {
     setActionLoading(id);
     setActionError(null);
     try {
@@ -442,7 +447,7 @@ export default function AdminVerificationPage() {
                       {filter === "pending" && submission && (
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => setSelectedProvider(provider)}
+                            onClick={() => openProviderModal(provider)}
                             className="text-left group"
                           >
                             <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
@@ -500,7 +505,7 @@ export default function AdminVerificationPage() {
                           {filter === "unverified_claims" && (
                             <>
                               <button
-                                onClick={() => setSelectedProvider(provider)}
+                                onClick={() => openProviderModal(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
                                 Details
@@ -517,7 +522,7 @@ export default function AdminVerificationPage() {
                           {filter === "pending" && (
                             <>
                               <button
-                                onClick={() => setSelectedProvider(provider)}
+                                onClick={() => openProviderModal(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
                                 Details
@@ -541,7 +546,7 @@ export default function AdminVerificationPage() {
                           {filter === "approved" && (
                             <>
                               <button
-                                onClick={() => setSelectedProvider(provider)}
+                                onClick={() => openProviderModal(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
                                 Details
@@ -558,7 +563,7 @@ export default function AdminVerificationPage() {
                           {filter === "rejected" && (
                             <>
                               <button
-                                onClick={() => setSelectedProvider(provider)}
+                                onClick={() => openProviderModal(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
                                 Details
@@ -588,10 +593,12 @@ export default function AdminVerificationPage() {
       {selectedProvider && (
         <VerificationReviewModal
           provider={selectedProvider}
-          onClose={() => setSelectedProvider(null)}
+          onClose={() => { setSelectedProvider(null); setActionError(null); }}
           onApprove={() => handleAction(selectedProvider.id, "approve")}
           onReject={() => handleAction(selectedProvider.id, "reject")}
+          onUnclaim={() => handleAction(selectedProvider.id, "unclaim")}
           isLoading={actionLoading === selectedProvider.id}
+          actionError={actionError}
         />
       )}
     </div>
@@ -605,7 +612,9 @@ interface VerificationReviewModalProps {
   onClose: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onUnclaim: () => void;
   isLoading: boolean;
+  actionError: string | null;
 }
 
 // Map source values to human-readable labels
@@ -630,8 +639,11 @@ function VerificationReviewModal({
   onClose,
   onApprove,
   onReject,
+  onUnclaim,
   isLoading,
+  actionError,
 }: VerificationReviewModalProps) {
+  const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
   const submission = provider.metadata?.verification_submission;
   const isUnverifiedClaim = provider.verification_state === "unverified" && !submission;
 
@@ -938,6 +950,64 @@ function VerificationReviewModal({
           </div>
           <p className="text-gray-500 text-sm">No badge request details found.</p>
           <p className="text-gray-400 text-xs mt-1">This record may be from an older submission format.</p>
+        </div>
+      )}
+
+      {/* Unclaim link - only for claimed providers */}
+      {provider.claimer_email && (
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+          <button
+            onClick={() => setShowUnclaimConfirm(true)}
+            className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+          >
+            Need to remove this claim? <span className="underline">Unclaim provider</span>
+          </button>
+        </div>
+      )}
+
+      {/* Action error message */}
+      {actionError && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
+
+      {/* Unclaim Confirmation Dialog */}
+      {showUnclaimConfirm && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Remove claim?
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Remove <span className="font-medium">{provider.claimer_email}</span>&apos;s claim on{" "}
+              <span className="font-medium">{provider.display_name}</span>?
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              The listing will remain public but will be available for anyone to claim.
+            </p>
+            {actionError && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+                {actionError}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnclaimConfirm(false)}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onUnclaim}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? "Processing..." : "Unclaim"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </Modal>

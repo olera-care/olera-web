@@ -53,7 +53,7 @@ export async function GET(
 
       const { data: bySlug } = await db
         .from("olera-providers")
-        .select("provider_id, provider_name, city, state, place_id, slug")
+        .select("provider_id, provider_name, city, state, place_id, slug, provider_images")
         .eq("slug", slug)
         .not("deleted", "is", true)
         .maybeSingle();
@@ -64,7 +64,7 @@ export async function GET(
       if (!legacyProvider) {
         const { data: byProviderId } = await db
           .from("olera-providers")
-          .select("provider_id, provider_name, city, state, place_id, slug")
+          .select("provider_id, provider_name, city, state, place_id, slug, provider_images")
           .eq("provider_id", slug)
           .not("deleted", "is", true)
           .maybeSingle();
@@ -73,10 +73,19 @@ export async function GET(
       }
 
       if (legacyProvider) {
-        // Fetch Google Places photo if we have a place_id
-        let imageUrl: string | null = null;
-        if (legacyProvider.place_id) {
+        // Prefer cached photo URL from DB; only call Places API as last resort.
+        let imageUrl: string | null = legacyProvider.provider_images || null;
+        if (!imageUrl && legacyProvider.place_id) {
           imageUrl = await fetchGooglePlacePhoto(legacyProvider.place_id);
+          if (imageUrl) {
+            // Cache for next visitor — fire-and-forget, don't block response.
+            db.from("olera-providers")
+              .update({ provider_images: imageUrl })
+              .eq("provider_id", legacyProvider.provider_id)
+              .then(({ error }) => {
+                if (error) console.warn("[info-route] photo write-back failed:", error.message);
+              });
+          }
         }
 
         const legacyResponse = NextResponse.json({
@@ -100,25 +109,38 @@ export async function GET(
 
     // Extract Google Place ID from metadata
     let googlePlaceId = profile.metadata?.google_metadata?.place_id || null;
+    let imageUrl: string | null = profile.image_url;
 
-    // If no Google Place ID in business_profiles, check linked olera-providers record
-    if (!googlePlaceId && profile.source_provider_id) {
+    // If no Google Place ID in business_profiles, check linked olera-providers record.
+    // Also lift any cached provider_images so we don't have to re-query.
+    if (profile.source_provider_id && (!googlePlaceId || !imageUrl)) {
       const { data: linkedProvider } = await db
         .from("olera-providers")
-        .select("place_id")
+        .select("provider_id, place_id, provider_images")
         .eq("provider_id", profile.source_provider_id)
         .not("deleted", "is", true)
         .maybeSingle();
 
-      if (linkedProvider?.place_id) {
+      if (!googlePlaceId && linkedProvider?.place_id) {
         googlePlaceId = linkedProvider.place_id;
+      }
+      if (!imageUrl && linkedProvider?.provider_images) {
+        imageUrl = linkedProvider.provider_images;
       }
     }
 
-    // Use existing image_url, or fetch from Google Places if we have a place_id
-    let imageUrl = profile.image_url;
+    // Last resort: Google Places API.
     if (!imageUrl && googlePlaceId) {
       imageUrl = await fetchGooglePlacePhoto(googlePlaceId);
+      if (imageUrl && profile.source_provider_id) {
+        // Cache for next visitor — fire-and-forget, don't block response.
+        db.from("olera-providers")
+          .update({ provider_images: imageUrl })
+          .eq("provider_id", profile.source_provider_id)
+          .then(({ error }) => {
+            if (error) console.warn("[info-route] photo write-back failed:", error.message);
+          });
+      }
     }
 
     const response = NextResponse.json({

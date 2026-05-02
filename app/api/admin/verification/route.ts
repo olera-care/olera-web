@@ -1,5 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Claim journey data showing how a provider claimed and their pre-claim engagement
+ */
+interface ClaimJourney {
+  claim_source: "email" | "page" | "unknown"; // How they claimed
+  used_one_click: boolean; // Magic link sign-in
+  pre_claim_engagement: {
+    email_clicks: number; // Clicked email notifications
+    inquiries_received: number; // Leads before claiming
+    questions_answered: number; // Q&A before claiming
+  };
+  first_engagement_at: string | null; // When they first interacted
+}
+
+/**
+ * Fetch claim journey data for a provider
+ * Queries provider_activity, connections, and provider_questions tables
+ */
+async function getClaimJourney(
+  db: SupabaseClient,
+  slug: string | null,
+  profileId: string
+): Promise<ClaimJourney> {
+  const result: ClaimJourney = {
+    claim_source: "unknown",
+    used_one_click: false,
+    pre_claim_engagement: {
+      email_clicks: 0,
+      inquiries_received: 0,
+      questions_answered: 0,
+    },
+    first_engagement_at: null,
+  };
+
+  try {
+    // Fetch all relevant activity for this provider in one query
+    const { data: activities } = await db
+      .from("provider_activity")
+      .select("event_type, metadata, created_at")
+      .or(`profile_id.eq.${profileId}${slug ? `,provider_id.eq.${slug}` : ""}`)
+      .order("created_at", { ascending: true });
+
+    if (!activities || activities.length === 0) {
+      return result;
+    }
+
+    // Find claim_completed event to determine source and claim date
+    const claimEvent = activities.find((a) => a.event_type === "claim_completed");
+    const claimDate = claimEvent?.created_at ? new Date(claimEvent.created_at) : null;
+
+    if (claimEvent?.metadata?.source) {
+      result.claim_source = claimEvent.metadata.source === "email" ? "email" : "page";
+    }
+
+    // Check for one_click_access event
+    result.used_one_click = activities.some((a) => a.event_type === "one_click_access");
+
+    // Only calculate pre-claim engagement if we have a claim date
+    // Without a claim date, we can't meaningfully determine what's "pre-claim"
+    if (claimDate) {
+      // Count pre-claim email clicks from activity
+      const preClaimActivities = activities.filter(
+        (a) => new Date(a.created_at) < claimDate
+      );
+
+      result.pre_claim_engagement.email_clicks = preClaimActivities.filter(
+        (a) => a.event_type === "email_click"
+      ).length;
+
+      // Find first engagement timestamp
+      const firstEngagement = preClaimActivities[0];
+      if (firstEngagement) {
+        result.first_engagement_at = firstEngagement.created_at;
+      }
+
+      // Count pre-claim inquiries received (connections where to_profile_id = profileId)
+      const { count: inquiryCount } = await db
+        .from("connections")
+        .select("*", { count: "exact", head: true })
+        .eq("to_profile_id", profileId)
+        .eq("type", "inquiry")
+        .lt("created_at", claimDate.toISOString());
+
+      result.pre_claim_engagement.inquiries_received = inquiryCount || 0;
+
+      // Count pre-claim questions answered
+      // Questions are linked to providers by slug (provider_id column)
+      if (slug) {
+        const { count: questionCount } = await db
+          .from("provider_questions")
+          .select("*", { count: "exact", head: true })
+          .eq("provider_id", slug)
+          .not("answer", "is", null)
+          .lt("answered_at", claimDate.toISOString());
+
+        result.pre_claim_engagement.questions_answered = questionCount || 0;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching claim journey:", error);
+    return result;
+  }
+}
 
 /**
  * GET /api/admin/verification
@@ -27,8 +134,13 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
+    const countsOnly = searchParams.get("counts_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const search = searchParams.get("search")?.toLowerCase().trim() || "";
+    const stateParam = searchParams.get("state") || "";
+    const typeParam = searchParams.get("type") || "";
+    const trustParam = searchParams.get("trust_level") || "";
 
     const db = getServiceClient();
 
@@ -38,9 +150,11 @@ export async function GET(request: NextRequest) {
     // 2. New flow: verification_attempts exists OR email_otp_attempt exists
     // 3. Any profile with verification_state = "pending"
     // Using JS filtering since Supabase JSONB OR queries are unreliable
+    // Note: claim_trust_reason requires migration 062 to be run
+    // Using * to gracefully handle columns that may not exist yet
     const { data: allProviders, error } = await db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, claim_state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug")
+      .select("*")
       .in("type", ["organization", "caregiver"])
       .order("updated_at", { ascending: false });
 
@@ -66,6 +180,7 @@ export async function GET(request: NextRequest) {
      * - New flow: verification_attempts array has items OR email_otp_attempt exists
      * - Any profile with verification_state = "pending"
      */
+    // Reusable filter predicates for each status
     const hasVerificationData = (p: typeof allProviders[number]) => {
       const meta = p.metadata as ProfileMetadata | null;
       const hasOldSubmission = !!meta?.verification_submission;
@@ -75,58 +190,190 @@ export async function GET(request: NextRequest) {
       return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt || isPendingState;
     };
 
-    let filtered = allProviders ?? [];
+    const isUnverifiedClaim = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const claimState = (p as { claim_state?: string }).claim_state;
+      const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
+      const isUnverified = p.verification_state === "unverified";
+      const hasNoSubmissions =
+        !meta?.verification_submission &&
+        (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
+        !meta?.email_otp_attempt;
+      const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
+      const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
+      return needsReviewStandard || pendingSlipThrough;
+    };
 
-    if (status === "unverified_claims") {
-      // Profiles needing verification — either claimed listings or new profiles with low-trust emails
-      // Includes both claim_state "claimed" (claimed existing listing) and "pending" (created new profile)
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const claimState = (p as { claim_state?: string }).claim_state;
-        const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
-        const isUnverified = p.verification_state === "unverified";
-        const hasNoSubmissions =
-          !meta?.verification_submission &&
-          (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
-          !meta?.email_otp_attempt;
-        return isClaimedOrPending && isUnverified && hasNoSubmissions;
-      });
-    } else if (status === "pending") {
-      // Has verification data but not yet approved or rejected
-      // Also exclude providers who are already verified (they auto-verified after initial failure)
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const notApproved = !meta?.badge_approved;
-        const notRejected = !meta?.badge_rejected;
-        const notAlreadyVerified = p.verification_state !== "verified";
-        return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
-      });
-    } else if (status === "approved") {
-      // Include all verified providers:
-      // - badge_approved = true (admin or Claude AI auto-approved)
-      // - verification_state = "verified" (self-verified via email/linkedin/website/document)
-      // - verification_state = "not_required" (high-trust email at claim time, instant access)
-      // Exclude providers whose badge was revoked (badge_rejected)
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const isApproved =
-          meta?.badge_approved === true ||
-          p.verification_state === "verified" ||
-          p.verification_state === "not_required";
-        const isRevoked = meta?.badge_rejected === true;
-        return isApproved && !isRevoked;
-      });
-    } else if (status === "rejected") {
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        return meta?.badge_rejected === true;
+    const isPending = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const notApproved = !meta?.badge_approved;
+      const notRejected = !meta?.badge_rejected;
+      const notAlreadyVerified = p.verification_state !== "verified";
+      return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
+    };
+
+    const isApproved = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const approved =
+        meta?.badge_approved === true ||
+        p.verification_state === "verified" ||
+        p.verification_state === "not_required";
+      const isRevoked = meta?.badge_rejected === true;
+      return approved && !isRevoked;
+    };
+
+    const isRejected = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      return meta?.badge_rejected === true;
+    };
+
+    // If counts_only, return counts for all statuses
+    if (countsOnly) {
+      const providers = allProviders ?? [];
+      return NextResponse.json({
+        counts: {
+          unverified_claims: providers.filter(isUnverifiedClaim).length,
+          pending: providers.filter(isPending).length,
+          approved: providers.filter(isApproved).length,
+          rejected: providers.filter(isRejected).length,
+        },
       });
     }
 
-    // Apply pagination after filtering
+    let filtered = allProviders ?? [];
+
+    if (status === "unverified_claims") {
+      filtered = filtered.filter(isUnverifiedClaim);
+    } else if (status === "pending") {
+      filtered = filtered.filter(isPending);
+    } else if (status === "approved") {
+      filtered = filtered.filter(isApproved);
+    } else if (status === "rejected") {
+      filtered = filtered.filter(isRejected);
+    }
+
+    // Cache for claimer emails - populated during search and reused for display
+    const accountEmailMap = new Map<string, string>();
+
+    // Apply state, type, and trust level filters
+    if (stateParam) {
+      filtered = filtered.filter((p) => (p as { state?: string }).state === stateParam);
+    }
+    if (typeParam) {
+      filtered = filtered.filter((p) => p.type === typeParam);
+    }
+    if (trustParam) {
+      if (trustParam === "none") {
+        filtered = filtered.filter((p) => (p as { claim_trust_level?: string | null }).claim_trust_level == null);
+      } else {
+        filtered = filtered.filter((p) => (p as { claim_trust_level?: string }).claim_trust_level === trustParam);
+      }
+    }
+
+    // Apply search filter if provided
+    if (search) {
+      // For email searches, find matching account IDs first
+      let matchingAccountIds = new Set<string>();
+      if (search.includes("@")) {
+        // Get all accounts for filtered providers
+        const allAccountIds = filtered
+          .map((p) => (p as { account_id?: string }).account_id)
+          .filter((id): id is string => Boolean(id));
+
+        if (allAccountIds.length > 0) {
+          const { data: accounts } = await db
+            .from("accounts")
+            .select("id, user_id")
+            .in("id", allAccountIds);
+
+          if (accounts) {
+            // Check each account's auth email and cache it
+            const emailChecks = await Promise.all(
+              accounts.map(async (account) => {
+                try {
+                  const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+                  const email = authUser?.user?.email || "";
+                  // Cache the email for later use (avoid duplicate lookups)
+                  if (email) {
+                    accountEmailMap.set(account.id, email);
+                  }
+                  if (email.toLowerCase().includes(search)) {
+                    return account.id;
+                  }
+                } catch {
+                  // Ignore errors
+                }
+                return null;
+              })
+            );
+            matchingAccountIds = new Set(emailChecks.filter((id): id is string => id !== null));
+          }
+        }
+      }
+
+      // Filter by display_name OR matching account_id (for email search)
+      filtered = filtered.filter((p) => {
+        const displayName = ((p as { display_name?: string }).display_name || "").toLowerCase();
+        const accountId = (p as { account_id?: string }).account_id;
+        const nameMatches = displayName.includes(search);
+        const emailMatches = accountId ? matchingAccountIds.has(accountId) : false;
+        return nameMatches || emailMatches;
+      });
+    }
+
+    // Apply pagination
     const paginated = filtered.slice(offset, offset + limit);
 
-    return NextResponse.json({ providers: paginated });
+    // Fetch claimer emails only for accounts not already cached
+    const accountIds = [...new Set(paginated
+      .map((p) => (p as { account_id?: string }).account_id)
+      .filter((id): id is string => Boolean(id))
+      .filter((id) => !accountEmailMap.has(id)))];
+
+    if (accountIds.length > 0) {
+      const { data: accounts } = await db
+        .from("accounts")
+        .select("id, user_id")
+        .in("id", accountIds);
+
+      if (accounts) {
+        // Fetch auth emails in parallel for better performance
+        const emailResults = await Promise.all(
+          accounts.map(async (account) => {
+            try {
+              const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+              return { accountId: account.id, email: authUser?.user?.email || null };
+            } catch {
+              return { accountId: account.id, email: null };
+            }
+          })
+        );
+
+        for (const result of emailResults) {
+          if (result.email) {
+            accountEmailMap.set(result.accountId, result.email);
+          }
+        }
+      }
+    }
+
+    // Fetch claim journey data for all providers in parallel
+    const claimJourneyPromises = paginated.map(
+      (p: { id: string; slug?: string | null }) =>
+        getClaimJourney(db, p.slug || null, p.id)
+    );
+    const claimJourneys = await Promise.all(claimJourneyPromises);
+
+    // Add claimer_email and claim_journey to each provider
+    const providersWithData = paginated.map(
+      (p: { account_id?: string }, index: number) => ({
+        ...p,
+        claimer_email: p.account_id ? accountEmailMap.get(p.account_id) || null : null,
+        claim_journey: claimJourneys[index],
+      })
+    );
+
+    return NextResponse.json({ providers: providersWithData, total: filtered.length });
   } catch (err) {
     console.error("Admin badge requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

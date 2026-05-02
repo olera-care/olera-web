@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import type { OrganizationMetadata } from "@/lib/types";
+import { US_STATES } from "@/lib/us-states";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 interface VerificationSubmission {
   name: string;
@@ -53,6 +55,17 @@ interface ProviderMetadata extends OrganizationMetadata {
   claim_trust_level?: "high" | "medium" | "low";
 }
 
+interface ClaimJourney {
+  claim_source: "email" | "page" | "unknown";
+  used_one_click: boolean;
+  pre_claim_engagement: {
+    email_clicks: number;
+    inquiries_received: number;
+    questions_answered: number;
+  };
+  first_engagement_at: string | null;
+}
+
 interface Provider {
   id: string;
   display_name: string;
@@ -69,6 +82,11 @@ interface Provider {
   phone: string | null;
   image_url: string | null;
   slug: string | null;
+  claim_trust_level: "high" | "medium" | "low" | null;
+  claim_trust_reason: string | null;
+  source: string | null;
+  claimer_email: string | null;
+  claim_journey: ClaimJourney | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -90,37 +108,329 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
 
 type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
 
+const PAGE_SIZE = 50;
+
+const TRUST_OPTIONS = [
+  { value: "high", label: "High trust" },
+  { value: "medium", label: "Medium trust" },
+  { value: "low", label: "Low trust" },
+  { value: "none", label: "Not scored" },
+];
+
+// ── Filter Components ──
+
+function StateSelectFilter({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useClickOutside(containerRef, () => {
+    setIsOpen(false);
+    setSearch("");
+  }, isOpen);
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const filteredStates = search
+    ? US_STATES.filter(
+        (s) =>
+          s.label.toLowerCase().includes(search.toLowerCase()) ||
+          s.value.toLowerCase().includes(search.toLowerCase())
+      )
+    : US_STATES;
+
+  const selectedLabel = value
+    ? US_STATES.find((s) => s.value === value)?.label || value
+    : "State";
+
+  const handleSelect = (stateValue: string) => {
+    onChange(stateValue);
+    setIsOpen(false);
+    setSearch("");
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center justify-between gap-2 px-3 py-2
+          bg-white border rounded-lg text-sm font-medium
+          transition-all min-w-[120px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
+        `}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search states..."
+              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div className="max-h-64 overflow-y-auto">
+            {value && (
+              <button
+                type="button"
+                onClick={() => handleSelect("")}
+                className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
+                Clear selection
+              </button>
+            )}
+
+            {filteredStates.length === 0 ? (
+              <div className="px-3 py-3 text-sm text-gray-400 text-center">
+                No states found
+              </div>
+            ) : (
+              filteredStates.map((state) => (
+                <button
+                  key={state.value}
+                  type="button"
+                  onClick={() => handleSelect(state.value)}
+                  className={`
+                    w-full px-3 py-2.5 text-left text-sm transition-colors
+                    ${value === state.value
+                      ? "bg-primary-50 text-primary-700 font-medium"
+                      : "text-gray-900 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  {state.label}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrustSelectFilter({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
+  const selectedOption = TRUST_OPTIONS.find((o) => o.value === value);
+  const selectedLabel = selectedOption?.label || "Trust level";
+
+  const handleSelect = (optValue: string) => {
+    onChange(optValue);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center justify-between gap-2 px-3 py-2
+          bg-white border rounded-lg text-sm font-medium
+          transition-all min-w-[140px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
+        `}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          {value && (
+            <button
+              type="button"
+              onClick={() => handleSelect("")}
+              className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+            >
+              Clear selection
+            </button>
+          )}
+
+          {TRUST_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={`
+                w-full px-3 py-2.5 text-left text-sm transition-colors
+                ${value === option.value
+                  ? "bg-primary-50 text-primary-700 font-medium"
+                  : "text-gray-900 hover:bg-gray-50"
+                }
+              `}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Pagination({ page, setPage, total, pageSize }: {
+  page: number; setPage: (p: number) => void; total: number; pageSize: number;
+}) {
+  if (total <= pageSize) return null;
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+      <span className="text-xs text-gray-400">
+        {page * pageSize + 1}&ndash;{Math.min((page + 1) * pageSize, total)} of {total}
+      </span>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 0}
+          className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={(page + 1) * pageSize >= total}
+          className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminVerificationPage() {
   const [filter, setFilter] = useState<StatusFilter>("unverified_claims");
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [search, setSearch] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [trustFilter, setTrustFilter] = useState("");
+  const [tabCounts, setTabCounts] = useState<Record<StatusFilter, number>>({
+    unverified_claims: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSearchChange = (value: string) => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setPage(0);
+      setSearch(value);
+    }, 300);
+  };
+
+  const openProviderModal = (provider: Provider) => {
+    setActionError(null);
+    setSelectedProvider(provider);
+  };
+
+  const clearSearch = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    setPage(0);
+    setSearch("");
+  };
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/verification?counts_only=true");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.counts) {
+          setTabCounts(data.counts);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch counts:", err);
+    }
+  }, []);
+
+  // Fetch counts on mount
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/verification?status=${filter}`);
+      const offset = page * PAGE_SIZE;
+      const params = new URLSearchParams({
+        status: filter,
+        limit: String(PAGE_SIZE),
+        offset: String(offset),
+      });
+      if (search.trim()) params.set("search", search.trim());
+      if (stateFilter) params.set("state", stateFilter);
+      if (trustFilter) params.set("trust_level", trustFilter);
+      const res = await fetch(`/api/admin/verification?${params}`);
       if (res.ok) {
         const data = await res.json();
-        let results = data.providers ?? [];
-        // For pending tab, only show providers with verification data
-        // This includes old flow (verification_submission) and new flow (verification_attempts, email_otp_attempt)
-        // Exclude providers who are already verified (they auto-verified after initial failure)
-        if (filter === "pending") {
-          results = results.filter((p: Provider) => {
-            const hasOldSubmission = !!p.metadata?.verification_submission;
-            const hasNewAttempts = Array.isArray(p.metadata?.verification_attempts) && p.metadata.verification_attempts.length > 0;
-            const hasEmailOtpAttempt = !!p.metadata?.email_otp_attempt;
-            const notAlreadyVerified = p.verification_state !== "verified";
-            return (hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt) && notAlreadyVerified;
-          });
-        }
-        setProviders(results);
+        setProviders(data.providers ?? []);
+        setTotal(data.total ?? 0);
       } else {
         setError("Failed to load verification requests. Please try again.");
       }
@@ -130,7 +440,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, page, search, stateFilter, trustFilter]);
 
   useEffect(() => {
     fetchProviders();
@@ -143,16 +453,7 @@ export default function AdminVerificationPage() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  // Filter providers based on search term
-  const filteredProviders = providers.filter((provider) => {
-    if (!search.trim()) return true;
-    const searchLower = search.toLowerCase();
-    const providerName = provider.display_name?.toLowerCase() || "";
-    const submitterName = provider.metadata?.verification_submission?.name?.toLowerCase() || "";
-    return providerName.includes(searchLower) || submitterName.includes(searchLower);
-  });
-
-  async function handleAction(id: string, action: "approve" | "reject") {
+  async function handleAction(id: string, action: "approve" | "reject" | "unclaim") {
     setActionLoading(id);
     setActionError(null);
     try {
@@ -162,8 +463,18 @@ export default function AdminVerificationPage() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        setProviders((prev) => prev.filter((p) => p.id !== id));
+        setProviders((prev) => {
+          const updated = prev.filter((p) => p.id !== id);
+          // If current page becomes empty and we're not on page 0, go back to page 0
+          if (updated.length === 0 && page > 0) {
+            setPage(0);
+          }
+          return updated;
+        });
+        setTotal((prev) => prev - 1);
         setSelectedProvider(null);
+        // Refresh tab counts after action
+        fetchCounts();
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || `Failed to ${action} badge. Please try again.`);
@@ -216,15 +527,55 @@ export default function AdminVerificationPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Badge Requests</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Provider Verification</h1>
         <p className="text-lg text-gray-600 mt-1">
-          Review and approve provider badge requests. Approved providers get a &quot;Verified&quot; badge on their profile.
+          Manage provider claims and verification status. Review submissions, approve badges, and monitor verified providers.
         </p>
       </div>
 
-      {/* Search input */}
-      <div className="mb-4">
-        <div className="relative">
+      {/* Tabs - prominent, own row */}
+      <div className="flex gap-2 mb-4">
+        {filters.map((f) => {
+          const count = tabCounts[f.value];
+          const isActionable = f.value === "unverified_claims" || f.value === "pending";
+          const showBadge = isActionable && count > 0;
+
+          return (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => { setPage(0); setFilter(f.value); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                filter === f.value
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {f.label}
+              {showBadge ? (
+                <span className={`px-1.5 py-0.5 text-xs font-semibold rounded-full ${
+                  filter === f.value
+                    ? "bg-white/20 text-white"
+                    : "bg-amber-100 text-amber-700"
+                }`}>
+                  {count}
+                </span>
+              ) : (
+                <span className={`text-xs ${
+                  filter === f.value ? "text-white/70" : "text-gray-400"
+                }`}>
+                  ({count})
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search + Filters - single row on desktop, wraps on mobile */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        {/* Search - responsive width */}
+        <div className="relative w-full sm:w-64">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
             xmlns="http://www.w3.org/2000/svg"
@@ -238,15 +589,16 @@ export default function AdminVerificationPage() {
             />
           </svg>
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search by provider or submitter name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Search by name or email..."
+            defaultValue={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
           />
           {search && (
             <button
-              onClick={() => setSearch("")}
+              onClick={clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -255,24 +607,32 @@ export default function AdminVerificationPage() {
             </button>
           )}
         </div>
-      </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6">
-        {filters.map((f) => (
+        {/* State filter */}
+        <StateSelectFilter
+          value={stateFilter}
+          onChange={(v) => { setPage(0); setStateFilter(v); }}
+        />
+
+        {/* Trust filter */}
+        <TrustSelectFilter
+          value={trustFilter}
+          onChange={(v) => { setPage(0); setTrustFilter(v); }}
+        />
+
+        {/* Clear filters - only when active */}
+        {(stateFilter || trustFilter) && (
           <button
-            key={f.value}
-            type="button"
-            onClick={() => setFilter(f.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === f.value
-                ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+            onClick={() => {
+              setPage(0);
+              setStateFilter("");
+              setTrustFilter("");
+            }}
+            className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
           >
-            {f.label}
+            Clear filters
           </button>
-        ))}
+        )}
       </div>
 
       {error && (
@@ -287,43 +647,56 @@ export default function AdminVerificationPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-lg text-gray-500">Loading...</div>
-        </div>
-      ) : filteredProviders.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
-            {search ? (
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            ) : (
-              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
-          <p className="text-lg font-semibold text-gray-900">
-            {search
-              ? "No results found"
-              : filter === "unverified_claims"
-                ? "No unverified claims"
-                : filter === "pending"
-                  ? "All caught up!"
-                  : `No ${filter} badge requests`}
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            {search
-              ? `No providers matching "${search}"`
-              : filter === "unverified_claims"
-                ? "No claimed providers awaiting verification."
-                : filter === "pending"
-                  ? "No badge requests waiting for review."
-                  : `No providers with ${filter} badges.`}
-          </p>
-        </div>
-      ) : (
+      {(() => {
+        const hasActiveFilters = search || stateFilter || trustFilter;
+
+        if (loading) {
+          return (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-lg text-gray-500">Loading...</div>
+            </div>
+          );
+        }
+
+        if (providers.length === 0) {
+          return (
+            <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+                {hasActiveFilters ? (
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <p className="text-lg font-semibold text-gray-900">
+                {hasActiveFilters
+                  ? "No results found"
+                  : filter === "unverified_claims"
+                    ? "No unverified claims"
+                    : filter === "pending"
+                      ? "All caught up!"
+                      : `No ${filter} badge requests`}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {hasActiveFilters
+                  ? "Try adjusting your search or filters."
+                  : filter === "unverified_claims"
+                    ? "No claimed providers awaiting verification."
+                    : filter === "pending"
+                      ? "No badge requests waiting for review."
+                      : `No providers with ${filter} badges.`}
+              </p>
+            </div>
+          );
+        }
+
+        return null;
+      })()}
+      {!loading && providers.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -344,7 +717,7 @@ export default function AdminVerificationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredProviders.map((provider) => {
+                {providers.map((provider) => {
                   const submission = getVerificationSubmission(provider);
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
@@ -364,18 +737,32 @@ export default function AdminVerificationPage() {
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
+                            {provider.slug ? (
+                              <a
+                                href={`/provider/${provider.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium text-gray-900 hover:text-primary-600 hover:underline"
+                              >
+                                {provider.display_name}
+                              </a>
+                            ) : (
+                              <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
+                            )}
                             <p className="text-xs text-gray-400">
                               {provider.type === "organization" ? "Organization" : "Caregiver"}
                               {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
                             </p>
+                            {provider.claimer_email && (
+                              <p className="text-xs text-gray-500">{provider.claimer_email}</p>
+                            )}
                           </div>
                         </div>
                       </td>
                       {filter === "pending" && submission && (
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => setSelectedProvider(provider)}
+                            onClick={() => openProviderModal(provider)}
                             className="text-left group"
                           >
                             <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
@@ -393,34 +780,30 @@ export default function AdminVerificationPage() {
                       {filter !== "pending" && filter !== "unverified_claims" && (
                         <td className="px-6 py-4">
                           {filter === "approved" ? (
-                            // Show verification type badge based on how they got verified
+                            // Simplified badge system:
+                            // - High Trust: High-trust email at claim time OR verification_state = "not_required"
+                            // - Admin: Manual admin approval
+                            // - Self-Verified: All self-verification methods (email, LinkedIn, website, document, auto)
+                            // - Legacy: No verification method recorded
                             <div className="flex items-center gap-2">
                               <Badge variant="verified">Verified</Badge>
-                              {/* Instant: High-trust email at claim time (no verification needed) */}
-                              {provider.verification_state === "not_required" ? (
-                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                                  Instant
+                              {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                                  High Trust
                                 </span>
-                              ) : /* Auto: Claude AI auto-verified */
-                              provider.metadata?.auto_verified ? (
-                                <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium">
-                                  Auto
-                                </span>
-                              ) : /* Admin: Manual admin approval */
-                              provider.metadata?.verification_method === "admin_approval" ? (
+                              ) : provider.metadata?.verification_method === "admin_approval" ? (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
                                   Admin
                                 </span>
-                              ) : /* Self-verified: Show verification method */
-                              provider.metadata?.verification_method ? (
+                              ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
                                 <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">
-                                  {provider.metadata.verification_method === "email" ? "Email" :
-                                   provider.metadata.verification_method === "linkedin" ? "LinkedIn" :
-                                   provider.metadata.verification_method === "website" ? "Website" :
-                                   provider.metadata.verification_method === "document" ? "Document" :
-                                   provider.metadata.verification_method}
+                                  Self-Verified
                                 </span>
-                              ) : null}
+                              ) : (
+                                <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded font-medium border border-gray-200">
+                                  Legacy
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <Badge variant="rejected">Badge Rejected</Badge>
@@ -436,16 +819,12 @@ export default function AdminVerificationPage() {
                         <div className="flex gap-2 justify-end">
                           {filter === "unverified_claims" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => openProviderModal(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
@@ -457,21 +836,11 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "pending" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
                               <button
-                                onClick={() => setSelectedProvider(provider)}
+                                onClick={() => openProviderModal(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
-                                Review
+                                Details
                               </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
@@ -491,37 +860,29 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "approved" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => openProviderModal(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "reject")}
                                 disabled={actionLoading === provider.id}
-                                className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                                className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors whitespace-nowrap"
                               >
-                                {actionLoading === provider.id ? "..." : "Revoke Badge"}
+                                {actionLoading === provider.id ? "..." : "Revoke"}
                               </button>
                             </>
                           )}
                           {filter === "rejected" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => openProviderModal(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
@@ -539,6 +900,7 @@ export default function AdminVerificationPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} setPage={setPage} total={total} pageSize={PAGE_SIZE} />
         </div>
       )}
 
@@ -546,10 +908,13 @@ export default function AdminVerificationPage() {
       {selectedProvider && (
         <VerificationReviewModal
           provider={selectedProvider}
-          onClose={() => setSelectedProvider(null)}
+          currentTab={filter}
+          onClose={() => { setSelectedProvider(null); setActionError(null); }}
           onApprove={() => handleAction(selectedProvider.id, "approve")}
           onReject={() => handleAction(selectedProvider.id, "reject")}
+          onUnclaim={() => handleAction(selectedProvider.id, "unclaim")}
           isLoading={actionLoading === selectedProvider.id}
+          actionError={actionError}
         />
       )}
     </div>
@@ -560,19 +925,205 @@ export default function AdminVerificationPage() {
 
 interface VerificationReviewModalProps {
   provider: Provider;
+  currentTab: StatusFilter;
   onClose: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onUnclaim: () => void;
   isLoading: boolean;
+  actionError: string | null;
+}
+
+// Map source values to human-readable labels
+const SOURCE_LABELS: Record<string, string> = {
+  user_created: "Created new listing",
+  claimed_from_directory: "Claimed from directory",
+  self_service: "Instant claim",
+  admin_seed: "Admin seeded",
+  npi_sync: "NPI sync",
+  medjobs_sync: "MedJobs sync",
+};
+
+// Map trust levels to display info
+const TRUST_LEVEL_STYLES: Record<string, { label: string; color: string }> = {
+  high: { label: "High", color: "text-blue-700 bg-blue-50" },
+  medium: { label: "Medium", color: "text-amber-700 bg-amber-50" },
+  low: { label: "Low", color: "text-red-700 bg-red-50" },
+};
+
+// ── Claim Journey Badges ──
+
+function ClaimJourneyBadges({
+  journey,
+  sourceFallback,
+}: {
+  journey: ClaimJourney | null;
+  sourceFallback: string | null;
+}) {
+  // Determine if we have meaningful journey data
+  const hasJourneyData = journey && (
+    journey.used_one_click ||
+    journey.claim_source !== "unknown"
+  );
+
+  // If no journey data, fall back to showing the source label (old behavior)
+  if (!hasJourneyData) {
+    const sourceLabel = SOURCE_LABELS[sourceFallback || ""] || sourceFallback || "Unknown";
+    return <p className="text-sm font-medium text-gray-900">{sourceLabel}</p>;
+  }
+
+  const totalInteractions =
+    journey.pre_claim_engagement.email_clicks +
+    journey.pre_claim_engagement.inquiries_received +
+    journey.pre_claim_engagement.questions_answered;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {/* Claim method badge */}
+      {journey.used_one_click ? (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-purple-50 text-purple-700">
+          <span>⚡</span> One-click claim
+        </span>
+      ) : journey.claim_source === "email" ? (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-blue-50 text-blue-700">
+          <span>✉️</span> Email flow
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-teal-50 text-teal-700">
+          <span>🌐</span> Page claim
+        </span>
+      )}
+
+      {/* Pre-claim engagement badge */}
+      {totalInteractions > 0 && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-700">
+          <span>📊</span> {totalInteractions} pre-claim interaction{totalInteractions !== 1 ? "s" : ""}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Empty State Message ──
+
+function EmptyStateMessage({
+  currentTab,
+  isHighTrust,
+  trustReason,
+}: {
+  currentTab: StatusFilter;
+  isHighTrust: boolean;
+  trustReason: string | null;
+}) {
+  // Determine appropriate message based on context
+  const isUnverifiedClaim = currentTab === "unverified_claims";
+  const isVerifiedTab = currentTab === "approved";
+
+  let icon: React.ReactNode;
+  let title: string;
+  let description: string;
+
+  if (isUnverifiedClaim) {
+    // Unverified claim - hasn't submitted verification yet
+    icon = (
+      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+    title = "No verification submitted yet";
+    description = "This provider claimed their listing but hasn't started the verification process.";
+  } else if (isVerifiedTab && isHighTrust) {
+    // High-trust verified - no verification needed
+    icon = (
+      <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+      </svg>
+    );
+    title = "High-trust claim — no verification required";
+    description = trustReason || "Verified automatically based on trusted email domain.";
+  } else {
+    // Legacy record
+    icon = (
+      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+      </svg>
+    );
+    title = "No verification details found";
+    description = "This record may be from an older submission format.";
+  }
+
+  return (
+    <div className="text-center py-8">
+      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
+        isHighTrust && isVerifiedTab ? "bg-blue-50" : isUnverifiedClaim ? "bg-amber-50" : "bg-gray-100"
+      }`}>
+        {icon}
+      </div>
+      <p className="text-gray-700 text-sm font-medium">{title}</p>
+      <p className="text-gray-500 text-xs mt-1 max-w-xs mx-auto">{description}</p>
+    </div>
+  );
+}
+
+// ── Pre-Claim Engagement Section ──
+
+function PreClaimEngagementSection({ journey }: { journey: ClaimJourney | null }) {
+  if (!journey) return null;
+
+  const { email_clicks, inquiries_received, questions_answered } = journey.pre_claim_engagement;
+  const hasEngagement = email_clicks > 0 || inquiries_received > 0 || questions_answered > 0;
+
+  if (!hasEngagement) return null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <div className="mb-6 pb-5 border-b border-gray-100">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+        Pre-Claim Engagement
+      </p>
+      <div className="bg-gray-50 rounded-xl p-4">
+        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{email_clicks}</p>
+            <p className="text-xs text-gray-500">Email clicks</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{inquiries_received}</p>
+            <p className="text-xs text-gray-500">Inquiries</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{questions_answered}</p>
+            <p className="text-xs text-gray-500">Q&A</p>
+          </div>
+        </div>
+        {journey.first_engagement_at && (
+          <p className="text-xs text-gray-500 text-center border-t border-gray-200 pt-2">
+            First engagement: {formatDate(journey.first_engagement_at)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function VerificationReviewModal({
   provider,
+  currentTab,
   onClose,
   onApprove,
   onReject,
+  onUnclaim,
   isLoading,
+  actionError,
 }: VerificationReviewModalProps) {
+  const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
   const submission = provider.metadata?.verification_submission;
 
   const formatDate = (dateString: string) => {
@@ -585,30 +1136,108 @@ function VerificationReviewModal({
     });
   };
 
+  // Determine modal title based on tab context
+  const modalTitle = currentTab === "unverified_claims"
+    ? "Claim Details"
+    : currentTab === "approved"
+      ? "Verified Provider"
+      : currentTab === "rejected"
+        ? "Rejected Provider"
+        : "Review Badge Request";
+
+  // Render footer buttons based on current tab
+  const renderFooter = () => {
+    switch (currentTab) {
+      case "unverified_claims":
+        // [Reject] [Verify]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Verify"}
+            </button>
+          </div>
+        );
+      case "pending":
+        // [Reject] [Approve]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Approve"}
+            </button>
+          </div>
+        );
+      case "approved":
+        // [Close] [Revoke Badge]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Revoke"}
+            </button>
+          </div>
+        );
+      case "rejected":
+        // [Close] [Approve Badge]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Approve Badge"}
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Modal
       isOpen={true}
       onClose={onClose}
-      title="Review Badge Request"
+      title={modalTitle}
       size="xl"
-      footer={
-        <div className="flex gap-3">
-          <button
-            onClick={onReject}
-            disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            Reject
-          </button>
-          <button
-            onClick={onApprove}
-            disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? "Processing..." : "Approve Badge"}
-          </button>
-        </div>
-      }
+      footer={renderFooter()}
     >
       {/* Provider Info */}
       <div className="mb-6 pb-5 border-b border-gray-100">
@@ -627,7 +1256,18 @@ function VerificationReviewModal({
             </div>
           )}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{provider.display_name}</h3>
+            {provider.slug ? (
+              <a
+                href={`/provider/${provider.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-lg font-semibold text-gray-900 hover:text-primary-600 hover:underline"
+              >
+                {provider.display_name}
+              </a>
+            ) : (
+              <h3 className="text-lg font-semibold text-gray-900">{provider.display_name}</h3>
+            )}
             <p className="text-sm text-gray-500">
               {provider.type === "organization" ? "Organization" : "Caregiver"}
               {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
@@ -639,12 +1279,69 @@ function VerificationReviewModal({
         </div>
       </div>
 
+      {/* Claim Context - Shows entry point and trust reasoning */}
+      <div className="mb-6 pb-5 border-b border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Claim Context
+        </p>
+        <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-400 mb-0.5">Claimer Email</p>
+              <p
+                className="text-sm text-gray-700 truncate"
+                title={provider.claimer_email || "Unknown"}
+              >
+                {provider.claimer_email || "Unknown"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Entry Point</p>
+              <ClaimJourneyBadges journey={provider.claim_journey} sourceFallback={provider.source} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Trust Level</p>
+              {provider.claim_trust_level ? (
+                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${TRUST_LEVEL_STYLES[provider.claim_trust_level]?.color || "text-gray-600 bg-gray-100"}`}>
+                  {TRUST_LEVEL_STYLES[provider.claim_trust_level]?.label || provider.claim_trust_level}
+                </span>
+              ) : (
+                <p className="text-sm text-gray-500">Not scored</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Claim State</p>
+              <p className="text-sm text-gray-700 capitalize">
+                {provider.claim_state || "None"}
+              </p>
+            </div>
+          </div>
+          {provider.claim_trust_reason && (
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Trust Reason</p>
+              <p className="text-sm text-gray-700">{provider.claim_trust_reason}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Pre-Claim Engagement - Only show if there's engagement data */}
+      <PreClaimEngagementSection journey={provider.claim_journey} />
+
       {/* Submission Details */}
       {submission ? (
         <div className="space-y-5">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Badge Request Details
+              {currentTab === "pending"
+                ? "Verification Submission"
+                : currentTab === "approved"
+                  ? "Verification Record"
+                  : currentTab === "rejected"
+                    ? "Rejected Submission"
+                    : "Badge Request Details"}
             </p>
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
@@ -793,14 +1490,68 @@ function VerificationReviewModal({
           </div>
         </div>
       ) : (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
+        <EmptyStateMessage
+          currentTab={currentTab}
+          isHighTrust={provider.claim_trust_level === "high" || provider.verification_state === "not_required"}
+          trustReason={provider.claim_trust_reason}
+        />
+      )}
+
+      {/* Unclaim link - only for claimed providers */}
+      {provider.claimer_email && (
+        <div className="mt-8 pt-5 border-t border-gray-100 text-center">
+          <button
+            onClick={() => setShowUnclaimConfirm(true)}
+            className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+          >
+            Need to remove this claim? <span className="underline">Unclaim provider</span>
+          </button>
+        </div>
+      )}
+
+      {/* Action error message */}
+      {actionError && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
+
+      {/* Unclaim Confirmation Dialog */}
+      {showUnclaimConfirm && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Remove claim?
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Remove <span className="font-medium">{provider.claimer_email}</span>&apos;s claim on{" "}
+              <span className="font-medium">{provider.display_name}</span>?
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              The listing will remain public but will be available for anyone to claim.
+            </p>
+            {actionError && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+                {actionError}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnclaimConfirm(false)}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onUnclaim}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? "Processing..." : "Unclaim"}
+              </button>
+            </div>
           </div>
-          <p className="text-gray-500 text-sm">No badge request details found.</p>
-          <p className="text-gray-400 text-xs mt-1">This record may be from an older submission format.</p>
         </div>
       )}
     </Modal>

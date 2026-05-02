@@ -11,8 +11,8 @@ import { publishPendingInterviews } from "@/lib/notifications/publish-pending-in
 /**
  * PATCH /api/admin/verification/[id]
  *
- * Approve or reject provider identity verification.
- * Body: { action: "approve" | "reject" }
+ * Approve, reject, or unclaim provider identity verification.
+ * Body: { action: "approve" | "reject" | "unclaim" }
  */
 export async function PATCH(
   request: NextRequest,
@@ -33,14 +33,99 @@ export async function PATCH(
     const body = await request.json();
     const action = body.action as string;
 
-    if (!["approve", "reject"].includes(action)) {
+    if (!["approve", "reject", "unclaim"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'approve' or 'reject'." },
+        { error: "Invalid action. Must be 'approve', 'reject', or 'unclaim'." },
         { status: 400 }
       );
     }
 
     const db = getServiceClient();
+
+    // Handle unclaim action separately
+    if (action === "unclaim") {
+      // 1. Get current profile to verify it's claimed
+      const { data: profile, error: fetchError } = await db
+        .from("business_profiles")
+        .select("account_id, display_name, metadata")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) {
+        console.error("Failed to fetch profile:", fetchError);
+        return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+      }
+
+      if (!profile?.account_id) {
+        return NextResponse.json({ error: "Provider is not claimed" }, { status: 400 });
+      }
+
+      // 2. Clear active_profile_id from accounts if this was active
+      const { error: accountError } = await db
+        .from("accounts")
+        .update({ active_profile_id: null, updated_at: new Date().toISOString() })
+        .eq("active_profile_id", id);
+
+      if (accountError) {
+        console.error("Failed to clear active_profile_id:", accountError);
+        // Non-blocking - continue with unclaim
+      }
+
+      // 3. Reset claim fields and clear verification metadata
+      const currentMetadata = (profile.metadata as Record<string, unknown>) || {};
+      const cleanedMetadata = { ...currentMetadata };
+      // Remove verification-related fields
+      delete cleanedMetadata.verification_submission;
+      delete cleanedMetadata.verification_attempts;
+      delete cleanedMetadata.verification_attempt;
+      delete cleanedMetadata.email_otp_attempt;
+      delete cleanedMetadata.badge_approved;
+      delete cleanedMetadata.badge_approved_at;
+      delete cleanedMetadata.badge_rejected;
+      delete cleanedMetadata.badge_rejected_at;
+      delete cleanedMetadata.verified_at;
+      delete cleanedMetadata.verification_method;
+      delete cleanedMetadata.auto_verified;
+
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update({
+          account_id: null,
+          claim_state: "unclaimed",
+          verification_state: "unverified",
+          claim_trust_level: null,
+          claim_trust_reason: null,
+          metadata: cleanedMetadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Failed to unclaim profile:", updateError);
+        return NextResponse.json({ error: "Failed to unclaim provider" }, { status: 500 });
+      }
+
+      // 4. Log audit action
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "unclaim_profile",
+        targetType: "business_profile",
+        targetId: id,
+        details: {
+          provider_name: profile.display_name,
+        },
+      });
+
+      // 5. Slack alert (fire-and-forget)
+      try {
+        const text = `:recycle: *Provider unclaimed* — ${profile.display_name || id} by ${user.email}`;
+        await sendSlackAlert(text);
+      } catch {
+        // Non-blocking
+      }
+
+      return NextResponse.json({ ok: true });
+    }
 
     // First fetch the current profile to get metadata
     const { data: currentProfile, error: fetchError } = await db
@@ -71,13 +156,20 @@ export async function PATCH(
     // Set verification_state based on action
     const newVerificationState = action === "approve" ? "verified" : "rejected";
 
+    // When approving, also set claim_state to "claimed" to complete the claim
+    // This ensures the Verification page is the single source of truth for provider approvals
+    const updateData: Record<string, unknown> = {
+      verification_state: newVerificationState,
+      metadata: updatedMetadata,
+      updated_at: new Date().toISOString(),
+    };
+    if (action === "approve") {
+      updateData.claim_state = "claimed";
+    }
+
     const { data: profile, error: updateError } = await db
       .from("business_profiles")
-      .update({
-        verification_state: newVerificationState,
-        metadata: updatedMetadata,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", id)
       .select("id, display_name, verification_state, account_id, slug, metadata")
       .single();

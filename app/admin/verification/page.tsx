@@ -110,11 +110,6 @@ type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
 
 const PAGE_SIZE = 50;
 
-const TYPE_OPTIONS = [
-  { value: "organization", label: "Organizations" },
-  { value: "caregiver", label: "Caregivers" },
-];
-
 const TRUST_OPTIONS = [
   { value: "high", label: "High trust" },
   { value: "medium", label: "Medium trust" },
@@ -245,45 +240,83 @@ function StateSelectFilter({
   );
 }
 
-function FilterSelect({
-  options,
+function TrustSelectFilter({
   value,
   onChange,
-  placeholder,
 }: {
-  options: { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
-  placeholder: string;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
+  const selectedOption = TRUST_OPTIONS.find((o) => o.value === value);
+  const selectedLabel = selectedOption?.label || "Trust level";
+
+  const handleSelect = (optValue: string) => {
+    onChange(optValue);
+    setIsOpen(false);
+  };
+
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
         className={`
-          px-3 py-2 bg-white border rounded-lg text-sm font-medium
-          outline-none transition-all min-w-[140px] cursor-pointer appearance-none pr-8
-          ${value ? "text-gray-900 border-primary-400" : "text-gray-500 border-gray-200"}
-          hover:border-gray-300
-          focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+          flex items-center justify-between gap-2 px-3 py-2
+          bg-white border rounded-lg text-sm font-medium
+          transition-all min-w-[140px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
         `}
       >
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      <svg
-        className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          {value && (
+            <button
+              type="button"
+              onClick={() => handleSelect("")}
+              className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+            >
+              Clear selection
+            </button>
+          )}
+
+          {TRUST_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={`
+                w-full px-3 py-2.5 text-left text-sm transition-colors
+                ${value === option.value
+                  ? "bg-primary-50 text-primary-700 font-medium"
+                  : "text-gray-900 hover:bg-gray-50"
+                }
+              `}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -329,7 +362,6 @@ export default function AdminVerificationPage() {
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
   const [trustFilter, setTrustFilter] = useState("");
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -368,7 +400,6 @@ export default function AdminVerificationPage() {
       });
       if (search.trim()) params.set("search", search.trim());
       if (stateFilter) params.set("state", stateFilter);
-      if (typeFilter) params.set("type", typeFilter);
       if (trustFilter) params.set("trust_level", trustFilter);
       const res = await fetch(`/api/admin/verification?${params}`);
       if (res.ok) {
@@ -384,7 +415,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, search, stateFilter, typeFilter, trustFilter]);
+  }, [filter, page, search, stateFilter, trustFilter]);
 
   useEffect(() => {
     fetchProviders();
@@ -535,29 +566,18 @@ export default function AdminVerificationPage() {
           onChange={(v) => { setPage(0); setStateFilter(v); }}
         />
 
-        {/* Type filter */}
-        <FilterSelect
-          options={TYPE_OPTIONS}
-          value={typeFilter}
-          onChange={(v) => { setPage(0); setTypeFilter(v); }}
-          placeholder="All types"
-        />
-
         {/* Trust filter */}
-        <FilterSelect
-          options={TRUST_OPTIONS}
+        <TrustSelectFilter
           value={trustFilter}
           onChange={(v) => { setPage(0); setTrustFilter(v); }}
-          placeholder="All trust levels"
         />
 
         {/* Clear filters - only when active */}
-        {(stateFilter || typeFilter || trustFilter) && (
+        {(stateFilter || trustFilter) && (
           <button
             onClick={() => {
               setPage(0);
               setStateFilter("");
-              setTypeFilter("");
               setTrustFilter("");
             }}
             className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
@@ -580,7 +600,7 @@ export default function AdminVerificationPage() {
       )}
 
       {(() => {
-        const hasActiveFilters = search || stateFilter || typeFilter || trustFilter;
+        const hasActiveFilters = search || stateFilter || trustFilter;
 
         if (loading) {
           return (
@@ -878,7 +898,7 @@ const SOURCE_LABELS: Record<string, string> = {
 
 // Map trust levels to display info
 const TRUST_LEVEL_STYLES: Record<string, { label: string; color: string }> = {
-  high: { label: "High", color: "text-green-700 bg-green-50" },
+  high: { label: "High", color: "text-blue-700 bg-blue-50" },
   medium: { label: "Medium", color: "text-amber-700 bg-amber-50" },
   low: { label: "Low", color: "text-red-700 bg-red-50" },
 };

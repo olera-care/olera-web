@@ -38,9 +38,11 @@ export async function GET(request: NextRequest) {
     // 2. New flow: verification_attempts exists OR email_otp_attempt exists
     // 3. Any profile with verification_state = "pending"
     // Using JS filtering since Supabase JSONB OR queries are unreliable
+    // Note: claim_trust_reason requires migration 062 to be run
+    // Using * to gracefully handle columns that may not exist yet
     const { data: allProviders, error } = await db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, claim_state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug, claim_trust_level, claim_trust_reason, source")
+      .select("*")
       .in("type", ["organization", "caregiver"])
       .order("updated_at", { ascending: false });
 

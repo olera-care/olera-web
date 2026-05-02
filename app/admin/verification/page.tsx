@@ -69,6 +69,9 @@ interface Provider {
   phone: string | null;
   image_url: string | null;
   slug: string | null;
+  claim_trust_level: "high" | "medium" | "low" | null;
+  claim_trust_reason: string | null;
+  source: string | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -364,7 +367,18 @@ export default function AdminVerificationPage() {
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
+                            {provider.slug ? (
+                              <a
+                                href={`/provider/${provider.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium text-gray-900 hover:text-primary-600 hover:underline"
+                              >
+                                {provider.display_name}
+                              </a>
+                            ) : (
+                              <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
+                            )}
                             <p className="text-xs text-gray-400">
                               {provider.type === "organization" ? "Organization" : "Caregiver"}
                               {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
@@ -393,34 +407,30 @@ export default function AdminVerificationPage() {
                       {filter !== "pending" && filter !== "unverified_claims" && (
                         <td className="px-6 py-4">
                           {filter === "approved" ? (
-                            // Show verification type badge based on how they got verified
+                            // Simplified badge system:
+                            // - High Trust: High-trust email at claim time OR verification_state = "not_required"
+                            // - Admin: Manual admin approval
+                            // - Self-Verified: All self-verification methods (email, LinkedIn, website, document, auto)
+                            // - Legacy: No verification method recorded
                             <div className="flex items-center gap-2">
                               <Badge variant="verified">Verified</Badge>
-                              {/* Instant: High-trust email at claim time (no verification needed) */}
-                              {provider.verification_state === "not_required" ? (
+                              {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
                                 <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                                  Instant
+                                  High Trust
                                 </span>
-                              ) : /* Auto: Claude AI auto-verified */
-                              provider.metadata?.auto_verified ? (
-                                <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium">
-                                  Auto
-                                </span>
-                              ) : /* Admin: Manual admin approval */
-                              provider.metadata?.verification_method === "admin_approval" ? (
+                              ) : provider.metadata?.verification_method === "admin_approval" ? (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
                                   Admin
                                 </span>
-                              ) : /* Self-verified: Show verification method */
-                              provider.metadata?.verification_method ? (
+                              ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
                                 <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">
-                                  {provider.metadata.verification_method === "email" ? "Email" :
-                                   provider.metadata.verification_method === "linkedin" ? "LinkedIn" :
-                                   provider.metadata.verification_method === "website" ? "Website" :
-                                   provider.metadata.verification_method === "document" ? "Document" :
-                                   provider.metadata.verification_method}
+                                  Self-Verified
                                 </span>
-                              ) : null}
+                              ) : (
+                                <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded font-medium border border-gray-200">
+                                  Legacy
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <Badge variant="rejected">Badge Rejected</Badge>
@@ -436,16 +446,12 @@ export default function AdminVerificationPage() {
                         <div className="flex gap-2 justify-end">
                           {filter === "unverified_claims" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => setSelectedProvider(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
@@ -457,21 +463,11 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "pending" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
                               <button
                                 onClick={() => setSelectedProvider(provider)}
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
                               >
-                                Review
+                                Details
                               </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
@@ -491,16 +487,12 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "approved" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => setSelectedProvider(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "reject")}
                                 disabled={actionLoading === provider.id}
@@ -512,16 +504,12 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "rejected" && (
                             <>
-                              {provider.slug && (
-                                <a
-                                  href={`/provider/${provider.slug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                                >
-                                  View Profile
-                                </a>
-                              )}
+                              <button
+                                onClick={() => setSelectedProvider(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
@@ -566,6 +554,23 @@ interface VerificationReviewModalProps {
   isLoading: boolean;
 }
 
+// Map source values to human-readable labels
+const SOURCE_LABELS: Record<string, string> = {
+  user_created: "Created new listing",
+  claimed_from_directory: "Claimed from directory",
+  self_service: "Instant claim",
+  admin_seed: "Admin seeded",
+  npi_sync: "NPI sync",
+  medjobs_sync: "MedJobs sync",
+};
+
+// Map trust levels to display info
+const TRUST_LEVEL_STYLES: Record<string, { label: string; color: string }> = {
+  high: { label: "High", color: "text-green-700 bg-green-50" },
+  medium: { label: "Medium", color: "text-amber-700 bg-amber-50" },
+  low: { label: "Low", color: "text-red-700 bg-red-50" },
+};
+
 function VerificationReviewModal({
   provider,
   onClose,
@@ -574,6 +579,7 @@ function VerificationReviewModal({
   isLoading,
 }: VerificationReviewModalProps) {
   const submission = provider.metadata?.verification_submission;
+  const isUnverifiedClaim = provider.verification_state === "unverified" && !submission;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -585,29 +591,48 @@ function VerificationReviewModal({
     });
   };
 
+  // Determine modal title based on context
+  const modalTitle = isUnverifiedClaim ? "Claim Details" : "Review Badge Request";
+
+  // Check if provider is already verified (just viewing details)
+  const isAlreadyVerified = provider.verification_state === "verified" || provider.verification_state === "not_required";
+  // Check if provider was previously rejected (for button text)
+  const wasRejected = provider.verification_state === "rejected";
+
+  // For verified providers, show a simple Close button
+  // For unverified/rejected, show Reject + Verify/Approve buttons
   return (
     <Modal
       isOpen={true}
       onClose={onClose}
-      title="Review Badge Request"
+      title={modalTitle}
       size="xl"
       footer={
-        <div className="flex gap-3">
+        isAlreadyVerified ? (
           <button
-            onClick={onReject}
-            disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
           >
-            Reject
+            Close
           </button>
-          <button
-            onClick={onApprove}
-            disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? "Processing..." : "Approve Badge"}
-          </button>
-        </div>
+        ) : (
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : wasRejected ? "Approve Badge" : "Verify"}
+            </button>
+          </div>
+        )
       }
     >
       {/* Provider Info */}
@@ -627,7 +652,18 @@ function VerificationReviewModal({
             </div>
           )}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{provider.display_name}</h3>
+            {provider.slug ? (
+              <a
+                href={`/provider/${provider.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-lg font-semibold text-gray-900 hover:text-primary-600 hover:underline"
+              >
+                {provider.display_name}
+              </a>
+            ) : (
+              <h3 className="text-lg font-semibold text-gray-900">{provider.display_name}</h3>
+            )}
             <p className="text-sm text-gray-500">
               {provider.type === "organization" ? "Organization" : "Caregiver"}
               {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
@@ -636,6 +672,53 @@ function VerificationReviewModal({
               {[provider.city, provider.state].filter(Boolean).join(", ") || "No location"}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Claim Context - Shows entry point and trust reasoning */}
+      <div className="mb-6 pb-5 border-b border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Claim Context
+        </p>
+        <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Entry Point</p>
+              <p className="text-sm font-medium text-gray-900">
+                {SOURCE_LABELS[provider.source || ""] || provider.source || "Unknown"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Last Updated</p>
+              <p className="text-sm text-gray-700">
+                {formatDate(provider.updated_at)}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Trust Level</p>
+              {provider.claim_trust_level ? (
+                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${TRUST_LEVEL_STYLES[provider.claim_trust_level]?.color || "text-gray-600 bg-gray-100"}`}>
+                  {TRUST_LEVEL_STYLES[provider.claim_trust_level]?.label || provider.claim_trust_level}
+                </span>
+              ) : (
+                <p className="text-sm text-gray-500">Not scored</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Claim State</p>
+              <p className="text-sm text-gray-700 capitalize">
+                {provider.claim_state || "None"}
+              </p>
+            </div>
+          </div>
+          {provider.claim_trust_reason && (
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Trust Reason</p>
+              <p className="text-sm text-gray-700">{provider.claim_trust_reason}</p>
+            </div>
+          )}
         </div>
       </div>
 

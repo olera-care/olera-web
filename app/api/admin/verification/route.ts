@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Using JS filtering since Supabase JSONB OR queries are unreliable
     const { data: allProviders, error } = await db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, claim_state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug")
+      .select("id, display_name, type, category, city, state, claim_state, verification_state, metadata, created_at, updated_at, email, phone, image_url, slug, claim_trust_level, claim_trust_reason, source")
       .in("type", ["organization", "caregiver"])
       .order("updated_at", { ascending: false });
 
@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
     if (status === "unverified_claims") {
       // Profiles needing verification — either claimed listings or new profiles with low-trust emails
       // Includes both claim_state "claimed" (claimed existing listing) and "pending" (created new profile)
+      // Also catches claims that slipped through with verification_state="verified" but claim_state="pending"
       filtered = filtered.filter((p) => {
         const meta = p.metadata as ProfileMetadata | null;
         const claimState = (p as { claim_state?: string }).claim_state;
@@ -89,7 +90,13 @@ export async function GET(request: NextRequest) {
           !meta?.verification_submission &&
           (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
           !meta?.email_otp_attempt;
-        return isClaimedOrPending && isUnverified && hasNoSubmissions;
+        // Standard case: claimed/pending + unverified + no submissions
+        const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
+        // Edge case: pending claims that slipped through with verification_state != "unverified"
+        // These should still appear for review since claim_state="pending" means admin needs to act
+        // Must also have no submissions - otherwise they belong in "Awaiting Review" tab
+        const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
+        return needsReviewStandard || pendingSlipThrough;
       });
     } else if (status === "pending") {
       // Has verification data but not yet approved or rejected

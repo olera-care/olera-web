@@ -210,11 +210,27 @@ export async function POST(request: Request) {
           const shouldAutoVerify = emailMatches || domainMatches;
 
           // Atomic claim: only update if account_id is still NULL
+          // When shouldAutoVerify=false, set both claim_state="pending" AND verification_state="unverified"
+          // so the claim appears in the Verification page for admin review
           const claimUpdate: Record<string, unknown> = {
             account_id: accountId,
             claim_state: shouldAutoVerify ? "claimed" : "pending",
-            verification_state: "verified",
+            verification_state: shouldAutoVerify ? "verified" : "unverified",
           };
+
+          // Run trust scoring for claims that need admin review
+          // This provides context (trust level + reason) for admins in the Verification page
+          if (!shouldAutoVerify) {
+            const existingName = existing.display_name || orgName || sanitizedDisplayName;
+            const trustResult = await scoreClaimTrust({
+              email: user.email || "",
+              providerName: existingName,
+              providerCity: existing.city || city || null,
+              providerState: existing.state || state || null,
+            });
+            claimUpdate.claim_trust_level = trustResult.level;
+            claimUpdate.claim_trust_reason = trustResult.reason;
+          }
 
           if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
             claimUpdate.display_name = orgName?.trim().slice(0, 100) || sanitizedDisplayName;
@@ -310,6 +326,7 @@ export async function POST(request: Request) {
             claim_state: "pending",
             verification_state: verificationState,
             claim_trust_level: trustResult.level,
+            claim_trust_reason: trustResult.reason,
             source: "user_created",
             is_active: true,
             metadata: {

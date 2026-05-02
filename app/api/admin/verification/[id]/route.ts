@@ -71,13 +71,20 @@ export async function PATCH(
     // Set verification_state based on action
     const newVerificationState = action === "approve" ? "verified" : "rejected";
 
+    // When approving, also set claim_state to "claimed" to complete the claim
+    // This ensures the Verification page is the single source of truth for provider approvals
+    const updateData: Record<string, unknown> = {
+      verification_state: newVerificationState,
+      metadata: updatedMetadata,
+      updated_at: new Date().toISOString(),
+    };
+    if (action === "approve") {
+      updateData.claim_state = "claimed";
+    }
+
     const { data: profile, error: updateError } = await db
       .from("business_profiles")
-      .update({
-        verification_state: newVerificationState,
-        metadata: updatedMetadata,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", id)
       .select("id, display_name, verification_state, account_id, slug, metadata")
       .single();

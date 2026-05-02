@@ -15,6 +15,40 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { scoreClaimTrust, extractDomainFromWebsite } from "../lib/claim-trust";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+// ============================================================
+// Load environment variables from .env.local
+// ============================================================
+
+function loadEnvFile() {
+  const envPath = resolve(process.cwd(), ".env.local");
+  try {
+    const content = readFileSync(envPath, "utf-8");
+    for (const line of content.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIndex = trimmed.indexOf("=");
+      if (eqIndex === -1) continue;
+      const key = trimmed.slice(0, eqIndex).trim();
+      let value = trimmed.slice(eqIndex + 1).trim();
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+    console.log("Loaded environment from .env.local");
+  } catch {
+    console.log("No .env.local found, using existing environment variables");
+  }
+}
+
+loadEnvFile();
 
 // ============================================================
 // Configuration
@@ -116,11 +150,11 @@ async function processProvider(
   });
 
   if (!isDryRun) {
+    // Only update claim_trust_level (claim_trust_reason column may not exist)
     const { error: updateError } = await db
       .from("business_profiles")
       .update({
         claim_trust_level: trustResult.level,
-        claim_trust_reason: trustResult.reason,
       })
       .eq("id", provider.id);
 

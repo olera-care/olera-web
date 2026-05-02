@@ -720,7 +720,7 @@ export default function AdminVerificationPage() {
                             <div className="flex items-center gap-2">
                               <Badge variant="verified">Verified</Badge>
                               {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
-                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
                                   High Trust
                                 </span>
                               ) : provider.metadata?.verification_method === "admin_approval" ? (
@@ -801,9 +801,9 @@ export default function AdminVerificationPage() {
                               <button
                                 onClick={() => handleAction(provider.id, "reject")}
                                 disabled={actionLoading === provider.id}
-                                className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                                className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors whitespace-nowrap"
                               >
-                                {actionLoading === provider.id ? "..." : "Revoke Badge"}
+                                {actionLoading === provider.id ? "..." : "Revoke"}
                               </button>
                             </>
                           )}
@@ -1431,7 +1431,7 @@ function VerificationReviewModal({
 
       {/* Unclaim link - only for claimed providers */}
       {provider.claimer_email && (
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+        <div className="mt-8 pt-5 border-t border-gray-100 text-center">
           <button
             onClick={() => setShowUnclaimConfirm(true)}
             className="text-xs text-gray-400 hover:text-red-600 transition-colors"

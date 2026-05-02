@@ -19,9 +19,16 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await fetchGoogleReviews(place_id);
-    if (!data) {
-      return NextResponse.json({ message: "No reviews found" });
-    }
+
+    // If Google returns null (no reviews, or API error), still write a sentinel so
+    // subsequent visits don't re-trigger this route. The cost of a stale "no reviews"
+    // marker on transient errors is far lower than a per-pageview re-fetch loop.
+    const cacheValue = data ?? {
+      rating: 0,
+      review_count: 0,
+      reviews: [],
+      last_synced: new Date().toISOString(),
+    };
 
     const db = getServiceClient();
 
@@ -36,7 +43,7 @@ export async function POST(request: NextRequest) {
       const existingMeta = (bp?.metadata as Record<string, unknown>) ?? {};
       const { error } = await db
         .from("business_profiles")
-        .update({ metadata: { ...existingMeta, google_reviews_data: data } })
+        .update({ metadata: { ...existingMeta, google_reviews_data: cacheValue } })
         .eq("id", provider_id);
 
       if (error) {
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
       // olera-providers — store in google_reviews_data column
       const { error } = await db
         .from("olera-providers")
-        .update({ google_reviews_data: data })
+        .update({ google_reviews_data: cacheValue })
         .eq("provider_id", provider_id);
 
       if (error) {
@@ -56,7 +63,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ message: "Backfilled", provider_id });
+    return NextResponse.json({
+      message: data ? "Backfilled" : "Backfilled (no reviews)",
+      provider_id,
+    });
   } catch (err) {
     console.error("[backfill-google-review] Error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

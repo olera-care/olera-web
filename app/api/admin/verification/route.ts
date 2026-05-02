@@ -193,7 +193,8 @@ export async function GET(request: NextRequest) {
     // Fetch claimer emails only for accounts not already cached
     const accountIds = [...new Set(paginated
       .map((p) => (p as { account_id?: string }).account_id)
-      .filter((id): id is string => Boolean(id) && !accountEmailMap.has(id)))];
+      .filter((id): id is string => Boolean(id))
+      .filter((id) => !accountEmailMap.has(id)))];
 
     if (accountIds.length > 0) {
       const { data: accounts } = await db

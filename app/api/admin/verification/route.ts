@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "pending";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const search = searchParams.get("search")?.toLowerCase().trim() || "";
 
     const db = getServiceClient();
 
@@ -132,10 +133,102 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Apply pagination after filtering
+    // Cache for claimer emails - populated during search and reused for display
+    const accountEmailMap = new Map<string, string>();
+
+    // Apply search filter if provided
+    if (search) {
+      // For email searches, find matching account IDs first
+      let matchingAccountIds = new Set<string>();
+      if (search.includes("@")) {
+        // Get all accounts for filtered providers
+        const allAccountIds = filtered
+          .map((p) => (p as { account_id?: string }).account_id)
+          .filter((id): id is string => Boolean(id));
+
+        if (allAccountIds.length > 0) {
+          const { data: accounts } = await db
+            .from("accounts")
+            .select("id, user_id")
+            .in("id", allAccountIds);
+
+          if (accounts) {
+            // Check each account's auth email and cache it
+            const emailChecks = await Promise.all(
+              accounts.map(async (account) => {
+                try {
+                  const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+                  const email = authUser?.user?.email || "";
+                  // Cache the email for later use (avoid duplicate lookups)
+                  if (email) {
+                    accountEmailMap.set(account.id, email);
+                  }
+                  if (email.toLowerCase().includes(search)) {
+                    return account.id;
+                  }
+                } catch {
+                  // Ignore errors
+                }
+                return null;
+              })
+            );
+            matchingAccountIds = new Set(emailChecks.filter((id): id is string => id !== null));
+          }
+        }
+      }
+
+      // Filter by display_name OR matching account_id (for email search)
+      filtered = filtered.filter((p) => {
+        const displayName = ((p as { display_name?: string }).display_name || "").toLowerCase();
+        const accountId = (p as { account_id?: string }).account_id;
+        const nameMatches = displayName.includes(search);
+        const emailMatches = accountId ? matchingAccountIds.has(accountId) : false;
+        return nameMatches || emailMatches;
+      });
+    }
+
+    // Apply pagination
     const paginated = filtered.slice(offset, offset + limit);
 
-    return NextResponse.json({ providers: paginated });
+    // Fetch claimer emails only for accounts not already cached
+    const accountIds = [...new Set(paginated
+      .map((p) => (p as { account_id?: string }).account_id)
+      .filter((id): id is string => Boolean(id) && !accountEmailMap.has(id)))];
+
+    if (accountIds.length > 0) {
+      const { data: accounts } = await db
+        .from("accounts")
+        .select("id, user_id")
+        .in("id", accountIds);
+
+      if (accounts) {
+        // Fetch auth emails in parallel for better performance
+        const emailResults = await Promise.all(
+          accounts.map(async (account) => {
+            try {
+              const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+              return { accountId: account.id, email: authUser?.user?.email || null };
+            } catch {
+              return { accountId: account.id, email: null };
+            }
+          })
+        );
+
+        for (const result of emailResults) {
+          if (result.email) {
+            accountEmailMap.set(result.accountId, result.email);
+          }
+        }
+      }
+    }
+
+    // Add claimer_email to each provider
+    const providersWithEmail = paginated.map((p: { account_id?: string }) => ({
+      ...p,
+      claimer_email: p.account_id ? accountEmailMap.get(p.account_id) || null : null,
+    }));
+
+    return NextResponse.json({ providers: providersWithEmail, total: filtered.length });
   } catch (err) {
     console.error("Admin badge requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

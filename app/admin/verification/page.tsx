@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import type { OrganizationMetadata } from "@/lib/types";
@@ -72,6 +72,7 @@ interface Provider {
   claim_trust_level: "high" | "medium" | "low" | null;
   claim_trust_reason: string | null;
   source: string | null;
+  claimer_email: string | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -93,37 +94,86 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
 
 type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
 
+const PAGE_SIZE = 50;
+
+function Pagination({ page, setPage, total, pageSize }: {
+  page: number; setPage: (p: number) => void; total: number; pageSize: number;
+}) {
+  if (total <= pageSize) return null;
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+      <span className="text-xs text-gray-400">
+        {page * pageSize + 1}&ndash;{Math.min((page + 1) * pageSize, total)} of {total}
+      </span>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 0}
+          className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={(page + 1) * pageSize >= total}
+          className="text-xs text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed px-2 py-1"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminVerificationPage() {
   const [filter, setFilter] = useState<StatusFilter>("unverified_claims");
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [search, setSearch] = useState("");
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSearchChange = (value: string) => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setPage(0);
+      setSearch(value);
+    }, 300);
+  };
+
+  const clearSearch = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    setPage(0);
+    setSearch("");
+  };
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/verification?status=${filter}`);
+      const offset = page * PAGE_SIZE;
+      const params = new URLSearchParams({
+        status: filter,
+        limit: String(PAGE_SIZE),
+        offset: String(offset),
+      });
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+      const res = await fetch(`/api/admin/verification?${params}`);
       if (res.ok) {
         const data = await res.json();
-        let results = data.providers ?? [];
-        // For pending tab, only show providers with verification data
-        // This includes old flow (verification_submission) and new flow (verification_attempts, email_otp_attempt)
-        // Exclude providers who are already verified (they auto-verified after initial failure)
-        if (filter === "pending") {
-          results = results.filter((p: Provider) => {
-            const hasOldSubmission = !!p.metadata?.verification_submission;
-            const hasNewAttempts = Array.isArray(p.metadata?.verification_attempts) && p.metadata.verification_attempts.length > 0;
-            const hasEmailOtpAttempt = !!p.metadata?.email_otp_attempt;
-            const notAlreadyVerified = p.verification_state !== "verified";
-            return (hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt) && notAlreadyVerified;
-          });
-        }
-        setProviders(results);
+        setProviders(data.providers ?? []);
+        setTotal(data.total ?? 0);
       } else {
         setError("Failed to load verification requests. Please try again.");
       }
@@ -133,7 +183,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, page, search]);
 
   useEffect(() => {
     fetchProviders();
@@ -146,15 +196,6 @@ export default function AdminVerificationPage() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  // Filter providers based on search term
-  const filteredProviders = providers.filter((provider) => {
-    if (!search.trim()) return true;
-    const searchLower = search.toLowerCase();
-    const providerName = provider.display_name?.toLowerCase() || "";
-    const submitterName = provider.metadata?.verification_submission?.name?.toLowerCase() || "";
-    return providerName.includes(searchLower) || submitterName.includes(searchLower);
-  });
-
   async function handleAction(id: string, action: "approve" | "reject") {
     setActionLoading(id);
     setActionError(null);
@@ -165,7 +206,15 @@ export default function AdminVerificationPage() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        setProviders((prev) => prev.filter((p) => p.id !== id));
+        setProviders((prev) => {
+          const updated = prev.filter((p) => p.id !== id);
+          // If current page becomes empty and we're not on page 0, go back to page 0
+          if (updated.length === 0 && page > 0) {
+            setPage(0);
+          }
+          return updated;
+        });
+        setTotal((prev) => prev - 1);
         setSelectedProvider(null);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -241,15 +290,16 @@ export default function AdminVerificationPage() {
             />
           </svg>
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search by provider or submitter name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or claimer email..."
+            defaultValue={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
           {search && (
             <button
-              onClick={() => setSearch("")}
+              onClick={clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -266,7 +316,7 @@ export default function AdminVerificationPage() {
           <button
             key={f.value}
             type="button"
-            onClick={() => setFilter(f.value)}
+            onClick={() => { setPage(0); setFilter(f.value); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === f.value
                 ? "bg-primary-600 text-white"
@@ -294,7 +344,7 @@ export default function AdminVerificationPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-lg text-gray-500">Loading...</div>
         </div>
-      ) : filteredProviders.length === 0 ? (
+      ) : providers.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
             {search ? (
@@ -347,7 +397,7 @@ export default function AdminVerificationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredProviders.map((provider) => {
+                {providers.map((provider) => {
                   const submission = getVerificationSubmission(provider);
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
@@ -383,6 +433,9 @@ export default function AdminVerificationPage() {
                               {provider.type === "organization" ? "Organization" : "Caregiver"}
                               {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
                             </p>
+                            {provider.claimer_email && (
+                              <p className="text-xs text-gray-500">{provider.claimer_email}</p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -527,6 +580,7 @@ export default function AdminVerificationPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} setPage={setPage} total={total} pageSize={PAGE_SIZE} />
         </div>
       )}
 
@@ -683,15 +737,15 @@ function VerificationReviewModal({
         <div className="bg-gray-50 rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Entry Point</p>
-              <p className="text-sm font-medium text-gray-900">
-                {SOURCE_LABELS[provider.source || ""] || provider.source || "Unknown"}
+              <p className="text-xs text-gray-400 mb-0.5">Claimer Email</p>
+              <p className="text-sm text-gray-700">
+                {provider.claimer_email || "Unknown"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Last Updated</p>
-              <p className="text-sm text-gray-700">
-                {formatDate(provider.updated_at)}
+              <p className="text-xs text-gray-400 mb-0.5">Entry Point</p>
+              <p className="text-sm font-medium text-gray-900">
+                {SOURCE_LABELS[provider.source || ""] || provider.source || "Unknown"}
               </p>
             </div>
           </div>

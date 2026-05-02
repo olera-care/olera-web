@@ -1,5 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Claim journey data showing how a provider claimed and their pre-claim engagement
+ */
+interface ClaimJourney {
+  claim_source: "email" | "page" | "unknown"; // How they claimed
+  used_one_click: boolean; // Magic link sign-in
+  pre_claim_engagement: {
+    email_clicks: number; // Clicked email notifications
+    inquiries_received: number; // Leads before claiming
+    questions_answered: number; // Q&A before claiming
+  };
+  first_engagement_at: string | null; // When they first interacted
+}
+
+/**
+ * Fetch claim journey data for a provider
+ * Queries provider_activity, connections, and provider_questions tables
+ */
+async function getClaimJourney(
+  db: SupabaseClient,
+  slug: string | null,
+  profileId: string
+): Promise<ClaimJourney> {
+  const result: ClaimJourney = {
+    claim_source: "unknown",
+    used_one_click: false,
+    pre_claim_engagement: {
+      email_clicks: 0,
+      inquiries_received: 0,
+      questions_answered: 0,
+    },
+    first_engagement_at: null,
+  };
+
+  try {
+    // Fetch all relevant activity for this provider in one query
+    const { data: activities } = await db
+      .from("provider_activity")
+      .select("event_type, metadata, created_at")
+      .or(`profile_id.eq.${profileId}${slug ? `,provider_id.eq.${slug}` : ""}`)
+      .order("created_at", { ascending: true });
+
+    if (!activities || activities.length === 0) {
+      return result;
+    }
+
+    // Find claim_completed event to determine source and claim date
+    const claimEvent = activities.find((a) => a.event_type === "claim_completed");
+    const claimDate = claimEvent?.created_at ? new Date(claimEvent.created_at) : null;
+
+    if (claimEvent?.metadata?.source) {
+      result.claim_source = claimEvent.metadata.source === "email" ? "email" : "page";
+    }
+
+    // Check for one_click_access event
+    result.used_one_click = activities.some((a) => a.event_type === "one_click_access");
+
+    // Only calculate pre-claim engagement if we have a claim date
+    // Without a claim date, we can't meaningfully determine what's "pre-claim"
+    if (claimDate) {
+      // Count pre-claim email clicks from activity
+      const preClaimActivities = activities.filter(
+        (a) => new Date(a.created_at) < claimDate
+      );
+
+      result.pre_claim_engagement.email_clicks = preClaimActivities.filter(
+        (a) => a.event_type === "email_click"
+      ).length;
+
+      // Find first engagement timestamp
+      const firstEngagement = preClaimActivities[0];
+      if (firstEngagement) {
+        result.first_engagement_at = firstEngagement.created_at;
+      }
+
+      // Count pre-claim inquiries received (connections where to_profile_id = profileId)
+      const { count: inquiryCount } = await db
+        .from("connections")
+        .select("*", { count: "exact", head: true })
+        .eq("to_profile_id", profileId)
+        .eq("type", "inquiry")
+        .lt("created_at", claimDate.toISOString());
+
+      result.pre_claim_engagement.inquiries_received = inquiryCount || 0;
+
+      // Count pre-claim questions answered
+      // Questions are linked to providers by slug (provider_id column)
+      if (slug) {
+        const { count: questionCount } = await db
+          .from("provider_questions")
+          .select("*", { count: "exact", head: true })
+          .eq("provider_id", slug)
+          .not("answer", "is", null)
+          .lt("answered_at", claimDate.toISOString());
+
+        result.pre_claim_engagement.questions_answered = questionCount || 0;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching claim journey:", error);
+    return result;
+  }
+}
 
 /**
  * GET /api/admin/verification
@@ -223,13 +330,23 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Add claimer_email to each provider
-    const providersWithEmail = paginated.map((p: { account_id?: string }) => ({
-      ...p,
-      claimer_email: p.account_id ? accountEmailMap.get(p.account_id) || null : null,
-    }));
+    // Fetch claim journey data for all providers in parallel
+    const claimJourneyPromises = paginated.map(
+      (p: { id: string; slug?: string | null }) =>
+        getClaimJourney(db, p.slug || null, p.id)
+    );
+    const claimJourneys = await Promise.all(claimJourneyPromises);
 
-    return NextResponse.json({ providers: providersWithEmail, total: filtered.length });
+    // Add claimer_email and claim_journey to each provider
+    const providersWithData = paginated.map(
+      (p: { account_id?: string }, index: number) => ({
+        ...p,
+        claimer_email: p.account_id ? accountEmailMap.get(p.account_id) || null : null,
+        claim_journey: claimJourneys[index],
+      })
+    );
+
+    return NextResponse.json({ providers: providersWithData, total: filtered.length });
   } catch (err) {
     console.error("Admin badge requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

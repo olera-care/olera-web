@@ -53,6 +53,17 @@ interface ProviderMetadata extends OrganizationMetadata {
   claim_trust_level?: "high" | "medium" | "low";
 }
 
+interface ClaimJourney {
+  claim_source: "email" | "page" | "unknown";
+  used_one_click: boolean;
+  pre_claim_engagement: {
+    email_clicks: number;
+    inquiries_received: number;
+    questions_answered: number;
+  };
+  first_engagement_at: string | null;
+}
+
 interface Provider {
   id: string;
   display_name: string;
@@ -73,6 +84,7 @@ interface Provider {
   claim_trust_reason: string | null;
   source: string | null;
   claimer_email: string | null;
+  claim_journey: ClaimJourney | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -593,6 +605,7 @@ export default function AdminVerificationPage() {
       {selectedProvider && (
         <VerificationReviewModal
           provider={selectedProvider}
+          currentTab={filter}
           onClose={() => { setSelectedProvider(null); setActionError(null); }}
           onApprove={() => handleAction(selectedProvider.id, "approve")}
           onReject={() => handleAction(selectedProvider.id, "reject")}
@@ -609,6 +622,7 @@ export default function AdminVerificationPage() {
 
 interface VerificationReviewModalProps {
   provider: Provider;
+  currentTab: StatusFilter;
   onClose: () => void;
   onApprove: () => void;
   onReject: () => void;
@@ -634,8 +648,171 @@ const TRUST_LEVEL_STYLES: Record<string, { label: string; color: string }> = {
   low: { label: "Low", color: "text-red-700 bg-red-50" },
 };
 
+// ── Claim Journey Badges ──
+
+function ClaimJourneyBadges({
+  journey,
+  sourceFallback,
+}: {
+  journey: ClaimJourney | null;
+  sourceFallback: string | null;
+}) {
+  // Determine if we have meaningful journey data
+  const hasJourneyData = journey && (
+    journey.used_one_click ||
+    journey.claim_source !== "unknown"
+  );
+
+  // If no journey data, fall back to showing the source label (old behavior)
+  if (!hasJourneyData) {
+    const sourceLabel = SOURCE_LABELS[sourceFallback || ""] || sourceFallback || "Unknown";
+    return <p className="text-sm font-medium text-gray-900">{sourceLabel}</p>;
+  }
+
+  const totalInteractions =
+    journey.pre_claim_engagement.email_clicks +
+    journey.pre_claim_engagement.inquiries_received +
+    journey.pre_claim_engagement.questions_answered;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {/* Claim method badge */}
+      {journey.used_one_click ? (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-purple-50 text-purple-700">
+          <span>⚡</span> One-click claim
+        </span>
+      ) : journey.claim_source === "email" ? (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-blue-50 text-blue-700">
+          <span>✉️</span> Email flow
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-teal-50 text-teal-700">
+          <span>🌐</span> Page claim
+        </span>
+      )}
+
+      {/* Pre-claim engagement badge */}
+      {totalInteractions > 0 && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-700">
+          <span>📊</span> {totalInteractions} pre-claim interaction{totalInteractions !== 1 ? "s" : ""}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Empty State Message ──
+
+function EmptyStateMessage({
+  currentTab,
+  isHighTrust,
+  trustReason,
+}: {
+  currentTab: StatusFilter;
+  isHighTrust: boolean;
+  trustReason: string | null;
+}) {
+  // Determine appropriate message based on context
+  const isUnverifiedClaim = currentTab === "unverified_claims";
+  const isVerifiedTab = currentTab === "approved";
+
+  let icon: React.ReactNode;
+  let title: string;
+  let description: string;
+
+  if (isUnverifiedClaim) {
+    // Unverified claim - hasn't submitted verification yet
+    icon = (
+      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+    title = "No verification submitted yet";
+    description = "This provider claimed their listing but hasn't started the verification process.";
+  } else if (isVerifiedTab && isHighTrust) {
+    // High-trust verified - no verification needed
+    icon = (
+      <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+      </svg>
+    );
+    title = "High-trust claim — no verification required";
+    description = trustReason || "Verified automatically based on trusted email domain.";
+  } else {
+    // Legacy record
+    icon = (
+      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+      </svg>
+    );
+    title = "No verification details found";
+    description = "This record may be from an older submission format.";
+  }
+
+  return (
+    <div className="text-center py-8">
+      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
+        isHighTrust && isVerifiedTab ? "bg-green-50" : isUnverifiedClaim ? "bg-amber-50" : "bg-gray-100"
+      }`}>
+        {icon}
+      </div>
+      <p className="text-gray-700 text-sm font-medium">{title}</p>
+      <p className="text-gray-500 text-xs mt-1 max-w-xs mx-auto">{description}</p>
+    </div>
+  );
+}
+
+// ── Pre-Claim Engagement Section ──
+
+function PreClaimEngagementSection({ journey }: { journey: ClaimJourney | null }) {
+  if (!journey) return null;
+
+  const { email_clicks, inquiries_received, questions_answered } = journey.pre_claim_engagement;
+  const hasEngagement = email_clicks > 0 || inquiries_received > 0 || questions_answered > 0;
+
+  if (!hasEngagement) return null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <div className="mb-6 pb-5 border-b border-gray-100">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+        Pre-Claim Engagement
+      </p>
+      <div className="bg-gray-50 rounded-xl p-4">
+        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{email_clicks}</p>
+            <p className="text-xs text-gray-500">Email clicks</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{inquiries_received}</p>
+            <p className="text-xs text-gray-500">Inquiries</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{questions_answered}</p>
+            <p className="text-xs text-gray-500">Q&A</p>
+          </div>
+        </div>
+        {journey.first_engagement_at && (
+          <p className="text-xs text-gray-500 text-center border-t border-gray-200 pt-2">
+            First engagement: {formatDate(journey.first_engagement_at)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function VerificationReviewModal({
   provider,
+  currentTab,
   onClose,
   onApprove,
   onReject,
@@ -645,7 +822,6 @@ function VerificationReviewModal({
 }: VerificationReviewModalProps) {
   const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
   const submission = provider.metadata?.verification_submission;
-  const isUnverifiedClaim = provider.verification_state === "unverified" && !submission;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -657,31 +833,21 @@ function VerificationReviewModal({
     });
   };
 
-  // Determine modal title based on context
-  const modalTitle = isUnverifiedClaim ? "Claim Details" : "Review Badge Request";
+  // Determine modal title based on tab context
+  const modalTitle = currentTab === "unverified_claims"
+    ? "Claim Details"
+    : currentTab === "approved"
+      ? "Verified Provider"
+      : currentTab === "rejected"
+        ? "Rejected Provider"
+        : "Review Badge Request";
 
-  // Check if provider is already verified (just viewing details)
-  const isAlreadyVerified = provider.verification_state === "verified" || provider.verification_state === "not_required";
-  // Check if provider was previously rejected (for button text)
-  const wasRejected = provider.verification_state === "rejected";
-
-  // For verified providers, show a simple Close button
-  // For unverified/rejected, show Reject + Verify/Approve buttons
-  return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      title={modalTitle}
-      size="xl"
-      footer={
-        isAlreadyVerified ? (
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
-          >
-            Close
-          </button>
-        ) : (
+  // Render footer buttons based on current tab
+  const renderFooter = () => {
+    switch (currentTab) {
+      case "unverified_claims":
+        // [Reject] [Verify]
+        return (
           <div className="flex gap-3">
             <button
               onClick={onReject}
@@ -695,11 +861,80 @@ function VerificationReviewModal({
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
-              {isLoading ? "Processing..." : wasRejected ? "Approve Badge" : "Verify"}
+              {isLoading ? "Processing..." : "Verify"}
             </button>
           </div>
-        )
-      }
+        );
+      case "pending":
+        // [Reject] [Approve]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Approve"}
+            </button>
+          </div>
+        );
+      case "approved":
+        // [Close] [Revoke Badge]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Revoke Badge"}
+            </button>
+          </div>
+        );
+      case "rejected":
+        // [Close] [Approve Badge]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Approve Badge"}
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={modalTitle}
+      size="xl"
+      footer={renderFooter()}
     >
       {/* Provider Info */}
       <div className="mb-6 pb-5 border-b border-gray-100">
@@ -748,17 +983,18 @@ function VerificationReviewModal({
         </p>
         <div className="bg-gray-50 rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-gray-400 mb-0.5">Claimer Email</p>
-              <p className="text-sm text-gray-700">
+              <p
+                className="text-sm text-gray-700 truncate"
+                title={provider.claimer_email || "Unknown"}
+              >
                 {provider.claimer_email || "Unknown"}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Entry Point</p>
-              <p className="text-sm font-medium text-gray-900">
-                {SOURCE_LABELS[provider.source || ""] || provider.source || "Unknown"}
-              </p>
+              <ClaimJourneyBadges journey={provider.claim_journey} sourceFallback={provider.source} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -788,12 +1024,21 @@ function VerificationReviewModal({
         </div>
       </div>
 
+      {/* Pre-Claim Engagement - Only show if there's engagement data */}
+      <PreClaimEngagementSection journey={provider.claim_journey} />
+
       {/* Submission Details */}
       {submission ? (
         <div className="space-y-5">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Badge Request Details
+              {currentTab === "pending"
+                ? "Verification Submission"
+                : currentTab === "approved"
+                  ? "Verification Record"
+                  : currentTab === "rejected"
+                    ? "Rejected Submission"
+                    : "Badge Request Details"}
             </p>
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
@@ -942,15 +1187,11 @@ function VerificationReviewModal({
           </div>
         </div>
       ) : (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-          </div>
-          <p className="text-gray-500 text-sm">No badge request details found.</p>
-          <p className="text-gray-400 text-xs mt-1">This record may be from an older submission format.</p>
-        </div>
+        <EmptyStateMessage
+          currentTab={currentTab}
+          isHighTrust={provider.claim_trust_level === "high" || provider.verification_state === "not_required"}
+          trustReason={provider.claim_trust_reason}
+        />
       )}
 
       {/* Unclaim link - only for claimed providers */}

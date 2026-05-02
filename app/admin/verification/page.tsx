@@ -1135,7 +1135,7 @@ function VerificationReviewModal({
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
             >
-              {isLoading ? "Processing..." : "Revoke Badge"}
+              {isLoading ? "Processing..." : "Revoke"}
             </button>
           </div>
         );

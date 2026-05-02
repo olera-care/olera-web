@@ -149,8 +149,24 @@ export async function fetchGooglePlacePhoto(
       return null;
     }
 
-    // Construct the photo URL
-    return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=${maxSize}&maxWidthPx=${maxSize}&key=${apiKey}`;
+    // Resolve to a permanent Google CDN URL (skipHttpRedirect=true returns
+    // photoUri JSON instead of a signed redirect that re-bills on each load).
+    const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=${maxSize}&maxWidthPx=${maxSize}&key=${apiKey}&skipHttpRedirect=true`;
+    const mediaRes = await fetch(mediaUrl, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!mediaRes.ok) {
+      const errorBody = await mediaRes.text().catch(() => "");
+      console.error(
+        `[google-places] Photo media API error for ${placeId}: ${mediaRes.status} ${errorBody}`,
+      );
+      return null;
+    }
+
+    const mediaData = await mediaRes.json();
+    return mediaData.photoUri ?? null;
   } catch (err) {
     console.error(`[google-places] Failed to fetch photo for ${placeId}:`, err);
     return null;

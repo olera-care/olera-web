@@ -74,7 +74,10 @@ export async function GET(
 
       if (legacyProvider) {
         // Prefer cached photo URL from DB; only call Places API as last resort.
-        let imageUrl: string | null = legacyProvider.provider_images || null;
+        // provider_images may be a pipe-separated multi-URL string (iOS photos),
+        // so take just the first URL — matches app/provider/[slug]/page.tsx:131.
+        let imageUrl: string | null =
+          legacyProvider.provider_images?.split(" | ")[0] || null;
         if (!imageUrl && legacyProvider.place_id) {
           imageUrl = await fetchGooglePlacePhoto(legacyProvider.place_id);
           if (imageUrl) {
@@ -125,7 +128,8 @@ export async function GET(
         googlePlaceId = linkedProvider.place_id;
       }
       if (!imageUrl && linkedProvider?.provider_images) {
-        imageUrl = linkedProvider.provider_images;
+        // Pipe-separated multi-URL handling (see legacy branch comment).
+        imageUrl = linkedProvider.provider_images.split(" | ")[0] || null;
       }
     }
 

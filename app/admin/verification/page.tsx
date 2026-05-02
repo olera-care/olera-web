@@ -363,6 +363,12 @@ export default function AdminVerificationPage() {
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [trustFilter, setTrustFilter] = useState("");
+  const [tabCounts, setTabCounts] = useState<Record<StatusFilter, number>>({
+    unverified_claims: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -387,6 +393,25 @@ export default function AdminVerificationPage() {
     setPage(0);
     setSearch("");
   };
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/verification?counts_only=true");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.counts) {
+          setTabCounts(data.counts);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch counts:", err);
+    }
+  }, []);
+
+  // Fetch counts on mount
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -448,6 +473,8 @@ export default function AdminVerificationPage() {
         });
         setTotal((prev) => prev - 1);
         setSelectedProvider(null);
+        // Refresh tab counts after action
+        fetchCounts();
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || `Failed to ${action} badge. Please try again.`);
@@ -508,20 +535,41 @@ export default function AdminVerificationPage() {
 
       {/* Tabs - prominent, own row */}
       <div className="flex gap-2 mb-4">
-        {filters.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => { setPage(0); setFilter(f.value); }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === f.value
-                ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+        {filters.map((f) => {
+          const count = tabCounts[f.value];
+          const isActionable = f.value === "unverified_claims" || f.value === "pending";
+          const showBadge = isActionable && count > 0;
+
+          return (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => { setPage(0); setFilter(f.value); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                filter === f.value
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {f.label}
+              {showBadge ? (
+                <span className={`px-1.5 py-0.5 text-xs font-semibold rounded-full ${
+                  filter === f.value
+                    ? "bg-white/20 text-white"
+                    : "bg-amber-100 text-amber-700"
+                }`}>
+                  {count}
+                </span>
+              ) : (
+                <span className={`text-xs ${
+                  filter === f.value ? "text-white/70" : "text-gray-400"
+                }`}>
+                  ({count})
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search + Filters - single row on desktop, wraps on mobile */}

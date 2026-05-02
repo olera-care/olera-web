@@ -134,6 +134,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
+    const countsOnly = searchParams.get("counts_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const search = searchParams.get("search")?.toLowerCase().trim() || "";
@@ -179,6 +180,7 @@ export async function GET(request: NextRequest) {
      * - New flow: verification_attempts array has items OR email_otp_attempt exists
      * - Any profile with verification_state = "pending"
      */
+    // Reusable filter predicates for each status
     const hasVerificationData = (p: typeof allProviders[number]) => {
       const meta = p.metadata as ProfileMetadata | null;
       const hasOldSubmission = !!meta?.verification_submission;
@@ -188,59 +190,66 @@ export async function GET(request: NextRequest) {
       return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt || isPendingState;
     };
 
+    const isUnverifiedClaim = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const claimState = (p as { claim_state?: string }).claim_state;
+      const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
+      const isUnverified = p.verification_state === "unverified";
+      const hasNoSubmissions =
+        !meta?.verification_submission &&
+        (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
+        !meta?.email_otp_attempt;
+      const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
+      const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
+      return needsReviewStandard || pendingSlipThrough;
+    };
+
+    const isPending = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const notApproved = !meta?.badge_approved;
+      const notRejected = !meta?.badge_rejected;
+      const notAlreadyVerified = p.verification_state !== "verified";
+      return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
+    };
+
+    const isApproved = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const approved =
+        meta?.badge_approved === true ||
+        p.verification_state === "verified" ||
+        p.verification_state === "not_required";
+      const isRevoked = meta?.badge_rejected === true;
+      return approved && !isRevoked;
+    };
+
+    const isRejected = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      return meta?.badge_rejected === true;
+    };
+
+    // If counts_only, return counts for all statuses
+    if (countsOnly) {
+      const providers = allProviders ?? [];
+      return NextResponse.json({
+        counts: {
+          unverified_claims: providers.filter(isUnverifiedClaim).length,
+          pending: providers.filter(isPending).length,
+          approved: providers.filter(isApproved).length,
+          rejected: providers.filter(isRejected).length,
+        },
+      });
+    }
+
     let filtered = allProviders ?? [];
 
     if (status === "unverified_claims") {
-      // Profiles needing verification — either claimed listings or new profiles with low-trust emails
-      // Includes both claim_state "claimed" (claimed existing listing) and "pending" (created new profile)
-      // Also catches claims that slipped through with verification_state="verified" but claim_state="pending"
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const claimState = (p as { claim_state?: string }).claim_state;
-        const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
-        const isUnverified = p.verification_state === "unverified";
-        const hasNoSubmissions =
-          !meta?.verification_submission &&
-          (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
-          !meta?.email_otp_attempt;
-        // Standard case: claimed/pending + unverified + no submissions
-        const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
-        // Edge case: pending claims that slipped through with verification_state != "unverified"
-        // These should still appear for review since claim_state="pending" means admin needs to act
-        // Must also have no submissions - otherwise they belong in "Awaiting Review" tab
-        const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
-        return needsReviewStandard || pendingSlipThrough;
-      });
+      filtered = filtered.filter(isUnverifiedClaim);
     } else if (status === "pending") {
-      // Has verification data but not yet approved or rejected
-      // Also exclude providers who are already verified (they auto-verified after initial failure)
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const notApproved = !meta?.badge_approved;
-        const notRejected = !meta?.badge_rejected;
-        const notAlreadyVerified = p.verification_state !== "verified";
-        return hasVerificationData(p) && notApproved && notRejected && notAlreadyVerified;
-      });
+      filtered = filtered.filter(isPending);
     } else if (status === "approved") {
-      // Include all verified providers:
-      // - badge_approved = true (admin or Claude AI auto-approved)
-      // - verification_state = "verified" (self-verified via email/linkedin/website/document)
-      // - verification_state = "not_required" (high-trust email at claim time, instant access)
-      // Exclude providers whose badge was revoked (badge_rejected)
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        const isApproved =
-          meta?.badge_approved === true ||
-          p.verification_state === "verified" ||
-          p.verification_state === "not_required";
-        const isRevoked = meta?.badge_rejected === true;
-        return isApproved && !isRevoked;
-      });
+      filtered = filtered.filter(isApproved);
     } else if (status === "rejected") {
-      filtered = filtered.filter((p) => {
-        const meta = p.metadata as ProfileMetadata | null;
-        return meta?.badge_rejected === true;
-      });
+      filtered = filtered.filter(isRejected);
     }
 
     // Cache for claimer emails - populated during search and reused for display

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-cities": "npx tsx scripts/generate-city-data.ts"
+    "generate-cities": "npx tsx scripts/generate-city-data.ts",
+    "backfill:trust-levels": "npx tsx scripts/backfill-trust-levels.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

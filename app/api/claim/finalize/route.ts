@@ -220,6 +220,7 @@ export async function POST(request: Request) {
           claim_state: claimState,
           verification_state: verificationState,
           claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
         })
         .eq("id", existingProfile.id);
 
@@ -290,6 +291,7 @@ export async function POST(request: Request) {
           claim_state: claimState,
           verification_state: verificationStateForNew,
           claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,

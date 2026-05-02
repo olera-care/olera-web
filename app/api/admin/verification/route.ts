@@ -137,6 +137,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const search = searchParams.get("search")?.toLowerCase().trim() || "";
+    const stateParam = searchParams.get("state") || "";
+    const typeParam = searchParams.get("type") || "";
+    const trustParam = searchParams.get("trust_level") || "";
 
     const db = getServiceClient();
 
@@ -242,6 +245,21 @@ export async function GET(request: NextRequest) {
 
     // Cache for claimer emails - populated during search and reused for display
     const accountEmailMap = new Map<string, string>();
+
+    // Apply state, type, and trust level filters
+    if (stateParam) {
+      filtered = filtered.filter((p) => (p as { state?: string }).state === stateParam);
+    }
+    if (typeParam) {
+      filtered = filtered.filter((p) => p.type === typeParam);
+    }
+    if (trustParam) {
+      if (trustParam === "none") {
+        filtered = filtered.filter((p) => (p as { claim_trust_level?: string | null }).claim_trust_level == null);
+      } else {
+        filtered = filtered.filter((p) => (p as { claim_trust_level?: string }).claim_trust_level === trustParam);
+      }
+    }
 
     // Apply search filter if provided
     if (search) {

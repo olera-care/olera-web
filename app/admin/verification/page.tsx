@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import type { OrganizationMetadata } from "@/lib/types";
+import { US_STATES } from "@/lib/us-states";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 interface VerificationSubmission {
   name: string;
@@ -108,6 +110,184 @@ type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
 
 const PAGE_SIZE = 50;
 
+const TYPE_OPTIONS = [
+  { value: "organization", label: "Organizations" },
+  { value: "caregiver", label: "Caregivers" },
+];
+
+const TRUST_OPTIONS = [
+  { value: "high", label: "High trust" },
+  { value: "medium", label: "Medium trust" },
+  { value: "low", label: "Low trust" },
+  { value: "none", label: "Not scored" },
+];
+
+// ── Filter Components ──
+
+function StateSelectFilter({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useClickOutside(containerRef, () => {
+    setIsOpen(false);
+    setSearch("");
+  }, isOpen);
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const filteredStates = search
+    ? US_STATES.filter(
+        (s) =>
+          s.label.toLowerCase().includes(search.toLowerCase()) ||
+          s.value.toLowerCase().includes(search.toLowerCase())
+      )
+    : US_STATES;
+
+  const selectedLabel = value
+    ? US_STATES.find((s) => s.value === value)?.label || value
+    : "State";
+
+  const handleSelect = (stateValue: string) => {
+    onChange(stateValue);
+    setIsOpen(false);
+    setSearch("");
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center justify-between gap-2 px-3 py-2
+          bg-white border rounded-lg text-sm font-medium
+          transition-all min-w-[120px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
+        `}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search states..."
+              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div className="max-h-64 overflow-y-auto">
+            {value && (
+              <button
+                type="button"
+                onClick={() => handleSelect("")}
+                className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
+                Clear selection
+              </button>
+            )}
+
+            {filteredStates.length === 0 ? (
+              <div className="px-3 py-3 text-sm text-gray-400 text-center">
+                No states found
+              </div>
+            ) : (
+              filteredStates.map((state) => (
+                <button
+                  key={state.value}
+                  type="button"
+                  onClick={() => handleSelect(state.value)}
+                  className={`
+                    w-full px-3 py-2.5 text-left text-sm transition-colors
+                    ${value === state.value
+                      ? "bg-primary-50 text-primary-700 font-medium"
+                      : "text-gray-900 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  {state.label}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`
+          px-3 py-2 bg-white border rounded-lg text-sm font-medium
+          outline-none transition-all min-w-[140px] cursor-pointer appearance-none pr-8
+          ${value ? "text-gray-900 border-primary-400" : "text-gray-500 border-gray-200"}
+          hover:border-gray-300
+          focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+        `}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  );
+}
+
 function Pagination({ page, setPage, total, pageSize }: {
   page: number; setPage: (p: number) => void; total: number; pageSize: number;
 }) {
@@ -148,6 +328,9 @@ export default function AdminVerificationPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [search, setSearch] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [trustFilter, setTrustFilter] = useState("");
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -183,9 +366,10 @@ export default function AdminVerificationPage() {
         limit: String(PAGE_SIZE),
         offset: String(offset),
       });
-      if (search.trim()) {
-        params.set("search", search.trim());
-      }
+      if (search.trim()) params.set("search", search.trim());
+      if (stateFilter) params.set("state", stateFilter);
+      if (typeFilter) params.set("type", typeFilter);
+      if (trustFilter) params.set("trust_level", trustFilter);
       const res = await fetch(`/api/admin/verification?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -200,7 +384,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, search]);
+  }, [filter, page, search, stateFilter, typeFilter, trustFilter]);
 
   useEffect(() => {
     fetchProviders();
@@ -285,50 +469,14 @@ export default function AdminVerificationPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Badge Requests</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Provider Verification</h1>
         <p className="text-lg text-gray-600 mt-1">
-          Review and approve provider badge requests. Approved providers get a &quot;Verified&quot; badge on their profile.
+          Manage provider claims and verification status. Review submissions, approve badges, and monitor verified providers.
         </p>
       </div>
 
-      {/* Search input */}
-      <div className="mb-4">
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search by name or claimer email..."
-            defaultValue={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
-          {search && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6">
+      {/* Tabs - prominent, own row */}
+      <div className="flex gap-2 mb-4">
         {filters.map((f) => (
           <button
             key={f.value}
@@ -345,6 +493,80 @@ export default function AdminVerificationPage() {
         ))}
       </div>
 
+      {/* Search + Filters - single row on desktop, wraps on mobile */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        {/* Search - responsive width */}
+        <div className="relative w-full sm:w-64">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search by name or email..."
+            defaultValue={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+          />
+          {search && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* State filter */}
+        <StateSelectFilter
+          value={stateFilter}
+          onChange={(v) => { setPage(0); setStateFilter(v); }}
+        />
+
+        {/* Type filter */}
+        <FilterSelect
+          options={TYPE_OPTIONS}
+          value={typeFilter}
+          onChange={(v) => { setPage(0); setTypeFilter(v); }}
+          placeholder="All types"
+        />
+
+        {/* Trust filter */}
+        <FilterSelect
+          options={TRUST_OPTIONS}
+          value={trustFilter}
+          onChange={(v) => { setPage(0); setTrustFilter(v); }}
+          placeholder="All trust levels"
+        />
+
+        {/* Clear filters - only when active */}
+        {(stateFilter || typeFilter || trustFilter) && (
+          <button
+            onClick={() => {
+              setPage(0);
+              setStateFilter("");
+              setTypeFilter("");
+              setTrustFilter("");
+            }}
+            className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
           {error}
@@ -357,43 +579,56 @@ export default function AdminVerificationPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-lg text-gray-500">Loading...</div>
-        </div>
-      ) : providers.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
-            {search ? (
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            ) : (
-              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
-          <p className="text-lg font-semibold text-gray-900">
-            {search
-              ? "No results found"
-              : filter === "unverified_claims"
-                ? "No unverified claims"
-                : filter === "pending"
-                  ? "All caught up!"
-                  : `No ${filter} badge requests`}
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            {search
-              ? `No providers matching "${search}"`
-              : filter === "unverified_claims"
-                ? "No claimed providers awaiting verification."
-                : filter === "pending"
-                  ? "No badge requests waiting for review."
-                  : `No providers with ${filter} badges.`}
-          </p>
-        </div>
-      ) : (
+      {(() => {
+        const hasActiveFilters = search || stateFilter || typeFilter || trustFilter;
+
+        if (loading) {
+          return (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-lg text-gray-500">Loading...</div>
+            </div>
+          );
+        }
+
+        if (providers.length === 0) {
+          return (
+            <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+                {hasActiveFilters ? (
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <p className="text-lg font-semibold text-gray-900">
+                {hasActiveFilters
+                  ? "No results found"
+                  : filter === "unverified_claims"
+                    ? "No unverified claims"
+                    : filter === "pending"
+                      ? "All caught up!"
+                      : `No ${filter} badge requests`}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {hasActiveFilters
+                  ? "Try adjusting your search or filters."
+                  : filter === "unverified_claims"
+                    ? "No claimed providers awaiting verification."
+                    : filter === "pending"
+                      ? "No badge requests waiting for review."
+                      : `No providers with ${filter} badges.`}
+              </p>
+            </div>
+          );
+        }
+
+        return null;
+      })()}
+      {!loading && providers.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">

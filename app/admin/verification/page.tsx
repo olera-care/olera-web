@@ -104,6 +104,7 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   linkedin: { label: "LinkedIn", icon: "🔗" },
   website: { label: "Website", icon: "🌐" },
   document: { label: "Document", icon: "📄" },
+  "badge-request": { label: "Badge Request", icon: "🎖️" },
 };
 
 type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";

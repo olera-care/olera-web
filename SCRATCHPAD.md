@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-05-02 — Places Photo + Reviews API leak patches (P1)
+
+Mercury alert May 1: $4,531 April Google Cloud bill, +184% MoM on Places API (New), $25K/yr pace.
+
+**Three suspected leaks identified, in order of likely cost share**:
+1. **Google Reviews per-pageview leak** on `/provider/[slug]` (high-traffic page) — backfill route silently returns on null without writing to DB, so providers Google has no reviews for (or any API hiccup) re-fetch on every visit forever. 12.4% of providers (9,159) in this leak surface. Plan: [`plans/google-reviews-leak-patch-plan.md`](plans/google-reviews-leak-patch-plan.md). Branch: `quiet-tabby` (off `staging`).
+2. **Discovery pipeline Text Search** in `scripts/discovery-batch.py` — re-ran across 2,362 cities in 90d at $0.035/call. Deferred to follow-up plan.
+3. **Photo leak in `/api/provider/[slug]/info`** — already patched in [PR #717](https://github.com/olera-care/olera-web/pull/717) on branch `fierce-panini`. Honest re-assessment: probably <5% of the bill since `/review/[slug]` gets minimal traffic. Ship as cleanup, expectations calibrated.
+
+**Process learning** (saved as [feedback_no_killswitch_for_slow_leaks.md](feedback_no_killswitch_for_slow_leaks.md)): for cost leaks, audit ALL Places API callers + measure traffic before scoping a fix. Anchored on the named culprit too early; missed the bigger leak on the provider profile page. TJ pushed back twice before I revised. Lesson: when user says "we ran X a lot" or "nobody goes to Y," that's a measurement signal, not a side note.
 ### 2026-04-30 → 2026-05-01 — SBF redesign (P1) — full V3 stack + Phase 6 + multiple QA-driven fixes shipped to `good-thompson`, awaiting final QA
 
 Branch `good-thompson` has 11 commits covering the complete V3 redesign + welcome-email upgrade + multiple post-QA refinements. **Migrations applied to Supabase** (057, 058, 059). Vercel preview deploys on each push for build validation.

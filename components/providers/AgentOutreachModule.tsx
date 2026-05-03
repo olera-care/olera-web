@@ -21,7 +21,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Spinner, Star } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
@@ -171,16 +170,10 @@ export default function AgentOutreachModule({
 
       setSubmitted(true);
       setSubmitting(false);
-
-      void fireSeekerEvent("outreach_request_submitted", {
-        session_id: sessionIdRef.current,
-        source_provider_id: sourceProviderId,
-        target_provider_ids: topProviders.map((p) => p.id),
-        city,
-        state,
-        category,
-        had_recent_question: Boolean(recentQuestion),
-      });
+      // Note: we don't fire outreach_request_submitted from the client. The
+      // route at /api/outreach/request already inserts that seeker_activity
+      // event server-side as part of the submission flow. Firing here too
+      // would duplicate the row for every successful submit.
     } catch {
       setError("Couldn't send right now. Try again in a moment.");
       setSubmitting(false);
@@ -198,7 +191,7 @@ export default function AgentOutreachModule({
   return (
     <section
       id="agent-outreach"
-      className="bg-cream-50 border border-cream-200 rounded-2xl p-6 md:p-8"
+      className="mt-6 bg-cream-50 border border-cream-200 rounded-2xl p-6 md:p-8"
       data-arm="outreach"
     >
       {!submitted && (

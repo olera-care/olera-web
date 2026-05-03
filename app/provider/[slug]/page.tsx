@@ -1018,20 +1018,19 @@ export default async function ProviderPage({
                   hasBenefitsSection={hasBenefitsData && !!benefitsData}
                 />
 
-                {/* Outreach arm of the 4-way intake A/B. Renders only when
-                    the session is in the "outreach" arm and we have ≥1
-                    candidate provider. See IntakeVariantSlots.tsx. */}
+                {/* Outreach arm of the 4-way intake A/B. Slot itself renders
+                    null for the 75% in benefits arms, so no wrapping div here
+                    — it would leave a phantom mt-6 gap. The module owns its
+                    own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
-                  <div className="mt-6">
-                    <AgentOutreachSlot
-                      sourceProviderId={profile.slug}
-                      sourceProviderName={profile.display_name}
-                      city={profile.city!}
-                      state={profile.state!}
-                      category={outreachCategoryString!}
-                      topProviders={outreachCandidates}
-                    />
-                  </div>
+                  <AgentOutreachSlot
+                    sourceProviderId={profile.slug}
+                    sourceProviderName={profile.display_name}
+                    city={profile.city!}
+                    state={profile.state!}
+                    category={outreachCategoryString!}
+                    topProviders={outreachCandidates}
+                  />
                 )}
               </div>
 

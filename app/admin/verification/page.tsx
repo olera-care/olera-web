@@ -104,6 +104,7 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   linkedin: { label: "LinkedIn", icon: "🔗" },
   website: { label: "Website", icon: "🌐" },
   document: { label: "Document", icon: "📄" },
+  "badge-request": { label: "Badge Request", icon: "🎖️" },
 };
 
 type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
@@ -796,7 +797,7 @@ export default function AdminVerificationPage() {
                                   Admin
                                 </span>
                               ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
-                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">
+                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
                                   Self-Verified
                                 </span>
                               ) : (

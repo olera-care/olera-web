@@ -198,12 +198,36 @@ async function runAutoVerification(opts: {
         .eq("id", opts.profileId)
         .single();
 
+      const currentMetadata = (currentProfile?.metadata as Record<string, unknown>) || {};
+
+      // Build the verification attempt record for audit trail
+      const attemptRecord = {
+        method: "badge-request",
+        value: opts.linkedinUrl || opts.businessWebsiteUrl || "form-submission",
+        submitted_at: new Date().toISOString(),
+        reason: result.reason,
+        claimer_name: opts.claimerName,
+        claimer_email: opts.claimerEmail,
+        claimer_role: opts.claimerRole,
+        verified: true,
+        auto_verified: true,
+      };
+
+      // Get existing attempts array or create new one
+      const existingAttempts = (currentMetadata.verification_attempts as Record<string, unknown>[]) || [];
+
       const updatedMetadata = {
-        ...((currentProfile?.metadata as Record<string, unknown>) || {}),
+        ...currentMetadata,
         badge_approved: true,
         badge_approved_at: new Date().toISOString(),
         auto_verified: true,
         auto_verify_reason: result.reason,
+        // Clear any previous rejection so they appear in Verified tab
+        badge_rejected: null,
+        badge_rejected_at: null,
+        // Record successful auto-verification in the attempts array for audit trail
+        verification_attempt: attemptRecord,
+        verification_attempts: [...existingAttempts, attemptRecord],
       };
 
       await admin

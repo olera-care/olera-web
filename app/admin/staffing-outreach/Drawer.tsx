@@ -753,17 +753,24 @@ function SequencingSection({
     return null;
   }
 
-  // Calculate sequence progress
+  // Determine if this is a V2 (Resend automation) or legacy (Gmail) provider
+  const isV2Sequence = !!ctx.outreach.sequence_started_at;
+
+  // V2: Use sequence tracking fields
   const sequenceStarted = ctx.outreach.sequence_started_at;
   const email1Sent = ctx.outreach.email1_sent_at;
   const email2Sent = ctx.outreach.email2_sent_at;
 
-  // Check for engagement from touchpoints
+  // Legacy: Check touchpoints for email status
+  const legacyInitialEmail = ctx.touchpoints.find((t) => t.type === "pre_call_email_sent");
+  const legacyFollowUpEmail = ctx.touchpoints.find((t) => t.type === "follow_up_email_sent");
+
+  // Check for engagement from touchpoints (works for both V2 and legacy)
   const hasOpened = ctx.touchpoints.some((t) => t.type === "email_opened");
   const hasClicked = ctx.touchpoints.some((t) => t.type === "email_clicked");
   const hasReplied = ctx.touchpoints.some((t) => t.type === "reply_received");
 
-  // Calculate days since sequence started
+  // Calculate days since sequence started (V2 only)
   const daysSinceStart = sequenceStarted
     ? Math.floor((Date.now() - new Date(sequenceStarted).getTime()) / 86400_000)
     : 0;
@@ -797,62 +804,98 @@ function SequencingSection({
 
   return (
     <section>
-      <SectionHeader title="Email Sequence Progress" />
+      <SectionHeader title={isV2Sequence ? "Email Sequence Progress" : "Outreach Status"} />
       <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
-        {/* Sequence Timeline */}
-        <div className="space-y-3">
-          {/* Email 1 */}
-          <div className="flex items-center gap-3">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-              email1Sent ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"
-            }`}>
-              {email1Sent ? "✓" : "1"}
+        {isV2Sequence ? (
+          /* V2: Resend automation sequence timeline */
+          <div className="space-y-3">
+            {/* Email 1 */}
+            <div className="flex items-center gap-3">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                email1Sent ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"
+              }`}>
+                {email1Sent ? "✓" : "1"}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">Email 1 — Initial outreach</p>
+                <p className="text-xs text-gray-500">
+                  {email1Sent
+                    ? `Sent ${new Date(email1Sent).toLocaleDateString()}`
+                    : "Pending"}
+                </p>
+              </div>
+              {hasOpened && (
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  Opened
+                </span>
+              )}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Email 1 — Initial outreach</p>
-              <p className="text-xs text-gray-500">
-                {email1Sent
-                  ? `Sent ${new Date(email1Sent).toLocaleDateString()}`
-                  : "Pending"}
-              </p>
+
+            {/* Wait indicator */}
+            <div className="ml-4 flex items-center gap-2 text-xs text-gray-400">
+              <div className="h-6 w-px bg-gray-200" />
+              <span>Wait 3 days</span>
             </div>
-            {hasOpened && (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                Opened
-              </span>
+
+            {/* Email 2 */}
+            <div className="flex items-center gap-3">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                email2Sent ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"
+              }`}>
+                {email2Sent ? "✓" : "2"}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">Email 2 — Follow-up</p>
+                <p className="text-xs text-gray-500">
+                  {email2Sent
+                    ? `Sent ${new Date(email2Sent).toLocaleDateString()}`
+                    : daysSinceStart >= 3
+                    ? "Scheduled today"
+                    : `Scheduled in ${3 - daysSinceStart} days`}
+                </p>
+              </div>
+              {hasClicked && (
+                <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
+                  Clicked
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Legacy: Manual email flow - show touchpoint-based status */
+          <div className="space-y-3">
+            {legacyInitialEmail ? (
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">Initial email sent</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(legacyInitialEmail.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                No email sent yet. This provider is in a legacy status.
+              </div>
+            )}
+            {legacyFollowUpEmail && (
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">Follow-up email sent</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(legacyFollowUpEmail.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Wait indicator */}
-          <div className="ml-4 flex items-center gap-2 text-xs text-gray-400">
-            <div className="h-6 w-px bg-gray-200" />
-            <span>Wait 3 days</span>
-          </div>
-
-          {/* Email 2 */}
-          <div className="flex items-center gap-3">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-              email2Sent ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"
-            }`}>
-              {email2Sent ? "✓" : "2"}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Email 2 — Follow-up</p>
-              <p className="text-xs text-gray-500">
-                {email2Sent
-                  ? `Sent ${new Date(email2Sent).toLocaleDateString()}`
-                  : daysSinceStart >= 3
-                  ? "Scheduled today"
-                  : `Scheduled in ${3 - daysSinceStart} days`}
-              </p>
-            </div>
-            {hasClicked && (
-              <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
-                Clicked
-              </span>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Engagement Summary */}
         {(hasOpened || hasClicked || hasReplied) && (

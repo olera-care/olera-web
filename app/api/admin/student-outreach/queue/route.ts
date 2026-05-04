@@ -144,12 +144,13 @@ export async function GET(req: NextRequest) {
           .select("id, outreach_id, task_type, due_at")
           .in("outreach_id", ids)
           .eq("status", "pending")
+          .neq("task_type", "outreach_email_send")
           .order("due_at", { ascending: true }),
     ids.length === 0
       ? Promise.resolve({ data: [] })
       : db
           .from("student_outreach_contacts")
-          .select("outreach_id, name, is_primary, status, created_at")
+          .select("outreach_id, name, phone, is_primary, status, created_at")
           .in("outreach_id", ids)
           .eq("status", "active")
           .order("is_primary", { ascending: false })
@@ -164,16 +165,20 @@ export async function GET(req: NextRequest) {
   ]);
 
   const nextTaskByOutreach = new Map<string, { id: string; task_type: string; due_at: string }>();
+  const pendingTaskTypesByOutreach = new Map<string, Set<string>>();
   for (const t of (tasksRes.data ?? []) as Array<{ id: string; outreach_id: string; task_type: string; due_at: string }>) {
     if (!nextTaskByOutreach.has(t.outreach_id)) {
       nextTaskByOutreach.set(t.outreach_id, { id: t.id, task_type: t.task_type, due_at: t.due_at });
     }
+    let set = pendingTaskTypesByOutreach.get(t.outreach_id);
+    if (!set) { set = new Set(); pendingTaskTypesByOutreach.set(t.outreach_id, set); }
+    set.add(t.task_type);
   }
 
-  const primaryContactByOutreach = new Map<string, string>();
-  for (const c of (contactsRes.data ?? []) as Array<{ outreach_id: string; name: string }>) {
+  const primaryContactByOutreach = new Map<string, { name: string; phone: string | null }>();
+  for (const c of (contactsRes.data ?? []) as Array<{ outreach_id: string; name: string; phone: string | null }>) {
     if (!primaryContactByOutreach.has(c.outreach_id)) {
-      primaryContactByOutreach.set(c.outreach_id, c.name);
+      primaryContactByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
     }
   }
 
@@ -185,6 +190,7 @@ export async function GET(req: NextRequest) {
   const queueRows: QueueRow[] = rows.map((r) => {
     const c = campusMap.get(r.campus_id);
     const nextTask = nextTaskByOutreach.get(r.id) ?? null;
+    const primary = primaryContactByOutreach.get(r.id) ?? null;
     return {
       ...r,
       campus_name: c?.name ?? "(unknown campus)",
@@ -192,7 +198,9 @@ export async function GET(req: NextRequest) {
       next_task: nextTask
         ? { id: nextTask.id, task_type: nextTask.task_type as QueueRow["next_task"] extends { task_type: infer T } ? T : never, due_at: nextTask.due_at }
         : null,
-      primary_contact_name: primaryContactByOutreach.get(r.id) ?? null,
+      pending_task_types: Array.from(pendingTaskTypesByOutreach.get(r.id) ?? []) as QueueRow["pending_task_types"],
+      primary_contact_name: primary?.name ?? null,
+      primary_contact_phone: primary?.phone ?? null,
       open_approvals: openApprovalCount.get(r.id) ?? 0,
     };
   });

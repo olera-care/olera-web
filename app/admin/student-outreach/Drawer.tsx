@@ -15,8 +15,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RequestApprovalModal } from "./RequestApprovalModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
+import { OfferCallModal } from "./OfferCallModal";
 import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import {
@@ -197,6 +197,7 @@ function NextStepPanel({
   const [showPartner, setShowPartner] = useState(false);
   const [showCallScript, setShowCallScript] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [showOfferCall, setShowOfferCall] = useState(false);
 
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
@@ -239,6 +240,7 @@ function NextStepPanel({
             onSchedulePreFlight={() => setShowPreFlight(true)}
             onLogCall={() => setShowCallScript(true)}
             onScheduleMeeting={() => setShowMeetingForm(true)}
+            onOfferCall={() => setShowOfferCall(true)}
             action={action}
             setError={setError}
           />
@@ -313,6 +315,21 @@ function NextStepPanel({
           }}
         />
       )}
+      {showOfferCall && (
+        <OfferCallModal
+          organizationName={ctx.outreach.organization_name}
+          contactFirstName={primary?.name?.split(" ")[0]}
+          onCancel={() => setShowOfferCall(false)}
+          onConfirm={async () => {
+            try {
+              await action("offer_call");
+              setShowOfferCall(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
+        />
+      )}
     </section>
   );
 }
@@ -324,6 +341,7 @@ function StageGuidance({
   onSchedulePreFlight,
   onLogCall,
   onScheduleMeeting,
+  onOfferCall,
   action,
   setError,
 }: {
@@ -331,6 +349,7 @@ function StageGuidance({
   onSchedulePreFlight: () => void;
   onLogCall: () => void;
   onScheduleMeeting: () => void;
+  onOfferCall: () => void;
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
@@ -401,35 +420,29 @@ function StageGuidance({
     return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
   }
 
-  if (status === "engaged") {
+  if (status === "engaged" || status === "meeting_scheduled") {
     return (
       <>
         <Guidance>
-          You're in dialogue. Keep the conversation moving toward a commitment to share with students.
-          Schedule a meeting if it'll help close.
+          They replied — pick what to do next based on what they said. Two clear options:
         </Guidance>
-        <PrimaryButton onClick={onScheduleMeeting}>Schedule meeting</PrimaryButton>
+        <div className="flex flex-col gap-2 pt-1">
+          <button
+            onClick={onOfferCall}
+            title="Send Logan's Calendly link so they can book a 15-min chat. Use this when they want to talk."
+            className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            📞 Offer a 15-min call (Logan's Calendly)
+          </button>
+          <p className="text-center text-[11px] text-gray-500">
+            Use the green "Mark as Active Partner" button below when they've committed to sharing with students.
+          </p>
+        </div>
         {supportsPhoneOutreach(type) && (
-          <SecondaryButton onClick={onLogCall}>Log call</SecondaryButton>
+          <div className="pt-2">
+            <SecondaryButton onClick={onLogCall}>Log a phone call (no Calendly)</SecondaryButton>
+          </div>
         )}
-      </>
-    );
-  }
-
-  if (status === "meeting_scheduled") {
-    return (
-      <>
-        <Guidance>
-          Meeting on the calendar. Once it happens, log the outcome and decide next steps. If they
-          agreed to share, the green button below graduates them to Active Partner.
-        </Guidance>
-        <PrimaryButton onClick={() => handleErr(action("log_meeting_held"))}>
-          Meeting held
-        </PrimaryButton>
-        <SecondaryButton onClick={() => handleErr(action("log_meeting_no_show"))}>
-          No-show
-        </SecondaryButton>
-        <SecondaryButton onClick={onScheduleMeeting}>Reschedule</SecondaryButton>
       </>
     );
   }
@@ -895,6 +908,35 @@ function AddContactInline({
 
 // ── Approvals (dept_head only) ─────────────────────────────────────────
 
+// Permission-checklist labels — these strings double as approval_for keys
+// so we can recognize granted-rows by string match.
+const PERMISSION_KINDS = [
+  {
+    key: "email_professors",
+    approval_for: "Email professors directly",
+    approval_type: "department" as const,
+    title: "Email professors directly",
+    blurb: "Get permission to email faculty in this department.",
+    tooltip: "When granted, you'll be able to bulk-import professors and start emailing them.",
+  },
+  {
+    key: "listserv",
+    approval_for: "Access department listserv",
+    approval_type: "listserv" as const,
+    title: "Access dept listserv",
+    blurb: "Send Olera info to the whole department's student listserv.",
+    tooltip: "If granted, dept emails students on our behalf via their listserv.",
+  },
+  {
+    key: "distribute",
+    approval_for: "Dept head distributes for us",
+    approval_type: "department" as const,
+    title: "They distribute for us",
+    blurb: "The dept head forwards our flyer to faculty / students themselves.",
+    tooltip: "The dept head agrees to share our materials directly. Often a fast path to Active Partner.",
+  },
+] as const;
+
 function ApprovalsSection({
   ctx,
   action,
@@ -904,48 +946,267 @@ function ApprovalsSection({
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
-  const [showRequest, setShowRequest] = useState(false);
-  const open = ctx.approvals.filter((a) => a.status === "requested");
-  const resolved = ctx.approvals.filter((a) => a.status !== "requested");
+  const [showOther, setShowOther] = useState(false);
+  const [showBulkProf, setShowBulkProf] = useState(false);
+
+  // Look up each permission's current status from approvals.
+  const findApproval = (approval_for: string) =>
+    ctx.approvals.find((a) => a.approval_for === approval_for) ?? null;
+
+  // Other approvals (non-checklist, e.g. "Other" generics).
+  const knownStrings: Set<string> = new Set(PERMISSION_KINDS.map((p) => p.approval_for));
+  const otherApprovals = ctx.approvals.filter((a) => !knownStrings.has(a.approval_for));
 
   return (
     <section>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Approvals ({open.length} pending)
-        </h3>
-        <SmallButton onClick={() => setShowRequest(true)}>+ Request approval</SmallButton>
-      </div>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500" title="Permissions you can ask this dept head for. Track which path is granted.">
+        Permissions
+      </h3>
       <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
-        {open.length === 0 && resolved.length === 0 && (
-          <p className="text-sm text-gray-400">No approvals.</p>
+        {PERMISSION_KINDS.map((p) => {
+          const approval = findApproval(p.approval_for);
+          return (
+            <PermissionRow
+              key={p.key}
+              kind={p}
+              approval={approval}
+              action={action}
+              setError={setError}
+              onGranted={() => {
+                if (p.key === "email_professors") setShowBulkProf(true);
+              }}
+            />
+          );
+        })}
+
+        {otherApprovals.length > 0 && (
+          <div className="mt-2 border-t border-gray-100 pt-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">Other</p>
+            {otherApprovals.map((a) => (
+              <ApprovalRow key={a.id} approval={a} action={action} setError={setError} resolved={a.status !== "requested"} />
+            ))}
+          </div>
         )}
-        {open.map((a) => (
-          <ApprovalRow key={a.id} approval={a} action={action} setError={setError} />
-        ))}
-        {resolved.map((a) => (
-          <ApprovalRow key={a.id} approval={a} action={action} setError={setError} resolved />
-        ))}
-        {open.some((a) => a.status === "requested") && (
-          <p className="text-[11px] text-gray-500 italic mt-1">
-            Tip: Once dept approval is granted, use Bulk Professor Import on the Campus page to
-            create professor rows under this dept.
-          </p>
-        )}
+
+        <div className="border-t border-gray-100 pt-2">
+          <button
+            onClick={() => setShowOther((s) => !s)}
+            className="text-xs text-gray-500 hover:text-gray-700"
+            title="Need to ask for something not on the checklist? Use this."
+          >
+            {showOther ? "Hide" : "+ Other approval"}
+          </button>
+          {showOther && (
+            <div className="mt-2">
+              <RequestApprovalModalInline
+                action={action}
+                setError={setError}
+                onClose={() => setShowOther(false)}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      {showRequest && (
-        <RequestApprovalModal
-          onCancel={() => setShowRequest(false)}
-          onSubmit={async (payload) => {
-            try {
-              await action("request_approval", payload);
-              setShowRequest(false);
-            } catch (e) { setError(e instanceof Error ? e.message : "Request failed"); }
-          }}
+
+      {showBulkProf && (
+        <BulkProfImportPrompt
+          ctx={ctx}
+          onClose={() => setShowBulkProf(false)}
         />
       )}
     </section>
   );
+}
+
+/**
+ * One row in the permissions checklist. Maps the abstract permission to
+ * either: a not-yet-asked CTA, an in-flight approval (with grant/deny),
+ * or a resolved row.
+ */
+function PermissionRow({
+  kind,
+  approval,
+  action,
+  setError,
+  onGranted,
+}: {
+  kind: typeof PERMISSION_KINDS[number];
+  approval: Approval | null;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+  onGranted: () => void;
+}) {
+  const [askInFlight, setAskInFlight] = useState(false);
+  const stateLabel = !approval
+    ? "Not asked yet"
+    : approval.status === "requested"
+    ? `Asked${approval.requested_at ? ` ${formatRelative(approval.requested_at)}` : ""}`
+    : approval.status === "granted"
+    ? "✓ Granted"
+    : approval.status === "denied"
+    ? "Denied"
+    : "Expired";
+
+  const tone = approval?.status === "granted"
+    ? "border-emerald-200 bg-emerald-50/40"
+    : approval?.status === "requested"
+    ? "border-amber-200 bg-amber-50/40"
+    : "border-gray-200";
+
+  const ask = async () => {
+    setAskInFlight(true);
+    try {
+      await action("request_approval", {
+        approval_type: kind.approval_type,
+        approval_for: kind.approval_for,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Request failed");
+    } finally {
+      setAskInFlight(false);
+    }
+  };
+
+  const resolve = async (resolution: ApprovalStatus) => {
+    if (!approval) return;
+    try {
+      await action("resolve_approval", { approval_id: approval.id, resolution });
+      if (resolution === "granted") onGranted();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Resolve failed");
+    }
+  };
+
+  return (
+    <div className={`rounded-md border px-3 py-2 ${tone}`} title={kind.tooltip}>
+      <p className="text-sm font-medium text-gray-900">{kind.title}</p>
+      <p className="mt-0.5 text-xs text-gray-600">{kind.blurb}</p>
+      <p className="mt-0.5 text-[11px] text-gray-500">Status: {stateLabel}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {!approval && (
+          <button
+            onClick={ask}
+            disabled={askInFlight}
+            title="Send the ask externally, then click here to track that you asked."
+            className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          >
+            Mark as asked
+          </button>
+        )}
+        {approval?.status === "requested" && (
+          <>
+            <button
+              onClick={() => resolve("granted")}
+              title="They said yes. Records it and (for 'Email professors') opens the bulk import."
+              className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+            >
+              Granted
+            </button>
+            <button
+              onClick={() => resolve("denied")}
+              title="They said no."
+              className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+            >
+              Denied
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * After "Email professors directly" is granted, prompt admin to bulk-import
+ * professors right away with simple guidance.
+ */
+function BulkProfImportPrompt({
+  ctx,
+  onClose,
+}: {
+  ctx: DrawerContext;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
+        <header className="border-b border-gray-100 px-6 py-4">
+          <h3 className="text-base font-semibold text-gray-900">🎉 Permission granted!</h3>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Now let's add the professors so we can email them.
+          </p>
+        </header>
+        <div className="space-y-2 px-6 py-4 text-sm text-gray-700">
+          <p><strong>Quick steps:</strong></p>
+          <ol className="ml-5 list-decimal space-y-1 text-xs">
+            <li>Open the <strong>{ctx.outreach.organization_name}</strong> faculty page on the university website.</li>
+            <li>Find the most relevant professors (target: faculty teaching pre-health-aligned courses).</li>
+            <li>Copy each professor's name + email into the bulk import form on the next screen.</li>
+            <li>Stuck finding emails? Ask your supervisor — they can help locate them.</li>
+          </ol>
+          <p className="mt-2 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-900">
+            💡 Open the Campus page to use Bulk Professor Import. The "Email professors" permission you just granted makes the import enabled.
+          </p>
+        </div>
+        <footer className="flex justify-end border-t border-gray-100 bg-gray-50 px-6 py-3">
+          <a
+            href={`/admin/student-outreach/campus/${ctx.campus.slug}`}
+            onClick={onClose}
+            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+          >
+            Open Campus page →
+          </a>
+          <button onClick={onClose} className="ml-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Later
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+/** Inline lightweight "Other approval" form (collapses RequestApprovalModal contents). */
+function RequestApprovalModalInline({
+  action,
+  setError,
+  onClose,
+}: {
+  action: ActionFn;
+  setError: (e: string | null) => void;
+  onClose: () => void;
+}) {
+  const [approvalFor, setApprovalFor] = useState("");
+  const submit = async () => {
+    if (!approvalFor.trim()) return setError("Add a description");
+    try {
+      await action("request_approval", { approval_type: "other", approval_for: approvalFor.trim() });
+      onClose();
+    } catch (e) { setError(e instanceof Error ? e.message : "Request failed"); }
+  };
+  return (
+    <div className="space-y-2 rounded-md border border-dashed border-gray-300 p-2">
+      <input
+        value={approvalFor}
+        onChange={(e) => setApprovalFor(e.target.value)}
+        placeholder="What approval do you need?"
+        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs"
+      />
+      <div className="flex gap-2">
+        <button onClick={submit} className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white">Track this</button>
+        <button onClick={onClose} className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function formatRelative(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60_000);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  return `${d}d ago`;
 }
 
 function ApprovalRow({

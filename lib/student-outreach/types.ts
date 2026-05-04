@@ -223,6 +223,10 @@ export interface QueueRow extends OutreachRow {
     task_type: TaskType;
     due_at: string;
   } | null;
+  /** All admin-actionable pending task types on this row (drives flag badges). */
+  pending_task_types: TaskType[];
+  /** Primary contact's phone (drives the "📞 Call now" badge w/ number on Queued rows). */
+  primary_contact_phone: string | null;
   primary_contact_name: string | null;
   open_approvals: number;
 }
@@ -276,6 +280,50 @@ export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   agreed: "Active Partner",
   distributed: "Active Partner",
 };
+
+/**
+ * Simplified labels admins see in lists / pills. We collapse the
+ * granular state machine into 4 buckets so admins don't have to learn
+ * 11 stage names. The granular STATUS_LABELS are still used for history
+ * narration where the precise transition matters.
+ */
+export type StatusGroup = "research" | "in_progress" | "active_partner" | "closed";
+
+export const STATUS_GROUP_LABELS: Record<StatusGroup, string> = {
+  research: "Research",
+  in_progress: "In Progress",
+  active_partner: "Active Partner",
+  closed: "Closed",
+};
+
+export const STATUS_GROUP_TOOLTIPS: Record<StatusGroup, string> = {
+  research: "Still gathering info. Add contacts and programs, then start outreach.",
+  in_progress: "Outreach is running. Wait for replies, work the queued tasks.",
+  active_partner: "They're sharing with students. Maintain the relationship.",
+  closed: "No further outreach. Reopen if circumstances change.",
+};
+
+export function statusGroup(status: Status | LegacyStatus): StatusGroup {
+  switch (status) {
+    case "prospect":
+    case "researched":
+      return "research";
+    case "outreach_sent":
+    case "engaged":
+    case "meeting_scheduled":
+      return "in_progress";
+    case "active_partner":
+    case "agreed":
+    case "distributed":
+      return "active_partner";
+    case "not_interested":
+    case "no_response_closed":
+    case "do_not_contact":
+    case "wrong_contact":
+    case "redirected":
+      return "closed";
+  }
+}
 
 /**
  * Tab membership rules. Keep this list as the single source of truth for

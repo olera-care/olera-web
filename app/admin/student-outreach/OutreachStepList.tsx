@@ -320,22 +320,71 @@ function PhoneStepRow({
     day,
   );
 
+  // Due calls get a prominent green block. Future calls get a quieter ⏳ row.
+  if (isDue && primary?.phone) {
+    return (
+      <li className="space-y-2 rounded-md border border-emerald-300 bg-emerald-50/60 p-3" title="Phone call is due. Tap to dial, then log the outcome below.">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-emerald-900">📞 Call now — {primary.phone}</p>
+            <p className="text-[11px] text-emerald-800">
+              {primary.name}{primary.role ? ` · ${primary.role}` : ""} · Day {day}
+            </p>
+          </div>
+          <a
+            href={`tel:${primary.phone}`}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            title="Tap to dial (works on mobile; opens default phone app)."
+          >
+            Tap to dial
+          </a>
+        </div>
+        <button
+          onClick={() => setShowPanel((s) => !s)}
+          className="text-xs text-emerald-900 underline hover:no-underline"
+        >
+          {showPanel ? "Hide script + log buttons" : "Show script + log the call"}
+        </button>
+        {showPanel && (
+          <div className="rounded-md border border-emerald-200 bg-white p-2 text-xs">
+            <pre className="mb-2 whitespace-pre-wrap text-gray-700">{script.script}</pre>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Notes from the call (optional)"
+              rows={2}
+              className="mb-2 w-full rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-gray-400 focus:outline-none"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              <button onClick={() => log("no_answer")} title="No one picked up." className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">No answer</button>
+              <button onClick={() => log("voicemail")} title="Left a voicemail." className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">Voicemail</button>
+              <button onClick={() => log("connected")} title="Talked to someone. They become 'engaged' if it was the stakeholder." className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-emerald-700">Connected</button>
+              <button onClick={() => log("wrong_number")} title="Number didn't reach the right person." className="rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-700 hover:bg-red-100">Wrong number</button>
+            </div>
+          </div>
+        )}
+      </li>
+    );
+  }
+
+  // Scheduled-but-not-due call (⏳ row)
   return (
     <li className="space-y-1 text-xs">
       <div className="flex items-start justify-between gap-2">
         <span className="flex-1">
-          <span className="mr-1.5 text-gray-400">{isDue ? "▶" : "⏳"}</span>
+          <span className="mr-1.5 text-gray-400">⏳</span>
           <span className="font-medium text-gray-700">Call</span>
           <span className="ml-1.5 text-gray-500">
-            {isDue ? "Due now" : `Queued for ${sched.toLocaleDateString()}`}
+            Queued for {sched.toLocaleDateString()}
             {primary?.phone && ` · ${primary.phone}`}
           </span>
         </span>
         <button
           onClick={() => setShowPanel((s) => !s)}
+          title="Don't want to wait — log a call now."
           className="shrink-0 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[11px] text-gray-700 hover:bg-gray-50"
         >
-          {showPanel ? "Hide" : "Log call"}
+          {showPanel ? "Hide" : "Log early"}
         </button>
       </div>
       {showPanel && (

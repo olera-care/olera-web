@@ -33,7 +33,12 @@ export interface TemplateContext {
   admin_first_name?: string;
 }
 
+/** All outreach emails offer a 15-min call with Logan via this Calendly. */
+export const CALENDLY_URL = "https://calendly.com/caregivers979/olera-demo";
+
 const SIGN_OFF = [
+  `If you'd rather talk live, grab 15 min here: ${CALENDLY_URL}`,
+  "",
   "— Olera Team",
   "https://olera.care",
   "",

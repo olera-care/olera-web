@@ -12,10 +12,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
+import { AddCustomTaskModal } from "./AddCustomTaskModal";
 import { InboxCheckPanel, type InboxCheckRow } from "./InboxCheckPanel";
 import {
   STAKEHOLDER_TYPE_LABELS,
-  STATUS_LABELS,
+  STATUS_GROUP_LABELS,
+  STATUS_GROUP_TOOLTIPS,
+  statusGroup,
   type Campus,
   type DrawerContext,
   type QueueRow,
@@ -54,6 +57,7 @@ export default function StudentOutreachPage() {
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -112,15 +116,24 @@ export default function StudentOutreachPage() {
             permission) professors to channel pre-health students into Olera.
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            onClick={() => setShowAddTask(true)}
+            title="Add a one-off task to a stakeholder's queue (e.g. 'check on listserv access')."
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            + Add Custom Task
+          </button>
           <Link
             href="/admin/student-outreach/campuses"
+            title="Browse and manage campuses (universities)."
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Campuses
           </Link>
           <button
             onClick={() => setShowAdd(true)}
+            title="Add a new advisor, dept head, or student org for a campus."
             className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
           >
             + Add Stakeholder
@@ -238,40 +251,57 @@ export default function StudentOutreachPage() {
         />
       ) : (
         <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
-          {rows.map((row) => (
-            <li key={row.id}>
-              <button
-                onClick={() => setOpenOutreachId(row.id)}
-                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {row.organization_name}
-                    {row.department && (
-                      <span className="ml-1 text-gray-500">· {row.department}</span>
+          {rows.map((row) => {
+            const flags = computeFlags(row);
+            const callFlag = flags.find((f) => f.kind === "call");
+            return (
+              <li key={row.id}>
+                <button
+                  onClick={() => setOpenOutreachId(row.id)}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {row.organization_name}
+                      {row.department && (
+                        <span className="ml-1 text-gray-500">· {row.department}</span>
+                      )}
+                    </p>
+                    <p className="truncate text-xs text-gray-500">
+                      {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+                      {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+                    </p>
+                    {(flags.length > 0 || callFlag) && (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {flags.map((f) => (
+                          <span
+                            key={f.kind}
+                            title={f.tooltip}
+                            className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${f.tone}`}
+                          >
+                            {f.label}
+                          </span>
+                        ))}
+                        {callFlag && row.primary_contact_phone && (
+                          <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800">
+                            {row.primary_contact_phone}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </p>
-                  <p className="truncate text-xs text-gray-500">
-                    {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
-                    {row.primary_contact_name && ` · ${row.primary_contact_name}`}
-                    {row.open_approvals > 0 && (
-                      <span className="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
-                        {row.open_approvals} approval
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <StageBadge status={row.status} />
+                    {row.next_task && (
+                      <span className="hidden text-xs text-gray-400 sm:inline" title={`Next task due ${new Date(row.next_task.due_at).toLocaleString()}`}>
+                        {formatDueDate(row.next_task.due_at)}
                       </span>
                     )}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <StatusBadge status={row.status} />
-                  {row.next_task && (
-                    <span className="hidden text-xs text-gray-400 sm:inline">
-                      {formatDueDate(row.next_task.due_at)}
-                    </span>
-                  )}
-                </div>
-              </button>
-            </li>
-          ))}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -292,6 +322,24 @@ export default function StudentOutreachPage() {
             refetch();
             setOpenOutreachId(id);
           }}
+        />
+      )}
+      {showAddTask && (
+        <AddCustomTaskModal
+          campuses={campuses}
+          stakeholders={rows.map((r) => ({
+            id: r.id,
+            organization_name: r.organization_name,
+            stakeholder_type: r.stakeholder_type,
+            campus_slug: r.campus_slug,
+            campus_name: r.campus_name,
+          }))}
+          onCancel={() => setShowAddTask(false)}
+          onCreated={() => {
+            setShowAddTask(false);
+            refetch();
+          }}
+          onError={setError}
         />
       )}
     </div>
@@ -362,25 +410,68 @@ function EmptyState({
   return <p className="py-12 text-center text-sm text-gray-400">{msg}</p>;
 }
 
-function StatusBadge({ status }: { status: Status }) {
-  const styles: Record<Status, string> = {
-    prospect: "bg-gray-100 text-gray-700",
-    researched: "bg-gray-100 text-gray-700",
-    outreach_sent: "bg-blue-50 text-blue-700",
-    engaged: "bg-blue-100 text-blue-800",
-    meeting_scheduled: "bg-indigo-50 text-indigo-700",
+/** Simplified stage pill — collapses 11 statuses to 4 user-facing groups. */
+function StageBadge({ status }: { status: Status }) {
+  const group = statusGroup(status);
+  const styles = {
+    research: "bg-gray-100 text-gray-700",
+    in_progress: "bg-blue-100 text-blue-800",
     active_partner: "bg-emerald-100 text-emerald-800",
-    not_interested: "bg-gray-100 text-gray-500",
-    no_response_closed: "bg-gray-100 text-gray-500",
-    do_not_contact: "bg-red-50 text-red-700",
-    wrong_contact: "bg-gray-100 text-gray-500",
-    redirected: "bg-gray-100 text-gray-500",
-  };
+    closed: "bg-gray-100 text-gray-500",
+  } as const;
   return (
-    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}>
-      {STATUS_LABELS[status]}
+    <span
+      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[group]}`}
+      title={STATUS_GROUP_TOOLTIPS[group]}
+    >
+      {STATUS_GROUP_LABELS[group]}
     </span>
   );
+}
+
+interface RowFlag {
+  kind: "call" | "manual" | "approval" | "reply";
+  label: string;
+  tooltip: string;
+  tone: string;
+}
+
+/** Compute the colored badges shown under each row (orthogonal to stage). */
+function computeFlags(row: QueueRow): RowFlag[] {
+  const flags: RowFlag[] = [];
+  if (row.pending_task_types?.includes("outreach_followup_call") || row.pending_task_types?.includes("outreach_day_0")) {
+    flags.push({
+      kind: "call",
+      label: "📞 Call needed",
+      tooltip: "A phone call is queued for this stakeholder. Click the row to see the script.",
+      tone: "bg-emerald-100 text-emerald-900",
+    });
+  }
+  if (row.pending_task_types?.includes("manual_followup")) {
+    flags.push({
+      kind: "manual",
+      label: "✋ Manual task",
+      tooltip: "Something needs a human decision (cadence ended, custom task, etc.). Click the row.",
+      tone: "bg-amber-100 text-amber-900",
+    });
+  }
+  if (row.open_approvals > 0) {
+    flags.push({
+      kind: "approval",
+      label: `⚠ ${row.open_approvals} approval`,
+      tooltip: "There's a pending permission request — chase it externally then update inside.",
+      tone: "bg-orange-100 text-orange-900",
+    });
+  }
+  if (row.status === "engaged") {
+    flags.push({
+      kind: "reply",
+      label: "📬 Replied",
+      tooltip: "They replied. Pick the next move from the drawer (offer call or mark as Active Partner).",
+      tone: "bg-purple-100 text-purple-900",
+    });
+  }
+  return flags;
 }
 
 function formatDueDate(iso: string): string {

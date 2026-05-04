@@ -48,6 +48,14 @@ const TYPE_SUBHEADS: Record<StakeholderType, string> = {
   professor: "Permission required first",
 };
 
+/** Per-type "where to find them" hint. Shown under the type buttons. */
+const TYPE_FINDER_HINTS: Record<StakeholderType, string> = {
+  student_org: "Where to find: Google '[campus] pre-med society' or 'pre-health club'. Most have a website + Instagram.",
+  advisor: "Where to find: Google '[campus] pre-health advising'. The college's pre-health page usually lists names + emails.",
+  dept_head: "Where to find: visit the department's faculty page. Look for 'Department Chair' or 'Director of Undergraduate Studies'.",
+  professor: "Permission required first. Add a Department Head, request permission, then bulk-import professors.",
+};
+
 interface OfficerDraft {
   name: string;
   role: string;
@@ -163,12 +171,32 @@ export function AddStakeholderModal({
     }
   };
 
-  // ── Step 1: type picker (always shown) ──────────────────────────────
+  // ── Step 1: campus picker ────────────────────────────────────────────
+
+  const campusStep = (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Step 1 — Pick a campus
+      </p>
+      <select
+        value={campusSlug}
+        onChange={(e) => setCampusSlug(e.target.value)}
+        className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+      >
+        <option value="">— select a campus —</option>
+        {campuses.map((c) => (
+          <option key={c.id} value={c.slug}>{c.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+
+  // ── Step 2: type picker (with "where to find" hint) ────────────────
 
   const typeStep = (
     <div className="space-y-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-        Stakeholder type
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Step 2 — Who are you adding?
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         {TYPES.map((t) => {
@@ -178,6 +206,7 @@ export function AddStakeholderModal({
               key={t}
               type="button"
               onClick={() => setType(t)}
+              title={TYPE_FINDER_HINTS[t]}
               className={`rounded-lg border p-3 text-left transition-colors ${
                 active
                   ? "border-gray-900 bg-gray-900 text-white"
@@ -194,6 +223,11 @@ export function AddStakeholderModal({
           );
         })}
       </div>
+      {type && (
+        <p className="rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          💡 {TYPE_FINDER_HINTS[type]}
+        </p>
+      )}
     </div>
   );
 
@@ -210,18 +244,17 @@ export function AddStakeholderModal({
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
 
-          {typeStep}
+          {campusStep}
+
+          {campusSlug && typeStep}
 
           {type === "professor" && <ProfessorRedirect onPickDeptHead={() => setType("dept_head")} onPickAdvisor={() => setType("advisor")} />}
 
-          {type && type !== "professor" && (
+          {type && type !== "professor" && campusSlug && (
             <>
-              <Select
-                label="Campus *"
-                value={campusSlug}
-                onChange={setCampusSlug}
-                options={campuses.map((c) => ({ value: c.slug, label: c.name }))}
-              />
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Step 3 — Fill in the details
+              </p>
 
               <Field
                 label={`${orgNameLabel(type)} *`}

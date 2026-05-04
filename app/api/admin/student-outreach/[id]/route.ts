@@ -210,6 +210,9 @@ export async function POST(
       case "schedule_sequence":
         await handleScheduleSequence(db, row, body, user.id);
         break;
+      case "offer_call":
+        await handleOfferCall(db, row, body, user.id);
+        break;
       case "edit_pending_email":
         await handleEditPendingEmail(db, row, body, user.id);
         break;
@@ -790,6 +793,24 @@ async function handleLogCall(
  * to `outreach_sent`. Then INLINE-fires Day 0 so the admin sees the
  * first email go out immediately rather than waiting for the cron.
  */
+/**
+ * Log that we offered a call (Calendly link sent). No stage transition.
+ * The admin sends the link externally (in their reply) and clicks
+ * "I sent it" in the modal, which triggers this action.
+ */
+async function handleOfferCall(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string },
+  userId: string,
+) {
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    notes: body.notes ?? "Offered Calendly link to book a 15-min call",
+    payload: { reason: "call_offered", calendly: "https://calendly.com/caregivers979/olera-demo" },
+  });
+  await touchOutreach(db, row.id, userId);
+}
+
 async function handleScheduleSequence(
   db: DB,
   row: OutreachRow,

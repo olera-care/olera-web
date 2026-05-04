@@ -9,9 +9,13 @@
  * back, checks any rows that replied, and clicks "Mark selected as
  * engaged" — the bulk-engaged endpoint cancels those rows' pending
  * email tasks.
+ *
+ * The panel is ALWAYS available (collapses but never hides for the day),
+ * so a reply that arrives at 2pm after a 9am clean-out is still
+ * actionable in one click.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { STAKEHOLDER_TYPE_LABELS, type StakeholderType } from "@/lib/student-outreach/types";
 
 export interface InboxCheckRow {
@@ -28,25 +32,12 @@ interface Props {
   onError: (msg: string) => void;
 }
 
-const DISMISS_KEY = "student-outreach-inbox-dismissed-on";
-
 export function InboxCheckPanel({ rows, onAfterMark, onError }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [dismissed, setDismissed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  // Hide for the rest of the session if admin clicks "none replied today".
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(DISMISS_KEY);
-      const today = new Date().toISOString().slice(0, 10);
-      setDismissed(stored === today);
-    } catch { /* ignore */ }
-  }, []);
-
-  if (dismissed) return null;
   if (rows.length === 0) return null;
 
   const toggle = (id: string) => {
@@ -56,13 +47,6 @@ export function InboxCheckPanel({ rows, onAfterMark, onError }: Props) {
       else next.add(id);
       return next;
     });
-  };
-
-  const dismiss = () => {
-    try {
-      localStorage.setItem(DISMISS_KEY, new Date().toISOString().slice(0, 10));
-    } catch { /* ignore */ }
-    setDismissed(true);
   };
 
   const submitBulk = async () => {
@@ -98,7 +82,7 @@ export function InboxCheckPanel({ rows, onAfterMark, onError }: Props) {
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <span className="text-sm font-semibold text-blue-900">
-          📬 Daily inbox check · {rows.length} stakeholder{rows.length === 1 ? "" : "s"} mid-cadence
+          📬 Inbox check · {rows.length} stakeholder{rows.length === 1 ? "" : "s"} mid-cadence
         </span>
         <span className="text-xs text-blue-700">{expanded ? "Hide ▾" : "Open ▸"}</span>
       </button>
@@ -140,15 +124,15 @@ export function InboxCheckPanel({ rows, onAfterMark, onError }: Props) {
             <span className="text-xs text-blue-900">
               {selected.size > 0
                 ? `${selected.size} selected`
-                : "Tip: select all who replied, then click below"}
+                : "Select any who replied, then click below"}
               {progress && ` · ${progress.done}/${progress.total} processed`}
             </span>
             <div className="flex gap-2">
               <button
-                onClick={dismiss}
+                onClick={() => setExpanded(false)}
                 className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
               >
-                Done — none replied today
+                Close
               </button>
               <button
                 onClick={submitBulk}
@@ -166,7 +150,6 @@ export function InboxCheckPanel({ rows, onAfterMark, onError }: Props) {
 }
 
 function getReplyToHint(): string {
-  // Mirrors the env var. Falls back to a sensible default for the hint.
   return "outreach@olera.care";
 }
 

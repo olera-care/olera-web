@@ -300,4 +300,4 @@ export const CLOSED_STATUSES: Status[] = [
 ];
 
 /** Stages from which "Mark as Partner" should be visible as a CTA. */
-export const PARTNER_CTA_STAGES: Status[] = ["engaged", "meeting_scheduled"];
+export const PARTNER_CTA_STAGES: Status[] = ["outreach_sent", "engaged", "meeting_scheduled"];

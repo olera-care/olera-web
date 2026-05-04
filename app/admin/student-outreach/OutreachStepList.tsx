@@ -40,8 +40,33 @@ export function OutreachStepList({ ctx, action, setError }: Props) {
     [ctx.pending_tasks],
   );
 
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Failed"));
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      {/* Got-a-reply banner: the in-drawer twin of the inbox-check panel.
+          One click cancels the cadence and moves the row to engaged so
+          the Mark-as-Active-Partner CTA is unambiguously available. */}
+      <div className="rounded-md border border-blue-200 bg-blue-50/60 px-3 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-blue-900">
+            💬 <strong>Did they reply?</strong> Mark engaged to stop the cadence and move forward
+            (e.g. schedule a meeting, mark as Active Partner).
+          </p>
+          <button
+            onClick={() => {
+              if (window.confirm("Mark as engaged? This cancels remaining auto-emails.")) {
+                handleErr(action("mark_engaged", { notes: "reply received" }));
+              }
+            }}
+            className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+          >
+            Got a reply — Mark Engaged
+          </button>
+        </div>
+      </div>
+
       <p className="text-sm text-gray-700">
         Outreach progress · {days.length} cadence day{days.length === 1 ? "" : "s"} · email auto-sends, calls are queued in your tasks.
       </p>

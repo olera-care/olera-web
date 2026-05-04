@@ -73,6 +73,12 @@ interface BenefitsDiscoveryModuleProps {
   providerCareTypes?: string[] | null;
   /** category string for the provider tie-in helper. */
   providerCategory?: string | null;
+  /** Path of the page the module is mounted on. Provider pages leave this
+   *  unset (routing is implied by providerSlug). Editorial mounts pass
+   *  `/caregiver-support/{slug}` so downstream analytics can segment
+   *  conversion by entry page. Persisted to accounts.signup_source on submit
+   *  and attached to every funnel event. */
+  entrySource?: string;
 }
 
 // ─── Care need cards — order matters. "Paying for care" first because it's
@@ -176,6 +182,7 @@ export default function BenefitsDiscoveryModule({
   providerSlug,
   providerCareTypes,
   providerCategory,
+  entrySource,
 }: BenefitsDiscoveryModuleProps) {
   // ─── Step + form state ───────────────────────────────────────────────
   const [step, setStep] = useState<Step>("care-need");
@@ -222,6 +229,7 @@ export default function BenefitsDiscoveryModule({
       providerName: providerName || null,
       providerSlug: providerSlug || null,
       variant,
+      entrySource: entrySource || null,
       ...extras,
     });
   }
@@ -309,6 +317,7 @@ export default function BenefitsDiscoveryModule({
           providerSlug: providerSlug || null,
           sessionId,
           variant,
+          entrySource: entrySource || null,
         }),
         keepalive: true,
       }).catch(() => {});
@@ -373,6 +382,7 @@ export default function BenefitsDiscoveryModule({
           phone: phone.trim() ? phone : undefined,
           relationship: relationship || undefined,
           providerSlug: providerSlug || undefined,
+          entrySource: entrySource || undefined,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
             stateId,

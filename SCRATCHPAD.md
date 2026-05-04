@@ -7,6 +7,52 @@
 
 ## Current Focus
 
+### 2026-05-04 — Mount SBF V3 on /caregiver-support/ article template (P1, planning)
+
+Retargeting a stale Apr 21 task ("topic-seeded question funnel" was architecturally invalid — `/api/questions` requires `provider_id`, no general entry point exists). SBF V3 cut over to provider pages on Apr 18, three days before the original task was written; SBF is the actual unified inquiry pipeline today and is provider-agnostic. Same goal as the original (turn editorial traffic into pipeline), correct mechanism.
+
+**Decision:** ship single-variant on editorial (no 4-arm A/B replication — want clean editorial-vs-provider baseline). Replace the existing `/browse?type=` CTA at `app/caregiver-support/[slug]/page.tsx:395-410` with `BenefitsDiscoveryModule`. Instrument `signup_source = '/caregiver-support/{slug}'` so "conversion by entry page" is answerable 4-6 weeks out.
+
+**Notion (canonical):** [Mount SBF V3 (Benefits Discovery) on /caregiver-support/ article template](https://www.notion.so/Mount-SBF-V3-Benefits-Discovery-on-caregiver-support-article-template-3495903a0ffe81f085fdde9b8dc149ac). RETARGETED block appended preserves the original framing as historical context.
+
+**Plan:** [`plans/editorial-sbf-mount-plan.md`](plans/editorial-sbf-mount-plan.md). 11 tasks across 4 phases (plumbing → editorial wrapper → mount → verify).
+
+**What shipped as code (not yet deployed):**
+
+1. **Migration `065_accounts_signup_source.sql`** — adds `accounts.signup_source TEXT NULL` + partial index `WHERE signup_source IS NOT NULL`. Apply via Supabase dashboard before deploy or the editorial submit will 500 on the accounts insert.
+
+2. **`BenefitsDiscoveryModule` (modified)** — new optional `entrySource?: string` prop, threaded into `fireFunnelEvent` (event payload), `/api/benefits/track-start` body, and `/api/benefits/save-results` body. Provider pages leave it undefined; behavior unchanged. Required no null-state copy work after all — handled in the editorial wrapper instead (ResultsSheet hard-depends on `state.name`/`state.slug` for `/benefits/{slug}` links, so making the module null-state would have rippled into a parallel rewrite of the success overlay).
+
+3. **`/api/benefits/save-results` (modified)** — accepts `entrySource` in payload, writes it to `accounts.signup_source` on the new-account insert. Existing rows + provider-page submits stay NULL.
+
+4. **`/api/geo` (new)** — returns `{ state: string | null, city: string | null }` from Vercel `x-vercel-ip-country-region` / `x-vercel-ip-city`, gated through the `US_STATES` allowlist. `force-dynamic` (header-derived). Reuses the same pattern as `app/page.tsx`.
+
+5. **`/api/benefits/programs` (new)** — `?state=XX` returns `{ topPrograms, allPrograms, stateId, stateName }` from the in-memory program library. **Bug caught + fixed during smoke test:** initial `force-static` declaration prerendered the route with empty searchParams and 400'd every real call; flipped to `force-dynamic`. No DB calls so latency stays low.
+
+6. **`components/article/EditorialBenefitsModule.tsx` (new)** — `"use client"` wrapper. Fetches `/api/geo` then `/api/benefits/programs?state=XX` on mount, renders `BenefitsDiscoveryModule` with `entrySource={'/caregiver-support/' + slug}`. Three states: `loading` (height-stable pulse skeleton matching step-1 footprint, CLS guard), `resolved` (full module), `fallback` (styled link to `/benefits/finder` when geo can't resolve — better than reverting to the old `/browse` CTA, simpler than building a no-state path through ResultsSheet).
+
+7. **`app/caregiver-support/[slug]/page.tsx` (modified)** — replaced the old `/browse?type=` Link block (lines 395-410 pre-edit) with `<EditorialBenefitsModule articleSlug={slug} />`. Single-variant — NO `BenefitsArmGate` wrap, no `AgentOutreachSlot`. Want clean editorial-vs-provider baseline data, not arm-vs-arm noise inside editorial.
+
+**Smoke tests passed (local dev):** page returns 200, SSR markup contains the skeleton at the correct spot (between article body and Author + Tags section), `/api/geo` returns `{state:null,city:null}` on localhost (expected — no Vercel headers in dev) and resolves correctly with mocked headers, `/api/benefits/programs?state=TX` returns the full library shape. Typecheck clean (`tsc --noEmit` exit 0). ESLint clean on touched files (apostrophe-escape errors in the wrapper fixed mid-build; the pre-existing img + no-explicit-any warnings are unrelated).
+
+**Files touched:**
+- New: `supabase/migrations/065_accounts_signup_source.sql`, `app/api/geo/route.ts`, `app/api/benefits/programs/route.ts`, `components/article/EditorialBenefitsModule.tsx`, `plans/editorial-sbf-mount-plan.md`
+- Modified: `components/providers/BenefitsDiscoveryModule.tsx`, `app/api/benefits/save-results/route.ts`, `lib/analytics/track-step.ts`, `app/caregiver-support/[slug]/page.tsx`, `SCRATCHPAD.md`
+
+**Mid-build decisions (deviations from the plan worth flagging):**
+- **Plan task 2 dropped (null-state in BenefitsDiscoveryModule).** ResultsSheet hard-depends on `state.name`/`state.slug` for the `/benefits/{slug}` link — making the module null-state would have rippled. Wrapper-level handling (geo-fail → styled fallback to `/benefits/finder`) is strictly cleaner.
+- **Editorial step-level funnel events deferred to v2.** Both `track-start` and `track-step` gate inserts on `(providerSlug && sessionId)` — on editorial mounts (no providerSlug), inserts silently drop. `accounts.signup_source` is the canonical leading-metric source for v1. Full editorial funnel parity would require either a new event-type set in `seeker_activity` (with the matching DB CHECK migration per the Apr 29 lesson) or routing `benefits_*` events to seeker_activity when providerSlug is null.
+
+**What's NOT done (intentional — out of scope for v1):**
+- Article-aware copy / pre-selected care-need card by article topic.
+- Editorial-specific A/B variants.
+- Inline mid-article placement.
+- Admin analytics breakdown by entry source — query directly from `accounts.signup_source` for the first 4 weeks.
+- Migration 065 applied to Supabase (TJ to apply via dashboard before staging promote).
+- TJ's manual end-to-end submit on staging (Slack alert, accounts row, ResultsSheet overlay).
+
+**Status:** code complete, awaiting (a) TJ to apply migration 065 via Supabase dashboard, (b) TJ's manual submit test on a real article slug (e.g., `/caregiver-support/caregiver-burnout-prevention`), (c) PR to staging.
+
 ### 2026-05-03 — Build Olera into the agent-callable layer for senior care (P1)
 
 Day-long strategic + writing session to lock the thesis behind the three sibling P1 CTA-copy variants and ship a clean Notion workbook.

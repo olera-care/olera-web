@@ -1058,6 +1058,7 @@ export default async function ProviderPage({
                         savingsRange: p.savingsRange,
                       }))}
                       allPrograms={benefitsAllPrograms}
+                      entrySource={`/provider/${profile.slug}`}
                     />
                   </div>
                 </BenefitsArmGate>

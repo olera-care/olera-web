@@ -295,47 +295,47 @@ export async function POST(request: Request) {
       .eq("id", accountId);
 
     // ──────────────────────────────────────────────────────────
-    // 8. Log provider activity
+    // 8. Activity log + Slack alert (awaited in parallel)
     // ──────────────────────────────────────────────────────────
-    supabaseAdmin
-      .from("provider_activity")
-      .insert({
-        provider_id: providerSlug || providerId || slug,
-        profile_id: newProfile.id,
-        event_type: "claim_completed",
-        metadata: {
-          source: "instant_claim",
-          olera_provider_id: providerId || null,
-          verification_state: "unverified",
-        },
-      })
-      .then(({ error: actErr }) => {
-        if (actErr) {
-          console.error("[claim-instant] activity insert failed:", actErr);
-        }
-      });
-
-    // ──────────────────────────────────────────────────────────
-    // 9. Notifications (fire-and-forget)
-    // ──────────────────────────────────────────────────────────
-    // Use same display_name logic as profile creation for consistency
+    // Both side effects awaited via Promise.allSettled — fire-and-forget
+    // gets killed by Vercel's serverless runtime once the response goes
+    // out (cost a 7h diagnosis on the agent-outreach route, 2026-05-03).
+    // allSettled so neither blocks the other and neither failing aborts
+    // the response — the canonical claim is already in the DB above.
+    // Use same display_name logic as profile creation for consistency.
     const displayName = isNewOrg ? orgName : (providerName || "My Business");
-
-    // 9a. Slack notification
-    try {
-      const alert = slackProviderClaimed({
-        providerName: displayName,
-        claimedByEmail: normalizedEmail,
-        providerSlug: slug,
-      });
-      sendSlackAlert(alert.text, alert.blocks).catch(() => {
-        // Non-blocking
-      });
-    } catch {
-      // Non-blocking
+    const claimAlert = slackProviderClaimed({
+      providerName: displayName,
+      claimedByEmail: normalizedEmail,
+      providerSlug: slug,
+    });
+    const claimResults = await Promise.allSettled([
+      supabaseAdmin
+        .from("provider_activity")
+        .insert({
+          provider_id: providerSlug || providerId || slug,
+          profile_id: newProfile.id,
+          event_type: "claim_completed",
+          metadata: {
+            source: "instant_claim",
+            olera_provider_id: providerId || null,
+            verification_state: "unverified",
+          },
+        }),
+      sendSlackAlert(claimAlert.text, claimAlert.blocks),
+    ]);
+    if (claimResults[0].status === "rejected") {
+      console.error("[claim-instant] activity insert failed:", claimResults[0].reason);
+    }
+    if (claimResults[1].status === "rejected") {
+      console.error("[claim-instant] Slack alert failed:", claimResults[1].reason);
     }
 
-    // 9b. Admin email notification
+    // ──────────────────────────────────────────────────────────
+    // 9. Email + marketing-loop notifications (fire-and-forget)
+    // ──────────────────────────────────────────────────────────
+
+    // 9a. Admin email notification
     try {
       const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
       if (adminEmail) {
@@ -358,7 +358,7 @@ export async function POST(request: Request) {
       console.error("[claim-instant] admin notification failed:", emailErr);
     }
 
-    // 9c. Loops event (for email marketing sequences)
+    // 9b. Loops event (for email marketing sequences)
     try {
       sendLoopsEvent({
         email: normalizedEmail,

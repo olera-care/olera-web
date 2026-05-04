@@ -88,15 +88,15 @@ async function handleStartSequenceBatch(
     return NextResponse.json({ error: "No queued providers found" }, { status: 400 });
   }
 
-  // Get provider names
+  // Get provider names and emails
   const providerIds = outreachRows.map((r) => r.provider_id);
   const { data: providers } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name")
+    .select("provider_id, provider_name, email")
     .in("provider_id", providerIds);
 
   const providerMap = new Map(
-    (providers ?? []).map((p) => [p.provider_id, p.provider_name]),
+    (providers ?? []).map((p) => [p.provider_id, { name: p.provider_name, email: p.email }]),
   );
 
   // Get batch info
@@ -115,9 +115,15 @@ async function handleStartSequenceBatch(
   const now = new Date().toISOString();
 
   for (const outreach of outreachRows as StaffingOutreachRow[]) {
-    const providerName = providerMap.get(outreach.provider_id) ?? "Unknown";
+    const providerInfo = providerMap.get(outreach.provider_id);
+    const providerName = providerInfo?.name ?? "Unknown";
     const batchInfo = batchMap.get(outreach.batch_id);
-    const recipientEmail = outreach.research_data?.general_email?.trim();
+    // Check both provider.email and research_data.general_email (same as drawer)
+    const recipientEmail = (
+      providerInfo?.email?.trim() ||
+      outreach.research_data?.general_email?.trim() ||
+      ""
+    );
 
     // Skip if no email
     if (!recipientEmail) {

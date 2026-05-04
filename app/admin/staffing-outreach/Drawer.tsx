@@ -325,9 +325,20 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
           {ctx ? (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2.5">
-                <h2 className="truncate text-lg font-semibold text-gray-900">
-                  {ctx.provider.provider_name}
-                </h2>
+                {ctx.provider.slug ? (
+                  <a
+                    href={`https://olera.care/provider/${ctx.provider.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="truncate text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                  >
+                    {ctx.provider.provider_name}
+                  </a>
+                ) : (
+                  <h2 className="truncate text-lg font-semibold text-gray-900">
+                    {ctx.provider.provider_name}
+                  </h2>
+                )}
                 <StatusBadge status={ctx.outreach.status} />
               </div>
               <p className="mt-0.5 truncate text-sm text-gray-500">
@@ -441,24 +452,13 @@ function ProviderSummary({ ctx }: { ctx: DrawerContext }) {
         )}
         {ctx.provider.website && (
           <a
-            href={ctx.provider.website}
+            href={ctx.provider.website.startsWith("http") ? ctx.provider.website : `https://${ctx.provider.website}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             <ExternalLinkIcon className="h-4 w-4" />
             Website
-          </a>
-        )}
-        {ctx.provider.slug && (
-          <a
-            href={`https://olera.care/providers/${ctx.provider.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            <ExternalLinkIcon className="h-4 w-4" />
-            Olera Profile
           </a>
         )}
       </div>

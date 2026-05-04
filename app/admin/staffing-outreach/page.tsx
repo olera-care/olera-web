@@ -387,6 +387,12 @@ export default function StaffingOutreachPage() {
                     className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
                   >
                     <div className="min-w-0 flex-1">
+                      {/* Claimed indicator - shown above name */}
+                      {isClaimed && row.claimed_by_initials && (
+                        <p className="text-xs text-blue-600 mb-0.5">
+                          Claimed by {row.claimed_by_initials}
+                        </p>
+                      )}
                       <p className="truncate text-sm font-medium text-gray-900">
                         {row.provider_name}
                       </p>
@@ -398,8 +404,7 @@ export default function StaffingOutreachPage() {
                         {[row.provider_city, row.provider_state]
                           .filter(Boolean)
                           .join(", ") || "—"}
-                        {/* Show email (primary for To Queue) or phone as fallback */}
-                        {/* Check both provider.email and research_data.general_email (same as drawer) */}
+                        {/* Show email or phone */}
                         {(row.provider_email || row.research_data?.general_email) ? (
                           <span className="text-gray-600"> · {row.provider_email || row.research_data?.general_email}</span>
                         ) : row.provider_phone ? (
@@ -408,43 +413,36 @@ export default function StaffingOutreachPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {/* No email indicator - important for To Queue tab */}
-                      {stage === "to_queue" && !row.provider_email && !row.research_data?.general_email && (
-                        <span className="hidden sm:inline rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700" title="No email address">
-                          No email
-                        </span>
+                      {/* Engagement signals - only show on sequencing/needs_call tabs */}
+                      {(stage === "sequencing" || stage === "needs_call") && (
+                        <>
+                          {row.engagement?.emailOpened && (
+                            <span className="hidden sm:inline text-sky-500" title="Email opened">
+                              👁
+                            </span>
+                          )}
+                          {row.engagement?.emailClicked && (
+                            <span className="hidden sm:inline text-purple-500" title="Link clicked">
+                              🔗
+                            </span>
+                          )}
+                          {row.engagement?.replied && (
+                            <span className="hidden sm:inline text-green-500" title="Reply received">
+                              💬
+                            </span>
+                          )}
+                        </>
                       )}
-                      {/* Engagement signals */}
-                      {row.engagement?.emailOpened && (
-                        <span className="hidden sm:inline" title="Email opened">
-                          👁
-                        </span>
-                      )}
-                      {row.engagement?.emailClicked && (
-                        <span className="hidden sm:inline" title="Link clicked">
-                          🔗
-                        </span>
-                      )}
-                      {row.engagement?.replied && (
-                        <span className="hidden sm:inline" title="Reply received">
-                          💬
-                        </span>
-                      )}
-                      <StatusBadge status={row.status} />
-                      {isClaimed && (
-                        <span className="hidden sm:inline rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          Claimed
-                        </span>
-                      )}
-                      {dueInfo && (
-                        <span className={`hidden sm:inline rounded-full px-2 py-0.5 text-xs font-medium ${
-                          dueInfo.isOverdue
-                            ? getOverduePillClass(dueInfo.urgency)
-                            : "bg-gray-100 text-gray-500"
-                        }`}>
+                      {/* Overdue indicator - only show on needs_call tab */}
+                      {stage === "needs_call" && dueInfo?.isOverdue && (
+                        <span className={`hidden sm:inline rounded-full px-2 py-0.5 text-xs font-medium ${getOverduePillClass(dueInfo.urgency)}`}>
                           {dueInfo.label}
                         </span>
                       )}
+                      {/* Chevron indicator */}
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </button>
                 </li>

@@ -399,10 +399,21 @@ export default function StaffingOutreachPage() {
                         {[row.provider_city, row.provider_state]
                           .filter(Boolean)
                           .join(", ") || "—"}
-                        {row.provider_phone && ` · ${row.provider_phone}`}
+                        {/* Show email (primary for To Queue) or phone as fallback */}
+                        {row.research_data?.general_email ? (
+                          <span className="text-gray-600"> · {row.research_data.general_email}</span>
+                        ) : row.provider_phone ? (
+                          <span> · {row.provider_phone}</span>
+                        ) : null}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* No email indicator - important for To Queue tab */}
+                      {stage === "to_queue" && !row.research_data?.general_email && (
+                        <span className="hidden sm:inline rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700" title="No email address">
+                          No email
+                        </span>
+                      )}
                       {/* Engagement signals */}
                       {row.engagement?.emailOpened && (
                         <span className="hidden sm:inline" title="Email opened">

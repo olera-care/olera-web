@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getBotRejectsToday } from "@/lib/analytics/bot-filter";
+import {
+  REFERRER_CLASSES,
+  type ReferrerClass,
+} from "@/lib/analytics/referrer";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -127,6 +131,12 @@ type BenefitsFunnelByVariant = {
   money_loss: BenefitsVariantRow;  // legacy V2
   unassigned: BenefitsVariantRow;
 };
+// Page-view referrer breakdown — counts page_view events by traffic class
+// (ai_chat / search / social / olera_internal / direct / other). Lets us
+// watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
+// citing Olera. Source field: provider_activity.metadata.referrer_class,
+// populated server-side in /api/activity/track for anonymous events.
+type ReferrerBreakdown = Record<ReferrerClass, number>;
 type WindowResult = {
   counts: WindowedCounts;
   unique_sessions_page_view: number;
@@ -136,6 +146,7 @@ type WindowResult = {
   qa_email_issues: QaEmailIssue[];
   benefits_funnel: BenefitsFunnel;
   benefits_funnel_by_variant: BenefitsFunnelByVariant;
+  referrer_breakdown: ReferrerBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -204,6 +215,14 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   control: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
   money_loss: EMPTY_BENEFITS_FUNNEL(),  // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
+});
+const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
+  ai_chat: 0,
+  search: 0,
+  social: 0,
+  olera_internal: 0,
+  direct: 0,
+  other: 0,
 });
 
 /**
@@ -329,6 +348,7 @@ async function fetchWindow(
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
+  const referrerBreakdown = EMPTY_REFERRER_BREAKDOWN();
   for (const r of (providerRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -339,6 +359,16 @@ async function fetchWindow(
     if (r.event_type === "page_view") {
       const sid = r.metadata?.session_id;
       if (typeof sid === "string" && sid.length > 0) uniqueSessions.add(sid);
+      // Bucket by referrer_class. Older rows (pre-instrumentation) have
+      // no referrer_class field — those fall through and aren't counted,
+      // which is fine: the breakdown is a forward-looking metric.
+      const cls = r.metadata?.referrer_class;
+      if (
+        typeof cls === "string" &&
+        (REFERRER_CLASSES as readonly string[]).includes(cls)
+      ) {
+        referrerBreakdown[cls as ReferrerClass] += 1;
+      }
     }
   }
   for (const r of (seekerRes.data ?? []) as Array<{ event_type: string }>) {
@@ -616,6 +646,7 @@ async function fetchWindow(
     qa_email_issues: qaEmailIssues,
     benefits_funnel: benefitsFunnel,
     benefits_funnel_by_variant: benefitsFunnelByVariant,
+    referrer_breakdown: referrerBreakdown,
   };
 }
 
@@ -840,6 +871,7 @@ export async function GET(request: NextRequest) {
         qa_email_issues: windowedRes.qa_email_issues,
         benefits_funnel: windowedRes.benefits_funnel,
         benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
+        referrer_breakdown: windowedRes.referrer_breakdown,
       },
       prior: prior
         ? {
@@ -851,6 +883,7 @@ export async function GET(request: NextRequest) {
             qa_email_issues: prior.qa_email_issues,
             benefits_funnel: prior.benefits_funnel,
             benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
+            referrer_breakdown: prior.referrer_breakdown,
           }
         : null,
       insight,

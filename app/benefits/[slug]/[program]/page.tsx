@@ -197,9 +197,69 @@ export default async function BenefitsProgramPage({ params }: Props) {
     ],
   };
 
+  // Article schema with a GovernmentService `about` linkage. This is the
+  // strongest signal we can give an AI agent: "This page is editorial
+  // content explaining a specific Medicaid waiver / HCBS program in
+  // <state>." The agent can then cite the article and follow `about`
+  // for canonical service identity (name, area served, source URL).
+  const programDisplayName = getDisplayName(program, state);
+  const articleJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: programDisplayName,
+    description: program.tagline || program.description || `${program.name} — eligibility, application steps, and how to apply in ${state.name}.`,
+    about: {
+      "@type": "GovernmentService",
+      name: program.name,
+      serviceType: "Medicaid waiver / Home and Community-Based Services",
+      areaServed: {
+        "@type": "AdministrativeArea",
+        name: state.name,
+      },
+      ...(program.sourceUrl && { url: program.sourceUrl }),
+    },
+    author: {
+      "@type": "Organization",
+      name: "Olera",
+      url: "https://olera.care",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Olera",
+      url: "https://olera.care",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://olera.care/images/olera-logo.png",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://olera.care/benefits/${slug}/${programId}`,
+    },
+    ...(program.draftedAt && {
+      datePublished: program.draftedAt,
+      dateModified: program.draftedAt,
+    }),
+  };
+
+  // FAQPage schema when the program has structured FAQ entries. Pulls
+  // straight from program.faqs (pipeline-drafts source). Agents quote
+  // verbatim from these on benefit-eligibility questions.
+  const faqJsonLd = program.faqs && program.faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: program.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  } : null;
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
       <ProgramPageV3 program={program} state={state} relatedArticles={articles} />
     </>
   );

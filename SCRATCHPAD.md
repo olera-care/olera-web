@@ -111,7 +111,100 @@ TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid b
 - `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
 - `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
 
-**Resume next session here →** Re-test on the same DC nursing-home page (or any Texas memory-care page). Slack alert should land this time. If healthy, open PR to staging. If still no alert, first diagnostic: confirm `SLACK_WEBHOOK_URL` is set in the test environment (other Slack alerts working = it's set).
+### 2026-05-04 (PM) — H2 capture PR #726 open on staging. Pre-test clean. Awaiting Vercel preview test.
+
+**Branch + commit chain on `keen-hopper`** (off latest `origin/staging` `4eb7808a`):
+
+- `f54eac82` — H1 ship marker + H2 plan in SCRATCHPAD
+- `afba46c4` — `app/llms.txt/route.ts` (curated AI-agent map per llmstxt.org spec; 6 categories + top 10 state benefits pages dynamic from pipeline data; 1hr ISR)
+- `880cbacd` — Article + GovernmentService JSON-LD on `/benefits/[slug]` and `/benefits/[slug]/[program]`; FAQPage on program pages when `program.faqs` populated; fix broken Org logo path in `app/layout.tsx` (`/logo.png` → `/images/olera-logo.png`)
+- `65c2f820` — `lib/analytics/referrer.ts` classifier + extracted `sanitizeReferrer`/`OLERA_HOSTS`; track route writes `referrer_class` to anonymous page_view metadata; admin summary buckets page_views by class; admin UI adds "Traffic source" SubRow with 6 stats + prior-window deltas
+- `f640d2d3` — SCRATCHPAD H2 status update
+
+**Pushed + PR opened:** [PR #726 — `keen-hopper` → `staging`](https://github.com/olera-care/olera-web/pull/726). State: open, mergeable.
+
+**Scope calls (deliberate skips):**
+- Provider detail JSON-LD: already comprehensive (LocalBusiness with reviews, offers, geo, sameAs, priceSpec). No work needed.
+- `/m/[token]` SBF results ItemList: page is `robots: noindex` for PII reasons. AI agents won't crawl. Skipped.
+
+**Verification done:**
+- Zero new TS errors over baseline (56 phantom-module errors pre-existing, all `@phosphor-icons/react` / `isbot` unrelated to H2 changes).
+- Pre-test caught two bugs during build (overpromising savings on llms.txt benefits-finder line; broken Org logo path) — fixed inline.
+- Final /pre-test review (post-commit, pre-merge): **clean — no bugs found.** Walked all 8 files end-to-end, traced every data chain, confirmed JSONB freeform metadata adds no DB risk, confirmed `dynamic="force-static"` + `revalidate=3600` is the right ISR combo, confirmed `program.faqs` shape matches schema generation, confirmed no event_type allowlist trap.
+
+**Decision-gate measurement (now with admin visibility):** /admin/analytics → "Traffic source" → AI chat counts. Baseline is whatever lands in the first day or two. Decision question after 2-4 weeks: did llms.txt + JSON-LD move ai_chat counts up materially, OR did total page views grow without ai_chat moving (meaning agents aren't citing us yet — we'd then need outreach to crawl directly).
+
+**Resume next session here →** Test on Vercel preview (URL appears as a check in PR #726). Test plan: (1) `/llms.txt` renders + state benefits links resolve; (2) `view-source` on `/benefits/california` shows Article schema; (3) `view-source` on a program page shows Article + GovernmentService + FAQPage; (4) Org logo URL resolves (no more 404); (5) Admin /admin/analytics shows new "Traffic source" SubRow. If healthy, /pr-merge 726 → /pr-merge promote staging to main.
+
+---
+
+### 2026-05-04 (AM) — H1 outreach module shipped to production.
+
+PR #722 merged to staging (squash, commit `420aba6a`). PR #725 promoted staging to main (`--merge`, commit `81d1d8d6`). Vercel production deploy rolling out. Outreach module is now live for ~25% of provider-page visitors on `olera.care` — Slack alerts will route to TJ for manual fulfillment.
+
+**Notion merge reports:**
+- [PR #722 — staging merge](https://www.notion.so/PR-722-Add-agent-outreach-module-as-4th-SBF-intake-A-B-arm-2026-05-04-3565903a0ffe81b0bbced66bd0318832)
+- [PR #725 — production promotion](https://www.notion.so/PR-725-Promote-staging-to-main-2026-05-04-3565903a0ffe81a1bd46cb5857495623)
+
+**Decision-gate measurement window for H1 starts now (30-90 days):** ≥6% email-capture rate vs 3% baseline = greenlight Phase 4 (real agent build).
+
+---
+
+**Next chunk: H2 capture work** (~3 hours total, single PR back to staging).
+
+Per the locked workbook section "Capture work for H2": ChatGPT/Claude/Gemini already cite Olera (~4 visits/day from ChatGPT alone, no optimization). Three small infra pieces to close the gap:
+
+1. **`llms.txt` at site root.** Curated map AI agents read like a sitemap. Static text — list browse, SBF, top cities, top benefits, key landing pages. Either `public/llms.txt` (static) or `app/llms.txt/route.ts` (dynamic, generated from current cities/benefits data — preferred so it stays fresh as we add coverage). ~30 min.
+
+2. **JSON-LD on key pages.** Provider detail pages already have BreadcrumbList; extend with `LocalBusiness` (name, address, telephone, priceRange, aggregateRating, image). Benefits pages (`app/waiver-library/[state]/[benefit]/page.tsx`) need `GovernmentBenefitsType` or `Article` schema. SBF results / `/m/[token]` page — `WebPage` + `ItemList` of matched programs. Goal: agents quote provider name + rating + price + benefit-savings accurately when families ask. ~1.5 hours.
+
+3. **AI-referral instrumentation.** Detect `Referer` header host on incoming requests and tag in page_view metadata. Hosts to flag: `chatgpt.com`, `chat.openai.com`, `claude.ai`, `gemini.google.com`, `perplexity.ai`, `copilot.microsoft.com`. Plug into existing `seeker_activity` / `provider_activity` page_view tracking — add `ai_referrer` field (or `referrer_class` enum: ai_chat / search / direct / olera_internal / other). Surface count in admin analytics so we can measure baseline. ~30 min.
+
+**Workflow when this resumes:**
+- Cut new branch off `origin/staging` (suggest tribute name; lively-poitras worktree is fine to reuse — branch + commit + PR back to staging).
+- Working tree currently on `lively-poitras` branch (now stale — merged + remote-deleted). After compact, first action: `git checkout staging` then `git checkout -b <new-branch>` from latest staging.
+- Single PR back to staging when done. Same /pre-test → /pr-merge → promote-to-main flow as H1.
+
+**Files most likely to touch:**
+- New: `app/llms.txt/route.ts` (or `public/llms.txt`)
+- Modified: `app/provider/[slug]/page.tsx` (add LocalBusiness JSON-LD), benefits library pages (Article/Benefits schema), the welcome/results sheet pages (ItemList schema)
+- Modified: `app/api/activity/track/route.ts` (capture referrer host) and/or `lib/analytics/session.ts`, plus admin analytics route to surface the new dimension
+
+**Ship lessons captured this session:**
+- [feedback_serverless_fire_and_forget.md](feedback_serverless_fire_and_forget.md) — always `await` side-effect Promises in Next.js routes; Vercel's serverless runtime kills pending Promises post-response. Pre-test reviews need a "does this match the rest-of-codebase pattern" pass — internal correctness alone shipped the bug.
+
+### 2026-05-03 (late PM) — Design pass + Slack fire-and-forget bug fix (post-test iteration)
+
+TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid but he had a sharper design vision and one functional bug: no Slack alert landed.
+
+**Design crit + redesign — both sides agreed direction first, then I shipped:**
+
+- **Killed cream-bg + full border container.** Was reading as "ad callout" — too much chrome around content. Now borderless with a subtle top divider (`mt-8 pt-8 border-t border-slate-200`) so the module reads as part of the page flow.
+- **Two-line H2:** outcome hook ("Skip the phone calls.") + mechanic line ("Have an AI agent contact the top providers in [City] for you."). TJ's argument for keeping "AI agent" in the second line: brand-education tax to drop entirely; this plants the seed for future agent-callable products (Medicaid apps, etc.). Outcome leads, mechanic supports.
+- **Anthropic/Claude/Grok-style 3x3 pulsing dot grid** prefixed to H2 (and persists into success state). Staggered diagonal wave on a 1.5s cycle. Visual shorthand for "AI is at work" without saying "loading." TJ proposed this from a walk; locked the inline-grid (option A) over background-texture (option B) — more explicit signal, gives the static module a motion moment. Custom keyframe in `app/globals.css` (`animate-outreach-dot`) with prefers-reduced-motion override.
+- **Caption above cards:** "Top 3 [Category] providers in [City], where families are actively reaching out." Social proof anchored to behavior we actually measure (engagement events) — not "booking" data we don't have. TJ originally said "booking"; we negotiated honest framing. Landed in sentence case after pre-test caught all-caps reading badly on a sentence-length string.
+- **Optional relationship chip row:** Parent / Spouse / Me / Family. Toggling on/off; selected = inverted dark slate. Lifts fulfillment context without forcing collection. TJ confirmed name field NOT viable (we don't capture it on questions).
+- **Card click → opens in new tab** (`target="_blank" rel="noopener noreferrer"`). Was a conversion leak; family who clicked a card lost their place in the form.
+- **Pill colors unified** to single muted slate (was multi-color from trust-signals system, looked ad-hoc).
+- **Submit copy:** "Get the answers" (was "Send the agent" — cold/novel).
+- **Success state honest:** "On it. We'll email you back with what we hear from these N providers." Dropped the "24h SLA" promise — TJ flagged we can't guarantee it.
+
+**Then a real bug bit:** TJ submitted, got the success state, no Slack alert. Root cause: fire-and-forget Promises in Vercel's serverless runtime get killed after the response returns. Fix: `await Promise.allSettled([activityInsert, sendSlackAlert])`. Saved as feedback memory; pre-test reviews missed it because I didn't pattern-match against the rest of the codebase (every other `sendSlackAlert` call site awaits).
+
+**Other bugs caught in two pre-test review rounds (all fixed):**
+- Phantom `mt-6` div for 75% of visitors who weren't in outreach arm (wrapping div rendered without children → empty 24px gap)
+- Double-fire of `outreach_request_submitted` event (server route + client both fired; set semantics in admin saved the count, but raw log got dupes — dropped client fire)
+- Unused `Link` import
+- Caption all-caps unreadable on long sentence (sentence case)
+- Pulsing dots ignored `prefers-reduced-motion` (added override to existing reduced-motion block)
+
+**Final commit chain on `lively-poitras` (squashed into staging as `420aba6a`):**
+- `02c4098e` — Initial 6-task build
+- `01ee2420` — First pre-test fixes (phantom div, double-fire, unused import)
+- `4a2b3c2a` — Design pass (dots, caption, chips, kill cream box, kept "AI agent" line per TJ)
+- `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
+- `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
+- `3f2b85d4` — Admin eyebrow 3-arm → 4-arm
 
 ### 2026-05-02 — Places Photo + Reviews API leak patches (P1)
 

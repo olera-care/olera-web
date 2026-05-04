@@ -26,12 +26,12 @@ import type {
 } from "@/lib/staffing-outreach/types";
 
 // V2: 5 tabs for automated email sequence workflow
-const STAGE_TABS: Array<{ key: string; label: string; icon?: string }> = [
-  { key: "to_queue", label: "To Queue", icon: "📧" },
-  { key: "sequencing", label: "Sequencing", icon: "⏳" },
-  { key: "needs_call", label: "Needs Call", icon: "📞" },
-  { key: "enrolled", label: "Enrolled", icon: "✅" },
-  { key: "closed", label: "Closed", icon: "🚫" },
+const STAGE_TABS: Array<{ key: string; label: string }> = [
+  { key: "to_queue", label: "To Queue" },
+  { key: "sequencing", label: "Sequencing" },
+  { key: "needs_call", label: "Needs Call" },
+  { key: "enrolled", label: "Enrolled" },
+  { key: "closed", label: "Closed" },
 ];
 
 type Stage = "to_queue" | "sequencing" | "needs_call" | "enrolled" | "closed";

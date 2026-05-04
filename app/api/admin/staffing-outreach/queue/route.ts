@@ -24,16 +24,16 @@ const PAGE_SIZE_DEFAULT = 50;
 // - needs_call: Sequence complete, no enrollment (needs manual call)
 // - enrolled: Success (activated, enrolled)
 // - closed: Dead ends (closed, bounced, do_not_contact, wrong_number)
+//
+// Legacy statuses are mapped to V2 tabs so existing providers still appear:
+// - pre_call_outreach, nurturing → sequencing tab
+// - calling, connected_no_consent → needs_call tab
 const STAGE_STATUSES: Record<string, string[]> = {
   to_queue: ["queued"],
-  sequencing: ["sequencing"],
-  needs_call: ["needs_call", "consented"],
+  sequencing: ["sequencing", "pre_call_outreach", "nurturing"],
+  needs_call: ["needs_call", "consented", "calling", "connected_no_consent"],
   enrolled: ["activated", "enrolled"],
   closed: ["closed", "bounced", "do_not_contact", "wrong_number"],
-  // Legacy mappings for backwards compatibility
-  action_needed: ["needs_call", "consented", "sequencing"],
-  initial_contact: ["queued"],
-  nurturing: ["sequencing", "needs_call", "consented"],
 };
 
 // Backwards compatibility: map old tab names to new stages

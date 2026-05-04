@@ -245,8 +245,8 @@ export default function AgentOutreachModule({
             </div>
           </div>
 
-          <p className="mt-5 text-xs uppercase tracking-wider text-slate-500">
-            Top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city}, where families are actively reaching out
+          <p className="mt-5 text-xs text-slate-500">
+            Top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city}, where families are actively reaching out.
           </p>
 
           <div className="mt-3 -mx-1 overflow-x-auto">

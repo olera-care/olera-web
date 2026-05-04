@@ -650,4 +650,10 @@ body.benefits-spotlight-active [data-spotlight-parent] > [id]:not(#benefits) {
     opacity: 1;
     transform: none;
   }
+  /* Stop the AgentOutreachModule's infinite dot pulse — show dots at full
+     opacity instead of looping the fade. */
+  .animate-outreach-dot {
+    animation: none !important;
+    opacity: 1;
+  }
 }

@@ -1,14 +1,20 @@
 /**
- * Server-only: send a student outreach email via Resend.
+ * Server-only: send a student-outreach email via Resend.
  *
- * Per-recipient personalization: one Resend send per recipient, with
- * `{first_name}` substituted from the recipient's name. Subject + body
- * passed in by the caller are templates with placeholders intact —
- * the admin may have edited them before sending.
+ * v4: invoked from two places — the cron auto-send executor (every 15 min)
+ * and the inline Day-0 send during `schedule_sequence`. The caller passes
+ * a body SNAPSHOT (subject + body that the admin reviewed/edited at
+ * pre-flight); per-recipient {first_name} substitution happens here.
  *
- * The PDF flyer is fetched once from STUDENT_OUTREACH_FLYER_URL and
- * attached to every send (fail-open: if the URL is missing or the
- * fetch fails, we still send without the attachment).
+ * Reply-To is set to STUDENT_OUTREACH_REPLY_TO (a Google Group inbox
+ * shared by the admin team) so stakeholder replies land in everyone's
+ * inbox. The From address is a sending identity (e.g. noreply@olera.care).
+ *
+ * The PDF flyer is fetched once per process from STUDENT_OUTREACH_FLYER_URL
+ * and attached to every send (fail-open if unset/unfetchable).
+ *
+ * Resend rate limit guard: 150ms throttle between sends keeps us
+ * comfortably under the 10/sec default ceiling.
  */
 
 import { sendEmail } from "@/lib/email";
@@ -17,8 +23,12 @@ import { firstNameOf, substituteVars } from "./templates";
 const FROM_ADDRESS = process.env.STUDENT_OUTREACH_FROM_ADDRESS
   ?? "Olera Outreach <noreply@olera.care>";
 
+const REPLY_TO_ADDRESS = process.env.STUDENT_OUTREACH_REPLY_TO ?? "";
+
 const FLYER_URL = process.env.STUDENT_OUTREACH_FLYER_URL ?? "";
 const FLYER_FILENAME = "olera-student-outreach-flyer.pdf";
+
+const RESEND_THROTTLE_MS = 150;
 
 export interface EmailRecipient {
   contact_id: string;
@@ -27,23 +37,17 @@ export interface EmailRecipient {
 }
 
 export interface SendOutreachEmailInput {
-  /** The outreach row id. Logged into email_log metadata. */
   outreach_id: string;
-  /** Campus name for tracking. */
   campus_name: string;
-  /** Stakeholder organization name. */
   organization_name: string;
-  /** Admin first name, substituted into {admin_first_name}. */
+  /** Logged on touchpoints + email_log; not used for Reply-To. */
   admin_first_name: string;
-  /** Editable subject (template placeholders allowed). */
+  /** Snapshot subject (placeholders intact). */
   subject: string;
-  /** Editable body (template placeholders allowed; plain text). */
+  /** Snapshot body (placeholders intact). */
   body: string;
-  /** One send per recipient. */
   recipients: EmailRecipient[];
-  /** Cadence day this send corresponds to (logged on touchpoints). */
   cadence_day: number;
-  /** Template key (logged on touchpoints). */
   template: string;
 }
 
@@ -63,7 +67,6 @@ export interface SendOutreachEmailResult {
   attachment_present: boolean;
 }
 
-/** Fetch the PDF flyer and base64-encode it. Cached per-process. */
 let cachedAttachment: { content: string; type: string } | null = null;
 let cachedAttachmentChecked = false;
 
@@ -99,18 +102,18 @@ async function loadFlyerAttachment(): Promise<
   }
 }
 
-/** Plain-text body → simple HTML, preserving line breaks + paragraphs. */
 function bodyToHtml(text: string): string {
   const escaped = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  // Two consecutive newlines → paragraph; single newline → <br>.
   return escaped
     .split(/\n{2,}/)
     .map((para) => `<p>${para.replace(/\n/g, "<br>")}</p>`)
     .join("\n");
 }
+
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export async function sendOutreachEmail(
   input: SendOutreachEmailInput,
@@ -124,7 +127,8 @@ export async function sendOutreachEmail(
   };
 
   const results: PerRecipientResult[] = [];
-  for (const r of input.recipients) {
+  for (let i = 0; i < input.recipients.length; i++) {
+    const r = input.recipients[i];
     const firstName = firstNameOf(r.name);
     const subject = substituteVars(input.subject, { first_name: firstName, ...staticVars });
     const body = substituteVars(input.body, { first_name: firstName, ...staticVars });
@@ -134,6 +138,7 @@ export async function sendOutreachEmail(
       const send = await sendEmail({
         to: r.email,
         from: FROM_ADDRESS,
+        replyTo: REPLY_TO_ADDRESS || undefined,
         subject,
         html,
         emailType: "student_outreach",
@@ -163,6 +168,10 @@ export async function sendOutreachEmail(
         email_log_id: null,
         error: err instanceof Error ? err.message : "send failed",
       });
+    }
+
+    if (i < input.recipients.length - 1) {
+      await sleep(RESEND_THROTTLE_MS);
     }
   }
 

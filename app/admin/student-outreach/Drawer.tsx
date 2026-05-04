@@ -15,10 +15,10 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { EmailComposerModal } from "./EmailComposerModal";
 import { RequestApprovalModal } from "./RequestApprovalModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
 import { OutreachStepList } from "./OutreachStepList";
+import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import {
   PARTNER_CTA_STAGES,
   STAKEHOLDER_TYPE_LABELS,
@@ -32,15 +32,8 @@ import {
   type Status,
   type Task,
 } from "@/lib/student-outreach/types";
-import {
-  callScript,
-  followupEmail,
-  introEmail,
-  partnerSeasonalEmail,
-  postAgreedShareEmail,
-  type EmailDraft,
-} from "@/lib/student-outreach/templates";
-import { CADENCE_END_DAY } from "@/lib/student-outreach/cadence";
+import { callScript } from "@/lib/student-outreach/templates";
+import { CADENCE_END_DAY, OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import {
   DEPARTMENTS,
   OTHER,
@@ -200,7 +193,7 @@ function NextStepPanel({
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
-  const [showCompose, setShowCompose] = useState(false);
+  const [showPreFlight, setShowPreFlight] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
   const [showCallScript, setShowCallScript] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
@@ -208,34 +201,12 @@ function NextStepPanel({
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
 
-  // Compose templates lazily. researched/outreach_sent are handled by
-  // OutreachStepList; only active_partner/engaged/meeting_scheduled use
-  // the legacy EmailComposerModal (mailto:) flow.
   const baseCtx = {
     stakeholder_type: type,
     organization_name: ctx.outreach.organization_name,
     campus_name: ctx.campus.name,
   };
-  const draftFor = useMemo<EmailDraft>(() => {
-    if (status === "active_partner") return partnerSeasonalEmail(baseCtx, "Pre-Fall");
-    if (status === "engaged" || status === "meeting_scheduled") return postAgreedShareEmail(baseCtx);
-    return introEmail(baseCtx);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, type]);
-
   const callDraft = callScript(baseCtx, ctx.outreach.cadence_day);
-
-  const onConfirmEmailSent = async () => {
-    setShowCompose(false);
-    try {
-      await action("log_email_sent", {
-        contact_id: primary?.id ?? null,
-        payload: { template: stageTemplateName(status) },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Log failed");
-    }
-  };
 
   return (
     <section>
@@ -264,7 +235,7 @@ function NextStepPanel({
         <div className="space-y-3 px-4 py-4">
           <StageGuidance
             ctx={ctx}
-            onStartOutreach={() => setShowCompose(true)}
+            onSchedulePreFlight={() => setShowPreFlight(true)}
             onLogCall={() => setShowCallScript(true)}
             onScheduleMeeting={() => setShowMeetingForm(true)}
             action={action}
@@ -309,12 +280,22 @@ function NextStepPanel({
       </div>
 
       {/* Modals */}
-      {showCompose && (
-        <EmailComposerModal
-          to={primary?.email ?? ""}
-          draft={draftFor}
-          onCancel={() => setShowCompose(false)}
-          onConfirmSent={onConfirmEmailSent}
+      {showPreFlight && (
+        <PreFlightReviewModal
+          stakeholderType={type}
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          contacts={ctx.contacts}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (snapshots) => {
+            try {
+              await action("schedule_sequence", { email_snapshots: snapshots });
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
         />
       )}
       {showPartner && (
@@ -335,28 +316,18 @@ function NextStepPanel({
   );
 }
 
-function stageTemplateName(s: Status): string {
-  switch (s) {
-    case "researched": return "intro";
-    case "outreach_sent": return "followup";
-    case "engaged": case "meeting_scheduled": return "share";
-    case "active_partner": return "seasonal";
-    default: return "intro";
-  }
-}
-
 // ── Stage guidance (the per-stage text + primary CTA) ──────────────────
 
 function StageGuidance({
   ctx,
-  onStartOutreach,
+  onSchedulePreFlight,
   onLogCall,
   onScheduleMeeting,
   action,
   setError,
 }: {
   ctx: DrawerContext;
-  onStartOutreach: () => void;
+  onSchedulePreFlight: () => void;
   onLogCall: () => void;
   onScheduleMeeting: () => void;
   action: ActionFn;
@@ -376,7 +347,7 @@ function StageGuidance({
       <>
         <Guidance>
           <strong>You're in research.</strong> Fill in the basics below, add at least one contact, then
-          tap <em>Research complete</em> to unlock outreach.
+          tap <em>Research complete</em>. You'll review the email sequence next, then schedule it.
         </Guidance>
         <ChecklistInline items={[
           { done: haveContact, label: "At least one active contact added" },
@@ -391,14 +362,41 @@ function StageGuidance({
               ready ? "bg-gray-900 hover:bg-gray-700" : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            {ready ? "✓ Research complete — start outreach →" : "Add a contact + programs to continue"}
+            {ready ? "✓ Research complete — review sequence →" : "Add a contact + programs to continue"}
           </button>
         </div>
       </>
     );
   }
 
-  if (status === "researched" || status === "outreach_sent") {
+  if (status === "researched") {
+    const eligibleEmail = ctx.contacts.filter((c) => c.status === "active" && c.email).length;
+    const ready = eligibleEmail > 0;
+    return (
+      <>
+        <Guidance>
+          <strong>Ready to schedule outreach.</strong> Click below to review and edit the {OUTREACH_DAYS_BY_TYPE[type].length}-email
+          sequence, then schedule. Day 0 sends immediately; later days fire automatically.
+        </Guidance>
+        <ChecklistInline items={[
+          { done: ready, label: `Active contact with email (${eligibleEmail} found)` },
+        ]} />
+        <div className="pt-1">
+          <button
+            onClick={onSchedulePreFlight}
+            disabled={!ready}
+            className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+              ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+            }`}
+          >
+            {ready ? "Schedule outreach sequence →" : "Add a contact with email to continue"}
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  if (status === "outreach_sent") {
     return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
   }
 
@@ -407,10 +405,9 @@ function StageGuidance({
       <>
         <Guidance>
           You're in dialogue. Keep the conversation moving toward a commitment to share with students.
-          Schedule a meeting if it'll help close — or send share materials once they've agreed.
+          Schedule a meeting if it'll help close.
         </Guidance>
         <PrimaryButton onClick={onScheduleMeeting}>Schedule meeting</PrimaryButton>
-        <SecondaryButton onClick={onStartOutreach}>Send share materials</SecondaryButton>
         {supportsPhoneOutreach(type) && (
           <SecondaryButton onClick={onLogCall}>Log call</SecondaryButton>
         )}
@@ -437,35 +434,17 @@ function StageGuidance({
   }
 
   if (status === "active_partner") {
-    const seasonal = ctx.pending_tasks.find((t) => t.task_type === "partner_seasonal_checkin");
+    const seasonal = ctx.pending_tasks.find((t) => t.task_type === "outreach_email_send");
     return (
       <>
         <Guidance>
           {seasonal
-            ? `Active Partner. Next seasonal check-in is queued for ${new Date(seasonal.due_at).toLocaleDateString()}.`
-            : "Active Partner. Maintain the relationship — quarterly check-ins, share updates, coordinate events."}
+            ? `Active Partner. Next seasonal email auto-sends ${new Date(seasonal.due_at).toLocaleDateString()}.`
+            : "Active Partner. Maintain the relationship — seasonal emails are auto-queued."}
         </Guidance>
-        <PrimaryButton onClick={onStartOutreach}>Send seasonal check-in</PrimaryButton>
-        <SecondaryButton
-          onClick={() =>
-            handleErr(action("queue_manual_task", {
-              task_type: "partner_share_update",
-              due_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-            }))
-          }
-        >
-          Queue update share (+7d)
-        </SecondaryButton>
-        <SecondaryButton
-          onClick={() =>
-            handleErr(action("queue_manual_task", {
-              task_type: "partner_event_coordination",
-              due_at: new Date(Date.now() + 14 * 86_400_000).toISOString(),
-            }))
-          }
-        >
-          Queue event coordination (+14d)
-        </SecondaryButton>
+        <p className="text-xs text-gray-500">
+          Seasonal sends run automatically on Aug 1, Nov 15, Jan 15, and Apr 15.
+        </p>
       </>
     );
   }

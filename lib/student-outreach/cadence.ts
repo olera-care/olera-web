@@ -47,11 +47,9 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
   student_org: [
     {
       day: 0,
-      title: "Day 0 · multi-channel intro",
+      title: "Day 0 · intro email to officers",
       steps: [
         { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "ig_dm", channel: "ig_dm", required: false },
-        { id: "contact_form", channel: "contact_form", required: false },
       ],
     },
     {
@@ -63,10 +61,9 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
     },
     {
       day: 7,
-      title: "Day 7 · multi-channel re-attempt",
+      title: "Day 7 · social-proof follow-up",
       steps: [
         { id: "email", channel: "email", required: true, template: "followup_socialproof" },
-        { id: "ig_dm", channel: "ig_dm", required: false },
       ],
     },
     {

@@ -1,0 +1,272 @@
+"use client";
+
+/**
+ * PreFlightReviewModal — v4.
+ *
+ * Opens when admin clicks "Schedule outreach sequence" on a `researched`
+ * row. Shows the entire email cadence as collapsible cards. Admin can
+ * edit any subject/body once (one-off; not saved as templates) and
+ * then clicks Schedule to commit.
+ *
+ * After submit: Day 0 auto-fires via the inline executor; later days
+ * are queued and picked up by the cron.
+ */
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  OUTREACH_DAYS_BY_TYPE,
+  type OutreachDay,
+  type TemplateKey,
+} from "@/lib/student-outreach/cadence";
+import {
+  getTemplate,
+  firstNameOf,
+  substituteVars,
+} from "@/lib/student-outreach/templates";
+import type { Contact, StakeholderType } from "@/lib/student-outreach/types";
+
+interface Snapshot {
+  day: number;
+  template: TemplateKey;
+  subject: string;
+  body: string;
+  /** Static (non-editable) for context. */
+  title: string;
+}
+
+interface Props {
+  stakeholderType: StakeholderType;
+  organizationName: string;
+  campusName: string;
+  contacts: Contact[];
+  onCancel: () => void;
+  onSubmit: (snapshots: Array<Pick<Snapshot, "day" | "template" | "subject" | "body">>) => Promise<void>;
+}
+
+export function PreFlightReviewModal({
+  stakeholderType,
+  organizationName,
+  campusName,
+  contacts,
+  onCancel,
+  onSubmit,
+}: Props) {
+  const eligible = useMemo(
+    () => contacts.filter((c) => c.status === "active" && c.email && c.email.trim().length > 0),
+    [contacts],
+  );
+
+  const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[stakeholderType];
+
+  const [snapshots, setSnapshots] = useState<Snapshot[]>(() => {
+    const result: Snapshot[] = [];
+    for (const d of days) {
+      for (const step of d.steps) {
+        if (step.channel !== "email" || !step.template) continue;
+        const tpl = getTemplate(step.template, {
+          stakeholder_type: stakeholderType,
+          organization_name: organizationName,
+          campus_name: campusName,
+        });
+        result.push({
+          day: d.day,
+          template: step.template,
+          subject: tpl.subject,
+          body: tpl.body,
+          title: d.title,
+        });
+      }
+    }
+    return result;
+  });
+
+  const phoneDays = days.filter((d) => d.steps.some((s) => s.channel === "phone")).map((d) => d.day);
+
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const updateSnap = (idx: number, patch: Partial<Snapshot>) => {
+    setSnapshots((cur) => cur.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+  };
+
+  const submit = async () => {
+    setErr(null);
+    if (eligible.length === 0) {
+      setErr("No active contacts with email — add one before scheduling");
+      return;
+    }
+    for (const s of snapshots) {
+      if (!s.subject.trim() || !s.body.trim()) {
+        setErr(`Day ${s.day} subject and body required`);
+        return;
+      }
+    }
+    setSubmitting(true);
+    try {
+      await onSubmit(snapshots.map((s) => ({
+        day: s.day,
+        template: s.template,
+        subject: s.subject.trim(),
+        body: s.body.trim(),
+      })));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Schedule failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const previewContact = eligible[0] ?? null;
+  const previewVars = {
+    first_name: firstNameOf(previewContact?.name),
+    organization_name: organizationName,
+    campus_name: campusName,
+    admin_first_name: "the Olera team",
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Schedule outreach sequence</h3>
+            <p className="mt-0.5 text-xs text-gray-500">
+              Review the cadence, edit any email if you'd like, then schedule. Day 0 sends
+              immediately; later days fire automatically.
+            </p>
+          </div>
+          <button onClick={onCancel} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100" aria-label="Close">
+            <span aria-hidden>×</span>
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+          {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
+
+          {/* Recipient summary */}
+          <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs">
+            {eligible.length === 0 ? (
+              <p className="text-amber-700">
+                ⚠ No active contacts with email yet. Cancel and add one before scheduling.
+              </p>
+            ) : (
+              <p className="text-gray-700">
+                Will send to <strong>{eligible.length}</strong> active contact{eligible.length === 1 ? "" : "s"}:{" "}
+                <span className="text-gray-500">
+                  {eligible.map((c) => c.name + " (" + c.email + ")").join(" · ")}
+                </span>
+              </p>
+            )}
+          </div>
+
+          {/* Phone-call notice */}
+          {phoneDays.length > 0 && (
+            <div className="rounded-md bg-blue-50/60 px-3 py-2 text-xs text-blue-900">
+              📞 Phone call task{phoneDays.length === 1 ? "" : "s"} will be queued for Day{phoneDays.length === 1 ? "" : "s"} {phoneDays.join(", ")} — those need manual action when due.
+            </div>
+          )}
+
+          {/* Email cards */}
+          {snapshots.map((s, idx) => {
+            const isOpen = openIdx === idx;
+            const subjectPreview = substituteVars(s.subject, previewVars);
+            return (
+              <div key={s.day} className="rounded-md border border-gray-200 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setOpenIdx(isOpen ? null : idx)}
+                  className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      Day {s.day} · {s.title.replace(/^Day \d+\s*·\s*/, "")}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-gray-500">
+                      Subject: {subjectPreview}
+                    </p>
+                  </div>
+                  <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
+                </button>
+                {isOpen && (
+                  <div className="space-y-2 border-t border-gray-100 px-3 pb-3 pt-2">
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-medium text-gray-700">Subject</span>
+                      <input
+                        value={s.subject}
+                        onChange={(e) => updateSnap(idx, { subject: e.target.value })}
+                        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 flex items-center justify-between text-xs font-medium text-gray-700">
+                        <span>Body</span>
+                        <span className="font-normal text-gray-500">
+                          Variables: <code>{"{first_name}"}</code> <code>{"{organization_name}"}</code> <code>{"{campus_name}"}</code>
+                        </span>
+                      </span>
+                      <textarea
+                        value={s.body}
+                        onChange={(e) => updateSnap(idx, { body: e.target.value })}
+                        rows={10}
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-gray-400 focus:outline-none"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewIdx(previewIdx === idx ? null : idx)}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      {previewIdx === idx ? "Hide preview" : "Preview substitution"}
+                    </button>
+                    {previewIdx === idx && previewContact && (
+                      <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs">
+                        <p className="font-medium text-gray-600">Subject:</p>
+                        <p className="text-gray-800">{substituteVars(s.subject, previewVars)}</p>
+                        <p className="mt-2 font-medium text-gray-600">Body (for {previewContact.name}):</p>
+                        <pre className="mt-1 whitespace-pre-wrap text-gray-800">{substituteVars(s.body, previewVars)}</pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <p className="rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-900">
+            📎 The Olera flyer (PDF) is attached automatically to every send.
+          </p>
+        </div>
+
+        <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+          <p className="text-xs text-gray-500">
+            {snapshots.length} email{snapshots.length === 1 ? "" : "s"} will be scheduled
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={onCancel}
+              disabled={submitting}
+              className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={submit}
+              disabled={submitting || eligible.length === 0}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {submitting ? "Scheduling…" : "Schedule sequence"}
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}

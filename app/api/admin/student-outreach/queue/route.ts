@@ -194,12 +194,86 @@ export async function GET(req: NextRequest) {
     };
   });
 
+  // ── Synthetic inbox-check task: list outreach_sent rows that may have
+  // received replies the admin needs to triage. Always returned (the
+  // page renders it above the regular list).
+  const inboxCheck = await computeInboxCheck(db, {
+    campusId: selectedCampus?.id ?? null,
+    type: typeFilter,
+    campusMap,
+  });
+
   return NextResponse.json({
     campuses: campusList,
     rows: queueRows,
     total: count ?? queueRows.length,
     tabCounts,
+    inbox_check: inboxCheck,
   });
+}
+
+interface InboxCheckRow {
+  outreach_id: string;
+  organization_name: string;
+  campus_name: string;
+  stakeholder_type: StakeholderType;
+  last_email_sent_at: string | null;
+  last_email_subject: string | null;
+}
+
+async function computeInboxCheck(
+  db: DB,
+  filters: { campusId: string | null; type: StakeholderType | null; campusMap: Map<string, Campus> },
+): Promise<{ count: number; rows: InboxCheckRow[] }> {
+  let q = db
+    .from("student_outreach")
+    .select("id, organization_name, stakeholder_type, campus_id")
+    .eq("status", "outreach_sent")
+    .order("last_edited_at", { ascending: false })
+    .limit(50);
+  if (filters.campusId) q = q.eq("campus_id", filters.campusId);
+  if (filters.type) q = q.eq("stakeholder_type", filters.type);
+
+  const { data: rows } = await q;
+  const list = ((rows ?? []) as Array<{
+    id: string;
+    organization_name: string;
+    stakeholder_type: StakeholderType;
+    campus_id: string;
+  }>);
+  if (list.length === 0) return { count: 0, rows: [] };
+
+  const ids = list.map((r) => r.id);
+  const { data: tps } = await db
+    .from("student_outreach_touchpoints")
+    .select("outreach_id, payload, created_at")
+    .in("outreach_id", ids)
+    .eq("touchpoint_type", "email_sent")
+    .order("created_at", { ascending: false });
+
+  const lastByOutreach = new Map<string, { at: string; subject: string | null }>();
+  for (const tp of (tps ?? []) as Array<{ outreach_id: string; payload: Record<string, unknown>; created_at: string }>) {
+    if (!lastByOutreach.has(tp.outreach_id)) {
+      // Subject isn't stored on email_sent touchpoint payload (the
+      // task's payload had it). For MVP we just show "—" rather than
+      // back-resolve the task. Drawer shows full content on click.
+      lastByOutreach.set(tp.outreach_id, { at: tp.created_at, subject: null });
+    }
+  }
+
+  const out: InboxCheckRow[] = list.map((r) => {
+    const last = lastByOutreach.get(r.id) ?? null;
+    return {
+      outreach_id: r.id,
+      organization_name: r.organization_name,
+      campus_name: filters.campusMap.get(r.campus_id)?.name ?? "(unknown campus)",
+      stakeholder_type: r.stakeholder_type,
+      last_email_sent_at: last?.at ?? null,
+      last_email_subject: last?.subject ?? null,
+    };
+  });
+
+  return { count: out.length, rows: out };
 }
 
 // ── Tab-count computation ────────────────────────────────────────────────

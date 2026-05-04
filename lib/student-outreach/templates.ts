@@ -33,7 +33,12 @@ export interface TemplateContext {
   admin_first_name?: string;
 }
 
-const SIGN_OFF = "— Olera Team\nhttps://olera.care";
+const SIGN_OFF = [
+  "— Olera Team",
+  "https://olera.care",
+  "",
+  "Reply STOP if you'd like us to stop reaching out.",
+].join("\n");
 
 const PLACEHOLDER = {
   firstName: "{first_name}",

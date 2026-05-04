@@ -12,7 +12,6 @@
  * Pure functions only — DB writes happen in the API route.
  */
 
-import { firstCadenceStep } from "./cadence";
 import type { StakeholderType, Status, TaskType } from "./types";
 
 export interface StageEntryEffect {
@@ -93,17 +92,12 @@ export function onStageEnter(
         taskToQueue: { task_type: "outreach_day_0", due_at: now },
       };
 
-    case "outreach_sent": {
-      // First day's task — Day 0 is "due now", so admin can immediately work it.
-      const first = firstCadenceStep(opts.stakeholderType);
-      return {
-        taskToQueue: {
-          task_type: first.task_type,
-          due_at: new Date(now.getTime() + first.day * DAY_MS),
-        },
-        fieldsToUpdate: { cadence_day: first.day },
-      };
-    }
+    case "outreach_sent":
+      // v4: the sequencer (called from schedule_sequence) owns the cadence
+      // queue. Entering outreach_sent via state-machine alone (e.g. from a
+      // logged outreach touchpoint) does NOT auto-queue. This avoids
+      // duplicate tasks when the admin uses the Schedule flow.
+      return { fieldsToUpdate: { cadence_day: 0 } };
 
     case "engaged":
       return {
@@ -149,10 +143,12 @@ export function tasksToCancelOnExit(stage: Status): TaskType[] {
       return ["outreach_day_0"];
     case "outreach_sent":
       return [
+        "outreach_email_send",         // v4 auto-send
+        "outreach_followup_call",      // v4 manual call task
+        // Legacy v3 (kept for safety; harmless if absent):
         "outreach_day_0",
         "outreach_multichannel_orgs",
         "outreach_followup_email",
-        "outreach_followup_call",
       ];
     case "engaged":
       return ["manual_followup"];
@@ -160,7 +156,8 @@ export function tasksToCancelOnExit(stage: Status): TaskType[] {
       return ["meeting_held_logging"];
     case "active_partner":
       return [
-        "partner_seasonal_checkin",
+        "outreach_email_send",       // v4 auto-send (seasonal)
+        "partner_seasonal_checkin",  // legacy
         "partner_share_update",
         "partner_event_coordination",
         "yearly_leadership_recheck",

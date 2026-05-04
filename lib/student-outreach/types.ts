@@ -86,6 +86,7 @@ export type TaskType =
   | "research_initial"
   | "outreach_day_0"
   | "outreach_multichannel_orgs"
+  | "outreach_email_send"
   | "outreach_followup_email"
   | "outreach_followup_call"
   | "meeting_held_logging"

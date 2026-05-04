@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
+import { InboxCheckPanel, type InboxCheckRow } from "./InboxCheckPanel";
 import {
   STAKEHOLDER_TYPE_LABELS,
   STATUS_LABELS,
@@ -48,6 +49,7 @@ export default function StudentOutreachPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  const [inboxCheck, setInboxCheck] = useState<{ count: number; rows: InboxCheckRow[] }>({ count: 0, rows: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export default function StudentOutreachPage() {
       setCampuses(data.campuses ?? []);
       setRows(data.rows ?? []);
       setTabCounts(data.tabCounts ?? null);
+      setInboxCheck(data.inbox_check ?? { count: 0, rows: [] });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -185,6 +188,15 @@ export default function StudentOutreachPage() {
           className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
         />
       </div>
+
+      {/* Inbox check (synthetic, top-of-Queued) */}
+      {tab === "queued" && (
+        <InboxCheckPanel
+          rows={inboxCheck.rows}
+          onAfterMark={refetch}
+          onError={setError}
+        />
+      )}
 
       {/* Tabs */}
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-gray-100">

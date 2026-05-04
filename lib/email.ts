@@ -47,6 +47,8 @@ export interface SendEmailOptions {
   emailLogId?: string;
   /** File attachments (e.g. .ics calendar invites) */
   attachments?: Array<{ filename: string; content: string; encoding?: string; type?: string }>;
+  /** Reply-To header. If provided, replies route here instead of the From address. */
+  replyTo?: string;
   /** Recipient's profile ID for checking notification preferences. If provided, controllable notifications will respect user preferences. */
   recipientProfileId?: string;
 }
@@ -231,6 +233,9 @@ export async function sendEmail(
       content: Buffer.from(a.content, (a.encoding as BufferEncoding) || "utf-8"),
       contentType: a.type,
     }));
+  }
+  if (options.replyTo) {
+    sendPayload.replyTo = options.replyTo;
   }
   const { data, error } = await resend.emails.send(sendPayload);
 

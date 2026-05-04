@@ -17,19 +17,17 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
+import { type TemplateKey } from "@/lib/student-outreach/cadence";
+import { getTemplate } from "@/lib/student-outreach/templates";
 import {
-  dayToTaskType,
-  nextCadenceDay,
-  type StepId,
-  type TemplateKey,
-} from "@/lib/student-outreach/cadence";
-import { sendOutreachEmail, type EmailRecipient } from "@/lib/student-outreach/email-send";
-import { firstNameOf } from "@/lib/student-outreach/templates";
+  planSequence,
+  type EmailSnapshot,
+} from "@/lib/student-outreach/sequencer";
+import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import type {
   ApprovalStatus,
   ApprovalType,
   Campus,
-  Contact,
   ContactPermission,
   ContactStatus,
   DistributionEvidence,
@@ -208,18 +206,18 @@ export async function POST(
         await handleSnooze(db, row, body, user.id);
         break;
 
-      // ── v3 step-driven outreach ─────────────────────────────────────
-      case "send_outreach_email":
-        await handleSendOutreachEmail(db, row, body, user.id, admin);
+      // ── v4 auto-send outreach ───────────────────────────────────────
+      case "schedule_sequence":
+        await handleScheduleSequence(db, row, body, user.id);
         break;
-      case "mark_step_done":
-        await handleMarkStepDone(db, row, body, user.id);
+      case "edit_pending_email":
+        await handleEditPendingEmail(db, row, body, user.id);
         break;
-      case "mark_step_skipped":
-        await handleMarkStepSkipped(db, row, body, user.id);
+      case "skip_pending_email":
+        await handleSkipPendingEmail(db, row, body, user.id);
         break;
-      case "advance_to_next_day":
-        await handleAdvanceToNextDay(db, row, user.id);
+      case "mark_engaged_bulk":
+        await handleMarkEngagedBulk(db, body, user.id);
         break;
 
       default:
@@ -625,15 +623,33 @@ async function handleMarkPartner(
     payload: { evidence: body.evidence },
   });
 
-  // Queue the first seasonal check-in.
+  // v4: queue the first seasonal email as an outreach_email_send task
+  // with a snapshot of the seasonal template body. The cron picks it
+  // up, sends, and queues the next seasonal automatically.
+  const { data: campus } = await db
+    .from("student_outreach_campuses")
+    .select("name")
+    .eq("id", row.campus_id)
+    .single();
   const seasonal = nextSeasonalDate(new Date());
+  const tpl = getTemplate("seasonal", {
+    stakeholder_type: row.stakeholder_type,
+    organization_name: row.organization_name,
+    campus_name: (campus as { name: string } | null)?.name ?? "your campus",
+  });
   await queueTask(
     db,
     row.id,
     {
-      task_type: "partner_seasonal_checkin",
+      task_type: "outreach_email_send",
       due_at: seasonal.due_at,
-      payload: { season: seasonal.label },
+      payload: {
+        day: -1,
+        template: "seasonal" as TemplateKey,
+        season: seasonal.label,
+        subject: tpl.subject,
+        body: tpl.body,
+      },
     },
     userId,
   );
@@ -765,202 +781,204 @@ async function handleLogCall(
   }
 }
 
-// ── v3 step-driven outreach handlers ────────────────────────────────────
+// ── v4 auto-send outreach handlers ──────────────────────────────────────
 
 /**
- * Send an outreach email to N recipients via Resend. Logs one
- * `email_sent` touchpoint per recipient with payload tagging the
- * cadence day + step_id, so the step list knows it's done.
- *
- * If row is in `researched` or `prospect`, also advances to `outreach_sent`.
+ * Schedule the full email cadence for a stakeholder. Inserts one
+ * `outreach_email_send` task per email day (with subject/body snapshot)
+ * + one `outreach_followup_call` task per phone day. Transitions stage
+ * to `outreach_sent`. Then INLINE-fires Day 0 so the admin sees the
+ * first email go out immediately rather than waiting for the cron.
  */
-async function handleSendOutreachEmail(
+async function handleScheduleSequence(
   db: DB,
   row: OutreachRow,
-  body: {
-    recipient_contact_ids?: string[];
-    subject?: string;
-    body?: string;
-    template?: TemplateKey;
-    cadence_day?: number;
-    step_id?: StepId;
-  },
+  body: { email_snapshots?: EmailSnapshot[] },
   userId: string,
-  admin: { email: string },
 ) {
-  const ids = body.recipient_contact_ids ?? [];
-  if (ids.length === 0) throw new Error("Pick at least one recipient");
-  if (!body.subject?.trim() || !body.body?.trim()) throw new Error("Subject and body required");
-  const template = body.template ?? "intro";
-  const day = body.cadence_day ?? row.cadence_day ?? 0;
-  const stepId: StepId = (body.step_id ?? "email") as StepId;
-
-  // Hydrate recipients
-  const { data: contacts } = await db
-    .from("student_outreach_contacts")
-    .select("id, name, email, status")
-    .in("id", ids)
-    .eq("outreach_id", row.id);
-  const recipients: EmailRecipient[] = ((contacts ?? []) as Contact[])
-    .filter((c) => c.email && c.status === "active")
-    .map((c) => ({ contact_id: c.id, name: c.name, email: c.email! }));
-
-  if (recipients.length === 0) {
-    throw new Error("No valid recipients (need active contacts with emails)");
+  const snapshots = body.email_snapshots ?? [];
+  if (snapshots.length === 0) throw new Error("email_snapshots required");
+  for (const s of snapshots) {
+    if (!s.subject?.trim() || !s.body?.trim()) {
+      throw new Error(`Day ${s.day} subject and body required`);
+    }
   }
 
-  // Hydrate campus name + admin first name for personalization
-  const { data: campus } = await db
-    .from("student_outreach_campuses")
-    .select("name")
-    .eq("id", row.campus_id)
-    .single();
-  const adminFirstName = firstNameFromEmail(admin.email);
+  // Reject if a sequence is already in flight (avoid duplicate scheduling).
+  const { data: existing } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .eq("task_type", "outreach_email_send");
+  if ((existing ?? []).length > 0) {
+    throw new Error("Sequence already scheduled — cancel or wait for it to complete first");
+  }
 
-  const result = await sendOutreachEmail({
+  // Plan + insert tasks.
+  const plan = planSequence({
     outreach_id: row.id,
-    campus_name: (campus as { name: string } | null)?.name ?? "your campus",
-    organization_name: row.organization_name,
-    admin_first_name: adminFirstName,
-    subject: body.subject,
-    body: body.body,
-    recipients,
-    cadence_day: day,
-    template,
+    stakeholder_type: row.stakeholder_type,
+    email_snapshots: snapshots,
+    user_id: userId,
   });
+  const inserts = plan.map((p) => ({
+    outreach_id: row.id,
+    task_type: p.task_type,
+    due_at: p.due_at.toISOString(),
+    payload: p.payload,
+    created_by: userId,
+  }));
+  const { data: insertedTasks, error: insertErr } = await db
+    .from("student_outreach_tasks")
+    .insert(inserts)
+    .select("id, task_type, payload, due_at");
+  if (insertErr) throw new Error(insertErr.message);
 
-  // One touchpoint per recipient (success or failure).
-  for (const r of result.results) {
-    await insertTouchpoint(db, row.id, "email_sent", userId, {
-      contact_id: r.contact_id,
-      channel: "email",
-      outcome: r.success ? "sent" : "failed",
-      notes: r.error,
-      payload: {
-        cadence_day: day,
-        step_id: stepId,
-        template,
-        recipient_email: r.recipient_email,
-        recipient_name: r.recipient_name,
-        success: r.success,
-        email_log_id: r.email_log_id,
-        error: r.error,
-        attachment_present: result.attachment_present,
-      },
-    });
-  }
-
-  // Advance to outreach_sent if we sent from researched/prospect.
-  if (
-    result.success_count > 0 &&
-    (row.status === "researched" || row.status === "prospect")
-  ) {
-    await transitionStage(db, row, "outreach_sent", userId);
+  // Transition stage prospect/researched → outreach_sent.
+  if (row.status !== "outreach_sent") {
+    await transitionStage(db, row, "outreach_sent", userId, "sequence_scheduled");
   } else {
     await touchOutreach(db, row.id, userId);
   }
 
-  // Throw if ALL recipients failed — admin needs to know to retry.
-  if (result.success_count === 0 && result.failure_count > 0) {
-    throw new Error(
-      `All ${result.failure_count} sends failed: ${result.results.map((r) => r.error).filter(Boolean).join("; ")}`,
+  // Inline-fire Day 0 so admin sees immediate effect.
+  const day0Task = (insertedTasks ?? []).find((t) => {
+    const tt = t as { task_type: string; payload: Record<string, unknown> };
+    return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
+  }) as { id: string } | undefined;
+  if (day0Task) {
+    try {
+      await executeEmailTask(day0Task.id);
+    } catch (err) {
+      // Inline send failed — task remains marked completed (claim-then-send
+      // semantics) but with no successful sends. The auto-queued
+      // manual_followup will surface this. Don't throw — admin already
+      // succeeded in scheduling, the failure surfaces in history.
+      console.error("Inline Day 0 send failed:", err);
+    }
+  }
+}
+
+/**
+ * Edit the subject/body snapshot of an upcoming pending email task.
+ * Server enforces: task must be `pending` and due_at must be at least
+ * 15 minutes in the future (one cron interval) so we don't race the
+ * executor.
+ */
+async function handleEditPendingEmail(
+  db: DB,
+  row: OutreachRow,
+  body: { task_id?: string; subject?: string; body?: string },
+  userId: string,
+) {
+  if (!body.task_id) throw new Error("task_id required");
+  if (!body.subject?.trim() || !body.body?.trim()) {
+    throw new Error("Subject and body required");
+  }
+
+  const { data: task } = await db
+    .from("student_outreach_tasks")
+    .select("id, status, due_at, task_type, payload")
+    .eq("id", body.task_id)
+    .eq("outreach_id", row.id)
+    .single();
+  if (!task) throw new Error("Task not found");
+  const t = task as {
+    status: string;
+    due_at: string;
+    task_type: string;
+    payload: Record<string, unknown>;
+  };
+  if (t.status !== "pending") {
+    return Promise.reject(
+      Object.assign(new Error("Task is no longer pending"), { code: 409 }),
     );
   }
-}
-
-/**
- * Mark a non-email step done (IG DM, contact form). Logs the matching
- * touchpoint with `payload.cadence_day` + `payload.step_id`.
- */
-async function handleMarkStepDone(
-  db: DB,
-  row: OutreachRow,
-  body: { cadence_day?: number; step_id?: StepId; notes?: string; contact_id?: string },
-  userId: string,
-) {
-  const stepId: StepId = (body.step_id ?? "") as StepId;
-  const day = body.cadence_day ?? row.cadence_day ?? 0;
-  const map: Record<StepId, { type: TouchpointType; channel: Channel } | null> = {
-    email: null,
-    ig_dm: { type: "ig_dm_sent", channel: "ig_dm" },
-    contact_form: { type: "contact_form_submitted", channel: "contact_form" },
-    phone: null,
-  };
-  const m = map[stepId];
-  if (!m) throw new Error(`Use a dedicated action for step "${stepId}"`);
-
-  await insertTouchpoint(db, row.id, m.type, userId, {
-    contact_id: body.contact_id ?? null,
-    channel: m.channel,
-    notes: body.notes ?? null,
-    payload: { cadence_day: day, step_id: stepId },
-  });
-
-  if (row.status === "researched" || row.status === "prospect") {
-    await transitionStage(db, row, "outreach_sent", userId);
-  } else {
-    await touchOutreach(db, row.id, userId);
+  if (t.task_type !== "outreach_email_send") {
+    throw new Error("Can only edit outreach_email_send tasks");
   }
+  const dueMs = new Date(t.due_at).getTime();
+  if (dueMs - Date.now() < 15 * 60 * 1000) {
+    throw new Error("Too close to send time to edit (within 15 minutes of due_at)");
+  }
+
+  const newPayload = { ...t.payload, subject: body.subject.trim(), body: body.body.trim() };
+  await db
+    .from("student_outreach_tasks")
+    .update({ payload: newPayload })
+    .eq("id", body.task_id);
+
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    payload: { edited_task_id: body.task_id, edited_day: t.payload?.day },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
-/** Mark a step skipped — admin chose to bypass it for this day. */
-async function handleMarkStepSkipped(
+/** Cancel a single pending outreach_email_send task. */
+async function handleSkipPendingEmail(
   db: DB,
   row: OutreachRow,
-  body: { cadence_day?: number; step_id?: StepId; reason?: string },
+  body: { task_id?: string; reason?: string },
   userId: string,
 ) {
-  const stepId = body.step_id;
-  const day = body.cadence_day ?? row.cadence_day ?? 0;
-  if (!stepId) throw new Error("step_id required");
-  await insertTouchpoint(db, row.id, "step_skipped", userId, {
-    notes: body.reason ?? null,
-    payload: { cadence_day: day, step_id: stepId, reason: body.reason ?? null },
+  if (!body.task_id) throw new Error("task_id required");
+  const { data: task } = await db
+    .from("student_outreach_tasks")
+    .select("id, status, task_type, payload, due_at")
+    .eq("id", body.task_id)
+    .eq("outreach_id", row.id)
+    .single();
+  if (!task) throw new Error("Task not found");
+  const t = task as { status: string; task_type: string; payload: Record<string, unknown>; due_at: string };
+  if (t.status !== "pending") throw new Error("Task is no longer pending");
+  if (t.task_type !== "outreach_email_send") throw new Error("Can only skip outreach_email_send tasks");
+  const dueMs = new Date(t.due_at).getTime();
+  if (dueMs - Date.now() < 15 * 60 * 1000) {
+    throw new Error("Too close to send time to skip (within 15 minutes of due_at)");
+  }
+
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+      payload: { ...t.payload, outcome: "admin_skipped", reason: body.reason ?? null },
+    })
+    .eq("id", body.task_id);
+
+  await insertTouchpoint(db, row.id, "task_cancelled", userId, {
+    payload: { task_id: body.task_id, day: t.payload?.day, reason: body.reason ?? null },
   });
   await touchOutreach(db, row.id, userId);
 }
 
 /**
- * Explicit "I'm done with this day's checklist — move to the next."
- * Cancels current day's task, queues next day's task, advances cadence_day.
- * If no next day exists, the cadence is exhausted (admin should close as
- * no_response or mark as partner manually).
+ * Bulk: mark multiple rows as engaged in one call (used by inbox check).
+ * Each transition runs the full state-machine with cancellation hooks,
+ * so all pending email tasks for those rows get superseded.
  */
-async function handleAdvanceToNextDay(db: DB, row: OutreachRow, userId: string) {
-  if (row.status !== "outreach_sent") {
-    throw new Error("Can only advance cadence while in Outreach Sent");
+async function handleMarkEngagedBulk(
+  db: DB,
+  body: { outreach_ids?: string[]; notes?: string },
+  userId: string,
+) {
+  const ids = body.outreach_ids ?? [];
+  if (ids.length === 0) throw new Error("outreach_ids required");
+  if (ids.length > 50) throw new Error("Max 50 rows at once");
+
+  for (const id of ids) {
+    const { data: rowData } = await db
+      .from("student_outreach")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (!rowData) continue;
+    const r = rowData as OutreachRow;
+    if (r.status !== "outreach_sent") continue; // Only flip rows currently in outreach.
+    await transitionStage(db, r, "engaged", userId, body.notes ?? "via inbox check");
   }
-  const next = nextCadenceDay(row.stakeholder_type, row.cadence_day);
-  if (!next) {
-    throw new Error("Cadence cycle exhausted — close as No Response or Mark as Partner");
-  }
-
-  // Cancel current cadence task(s).
-  await db
-    .from("student_outreach_tasks")
-    .update({ status: "completed", completed_at: new Date().toISOString(), completed_by: userId })
-    .eq("outreach_id", row.id)
-    .eq("status", "pending")
-    .in("task_type", [
-      "outreach_day_0",
-      "outreach_multichannel_orgs",
-      "outreach_followup_email",
-      "outreach_followup_call",
-    ]);
-
-  // Queue next day's task at the calendar offset.
-  const deltaDays = Math.max(0, next.day - row.cadence_day);
-  await queueTask(
-    db,
-    row.id,
-    { task_type: dayToTaskType(next), due_at: new Date(Date.now() + deltaDays * DAY_MS) },
-    userId,
-  );
-
-  await touchOutreach(db, row.id, userId, { cadence_day: next.day });
-  await insertTouchpoint(db, row.id, "stage_change", userId, {
-    payload: { cadence_advance: true, from_day: row.cadence_day, to_day: next.day },
-  });
 }
 
 

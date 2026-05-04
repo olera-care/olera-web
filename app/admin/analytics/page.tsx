@@ -94,6 +94,15 @@ interface BenefitsFunnelByVariant {
   unassigned: BenefitsFunnel;
 }
 
+interface ReferrerBreakdown {
+  ai_chat: number;
+  search: number;
+  social: number;
+  olera_internal: number;
+  direct: number;
+  other: number;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
@@ -105,6 +114,7 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    referrer_breakdown: ReferrerBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -115,6 +125,7 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    referrer_breakdown: ReferrerBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -283,6 +294,44 @@ function WindowedCard({
                 value={summary.windowed.counts.search_click}
                 prior={summary.prior?.counts.search_click ?? null}
                 tooltip="Click-throughs from a provider card on a results/browse page (NOT home-page Search button)."
+              />
+            </SubRow>
+            <SubRow label="Traffic source" cols={6}>
+              <Stat
+                label="AI chat"
+                value={summary.windowed.referrer_breakdown.ai_chat}
+                prior={summary.prior?.referrer_breakdown.ai_chat ?? null}
+                tooltip="Page views referred from ChatGPT, Claude, Gemini, Perplexity, or Copilot. The H2 capture target — should grow as llms.txt + JSON-LD land."
+              />
+              <Stat
+                label="Search"
+                value={summary.windowed.referrer_breakdown.search}
+                prior={summary.prior?.referrer_breakdown.search ?? null}
+                tooltip="Page views referred from Google, Bing, DuckDuckGo, Yahoo, or Brave search."
+              />
+              <Stat
+                label="Social"
+                value={summary.windowed.referrer_breakdown.social}
+                prior={summary.prior?.referrer_breakdown.social ?? null}
+                tooltip="Page views referred from Facebook, X, LinkedIn, Reddit, YouTube, TikTok, Instagram, or Pinterest."
+              />
+              <Stat
+                label="Internal"
+                value={summary.windowed.referrer_breakdown.olera_internal}
+                prior={summary.prior?.referrer_breakdown.olera_internal ?? null}
+                tooltip="Page views from olera.care itself — same-tab navigation between Olera pages."
+              />
+              <Stat
+                label="Direct"
+                value={summary.windowed.referrer_breakdown.direct}
+                prior={summary.prior?.referrer_breakdown.direct ?? null}
+                tooltip="Page views with no referrer — typed URLs, bookmarks, app webviews, or referrer-stripping browsers."
+              />
+              <Stat
+                label="Other"
+                value={summary.windowed.referrer_breakdown.other}
+                prior={summary.prior?.referrer_breakdown.other ?? null}
+                tooltip="Page views from any other external host. Long tail."
               />
             </SubRow>
             <SubRow label="Engagement">

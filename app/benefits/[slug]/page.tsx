@@ -234,9 +234,45 @@ export default async function BenefitsSlugPage({ params }: Props) {
     })),
   } : null;
 
+  // Article schema — gives AI agents a quotable handle on the editorial
+  // content of the page (overview.intro + program count). Author/publisher
+  // assert Olera's voice; mainEntityOfPage anchors the URL.
+  const stateName = resolved.type === "state" ? resolved.state.name : resolved.regionName;
+  const articleDescription =
+    overview.intro?.split(/[.!?]\s/)[0] || `${state.programs.length} senior benefit programs in ${stateName}.`;
+  const articleJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `Senior Benefits in ${stateName}`,
+    description: articleDescription,
+    author: {
+      "@type": "Organization",
+      name: "Olera",
+      url: "https://olera.care",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Olera",
+      url: "https://olera.care",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://olera.care/images/olera-logo.png",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://olera.care/benefits/${slug}`,
+    },
+    ...(draftedAt && {
+      datePublished: draftedAt,
+      dateModified: draftedAt,
+    }),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
       <StatePageV3
         state={state}

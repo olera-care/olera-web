@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isBotRequest, incrementBotReject } from "@/lib/analytics/bot-filter";
+import {
+  classifyReferrer,
+  sanitizeReferrer,
+} from "@/lib/analytics/referrer";
 
 const PROVIDER_EVENT_TYPES = [
   "email_click",
@@ -46,14 +50,6 @@ const ANONYMOUS_EVENT_TYPES = [
   "benefits_started",
 ] as const;
 
-const OLERA_HOSTS = new Set([
-  "olera.care",
-  "www.olera.care",
-  "olera2-web.vercel.app",
-  "staging-olera2-web.vercel.app",
-  "localhost",
-]);
-
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -67,24 +63,6 @@ function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" |
   if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
   if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
   return "other";
-}
-
-/**
- * Reduce a raw referrer URL to either an Olera-internal path or just the
- * external domain. Never store query strings on external referrers — they
- * can leak search terms (PII risk per Phase 0 privacy review).
- */
-function sanitizeReferrer(rawReferrer: string | null | undefined): string | null {
-  if (!rawReferrer) return null;
-  try {
-    const u = new URL(rawReferrer);
-    if (OLERA_HOSTS.has(u.hostname)) {
-      return `internal:${u.pathname}`;
-    }
-    return u.hostname;
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -157,6 +135,11 @@ export async function POST(request: NextRequest) {
         session_id,
         ua_class: classifyUserAgent(userAgent),
         referrer: sanitizeReferrer(metadata?.referrer),
+        // referrer_class buckets traffic source into a small enum
+        // (ai_chat / search / social / olera_internal / direct / other)
+        // so we can measure the rise of LLM-originated visits without
+        // hand-rolling host matchers in admin queries.
+        referrer_class: classifyReferrer(metadata?.referrer),
       };
 
       const { error } = await db.from("provider_activity").insert({

@@ -73,6 +73,7 @@ export type TouchpointType =
   | "snoozed"
   | "task_cancelled"
   | "task_superseded"
+  | "step_skipped"
   | "system_seasonal_due";
 
 export type Channel = "email" | "phone" | "ig_dm" | "contact_form" | "meeting" | "system";

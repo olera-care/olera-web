@@ -12,7 +12,7 @@
  * Pure functions only — DB writes happen in the API route.
  */
 
-import { firstCadenceStep, dueAtForStep } from "./cadence";
+import { firstCadenceStep } from "./cadence";
 import type { StakeholderType, Status, TaskType } from "./types";
 
 export interface StageEntryEffect {
@@ -94,13 +94,14 @@ export function onStageEnter(
       };
 
     case "outreach_sent": {
-      const step = firstCadenceStep(opts.stakeholderType);
+      // First day's task — Day 0 is "due now", so admin can immediately work it.
+      const first = firstCadenceStep(opts.stakeholderType);
       return {
         taskToQueue: {
-          task_type: step.task_type,
-          due_at: dueAtForStep(now, step),
+          task_type: first.task_type,
+          due_at: new Date(now.getTime() + first.day * DAY_MS),
         },
-        fieldsToUpdate: { cadence_day: step.day },
+        fieldsToUpdate: { cadence_day: first.day },
       };
     }
 

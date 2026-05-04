@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmailComposerModal } from "./EmailComposerModal";
 import { RequestApprovalModal } from "./RequestApprovalModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
+import { OutreachStepList } from "./OutreachStepList";
 import {
   PARTNER_CTA_STAGES,
   STAKEHOLDER_TYPE_LABELS,
@@ -39,11 +40,7 @@ import {
   postAgreedShareEmail,
   type EmailDraft,
 } from "@/lib/student-outreach/templates";
-import {
-  CADENCE_BY_TYPE,
-  CADENCE_END_DAY,
-  type CadenceStep,
-} from "@/lib/student-outreach/cadence";
+import { CADENCE_END_DAY } from "@/lib/student-outreach/cadence";
 import {
   DEPARTMENTS,
   OTHER,
@@ -211,21 +208,20 @@ function NextStepPanel({
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
 
-  // Compose templates lazily
+  // Compose templates lazily. researched/outreach_sent are handled by
+  // OutreachStepList; only active_partner/engaged/meeting_scheduled use
+  // the legacy EmailComposerModal (mailto:) flow.
   const baseCtx = {
     stakeholder_type: type,
     organization_name: ctx.outreach.organization_name,
-    contact_first_name: primary?.name?.split(" ")[0],
     campus_name: ctx.campus.name,
   };
   const draftFor = useMemo<EmailDraft>(() => {
-    if (status === "researched") return introEmail(baseCtx);
-    if (status === "outreach_sent") return followupEmail(baseCtx, ctx.outreach.cadence_day);
     if (status === "active_partner") return partnerSeasonalEmail(baseCtx, "Pre-Fall");
     if (status === "engaged" || status === "meeting_scheduled") return postAgreedShareEmail(baseCtx);
     return introEmail(baseCtx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, type, ctx.outreach.cadence_day, primary?.name]);
+  }, [status, type]);
 
   const callDraft = callScript(baseCtx, ctx.outreach.cadence_day);
 
@@ -274,16 +270,6 @@ function NextStepPanel({
             action={action}
             setError={setError}
           />
-
-          {/* Cadence checklist (only meaningful in outreach_sent) */}
-          {status === "outreach_sent" && (
-            <CadenceChecklist
-              type={type}
-              currentDay={ctx.outreach.cadence_day}
-              touchpoints={ctx.touchpoints}
-              pending={ctx.pending_tasks}
-            />
-          )}
 
           {/* Inline call panel */}
           {showCallScript && (
@@ -389,79 +375,31 @@ function StageGuidance({
     return (
       <>
         <Guidance>
-          Research the organization, capture at least one contact, and confirm programs / department.
-          Then mark research complete to start outreach.
+          <strong>You're in research.</strong> Fill in the basics below, add at least one contact, then
+          tap <em>Research complete</em> to unlock outreach.
         </Guidance>
         <ChecklistInline items={[
           { done: haveContact, label: "At least one active contact added" },
           { done: havePrograms, label: "Programs selected" },
           ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
         ]} />
-        <PrimaryButton
-          onClick={() => handleErr(action("mark_research_complete"))}
-          disabled={!ready}
-        >
-          Mark research complete →
-        </PrimaryButton>
-      </>
-    );
-  }
-
-  if (status === "researched") {
-    return (
-      <>
-        <Guidance>
-          {type === "student_org"
-            ? "Send the Day-0 intro across multiple channels — email officers, DM the org IG, and submit any contact form. Don't rely on one channel."
-            : type === "advisor"
-            ? "Day 0: send the intro email and follow up with a phone call referencing the email. Pair them for higher response rates."
-            : "Send the Day-0 intro email. We'll auto-queue follow-ups."}
-        </Guidance>
-        <PrimaryButton onClick={onStartOutreach}>Send Day-0 email</PrimaryButton>
-        {supportsPhoneOutreach(type) && (
-          <SecondaryButton onClick={onLogCall}>Log Day-0 call</SecondaryButton>
-        )}
-        {supportsAltChannels(type) && (
-          <>
-            <SecondaryButton
-              onClick={() => handleErr(action("log_ig_dm_sent", { contact_id: primary?.id ?? null }))}
-            >
-              Log IG DM sent
-            </SecondaryButton>
-            <SecondaryButton
-              onClick={() => handleErr(action("log_contact_form", { contact_id: primary?.id ?? null }))}
-            >
-              Log contact-form submit
-            </SecondaryButton>
-          </>
-        )}
-      </>
-    );
-  }
-
-  if (status === "outreach_sent") {
-    return (
-      <>
-        <Guidance>
-          We're working through the {CADENCE_END_DAY}-day outreach cadence. Send the next scheduled
-          touch — or if you got a reply, mark engaged below to freeze the cadence and switch to dialogue.
-        </Guidance>
-        <PrimaryButton onClick={onStartOutreach}>Send follow-up email</PrimaryButton>
-        {supportsPhoneOutreach(type) && (
-          <SecondaryButton onClick={onLogCall}>Log call</SecondaryButton>
-        )}
-        {supportsAltChannels(type) && (
-          <SecondaryButton
-            onClick={() => handleErr(action("log_ig_dm_sent", { contact_id: primary?.id ?? null }))}
+        <div className="pt-1">
+          <button
+            onClick={() => handleErr(action("mark_research_complete"))}
+            disabled={!ready}
+            className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+              ready ? "bg-gray-900 hover:bg-gray-700" : "bg-gray-300 cursor-not-allowed"
+            }`}
           >
-            Log IG DM
-          </SecondaryButton>
-        )}
-        <SecondaryButton onClick={() => handleErr(action("mark_engaged"))}>
-          Mark engaged (got reply)
-        </SecondaryButton>
+            {ready ? "✓ Research complete — start outreach →" : "Add a contact + programs to continue"}
+          </button>
+        </div>
       </>
     );
+  }
+
+  if (status === "researched" || status === "outreach_sent") {
+    return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
   }
 
   if (status === "engaged") {
@@ -555,78 +493,6 @@ function StageGuidance({
   }
 
   return <Guidance>No actions available in this stage.</Guidance>;
-}
-
-// ── Cadence checklist ──────────────────────────────────────────────────
-
-function CadenceChecklist({
-  type,
-  currentDay,
-  touchpoints,
-  pending,
-}: {
-  type: StakeholderType;
-  currentDay: number;
-  touchpoints: DrawerContext["touchpoints"];
-  pending: Task[];
-}) {
-  const steps = CADENCE_BY_TYPE[type];
-
-  // Map of cadence day → completed/pending state. A step is "done" if
-  // there's a touchpoint logged for it (we use the email/call touchpoints
-  // as proxy) at or after that step's offset. For MVP we use a simpler
-  // proxy: cadence_day on the row already advances when admin logs
-  // outreach, so step.day < currentDay → done.
-  const pendingDays = new Set(
-    pending
-      .filter((t) =>
-        ["outreach_followup_email", "outreach_followup_call", "outreach_multichannel_orgs", "outreach_day_0"].includes(t.task_type),
-      )
-      .map((t) => {
-        // Find which cadence step this matches by task_type closest to current.
-        const match = steps.find((s) => s.task_type === t.task_type && s.day >= currentDay);
-        return match?.day ?? null;
-      })
-      .filter((d): d is number => d !== null),
-  );
-
-  // Mark done if there's any matching outreach touchpoint at or before this step.
-  // Simpler heuristic: step.day < currentDay → done; step.day === currentDay → pending or active.
-  return (
-    <ul className="space-y-1 rounded-md border border-gray-100 bg-gray-50/50 p-3">
-      <li className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        Cadence
-      </li>
-      {steps.map((s) => {
-        const done = s.day < currentDay;
-        const current = s.day === currentDay || pendingDays.has(s.day);
-        return (
-          <li
-            key={s.day}
-            className={`flex items-center gap-2 text-xs ${
-              current ? "font-medium text-gray-900" : done ? "text-gray-500 line-through" : "text-gray-400"
-            }`}
-          >
-            <span aria-hidden>{done ? "✓" : current ? "▶" : "○"}</span>
-            <span>Day {s.day}: {humanCadenceTask(s)}</span>
-          </li>
-        );
-      })}
-      <li className="text-[11px] text-gray-400 mt-1">
-        Day {CADENCE_END_DAY}: cycle ends — close as no-response if still cold
-      </li>
-    </ul>
-  );
-}
-
-function humanCadenceTask(s: CadenceStep): string {
-  const map: Record<string, string> = {
-    outreach_day_0: "intro email + call",
-    outreach_multichannel_orgs: "multi-channel push (email + IG + form)",
-    outreach_followup_email: "follow-up email",
-    outreach_followup_call: "follow-up call",
-  };
-  return map[s.task_type] ?? s.task_type;
 }
 
 // ── Inline panels (call, meeting) ──────────────────────────────────────

@@ -1,15 +1,20 @@
 /**
- * Email + call-script templates for student outreach.
+ * Email + call-script templates.
  *
- * MVP: lightweight scaffolds only. Real copy will be iterated in PRs to
- * this single file. Each function returns plain text the admin can drop
- * into their own mail client via mailto: (or copy from a "Copy body"
- * button if the URL would be too long).
+ * v3: bodies + subjects contain `{first_name}` and other placeholders.
+ * The email-send module substitutes per-recipient variables when
+ * actually sending. This lets one editable draft go out personalized
+ * to multiple officers.
+ *
+ * Variables:
+ *   {first_name}         per-recipient first name
+ *   {organization_name}  the stakeholder's display name
+ *   {campus_name}        the campus
+ *   {admin_first_name}   the admin's first name (sender)
  */
 
 import type { StakeholderType } from "./types";
-
-const SIGN_OFF = "— Olera Team\nhttps://olera.care";
+import type { TemplateKey } from "./cadence";
 
 export interface EmailDraft {
   subject: string;
@@ -21,84 +26,126 @@ export interface CallScript {
   script: string;
 }
 
-interface BaseCtx {
+export interface TemplateContext {
   stakeholder_type: StakeholderType;
   organization_name: string;
-  contact_first_name?: string;
   campus_name: string;
   admin_first_name?: string;
 }
 
+const SIGN_OFF = "— Olera Team\nhttps://olera.care";
+
+const PLACEHOLDER = {
+  firstName: "{first_name}",
+  orgName: "{organization_name}",
+  campus: "{campus_name}",
+  adminName: "{admin_first_name}",
+};
+
+// ── Public API ──────────────────────────────────────────────────────────
+
+export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft {
+  switch (key) {
+    case "intro": return introEmail(ctx);
+    case "followup_light": return followupLightEmail(ctx);
+    case "followup_socialproof": return followupSocialProofEmail(ctx);
+    case "followup_final": return followupFinalEmail(ctx);
+    case "share": return postAgreedShareEmail(ctx);
+    case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
+  }
+}
+
+/**
+ * Substitute placeholders. `vars` need not be exhaustive — unmatched
+ * placeholders pass through (so admin can preview a partially-substituted
+ * draft).
+ */
+export function substituteVars(text: string, vars: {
+  first_name?: string;
+  organization_name?: string;
+  campus_name?: string;
+  admin_first_name?: string;
+}): string {
+  return text
+    .replace(/\{first_name\}/g, vars.first_name ?? "{first_name}")
+    .replace(/\{organization_name\}/g, vars.organization_name ?? "{organization_name}")
+    .replace(/\{campus_name\}/g, vars.campus_name ?? "{campus_name}")
+    .replace(/\{admin_first_name\}/g, vars.admin_first_name ?? "{admin_first_name}");
+}
+
+/** Extract first name from a full name string. */
+export function firstNameOf(fullName: string | null | undefined): string {
+  if (!fullName) return "there";
+  const trimmed = fullName.trim();
+  if (!trimmed) return "there";
+  return trimmed.split(/\s+/)[0];
+}
+
 // ── Day-0 intro emails ──────────────────────────────────────────────────
 
-export function introEmail(ctx: BaseCtx): EmailDraft {
-  const first = ctx.contact_first_name ?? "there";
-  const adminName = ctx.admin_first_name ?? "the Olera team";
-
-  switch (ctx.stakeholder_type) {
+export function introEmail(ctx: TemplateContext): EmailDraft {
+  const { stakeholder_type } = ctx;
+  switch (stakeholder_type) {
     case "student_org":
       return {
-        subject: `Paid clinical experience for your members at ${ctx.campus_name}`,
+        subject: `Paid clinical experience for ${PLACEHOLDER.orgName} members`,
         body: [
-          `Hi ${first},`,
+          `Hi ${PLACEHOLDER.firstName},`,
           ``,
-          `I'm reaching out from Olera. We help pre-health students earn while building real patient-care experience — flexible hours, paid, and aligned with their goals.`,
+          `I'm reaching out from Olera. We help pre-health students earn while building real patient-care experience — flexible hours, paid, and aligned with med/PA/nursing applications.`,
           ``,
-          `Would your members be interested? Happy to share a one-pager you could pass around to officers or post in your group chat.`,
+          `Would ${PLACEHOLDER.orgName}'s members be interested? I've attached a one-pager you can pass around to officers or post in your group chat.`,
           ``,
           `Best,`,
-          `${adminName}`,
+          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
       };
-
     case "advisor":
       return {
-        subject: `A paid, resume-building option for your pre-health advisees`,
+        subject: `A paid, resume-building option for ${PLACEHOLDER.campus} pre-health advisees`,
         body: [
-          `Hi ${first},`,
+          `Hi ${PLACEHOLDER.firstName},`,
           ``,
-          `I'm with Olera. We connect pre-health students at ${ctx.campus_name} with paid caregiver work — meaningful patient-facing hours that strengthen med/PA/nursing applications.`,
+          `I'm with Olera. We connect pre-health students at ${PLACEHOLDER.campus} with paid caregiver work — meaningful patient-facing hours that strengthen med/PA/nursing applications.`,
           ``,
-          `If it would be useful, I'd love to send a short overview you could share with advisees, or set up a 15-minute call.`,
+          `Attached is a short overview you could share with advisees. Happy to set up a quick 15-minute call if it's useful.`,
           ``,
           `Thanks for your time,`,
-          `${adminName}`,
+          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
       };
-
     case "dept_head":
       return {
-        subject: `Career-aligned employment opportunity for ${ctx.campus_name} pre-health students`,
+        subject: `Career-aligned employment opportunity for ${PLACEHOLDER.campus} pre-health students`,
         body: [
-          `Dear ${first},`,
+          `Dear ${PLACEHOLDER.firstName},`,
           ``,
           `I lead outreach at Olera. We provide paid caregiver positions tailored for pre-health students — flexible enough to work around coursework and directly relevant to clinical careers.`,
           ``,
-          `I'd appreciate the chance to share a brief overview with your department, and (with your approval) make this opportunity available to your students through whichever channel you prefer.`,
+          `Attached is a brief overview. With your approval I'd love to make this opportunity available to your students through whichever channel you prefer.`,
           ``,
           `Best regards,`,
-          `${adminName}`,
+          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
       };
-
     case "professor":
       return {
-        subject: `Paid clinical experience opportunity for your students`,
+        subject: `Paid clinical experience for ${PLACEHOLDER.campus} pre-health students`,
         body: [
-          `Dear Professor ${ctx.organization_name.split(" ").pop() ?? ""},`,
+          `Dear ${PLACEHOLDER.firstName},`,
           ``,
           `I'm reaching out from Olera with permission from your department. We offer paid caregiver work designed for pre-health students — flexible hours, real clinical exposure.`,
           ``,
-          `Would you be open to forwarding a short note to your students, or letting me share materials you could pass along?`,
+          `Attached is a brief overview. Would you be open to forwarding it to your students?`,
           ``,
           `Thanks very much,`,
-          `${ctx.admin_first_name ?? "the Olera team"}`,
+          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
@@ -108,54 +155,66 @@ export function introEmail(ctx: BaseCtx): EmailDraft {
 
 // ── Follow-up emails ────────────────────────────────────────────────────
 
-export function followupEmail(ctx: BaseCtx, day: number): EmailDraft {
-  const first = ctx.contact_first_name ?? "there";
-  const adminName = ctx.admin_first_name ?? "the Olera team";
-
-  if (day <= 5) {
-    return {
-      subject: `Re: paid clinical experience for ${ctx.campus_name} students`,
-      body: [
-        `Hi ${first},`,
-        ``,
-        `Just bubbling this up in case it got buried. Happy to send a one-pager or jump on a 15-minute call — whichever is easier.`,
-        ``,
-        `Best,`,
-        `${adminName}`,
-        ``,
-        SIGN_OFF,
-      ].join("\n"),
-    };
-  }
-
-  // Day 7-10: social proof
+export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Re: paid clinical experience for ${ctx.campus_name} students`,
+    subject: `Re: paid clinical experience for {campus_name} students`,
     body: [
-      `Hi ${first},`,
+      `Hi ${PLACEHOLDER.firstName},`,
       ``,
-      `Wanted to share a quick example: pre-health students at peer schools have been picking up 8-15 hours a week alongside their coursework, with the kind of patient-facing experience that strengthens applications.`,
+      `Just bubbling this up in case it got buried. Happy to send a one-pager or jump on a 15-minute call — whichever is easier.`,
       ``,
-      `If you'd like the materials to forward to your students, just reply and I'll send them right over.`,
-      ``,
-      `Thanks,`,
-      `${adminName}`,
+      `Best,`,
+      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
   };
 }
 
-// ── Post-agreement emails ───────────────────────────────────────────────
+export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Re: paid clinical experience for {campus_name} students`,
+    body: [
+      `Hi ${PLACEHOLDER.firstName},`,
+      ``,
+      `Wanted to share a quick example: pre-health students at peer schools are picking up 8-15 hours a week alongside their coursework, with the kind of patient-facing experience that strengthens applications.`,
+      ``,
+      `If you'd like the materials to forward, just reply and I'll send them right over.`,
+      ``,
+      `Thanks,`,
+      `${PLACEHOLDER.adminName}`,
+      ``,
+      SIGN_OFF,
+    ].join("\n"),
+  };
+}
 
-export function postAgreedShareEmail(ctx: BaseCtx): EmailDraft {
-  const first = ctx.contact_first_name ?? "there";
-  const adminName = ctx.admin_first_name ?? "the Olera team";
+export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `One last note — Olera for {campus_name} students`,
+    body: [
+      `Hi ${PLACEHOLDER.firstName},`,
+      ``,
+      `Closing the loop here. If now's not the right time, totally understand — I'll circle back next term. If it is, here's a one-line reply you can forward to students:`,
+      ``,
+      `>>> "Olera connects pre-health students with paid caregiver work that builds real clinical experience: https://olera.care/students"`,
+      ``,
+      `Either way, appreciate your time.`,
+      ``,
+      `${PLACEHOLDER.adminName}`,
+      ``,
+      SIGN_OFF,
+    ].join("\n"),
+  };
+}
 
+// ── Post-agreement & seasonal ───────────────────────────────────────────
+
+export function postAgreedShareEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: `Materials for your students — Olera`,
     body: [
-      `Hi ${first},`,
+      `Hi ${PLACEHOLDER.firstName},`,
       ``,
       `Thanks again for your willingness to share this with your students! Below is a short blurb plus a link they can use to learn more and apply:`,
       ``,
@@ -166,39 +225,37 @@ export function postAgreedShareEmail(ctx: BaseCtx): EmailDraft {
       `If a longer version or PDF would be more useful, let me know and I'll send it.`,
       ``,
       `Appreciate it,`,
-      `${adminName}`,
+      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
   };
 }
 
-// ── Seasonal partner check-ins ──────────────────────────────────────────
-
-export function partnerSeasonalEmail(ctx: BaseCtx, season: string): EmailDraft {
-  const first = ctx.contact_first_name ?? "there";
-  const adminName = ctx.admin_first_name ?? "the Olera team";
-
+export function partnerSeasonalEmail(_ctx: TemplateContext, season: string): EmailDraft {
   return {
     subject: `${season} update from Olera`,
     body: [
-      `Hi ${first},`,
+      `Hi ${PLACEHOLDER.firstName},`,
       ``,
       `Hope the term is off to a good start! Wanted to circle back as we head into ${season.toLowerCase().replace("pre-", "")} — would it be helpful to share an updated one-pager with your students this cycle?`,
       ``,
       `Happy to also share metrics from last term if useful.`,
       ``,
       `Best,`,
-      `${adminName}`,
+      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
   };
 }
 
+// Backward-compat alias for callers still using the old name.
+export const followupEmail = followupLightEmail;
+
 // ── Call scripts (used in drawer; not sent anywhere) ────────────────────
 
-export function callScript(ctx: BaseCtx, day: number): CallScript {
+export function callScript(ctx: TemplateContext, day: number): CallScript {
   if (day === 0) {
     return {
       title: "Day 0 — referenced email",
@@ -219,7 +276,7 @@ export function callScript(ctx: BaseCtx, day: number): CallScript {
   };
 }
 
-// ── Helper: mailto: URL builder ─────────────────────────────────────────
+// ── Helper: mailto: URL builder (kept for compatibility) ────────────────
 
 export function buildMailto(to: string, draft: EmailDraft): string {
   const params = new URLSearchParams({

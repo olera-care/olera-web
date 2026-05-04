@@ -17,11 +17,19 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { nextCadenceStep, CADENCE_END_DAY } from "@/lib/student-outreach/cadence";
+import {
+  dayToTaskType,
+  nextCadenceDay,
+  type StepId,
+  type TemplateKey,
+} from "@/lib/student-outreach/cadence";
+import { sendOutreachEmail, type EmailRecipient } from "@/lib/student-outreach/email-send";
+import { firstNameOf } from "@/lib/student-outreach/templates";
 import type {
   ApprovalStatus,
   ApprovalType,
   Campus,
+  Contact,
   ContactPermission,
   ContactStatus,
   DistributionEvidence,
@@ -198,6 +206,20 @@ export async function POST(
       // ── Snooze / redirect ───────────────────────────────────────────
       case "snooze":
         await handleSnooze(db, row, body, user.id);
+        break;
+
+      // ── v3 step-driven outreach ─────────────────────────────────────
+      case "send_outreach_email":
+        await handleSendOutreachEmail(db, row, body, user.id, admin);
+        break;
+      case "mark_step_done":
+        await handleMarkStepDone(db, row, body, user.id);
+        break;
+      case "mark_step_skipped":
+        await handleMarkStepSkipped(db, row, body, user.id);
+        break;
+      case "advance_to_next_day":
+        await handleAdvanceToNextDay(db, row, user.id);
         break;
 
       default:
@@ -671,13 +693,12 @@ async function handleLogTouch(
     payload: body.payload ?? {},
   });
 
-  // If the row is still in researched/prospect, advance to outreach_sent
-  // because logging an outreach touchpoint means we DID outreach.
+  // If still in researched/prospect, advance to outreach_sent — we DID outreach.
+  // Cadence advancement to NEXT day is now explicit (advance_to_next_day action),
+  // not implicit on every logged touchpoint.
   if (row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "outreach_sent", userId);
   } else {
-    // Advance cadence step if applicable.
-    await advanceCadenceIfApplicable(db, row, userId);
     await touchOutreach(db, row.id, userId);
   }
 }
@@ -740,28 +761,208 @@ async function handleLogCall(
   if (row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "outreach_sent", userId);
   } else {
-    await advanceCadenceIfApplicable(db, row, userId);
     await touchOutreach(db, row.id, userId);
   }
 }
 
-// Advance cadence_day to the next step and queue the next task.
-// Schedule relative to NOW (delta = next.day - current.day), not row birth,
-// so cadences that lag behind real time don't backdate.
-async function advanceCadenceIfApplicable(db: DB, row: OutreachRow, userId: string) {
-  if (row.status !== "outreach_sent") return;
-  const next = nextCadenceStep(row.stakeholder_type, row.cadence_day);
-  if (!next || next.day > CADENCE_END_DAY) return;
+// ── v3 step-driven outreach handlers ────────────────────────────────────
+
+/**
+ * Send an outreach email to N recipients via Resend. Logs one
+ * `email_sent` touchpoint per recipient with payload tagging the
+ * cadence day + step_id, so the step list knows it's done.
+ *
+ * If row is in `researched` or `prospect`, also advances to `outreach_sent`.
+ */
+async function handleSendOutreachEmail(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    recipient_contact_ids?: string[];
+    subject?: string;
+    body?: string;
+    template?: TemplateKey;
+    cadence_day?: number;
+    step_id?: StepId;
+  },
+  userId: string,
+  admin: { email: string },
+) {
+  const ids = body.recipient_contact_ids ?? [];
+  if (ids.length === 0) throw new Error("Pick at least one recipient");
+  if (!body.subject?.trim() || !body.body?.trim()) throw new Error("Subject and body required");
+  const template = body.template ?? "intro";
+  const day = body.cadence_day ?? row.cadence_day ?? 0;
+  const stepId: StepId = (body.step_id ?? "email") as StepId;
+
+  // Hydrate recipients
+  const { data: contacts } = await db
+    .from("student_outreach_contacts")
+    .select("id, name, email, status")
+    .in("id", ids)
+    .eq("outreach_id", row.id);
+  const recipients: EmailRecipient[] = ((contacts ?? []) as Contact[])
+    .filter((c) => c.email && c.status === "active")
+    .map((c) => ({ contact_id: c.id, name: c.name, email: c.email! }));
+
+  if (recipients.length === 0) {
+    throw new Error("No valid recipients (need active contacts with emails)");
+  }
+
+  // Hydrate campus name + admin first name for personalization
+  const { data: campus } = await db
+    .from("student_outreach_campuses")
+    .select("name")
+    .eq("id", row.campus_id)
+    .single();
+  const adminFirstName = firstNameFromEmail(admin.email);
+
+  const result = await sendOutreachEmail({
+    outreach_id: row.id,
+    campus_name: (campus as { name: string } | null)?.name ?? "your campus",
+    organization_name: row.organization_name,
+    admin_first_name: adminFirstName,
+    subject: body.subject,
+    body: body.body,
+    recipients,
+    cadence_day: day,
+    template,
+  });
+
+  // One touchpoint per recipient (success or failure).
+  for (const r of result.results) {
+    await insertTouchpoint(db, row.id, "email_sent", userId, {
+      contact_id: r.contact_id,
+      channel: "email",
+      outcome: r.success ? "sent" : "failed",
+      notes: r.error,
+      payload: {
+        cadence_day: day,
+        step_id: stepId,
+        template,
+        recipient_email: r.recipient_email,
+        recipient_name: r.recipient_name,
+        success: r.success,
+        email_log_id: r.email_log_id,
+        error: r.error,
+        attachment_present: result.attachment_present,
+      },
+    });
+  }
+
+  // Advance to outreach_sent if we sent from researched/prospect.
+  if (
+    result.success_count > 0 &&
+    (row.status === "researched" || row.status === "prospect")
+  ) {
+    await transitionStage(db, row, "outreach_sent", userId);
+  } else {
+    await touchOutreach(db, row.id, userId);
+  }
+
+  // Throw if ALL recipients failed — admin needs to know to retry.
+  if (result.success_count === 0 && result.failure_count > 0) {
+    throw new Error(
+      `All ${result.failure_count} sends failed: ${result.results.map((r) => r.error).filter(Boolean).join("; ")}`,
+    );
+  }
+}
+
+/**
+ * Mark a non-email step done (IG DM, contact form). Logs the matching
+ * touchpoint with `payload.cadence_day` + `payload.step_id`.
+ */
+async function handleMarkStepDone(
+  db: DB,
+  row: OutreachRow,
+  body: { cadence_day?: number; step_id?: StepId; notes?: string; contact_id?: string },
+  userId: string,
+) {
+  const stepId: StepId = (body.step_id ?? "") as StepId;
+  const day = body.cadence_day ?? row.cadence_day ?? 0;
+  const map: Record<StepId, { type: TouchpointType; channel: Channel } | null> = {
+    email: null,
+    ig_dm: { type: "ig_dm_sent", channel: "ig_dm" },
+    contact_form: { type: "contact_form_submitted", channel: "contact_form" },
+    phone: null,
+  };
+  const m = map[stepId];
+  if (!m) throw new Error(`Use a dedicated action for step "${stepId}"`);
+
+  await insertTouchpoint(db, row.id, m.type, userId, {
+    contact_id: body.contact_id ?? null,
+    channel: m.channel,
+    notes: body.notes ?? null,
+    payload: { cadence_day: day, step_id: stepId },
+  });
+
+  if (row.status === "researched" || row.status === "prospect") {
+    await transitionStage(db, row, "outreach_sent", userId);
+  } else {
+    await touchOutreach(db, row.id, userId);
+  }
+}
+
+/** Mark a step skipped — admin chose to bypass it for this day. */
+async function handleMarkStepSkipped(
+  db: DB,
+  row: OutreachRow,
+  body: { cadence_day?: number; step_id?: StepId; reason?: string },
+  userId: string,
+) {
+  const stepId = body.step_id;
+  const day = body.cadence_day ?? row.cadence_day ?? 0;
+  if (!stepId) throw new Error("step_id required");
+  await insertTouchpoint(db, row.id, "step_skipped", userId, {
+    notes: body.reason ?? null,
+    payload: { cadence_day: day, step_id: stepId, reason: body.reason ?? null },
+  });
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * Explicit "I'm done with this day's checklist — move to the next."
+ * Cancels current day's task, queues next day's task, advances cadence_day.
+ * If no next day exists, the cadence is exhausted (admin should close as
+ * no_response or mark as partner manually).
+ */
+async function handleAdvanceToNextDay(db: DB, row: OutreachRow, userId: string) {
+  if (row.status !== "outreach_sent") {
+    throw new Error("Can only advance cadence while in Outreach Sent");
+  }
+  const next = nextCadenceDay(row.stakeholder_type, row.cadence_day);
+  if (!next) {
+    throw new Error("Cadence cycle exhausted — close as No Response or Mark as Partner");
+  }
+
+  // Cancel current cadence task(s).
+  await db
+    .from("student_outreach_tasks")
+    .update({ status: "completed", completed_at: new Date().toISOString(), completed_by: userId })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", [
+      "outreach_day_0",
+      "outreach_multichannel_orgs",
+      "outreach_followup_email",
+      "outreach_followup_call",
+    ]);
+
+  // Queue next day's task at the calendar offset.
   const deltaDays = Math.max(0, next.day - row.cadence_day);
-  const dueAt = new Date(Date.now() + deltaDays * DAY_MS);
-  await touchOutreach(db, row.id, userId, { cadence_day: next.day });
   await queueTask(
     db,
     row.id,
-    { task_type: next.task_type, due_at: dueAt },
+    { task_type: dayToTaskType(next), due_at: new Date(Date.now() + deltaDays * DAY_MS) },
     userId,
   );
+
+  await touchOutreach(db, row.id, userId, { cadence_day: next.day });
+  await insertTouchpoint(db, row.id, "stage_change", userId, {
+    payload: { cadence_advance: true, from_day: row.cadence_day, to_day: next.day },
+  });
 }
+
 
 // ── Contacts ────────────────────────────────────────────────────────────
 

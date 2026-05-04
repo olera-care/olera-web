@@ -109,6 +109,13 @@ type ProviderQaFunnelByVariant = {
 // event fires immediately before the save-results POST, so it's the cleaner
 // signal for the saved stage anyway.
 type BenefitsFunnel = {
+  // Distinct sessions that saw the module render on a provider page. Counted
+  // for all four arms (benefits_entry_viewed for the 3 benefits arms,
+  // outreach_module_impression for the outreach arm) so apples-to-apples
+  // top-of-funnel comparison is possible. Without this, outreach's "started"
+  // counted impressions while the benefits arms' counted card-clicks —
+  // an instrumentation mismatch that made outreach look 100x bigger.
+  impressions: number;
   started: number;
   care_need_completed: number;
   age_completed: number;
@@ -223,6 +230,7 @@ const EMPTY_FUNNEL_BY_VARIANT = (): ProviderQaFunnelByVariant => ({
   unassigned: EMPTY_VARIANT_ROW(),
 });
 const EMPTY_BENEFITS_FUNNEL = (): BenefitsFunnel => ({
+  impressions: 0,
   started: 0,
   care_need_completed: 0,
   age_completed: 0,
@@ -338,7 +346,7 @@ async function fetchWindow(
   let benefitsQ = db
     .from("provider_activity")
     .select("event_type, metadata")
-    .in("event_type", ["benefits_started", "benefits_step_completed"])
+    .in("event_type", ["benefits_entry_viewed", "benefits_started", "benefits_step_completed"])
     .limit(50000);
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
@@ -350,7 +358,7 @@ async function fetchWindow(
   let outreachQ = db
     .from("seeker_activity")
     .select("event_type, metadata")
-    .in("event_type", ["outreach_module_impression", "outreach_request_submitted"])
+    .in("event_type", ["outreach_module_impression", "outreach_card_clicked", "outreach_request_submitted"])
     .limit(50000);
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
@@ -585,6 +593,7 @@ async function fetchWindow(
     | "money_loss"   // legacy V2
     | "unassigned";
   const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
+    impressions: new Set(),
     started: new Set(),
     care_need_completed: new Set(),
     age_completed: new Set(),
@@ -632,7 +641,9 @@ async function fetchWindow(
         ? (v as BenefitsBucket)
         : "unassigned";
     let stage: keyof BenefitsFunnel | undefined;
-    if (r.event_type === "benefits_started") {
+    if (r.event_type === "benefits_entry_viewed") {
+      stage = "impressions";
+    } else if (r.event_type === "benefits_started") {
       stage = "started";
     } else if (r.event_type === "benefits_step_completed") {
       const stepName = r.metadata?.step_name;
@@ -642,9 +653,13 @@ async function fetchWindow(
     benefitsStageSets[stage].add(sid);
     benefitsByVariantSets[bucket][stage].add(sid);
   }
-  // Bucket outreach impressions/submissions by distinct session_id into the
-  // "outreach" arm. These events are unique to that arm (no metadata.variant
-  // needed — the event_type is the variant).
+  // Bucket outreach events by distinct session_id into the "outreach" arm.
+  // These events are unique to that arm (no metadata.variant needed — the
+  // event_type is the variant). Stage mapping mirrors the benefits arms so
+  // the funnel reads apples-to-apples:
+  //   outreach_module_impression  → impressions  (passive: module rendered)
+  //   outreach_card_clicked       → started      (first interactive action)
+  //   outreach_request_submitted  → saved        (form submitted)
   for (const r of (outreachRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -652,14 +667,21 @@ async function fetchWindow(
     const sid = r.metadata?.session_id;
     if (typeof sid !== "string" || !sid) continue;
     const stage: keyof BenefitsFunnel | undefined =
-      r.event_type === "outreach_module_impression" ? "started"
+      r.event_type === "outreach_module_impression" ? "impressions"
+      : r.event_type === "outreach_card_clicked" ? "started"
       : r.event_type === "outreach_request_submitted" ? "saved"
       : undefined;
     if (!stage) continue;
     benefitsByVariantSets.outreach[stage].add(sid);
   }
 
+  // Top-line funnel = the 3 benefits arms only (the embedded form). The
+  // outreach arm is an alternative entry-point on the same A/B test, but
+  // it lives in seeker_activity and uses different events; surface it in
+  // the per-variant table instead so the top-line stays a clean read of
+  // "how is the benefits form performing?"
   const benefitsFunnel: BenefitsFunnel = {
+    impressions: benefitsStageSets.impressions.size,
     started: benefitsStageSets.started.size,
     care_need_completed: benefitsStageSets.care_need_completed.size,
     age_completed: benefitsStageSets.age_completed.size,
@@ -667,6 +689,7 @@ async function fetchWindow(
     saved: benefitsStageSets.saved.size,
   };
   const sizesFor = (b: BenefitsBucket): BenefitsVariantRow => ({
+    impressions: benefitsByVariantSets[b].impressions.size,
     started: benefitsByVariantSets[b].started.size,
     care_need_completed: benefitsByVariantSets[b].care_need_completed.size,
     age_completed: benefitsByVariantSets[b].age_completed.size,

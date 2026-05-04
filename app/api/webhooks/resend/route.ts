@@ -1,14 +1,18 @@
 /**
  * POST /api/webhooks/resend
  *
- * Webhook handler for Resend email events.
- * Used to track email engagement and handle bounces for staffing outreach.
+ * Webhook handler for Resend email events - STAFFING OUTREACH specific.
+ * Used to track email engagement and handle bounces for staffing outreach sequences.
  *
  * Events handled:
- *   email.sent      - Log when email was delivered
+ *   email.sent      - Track when email was delivered (Email 1 or Email 2)
  *   email.opened    - Track engagement (provider opened email)
  *   email.clicked   - Track engagement (provider clicked a link)
  *   email.bounced   - Mark provider as bounced, stop sequence
+ *
+ * Note: This is separate from the main Resend webhook at /api/resend/webhook
+ * which handles general email logging. This handler is specifically for
+ * staffing outreach automation tracking.
  *
  * Resend sends webhooks to this endpoint when email events occur.
  * Configure webhook URL in Resend Dashboard: https://resend.com/webhooks
@@ -17,6 +21,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
+import { verifyResendSignature, type ResendEventPayload } from "@/lib/resend-events";
 
 // Use service role for webhook processing (no user context)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -26,69 +31,49 @@ function getServiceClient() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-// Resend webhook event types
-interface ResendWebhookEvent {
-  type: "email.sent" | "email.delivered" | "email.opened" | "email.clicked" | "email.bounced" | "email.complained";
-  created_at: string;
-  data: {
-    email_id: string;
-    from: string;
-    to: string[];
-    subject: string;
-    // For clicked events
-    click?: {
-      link: string;
-      timestamp: string;
-    };
-    // For bounced events
-    bounce?: {
-      message: string;
-    };
-  };
-}
+export async function POST(req: NextRequest) {
+  // Get raw body for signature verification
+  const rawBody = await req.text();
 
-/**
- * Verify the webhook signature from Resend.
- * For now, we'll use a simple shared secret approach.
- * In production, Resend provides SVIX signatures for verification.
- */
-function verifyWebhookSignature(req: NextRequest): boolean {
-  // TODO: Implement proper SVIX signature verification
-  // For now, check for a simple webhook secret
-  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    // If no secret configured, allow in development
-    console.warn("[resend-webhook] No RESEND_WEBHOOK_SECRET configured");
-    return true;
+  // Get SVIX headers for signature verification
+  const svixId = req.headers.get("svix-id");
+  const svixTimestamp = req.headers.get("svix-timestamp");
+  const svixSignature = req.headers.get("svix-signature");
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    console.error("[staffing-webhook] Missing svix headers");
+    return NextResponse.json({ error: "Missing svix headers" }, { status: 400 });
   }
 
-  const signature = req.headers.get("svix-signature");
-  // Basic check - in production, use proper SVIX verification
-  return !!signature;
-}
+  // Verify signature using the shared verification function
+  const event = verifyResendSignature(rawBody, {
+    "svix-id": svixId,
+    "svix-timestamp": svixTimestamp,
+    "svix-signature": svixSignature,
+  });
 
-export async function POST(req: NextRequest) {
-  // Verify webhook authenticity
-  if (!verifyWebhookSignature(req)) {
-    console.error("[resend-webhook] Invalid signature");
+  if (!event) {
+    console.error("[staffing-webhook] Invalid signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let event: ResendWebhookEvent;
-  try {
-    event = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  console.log(`[resend-webhook] Received event: ${event.type}`, {
+  console.log(`[staffing-webhook] Received event: ${event.type}`, {
     email_id: event.data.email_id,
     to: event.data.to,
     subject: event.data.subject,
+    svix_id: svixId,
   });
 
   const db = getServiceClient();
-  const recipientEmail = event.data.to[0]; // Primary recipient
+
+  // Handle to field which can be string[] or string
+  const toField = event.data.to;
+  const recipientEmail = Array.isArray(toField) ? toField[0] : toField;
+
+  if (!recipientEmail) {
+    console.log("[staffing-webhook] No recipient email in event");
+    return NextResponse.json({ ok: true, ignored: true });
+  }
 
   // Find the outreach record by sequence_email
   // Don't filter by status - webhooks can arrive after status changes
@@ -125,13 +110,19 @@ export async function POST(req: NextRequest) {
       await handleEmailOpened(db, outreach.id, now);
       break;
 
-    case "email.clicked":
-      await handleEmailClicked(db, outreach.id, event.data.click?.link, now);
+    case "email.clicked": {
+      // Cast to access click-specific data
+      const clickData = (event as { data: { click?: { link?: string } } }).data.click;
+      await handleEmailClicked(db, outreach.id, clickData?.link, now);
       break;
+    }
 
-    case "email.bounced":
-      await handleEmailBounced(db, outreach.id, outreach.sequence_email, event.data.bounce?.message, now);
+    case "email.bounced": {
+      // Cast to access bounce-specific data
+      const bounceData = (event as { data: { bounce?: { message?: string } } }).data.bounce;
+      await handleEmailBounced(db, outreach.id, outreach.sequence_email, bounceData?.message, now);
       break;
+    }
 
     default:
       console.log(`[resend-webhook] Unhandled event type: ${event.type}`);

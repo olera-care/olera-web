@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
       .from("staffing_outreach")
       .update({
         status: "needs_call",
+        next_action_due_at: now, // Set to now so it appears in "Needs Call" tab immediately
         updated_at: now,
       })
       .in("id", outreachIds);

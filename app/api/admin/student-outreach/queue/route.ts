@@ -181,19 +181,21 @@ async function computeTabCounts(
 
   // Calls count: distinct outreach_id with a pending call task due now.
   // Scope to current filters.
+  // We filter out partner statuses at the SQL level so the join shape
+  // doesn't need a runtime status check (and avoids supabase-js's array
+  // typing on inner joins from leaking into our consumer code).
   let callQ = db
     .from("student_outreach_tasks")
-    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type, status)")
+    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type)")
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
-    .lte("due_at", new Date().toISOString());
+    .lte("due_at", new Date().toISOString())
+    .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`);
   if (filters.campusId) callQ = callQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) callQ = callQ.eq("student_outreach.stakeholder_type", filters.type);
   const { data: callTasks } = await callQ;
   const callSet = new Set<string>();
-  for (const t of (callTasks ?? []) as Array<{ outreach_id: string; student_outreach: { status: string } }>) {
-    // Skip Active Partners (defensive — they shouldn't have call tasks but be safe).
-    if (partner.has(t.student_outreach.status)) continue;
+  for (const t of (callTasks ?? []) as Array<{ outreach_id: string }>) {
     callSet.add(t.outreach_id);
   }
   counts.calls = callSet.size;
@@ -312,10 +314,11 @@ async function idsByStatus(
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
   let q = db
     .from("student_outreach_tasks")
-    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, status, organization_name)")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, organization_name)")
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
     .lte("due_at", new Date().toISOString())
+    .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
     .order("due_at", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
@@ -323,10 +326,8 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
   const { data } = await q;
   const ids: string[] = [];
   const seen = new Set<string>();
-  const partner = new Set<string>(PARTNER_ALL);
-  for (const t of (data ?? []) as Array<{ outreach_id: string; student_outreach: { status: string } }>) {
+  for (const t of (data ?? []) as Array<{ outreach_id: string }>) {
     if (seen.has(t.outreach_id)) continue;
-    if (partner.has(t.student_outreach.status)) continue;
     seen.add(t.outreach_id);
     ids.push(t.outreach_id);
     if (ids.length >= opts.pageSize) break;

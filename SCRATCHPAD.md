@@ -75,7 +75,43 @@ All 6 build tasks from `plans/agent-outreach-cta-plan.md` landed in one focused 
 - Manual end-to-end test on a real provider page — TJ to do this when ready.
 - Vercel preview / staging promotion / PR.
 
-**Resume next session here →** Smoke test on dev server. Visit a real Texas memory-care provider page (Austin/Houston have ≥4 candidates) in incognito. ~25% of fresh sessions land in outreach arm. Submit a test request → verify Slack alert + `agent_outreach_requests` row + `seeker_activity` events fire. Then `/admin/analytics` should show a 4th row in the variant split table. If healthy, open PR to staging.
+### 2026-05-03 (late PM) — Design pass + Slack fire-and-forget bug fix (post-test iteration)
+
+TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid but he had a sharper design vision and one functional bug: no Slack alert landed.
+
+**Design crit + redesign — both sides agreed direction first, then I shipped:**
+
+- **Killed cream-bg + full border container.** Was reading as "ad callout" — too much chrome around content. Now borderless with a subtle top divider (`mt-8 pt-8 border-t border-slate-200`) so the module reads as part of the page flow.
+- **Two-line H2:** outcome hook ("Skip the phone calls.") + mechanic line ("Have an AI agent contact the top providers in [City] for you."). TJ's argument for keeping "AI agent" in the second line: brand-education tax to drop entirely; this plants the seed for future agent-callable products (Medicaid apps, etc.). Outcome leads, mechanic supports.
+- **Anthropic/Claude/Grok-style 3x3 pulsing dot grid** prefixed to H2 (and persists into success state). Staggered diagonal wave on a 1.5s cycle. Visual shorthand for "AI is at work" without saying "loading." TJ proposed this from a walk; locked the inline-grid (option A) over background-texture (option B) — more explicit signal, gives the static module a motion moment. Custom keyframe in `app/globals.css` (`animate-outreach-dot`) with prefers-reduced-motion override.
+- **Caption above cards:** "Top 3 [Category] providers in [City], where families are actively reaching out." Social proof anchored to behavior we actually measure (engagement events) — not "booking" data we don't have. TJ originally said "booking"; we negotiated honest framing. ✅ landed in sentence case after pre-test caught all-caps reading badly on a sentence-length string.
+- **Optional relationship chip row:** Parent / Spouse / Me / Family. Toggling on/off; selected = inverted dark slate. Lifts fulfillment context without forcing collection. TJ confirmed name field NOT viable (we don't capture it on questions).
+- **Card click → opens in new tab** (`target="_blank" rel="noopener noreferrer"`). Was a conversion leak; family who clicked a card lost their place in the form.
+- **Pill colors unified** to single muted slate (was multi-color from trust-signals system, looked ad-hoc).
+- **Submit copy:** "Get the answers" (was "Send the agent" — cold/novel).
+- **Success state honest:** "On it. We'll email you back with what we hear from these N providers." Dropped the "24h SLA" promise — TJ flagged we can't guarantee it.
+
+**Then a real bug bit:** TJ submitted, got the success state, no Slack alert.
+
+**Root cause:** `app/api/outreach/request/route.ts` was firing both the `seeker_activity` insert and `sendSlackAlert` as fire-and-forget Promises after returning the response. **In Vercel's serverless runtime the function instance can be torn down right after the response goes out, killing pending Promises.** Every other `sendSlackAlert` call site in the codebase awaits; mine didn't. Pre-test review missed it because I traced the logic but didn't compare to the rest-of-codebase pattern.
+
+**Fix:** Both side effects now run via `await Promise.allSettled([activityInsert, sendSlackAlert])` before the response. Parallel so neither blocks the other; failure-tolerant so neither aborts the response (the canonical `agent_outreach_requests` row is already saved at that point). Adds ~200-400ms response latency. Logged this lesson — pre-test reviews need a "does this match the rest-of-codebase pattern" pass.
+
+**Other bugs caught in two pre-test review rounds (all fixed):**
+- Phantom `mt-6` div for 75% of visitors who weren't in outreach arm (wrapping div rendered without children → empty 24px gap)
+- Double-fire of `outreach_request_submitted` event (server route + client both fired; set semantics in admin saved the count, but raw log got dupes — dropped client fire)
+- Unused `Link` import
+- Caption all-caps unreadable on long sentence (sentence case)
+- Pulsing dots ignored `prefers-reduced-motion` (added override to existing reduced-motion block)
+
+**Final commit chain on `lively-poitras`:**
+- `02c4098e` — Initial 6-task build
+- `01ee2420` — First pre-test fixes (phantom div, double-fire, unused import)
+- `4a2b3c2a` — Design pass (dots, caption, chips, kill cream box, kept "AI agent" line per TJ)
+- `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
+- `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
+
+**Resume next session here →** Re-test on the same DC nursing-home page (or any Texas memory-care page). Slack alert should land this time. If healthy, open PR to staging. If still no alert, first diagnostic: confirm `SLACK_WEBHOOK_URL` is set in the test environment (other Slack alerts working = it's set).
 
 ### 2026-05-02 — Places Photo + Reviews API leak patches (P1)
 

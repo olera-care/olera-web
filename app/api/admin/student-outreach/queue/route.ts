@@ -1,12 +1,14 @@
 /**
  * GET /api/admin/student-outreach/queue
  *
- * Returns campuses (for the dropdown) + paginated outreach rows + tab counts.
+ * Returns campuses (for the dropdown) + paginated outreach rows + tab counts
+ * + an `open_approval_total` for the header pill.
  *
  * Query params:
  *   campus      campus slug (optional filter)
  *   type        stakeholder type filter (optional)
- *   tab         today|upcoming|active|agreed|distributed|partners|approvals|blocked|reengage|closed|all
+ *   tab         queued|in_progress|partnered|closed|all
+ *   approvals   "open" → restrict to rows with at least one open approval
  *   search      substring on organization_name (optional)
  *   page        0-indexed page, default 0
  *   pageSize    default 50
@@ -14,12 +16,18 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import type { Campus, OutreachRow, QueueRow, StakeholderType, Status, TabCounts } from "@/lib/student-outreach/types";
+import {
+  IN_PROGRESS_STATUSES,
+  PARTNERED_STATUSES,
+  CLOSED_STATUSES,
+  type Campus,
+  type OutreachRow,
+  type QueueRow,
+  type StakeholderType,
+  type TabCounts,
+} from "@/lib/student-outreach/types";
 
 const PAGE_SIZE_DEFAULT = 50;
-
-const ACTIVE_STATUSES: Status[] = ["outreach_sent", "engaged", "meeting_scheduled"];
-const CLOSED_STATUSES: Status[] = ["not_interested", "do_not_contact", "wrong_contact", "redirected"];
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
@@ -31,7 +39,8 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const campusSlug = url.searchParams.get("campus");
   const typeFilter = url.searchParams.get("type") as StakeholderType | null;
-  const tab = url.searchParams.get("tab") ?? "today";
+  const tab = url.searchParams.get("tab") ?? "queued";
+  const approvalsFilter = url.searchParams.get("approvals");
   const search = (url.searchParams.get("search") ?? "").trim();
   const page = Math.max(0, parseInt(url.searchParams.get("page") ?? "0", 10));
   const pageSize = Math.min(
@@ -45,65 +54,44 @@ export async function GET(req: NextRequest) {
     .select("*")
     .eq("is_active", true)
     .order("name", { ascending: true });
-
   if (campusesErr) {
     return NextResponse.json({ error: campusesErr.message }, { status: 500 });
   }
-
   const campusList = (campuses ?? []) as Campus[];
   const campusMap = new Map(campusList.map((c) => [c.id, c]));
   const selectedCampus = campusSlug
     ? campusList.find((c) => c.slug === campusSlug) ?? null
     : null;
 
-  // ── Tab counts (single grouped scan + auxiliary counts) ────────────────
+  // ── Tab counts (single grouped scan + open-approval count for pill) ────
   const tabCounts = await computeTabCounts(db, {
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
   });
 
-  // ── Build the filtered query for the chosen tab ────────────────────────
+  // ── Filtered query ─────────────────────────────────────────────────────
   let query = db.from("student_outreach").select("*", { count: "exact" });
-
   if (selectedCampus) query = query.eq("campus_id", selectedCampus.id);
   if (typeFilter) query = query.eq("stakeholder_type", typeFilter);
+  if (search) query = query.ilike("organization_name", `%${search}%`);
 
   switch (tab) {
-    case "active":
-      query = query.in("status", ACTIVE_STATUSES);
+    case "in_progress":
+      query = query.in("status", IN_PROGRESS_STATUSES);
       break;
-    case "agreed":
-      query = query.eq("status", "agreed");
-      break;
-    case "distributed":
-      query = query.eq("status", "distributed");
-      break;
-    case "partners":
-      query = query.eq("status", "active_partner");
-      break;
-    case "blocked":
-      query = query.eq("stakeholder_type", "professor").eq("contact_permission", "not_yet");
-      break;
-    case "reengage":
-      query = query
-        .eq("status", "no_response_closed")
-        .lte("reopen_at", new Date().toISOString().slice(0, 10));
+    case "partnered":
+      // Include un-migrated legacy rows so they don't disappear before
+      // migration 065 runs. Post-migration this is just active_partner.
+      query = query.in("status", [...PARTNERED_STATUSES, "agreed", "distributed"]);
       break;
     case "closed":
       query = query.in("status", CLOSED_STATUSES);
       break;
-    case "today":
-    case "upcoming":
-    case "approvals":
+    case "queued":
     case "all":
     default:
-      // Filtering for today/upcoming/approvals happens by joining with
-      // tasks/approvals below; the base query stays unfiltered on status.
+      // Filtering for queued happens via tasks below; "all" needs no extra filter.
       break;
-  }
-
-  if (search) {
-    query = query.ilike("organization_name", `%${search}%`);
   }
 
   query = query
@@ -117,39 +105,29 @@ export async function GET(req: NextRequest) {
 
   let rows = (outreachRows ?? []) as OutreachRow[];
 
-  // ── Tab post-filters that depend on tasks/approvals ────────────────────
-  if (tab === "today" || tab === "upcoming" || tab === "approvals") {
+  // Queued tab: keep only rows with at least one due-now task.
+  if (tab === "queued" && rows.length > 0) {
     const idSet = new Set(rows.map((r) => r.id));
-    if (idSet.size > 0) {
-      if (tab === "today" || tab === "upcoming") {
-        const now = new Date();
-        const horizon = new Date(now.getTime() + 7 * 86_400_000);
-        const dueLte = (tab === "today" ? now : horizon).toISOString();
-        const dueGt = tab === "today" ? null : now.toISOString();
+    const { data: dueTasks } = await db
+      .from("student_outreach_tasks")
+      .select("outreach_id")
+      .in("outreach_id", Array.from(idSet))
+      .eq("status", "pending")
+      .lte("due_at", new Date().toISOString());
+    const dueIds = new Set((dueTasks ?? []).map((t) => t.outreach_id));
+    rows = rows.filter((r) => dueIds.has(r.id));
+  }
 
-        let taskQuery = db
-          .from("student_outreach_tasks")
-          .select("outreach_id")
-          .in("outreach_id", Array.from(idSet))
-          .eq("status", "pending")
-          .lte("due_at", dueLte);
-        if (dueGt) taskQuery = taskQuery.gt("due_at", dueGt);
-
-        const { data: dueTasks } = await taskQuery;
-        const dueOutreachIds = new Set((dueTasks ?? []).map((t) => t.outreach_id));
-        rows = rows.filter((r) => dueOutreachIds.has(r.id));
-      } else if (tab === "approvals") {
-        const { data: openApprovals } = await db
-          .from("student_outreach_approvals")
-          .select("outreach_id")
-          .in("outreach_id", Array.from(idSet))
-          .eq("status", "requested");
-        const ids = new Set((openApprovals ?? []).map((a) => a.outreach_id));
-        rows = rows.filter((r) => ids.has(r.id));
-      }
-    } else {
-      rows = [];
-    }
+  // Approvals filter (header pill click-through).
+  if (approvalsFilter === "open" && rows.length > 0) {
+    const ids = rows.map((r) => r.id);
+    const { data: open } = await db
+      .from("student_outreach_approvals")
+      .select("outreach_id")
+      .in("outreach_id", ids)
+      .eq("status", "requested");
+    const ok = new Set((open ?? []).map((a) => a.outreach_id));
+    rows = rows.filter((r) => ok.has(r.id));
   }
 
   // ── Hydrate with campus + next-task + primary-contact + open-approvals ──
@@ -224,7 +202,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// ── Tab-count computation (single scan + 3 small aux queries) ────────────
+// ── Tab-count computation ────────────────────────────────────────────────
 
 type DB = ReturnType<typeof getServiceClient>;
 
@@ -233,77 +211,56 @@ async function computeTabCounts(
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
   const counts: TabCounts = {
-    today: 0,
-    upcoming: 0,
-    active: 0,
-    agreed: 0,
-    distributed: 0,
-    partners: 0,
-    approvals: 0,
-    blocked: 0,
-    reengage: 0,
+    queued: 0,
+    in_progress: 0,
+    partnered: 0,
     closed: 0,
     all: 0,
+    open_approvals: 0,
   };
 
-  // Single scan: status + reopen + permission per row.
-  let q = db.from("student_outreach").select("id, status, stakeholder_type, contact_permission, reopen_at");
+  // Single scan: status of every row in scope.
+  let q = db.from("student_outreach").select("id, status");
   if (filters.campusId) q = q.eq("campus_id", filters.campusId);
   if (filters.type) q = q.eq("stakeholder_type", filters.type);
 
   const { data: scan, error } = await q;
   if (error || !scan) return counts;
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const inProgress = new Set<string>(IN_PROGRESS_STATUSES);
+  // Include legacy values that haven't been migrated.
+  const partnered = new Set<string>([...PARTNERED_STATUSES, "agreed", "distributed"]);
+  const closed = new Set<string>(CLOSED_STATUSES);
 
-  for (const row of scan as Array<{
-    id: string;
-    status: Status;
-    stakeholder_type: StakeholderType;
-    contact_permission: string;
-    reopen_at: string | null;
-  }>) {
+  const inProgressIds = new Set<string>();
+  for (const row of scan as Array<{ id: string; status: string }>) {
     counts.all++;
-    if (ACTIVE_STATUSES.includes(row.status)) counts.active++;
-    if (row.status === "agreed") counts.agreed++;
-    if (row.status === "distributed") counts.distributed++;
-    if (row.status === "active_partner") counts.partners++;
-    if (CLOSED_STATUSES.includes(row.status)) counts.closed++;
-    if (
-      row.status === "no_response_closed" &&
-      row.reopen_at !== null &&
-      row.reopen_at <= todayIso
-    ) {
-      counts.reengage++;
-    }
-    if (row.stakeholder_type === "professor" && row.contact_permission === "not_yet") {
-      counts.blocked++;
+    if (inProgress.has(row.status)) {
+      counts.in_progress++;
+      inProgressIds.add(row.id);
+    } else if (partnered.has(row.status)) {
+      counts.partnered++;
+    } else if (closed.has(row.status)) {
+      counts.closed++;
     }
   }
 
-  // Tasks scan for today/upcoming.
+  // Tasks scan: queued = distinct outreach_ids with a pending task due ≤ now.
   let taskQ = db
     .from("student_outreach_tasks")
     .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type)")
-    .eq("status", "pending");
-
+    .eq("status", "pending")
+    .lte("due_at", new Date().toISOString());
   if (filters.campusId) taskQ = taskQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) taskQ = taskQ.eq("student_outreach.stakeholder_type", filters.type);
-
   const { data: tasks } = await taskQ;
-  const now = new Date();
-  const horizon = new Date(now.getTime() + 7 * 86_400_000);
-  const todaySet = new Set<string>();
-  const upcomingSet = new Set<string>();
-  for (const t of (tasks ?? []) as Array<{ outreach_id: string; due_at: string }>) {
-    const due = new Date(t.due_at);
-    if (due <= now) todaySet.add(t.outreach_id);
-    else if (due <= horizon) upcomingSet.add(t.outreach_id);
+  const queuedSet = new Set<string>();
+  for (const t of (tasks ?? []) as Array<{ outreach_id: string }>) {
+    queuedSet.add(t.outreach_id);
   }
-  counts.today = todaySet.size;
-  counts.upcoming = upcomingSet.size;
+  counts.queued = queuedSet.size;
 
-  // Approvals scan.
+  // Approvals scan for header pill.
   let apprQ = db
     .from("student_outreach_approvals")
     .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type)")
@@ -313,7 +270,7 @@ async function computeTabCounts(
   const { data: appr } = await apprQ;
   const apprSet = new Set<string>();
   for (const a of (appr ?? []) as Array<{ outreach_id: string }>) apprSet.add(a.outreach_id);
-  counts.approvals = apprSet.size;
+  counts.open_approvals = apprSet.size;
 
   return counts;
 }

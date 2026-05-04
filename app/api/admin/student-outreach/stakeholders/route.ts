@@ -110,5 +110,45 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Optional: dept-head form's "ask for prof permission" shortcut.
+  // Auto-creates the approval row + the 5-day follow-up task so the
+  // admin doesn't have to remember to do it later.
+  if (stakeholder_type === "dept_head" && body.request_professor_approval) {
+    const followupAt = new Date(Date.now() + 5 * 86_400_000);
+    const { data: approval } = await db
+      .from("student_outreach_approvals")
+      .insert({
+        outreach_id: newId,
+        approval_type: "department",
+        approval_for: "Contact professors in this department",
+        next_followup_at: followupAt.toISOString(),
+        created_by: user.id,
+        last_updated_by: user.id,
+      })
+      .select("id")
+      .single();
+    if (approval) {
+      await db.from("student_outreach_tasks").insert({
+        outreach_id: newId,
+        approval_id: (approval as { id: string }).id,
+        task_type: "approval_request_followup",
+        due_at: followupAt.toISOString(),
+        payload: { approval_for: "Contact professors in this department", approval_type: "department" },
+        created_by: user.id,
+      });
+      await db.from("student_outreach_touchpoints").insert({
+        outreach_id: newId,
+        touchpoint_type: "approval_requested",
+        created_by: user.id,
+        payload: {
+          approval_id: (approval as { id: string }).id,
+          approval_type: "department",
+          approval_for: "Contact professors in this department",
+          source: "dept_head_form",
+        },
+      });
+    }
+  }
+
   return NextResponse.json({ outreach: created });
 }

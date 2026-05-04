@@ -205,9 +205,7 @@ function StatusBadge({ status }: { status: Status }) {
     outreach_sent: "bg-blue-50 text-blue-700",
     engaged: "bg-blue-100 text-blue-800",
     meeting_scheduled: "bg-indigo-50 text-indigo-700",
-    agreed: "bg-emerald-50 text-emerald-700",
-    distributed: "bg-emerald-100 text-emerald-800",
-    active_partner: "bg-purple-100 text-purple-800",
+    active_partner: "bg-emerald-100 text-emerald-800",
     not_interested: "bg-gray-100 text-gray-500",
     no_response_closed: "bg-gray-100 text-gray-500",
     do_not_contact: "bg-red-50 text-red-700",
@@ -215,7 +213,7 @@ function StatusBadge({ status }: { status: Status }) {
     redirected: "bg-gray-100 text-gray-500",
   };
   return (
-    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}>
+    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] ?? "bg-gray-100 text-gray-700"}`}>
       {STATUS_LABELS[status]}
     </span>
   );
@@ -223,7 +221,7 @@ function StatusBadge({ status }: { status: Status }) {
 
 function summarize(summary: Partial<Record<Status, number>>): string {
   const items: string[] = [];
-  const interesting: Status[] = ["active_partner", "distributed", "agreed", "engaged"];
+  const interesting: Status[] = ["active_partner", "engaged", "meeting_scheduled"];
   for (const s of interesting) {
     if (summary[s]) items.push(`${summary[s]} ${STATUS_LABELS[s].toLowerCase()}`);
   }

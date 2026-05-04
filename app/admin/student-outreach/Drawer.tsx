@@ -1,46 +1,61 @@
 "use client";
 
 /**
- * Student Outreach Drawer.
+ * Student Outreach Drawer — v2.
  *
- * Sections (top to bottom):
- *   - Stage panel    — actions appropriate for the current stage
- *   - Research       — editable research_data fields
- *   - Contacts       — list + add/edit/mark-stale
- *   - Approvals      — open approvals + request/resolve
- *   - Tasks          — pending queue + complete/cancel/reschedule
- *   - History        — append-only touchpoints
- *   - Danger zone    — DNC / Wrong / Close / Redirect
+ * Core principle: at every moment the admin should know exactly what
+ * to do next. The "Next Step" panel at the top is the single source of
+ * truth — primary CTA + cadence checklist + the always-visible
+ * "Mark as Active Partner" graduation button (from `engaged` onward).
  *
- * Every action POSTs to /[id] and re-renders from the returned context.
+ * Sections are also stakeholder-type-aware: orgs see multi-officer +
+ * IG/contact-form actions, advisors see a single contact and no
+ * approvals, dept heads see approvals + the bulk-import nudge,
+ * professors get the minimal flow.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmailComposerModal } from "./EmailComposerModal";
 import { RequestApprovalModal } from "./RequestApprovalModal";
+import { MarkPartnerModal } from "./MarkPartnerModal";
 import {
+  PARTNER_CTA_STAGES,
   STAKEHOLDER_TYPE_LABELS,
   STATUS_LABELS,
   type Approval,
   type ApprovalStatus,
   type Contact,
-  type DistributionEvidence,
   type DrawerContext,
   type ResearchData,
   type StakeholderType,
   type Status,
   type Task,
-  type TaskType,
-  type Touchpoint,
 } from "@/lib/student-outreach/types";
 import {
   callScript,
   followupEmail,
   introEmail,
-  postAgreedShareEmail,
   partnerSeasonalEmail,
+  postAgreedShareEmail,
   type EmailDraft,
 } from "@/lib/student-outreach/templates";
+import {
+  CADENCE_BY_TYPE,
+  CADENCE_END_DAY,
+  type CadenceStep,
+} from "@/lib/student-outreach/cadence";
+import {
+  DEPARTMENTS,
+  OTHER,
+  PROGRAMS,
+  ROLES_BY_TYPE,
+  singleProgram,
+  supportsAltChannels,
+  supportsApprovals,
+  supportsMultipleContacts,
+  supportsPhoneOutreach,
+} from "@/lib/student-outreach/presets";
+import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
 interface DrawerProps {
   outreachId: string;
@@ -71,9 +86,7 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [outreachId]);
 
   const action: ActionFn = useCallback(
@@ -102,11 +115,7 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-40 bg-black/20"
-        onClick={onClose}
-        aria-label="Close drawer"
-      />
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
       <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
           {ctx ? (
@@ -143,12 +152,13 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
           ) : ctx ? (
             <div className="space-y-6">
               <RelationshipBanner ctx={ctx} />
-              <StagePanel ctx={ctx} action={action} setError={setError} />
+              <NextStepPanel ctx={ctx} action={action} setError={setError} />
               <ResearchSection ctx={ctx} action={action} setError={setError} />
               <ContactsSection ctx={ctx} action={action} setError={setError} />
-              <ApprovalsSection ctx={ctx} action={action} setError={setError} />
-              <TasksSection ctx={ctx} action={action} setError={setError} />
-              <HistorySection touchpoints={ctx.touchpoints} contacts={ctx.contacts} />
+              {supportsApprovals(ctx.outreach.stakeholder_type) && (
+                <ApprovalsSection ctx={ctx} action={action} setError={setError} />
+              )}
+              <HistorySection ctx={ctx} />
               <DangerZone ctx={ctx} action={action} setError={setError} />
             </div>
           ) : null}
@@ -158,22 +168,20 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
   );
 }
 
-// ── Relationship banner (referred/redirected/permission-dep) ───────────
+// ── Relationship banner ─────────────────────────────────────────────────
 
 function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
   const items: string[] = [];
-  if (ctx.referred_from)
-    items.push(`Referred from ${ctx.referred_from.organization_name}`);
-  if (ctx.redirected_to)
-    items.push(`Redirected to ${ctx.redirected_to.organization_name}`);
-  if (ctx.permission_dependency)
+  if (ctx.referred_from) items.push(`Referred from ${ctx.referred_from.organization_name}`);
+  if (ctx.redirected_to) items.push(`Redirected to ${ctx.redirected_to.organization_name}`);
+  if (ctx.permission_dependency) {
     items.push(
       `Permission via ${ctx.permission_dependency.organization_name} (${STATUS_LABELS[ctx.permission_dependency.status]})`,
     );
-  if (ctx.outreach.snoozed_until && new Date(ctx.outreach.snoozed_until) > new Date())
-    items.push(
-      `Snoozed until ${new Date(ctx.outreach.snoozed_until).toLocaleDateString()}`,
-    );
+  }
+  if (ctx.outreach.snoozed_until && new Date(ctx.outreach.snoozed_until) > new Date()) {
+    items.push(`Snoozed until ${new Date(ctx.outreach.snoozed_until).toLocaleDateString()}`);
+  }
   if (items.length === 0) return null;
   return (
     <div className="rounded-md bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
@@ -182,9 +190,9 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
   );
 }
 
-// ── Stage panel (the do-next-thing buttons) ────────────────────────────
+// ── Next Step panel — the star ─────────────────────────────────────────
 
-function StagePanel({
+function NextStepPanel({
   ctx,
   action,
   setError,
@@ -194,75 +202,39 @@ function StagePanel({
   setError: (e: string | null) => void;
 }) {
   const status = ctx.outreach.status;
+  const type = ctx.outreach.stakeholder_type;
   const [showCompose, setShowCompose] = useState(false);
+  const [showPartner, setShowPartner] = useState(false);
   const [showCallScript, setShowCallScript] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
-  const [showDistribForm, setShowDistribForm] = useState(false);
 
-  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0];
+  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
 
-  const introDraft: EmailDraft = introEmail({
-    stakeholder_type: ctx.outreach.stakeholder_type,
+  // Compose templates lazily
+  const baseCtx = {
+    stakeholder_type: type,
     organization_name: ctx.outreach.organization_name,
     contact_first_name: primary?.name?.split(" ")[0],
     campus_name: ctx.campus.name,
-  });
-  const followDraft: EmailDraft = followupEmail(
-    {
-      stakeholder_type: ctx.outreach.stakeholder_type,
-      organization_name: ctx.outreach.organization_name,
-      contact_first_name: primary?.name?.split(" ")[0],
-      campus_name: ctx.campus.name,
-    },
-    ctx.outreach.cadence_day,
-  );
-  const shareDraft: EmailDraft = postAgreedShareEmail({
-    stakeholder_type: ctx.outreach.stakeholder_type,
-    organization_name: ctx.outreach.organization_name,
-    contact_first_name: primary?.name?.split(" ")[0],
-    campus_name: ctx.campus.name,
-  });
-  const seasonalDraft: EmailDraft = partnerSeasonalEmail(
-    {
-      stakeholder_type: ctx.outreach.stakeholder_type,
-      organization_name: ctx.outreach.organization_name,
-      contact_first_name: primary?.name?.split(" ")[0],
-      campus_name: ctx.campus.name,
-    },
-    "Pre-Fall",
-  );
-
-  const callDraft = callScript(
-    {
-      stakeholder_type: ctx.outreach.stakeholder_type,
-      organization_name: ctx.outreach.organization_name,
-      contact_first_name: primary?.name?.split(" ")[0],
-      campus_name: ctx.campus.name,
-    },
-    ctx.outreach.cadence_day,
-  );
-
-  const [composerDraft, setComposerDraft] = useState<EmailDraft>(introDraft);
-  const [composerKind, setComposerKind] = useState<"intro" | "followup" | "share" | "seasonal">("intro");
-
-  const openCompose = (kind: typeof composerKind) => {
-    setComposerKind(kind);
-    setComposerDraft(
-      kind === "intro" ? introDraft :
-      kind === "followup" ? followDraft :
-      kind === "share" ? shareDraft :
-      seasonalDraft,
-    );
-    setShowCompose(true);
   };
+  const draftFor = useMemo<EmailDraft>(() => {
+    if (status === "researched") return introEmail(baseCtx);
+    if (status === "outreach_sent") return followupEmail(baseCtx, ctx.outreach.cadence_day);
+    if (status === "active_partner") return partnerSeasonalEmail(baseCtx, "Pre-Fall");
+    if (status === "engaged" || status === "meeting_scheduled") return postAgreedShareEmail(baseCtx);
+    return introEmail(baseCtx);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, type, ctx.outreach.cadence_day, primary?.name]);
 
-  const handleEmailLogged = async (notes?: string) => {
+  const callDraft = callScript(baseCtx, ctx.outreach.cadence_day);
+
+  const onConfirmEmailSent = async () => {
     setShowCompose(false);
     try {
       await action("log_email_sent", {
         contact_id: primary?.id ?? null,
-        notes: notes ?? null,
-        payload: { template: composerKind },
+        payload: { template: stageTemplateName(status) },
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Log failed");
@@ -271,169 +243,393 @@ function StagePanel({
 
   return (
     <section>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Stage actions
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Next step
       </h3>
-      <div className="space-y-3 rounded-lg border border-gray-100 bg-white p-4">
-        {status === "prospect" && (
-          <ButtonRow>
-            <Btn primary onClick={() => action("mark_research_complete").catch((e) => setError(e.message))}>
-              Mark research complete →
-            </Btn>
-          </ButtonRow>
-        )}
-
-        {(status === "researched" || status === "outreach_sent" || status === "engaged") && (
-          <>
-            <ButtonRow>
-              {status === "researched" && (
-                <Btn primary onClick={() => openCompose("intro")}>
-                  Send Day-0 email
-                </Btn>
-              )}
-              {status === "outreach_sent" && (
-                <Btn primary onClick={() => openCompose("followup")}>
-                  Send follow-up email
-                </Btn>
-              )}
-              {ctx.outreach.stakeholder_type === "advisor" || ctx.outreach.stakeholder_type === "dept_head" ? (
-                <Btn onClick={() => setShowCallScript((s) => !s)}>
-                  {showCallScript ? "Hide call script" : "Log a call"}
-                </Btn>
-              ) : null}
-              {ctx.outreach.stakeholder_type === "student_org" && (
-                <>
-                  <Btn onClick={() => action("log_ig_dm_sent", { contact_id: primary?.id ?? null }).catch((e) => setError(e.message))}>
-                    Log IG DM sent
-                  </Btn>
-                  <Btn onClick={() => action("log_contact_form", { contact_id: primary?.id ?? null }).catch((e) => setError(e.message))}>
-                    Log contact-form submit
-                  </Btn>
-                </>
-              )}
-              {status !== "engaged" && (
-                <Btn onClick={() => action("mark_engaged").catch((e) => setError(e.message))}>
-                  Mark engaged (got reply)
-                </Btn>
-              )}
-              {status === "engaged" && (
-                <>
-                  <Btn primary onClick={() => setShowMeetingForm((s) => !s)}>
-                    Schedule meeting
-                  </Btn>
-                  <Btn onClick={() => action("mark_agreed").catch((e) => setError(e.message))}>
-                    Mark agreed
-                  </Btn>
-                  <Btn onClick={() => setShowDistribForm((s) => !s)}>
-                    Mark distributed (with evidence)
-                  </Btn>
-                </>
-              )}
-            </ButtonRow>
-            {showCallScript && (
-              <CallLogPanel
-                script={callDraft.script}
-                primaryContactId={primary?.id ?? null}
-                action={action}
-                setError={setError}
-                onClose={() => setShowCallScript(false)}
-              />
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        {/* Stage progress strip */}
+        <div className="border-b border-gray-100 px-4 py-2.5 bg-gray-50/50">
+          <p className="text-xs font-medium text-gray-700">
+            Stage: <span className="text-gray-900">{STATUS_LABELS[status]}</span>
+            {status === "outreach_sent" && (
+              <span className="ml-1.5 text-gray-500">
+                · Day {ctx.outreach.cadence_day} of {CADENCE_END_DAY}
+              </span>
             )}
-            {showMeetingForm && (
-              <MeetingForm
-                action={action}
-                setError={setError}
-                onClose={() => setShowMeetingForm(false)}
-              />
+            {status === "meeting_scheduled" && ctx.outreach.research_data.meeting_at && (
+              <span className="ml-1.5 text-gray-500">
+                · {new Date(ctx.outreach.research_data.meeting_at).toLocaleString()}
+              </span>
             )}
-            {showDistribForm && (
-              <DistributedForm
-                action={action}
-                setError={setError}
-                onClose={() => setShowDistribForm(false)}
-              />
-            )}
-          </>
-        )}
+          </p>
+        </div>
 
-        {status === "meeting_scheduled" && (
-          <ButtonRow>
-            <Btn primary onClick={() => action("log_meeting_held").catch((e) => setError(e.message))}>
-              Meeting held
-            </Btn>
-            <Btn onClick={() => action("log_meeting_no_show").catch((e) => setError(e.message))}>
-              No-show
-            </Btn>
-            <MeetingRescheduleInline action={action} setError={setError} />
-          </ButtonRow>
-        )}
+        {/* Stage-specific guidance + primary CTA */}
+        <div className="space-y-3 px-4 py-4">
+          <StageGuidance
+            ctx={ctx}
+            onStartOutreach={() => setShowCompose(true)}
+            onLogCall={() => setShowCallScript(true)}
+            onScheduleMeeting={() => setShowMeetingForm(true)}
+            action={action}
+            setError={setError}
+          />
 
-        {status === "agreed" && (
-          <>
-            <ButtonRow>
-              <Btn primary onClick={() => openCompose("share")}>
-                Send share materials
-              </Btn>
-              <Btn onClick={() => setShowDistribForm((s) => !s)}>
-                Confirm distributed
-              </Btn>
-            </ButtonRow>
-            {showDistribForm && (
-              <DistributedForm
-                action={action}
-                setError={setError}
-                onClose={() => setShowDistribForm(false)}
-              />
-            )}
-          </>
-        )}
+          {/* Cadence checklist (only meaningful in outreach_sent) */}
+          {status === "outreach_sent" && (
+            <CadenceChecklist
+              type={type}
+              currentDay={ctx.outreach.cadence_day}
+              touchpoints={ctx.touchpoints}
+              pending={ctx.pending_tasks}
+            />
+          )}
 
-        {status === "distributed" && (
-          <ButtonRow>
-            <Btn primary onClick={() => action("mark_active_partner").catch((e) => setError(e.message))}>
-              Promote to Active Partner →
-            </Btn>
-          </ButtonRow>
-        )}
+          {/* Inline call panel */}
+          {showCallScript && (
+            <CallLogPanel
+              script={callDraft.script}
+              primaryContactId={primary?.id ?? null}
+              action={action}
+              setError={setError}
+              onClose={() => setShowCallScript(false)}
+            />
+          )}
 
-        {status === "active_partner" && (
-          <ButtonRow>
-            <Btn primary onClick={() => openCompose("seasonal")}>
-              Send seasonal check-in
-            </Btn>
-            <Btn
-              onClick={() =>
-                action("queue_manual_task", {
-                  task_type: "partner_share_update" as TaskType,
-                  due_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-                }).catch((e) => setError(e.message))
-              }
+          {/* Inline meeting form */}
+          {showMeetingForm && (
+            <MeetingForm
+              action={action}
+              setError={setError}
+              onClose={() => setShowMeetingForm(false)}
+            />
+          )}
+        </div>
+
+        {/* Always-visible Mark-as-Partner graduation */}
+        {partnerCtaVisible && (
+          <div className="border-t border-gray-100 bg-emerald-50/30 px-4 py-3">
+            <button
+              onClick={() => setShowPartner(true)}
+              className="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Queue share update (+7d)
-            </Btn>
-          </ButtonRow>
-        )}
-
-        {(status === "no_response_closed" || status === "wrong_contact") && (
-          <ButtonRow>
-            <Btn primary onClick={() => action("reopen").catch((e) => setError(e.message))}>
-              Re-open
-            </Btn>
-          </ButtonRow>
+              Mark as Active Partner ★
+            </button>
+            <p className="mt-1.5 text-center text-[11px] text-emerald-900/80">
+              Click when you're confident they've committed to (or are) distributing.
+            </p>
+          </div>
         )}
       </div>
 
+      {/* Modals */}
       {showCompose && (
         <EmailComposerModal
           to={primary?.email ?? ""}
-          draft={composerDraft}
+          draft={draftFor}
           onCancel={() => setShowCompose(false)}
-          onConfirmSent={handleEmailLogged}
+          onConfirmSent={onConfirmEmailSent}
+        />
+      )}
+      {showPartner && (
+        <MarkPartnerModal
+          organizationName={ctx.outreach.organization_name}
+          onCancel={() => setShowPartner(false)}
+          onConfirm={async (payload) => {
+            try {
+              await action("mark_partner", payload);
+              setShowPartner(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
         />
       )}
     </section>
   );
 }
+
+function stageTemplateName(s: Status): string {
+  switch (s) {
+    case "researched": return "intro";
+    case "outreach_sent": return "followup";
+    case "engaged": case "meeting_scheduled": return "share";
+    case "active_partner": return "seasonal";
+    default: return "intro";
+  }
+}
+
+// ── Stage guidance (the per-stage text + primary CTA) ──────────────────
+
+function StageGuidance({
+  ctx,
+  onStartOutreach,
+  onLogCall,
+  onScheduleMeeting,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  onStartOutreach: () => void;
+  onLogCall: () => void;
+  onScheduleMeeting: () => void;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const status = ctx.outreach.status;
+  const type = ctx.outreach.stakeholder_type;
+  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0];
+  const handleErr = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+
+  if (status === "prospect") {
+    const haveContact = ctx.contacts.some((c) => c.status === "active");
+    const havePrograms = ctx.outreach.programs.length > 0;
+    const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
+    const ready = haveContact && havePrograms && haveDept;
+    return (
+      <>
+        <Guidance>
+          Research the organization, capture at least one contact, and confirm programs / department.
+          Then mark research complete to start outreach.
+        </Guidance>
+        <ChecklistInline items={[
+          { done: haveContact, label: "At least one active contact added" },
+          { done: havePrograms, label: "Programs selected" },
+          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
+        ]} />
+        <PrimaryButton
+          onClick={() => handleErr(action("mark_research_complete"))}
+          disabled={!ready}
+        >
+          Mark research complete →
+        </PrimaryButton>
+      </>
+    );
+  }
+
+  if (status === "researched") {
+    return (
+      <>
+        <Guidance>
+          {type === "student_org"
+            ? "Send the Day-0 intro across multiple channels — email officers, DM the org IG, and submit any contact form. Don't rely on one channel."
+            : type === "advisor"
+            ? "Day 0: send the intro email and follow up with a phone call referencing the email. Pair them for higher response rates."
+            : "Send the Day-0 intro email. We'll auto-queue follow-ups."}
+        </Guidance>
+        <PrimaryButton onClick={onStartOutreach}>Send Day-0 email</PrimaryButton>
+        {supportsPhoneOutreach(type) && (
+          <SecondaryButton onClick={onLogCall}>Log Day-0 call</SecondaryButton>
+        )}
+        {supportsAltChannels(type) && (
+          <>
+            <SecondaryButton
+              onClick={() => handleErr(action("log_ig_dm_sent", { contact_id: primary?.id ?? null }))}
+            >
+              Log IG DM sent
+            </SecondaryButton>
+            <SecondaryButton
+              onClick={() => handleErr(action("log_contact_form", { contact_id: primary?.id ?? null }))}
+            >
+              Log contact-form submit
+            </SecondaryButton>
+          </>
+        )}
+      </>
+    );
+  }
+
+  if (status === "outreach_sent") {
+    return (
+      <>
+        <Guidance>
+          We're working through the {CADENCE_END_DAY}-day outreach cadence. Send the next scheduled
+          touch — or if you got a reply, mark engaged below to freeze the cadence and switch to dialogue.
+        </Guidance>
+        <PrimaryButton onClick={onStartOutreach}>Send follow-up email</PrimaryButton>
+        {supportsPhoneOutreach(type) && (
+          <SecondaryButton onClick={onLogCall}>Log call</SecondaryButton>
+        )}
+        {supportsAltChannels(type) && (
+          <SecondaryButton
+            onClick={() => handleErr(action("log_ig_dm_sent", { contact_id: primary?.id ?? null }))}
+          >
+            Log IG DM
+          </SecondaryButton>
+        )}
+        <SecondaryButton onClick={() => handleErr(action("mark_engaged"))}>
+          Mark engaged (got reply)
+        </SecondaryButton>
+      </>
+    );
+  }
+
+  if (status === "engaged") {
+    return (
+      <>
+        <Guidance>
+          You're in dialogue. Keep the conversation moving toward a commitment to share with students.
+          Schedule a meeting if it'll help close — or send share materials once they've agreed.
+        </Guidance>
+        <PrimaryButton onClick={onScheduleMeeting}>Schedule meeting</PrimaryButton>
+        <SecondaryButton onClick={onStartOutreach}>Send share materials</SecondaryButton>
+        {supportsPhoneOutreach(type) && (
+          <SecondaryButton onClick={onLogCall}>Log call</SecondaryButton>
+        )}
+      </>
+    );
+  }
+
+  if (status === "meeting_scheduled") {
+    return (
+      <>
+        <Guidance>
+          Meeting on the calendar. Once it happens, log the outcome and decide next steps. If they
+          agreed to share, the green button below graduates them to Active Partner.
+        </Guidance>
+        <PrimaryButton onClick={() => handleErr(action("log_meeting_held"))}>
+          Meeting held
+        </PrimaryButton>
+        <SecondaryButton onClick={() => handleErr(action("log_meeting_no_show"))}>
+          No-show
+        </SecondaryButton>
+        <SecondaryButton onClick={onScheduleMeeting}>Reschedule</SecondaryButton>
+      </>
+    );
+  }
+
+  if (status === "active_partner") {
+    const seasonal = ctx.pending_tasks.find((t) => t.task_type === "partner_seasonal_checkin");
+    return (
+      <>
+        <Guidance>
+          {seasonal
+            ? `Active Partner. Next seasonal check-in is queued for ${new Date(seasonal.due_at).toLocaleDateString()}.`
+            : "Active Partner. Maintain the relationship — quarterly check-ins, share updates, coordinate events."}
+        </Guidance>
+        <PrimaryButton onClick={onStartOutreach}>Send seasonal check-in</PrimaryButton>
+        <SecondaryButton
+          onClick={() =>
+            handleErr(action("queue_manual_task", {
+              task_type: "partner_share_update",
+              due_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+            }))
+          }
+        >
+          Queue update share (+7d)
+        </SecondaryButton>
+        <SecondaryButton
+          onClick={() =>
+            handleErr(action("queue_manual_task", {
+              task_type: "partner_event_coordination",
+              due_at: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+            }))
+          }
+        >
+          Queue event coordination (+14d)
+        </SecondaryButton>
+      </>
+    );
+  }
+
+  if (status === "no_response_closed" || status === "wrong_contact") {
+    return (
+      <>
+        <Guidance>
+          {status === "no_response_closed"
+            ? `Closed — no response. ${ctx.outreach.reopen_at ? `Auto-reopens ${ctx.outreach.reopen_at}.` : ""}`
+            : "Closed — wrong contact. Add a new contact and re-open if you find someone reachable."}
+        </Guidance>
+        <PrimaryButton onClick={() => handleErr(action("reopen"))}>Re-open now</PrimaryButton>
+      </>
+    );
+  }
+
+  if (status === "not_interested" || status === "do_not_contact" || status === "redirected") {
+    return (
+      <Guidance>
+        {STATUS_LABELS[status]}. No further outreach. Use the campus view to find related
+        stakeholders or add a new one.
+      </Guidance>
+    );
+  }
+
+  return <Guidance>No actions available in this stage.</Guidance>;
+}
+
+// ── Cadence checklist ──────────────────────────────────────────────────
+
+function CadenceChecklist({
+  type,
+  currentDay,
+  touchpoints,
+  pending,
+}: {
+  type: StakeholderType;
+  currentDay: number;
+  touchpoints: DrawerContext["touchpoints"];
+  pending: Task[];
+}) {
+  const steps = CADENCE_BY_TYPE[type];
+
+  // Map of cadence day → completed/pending state. A step is "done" if
+  // there's a touchpoint logged for it (we use the email/call touchpoints
+  // as proxy) at or after that step's offset. For MVP we use a simpler
+  // proxy: cadence_day on the row already advances when admin logs
+  // outreach, so step.day < currentDay → done.
+  const pendingDays = new Set(
+    pending
+      .filter((t) =>
+        ["outreach_followup_email", "outreach_followup_call", "outreach_multichannel_orgs", "outreach_day_0"].includes(t.task_type),
+      )
+      .map((t) => {
+        // Find which cadence step this matches by task_type closest to current.
+        const match = steps.find((s) => s.task_type === t.task_type && s.day >= currentDay);
+        return match?.day ?? null;
+      })
+      .filter((d): d is number => d !== null),
+  );
+
+  // Mark done if there's any matching outreach touchpoint at or before this step.
+  // Simpler heuristic: step.day < currentDay → done; step.day === currentDay → pending or active.
+  return (
+    <ul className="space-y-1 rounded-md border border-gray-100 bg-gray-50/50 p-3">
+      <li className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Cadence
+      </li>
+      {steps.map((s) => {
+        const done = s.day < currentDay;
+        const current = s.day === currentDay || pendingDays.has(s.day);
+        return (
+          <li
+            key={s.day}
+            className={`flex items-center gap-2 text-xs ${
+              current ? "font-medium text-gray-900" : done ? "text-gray-500 line-through" : "text-gray-400"
+            }`}
+          >
+            <span aria-hidden>{done ? "✓" : current ? "▶" : "○"}</span>
+            <span>Day {s.day}: {humanCadenceTask(s)}</span>
+          </li>
+        );
+      })}
+      <li className="text-[11px] text-gray-400 mt-1">
+        Day {CADENCE_END_DAY}: cycle ends — close as no-response if still cold
+      </li>
+    </ul>
+  );
+}
+
+function humanCadenceTask(s: CadenceStep): string {
+  const map: Record<string, string> = {
+    outreach_day_0: "intro email + call",
+    outreach_multichannel_orgs: "multi-channel push (email + IG + form)",
+    outreach_followup_email: "follow-up email",
+    outreach_followup_call: "follow-up call",
+  };
+  return map[s.task_type] ?? s.task_type;
+}
+
+// ── Inline panels (call, meeting) ──────────────────────────────────────
 
 function CallLogPanel({
   script,
@@ -453,12 +649,10 @@ function CallLogPanel({
     try {
       await action("log_call", { disposition, contact_id: primaryContactId, notes });
       onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Log failed");
-    }
+    } catch (e) { setError(e instanceof Error ? e.message : "Log failed"); }
   };
   return (
-    <div className="rounded-md border border-gray-100 bg-gray-50 p-3 text-sm">
+    <div className="rounded-md border border-gray-100 bg-white p-3 text-sm">
       <pre className="mb-3 whitespace-pre-wrap text-xs text-gray-700">{script}</pre>
       <textarea
         value={notes}
@@ -468,10 +662,10 @@ function CallLogPanel({
         rows={2}
       />
       <div className="flex flex-wrap gap-2">
-        <Btn onClick={() => log("no_answer")}>No answer</Btn>
-        <Btn onClick={() => log("voicemail")}>Voicemail</Btn>
-        <Btn primary onClick={() => log("connected")}>Connected</Btn>
-        <Btn danger onClick={() => log("wrong_number")}>Wrong number</Btn>
+        <SecondaryButton onClick={() => log("no_answer")}>No answer</SecondaryButton>
+        <SecondaryButton onClick={() => log("voicemail")}>Voicemail</SecondaryButton>
+        <PrimaryButton onClick={() => log("connected")}>Connected</PrimaryButton>
+        <DangerButton onClick={() => log("wrong_number")}>Wrong number</DangerButton>
       </div>
     </div>
   );
@@ -491,7 +685,7 @@ function MeetingForm({
   const [link, setLink] = useState("");
   const [notes, setNotes] = useState("");
   return (
-    <div className="rounded-md border border-gray-100 bg-gray-50 p-3 space-y-2">
+    <div className="space-y-2 rounded-md border border-gray-100 bg-white p-3">
       <Field type="datetime-local" label="Meeting at" value={meetingAt} onChange={setMeetingAt} />
       <Select label="Kind" value={kind} onChange={setKind} options={[
         { value: "phone", label: "Phone" },
@@ -501,7 +695,7 @@ function MeetingForm({
       <Field label="Link / location" value={link} onChange={setLink} placeholder="https://meet.example.com/..." />
       <Field label="Notes" value={notes} onChange={setNotes} />
       <div className="flex gap-2 pt-1">
-        <Btn primary onClick={async () => {
+        <PrimaryButton onClick={async () => {
           if (!meetingAt) { setError("Meeting time required"); return; }
           try {
             await action("mark_meeting_scheduled", {
@@ -511,81 +705,9 @@ function MeetingForm({
               notes,
             });
             onClose();
-          } catch (e) { setError(e instanceof Error ? e.message : "Schedule failed"); }
-        }}>Save meeting</Btn>
-        <Btn onClick={onClose}>Cancel</Btn>
-      </div>
-    </div>
-  );
-}
-
-function MeetingRescheduleInline({
-  action,
-  setError,
-}: {
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const [val, setVal] = useState("");
-  const [open, setOpen] = useState(false);
-  if (!open) return <Btn onClick={() => setOpen(true)}>Reschedule</Btn>;
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        type="datetime-local"
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        className="rounded-md border border-gray-200 px-2 py-1 text-sm"
-      />
-      <Btn primary onClick={async () => {
-        if (!val) { setError("Date required"); return; }
-        try {
-          await action("log_meeting_rescheduled", { meeting_at: new Date(val).toISOString() });
-          setOpen(false);
-          setVal("");
-        } catch (e) { setError(e instanceof Error ? e.message : "Reschedule failed"); }
-      }}>Save</Btn>
-      <Btn onClick={() => setOpen(false)}>Cancel</Btn>
-    </div>
-  );
-}
-
-function DistributedForm({
-  action,
-  setError,
-  onClose,
-}: {
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  onClose: () => void;
-}) {
-  const [evidence, setEvidence] = useState<DistributionEvidence>("self_reported");
-  const [notes, setNotes] = useState("");
-  return (
-    <div className="rounded-md border border-gray-100 bg-emerald-50/60 p-3 space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-        Confirm distributed
-      </p>
-      <Select
-        label="Evidence type"
-        value={evidence}
-        onChange={(v) => setEvidence(v as DistributionEvidence)}
-        options={[
-          { value: "explicit_email", label: "Explicit (email/written)" },
-          { value: "explicit_verbal", label: "Explicit (verbal/call/meeting)" },
-          { value: "observed_external", label: "Observed externally (IG, listserv, etc.)" },
-          { value: "self_reported", label: "Stakeholder self-reported" },
-        ]}
-      />
-      <Field label="Notes" value={notes} onChange={setNotes} placeholder='"Saw in pre-med IG story 5/4"' />
-      <div className="flex gap-2 pt-1">
-        <Btn primary onClick={async () => {
-          try {
-            await action("mark_distributed", { evidence, evidence_notes: notes });
-            onClose();
           } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
-        }}>Confirm distributed</Btn>
-        <Btn onClick={onClose}>Cancel</Btn>
+        }}>Save meeting</PrimaryButton>
+        <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
       </div>
     </div>
   );
@@ -603,14 +725,27 @@ function ResearchSection({
   setError: (e: string | null) => void;
 }) {
   const r = ctx.outreach.research_data;
+  const type = ctx.outreach.stakeholder_type;
   const [website, setWebsite] = useState(r.website ?? "");
   const [officialEmail, setOfficialEmail] = useState(r.official_email ?? "");
   const [phone, setPhone] = useState(r.phone ?? "");
-  const [semCal, setSemCal] = useState(r.semester_calendar ?? "");
   const [notes, setNotes] = useState(r.notes ?? "");
   const [orgName, setOrgName] = useState(ctx.outreach.organization_name);
-  const [department, setDepartment] = useState(ctx.outreach.department ?? "");
-  const [programs, setPrograms] = useState(ctx.outreach.programs.join(", "));
+
+  const [department, setDepartment] = useState(
+    ctx.outreach.department && DEPARTMENTS.includes(ctx.outreach.department)
+      ? ctx.outreach.department
+      : ctx.outreach.department ? OTHER : "",
+  );
+  const [departmentOther, setDepartmentOther] = useState(
+    ctx.outreach.department && !DEPARTMENTS.includes(ctx.outreach.department)
+      ? ctx.outreach.department
+      : "",
+  );
+
+  const [programs, setPrograms] = useState<string[]>(ctx.outreach.programs);
+
+  const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
 
   const saveResearch = async () => {
     try {
@@ -619,7 +754,6 @@ function ResearchSection({
           website,
           official_email: officialEmail,
           phone,
-          semester_calendar: semCal,
           notes,
         } satisfies ResearchData,
       });
@@ -628,34 +762,75 @@ function ResearchSection({
 
   const saveOutreach = async () => {
     try {
+      const departmentValue = department === OTHER ? departmentOther.trim() || null : department || null;
       await action("update_outreach", {
         organization_name: orgName,
-        department: department || null,
-        programs: programs.split(",").map((s) => s.trim()).filter(Boolean),
+        department: departmentValue,
+        programs,
       });
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
+  const showDepartment = type === "dept_head" || type === "professor";
+
   return (
     <section>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         Research
       </h3>
-      <div className="space-y-2 rounded-lg border border-gray-100 bg-white p-4">
+      <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
         <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
-        <Field label="Department" value={department} onChange={setDepartment} onBlur={saveOutreach} />
-        <Field label="Programs (comma-separated)" value={programs} onChange={setPrograms} onBlur={saveOutreach} placeholder="pre-med, pre-pa, pre-nursing" />
+
+        {showDepartment && (
+          <>
+            <Select
+              label="Department"
+              value={department}
+              onChange={(v) => { setDepartment(v); setTimeout(saveOutreach, 0); }}
+              options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
+            />
+            {department === OTHER && (
+              <Field
+                label="Other department"
+                value={departmentOther}
+                onChange={setDepartmentOther}
+                onBlur={saveOutreach}
+              />
+            )}
+          </>
+        )}
+
+        {/* Programs */}
+        {singleProgram(type) ? (
+          <Select
+            label="Program"
+            value={programs[0] ?? ""}
+            onChange={(v) => { setPrograms(v ? [v] : []); setTimeout(saveOutreach, 0); }}
+            options={programOptions.map((p) => ({ value: p, label: p }))}
+          />
+        ) : (
+          <MultiToggle
+            label="Programs"
+            values={programs}
+            options={programOptions}
+            onToggle={(v) => {
+              const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
+              setPrograms(next);
+              setTimeout(saveOutreach, 0);
+            }}
+          />
+        )}
+
         <Field label="Website" value={website} onChange={setWebsite} onBlur={saveResearch} placeholder="https://..." />
         <Field label="Official email" value={officialEmail} onChange={setOfficialEmail} onBlur={saveResearch} placeholder="advising@..." />
         <Field label="Phone" value={phone} onChange={setPhone} onBlur={saveResearch} />
-        <Field label="Semester calendar / timing notes" value={semCal} onChange={setSemCal} onBlur={saveResearch} />
         <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
       </div>
     </section>
   );
 }
 
-// ── Contacts section ───────────────────────────────────────────────────
+// ── Contacts section (type-aware) ──────────────────────────────────────
 
 function ContactsSection({
   ctx,
@@ -666,16 +841,30 @@ function ContactsSection({
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
+  const type = ctx.outreach.stakeholder_type;
+  const multi = supportsMultipleContacts(type);
   const [showAdd, setShowAdd] = useState(false);
+  const active = ctx.contacts.filter((c) => c.status === "active");
+
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-          Contacts ({ctx.contacts.filter((c) => c.status === "active").length} active)
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          {multi ? `Contacts (${active.length} active)` : "Contact"}
         </h3>
-        <Btn small onClick={() => setShowAdd((s) => !s)}>{showAdd ? "Cancel" : "+ Add contact"}</Btn>
+        {(multi || active.length === 0) && (
+          <SmallButton onClick={() => setShowAdd((s) => !s)}>
+            {showAdd ? "Cancel" : multi ? "+ Add officer" : "+ Add contact"}
+          </SmallButton>
+        )}
       </div>
-      <div className="space-y-2 rounded-lg border border-gray-100 bg-white p-4">
+      <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
+        {multi && (
+          <div className="rounded-md border border-blue-100 bg-blue-50/60 p-2.5 text-xs text-blue-900">
+            💡 Don't rely on one inbox — President, VP, and the outreach officer at minimum.
+            Email each officer so info reaches whoever's online first.
+          </div>
+        )}
         {ctx.contacts.length === 0 && !showAdd && (
           <p className="text-sm text-gray-400">No contacts yet.</p>
         )}
@@ -684,6 +873,7 @@ function ContactsSection({
         ))}
         {showAdd && (
           <AddContactInline
+            type={type}
             action={action}
             setError={setError}
             onSaved={() => setShowAdd(false)}
@@ -724,11 +914,9 @@ function ContactRow({
           )}
         </div>
         {!stale && (
-          <div className="flex shrink-0 gap-1">
-            <Btn small onClick={() => action("mark_contact_stale", { contact_id: contact.id }).catch((e) => setError(e.message))}>
-              Mark stale
-            </Btn>
-          </div>
+          <SmallButton onClick={() => action("mark_contact_stale", { contact_id: contact.id }).catch((e) => setError(e.message))}>
+            Mark stale
+          </SmallButton>
         )}
       </div>
     </div>
@@ -736,47 +924,63 @@ function ContactRow({
 }
 
 function AddContactInline({
+  type,
   action,
   setError,
   onSaved,
 }: {
+  type: StakeholderType;
   action: ActionFn;
   setError: (e: string | null) => void;
   onSaved: () => void;
 }) {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  const [roleOther, setRoleOther] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
-  const [contactFormUrl, setContactFormUrl] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
   return (
     <div className="space-y-2 rounded-md border border-dashed border-gray-200 p-3">
       <Field label="Name *" value={name} onChange={setName} />
-      <Field label="Role" value={role} onChange={setRole} placeholder="President / Pre-Health Advisor / ..." />
+      <Select
+        label="Role"
+        value={role}
+        onChange={setRole}
+        options={ROLES_BY_TYPE[type].map((r) => ({ value: r, label: r }))}
+      />
+      {role === OTHER && (
+        <Field label="Other role" value={roleOther} onChange={setRoleOther} />
+      )}
       <Field label="Email" value={email} onChange={setEmail} type="email" />
       <Field label="Phone" value={phone} onChange={setPhone} />
-      <Field label="Instagram" value={instagram} onChange={setInstagram} placeholder="@handle" />
-      <Field label="Contact form URL" value={contactFormUrl} onChange={setContactFormUrl} />
+      {supportsAltChannels(type) && (
+        <Field label="Instagram" value={instagram} onChange={setInstagram} placeholder="@handle" />
+      )}
       <label className="flex items-center gap-2 text-xs text-gray-600">
         <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
         Primary contact
       </label>
-      <Btn primary onClick={async () => {
+      <PrimaryButton onClick={async () => {
         if (!name.trim()) { setError("Name required"); return; }
         try {
           await action("add_contact", {
-            name, role, email, phone, instagram, contact_form_url: contactFormUrl, is_primary: isPrimary,
+            name,
+            role: role === OTHER ? roleOther : role,
+            email,
+            phone,
+            instagram,
+            is_primary: isPrimary,
           });
           onSaved();
         } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
-      }}>Add contact</Btn>
+      }}>Add contact</PrimaryButton>
     </div>
   );
 }
 
-// ── Approvals section ──────────────────────────────────────────────────
+// ── Approvals (dept_head only) ─────────────────────────────────────────
 
 function ApprovalsSection({
   ctx,
@@ -794,34 +998,27 @@ function ApprovalsSection({
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           Approvals ({open.length} pending)
         </h3>
-        <Btn small onClick={() => setShowRequest(true)}>+ Request approval</Btn>
+        <SmallButton onClick={() => setShowRequest(true)}>+ Request approval</SmallButton>
       </div>
-      <div className="space-y-2 rounded-lg border border-gray-100 bg-white p-4">
+      <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
         {open.length === 0 && resolved.length === 0 && (
           <p className="text-sm text-gray-400">No approvals.</p>
         )}
         {open.map((a) => (
-          <ApprovalRow
-            key={a.id}
-            approval={a}
-            action={action}
-            setError={setError}
-            ctx={ctx}
-          />
+          <ApprovalRow key={a.id} approval={a} action={action} setError={setError} />
         ))}
         {resolved.map((a) => (
-          <ApprovalRow
-            key={a.id}
-            approval={a}
-            action={action}
-            setError={setError}
-            ctx={ctx}
-            resolved
-          />
+          <ApprovalRow key={a.id} approval={a} action={action} setError={setError} resolved />
         ))}
+        {open.some((a) => a.status === "requested") && (
+          <p className="text-[11px] text-gray-500 italic mt-1">
+            Tip: Once dept approval is granted, use Bulk Professor Import on the Campus page to
+            create professor rows under this dept.
+          </p>
+        )}
       </div>
       {showRequest && (
         <RequestApprovalModal
@@ -842,13 +1039,11 @@ function ApprovalRow({
   approval,
   action,
   setError,
-  ctx,
   resolved,
 }: {
   approval: Approval;
   action: ActionFn;
   setError: (e: string | null) => void;
-  ctx: DrawerContext;
   resolved?: boolean;
 }) {
   const [notes, setNotes] = useState("");
@@ -886,12 +1081,9 @@ function ApprovalRow({
             className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm"
           />
           <div className="flex flex-wrap gap-2">
-            <Btn primary onClick={() => resolve("granted")}>Granted</Btn>
-            <Btn onClick={() => resolve("denied")}>Denied</Btn>
-            <Btn onClick={() => resolve("expired")}>Expired</Btn>
-            {approval.approval_type === "department" && (
-              <BulkUnlockHint outreachId={ctx.outreach.id} approval={approval} />
-            )}
+            <PrimaryButton onClick={() => resolve("granted")}>Granted</PrimaryButton>
+            <SecondaryButton onClick={() => resolve("denied")}>Denied</SecondaryButton>
+            <SecondaryButton onClick={() => resolve("expired")}>Expired</SecondaryButton>
           </div>
         </div>
       )}
@@ -899,121 +1091,59 @@ function ApprovalRow({
   );
 }
 
-function BulkUnlockHint({ outreachId, approval }: { outreachId: string; approval: Approval }) {
-  // Placeholder for the deeper unlock flow — a hint that admin should
-  // also use the Bulk Professor Import after granting.
-  void outreachId;
-  void approval;
-  return (
-    <span className="self-center text-[11px] text-gray-500 italic">
-      Tip: After granting, use Bulk Professor Import on the Campus page.
-    </span>
+// ── History (with narration) ───────────────────────────────────────────
+
+function HistorySection({ ctx }: { ctx: DrawerContext }) {
+  const adminFirstNames = useMemo(
+    () => new Map(Object.entries(ctx.admin_first_names ?? {})),
+    [ctx.admin_first_names],
   );
-}
+  const contactsById = useMemo(
+    () => new Map(ctx.contacts.map((c) => [c.id, c])),
+    [ctx.contacts],
+  );
 
-// ── Tasks section ──────────────────────────────────────────────────────
-
-function TasksSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
   return (
     <section>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Pending tasks ({ctx.pending_tasks.length})
-      </h3>
-      <div className="space-y-2 rounded-lg border border-gray-100 bg-white p-4">
-        {ctx.pending_tasks.length === 0 && (
-          <p className="text-sm text-gray-400">No pending tasks.</p>
-        )}
-        {ctx.pending_tasks.map((t) => (
-          <TaskRow key={t.id} task={t} action={action} setError={setError} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TaskRow({
-  task,
-  action,
-  setError,
-}: {
-  task: Task;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-md border border-gray-100 px-3 py-2 text-sm">
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-gray-800">{humanTask(task.task_type)}</p>
-        <p className="text-xs text-gray-500">
-          Due {new Date(task.due_at).toLocaleString()}
-        </p>
-      </div>
-      <div className="flex shrink-0 gap-1">
-        <Btn small onClick={() => action("complete_task", { task_id: task.id }).catch((e) => setError(e.message))}>
-          Done
-        </Btn>
-        <Btn small onClick={() => action("cancel_task", { task_id: task.id }).catch((e) => setError(e.message))}>
-          Cancel
-        </Btn>
-      </div>
-    </div>
-  );
-}
-
-// ── History ────────────────────────────────────────────────────────────
-
-function HistorySection({
-  touchpoints,
-  contacts,
-}: {
-  touchpoints: Touchpoint[];
-  contacts: Contact[];
-}) {
-  const contactById = new Map(contacts.map((c) => [c.id, c.name]));
-  return (
-    <section>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         History
       </h3>
-      {touchpoints.length === 0 ? (
+      {ctx.touchpoints.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
           No touchpoints yet.
         </p>
       ) : (
         <ul className="space-y-1.5">
-          {touchpoints.map((t) => (
-            <li
-              key={t.id}
-              className="rounded-md border border-gray-100 bg-white px-3 py-2 text-sm"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-medium text-gray-700">
-                  {humanTouchpoint(t.touchpoint_type)}
-                  {t.contact_id && contactById.get(t.contact_id) && (
-                    <span className="ml-1 text-xs font-normal text-gray-500">
-                      ({contactById.get(t.contact_id)})
-                    </span>
-                  )}
-                </span>
-                <span className="shrink-0 text-xs text-gray-400">
-                  {new Date(t.created_at).toLocaleString()}
-                </span>
-              </div>
-              {t.notes && <p className="mt-1 text-sm text-gray-600">{t.notes}</p>}
-            </li>
-          ))}
+          {ctx.touchpoints.map((t) => {
+            const n = narrateTouchpoint(t, { adminFirstNames, contactsById });
+            return (
+              <li key={t.id} className="rounded-md border border-gray-100 bg-white px-3 py-2 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-gray-700">{n.text}</span>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-gray-400">
+                    {n.admin && <span className="mr-2 text-gray-500">{n.admin}</span>}
+                    {relativeTime(n.whenIso)}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
   );
+}
+
+function relativeTime(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d < 14) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 // ── Danger zone ────────────────────────────────────────────────────────
@@ -1037,22 +1167,22 @@ function DangerZone({
 
   return (
     <section>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         Close out
       </h3>
-      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-100 bg-white p-4">
-        <Btn onClick={() => confirm("Mark Not Interested?", () => action("mark_not_interested"))}>
+      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-200 bg-white p-4">
+        <SecondaryButton onClick={() => confirm("Mark Not Interested?", () => action("mark_not_interested"))}>
           Not interested
-        </Btn>
-        <Btn onClick={() => confirm("Close as No Response (re-open in 90d)?", () => action("mark_no_response_closed"))}>
+        </SecondaryButton>
+        <SecondaryButton onClick={() => confirm("Close as No Response (re-open in 90d)?", () => action("mark_no_response_closed"))}>
           Close: no response
-        </Btn>
-        <Btn onClick={() => confirm("Mark all known contacts wrong / unreachable?", () => action("mark_wrong_contact"))}>
+        </SecondaryButton>
+        <SecondaryButton onClick={() => confirm("Mark all known contacts wrong / unreachable?", () => action("mark_wrong_contact"))}>
           Wrong contact
-        </Btn>
-        <Btn danger onClick={() => confirm("Mark Do Not Contact (hard stop)?", () => action("mark_dnc"))}>
+        </SecondaryButton>
+        <DangerButton onClick={() => confirm("Mark Do Not Contact (hard stop)?", () => action("mark_dnc"))}>
           DNC (hard stop)
-        </Btn>
+        </DangerButton>
       </div>
     </section>
   );
@@ -1060,56 +1190,74 @@ function DangerZone({
 
 // ── UI primitives ──────────────────────────────────────────────────────
 
-function ButtonRow({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-wrap gap-2">{children}</div>;
+function Guidance({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm text-gray-700 leading-relaxed">{children}</p>;
 }
 
-function Btn({
-  children,
-  onClick,
-  primary,
-  danger,
-  small,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => unknown;
-  primary?: boolean;
-  danger?: boolean;
-  small?: boolean;
-  disabled?: boolean;
-}) {
-  const base = `rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-    small ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-sm"
-  }`;
-  const styles = primary
-    ? "bg-gray-900 text-white hover:bg-gray-700"
-    : danger
-    ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-    : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50";
+function ChecklistInline({ items }: { items: Array<{ done: boolean; label: string }> }) {
   return (
-    <button onClick={() => void onClick()} disabled={disabled} className={`${base} ${styles}`}>
+    <ul className="space-y-0.5">
+      {items.map((i, idx) => (
+        <li key={idx} className={`flex items-center gap-2 text-xs ${i.done ? "text-emerald-700" : "text-gray-500"}`}>
+          <span aria-hidden>{i.done ? "✓" : "○"}</span>
+          <span>{i.label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PrimaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => unknown; disabled?: boolean }) {
+  return (
+    <button
+      onClick={() => void onClick()}
+      disabled={disabled}
+      className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => unknown; disabled?: boolean }) {
+  return (
+    <button
+      onClick={() => void onClick()}
+      disabled={disabled}
+      className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
+function DangerButton({ children, onClick }: { children: React.ReactNode; onClick: () => unknown }) {
+  return (
+    <button
+      onClick={() => void onClick()}
+      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SmallButton({ children, onClick }: { children: React.ReactNode; onClick: () => unknown }) {
+  return (
+    <button
+      onClick={() => void onClick()}
+      className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+    >
       {children}
     </button>
   );
 }
 
 function Field({
-  label,
-  value,
-  onChange,
-  onBlur,
-  placeholder,
-  type = "text",
-  multiline,
+  label, value, onChange, onBlur, placeholder, type = "text", multiline,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  onBlur?: () => void;
-  placeholder?: string;
-  type?: string;
-  multiline?: boolean;
+  label: string; value: string; onChange: (v: string) => void; onBlur?: () => void;
+  placeholder?: string; type?: string; multiline?: boolean;
 }) {
   return (
     <label className="block">
@@ -1138,14 +1286,9 @@ function Field({
 }
 
 function Select({
-  label,
-  value,
-  onChange,
-  options,
+  label, value, onChange, options,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
+  label: string; value: string; onChange: (v: string) => void;
   options: Array<{ value: string; label: string }>;
 }) {
   return (
@@ -1156,74 +1299,45 @@ function Select({
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
       >
+        <option value="">— select —</option>
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
+          <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
     </label>
   );
 }
 
-// ── Touchpoint + task labels ───────────────────────────────────────────
-
-function humanTouchpoint(t: string): string {
-  const map: Record<string, string> = {
-    email_sent: "Email sent",
-    email_replied: "Email replied",
-    email_bounced: "Email bounced",
-    call_no_answer: "Call: no answer",
-    call_voicemail: "Call: voicemail",
-    call_connected: "Call: connected",
-    call_wrong_number: "Call: wrong number",
-    ig_dm_sent: "Instagram DM sent",
-    ig_dm_replied: "Instagram DM replied",
-    contact_form_submitted: "Contact form submitted",
-    meeting_scheduled: "Meeting scheduled",
-    meeting_held: "Meeting held",
-    meeting_no_show: "Meeting no-show",
-    meeting_rescheduled: "Meeting rescheduled",
-    approval_requested: "Approval requested",
-    approval_granted: "Approval granted",
-    approval_denied: "Approval denied",
-    approval_expired: "Approval expired",
-    distribution_confirmed: "Distribution confirmed",
-    contact_added: "Contact added",
-    contact_marked_stale: "Contact updated",
-    contact_replaced: "Contact replaced",
-    redirect_initiated: "Redirected",
-    stage_change: "Stage changed",
-    note_added: "Note added",
-    snoozed: "Snoozed",
-    task_cancelled: "Task cancelled",
-    task_superseded: "Task superseded",
-    system_seasonal_due: "Seasonal check-in due",
-  };
-  return map[t] ?? t;
+function MultiToggle({
+  label, values, options, onToggle,
+}: {
+  label: string;
+  values: string[];
+  options: string[];
+  onToggle: (v: string) => void;
+}) {
+  return (
+    <div className="block">
+      <span className="mb-1 block text-xs font-medium text-gray-600">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = values.includes(o);
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onToggle(o)}
+              className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                active
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {o}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
-
-function humanTask(t: string): string {
-  const map: Record<string, string> = {
-    research_initial: "Research stakeholder",
-    outreach_day_0: "Day 0 outreach (email + call)",
-    outreach_multichannel_orgs: "Day 0 multi-channel (email + IG + form)",
-    outreach_followup_email: "Follow-up email",
-    outreach_followup_call: "Follow-up call",
-    meeting_held_logging: "Log meeting outcome",
-    agreement_followup: "Confirm distribution",
-    distribution_confirmation: "Confirm distribution",
-    move_to_active_partner: "Promote to Active Partner",
-    partner_seasonal_checkin: "Seasonal check-in",
-    partner_share_update: "Share update",
-    partner_event_coordination: "Coordinate event",
-    approval_request_followup: "Follow up on approval",
-    yearly_leadership_recheck: "Verify org leadership",
-    manual_followup: "Manual follow-up",
-  };
-  return map[t] ?? t;
-}
-
-// Suppress unused-type warning; types are re-exported from drawer.
-const _stakeholderKeepalive: StakeholderType[] = ["advisor"];
-void _stakeholderKeepalive;

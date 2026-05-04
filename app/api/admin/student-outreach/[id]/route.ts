@@ -103,14 +103,9 @@ export async function POST(
       case "mark_meeting_scheduled":
         await handleMarkMeetingScheduled(db, row, body, user.id);
         break;
-      case "mark_agreed":
-        await transitionStage(db, row, "agreed", user.id, body.notes);
-        break;
-      case "mark_distributed":
-        await handleMarkDistributed(db, row, body, user.id);
-        break;
+      case "mark_partner":
       case "mark_active_partner":
-        await handleMarkActivePartner(db, row, user.id);
+        await handleMarkPartner(db, row, body, user.id);
         break;
       case "mark_not_interested":
         await transitionStage(db, row, "not_interested", user.id, body.notes);
@@ -289,6 +284,27 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
 
   if (!campus) return null;
 
+  // Hydrate admin first names for any user IDs referenced by touchpoints,
+  // tasks, approvals, contacts, or the outreach row itself. Keeps history
+  // narration self-contained without follow-up fetches.
+  const adminIds = new Set<string>();
+  for (const t of (touchpoints ?? []) as Array<{ created_by: string | null }>) {
+    if (t.created_by) adminIds.add(t.created_by);
+  }
+  if (row.last_edited_by) adminIds.add(row.last_edited_by);
+  if (row.created_by) adminIds.add(row.created_by);
+
+  const adminFirstNames: Record<string, string> = {};
+  if (adminIds.size > 0) {
+    const { data: admins } = await db
+      .from("admin_users")
+      .select("user_id, email")
+      .in("user_id", Array.from(adminIds));
+    for (const a of (admins ?? []) as Array<{ user_id: string; email: string }>) {
+      adminFirstNames[a.user_id] = firstNameFromEmail(a.email);
+    }
+  }
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -299,7 +315,15 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     referred_from: (referredFrom.data ?? null) as DrawerContext["referred_from"],
     redirected_to: (redirectedTo.data ?? null) as DrawerContext["redirected_to"],
     permission_dependency: (permissionDep.data ?? null) as DrawerContext["permission_dependency"],
+    admin_first_names: adminFirstNames,
   };
+}
+
+function firstNameFromEmail(email: string): string {
+  const local = email.split("@")[0] ?? email;
+  // "tj.alohun" → "Tj"; "logan" → "Logan"
+  const first = local.split(/[._-]/)[0] ?? local;
+  return first.charAt(0).toUpperCase() + first.slice(1);
 }
 
 // ── Core helpers ────────────────────────────────────────────────────────
@@ -555,14 +579,22 @@ async function handleLogMeetingRescheduled(
   });
 }
 
-async function handleMarkDistributed(
+/**
+ * The unified "Mark as Partner" graduation. Replaces the v1
+ * mark_agreed + mark_distributed pair: one stage (active_partner),
+ * with evidence captured on the row + as a touchpoint.
+ *
+ * Auto-queues the first seasonal check-in and (for student orgs) the
+ * yearly leadership recheck.
+ */
+async function handleMarkPartner(
   db: DB,
   row: OutreachRow,
   body: { evidence?: DistributionEvidence; evidence_notes?: string; notes?: string },
   userId: string,
 ) {
   if (!body.evidence) throw new Error("evidence required");
-  await transitionStage(db, row, "distributed", userId, body.notes, {
+  await transitionStage(db, row, "active_partner", userId, body.notes, {
     distribution_evidence: body.evidence,
     distribution_evidence_notes: body.evidence_notes ?? null,
   });
@@ -570,11 +602,8 @@ async function handleMarkDistributed(
     notes: body.evidence_notes ?? null,
     payload: { evidence: body.evidence },
   });
-}
 
-async function handleMarkActivePartner(db: DB, row: OutreachRow, userId: string) {
-  await transitionStage(db, row, "active_partner", userId);
-  // Queue first seasonal check-in.
+  // Queue the first seasonal check-in.
   const seasonal = nextSeasonalDate(new Date());
   await queueTask(
     db,
@@ -586,7 +615,8 @@ async function handleMarkActivePartner(db: DB, row: OutreachRow, userId: string)
     },
     userId,
   );
-  // Yearly leadership recheck for student orgs.
+
+  // Yearly leadership recheck for student orgs (officer turnover).
   if (row.stakeholder_type === "student_org") {
     await queueTask(
       db,

@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * Admin Student Outreach Funnel — main page.
+ * Admin Student Outreach Funnel — main page (v2).
  *
- * Queue + tabs + filters for stakeholder outreach. Click row to open
- * Drawer. Top-level: Add Stakeholder + Manage Campuses + campus/type
- * filters. Tabs surface Today / Upcoming / funnel-stage / Approvals /
- * Blocked / Re-engage.
+ * Tabs collapsed to 4: Queued · In Progress · Partnered · Closed.
+ * Approvals surface as a header pill (clicking filters In Progress to
+ * rows with open approvals). Search + campus + type filters above tabs.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,17 +24,10 @@ import {
 } from "@/lib/student-outreach/types";
 
 const TABS: Array<{ key: string; label: string }> = [
-  { key: "today", label: "Today" },
-  { key: "upcoming", label: "Upcoming" },
-  { key: "active", label: "Active" },
-  { key: "agreed", label: "Agreed" },
-  { key: "distributed", label: "Distributed" },
-  { key: "partners", label: "Partners" },
-  { key: "approvals", label: "Approvals" },
-  { key: "blocked", label: "Blocked" },
-  { key: "reengage", label: "Re-engage" },
+  { key: "queued", label: "Queued" },
+  { key: "in_progress", label: "In Progress" },
+  { key: "partnered", label: "Partnered" },
   { key: "closed", label: "Closed" },
-  { key: "all", label: "All" },
 ];
 
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
@@ -50,7 +42,8 @@ export default function StudentOutreachPage() {
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
-  const [tab, setTab] = useState("today");
+  const [tab, setTab] = useState("queued");
+  const [approvalsFilter, setApprovalsFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<QueueRow[]>([]);
@@ -73,6 +66,7 @@ export default function StudentOutreachPage() {
       if (campusSlug) params.set("campus", campusSlug);
       if (typeFilter !== "all") params.set("type", typeFilter);
       if (tab) params.set("tab", tab);
+      if (approvalsFilter) params.set("approvals", "open");
       if (debouncedSearch) params.set("search", debouncedSearch);
       const res = await fetch(`/api/admin/student-outreach/queue?${params}`);
       if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
@@ -85,17 +79,12 @@ export default function StudentOutreachPage() {
     } finally {
       setLoading(false);
     }
-  }, [campusSlug, typeFilter, tab, debouncedSearch]);
+  }, [campusSlug, typeFilter, tab, approvalsFilter, debouncedSearch]);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  useEffect(() => { refetch(); }, [refetch]);
 
   const handleDrawerAction = useCallback(
-    async (_refreshed: DrawerContext | null) => {
-      // Just refetch — keep drawer open on same row.
-      await refetch();
-    },
+    async (_refreshed: DrawerContext | null) => { await refetch(); },
     [refetch],
   );
 
@@ -103,6 +92,12 @@ export default function StudentOutreachPage() {
     () => campuses.find((c) => c.slug === campusSlug) ?? null,
     [campuses, campusSlug],
   );
+
+  const onApprovalsPillClick = () => {
+    // Clicking jumps to In Progress + filtered to open-approval rows.
+    setTab("in_progress");
+    setApprovalsFilter(true);
+  };
 
   return (
     <div>
@@ -130,6 +125,26 @@ export default function StudentOutreachPage() {
         </div>
       </div>
 
+      {/* Approvals header pill */}
+      {tabCounts && tabCounts.open_approvals > 0 && !approvalsFilter && (
+        <button
+          onClick={onApprovalsPillClick}
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+        >
+          <span>⚠</span>
+          {tabCounts.open_approvals} pending approval{tabCounts.open_approvals === 1 ? "" : "s"} — click to filter
+        </button>
+      )}
+      {approvalsFilter && (
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900">
+          <span>⚠</span>
+          Filtered: rows with open approvals
+          <button onClick={() => setApprovalsFilter(false)} className="ml-1 rounded-full bg-amber-200 px-1.5 hover:bg-amber-300">
+            clear
+          </button>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <select
@@ -139,9 +154,7 @@ export default function StudentOutreachPage() {
         >
           <option value="">All campuses</option>
           {campuses.map((c) => (
-            <option key={c.id} value={c.slug}>
-              {c.name}
-            </option>
+            <option key={c.id} value={c.slug}>{c.name}</option>
           ))}
         </select>
         <select
@@ -150,9 +163,7 @@ export default function StudentOutreachPage() {
           className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
         >
           {TYPE_FILTERS.map((f) => (
-            <option key={f.key} value={f.key}>
-              {f.label}
-            </option>
+            <option key={f.key} value={f.key}>{f.label}</option>
           ))}
         </select>
         {currentCampus && (
@@ -192,11 +203,7 @@ export default function StudentOutreachPage() {
             >
               {t.label}
               {typeof count === "number" && (
-                <span
-                  className={`ml-1.5 text-xs ${
-                    active ? "text-gray-500" : "text-gray-400"
-                  }`}
-                >
+                <span className={`ml-1.5 text-xs ${active ? "text-gray-500" : "text-gray-400"}`}>
                   {count}
                 </span>
               )}
@@ -276,10 +283,11 @@ export default function StudentOutreachPage() {
 
 function EmptyState({ campusFiltered, tab }: { campusFiltered: boolean; tab: string }) {
   let msg = "Nothing in this tab.";
-  if (tab === "today") msg = "No tasks due today. 🎉";
-  else if (tab === "upcoming") msg = "No tasks queued in the next 7 days.";
-  else if (tab === "all" && !campusFiltered) {
-    msg = "No stakeholders yet. Click \"Add Stakeholder\" to get started.";
+  if (tab === "queued") msg = "No tasks due right now. 🎉";
+  else if (tab === "in_progress") msg = "No stakeholders being actively worked.";
+  else if (tab === "partnered") msg = "No active partners yet.";
+  else if (tab === "closed" && !campusFiltered) {
+    msg = "No closed-out stakeholders.";
   }
   return <p className="py-12 text-center text-sm text-gray-400">{msg}</p>;
 }
@@ -291,9 +299,7 @@ function StatusBadge({ status }: { status: Status }) {
     outreach_sent: "bg-blue-50 text-blue-700",
     engaged: "bg-blue-100 text-blue-800",
     meeting_scheduled: "bg-indigo-50 text-indigo-700",
-    agreed: "bg-emerald-50 text-emerald-700",
-    distributed: "bg-emerald-100 text-emerald-800",
-    active_partner: "bg-purple-100 text-purple-800",
+    active_partner: "bg-emerald-100 text-emerald-800",
     not_interested: "bg-gray-100 text-gray-500",
     no_response_closed: "bg-gray-100 text-gray-500",
     do_not_contact: "bg-red-50 text-red-700",
@@ -301,9 +307,7 @@ function StatusBadge({ status }: { status: Status }) {
     redirected: "bg-gray-100 text-gray-500",
   };
   return (
-    <span
-      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}
-    >
+    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}>
       {STATUS_LABELS[status]}
     </span>
   );

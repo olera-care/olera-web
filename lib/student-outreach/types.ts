@@ -13,14 +13,19 @@ export type Status =
   | "outreach_sent"
   | "engaged"
   | "meeting_scheduled"
-  | "agreed"
-  | "distributed"
   | "active_partner"
   | "not_interested"
   | "no_response_closed"
   | "do_not_contact"
   | "wrong_contact"
   | "redirected";
+
+/**
+ * Legacy values still accepted by the DB CHECK constraint but no longer
+ * produced by application code (migration 065 collapsed them). Used only
+ * to render historical rows that haven't been migrated yet.
+ */
+export type LegacyStatus = "agreed" | "distributed";
 
 export type ContactPermission =
   | "not_yet"
@@ -220,19 +225,15 @@ export interface QueueRow extends OutreachRow {
   open_approvals: number;
 }
 
-/** Counts shown above the tab row. */
+/** Counts shown above the tab row + approvals pill. */
 export interface TabCounts {
-  today: number;
-  upcoming: number;
-  active: number;
-  agreed: number;
-  distributed: number;
-  partners: number;
-  approvals: number;
-  blocked: number;
-  reengage: number;
+  queued: number;
+  in_progress: number;
+  partnered: number;
   closed: number;
   all: number;
+  /** Drives the header approvals pill. */
+  open_approvals: number;
 }
 
 /** What the drawer needs to render every section. */
@@ -246,6 +247,8 @@ export interface DrawerContext {
   referred_from: Pick<OutreachRow, "id" | "organization_name" | "stakeholder_type"> | null;
   redirected_to: Pick<OutreachRow, "id" | "organization_name" | "stakeholder_type"> | null;
   permission_dependency: Pick<OutreachRow, "id" | "organization_name" | "stakeholder_type" | "status"> | null;
+  /** user_id → first-name display string. Used by history narration. */
+  admin_first_names: Record<string, string>;
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
@@ -255,18 +258,44 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   dept_head: "Dept Head",
 };
 
-export const STATUS_LABELS: Record<Status, string> = {
+export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   prospect: "Prospect",
   researched: "Researched",
   outreach_sent: "Outreach Sent",
   engaged: "Engaged",
   meeting_scheduled: "Meeting Scheduled",
-  agreed: "Agreed",
-  distributed: "Distributed",
   active_partner: "Active Partner",
   not_interested: "Not Interested",
   no_response_closed: "No Response (Closed)",
   do_not_contact: "Do Not Contact",
   wrong_contact: "Wrong Contact",
   redirected: "Redirected",
+  // Legacy — only present on un-migrated historical rows.
+  agreed: "Active Partner",
+  distributed: "Active Partner",
 };
+
+/**
+ * Tab membership rules. Keep this list as the single source of truth for
+ * which statuses fall into which tab.
+ */
+export const IN_PROGRESS_STATUSES: Status[] = [
+  "prospect",
+  "researched",
+  "outreach_sent",
+  "engaged",
+  "meeting_scheduled",
+];
+
+export const PARTNERED_STATUSES: Status[] = ["active_partner"];
+
+export const CLOSED_STATUSES: Status[] = [
+  "not_interested",
+  "no_response_closed",
+  "do_not_contact",
+  "wrong_contact",
+  "redirected",
+];
+
+/** Stages from which "Mark as Partner" should be visible as a CTA. */
+export const PARTNER_CTA_STAGES: Status[] = ["engaged", "meeting_scheduled"];
